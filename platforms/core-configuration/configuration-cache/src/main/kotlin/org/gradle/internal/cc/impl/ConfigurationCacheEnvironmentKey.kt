@@ -30,25 +30,15 @@ import java.io.File
 
 
 /**
- * Sibling of [ConfigurationCacheKey] that hashes every component <strong>EXCEPT</strong> the
- * requested task names.
+ * Sibling of [ConfigurationCacheKey] that hashes every component <strong>EXCEPT</strong>
+ * the requested task names. Identifies the group of stored entries that share the same
+ * environment (Gradle version, included builds, encryption, excluded tasks, etc.) and
+ * thus could superset-share. [SupersetIndexLookup] filters among entries with the same
+ * environment key but different requested-task lists.
  * <p>
- * Used during task superset lookup so that only entries
- * sharing the same environment (Gradle version, included builds, encryption,
- * excluded tasks, etc.) are considered when looking for a match. Where
- * [ConfigurationCacheKey] identifies one specific stored entry, this class
- * identifies the group of entries that *could* superset-share — entries with
- * the same environment key but different requested-task lists are the
- * candidate entries the `SupersetIndexLookup` filters between.
- * <p>
- * Excluded task names belong to the environment, not the requested-tasks
- * delta: a `-x` difference forces exact-match scope, so the index never has
- * to reason about exclusions.
- * <p>
- * `ConfigurationCacheKey` composes this type (HAS-A) and calls
- * [appendComponents] when assembling the full hash, so there is no duplication
- * between the two: any new env-level factor goes here; only requested-task
- * factors belong in `ConfigurationCacheKey` itself.
+ * [ConfigurationCacheKey] composes this type via [appendComponents] when assembling the
+ * full hash. Add new env-level factors here; requested-task factors belong in
+ * [ConfigurationCacheKey].
  */
 @ServiceScope(Scope.BuildTree::class)
 internal
@@ -58,10 +48,6 @@ class ConfigurationCacheEnvironmentKey(
     private val encryptionConfiguration: EncryptionConfiguration
 ) {
 
-    /**
-     * Stable MD5 digest of the hashed inputs. Used as the entry's directory
-     * name and as the value backing [equals] / [hashCode].
-     */
     val string: String by unsafeLazy {
         Hashing.md5().newHasher().apply {
             putEnvironmentComponents()

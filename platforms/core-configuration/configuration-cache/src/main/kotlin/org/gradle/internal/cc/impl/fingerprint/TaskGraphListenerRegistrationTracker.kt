@@ -28,10 +28,11 @@ import org.gradle.internal.service.scopes.ServiceScope
  * and the deprecated `beforeTask` / `afterTask` / `addTaskExecutionListener` — so
  * the resulting cache entry is recorded as superset-ineligible.
  * <p>
- * Hooks into the existing [BuildScopeListenerRegistrationListener] broadcast
- * which fires from `DefaultTaskExecutionGraph.notifyListenerRegistration`.
- * `DefaultTaskExecutionGraph` calls `notifyListenerRegistration` from every
- * user-facing registration entry point, so this listener catches them all.
+ * Hooks into the [BuildScopeListenerRegistrationListener] broadcast fired from
+ * `DefaultTaskExecutionGraph.notifyListenerRegistration`, which is the funnel for
+ * every user-facing registration entry point. Listeners marked with
+ * [org.gradle.internal.InternalListener] are filtered upstream, so Gradle's own
+ * internal listeners (including CC's) do not trip this path.
  */
 @ListenerService
 @ServiceScope(Scope.Build::class)
@@ -45,11 +46,6 @@ class TaskGraphListenerRegistrationTracker(
         invocationDescription: String,
         invocationSource: Any
     ) {
-        // Any user-code listener registration on the task graph implies the build
-        // is making graph-dependent decisions. Note: the BuildScopeListenerRegistrationListener
-        // event is only fired from notifyListenerRegistration, which skips
-        // [org.gradle.internal.InternalListener]-marked listeners — so internal Gradle
-        // listeners (including CC's own) never trip this path.
         controller.taskGraphAccessed()
     }
 }

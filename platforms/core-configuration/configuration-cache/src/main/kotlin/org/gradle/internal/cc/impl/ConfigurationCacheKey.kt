@@ -26,21 +26,13 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 /**
- * Identifies a specific configuration cache entry on disk.
+ * Identifies a specific configuration cache entry on disk. The [string] digest doubles
+ * as the entry's directory name; equality and `hashCode` are defined by it, so two
+ * instances built from identical start parameters compare equal.
  * <p>
- * The resulting [string] is an MD5 hex digest that doubles as the entry's
- * directory name under the configuration cache root (one entry per unique key).
- * Equality and `hashCode` are defined by that digest, so two instances built
- * independently from identical start parameters compare equal — this is the
- * contract that lets CC locate its prior entry on a re-invocation.
- * <p>
- * <strong>Composition with [ConfigurationCacheEnvironmentKey]:</strong>
- * the env key encapsulates every hash component except the requested task names.
- * This class feeds the env key's components into its own hasher and then
- * appends [ConfigurationCacheStartParameter.requestedTaskNames] when
- * [BuildActionModelRequirements.isRunsTasks] is true. Two builds whose
- * environment keys agree but whose `ConfigurationCacheKey`s differ are
- * candidates for superset matching (see `SupersetIndexLookup`).
+ * Composes [ConfigurationCacheEnvironmentKey] (every component except the requested
+ * task names) and appends [ConfigurationCacheStartParameter.requestedTaskNames] when
+ * [BuildActionModelRequirements.isRunsTasks] is true.
  */
 @ServiceScope(Scope.BuildTree::class)
 internal
@@ -50,10 +42,6 @@ class ConfigurationCacheKey(
     private val buildActionRequirements: BuildActionModelRequirements
 ) {
 
-    /**
-     * Stable MD5 digest of the hashed inputs. Used as the entry's directory
-     * name and as the value backing [equals] / [hashCode].
-     */
     val string: String by unsafeLazy {
         Hashing.md5().newHasher().apply {
             environmentKey.appendComponents(this)

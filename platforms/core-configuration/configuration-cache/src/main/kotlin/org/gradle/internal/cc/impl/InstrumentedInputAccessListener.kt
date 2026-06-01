@@ -134,12 +134,10 @@ class InstrumentedInputAccessListener(
     }
 
     override fun startParameterTaskRequestsObserved() {
-        // Flag the entry as superset-ineligible: user code observed taskRequests at
-        // configuration time, so reusing this entry under a different request would
-        // load configuration that was baked from a different CLI request.
-        // This is NOT a fingerprint input — the read doesn't invalidate the entry on
-        // future builds with the same CLI; it just excludes the entry from strict-superset
-        // matching with DIFFERENT CLIs. The flag on the IndexedVariant is the mechanism.
+        // User code observed taskRequests at configuration time, so the cached state
+        // was baked from this specific CLI request. Restrict the entry to exact-CLI
+        // matches via the superset-index flag (fingerprint is unaffected — same CLI
+        // can still reuse the entry).
         fingerprintController.taskGraphAccessed()
     }
 }

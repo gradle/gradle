@@ -132,33 +132,19 @@ class DefaultConfigurationCache internal constructor(
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
-    /**
-     * Identity paths of the just-built work graph's entry nodes, captured at
-     * graph-finalization time so they're available at [commitCacheEntry] time
-     * (the execution plan is reset to `EMPTY` after task execution finishes).
-     * Ordered to match the build's CLI input. Recorded into the superset index
-     * so [WorkGraphPruner] can compare directly against `task.identityPath`.
-     */
+    // The next three properties are captured by [captureSupersetIndexInputs] at
+    // graph-finalization time, because the execution plan is reset to `EMPTY`
+    // after task execution and is no longer available at [commitCacheEntry] time.
+
+    /** Identity paths of scheduled entry-task nodes, ordered to match the build's CLI input. */
     private
     var entryTaskIdentityPaths: List<String> = emptyList()
 
-    /**
-     * mustRunAfter and finalizer edges between scheduled tasks, captured at the
-     * same point as [entryTaskIdentityPaths]. Map source-task identity path →
-     * list of identity paths it must run after / be finalized by. Recorded into
-     * the superset index so a candidate entry can be rejected at lookup time
-     * when pruning would dangle one of these edges across the requested/dropped
-     * boundary (see `ConfigurationCacheRepository.findCacheEntry`).
-     */
+    /** Source identity path → mustRunAfter / finalizer target identity paths. */
     private
     var mustRunAfterEdges: Map<String, List<String>> = emptyMap()
 
-    /**
-     * The scheduled `LocalTaskNode`s captured at finalization time. Held so
-     * [collectSideEffectingTaskIdentityPaths] can re-scan them at
-     * [commitCacheEntry] time (the execution plan is reset to `EMPTY` after task
-     * execution finishes).
-     */
+    /** Scheduled task nodes; rescanned at commit time by [collectSideEffectingTaskIdentityPaths]. */
     private
     var scheduledLocalTaskNodes: List<org.gradle.execution.plan.LocalTaskNode> = emptyList()
 
@@ -170,9 +156,8 @@ class DefaultConfigurationCache internal constructor(
      */
     private
     val compatibleEntry: CompatibleEntry? by lazy {
-        // The empty-CLI short-circuit (project defaults — unknown without running configuration)
-        // is enforced inside `findCacheEntry` for defensive depth. The early-return here is
-        // kept as a fast-path that avoids the file-lock + index-file open for the common case.
+        // Empty-CLI fast path: avoids the index file-lock for the common defaults-only case.
+        // `findCacheEntry` enforces the same guard internally for defensive depth.
         if (startParameter.requestedTaskNames.isEmpty()) return@lazy null
         cacheRepository.findCacheEntry(environmentKey, startParameter.requestedTaskNames)
     }
@@ -341,9 +326,6 @@ class DefaultConfigurationCache internal constructor(
             Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
-                    // Capture entry-task identity paths and mustRunAfter/finalizer edges now —
-                    // the execution plan is reset to EMPTY after task execution, so this can't
-                    // be done in commitCacheEntry.
                     captureSupersetIndexInputs()
                     val rootBuild = buildStateRegistry.rootBuild
                     degradeGracefullyOr { saveWorkGraph(rootBuild) }
@@ -494,12 +476,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     /**
-     * Snapshots structural inputs to the superset index from the finalized task
-     * graph before task execution begins (the execution plan is cleared on
-     * completion). Captures three things: entry-task identity paths, the list of
-     * scheduled `LocalTaskNode`s (held so [collectSideEffectingTaskIdentityPaths]
-     * can re-scan at commit time), and mustRunAfter/finalizer edges (for the
-     * dangle check).
+     * Snapshots structural inputs to the superset index from the finalized task graph
+     * into [entryTaskIdentityPaths], [scheduledLocalTaskNodes], and [mustRunAfterEdges].
+     * Must run before task execution clears the plan.
      */
     private
     fun captureSupersetIndexInputs() {
@@ -518,24 +497,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     /**
-     * Identity paths of scheduled tasks whose execution has filesystem side
-     * effects beyond their snapshotted outputs — specifically, tasks that
-     * declare any property annotated with `@Destroys`. This includes the base
-     * plugin's auto-registered `clean*` tasks (instances of
-     * `org.gradle.api.tasks.Delete`, whose `getTargetFiles()` is `@Destroys`)
-     * and any user-defined task type with a `@Destroys`-annotated property.
-     *
-     * Detection uses `TypeMetadataStore` annotation metadata only: per-task-type
-     * inspection of declared property type annotations. It does NOT invoke
-     * `@OutputFile` / `@Nested` / `@Destroys` property getters, so it cannot
-     * affect user property evaluation counts (see the regression captured by
-     * `TaskParametersIntegrationTest."input and output properties are not
-     * evaluated too often"`).
-     *
-     * Misses tasks that register destroyables dynamically via
-     * `task.destroyables.register(...)` on a plain `DefaultTask` — annotation
-     * lookup can't see those. Caught by `Delete`-instance subclasses via the
-     * `@Destroys` on `Delete.getTargetFiles()`.
+     * Identity paths of scheduled tasks with a `@Destroys`-annotated property — the
+     * base plugin's `clean*` tasks (via `Delete.getTargetFiles()`) and any user task
+     * type with such a property.
+     * <p>
+     * Detection uses `TypeMetadataStore` annotation metadata only; user property
+     * getters are not invoked, keeping store-time evaluation counts unchanged.
      */
     private
     fun collectSideEffectingTaskIdentityPaths(): Set<String> =
@@ -630,8 +597,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     logBootstrapSummary(description)
                     if (effectiveStoreKey != cacheKey.string) {
-                        // We were routed to a stored entry, but its fingerprint is stale.
-                        // Don't walk to another candidate — just store fresh at cacheKey.string.
+                        // Routed-to entry's fingerprint is stale → cold-store fresh at `cacheKey`.
                         supersetMissFallback = true
                     }
                     Store.withDescription(description)
@@ -902,27 +868,7 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withWorkGraphLoadOperation {
-            // Derive the dropped identity-path set from the chosen entry's CLI ↔
-            // identity-path positional pairing: any stored CLI token not in the
-            // current request maps to the identity path at the same index, which
-            // is what `WorkGraphPruner` removes from the loaded plan. For exact
-            // matches (or no compatible entry), the set is empty and the pruner
-            // is a no-op.
-            val entryTaskIdentityPathsToDrop: Set<String> = compatibleEntry?.let { entry ->
-                if (entry.storedCliTokens.size != entry.storedEntryTaskIdentityPaths.size) {
-                    // Non-1:1 CLI ↔ identity mapping (multi-project bare names).
-                    // `selectBestMatch` restricts these to exact matches, so the
-                    // dropped set is empty by construction.
-                    return@let emptySet()
-                }
-                val requestedCli = startParameter.requestedTaskNames.toSet()
-                entry.storedCliTokens
-                    .asSequence()
-                    .withIndex()
-                    .filter { (_, token) -> token !in requestedCli }
-                    .map { (i, _) -> entry.storedEntryTaskIdentityPaths[i] }
-                    .toSet()
-            } ?: emptySet()
+            val entryTaskIdentityPathsToDrop = computeEntryTaskIdentityPathsToDrop()
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, entryTaskIdentityPathsToDrop)
                 LoadResultMetadata(buildInvocationId) to workGraph
@@ -931,6 +877,25 @@ class DefaultConfigurationCache internal constructor(
             WorkGraphLoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
     }
+
+    /**
+     * Maps each stored CLI token not in the current request to the entry identity path at the
+     * same index (the positional `cliTokens ↔ entryTaskIdentityPaths` pairing recorded at
+     * store time). The result is what [WorkGraphPruner] removes from the loaded plan. Returns
+     * empty for exact matches, no compatible entry, or non-1:1 mappings (which `selectBestMatch`
+     * restricts to exact matches anyway).
+     */
+    private
+    fun computeEntryTaskIdentityPathsToDrop(): Set<String> = compatibleEntry?.let { entry ->
+        if (entry.storedCliTokens.size != entry.storedEntryTaskIdentityPaths.size) return@let emptySet()
+        val requestedCli = startParameter.requestedTaskNames.toSet()
+        entry.storedCliTokens
+            .asSequence()
+            .withIndex()
+            .filter { (_, token) -> token !in requestedCli }
+            .map { (i, _) -> entry.storedEntryTaskIdentityPaths[i] }
+            .toSet()
+    } ?: emptySet()
 
     private
     inline fun <T> runAtConfigurationTime(block: () -> T): T {

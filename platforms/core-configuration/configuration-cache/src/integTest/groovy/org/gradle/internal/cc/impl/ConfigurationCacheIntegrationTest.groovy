@@ -819,7 +819,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         // `InstrumentedInputs.listener().startParameterTaskRequestsObserved()`, which
         // routes through `InstrumentedInputAccessListener` to
         // `ConfigurationCacheFingerprintController.taskGraphAccessed()`. The flag is
-        // recorded on the IndexedVariant at store time and excludes it from
+        // recorded on the SupersetIndexEntry at store time and excludes it from
         // strict-superset matches at lookup time. Internal Gradle reads use the
         // *Untracked accessors so they don't accidentally flag every build's entry.
         configurationCache.assertStateStored()

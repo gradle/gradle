@@ -22,39 +22,30 @@ import org.gradle.execution.plan.ScheduledWork
 
 
 /**
- * Prunes a loaded [ScheduledWork] to keep only the requested entry tasks plus their
- * transitive dependencies, when a stored configuration cache entry is reused for
- * a subset of its original requested-task list.
+ * Prunes a loaded [ScheduledWork] to the requested entry tasks plus their transitive
+ * dependencies, when a stored configuration cache entry is reused for a subset of its
+ * original requested-task list. Used by `ConfigurationCacheState` at the deserialization
+ * boundary; the loader sees the pruned plan via `setScheduledWork`.
  * <p>
- * No I/O and no service dependencies, but **not pure**: [pruneAndRewireInPlace]
- * mutates the retained `Node`s' `dependencyPredecessors` sets in the input
- * [ScheduledWork] to drop references to non-retained nodes. The mutation is
- * essential — without it, `DefaultFinalizedExecutionPlan.maybeWaitingForNewNode`
+ * **Not pure** — [pruneAndRewireInPlace] mutates retained nodes' `dependencyPredecessors`
+ * to drop references to non-retained nodes. Without this, `DefaultFinalizedExecutionPlan`
  * sees stale predecessor backrefs and refuses to schedule the retained entries.
- * The method name carries that side effect; callers should treat the input
- * `ScheduledWork` as consumed.
+ * Callers should treat the input `ScheduledWork` as consumed.
  * <p>
- * Used by `ConfigurationCacheState` at the deserialization boundary so the
- * loader sees the pruned plan via `setScheduledWork`.
- * <p>
- * Names in [pruneAndRewireInPlace]'s `entryTaskIdentityPathsToDrop` are compared against
- * `task.identityPath` (canonical absolute path like `":foo:bar"`). Callers are
- * responsible for passing canonical paths — see
- * `DefaultConfigurationCache.commitCacheEntry` (where stored identity paths
- * originate) and the lookup side which canonicalizes CLI input.
+ * Identity paths in `entryTaskIdentityPathsToDrop` must be canonical (e.g. `":foo:bar"`)
+ * to compare equal to `task.identityPath.asString()`.
  */
 internal
 object WorkGraphPruner {
 
     /**
-     * Returns [initiallyScheduled] with entry nodes whose canonical identity path
-     * is in [entryTaskIdentityPathsToDrop] removed, plus any nodes that are no longer reachable
-     * from the remaining entry nodes through `dependencySuccessors`. Mutates
-     * retained nodes' `dependencyPredecessors` to drop dropped-node backrefs.
+     * Returns [initiallyScheduled] with entry nodes whose canonical identity path is
+     * in [entryTaskIdentityPathsToDrop] removed, plus any nodes no longer reachable from
+     * the remaining entry nodes through `dependencySuccessors`. Mutates retained nodes'
+     * `dependencyPredecessors` to drop dropped-node backrefs.
      * <p>
-     * Returns the input unchanged when:
-     *  - [entryTaskIdentityPathsToDrop] is empty (exact-match reuse — no pruning needed), or
-     *  - none of the entry nodes' tasks match [entryTaskIdentityPathsToDrop] (no-op for this build).
+     * Returns the input unchanged for exact-match reuse (empty drop set) or when no entry
+     * matches the drop set.
      */
     fun pruneAndRewireInPlace(initiallyScheduled: ScheduledWork, entryTaskIdentityPathsToDrop: Set<String>): ScheduledWork {
         if (entryTaskIdentityPathsToDrop.isEmpty()) return initiallyScheduled
@@ -65,43 +56,45 @@ object WorkGraphPruner {
         }.toSet()
         if (requestedEntries.size == initiallyScheduled.entryNodes.size) return initiallyScheduled
 
-        // BFS forward from the requested entries through real dependency edges only.
-        // Entries with mustRunAfter / finalizer relationships that cross the
-        // requested/dropped boundary are filtered out at lookup time
-        // (see `ConfigurationCacheRepository.findCacheEntry`), so by the time
-        // we reach this code the pruning is guaranteed to be safe under
-        // dependency-graph semantics.
-        val retained = HashSet<Node>()
-        val queue = ArrayDeque<Node>()
-        queue.addAll(requestedEntries)
-        retained.addAll(requestedEntries)
+        val retained = bfsForwardThroughDependencies(requestedEntries)
+        val retainedScheduled = initiallyScheduled.scheduledNodes.filter { it in retained }
+        clearStalePredecessors(retained)
+
+        // Original entry nodes that BFS retained as transitive deps must remain entries:
+        // their ordinal-group bookkeeping references them, and dropping them produces
+        // phantom groups that deadlock the executor.
+        val retainedEntries = initiallyScheduled.entryNodes.filter { it in retained }.toSet()
+        return ScheduledWork(retainedScheduled, retainedEntries)
+    }
+
+    /**
+     * BFS through `dependencySuccessors` only. `mustRunAfter` / finalizer edges that cross
+     * the requested/dropped boundary are filtered out at lookup time
+     * (`ConfigurationCacheRepository.findCacheEntry`), so dependency-edge reachability is
+     * the only retention rule needed here.
+     */
+    private fun bfsForwardThroughDependencies(roots: Set<Node>): Set<Node> {
+        val retained = HashSet<Node>(roots)
+        val queue = ArrayDeque<Node>().apply { addAll(roots) }
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
             for (dep in node.dependencySuccessors) {
                 if (retained.add(dep)) queue.addLast(dep)
             }
         }
-        val retainedScheduled = initiallyScheduled.scheduledNodes.filter { it in retained }
+        return retained
+    }
 
-        // Clean up stale incoming edges: the loaded graph's retained nodes still
-        // reference DROPPED nodes via `dependencyPredecessors` (e.g. `:duplicate`
-        // retains a predecessor edge from a dropped `:a:compileJava` because
-        // `:a:compileJava` originally depended on `:duplicate`). Without this
-        // cleanup, `DefaultFinalizedExecutionPlan.maybeWaitingForNewNode` sees
-        // non-empty predecessors and doesn't add the retained entry to
-        // `waitingToStartNodes` — the executor then reports "no more work to
-        // start" and the build finishes without executing the retained tasks.
+    /**
+     * Drops backref edges from retained nodes to dropped nodes (e.g. `:duplicate` retains a
+     * predecessor edge from a dropped `:a:compileJava` because `:a:compileJava` originally
+     * depended on `:duplicate`). Stale predecessors cause `maybeWaitingForNewNode` to
+     * exclude retained entries from `waitingToStartNodes`, so the build finishes without
+     * executing the retained tasks.
+     */
+    private fun clearStalePredecessors(retained: Set<Node>) {
         for (node in retained) {
             node.dependencyPredecessors.removeAll { it !in retained }
         }
-
-        // Entry-node set must include any *original* entry node that BFS retained as a
-        // transitive dep — without this, the loaded plan's ordinal-group bookkeeping
-        // ends up with phantom groups (the dropped entry's group still has destroyer-
-        // location nodes scheduled but no entry, deadlocking the executor).
-        // Independent dropped entries that aren't BFS-reached stay out — that's how
-        // we actually shrink the work.
-        val retainedEntries = initiallyScheduled.entryNodes.filter { it in retained }.toSet()
-        return ScheduledWork(retainedScheduled, retainedEntries)
     }
 }

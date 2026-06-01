@@ -36,7 +36,7 @@ import org.mockito.kotlin.mock
 class WorkGraphPrunerTest {
 
     @Test
-    fun `(a) empty entryTaskIdentityPathsToDrop is a true no-op — same instance returned`() {
+    fun `empty entryTaskIdentityPathsToDrop is a true no-op — same instance returned`() {
         val first = taskNode(":first")
         val second = taskNode(":second")
         val input = ScheduledWork(listOf(first, second), setOf(first, second))
@@ -50,7 +50,7 @@ class WorkGraphPrunerTest {
     }
 
     @Test
-    fun `(b) independent tasks get dropped without retaining each other`() {
+    fun `independent tasks get dropped without retaining each other`() {
         val first = taskNode(":first")
         val second = taskNode(":second")
         // first and second are independent — neither lists the other as a dependency successor.

@@ -48,9 +48,7 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
     public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         StartParameterInternal startParameter = gradle.getStartParameter();
 
-        // Use the untracked accessor: this scheduler reads taskRequests to detect the
-        // "no tasks specified → run defaults" sentinel, not to make user-visible decisions
-        // based on the request shape. Tracking would flag every default-task run.
+        // Untracked: scheduler reads the sentinel, not a user request shape.
         List<TaskExecutionRequest> taskRequests = startParameter.getTaskRequestsUntracked();
         if (taskRequests.size() == 1 && taskRequests.get(0) instanceof RunDefaultTasksExecutionRequest) {
             // Gather the default tasks from this first group project

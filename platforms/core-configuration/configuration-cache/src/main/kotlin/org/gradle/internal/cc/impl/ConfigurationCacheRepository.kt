@@ -68,52 +68,32 @@ class ConfigurationCacheRepository(
     }
 
     /**
-     * Looks up a stored configuration cache entry compatible with [requestedTasks]
-     * under [environmentKey], or returns `null` if no compatible entry exists.
+     * Looks up a stored configuration cache entry compatible with [requestedCliTokens]
+     * under [environmentKey], or returns `null` if no compatible entry exists. Acquires
+     * the cache file lock for the duration of the lookup.
      * <p>
-     * Selection is delegated to [SupersetIndexLookup.selectBestMatch]: exact match on the
-     * deduplicated requested-task list wins; otherwise the smallest strict-superset
-     * entry whose stored task list contains the request as a subsequence
-     * (relative order preserved) and whose `taskGraphAccessed` flag is `false`.
-     * Among ties of the smallest size, the most recently accessed entry directory
-     * wins (LRU via `fileAccessTimeJournal`).
+     * Selection is delegated to [SupersetIndexLookup.selectBestMatch]: exact match wins;
+     * otherwise the smallest strict-superset entry whose stored task list contains the
+     * request as a subsequence and whose `taskGraphAccessed` flag is `false`. Ties are
+     * broken by LRU on the entry directory's last-access time.
      * <p>
-     * If [requestedCliTokens] is empty (project-defaults invocation — `gradle` with
-     * no tasks), the lookup short-circuits to `null` — what the defaults resolve to
-     * isn't known without running configuration, and `SupersetIndexLookup.selectBestMatch`
-     * treats an empty request as a subsequence of every stored entry (would always
-     * spuriously match). The guard lives here at the repository boundary so the
-     * unsafe shape of `selectBestMatch` can't be reached even if a future caller
-     * forgets to short-circuit.
-     * <p>
-     * If any token in [requestedCliTokens] starts with `-` (task argument or exclusion
-     * like `-x foo`), the lookup also short-circuits to `null` and the caller falls back
-     * to the exact-match path — task arguments and exclusions affect scheduling in
-     * ways the index doesn't model.
-     * <p>
-     * Acquires the cache file lock for the duration of the lookup. If a chosen
-     * entry's directory has been removed out from under the index (e.g. by external
-     * cleanup), the stale row is dropped and the index file is rewritten before
-     * returning — the next candidate is then considered (self-heal).
-     *
-     * @param environmentKey identifies the group of entries that share the same
-     *     configuration-cache environment
-     * @param requestedCliTokens the current build's literal CLI task list
-     * @return the chosen entry's full key, stored CLI tokens, and stored entry-task
-     *     identity paths, or `null` if no compatible entry exists
+     * Self-heals when a chosen entry's directory has been removed out from under the
+     * index: the stale row is dropped, the index file is rewritten, and the next
+     * candidate is considered.
      */
     fun findCacheEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
         requestedCliTokens: List<String>
     ): CompatibleEntry? {
-        // Empty-request guard: project-defaults invocations resolve at config time, not lookup
-        // time. Also makes the unsafe shape of `selectBestMatch` (empty request matches every
+        // Project-defaults invocations resolve at configuration time, not lookup time.
+        // Also keeps the unsafe shape of `selectBestMatch` (empty request matches every
         // entry as a subsequence) unreachable from this entry point.
         if (requestedCliTokens.isEmpty()) {
             logger.debug("Superset index lookup skipped: empty requested-task list (project defaults are unknown at lookup time).")
             return null
         }
-        // Args/exclusion guard: any token starting with '-' falls back to exact-match path.
+        // Tokens starting with '-' (task arguments / exclusions) affect scheduling
+        // beyond what the index models. Fall back to the exact-match path.
         if (requestedCliTokens.any { it.startsWith("-") }) {
             logger.debug("Superset index lookup skipped: request {} contains a '-'-prefixed token (task argument / exclusion).", requestedCliTokens)
             return null
@@ -124,11 +104,6 @@ class ConfigurationCacheRepository(
             val onDiskEntries = indexFile.read().toMutableList()
             if (onDiskEntries.isEmpty()) return@withFileLockNullable null
 
-            // The loop's working list shrinks as candidates are rejected (gate failures
-            // or stale dir), so each iteration picks the next-best. Only stale-dir
-            // removals propagate back to the on-disk file — gate-rejected entries stay
-            // in the index because they're still valid for exact-match reuse by future
-            // requests with a different task list.
             val loopEntries = onDiskEntries.toMutableList()
             val staleDirsEvicted = mutableListOf<SupersetIndexEntry>()
             val chosen = pickUsableEntry(loopEntries, requestedCliTokens) { staleEntry ->
@@ -145,33 +120,17 @@ class ConfigurationCacheRepository(
     }
 
     /**
-     * Repeatedly asks [pickWithTieBreak] for the next-best candidate and drops any
-     * that aren't usable for [requestedCliTokens], returning the first one that is.
-     * <p>
-     * A candidate is dropped when any of these hold (and it isn't an exact match —
-     * exact matches skip the pruning gates because no pruning happens):
-     *  - its entry directory has been removed out from under the index (stale row —
-     *    self-heal: report it via [onStaleDirRemoved] so the caller can drop the row
-     *    from the on-disk file);
+     * Repeatedly asks [pickWithTieBreak] for the next-best candidate and drops any not
+     * usable for [requestedCliTokens]. A candidate fails when (and is not an exact match):
+     *  - its entry directory is missing on disk — reported via [onStaleDirRemoved] for
+     *    persistent eviction (self-heal);
      *  - pruning would leave a retained task pointing at a dropped task through
      *    `mustRunAfter` / finalizer (see [SupersetIndexLookup.hasDanglingMustRunAfter]);
-     *  - pruning would drop a task whose execution has filesystem side effects beyond
-     *    its snapshotted outputs — any task declaring a `@Destroys`-annotated property,
-     *    detected via `TypeMetadataStore` annotation lookup. `Delete` is the canonical
-     *    case (its `getTargetFiles()` is `@Destroys`); see
-     *    [SupersetIndexLookup.hasSideEffectingDroppedTask].
+     *  - pruning would drop a task with a `@Destroys`-annotated property
+     *    (see [SupersetIndexLookup.hasSideEffectingDroppedTask]).
      * <p>
-     * The dropped identity-path set is derived from the candidate's `cliTokens`
-     * → `entryTaskIdentityPaths` positional pairing — CLI tokens not present in
-     * the request map to the identity paths to drop. Subset matches selected by
-     * [SupersetIndexLookup.selectBestMatch] are guaranteed to have a 1:1 mapping.
-     * <p>
-     * Mutation of [entries] is per-iteration loop bookkeeping only — gate-rejected
-     * candidates are removed from the working list so the next-best can be picked
-     * but are NOT evicted from the persisted index. They remain valid for exact-match
-     * reuse by a future request. Only `staleDir` rejections feed into
-     * [onStaleDirRemoved], which is what the caller writes back to disk.
-     * Returns `null` when [pickWithTieBreak] yields no further candidate.
+     * Gate-rejected (non-stale) candidates are removed from the in-memory working list
+     * only; they remain in the persisted index for future exact-match reuse.
      */
     private
     fun pickUsableEntry(
@@ -228,47 +187,13 @@ class ConfigurationCacheRepository(
             .toSet()
 
     /**
-     * Records a stored cache entry under [environmentKey] so future builds with
-     * overlapping task lists can discover it via [findCacheEntry]. Conceptually
-     * this associates an environment key (the lookup scope) with a cache key
-     * (the on-disk entry name) plus the metadata needed to evaluate
-     * superset-match safety gates at lookup time.
-     * <p>
-     * Upserts by [fullKey]: an existing index row with the same `fullKey` is
-     * replaced (it would have been written by a prior store generation under the
-     * identical key — the new row supersedes it). The recorded [taskGraphAccessed]
-     * flag determines whether the entry will be eligible for strict-superset
-     * matches later — `true` makes the entry exact-match only.
-     * <p>
-     * Mirrors [findCacheEntry]'s args-guard: if any token in [cliTokens]
-     * starts with `-`, the entry is not recorded (no harm — the entry just won't
-     * be findable as a superset later).
-     * <p>
-     * Acquires the cache file lock for the upsert + rewrite of the index file.
+     * Records a stored cache entry under [environmentKey] so future builds can discover
+     * it via [findCacheEntry]. Upserts by [fullKey] — an existing row is replaced.
+     * Tokens starting with `-` (task arguments / exclusions) are skipped: the entry
+     * is stored to disk but not findable as a superset later. Acquires the cache file lock.
      *
-     * @param environmentKey scope under which to record the entry
-     * @param fullKey the stored entry's full cache key (also the entry directory name)
-     * @param cliTokens the CLI request the entry was stored for, verbatim. Used as
-     *     the match key at lookup time
-     * @param entryTaskIdentityPaths identity paths of the entry tasks the original
-     *     build scheduled. Positionally paired with [cliTokens] when the sizes
-     *     match — a bare CLI token at index `i` mapped to the identity path at
-     *     index `i`. Used to derive the dropped identity-path set when this entry
-     *     is reused for a subset request
-     * @param taskGraphAccessed whether user code observed the task graph during
-     *     the originating build; `true` excludes the entry from later strict-superset
-     *     matching (see [SupersetIndexLookup.selectBestMatch] rule 2)
-     * @param mustRunAfterEdges mustRunAfter / finalizer edges between scheduled
-     *     tasks (source identity-path → list of target identity-paths). Used by
-     *     [findCacheEntry] to reject this entry from strict-superset matches
-     *     whose pruning would dangle one of these edges
-     * @param sideEffectingTaskIdentityPaths identity paths of scheduled tasks whose
-     *     execution has filesystem side effects beyond their snapshotted outputs —
-     *     tasks declaring a `@Destroys`-annotated property, detected via
-     *     `TypeMetadataStore` annotation lookup. `Delete` is the canonical case
-     *     (its `getTargetFiles()` is `@Destroys`). Used by [findCacheEntry] to
-     *     reject this entry from strict-superset matches whose pruning would drop
-     *     one of these tasks
+     * @see SupersetIndexEntry for the meaning of [taskGraphAccessed], [mustRunAfterEdges],
+     *     and [sideEffectingTaskIdentityPaths]
      */
     fun recordEnvironmentKeyForCacheKey(
         environmentKey: ConfigurationCacheEnvironmentKey,
@@ -296,25 +221,10 @@ class ConfigurationCacheRepository(
     }
 
     /**
-     * Wraps [SupersetIndexLookup.selectBestMatch] with an LRU tie-break on the entry
-     * directory's last-access time when several smallest-superset candidates have the
-     * same `cliTokens.size`.
-     * <p>
-     * `selectBestMatch` is a pure selection rule and intentionally doesn't know about
-     * the cache directory or the `FileAccessTimeJournal` — among equal-sized supersets
-     * it returns the first encountered, which is deterministic but not load-aware.
-     * That's where this function steps in: if the chosen entry has same-size peers
-     * that also host the request as a subsequence (and pass the `taskGraphAccessed` /
-     * `hasOneToOneCliMapping` eligibility filters), prefer whichever of them was
-     * accessed most recently. Without this, repeated subset requests can pin an old
-     * entry while a more-recently-used same-size superset gets cleaned up by the
-     * daily LRU sweep.
-     * <p>
-     * Exact matches bypass the tie-break path entirely — no pruning happens, and the
-     * candidate selected by `selectBestMatch` is the only valid choice. The
-     * eligibility re-filter on ties matches `selectBestMatch`'s strict-superset
-     * filters, so the LRU pick can't drift to a flagged or non-1:1 entry that
-     * would be unsafe to prune.
+     * Wraps [SupersetIndexLookup.selectBestMatch] with an LRU tie-break on entry-directory
+     * last-access time among equal-sized strict-superset candidates. The eligibility
+     * re-filter mirrors `selectBestMatch`'s strict-superset filters so the LRU pick stays
+     * safe to prune. Exact-match candidates skip this step.
      */
     private
     fun pickWithTieBreak(

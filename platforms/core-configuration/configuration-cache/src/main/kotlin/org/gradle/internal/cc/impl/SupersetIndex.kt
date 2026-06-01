@@ -27,10 +27,7 @@ import java.io.File
  * superset-index binary files (one per environment key). Excluded from the
  * daily LRU cleanup sweep — see `ConfigurationCacheRepository.cleanupEligibleFilesFinder`.
  * <p>
- * Public so out-of-module integ tests that incidentally encounter the CC
- * cache layout (e.g. `CredentialsProviderIntegrationTest`,
- * `ConfigurationCacheCompositeBuildsIntegrationTest`) can reference it as
- * `SupersetIndexKt.SUPERSET_INDEX_DIR_NAME` instead of inlining the literal.
+ * Public to allow out-of-module integ tests to reference the literal.
  */
 const val SUPERSET_INDEX_DIR_NAME = "superset-index"
 
@@ -42,37 +39,21 @@ internal
 object SupersetIndexLookup {
 
     /**
-     * One row in the superset index. Fields:
+     * One row in the superset index.
      *
-     *  - [fullKey]: the stored configuration cache entry's full key (also its directory name).
-     *  - [cliTokens]: the user's CLI request verbatim (`"a"`, `":foo"`, `":proj:bar"`, etc.).
-     *    Used as the match key against the current build's request — verbatim string comparison
-     *    so bare names and absolute paths cannot collide (`d` does not match `:d`).
-     *  - [entryTaskIdentityPaths]: identity paths of the entry tasks the original build scheduled.
-     *    Used to compute which loaded tasks to prune when reusing this entry for a subset request.
-     *    When `cliTokens.size == entryTaskIdentityPaths.size`, the two lists are positionally
-     *    paired (CLI token at index `i` resolved to the identity path at index `i`) and the
-     *    mapping supports safe subset pruning. When the sizes differ — a multi-project build
-     *    where one bare CLI token resolved to multiple identity paths across subprojects — the
-     *    mapping is ambiguous and the entry is treated as exact-match-only (see [selectBestMatch]).
-     *  - [taskGraphAccessed]: whether user code observed the task graph during the original build
-     *    (`true` → exact-match-only at lookup; see [selectBestMatch]).
-     *  - [mustRunAfterEdges]: `mustRunAfter` / finalizer edges between scheduled tasks (source
-     *    identity path → target identity paths). Used to reject a candidate at lookup time when
-     *    pruning would leave a retained task referencing a dropped task through a non-dependency
-     *    hard-ordering edge — the loaded plan would either deadlock or silently execute a
-     *    non-requested task. See [hasDanglingMustRunAfter].
-     *  - [sideEffectingTaskIdentityPaths]: identity paths of scheduled tasks whose execution
-     *    has filesystem side effects beyond the snapshotted-output set — specifically, tasks
-     *    declaring a property annotated `@org.gradle.api.tasks.Destroys`. `Delete` is caught
-     *    via its `@Destroys`-annotated `getTargetFiles()`; user-defined task types with
-     *    `@Destroys` properties are caught the same way. Used to reject a candidate when
-     *    subset pruning would drop one of these tasks: skipping the deletion but loading the
-     *    cached pre-deletion output state breaks the filesystem invariant retained tasks rely
-     *    on. See [hasSideEffectingDroppedTask].
-     *    A set rather than a per-task path map because detection uses `TypeMetadataStore`
-     *    annotation lookup only — no property getter is invoked, so the check is free of the
-     *    per-task footprint walk that would re-invoke user `@OutputFile` / `@Nested` getters.
+     * @property fullKey the stored configuration cache entry's full key (also its directory name).
+     * @property cliTokens the user's CLI request verbatim (`"a"`, `":foo"`, `":proj:bar"`, etc.).
+     *   Verbatim string comparison ensures bare names and absolute paths cannot collide (`d` does not match `:d`).
+     * @property entryTaskIdentityPaths identity paths of the entry tasks the original build scheduled,
+     *   positionally paired with [cliTokens] when [hasOneToOneCliMapping]. Sizes differ for multi-project
+     *   bare-name requests that resolved to multiple subproject tasks; such entries are exact-match-only.
+     * @property taskGraphAccessed whether user code observed the task graph during the original build
+     *   (`true` → exact-match-only at lookup; see [selectBestMatch]).
+     * @property mustRunAfterEdges `mustRunAfter` / finalizer edges between scheduled tasks (source
+     *   identity path → target identity paths). See [hasDanglingMustRunAfter].
+     * @property sideEffectingTaskIdentityPaths identity paths of scheduled tasks with a property
+     *   annotated `@org.gradle.api.tasks.Destroys` (e.g. `Delete.getTargetFiles()`). See
+     *   [hasSideEffectingDroppedTask].
      */
     data class SupersetIndexEntry(
         val fullKey: String,
@@ -160,30 +141,13 @@ object SupersetIndexLookup {
     }
 
     /**
-     * Returns true if any of the to-be-dropped tasks has side effects beyond its
-     * snapshotted outputs — specifically, tasks declaring a property annotated
-     * `@org.gradle.api.tasks.Destroys`. `Delete` is the canonical case
-     * (`Delete.getTargetFiles()` is `@Destroys`), and so are user-defined task
-     * types with `@Destroys` properties. Skipping such a task while loading the
-     * cached pre-deletion output state leaves filesystem invariants the retained
-     * tasks rely on broken — e.g. a `clean*` task that would have cleared a
-     * directory before another task wrote into it.
+     * Returns true if any to-be-dropped task has filesystem side effects beyond
+     * its snapshotted outputs — i.e. declares a `@org.gradle.api.tasks.Destroys`-annotated
+     * property. The canonical case is `Delete` (e.g. a `clean*` task that would have
+     * cleared a directory before a retained task wrote into it).
      * <p>
-     * This is the practical heuristic that replaces a more precise pairwise output-path
-     * overlap check: capturing per-task output paths through the property walker would
-     * re-invoke user `@OutputFile` / `@Nested` getters at store time, which is
-     * observable as an extra invocation count in tests like
-     * `TaskParametersIntegrationTest."input and output properties are not evaluated too often"`.
-     * Detection uses `TypeMetadataStore` annotation lookup only — no property getter
-     * is invoked, so the check is free of that side effect while still catching the
-     * cleanX overlap scenarios that motivated the gate.
-     * <p>
-     * Caveat: dynamic destroyable registration via `task.destroyables.register(...)`
-     * on a plain `DefaultTask` is not detected — annotation lookup can't see runtime
-     * registrations.
-     * <p>
-     * Returns `false` when [droppedIdentityPaths] is empty (exact match — no pruning)
-     * or the candidate has no recorded side-effecting tasks.
+     * Detection uses `TypeMetadataStore` annotation lookup only; user property getters
+     * are not invoked, keeping store-time evaluation counts unchanged.
      */
     fun hasSideEffectingDroppedTask(
         sideEffectingTaskIdentityPaths: Set<String>,
@@ -319,9 +283,8 @@ class SupersetIndexFile(private val file: File) {
 
     companion object {
         private val logger = Logging.getLogger(SupersetIndexFile::class.java)
-        /** Arbitrary "Configuration Cache Superset Index" */
+        /** "CCSI" — Configuration Cache Superset Index. */
         private val MAGIC = byteArrayOf('C'.code.toByte(), 'C'.code.toByte(), 'S'.code.toByte(), 'I'.code.toByte())
-        /** Incremented when the format changes. */
         private const val FORMAT_VERSION = 6
     }
 }
