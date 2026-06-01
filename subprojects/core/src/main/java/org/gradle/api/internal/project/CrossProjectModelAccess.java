@@ -19,7 +19,6 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.service.scopes.Scope;
@@ -137,6 +136,4 @@ public interface CrossProjectModelAccess {
      */
     @Nullable
     HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer);
-
-    ExtensionContainer getExtensionContainerForProject(ProjectIdentity referrer, ExtensionContainer extensionContainer);
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
@@ -118,10 +117,5 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         ProjectState parent = referrer.getParent();
         // We purposefully leak mutable state here, as we're not in IP so it's safe.
         return parent != null ? parent.fromMutableState(ProjectInternal::getInheritedScope) : null;
-    }
-
-    @Override
-    public ExtensionContainer getExtensionContainerForProject(ProjectIdentity referrer, ExtensionContainer extensionContainer) {
-        return extensionContainer;
     }
 }

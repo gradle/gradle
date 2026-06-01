@@ -36,7 +36,6 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
@@ -52,7 +51,6 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
@@ -149,17 +147,6 @@ class ProblemReportingCrossProjectModelAccess(
     override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
         // Isolated Projects: parent-walk is disabled to match Gradle 10 behavior.
         return null
-    }
-
-    override fun getExtensionContainerForProject(
-        referrer: ProjectIdentity,
-        extensionContainer: ExtensionContainer
-    ): ExtensionContainer {
-        return CrossProjectConfigurationReportingGradleExtensionsContainer(
-            extensionContainer as ExtensionContainerInternal,
-            referrer,
-            ipProblems
-        )
     }
 
     private
