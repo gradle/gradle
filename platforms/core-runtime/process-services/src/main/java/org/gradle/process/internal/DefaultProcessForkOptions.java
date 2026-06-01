@@ -17,11 +17,21 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -33,6 +43,19 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private Object executable;
     private final DirectoryProperty workingDir;
     private Map<String, Object> environment;
+
+    /**
+     * Kept for backward compatibility (e.g. KGP). Prefer {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)}:
+     * this overload builds the working-directory property via {@link SimplePropertyFactory}, which requires
+     * {@code NativeServices} to be initialized.
+     *
+     * @deprecated Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead. Retained only so
+     * external plugins (e.g. the Kotlin Gradle Plugin) that construct this type with just a resolver keep working.
+     */
+    @Deprecated
+    public DefaultProcessForkOptions(PathToFileResolver resolver) {
+        this(resolver, SimplePropertyFactory.directoryProperty((FileResolver) resolver), SimplePropertyFactory.directoryProperty((FileResolver) resolver));
+    }
 
     @Inject
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
@@ -142,5 +165,30 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         target.setWorkingDir(getWorkingDir());
         target.setEnvironment(getEnvironment());
         return this;
+    }
+
+    /**
+     * Creates a {@link DirectoryProperty} backed only by a {@link FileResolver}, so that the working directory can be
+     * exposed as a lazy property even when no {@link org.gradle.api.model.ObjectFactory} is available (e.g. for the
+     * legacy {@code DefaultProcessForkOptions(PathToFileResolver)} constructor).
+     */
+    @NullMarked
+    static class SimplePropertyFactory {
+        @SuppressWarnings("deprecation")
+        public static DirectoryProperty directoryProperty(FileResolver fileResolver) {
+            FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(
+                fileResolver,
+                DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                new DefaultDirectoryFileTreeFactory(),
+                PatternSets.getNonCachingPatternSetFactory(),
+                PropertyHost.NO_OP,
+                FileSystems.getDefault()
+            );
+            return new DefaultFilePropertyFactory(
+                PropertyHost.NO_OP,
+                fileResolver,
+                fileCollectionFactory
+            ).newDirectoryProperty();
+        }
     }
 }
