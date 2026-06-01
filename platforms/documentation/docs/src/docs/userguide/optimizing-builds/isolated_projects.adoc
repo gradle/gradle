@@ -51,6 +51,7 @@ While the feature is experimental, notable changes are documented here rather th
 ** The `Project.getProperties()` API is now treated as incompatible, while being <<upgrading_version_9.adoc#deprecated_get_properties,generally deprecated>>.
 ** The new <<sec:diagnostics_mode,Diagnostics mode>> runs without parallelism and deterministically reports constraint violations.
 ** Editor support for Kotlin build scripts and precompiled plugins in IDEA-based IDEs has been fixed.
+** The minimum supported version of the link:https://scans.gradle.com/plugin/[Develocity plugin] is 4.0.
 
 * Gradle 9.4.0
 ** Isolated Projects violations are now deduplicated, making the Configuration Cache HTML reports significantly smaller.
