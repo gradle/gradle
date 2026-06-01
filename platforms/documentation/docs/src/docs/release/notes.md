@@ -73,6 +73,10 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
+#### Sortable columns in the HTML test report
+
+The results tables in the HTML test report are now sortable. For example, sorting tests by descending duration will show the slowest tests.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
