@@ -41,8 +41,10 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             tasks.register("reader") {
                 inputs.files($tasksInput)
+                def inputFiles = inputs.files
                 doLast {
-                    println inputs.files.files*.name
+                    println "names = " + inputFiles.asFileTree.files*.name.sort()
+                    println "contents = " + inputFiles.asFileTree.files.collect { it.text }.sort()
                 }
             }
         """
@@ -51,35 +53,58 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         configurationCacheRun "reader"
 
         then:
-        outputContains expectedOutput
+        result.assertTasksExecuted(*expectedTasksExecuted)
+        outputContains("names = $expectedNames")
+        outputContains("contents = $expectedContents")
 
         where:
-        type                             | tasksInput             | expectedOutput
-        "Task"                           | "copy1.get()"          | "[copy1]"
-        "TaskProvider"                   | "copy1"                | "[copy1]"
-        "Array[Task, TaskProvider]"      | "copy1.get(), copy2"   | "[copy1, copy2]"
-        "Collection(Task, TaskProvider)" | "[copy1.get(), copy2]" | "[copy1, copy2]"
+        type                             | tasksInput             | expectedTasksExecuted           | expectedNames                        | expectedContents
+        "Task"                           | "copy1.get()"          | [":copy1", ":reader"]           | "[copy1source.txt]"                  | "[Copy 1]"
+        "TaskProvider"                   | "copy1"                | [":copy1", ":reader"]           | "[copy1source.txt]"                  | "[Copy 1]"
+        "Array[Task, TaskProvider]"      | "copy1.get(), copy2"   | [":copy1", ":copy2", ":reader"] | "[copy1source.txt, copy2source.txt]" | "[Copy 1, Copy 2]"
+        "Collection(Task, TaskProvider)" | "[copy1.get(), copy2]" | [":copy1", ":copy2", ":reader"] | "[copy1source.txt, copy2source.txt]" | "[Copy 1, Copy 2]"
     }
 
     def "using a task from another project as 'files' input is allowed"() {
-
         settingsFile << """
             include ':foo'
         """
 
         buildFile << """
-            tasks.register("dependency")
-        """
-
-        file("foo/build.gradle") << """
-            tasks.register("dependent") {
-                inputs.files(parent.tasks.getByName('dependency'))
+            tasks.register("producer") {
+                def outFile = layout.buildDirectory.file("producer.txt")
+                outputs.file(outFile)
+                doLast {
+                    outFile.get().asFile.text = "produced"
+                }
             }
         """
 
-        expect:
-        configurationCacheRun ":foo:dependent"
-        configurationCacheRun ":foo:dependent"
+        file("foo/build.gradle") << """
+            tasks.register("consumer") {
+                inputs.files(parent.tasks.getByName('producer'))
+                def inputFiles = inputs.files
+                doLast {
+                    println "names = " + inputFiles.files*.name
+                    println "contents = " + inputFiles.files.collect { it.text }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun ":foo:consumer"
+
+        then:
+        result.assertTasksExecuted(":producer", ":foo:consumer")
+        outputContains("names = [producer.txt]")
+        outputContains("contents = [produced]")
+
+        when:
+        configurationCacheRun ":foo:consumer"
+
+        then:
+        result.assertTaskOrder(":producer", ":foo:consumer")
+        outputContains("contents = [produced]")
     }
 
     def "restores task fields whose value is an object graph with cycles"() {
