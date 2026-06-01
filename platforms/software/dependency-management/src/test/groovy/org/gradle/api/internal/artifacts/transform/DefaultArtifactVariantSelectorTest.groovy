@@ -111,11 +111,11 @@ class DefaultArtifactVariantSelectorTest extends Specification {
         variant1.attributes >> typeAttributes("jar")
         variant1.asDescribable() >> Describables.of('<variant1>')
         variant1.variantName >> '<variant1>'
-        variant1.ownerDisplayName >> null
+        variant1.owner >> null
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
         variant2.variantName >> '<variant2>'
-        variant2.ownerDisplayName >> null
+        variant2.owner >> null
 
         attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _) >> []
         attributeMatcher.matchMultipleCandidates(transformedVariants, _) >> transformedVariants

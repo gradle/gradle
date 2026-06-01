@@ -142,7 +142,7 @@ class ProjectMetadataController(
     suspend fun WriteContext.writeVariantArtifactSet(variant: VariantResolveMetadata) {
         writeString(variant.name)
         write(variant.identifier)
-        writeNullableString(variant.ownerDisplayName?.displayName)
+        writeNullableString(variant.owner?.displayName)
         write(variant.attributes)
         write(variant.capabilities)
         writeCollection(variant.artifacts)
@@ -254,14 +254,14 @@ class ProjectMetadataController(
         val variantName = readString()
         val identifier = readNonNull<VariantResolveMetadata.Identifier>()
         val displayName = Describables.of(variantName)
-        val ownerDisplayName = readNullableString()?.let { Describables.of(it) }
+        val owner = readNullableString()?.let { Describables.of(it) }
         val attributes = readNonNull<ImmutableAttributes>()
         val capabilities = readNonNull<ImmutableCapabilities>()
         val artifacts = readNonNullList<PublishArtifactLocalArtifactMetadata>()
         val artifactMetadata = factory.create(Describables.of(displayName, "artifacts"), ValueCalculator {
             ImmutableList.copyOf<LocalComponentArtifactMetadata>(artifacts)
         })
-        return LocalVariantMetadata(variantName, identifier, displayName, ownerDisplayName, attributes, capabilities, artifactMetadata)
+        return LocalVariantMetadata(variantName, identifier, displayName, owner, attributes, capabilities, artifactMetadata)
     }
 
     private

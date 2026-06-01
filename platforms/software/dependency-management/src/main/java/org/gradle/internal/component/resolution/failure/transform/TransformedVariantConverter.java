@@ -45,7 +45,7 @@ public final class TransformedVariantConverter {
         TransformDataRecordingVisitor visitor = new TransformDataRecordingVisitor();
         transformedVariant.getTransformChain().visitTransformSteps(visitor);
         ResolvedVariant root = transformedVariant.getRoot();
-        SourceVariantData source = new SourceVariantData(root.getOwnerDisplayName(), root.getVariantName(), root.getAttributes());
+        SourceVariantData source = new SourceVariantData(root.getOwner(), root.getVariantName(), root.getAttributes());
         return new TransformationChainData(source, visitor.getSteps(), transformedVariant.getAttributes());
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -32,8 +33,8 @@ import org.jspecify.annotations.Nullable;
 public final class LocalVariantMetadata extends DefaultVariantMetadata {
     private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
 
-    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, @Nullable DisplayName ownerDisplayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
-        super(name, identifier, displayName, ownerDisplayName, attributes, ImmutableList.of(), capabilities);
+    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, @Nullable Describable owner, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
+        super(name, identifier, displayName, owner, attributes, ImmutableList.of(), capabilities);
         this.artifacts = artifacts;
     }
 

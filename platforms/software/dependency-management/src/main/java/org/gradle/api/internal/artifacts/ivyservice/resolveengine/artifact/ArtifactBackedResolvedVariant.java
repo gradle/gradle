@@ -23,6 +23,7 @@ import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.Describable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -46,7 +47,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final VariantIdentifier sourceVariantId;
     private final DisplayName displayName;
     private final String variantName;
-    private final DisplayName ownerDisplayName;
+    private final Describable owner;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
     private final List<? extends ComponentArtifactMetadata> artifacts;
@@ -57,7 +58,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         VariantIdentifier sourceVariantId,
         DisplayName displayName,
         String variantName,
-        @Nullable DisplayName ownerDisplayName,
+        @Nullable Describable owner,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         List<? extends ComponentArtifactMetadata> artifacts,
@@ -67,7 +68,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         this.sourceVariantId = sourceVariantId;
         this.displayName = displayName;
         this.variantName = variantName;
-        this.ownerDisplayName = ownerDisplayName;
+        this.owner = owner;
         this.attributes = attributes;
         this.capabilities = capabilities;
         this.artifacts = artifacts;
@@ -123,8 +124,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     @Override
     @Nullable
-    public DisplayName getOwnerDisplayName() {
-        return ownerDisplayName;
+    public Describable getOwner() {
+        return owner;
     }
 
     @Override

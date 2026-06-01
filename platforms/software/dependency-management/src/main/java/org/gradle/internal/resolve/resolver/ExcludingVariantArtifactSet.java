@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.resolver;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -62,8 +63,8 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
 
     @Override
     @Nullable
-    public DisplayName getOwnerDisplayName() {
-        return delegate.getOwnerDisplayName();
+    public Describable getOwner() {
+        return delegate.getOwner();
     }
 
     @Override

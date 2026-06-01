@@ -223,7 +223,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     private static String composeArtifactVariantName(VariantGraphResolveState parent, VariantResolveMetadata artifactSet) {
-        return artifactSet.getOwnerDisplayName() == null
+        return artifactSet.getOwner() == null
             ? artifactSet.getName()
             : parent.getMetadata().getName() + "-" + artifactSet.getName();
     }

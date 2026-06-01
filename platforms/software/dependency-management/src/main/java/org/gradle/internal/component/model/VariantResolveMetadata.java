@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -43,18 +44,24 @@ public interface VariantResolveMetadata {
     DisplayName asDescribable();
 
     /**
-     * Owner display name (e.g. the parent component or configuration), used to compose user-facing variant displays.
+     * The owner of this variant — typically the parent component or configuration — used to compose
+     * user-facing variant displays.
      * <p>
-     * May be {@code null} when this variant has no meaningful owner separation (e.g. adhoc artifact sets or
-     * configurations that present themselves without a distinct variant suffix).
+     * Typed as the common public-API supertype {@link Describable} so producers can pass any concrete
+     * owner (a {@link DisplayName}, a {@code Configuration}'s describable, an identifier describable)
+     * and consumers stay decoupled from the concrete type. Read {@link Describable#getDisplayName()}
+     * to render the owner in messages.
      * <p>
-     * Defaults to {@code null} (no owner); implementations that have a meaningful
-     * parent must override to expose it.
+     * May be {@code null} when this variant has no meaningful owner separation (e.g. adhoc artifact
+     * sets or configurations that present themselves without a distinct variant suffix).
+     * <p>
+     * Defaults to {@code null} (no owner); implementations that have a meaningful parent must override
+     * to expose it.
      *
-     * @return the owner display name, or {@code null} when no separation exists
+     * @return the owner, or {@code null} when no separation exists
      */
     @Nullable
-    default DisplayName getOwnerDisplayName() {
+    default Describable getOwner() {
         return null;
     }
 

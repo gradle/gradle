@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -41,16 +42,21 @@ public interface ResolvedVariant extends AttributeMatchingCandidate {
     String getVariantName();
 
     /**
-     * Owner display name (e.g. the parent component or configuration). Paired with {@link #getVariantName()}
-     * so consumers can compose formatted displays without parsing {@link #asDescribable()}.
+     * The owner of this variant (e.g. the parent component or configuration). Paired with
+     * {@link #getVariantName()} so consumers can compose formatted displays without parsing
+     * {@link #asDescribable()}.
+     * <p>
+     * Typed as the common public-API supertype {@link Describable} so producers can pass any concrete
+     * owner and consumers stay decoupled from the concrete type. Read
+     * {@link Describable#getDisplayName()} to render the owner in messages.
      * <p>
      * Defaults to {@code null} (no owner separation); implementations whose variant has a meaningful
      * parent — e.g. {@code <componentId> variant <name>} — must override to expose it.
      *
-     * @return the owner display name, or {@code null} when this variant has no meaningful owner separation
+     * @return the owner, or {@code null} when this variant has no meaningful owner separation
      */
     @Nullable
-    default DisplayName getOwnerDisplayName() {
+    default Describable getOwner() {
         return null;
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.Describable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.jspecify.annotations.Nullable;
@@ -66,8 +67,8 @@ public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantB
 
         @Override
         @Nullable
-        public DisplayName getOwnerDisplayName() {
-            return delegate.getOwnerDisplayName();
+        public Describable getOwner() {
+            return delegate.getOwner();
         }
 
         /**

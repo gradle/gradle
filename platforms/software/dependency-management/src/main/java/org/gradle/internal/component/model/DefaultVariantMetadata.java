@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -27,16 +28,16 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final Identifier identifier;
     private final DisplayName displayName;
     @Nullable
-    private final DisplayName ownerDisplayName;
+    private final Describable owner;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final ImmutableCapabilities capabilitiesMetadata;
 
-    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, @Nullable DisplayName ownerDisplayName, ImmutableAttributes attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilitiesMetadata) {
+    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, @Nullable Describable owner, ImmutableAttributes attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilitiesMetadata) {
         this.name = name;
         this.identifier = identifier;
         this.displayName = displayName;
-        this.ownerDisplayName = ownerDisplayName;
+        this.owner = owner;
         this.attributes = attributes;
         this.artifacts = artifacts;
         this.capabilitiesMetadata = capabilitiesMetadata;
@@ -59,8 +60,8 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
 
     @Override
     @Nullable
-    public DisplayName getOwnerDisplayName() {
-        return ownerDisplayName;
+    public Describable getOwner() {
+        return owner;
     }
 
     @Override
