@@ -410,7 +410,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
     val outputProperties = collectRegisteredOutputsOf(task)
     writeCollection(outputProperties) { property ->
         property.run {
-            val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
+            val finalValue = adaptOutputFileValueForSerialization(DeferredUtil.unpackNestableDeferred(propertyValue), filePropertyType)
             writeOutputProperty(propertyName, finalValue)
             writeBoolean(optional)
             writeEnum(filePropertyType)
@@ -434,6 +434,22 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
 private
 fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
     if (value == null || filePropertyType != InputFilePropertyType.FILES) {
+        return value
+    }
+    return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
+}
+
+
+/**
+ * Same as [adaptInputFileValueForSerialization] but for `outputs.files(...)` / `outputs.dirs(...)` property values.
+ *
+ * Only applied to the multi-valued [OutputFilePropertyType.FILES] and [OutputFilePropertyType.DIRECTORIES] —
+ * [OutputFilePropertyType.FILE] and [OutputFilePropertyType.DIRECTORY] expect a single path-like value on read,
+ * so wrapping in a [FileCollection] would break `outputs.file(...)` / `outputs.dir(...)`.
+ */
+private
+fun WriteContext.adaptOutputFileValueForSerialization(value: Any?, filePropertyType: OutputFilePropertyType): Any? {
+    if (value == null || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY) {
         return value
     }
     return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)

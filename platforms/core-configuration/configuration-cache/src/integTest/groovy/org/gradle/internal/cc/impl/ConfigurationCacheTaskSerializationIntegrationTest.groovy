@@ -550,6 +550,40 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("dir contents = [child.txt]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/33318")
+    def "can use filtered custom NamedDomainObjectContainer as ad hoc task output"() {
+        buildFile """
+            class Artifact implements Named, java.util.concurrent.Callable<File> {
+                final String name
+                File file
+                Artifact(String name) { this.name = name }
+                String getName() { name }
+                File call() { file }
+            }
+
+            def artifacts = objects.domainObjectContainer(Artifact) { name -> new Artifact(name) }
+            artifacts.register("foo") { it.file = file("\${buildDir}/foo.txt") }
+            artifacts.register("bar") { it.file = file("\${buildDir}/bar.txt") }
+
+            tasks.register("aggregate") {
+                def selected = artifacts.matching { it.name in ["foo", "bar"] }
+                // `selected` exposes DefaultNamedDomainObjectCollection internals (pendingMap) — without the
+                // codec-level wrap this hits ConcurrentModificationException at CC store time.
+                outputs.files(selected)
+                def outFiles = outputs.files
+                doLast {
+                    println "outputs = " + outFiles.files*.name.sort()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "aggregate"
+
+        then:
+        outputContains("outputs = [bar.txt, foo.txt]")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/35721")
     def "gives proper attribution to serialization failures in task closures"() {
         buildKotlinFile """
