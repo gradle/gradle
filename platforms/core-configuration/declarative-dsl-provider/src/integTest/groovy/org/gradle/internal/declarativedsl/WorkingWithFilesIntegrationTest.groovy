@@ -176,10 +176,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             def type = projectType("testProjectType") {
                 definition {
                     property "id", String
+                    property "dirForType", DirectoryProperty
                     buildModel {
                         property "id", String
+                        property "dirForType", DirectoryProperty
                         mapping """
                                 model.getId().set(definition.getId());
+                                model.getDirForType().set(definition.getDirForType());
                             """
                     }
                 }
@@ -187,13 +190,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             projectFeature("feature") {
                 definition {
                     property "text", String
-                    property "dir", DirectoryProperty
+                    property "dirForFeature", DirectoryProperty
                     buildModel {
                         property "text", String
-                        property "dir", DirectoryProperty
+                        property "dirForFeature", DirectoryProperty
                         mapping """
                                 model.getText().set(definition.getText());
-                                model.getDir().set(definition.getDir());
+                                model.getDirForFeature().set(definition.getDirForFeature());
                             """
                     }
                 }
@@ -208,8 +211,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             defaults {
                 testProjectType {
                     feature {
-                        dir = layout.projectDirectory.dir("featureDefaultDir")
+                        dirForFeature = layout.projectDirectory.dir("featureDefaultDir")
                     }
+                    dirForType = layout.projectDirectory.dir("typeDefaultDir")
                 }
             }
         """.stripIndent()
@@ -226,10 +230,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         buildFileForProject("b") << ""
 
         expect:
-        succeeds(":a:printFeatureDefinitionConfiguration")
+        succeeds(":a:printFeatureDefinitionConfiguration", ":a:printTestProjectTypeDefinitionConfiguration")
 
         and:
-        outputContains("definition dir = ${testDirectory.file('a/featureDefaultDir').path}")
+        outputContains("definition dirForFeature = ${testDirectory.file('a/featureDefaultDir').path}")
+        outputContains("definition dirForType = ${testDirectory.file('a/typeDefaultDir').path}")
     }
 
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "The situation is prohibited in Declarative DSL via other means")
