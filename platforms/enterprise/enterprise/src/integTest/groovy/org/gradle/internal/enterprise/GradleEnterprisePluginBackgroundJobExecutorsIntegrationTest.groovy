@@ -252,6 +252,6 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
     }
 
     static String getExecutors() {
-        return """(gradle.extensions.serviceRef.get()._requiredServices.backgroundJobExecutors)"""
+        return """(services.get(${GradleEnterprisePluginServiceRef.name}).get()._requiredServices.backgroundJobExecutors)"""
     }
 }
