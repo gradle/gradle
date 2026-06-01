@@ -243,7 +243,7 @@ class CrossProjectConfigurationReportingGradle(
         delegate.pluginManager
 
     override fun getExtensions(): ExtensionContainer =
-        CrossProjectConfigurationReportingExtensionsContainer(
+        CrossProjectConfigurationReportingGradleExtensionsContainer(
             delegate.extensions as ExtensionContainerInternal,
             referrerProject,
             ipProblems

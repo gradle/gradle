@@ -27,7 +27,7 @@ import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReport
 import org.gradle.internal.extensibility.DefaultExtensionsSchema
 import org.gradle.internal.extensions.stdlib.capitalized
 
-internal class CrossProjectConfigurationReportingExtensionsContainer(
+internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     private val delegate: ExtensionContainerInternal,
     private val referrer: ProjectIdentity,
     private val ipProblems: IsolatedProjectsProblemsReporter

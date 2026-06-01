@@ -155,7 +155,7 @@ class ProblemReportingCrossProjectModelAccess(
         referrer: ProjectIdentity,
         extensionContainer: ExtensionContainer
     ): ExtensionContainer {
-        return CrossProjectConfigurationReportingExtensionsContainer(
+        return CrossProjectConfigurationReportingGradleExtensionsContainer(
             extensionContainer as ExtensionContainerInternal,
             referrer,
             ipProblems
