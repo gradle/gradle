@@ -21,7 +21,6 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemInternal
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkValidationContext
@@ -49,12 +48,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
     def handler = new DefaultExecutionProblemHandler(warningReporter, virtualFileSystem)
 
     def setup() {
-        ProblemsProgressEventEmitterHolder.init(problems)
         work.displayName >> "job ':test'"
-    }
-
-    def cleanup() {
-        ProblemsProgressEventEmitterHolder.clear()
     }
 
     def "fails when there is a single violation"() {

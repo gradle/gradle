@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.logging.events.LogEvent;
@@ -25,7 +26,8 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol;
-import org.gradle.process.internal.worker.DefaultWorkerProblemProtocol;
+import org.gradle.process.internal.worker.WorkerProblemDispatcher;
+import org.gradle.process.internal.worker.WorkerProblemServiceManager;
 import org.gradle.process.internal.worker.WorkerProcessException;
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
@@ -41,7 +43,7 @@ import java.util.concurrent.BlockingQueue;
  * This receiver is used per worker action.
  */
 @NullMarked
-public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
+public class Receiver implements ResponseProtocol, WorkerProblemServiceManager, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<>(10);
@@ -51,11 +53,24 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     // Sub-handlers for the different protocols implemented by ResponseProtocol
     private final WorkerLoggingProtocol loggingProtocol;
     private final WorkerProblemProtocol problemProtocol;
+    private final WorkerProblemServiceManager problemServiceManager;
 
     public Receiver(String baseName, OutputEventListener outputEventListener) {
+        WorkerProblemDispatcher problemDispatcher = new WorkerProblemDispatcher();
         this.loggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
-        this.problemProtocol = new DefaultWorkerProblemProtocol();
+        this.problemProtocol = problemDispatcher;
+        this.problemServiceManager = problemDispatcher;
         this.baseName = baseName;
+    }
+
+    @Override
+    public void bindProblemsService(ProblemsInternal problems) {
+        problemServiceManager.bindProblemsService(problems);
+    }
+
+    @Override
+    public void clearProblemsService() {
+        problemServiceManager.clearProblemsService();
     }
 
     public boolean awaitNextResult() {
