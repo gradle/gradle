@@ -1117,4 +1117,35 @@ assert custom.prop.get() == "value 4"
         "empty Map"        | "objects.mapProperty(String, Integer)" | "prop.set([:])"    | false
         "non-empty Map"    | "objects.mapProperty(String, Integer)" | "prop.set([a: 1])" | true
     }
+
+    def "property follows custom Groovy truth even from a @CompileStatic caller (#description)"() {
+        given:
+        buildFile """
+            import groovy.transform.CompileStatic
+
+            @CompileStatic
+            class StaticTruth {
+                static boolean coerce(Provider<?> prop) {
+                    return prop ? true : false
+                }
+            }
+
+            def prop = $factory
+            $setup
+            assert StaticTruth.coerce(prop) == $expected
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        description        | factory                                | setup              | expected
+        "no value"         | "objects.property(Boolean)"            | ""                 | false
+        "Boolean true"     | "objects.property(Boolean)"            | "prop.set(true)"   | true
+        "Boolean false"    | "objects.property(Boolean)"            | "prop.set(false)"  | false
+        "empty String"     | "objects.property(String)"             | "prop.set('')"     | false
+        "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
+        "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
+        "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+    }
 }
