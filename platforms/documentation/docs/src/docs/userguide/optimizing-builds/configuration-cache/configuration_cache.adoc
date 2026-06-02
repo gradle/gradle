@@ -149,7 +149,7 @@ image::configuration-cache-3.png[]
 On a cache hit (a subsequent invocation of the same tasks where no configuration inputs have changed), Gradle skips the configuration phase entirely.
 Instead, Gradle restores the task graph by deserializing the cache entry, then proceeds straight to execution.
 
-Because the configuration phase is skipped on a hit, any logic registered through configuration-phase callbacks, such as `BuildListener`, `Gradle.beforeProject`, `Gradle.afterProject`, or `Gradle.taskGraph.whenReady`, will not execute.
+Because the configuration phase is skipped on a hit, any logic registered through configuration-phase callbacks, such as `BuildListener`, `Gradle.beforeProject`, `Gradle.afterProject`, or `Gradle.taskGraph.whenReady`, will not re-execute.
 Build logic that needs to react to task execution should use a <<build_services#operation_listener, Build Service>> registered as an `OperationCompletionListener` instead.
 See <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, Using Build Listeners>> for the full list of affected APIs and their replacements.
 
@@ -216,7 +216,7 @@ Gradle has a dedicated *codec* for each type or family of types it knows how to 
 Four codecs are worth understanding:
 
 - The *task node codec* writes and reads the units of the task graph itself.
-- The *bean codec* is the fallback for arbitrary user-defined classes; it walks reflective fields and recursively serializes each one.
+- The *bean codec* is the fallback for arbitrary user-defined classes; it walks fields using reflection and recursively serializes each one.
 Most plugin-defined task and extension types end up handled by the bean codec without any extra work from the author.
 - The *provider codec* handles `Provider` and `Property` instances.
 The provider codec **freezes lazy values**: the value a provider would compute is captured at store time and replayed at load time, so providers do not re-evaluate their original sources during execution.
@@ -278,7 +278,7 @@ The Configuration Cache eliminates this contention by giving each task an isolat
 This complements Gradle's existing `--parallel` flag, which executes tasks across *different* projects in parallel.
 With the Configuration Cache, parallelism applies *within* a single project as well.
 
-IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially may need to declare explicit task dependencies or use <<build_services.adoc#build_services, shared build services>> to coordinate access to shared resources.
+IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially should properly wire task inputs and outputs to enforce task order or use <<build_services.adoc#build_services, shared build services>> to coordinate access to shared resources.
 
 === Cached Dependency Resolution
 
