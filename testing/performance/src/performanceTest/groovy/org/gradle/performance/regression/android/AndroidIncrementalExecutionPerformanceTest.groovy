@@ -48,6 +48,12 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         applyDevelocityPlugin()
     }
 
+    // Method-level @RunFor overrides the class-level one to disable the regressing "abi change with configuration caching" iteration.
+    // The iterationMatcher only keeps the "abi change" (no configuration caching) iteration.
+    // See https://github.com/gradle/gradle-private/issues/5247
+    @RunFor(
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["nowInAndroidBuild"], iterationMatcher = "abi change")
+    )
     def "abi change#configurationCaching"() {
         given:
         testProject.configureForAbiChange(runner)
