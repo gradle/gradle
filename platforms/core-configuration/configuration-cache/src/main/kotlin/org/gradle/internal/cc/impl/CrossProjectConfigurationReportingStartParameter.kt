@@ -181,7 +181,7 @@ internal class CrossProjectConfigurationReportingStartParameter(
         delegate.setTaskNames(taskNames)
     }
 
-    override fun getTaskRequests(): MutableList<TaskExecutionRequest> =
+    override fun getTaskRequests(): List<TaskExecutionRequest> =
         if (duringSuperInit()) super.getTaskRequests()
         else ImmutableList.copyOf(delegate.taskRequests)
 
@@ -191,7 +191,7 @@ internal class CrossProjectConfigurationReportingStartParameter(
         delegate.setTaskRequests(taskParameters)
     }
 
-    override fun getExcludedTaskNames(): MutableSet<String> =
+    override fun getExcludedTaskNames(): Set<String> =
         if (duringSuperInit()) super.getExcludedTaskNames()
         else ImmutableSet.copyOf(delegate.excludedTaskNames)
 
@@ -245,7 +245,7 @@ internal class CrossProjectConfigurationReportingStartParameter(
 
     // region StartParameter — properties (mutable maps!)
 
-    override fun getProjectProperties(): MutableMap<String, String> =
+    override fun getProjectProperties(): Map<String, String> =
         if (duringSuperInit()) super.getProjectProperties()
         else ImmutableMap.copyOf(delegate.projectProperties)
 
@@ -255,7 +255,7 @@ internal class CrossProjectConfigurationReportingStartParameter(
         delegate.setProjectProperties(projectProperties)
     }
 
-    override fun getSystemPropertiesArgs(): MutableMap<String, String> =
+    override fun getSystemPropertiesArgs(): Map<String, String> =
         if (duringSuperInit()) super.getSystemPropertiesArgs()
         else ImmutableMap.copyOf(delegate.systemPropertiesArgs)
 
@@ -799,7 +799,7 @@ internal class CrossProjectConfigurationReportingStartParameter(
         delegate.develocityPluginVersion = develocityPluginVersion
     }
 
-    override fun getProjectPropertiesUntracked(): MutableMap<String, String> =
+    override fun getProjectPropertiesUntracked(): Map<String, String> =
         if (duringSuperInit()) super.getProjectPropertiesUntracked()
         else ImmutableMap.copyOf(delegate.projectPropertiesUntracked)
 
