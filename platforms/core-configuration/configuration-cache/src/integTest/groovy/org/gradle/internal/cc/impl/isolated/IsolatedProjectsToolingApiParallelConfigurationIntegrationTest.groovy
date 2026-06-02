@@ -27,6 +27,38 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    // DEBUG (flaky investigation): init script that starts a daemon-side watchdog which periodically
+    // dumps all Gradle thread stacks together with lock ownership, so we can see what the :a/:b
+    // configuration threads are blocked on while the model-root request is held. Every line is prefixed
+    // with @@FLAKYDUMP@@ so it can be grepped out of the captured build output. Remove before merging.
+    private static final String WATCHDOG_INIT_SCRIPT = $/
+import java.lang.management.ManagementFactory
+
+Thread watchdog = new Thread({
+    def bean = ManagementFactory.threadMXBean
+    for (int i = 0; i < 14; i++) {
+        try { Thread.sleep(10000) } catch (InterruptedException ignore) { break }
+        def infos = bean.dumpAllThreads(true, true)
+        def sb = new StringBuilder("\n@@FLAKYDUMP@@ iteration=" + i + " time=" + System.currentTimeMillis() + " threadCount=" + infos.length + "\n")
+        for (info in infos) {
+            boolean gradleThread = false
+            for (ste in info.stackTrace) { if (ste.className.startsWith("org.gradle")) { gradleThread = true; break } }
+            if (!gradleThread) continue
+            sb.append("@@FLAKYDUMP@@ \"").append(info.threadName).append("\" state=").append(info.threadState)
+            if (info.lockName != null) sb.append(" waitingOn=").append(info.lockName)
+            if (info.lockOwnerName != null) sb.append(" heldBy=\"").append(info.lockOwnerName).append("\" (id ").append(info.lockOwnerId).append(")")
+            sb.append("\n")
+            for (ste in info.stackTrace) { sb.append("@@FLAKYDUMP@@     at ").append(ste).append("\n") }
+        }
+        System.out.println(sb.toString())
+        System.out.flush()
+    }
+})
+watchdog.setName("flaky-debug-watchdog")
+watchdog.setDaemon(true)
+watchdog.start()
+/$
+
     def setup() {
         server.start()
     }
@@ -55,8 +87,12 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("model-root", "configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
+        // DEBUG (flaky investigation): write the watchdog init script and pass it to each invocation.
+        def debugInit = file("debug-watchdog-init.gradle")
+        debugInit.text = WATCHDOG_INIT_SCRIPT
+
         when:
-        withIsolatedProjects()
+        withIsolatedProjects("--init-script", debugInit.absolutePath)
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -73,7 +109,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjects("--init-script", debugInit.absolutePath)
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -97,7 +133,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
-        withIsolatedProjects()
+        withIsolatedProjects("--init-script", debugInit.absolutePath)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -117,7 +153,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjects("--init-script", debugInit.absolutePath)
         def model4 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
