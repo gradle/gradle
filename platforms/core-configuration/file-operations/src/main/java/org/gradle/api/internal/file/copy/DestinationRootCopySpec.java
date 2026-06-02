@@ -79,7 +79,7 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
     @Override
     @Nullable
     public File getDestinationDir() {
-        return destinationDirectory.getAsFile().getOrNull();
+        return destinationDirectory.isPresent() ? destinationDirectory.get().getAsFile() : null;
     }
 
     // TODO:configuration-cache - remove this
