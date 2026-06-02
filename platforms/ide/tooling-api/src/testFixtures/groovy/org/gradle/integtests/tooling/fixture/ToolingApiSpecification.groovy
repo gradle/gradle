@@ -342,7 +342,9 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("9.0")) {
+        if (targetVersion >= GradleVersion.version("9.6")) {
+            return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'help', 'javaToolchains', 'projects', 'properties', 'repositories', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
+        } else if (targetVersion >= GradleVersion.version("9.0")) {
             return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("8.13")) {
             return ['artifactTransforms', 'buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']

@@ -36,6 +36,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -186,7 +188,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addInclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (includeSpecs == null) {
-            includeSpecs = new HashSet<>();
+            // LinkedHashSet preserves declaration order so describeIncludeRules() reports
+            // rules in the order the user declared them.
+            includeSpecs = new LinkedHashSet<>();
         }
         includeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
     }
@@ -242,7 +246,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addExclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (excludeSpecs == null) {
-            excludeSpecs = new HashSet<>();
+            // LinkedHashSet preserves declaration order so describeExcludeRules() reports
+            // rules in the order the user declared them.
+            excludeSpecs = new LinkedHashSet<>();
         }
         excludeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
     }
@@ -314,6 +320,27 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         this.excludeSpecs = excludeSpecs;
     }
 
+    @Override
+    public List<String> describeIncludeRules() {
+        return describeSpecs(includeSpecs);
+    }
+
+    @Override
+    public List<String> describeExcludeRules() {
+        return describeSpecs(excludeSpecs);
+    }
+
+    private static List<String> describeSpecs(@Nullable Set<ContentSpec> specs) {
+        if (specs == null || specs.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<String> out = ImmutableList.builderWithExpectedSize(specs.size());
+        for (ContentSpec spec : specs) {
+            out.add(spec.describe());
+        }
+        return out.build();
+    }
+
     @Nullable
     @Override
     public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
@@ -365,6 +392,40 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         @Override
         public int hashCode() {
             return hashCode;
+        }
+
+        String describe() {
+            String prefix = inclusive ? "include" : "exclude";
+            if (module == null && version == null) {
+                // group-only
+                String methodName;
+                switch (matcherKind) {
+                    case SIMPLE:
+                        methodName = prefix + "Group";
+                        break;
+                    case SUB_GROUP:
+                        methodName = prefix + "GroupAndSubgroups";
+                        break;
+                    case REGEX:
+                        methodName = prefix + "GroupByRegex";
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown matcher kind: " + matcherKind);
+                }
+                return methodName + "(\"" + group + "\")";
+            }
+            if (version == null) {
+                // group+module
+                String methodName = matcherKind == MatcherKind.REGEX
+                    ? prefix + "ModuleByRegex"
+                    : prefix + "Module";
+                return methodName + "(\"" + group + "\", \"" + module + "\")";
+            }
+            // group+module+version
+            String versionMethod = matcherKind == MatcherKind.REGEX
+                ? prefix + "VersionByRegex"
+                : prefix + "Version";
+            return versionMethod + "(\"" + group + "\", \"" + module + "\", \"" + version + "\")";
         }
 
         SpecMatcher toMatcher() {

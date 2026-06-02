@@ -49,6 +49,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     dependencies()
                     dependencyInsight()
                     dependentComponents()
+                    generateRepositoriesReportData()
                     javaToolchains()
                     help()
                     init()
@@ -57,6 +58,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     prepareKotlinBuildScriptModel()
                     projects()
                     properties()
+                    repositories()
                     resovableVariants()
                     tasks()
                     wrapper()
@@ -344,6 +346,12 @@ model {
           | Creator: \tProject.<init>.tasks.dependentComponents()
           | Rules:
              ⤷ copyToTaskContainer
+    + generateRepositoriesReportData
+          | Type:   \torg.gradle.api.tasks.diagnostics.GenerateRepositoriesReportDataTask
+          | Value:  \ttask ':generateRepositoriesReportData\'
+          | Creator: \tProject.<init>.tasks.generateRepositoriesReportData()
+          | Rules:
+             ⤷ copyToTaskContainer
     + help
           | Type:   \torg.gradle.configuration.Help
           | Value:  \ttask ':help\'
@@ -390,6 +398,12 @@ model {
           | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
           | Value:  \ttask ':properties\'
           | Creator: \tProject.<init>.tasks.properties()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + repositories
+          | Type:   \torg.gradle.api.tasks.diagnostics.RepositoriesReportTask
+          | Value:  \ttask ':repositories\'
+          | Creator: \tProject.<init>.tasks.repositories()
           | Rules:
              ⤷ copyToTaskContainer
     + resolvableConfigurations

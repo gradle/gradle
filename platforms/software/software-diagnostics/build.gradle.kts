@@ -35,6 +35,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.credentialsApi)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
@@ -44,6 +45,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.jatl)
+    implementation(libs.slf4jApi)
 
     implementationResources(variantOf(libs.jquery) { artifactType("js") })
 

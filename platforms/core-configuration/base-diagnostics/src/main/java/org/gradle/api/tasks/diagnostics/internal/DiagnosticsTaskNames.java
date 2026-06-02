@@ -86,6 +86,14 @@ public interface DiagnosticsTaskNames {
     String ARTIFACT_TRANSFORMS_TASK = "artifactTransforms";
 
     /**
+     * The name of the repositories report task.
+     *
+     * @since 9.5
+     */
+    @Incubating
+    String REPOSITORIES_TASK = "repositories";
+
+    /**
      * The name of the model report task.
      *
      * @since 8.13

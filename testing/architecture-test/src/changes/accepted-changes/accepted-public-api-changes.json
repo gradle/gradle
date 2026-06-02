@@ -1,3 +1,16 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.diagnostics.GenerateRepositoriesReportDataTask",
+            "member": "Constructor org.gradle.api.tasks.diagnostics.GenerateRepositoriesReportDataTask()",
+            "acceptation": "Class has no explicit constructor; @since is on the class itself",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.RepositoriesReportTask",
+            "member": "Constructor org.gradle.api.tasks.diagnostics.RepositoriesReportTask()",
+            "acceptation": "Abstract class has no explicit constructor; @since is on the class itself",
+            "changes": []
+        }
+    ]
 }
