@@ -16,6 +16,16 @@
 
 package org.gradle.internal.cc.impl
 
+/**
+ * Verifies that the configuration cache treats a no-argument invocation and an
+ * explicit invocation of the project's {@code defaultTasks} as interchangeable:
+ * either form on a subsequent build hits the cache entry stored by the other.
+ *
+ * Negative tests pin down that unrelated tasks, partial subsets, reordered task
+ * names, qualified paths, and {@code -x} exclusions are <em>not</em> incorrectly
+ * aliased; an additional test confirms that a shared entry is still invalidated
+ * by the normal fingerprint check when a build input changes between runs.
+ */
 class ConfigurationCacheDefaultTaskIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "running build twice with no task arguments hits the configuration cache"() {
