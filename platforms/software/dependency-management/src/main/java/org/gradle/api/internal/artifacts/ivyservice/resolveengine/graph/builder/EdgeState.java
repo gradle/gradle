@@ -424,7 +424,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ModuleVersionResolveException getFailure() {
+    public @Nullable ModuleVersionResolveException getFailure() {
         if (targetNodeSelectionFailure != null) {
             return targetNodeSelectionFailure;
         }

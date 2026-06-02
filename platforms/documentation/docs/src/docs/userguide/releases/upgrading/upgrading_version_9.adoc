@@ -101,6 +101,27 @@ Null-checks against the result are no longer required.
 No source change is needed in typical builds.
 If you have custom code that branched on `getParameters() == null` to detect a parameterless action, replace it with `getParameters() instanceof WorkParameters.None` (or the equivalent `None` type).
 
+=== Feature previews
+
+[[dependency_resolution_ordering]]
+==== Opt into improved dependency resolution ordering
+
+A new feature preview, `ENHANCED_GRAPH_ORDERING`, is available to opt into new dependency resolution ordering behavior that will become the default in Gradle 10.
+
+With this feature preview enabled, Gradle will use a standard breadth-first ordering when using the `DEFAULT` sort order.
+Gradle may optionally be configured to return artifacts sorted topologically, using the `CONSUMER_FIRST` sort option, which sorts artifacts earlier than those they depend on.
+As usual, the `DEPENDENCY_FIRST` ordering is the reverse of the `CONSUMER_FIRST` ordering.
+
+Notably, unlike the existing sorting methods, all sorting options in Gradle 10 will ignore constraint edges when traversing the resolved graph.
+
+You can enable this feature preview in your `settings.gradle.kts`:
+
+[source,kotlin]
+----
+// settings.gradle.kts
+enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
+----
+
 === Deprecations
 
 [[deprecated_unsafe_isolated_projects_properties]]

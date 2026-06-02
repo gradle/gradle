@@ -175,6 +175,7 @@ class DependencyGraphBuilderTest extends Specification {
             dependencySubstitutionApplicator,
             conflictResolver,
             ImmutableList.of(),
+            ResolutionParameters.SortOrder.BFS,
             ConflictResolution.latest,
             false,
             false,
@@ -1250,10 +1251,6 @@ class DependencyGraphBuilderTest extends Specification {
         @Override
         void visitNode(DependencyGraphNode node) {
             components.add(node.owner.moduleVersion)
-        }
-
-        @Override
-        void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
                     def breakage = failures.get(it.requested)
