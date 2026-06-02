@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -409,7 +410,71 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
+        try {
+            writeDefaultTaskAlias()
+        } catch (e: Exception) {
+            // The primary entry was committed successfully above. A failure to write the
+            // secondary alias index is non-fatal: the cache remains correct, only less effective.
+            logger.warn("Failed to write default-task configuration cache alias", e)
+        }
     }
+
+    /**
+     * Writes a secondary `candidates.bin` index pointing at the just-committed cache
+     * entry from the "opposite-form" key's directory, so a follow-up `gradle` and
+     * `gradle <defaultTaskName>` resolve to the same entry. Skipped for non-task-running
+     * invocations and when the effective task names don't match the project's resolved
+     * default tasks (see [computeAliasTaskNames]).
+     */
+    private
+    fun writeDefaultTaskAlias() {
+        if (!buildActionModelRequirements.isRunsTasks) return
+        val aliasTaskNames = computeAliasTaskNames() ?: return
+        val aliasKey = cacheKey.stringForRequestedTaskNames(aliasTaskNames)
+        if (aliasKey == cacheKey.string) return
+        val aliasStore = cacheRepository.forKey(aliasKey)
+        aliasStore.useForStore {
+            applyCandidateEntriesUpdate {
+                withMostRecentEntry(
+                    CandidateEntry(entryId),
+                    startParameter.entriesPerKey
+                )
+            }
+        }
+    }
+
+    /**
+     * Returns the task-names list to use for the alias key, or null if no alias
+     * should be written. The list is the "opposite" view of this invocation:
+     * empty when invocation was explicit-default; the resolved defaults when
+     * invocation was no-args.
+     */
+    private
+    fun computeAliasTaskNames(): List<String>? {
+        val resolvedDefaults = resolvedDefaultTasks()
+        if (resolvedDefaults.isEmpty()) return null
+        val primaryTaskNames = if (startParameter.wasDefaultTaskRequest) {
+            emptyList()
+        } else {
+            startParameter.requestedTaskNames
+        }
+        return when {
+            primaryTaskNames.isEmpty() -> resolvedDefaults
+            primaryTaskNames == resolvedDefaults -> emptyList()
+            else -> null
+        }
+    }
+
+    /**
+     * Resolved default tasks for the build's default project (possibly empty).
+     *
+     * Safe to call from [commitCacheEntry] because the default project must be
+     * attached for configuration to have succeeded.
+     */
+    private
+    fun resolvedDefaultTasks(): List<String> =
+        deferredRootBuildGradle.gradle.defaultProjectState
+            .fromMutableState(ProjectInternal::getDefaultTasks)
 
     private
     fun determineCacheAction(): DescribedAction {
@@ -575,6 +640,18 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = store.useForStore {
+        applyCandidateEntriesUpdate(update)
+    }
+
+    /**
+     * Shared read/update/write/schedule-eviction body for candidate-entry index updates.
+     * Reads the current index, applies [update], and if the result differs writes the
+     * new index and schedules now-evicted entries for collection.
+     */
+    private
+    fun ConfigurationCacheRepository.Layout.applyCandidateEntriesUpdate(
+        update: List<CandidateEntry>.() -> List<CandidateEntry>
+    ) {
         val existingEntries = readCandidateEntries()
         val newEntries = update(existingEntries)
         if (existingEntries != newEntries) {
