@@ -157,6 +157,12 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                         return allServices.find(allowedService);
                     }
                 }
+                // Route the removed InternalProblems type to the service that fails with an actionable error.
+                @SuppressWarnings("deprecation")
+                Class<?> removedInternalProblems = org.gradle.api.problems.internal.InternalProblems.class;
+                if (serviceClass.isAssignableFrom(removedInternalProblems)) {
+                    return allServices.find(removedInternalProblems);
+                }
             }
             return null;
         }

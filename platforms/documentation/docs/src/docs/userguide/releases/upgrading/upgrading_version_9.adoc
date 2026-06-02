@@ -43,12 +43,14 @@ The previous step will help you identify potential problems by issuing deprecati
 === Potential breaking changes
 
 [[agp_8x_incompatible]]
-==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
+==== Plugins relying on removed Problems API internals are no longer compatible with Gradle 9.6
 
-Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
-Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
+Several internal classes of the Problems API, such as `org.gradle.api.problems.internal.InternalProblems`, have been removed in Gradle 9.6.
+Plugins that bound to these internal classes directly fail at build time with an error mentioning the removed type.
 
+The most common case is Android Gradle Plugin (AGP) 8.x, which relied on these internal classes.
 To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+If the failure comes from another plugin, update it to a version that no longer uses Gradle internal APIs, or stay on Gradle 9.5 until such a version is available.
 
 [[concurrency_primitives_prohibited_by_cc]]
 ==== Concurrency primitives can no longer be serialized by the Configuration Cache
