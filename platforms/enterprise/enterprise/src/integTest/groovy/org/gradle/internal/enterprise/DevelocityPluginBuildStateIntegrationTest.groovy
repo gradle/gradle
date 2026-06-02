@@ -39,7 +39,7 @@ class DevelocityPluginBuildStateIntegrationTest extends AbstractIntegrationSpec 
     def "provided build state is correct"() {
         given:
         buildFile << """
-            def serviceRef = gradle.extensions.serviceRef
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task check {
                 doLast {
                     def service = serviceRef.get()
