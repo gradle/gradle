@@ -433,7 +433,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
  */
 private
 fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
-    if (value == null || filePropertyType != InputFilePropertyType.FILES) {
+    if (value == null || value is FileCollection || filePropertyType != InputFilePropertyType.FILES) {
         return value
     }
     return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
@@ -449,7 +449,7 @@ fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyTy
  */
 private
 fun WriteContext.adaptOutputFileValueForSerialization(value: Any?, filePropertyType: OutputFilePropertyType): Any? {
-    if (value == null || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY) {
+    if (value == null || value is FileCollection || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY) {
         return value
     }
     return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
