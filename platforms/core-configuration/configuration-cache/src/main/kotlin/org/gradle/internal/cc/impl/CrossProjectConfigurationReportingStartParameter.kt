@@ -37,6 +37,7 @@ import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReport
 import org.gradle.internal.watch.registry.WatchMode
 import java.io.File
 import java.time.Duration
+import java.util.Objects
 
 /**
  * IP-reporting wrapper around [StartParameterInternal] returned from
@@ -811,11 +812,15 @@ internal class CrossProjectConfigurationReportingStartParameter(
 
     override fun equals(other: Any?): Boolean {
         if (duringSuperInit()) return super.equals(other)
-        return delegate == other || (other is CrossProjectConfigurationReportingStartParameter && delegate == other.delegate)
+        // Only wrapper-to-wrapper equality: comparing equal to the bare delegate would be
+        // asymmetric (`delegate.equals(wrapper)` is false) and violate the equals contract.
+        return other is CrossProjectConfigurationReportingStartParameter &&
+            delegate == other.delegateOrNull &&
+            referrer == other.referrer
     }
 
     override fun hashCode(): Int =
-        if (duringSuperInit()) super.hashCode() else delegate.hashCode()
+        if (duringSuperInit()) super.hashCode() else Objects.hash(delegate, referrer)
 
     override fun toString(): String =
         if (duringSuperInit()) "CrossProjectConfigurationReportingStartParameter(uninitialized)"
