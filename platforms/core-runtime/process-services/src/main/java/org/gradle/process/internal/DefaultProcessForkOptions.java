@@ -47,12 +47,9 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private Map<String, Object> environment;
 
     /**
-     * Kept for backward compatibility (e.g. KGP). Prefer {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)}:
-     * this overload builds the working-directory property via {@link SimplePropertyFactory}, which requires
-     * {@code NativeServices} to be initialized.
+     * Kept for backward compatibility with some external plugins (e.g. KGP). Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead.
      *
-     * @deprecated Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead. Retained only so
-     * external plugins (e.g. the Kotlin Gradle Plugin) that construct this type with just a resolver keep working.
+     * @deprecated Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead.
      */
     @Deprecated
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
@@ -102,7 +99,8 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public void setWorkingDir(File dir) {
-        getWorkingDirectory().set(dir);
+        // We call resolver to resolve "." in some scopes
+        getWorkingDirectory().set(resolver.resolve(dir));
     }
 
     @Override
