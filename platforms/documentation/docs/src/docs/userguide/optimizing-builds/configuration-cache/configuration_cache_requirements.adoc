@@ -602,3 +602,18 @@ Once generated, set the Base64-encoded key as the value of the `GRADLE_ENCRYPTIO
 ----
 $ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
 ----
+
+[[config_cache:requirements:java_agent]]
+== Third-party Java Agents with the Configuration Cache
+
+The Configuration Cache supports third-party `-javaagent:` attachments to the build JVM (for example a coverage agent such as Jacoco, IntelliJ's `idea_rt.jar`, or a custom user agent) in regular daemon builds and in <<test_kit#test_kit, TestKit>>'s default (daemon) mode.
+
+Only agents attached at JVM startup are supported. Agents attached dynamically via the Attach API after the JVM has started are not detected and may cause incorrect bytecode observation on classes loaded after attachment.
+
+It is not supported when TestKit runs in embedded mode (`withDebug(true)`). To use a third-party Java agent with the Configuration Cache from there, drop `withDebug(true)` and let TestKit use its daemon default.
+
+To debug the daemon TestKit spawns with the Configuration Cache enabled:
+
+* Do not use `withDebug(true)`.
+* Pass `-Dorg.gradle.debug=true` to the build under test (see <<command_line_interface.adoc#sec:command_line_debugging,debugging options>>).
+* Attach the debugger manually.

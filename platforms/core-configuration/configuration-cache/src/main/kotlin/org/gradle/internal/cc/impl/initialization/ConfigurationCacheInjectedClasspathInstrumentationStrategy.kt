@@ -16,14 +16,37 @@
 
 package org.gradle.internal.cc.impl.initialization
 
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.instrumentation.agent.AgentStatus
+import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection.isThirdPartyAgentPresent
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
-class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
-    problems: ProblemsListener
-) : AbstractInjectedClasspathInstrumentationStrategy(problems) {
-    override fun whenThirdPartyAgentPresent(): TransformMode {
-        // Instrument anyway, the emitted problem will cause the build to fail.
+internal class ConfigurationCacheInjectedClasspathInstrumentationStrategy internal constructor(
+    private val problems: ProblemsListener,
+    private val agentStatus: AgentStatus,
+) : InjectedClasspathInstrumentationStrategy {
+
+    override fun getTransform(): TransformMode {
+        if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
+            // Without Gradle's instrumentation agent, the buildscript classpath is rewritten ahead of time;
+            // the third-party transformer would observe Gradle's bytecode, not the user's. Refuse the build
+            // rather than produce wrong output like miscredited coverage.
+            reportThirdPartyAgentPresent()
+        }
         return TransformMode.BUILD_LOGIC
     }
+
+    private fun reportThirdPartyAgentPresent() =
+        problems.onProblem(
+            PropertyProblem(
+                PropertyTrace.Gradle,
+                StructuredMessage.build { text("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache.") },
+                documentationSection = DocumentationSection.RequirementsJavaAgent
+            )
+        )
 }
