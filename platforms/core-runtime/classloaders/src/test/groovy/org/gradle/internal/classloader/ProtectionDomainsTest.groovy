@@ -29,7 +29,7 @@ class ProtectionDomainsTest extends Specification {
 
     def "resolves the file of a file code source"() {
         given:
-        def file = new File("/some/dir/lib.jar")
+        def file = new File("dir/lib.jar").absoluteFile
         def protectionDomain = protectionDomainFor(file.toURI().toURL())
 
         expect:
