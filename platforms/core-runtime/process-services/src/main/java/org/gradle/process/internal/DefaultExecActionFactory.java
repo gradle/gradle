@@ -193,7 +193,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Override
     @SuppressWarnings("deprecation")
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(filePropertyFactory.withResolver(fileResolver), execHandleFactory.newExecHandleBuilder());
+        return new DefaultExecHandleBuilder(execHandleFactory.newExecHandleBuilder());
     }
 
     @Override

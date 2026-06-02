@@ -17,11 +17,13 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransformer;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -110,8 +112,18 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
-        if (dir instanceof Provider) {
-            getWorkingDirectory().fileProvider(((Provider<?>) dir).map(resolver::resolve));
+        if (dir instanceof DirectoryProperty) {
+            getWorkingDirectory().set((DirectoryProperty) dir);
+        } else if (dir instanceof Provider) {
+            getWorkingDirectory().fileProvider(((Provider<?>) dir).map((SerializableTransformer<File, Object>) value -> {
+                if (value instanceof File) {
+                    return (File) value;
+                } else if (value instanceof FileSystemLocation) {
+                    return ((FileSystemLocation) value).getAsFile();
+                } else {
+                    return resolver.resolve(value);
+                }
+            }));
         } else {
             getWorkingDirectory().set(resolver.resolve(dir));
         }

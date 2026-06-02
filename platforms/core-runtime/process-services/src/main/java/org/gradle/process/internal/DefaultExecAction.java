@@ -49,9 +49,7 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public ExecResult execute() {
-        if (workingDirectory.isPresent()) {
-            execHandleBuilder.setWorkingDir(workingDirectory.get().getAsFile());
-        }
+        execHandleBuilder.setWorkingDir(workingDirectory.get().getAsFile());
         ExecHandle execHandle = execHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
         if (!isIgnoreExitValue()) {
@@ -88,19 +86,17 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public File getWorkingDir() {
-        return workingDirectory.isPresent() ? workingDirectory.get().getAsFile() : execHandleBuilder.getWorkingDir();
+        return workingDirectory.get().getAsFile();
     }
 
     @Override
     public void setWorkingDir(File dir) {
-        execHandleBuilder.setWorkingDir(dir);
-        workingDirectory.fileValue(execHandleBuilder.getWorkingDir());
+        workingDirectory.set(dir);
     }
 
     @Override
     public void setWorkingDir(Object dir) {
-        execHandleBuilder.setWorkingDir(dir);
-        workingDirectory.fileValue(execHandleBuilder.getWorkingDir());
+        workingDir(dir);
     }
 
     @Override

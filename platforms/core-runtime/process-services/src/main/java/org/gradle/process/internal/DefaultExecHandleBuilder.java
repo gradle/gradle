@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -37,13 +36,8 @@ import java.util.Map;
 @Deprecated
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
-    // Lazy variant of the working directory. Left empty (no convention) until explicitly set, so that
-    // construction never forces resolver.resolve(".") (which fails for an IdentityFileResolver).
-    private final DirectoryProperty workingDirectory;
-
-    public DefaultExecHandleBuilder(FilePropertyFactory filePropertyFactory, ClientExecHandleBuilder delegate) {
+    public DefaultExecHandleBuilder(ClientExecHandleBuilder delegate) {
         super(delegate);
-        this.workingDirectory = filePropertyFactory.newDirectoryProperty();
     }
 
     @Override
@@ -69,24 +63,22 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public DirectoryProperty getWorkingDirectory() {
-        return workingDirectory;
+        throw new UnsupportedOperationException("DefaultExecHandleBuilder is deprecated. Move away from this class, we don't plan to support it.");
     }
 
     @Override
     public File getWorkingDir() {
-        return workingDirectory.isPresent() ? workingDirectory.get().getAsFile() : delegate.getWorkingDir();
+        return delegate.getWorkingDir();
     }
 
     @Override
     public void setWorkingDir(File dir) {
         delegate.setWorkingDir(dir);
-        workingDirectory.fileValue(delegate.getWorkingDir());
     }
 
     @Override
     public void setWorkingDir(Object dir) {
         delegate.setWorkingDir(dir);
-        workingDirectory.fileValue(delegate.getWorkingDir());
     }
 
     @Override
@@ -164,16 +156,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public DefaultExecHandleBuilder workingDir(Object dir) {
         delegate.setWorkingDir(dir);
-        workingDirectory.fileValue(delegate.getWorkingDir());
         return this;
-    }
-
-    @Override
-    public ExecHandle build() {
-        if (workingDirectory.isPresent()) {
-            delegate.setWorkingDir(workingDirectory.get().getAsFile());
-        }
-        return super.build();
     }
 
     @Override

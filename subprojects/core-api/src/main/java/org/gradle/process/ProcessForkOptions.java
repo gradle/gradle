@@ -97,7 +97,7 @@ public interface ProcessForkOptions {
     /**
      * Returns the working directory for the process as a {@link DirectoryProperty}. Defaults to the project directory.
      *
-     * @return The working directory property. Never returns null.
+     * @return The working directory property. Must not be unset.
      * @since 9.7.0
      */
     @Incubating
