@@ -410,36 +410,49 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
-        try {
+        if (needToWriteSecondaryEntry()) {
             writeDefaultTaskAlias()
-        } catch (e: Exception) {
-            // The primary entry was committed successfully above. A failure to write the
-            // secondary alias index is non-fatal: the cache remains correct, only less effective.
-            logger.warn("Failed to write default-task configuration cache alias", e)
         }
     }
 
     /**
-     * Writes a secondary `candidates.bin` index pointing at the just-committed cache
-     * entry from the "opposite-form" key's directory, so a follow-up `gradle` and
-     * `gradle <defaultTaskName>` resolve to the same entry. Skipped for non-task-running
-     * invocations and when the effective task names don't match the project's resolved
-     * default tasks (see [computeAliasTaskNames]).
+     * True when the invocation's effective tasks match the project's resolved
+     * default tasks, so an alias index would make the just-committed entry
+     * reachable via the "other form" of the invocation (e.g. `gradle` vs
+     * `gradle <defaultTaskName>`) on a future build.
+     */
+    private
+    fun needToWriteSecondaryEntry(): Boolean {
+        if (!buildActionModelRequirements.isRunsTasks) return false
+        val aliasTaskNames = computeAliasTaskNames() ?: return false
+        return cacheKey.stringForRequestedTaskNames(aliasTaskNames) != cacheKey.string
+    }
+
+    /**
+     * Writes a `candidates.bin` pointer under the alias key so the just-committed
+     * entry is also reachable via the "other form" invocation (e.g. `gradle` vs
+     * `gradle <defaultTaskName>`).
+     *
+     * A write failure is non-fatal: the primary entry was already committed, so
+     * the cache stays correct (only less effective).
+     *
+     * @implSpec Caller must have confirmed [needToWriteSecondaryEntry] first.
      */
     private
     fun writeDefaultTaskAlias() {
-        if (!buildActionModelRequirements.isRunsTasks) return
-        val aliasTaskNames = computeAliasTaskNames() ?: return
+        val aliasTaskNames = checkNotNull(computeAliasTaskNames())
         val aliasKey = cacheKey.stringForRequestedTaskNames(aliasTaskNames)
-        if (aliasKey == cacheKey.string) return
-        val aliasStore = cacheRepository.forKey(aliasKey)
-        aliasStore.useForStore {
-            applyCandidateEntriesUpdate {
-                withMostRecentEntry(
-                    CandidateEntry(entryId),
-                    startParameter.entriesPerKey
-                )
+        try {
+            cacheRepository.forKey(aliasKey).useForStore {
+                applyCandidateEntriesUpdate {
+                    withMostRecentEntry(
+                        CandidateEntry(entryId),
+                        startParameter.entriesPerKey
+                    )
+                }
             }
+        } catch (e: Exception) {
+            logger.warn("Failed to write default-task configuration cache alias", e)
         }
     }
 

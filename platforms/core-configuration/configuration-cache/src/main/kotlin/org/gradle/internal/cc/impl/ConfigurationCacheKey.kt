@@ -42,10 +42,10 @@ class ConfigurationCacheKey(
     }
 
     /**
-     * Computes the key string as if the given task names had been requested.
-     *
-     * Used to write alias index entries on store so that `gradle` and
-     * `gradle <defaultTaskName>` resolve to the same cache entry.
+     * Computes the key as if [taskNames] had been requested instead of
+     * [ConfigurationCacheStartParameter.requestedTaskNames]. Used when storing
+     * an alias index entry so that `gradle` and `gradle <defaultTaskName>`
+     * resolve to the same cache entry.
      */
     fun stringForRequestedTaskNames(taskNames: List<String>): String =
         computeKeyString(taskNames)
