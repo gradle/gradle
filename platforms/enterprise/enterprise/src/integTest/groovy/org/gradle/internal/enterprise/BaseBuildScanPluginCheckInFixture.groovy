@@ -78,6 +78,12 @@ abstract class BaseBuildScanPluginCheckInFixture {
         this.pluginArtifactName = pluginArtifactName
     }
 
+    String serviceOfGradleEnterprisePluginServiceRef() {
+        """
+            services.get(${GradleEnterprisePluginServiceRef.name})
+        """
+    }
+
     String pluginManagement() {
         """
             pluginManagement {

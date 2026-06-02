@@ -154,7 +154,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
     def "can use input handler when from cache"() {
         given:
         buildFile << """
-            def serviceRef = services.get(${GradleEnterprisePluginServiceRef.name})
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task read {
                 doLast {
                     def response =  serviceRef.get()._requiredServices.userInputHandler.askYesNoQuestion("there?")
@@ -192,7 +192,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
     def "exposes correct start parameter"() {
         given:
         buildFile << """
-            def serviceRef = services.get(${GradleEnterprisePluginServiceRef.name})
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             t.doLast {
                 println "offline: " + serviceRef.get()._buildState.startParameter.offline
             }
@@ -212,7 +212,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
 
     private String taskPrintBuildInvocationId(String taskName) {
         """
-            def serviceRef = services.get(${GradleEnterprisePluginServiceRef.name})
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task $taskName {
                 doLast {
                     println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId
@@ -223,7 +223,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
 
     private String taskPrintRootBuildInvocationId(String taskName) {
         """
-            def serviceRef = services.get(${GradleEnterprisePluginServiceRef.name})
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task $taskName {
                 doLast {
                     println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId
