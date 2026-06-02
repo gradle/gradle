@@ -52,7 +52,7 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     override fun <T : Any> getByType(type: Class<T>): T = getByType(TypeOf.typeOf(type))
 
     override fun <T : Any> getByType(type: TypeOf<T>): T {
-        if (!Workarounds.canAccessGradleExtensionFromProjectScope(type)) {
+        if (!Workarounds.IsolatedProjects.canAccessGradleExtensionFromProjectScope(type)) {
             onMutableStateAccess()
         }
         return delegate.getByType(type)

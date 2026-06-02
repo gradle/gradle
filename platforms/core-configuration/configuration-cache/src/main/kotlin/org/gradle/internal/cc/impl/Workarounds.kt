@@ -68,10 +68,13 @@ object Workarounds {
             }
         }
 
-    fun canAccessGradleExtensionFromProjectScope(extensionType: TypeOf<*>) =
-        withWorkaroundsFor("isolated-projects") {
-            extensionType.fullyQualifiedName.startsWith("com.gradle.develocity.agent.gradle.internal.StateAccess")
-        }
+    object IsolatedProjects {
+
+        fun canAccessGradleExtensionFromProjectScope(extensionType: TypeOf<*>) =
+            withWorkaroundsFor("isolated-projects") {
+                extensionType.fullyQualifiedName.startsWith("com.gradle.develocity.agent.gradle.internal.StateAccess")
+            }
+    }
 
     private
     inline fun callStackHasElement(stackElementMatcher: StackTraceElement.() -> Boolean) = Thread.currentThread().stackTrace.any(stackElementMatcher)
