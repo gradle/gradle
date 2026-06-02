@@ -18,7 +18,10 @@ package org.gradle.api.internal.provider;
 
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
+
+@SuppressWarnings("unused")
 public class ProviderExtensions {
 
     /**
@@ -32,6 +35,11 @@ public class ProviderExtensions {
      * @see <a href="https://groovy-lang.org/semantics.html#the-groovy-truth">the Groovy truth</a>
      */
     public static boolean asBoolean(Provider<?> self) {
+        DeprecationLogger.deprecateBehaviour("Using a `Provider` where a `boolean` is expected causes the provider to be evaluated.")
+            .withAdvice("The proper way to explicitly coerce a `Provider` into a `boolean` value is via `getOrNull()`.")
+            .startingWithGradle10("this is not recommended")
+            .undocumented()
+            .nagUser();
         return DefaultTypeTransformation.castToBoolean(self.getOrNull());
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -1099,6 +1100,7 @@ assert custom.prop.get() == "value 4"
             assert (prop ? 'truthy' : 'falsy') == '${expected ? 'truthy' : 'falsy'}'
             assert prop.asBoolean() == $expected
         """
+        expectProviderTruthyDeprecation(2)
 
         expect:
         succeeds()
@@ -1134,6 +1136,7 @@ assert custom.prop.get() == "value 4"
             $setup
             assert StaticTruth.coerce(prop) == $expected
         """
+        expectProviderTruthyDeprecation()
 
         expect:
         succeeds()
@@ -1147,5 +1150,15 @@ assert custom.prop.get() == "value 4"
         "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
         "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
         "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+    }
+
+    private void expectProviderTruthyDeprecation(int times = 1) {
+        def message = "Using a `Provider` where a `boolean` is expected causes the provider to be evaluated. " +
+            "This behavior has been deprecated. " +
+            "Starting with Gradle 10, this is not recommended. " +
+            "The proper way to explicitly coerce a `Provider` into a `boolean` value is via `getOrNull()`."
+        times.times {
+            executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(message))
+        }
     }
 }
