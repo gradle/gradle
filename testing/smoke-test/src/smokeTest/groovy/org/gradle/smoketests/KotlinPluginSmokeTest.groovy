@@ -44,7 +44,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
         when:
-        def result = kgpRunner(kotlinPluginVersion, 'run').build()
+        def result = kgpRunner(kotlinPluginVersion, 'run', '--stacktrace').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS

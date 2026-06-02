@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntStack;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
@@ -101,7 +100,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private final ResolutionHost resolutionHost;
     private final ConfigurationIdentity configurationIdentity;
     private final ImmutableAttributes requestAttributes;
-    private final ResolutionStrategy.SortOrder artifactDependencySortOrder;
 
     private final VisitedGraphResults initialVisitedGraph;
     private final VisitedArtifactSet initialVisitedArtifacts;
@@ -128,7 +126,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         ResolutionHost resolutionHost,
         @Nullable ConfigurationIdentity configurationIdentity,
         ImmutableAttributes requestAttributes,
-        ResolutionStrategy.SortOrder artifactDependencySortOrder,
 
         VisitedGraphResults partialVisitedGraph,
         VisitedArtifactSet partialVisitedArtifacts,
@@ -143,7 +140,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.resolutionHost = resolutionHost;
         this.configurationIdentity = configurationIdentity;
         this.requestAttributes = requestAttributes;
-        this.artifactDependencySortOrder = artifactDependencySortOrder;
 
         this.initialVisitedArtifacts = partialVisitedArtifacts;
         this.initialVisitedGraph = partialVisitedGraph;
@@ -171,7 +167,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         ResolutionHost resolutionHost,
         @Nullable ConfigurationIdentity configurationIdentity,
         ImmutableAttributes requestAttributes,
-        ResolutionStrategy.SortOrder artifactDependencySortOrder,
 
         VisitedGraphResults visitedGraph,
         VisitedArtifactSet visitedArtifacts,
@@ -185,7 +180,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.resolutionHost = resolutionHost;
         this.configurationIdentity = configurationIdentity;
         this.requestAttributes = requestAttributes;
-        this.artifactDependencySortOrder = artifactDependencySortOrder;
 
         this.initialVisitedGraph = visitedGraph;
         this.initialVisitedArtifacts = visitedArtifacts;
@@ -236,7 +230,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
         return visitedArtifacts.select(new ArtifactSelectionSpec(
-            fullAttributes, filter, false, false, artifactDependencySortOrder
+            fullAttributes, filter, false, false
         ));
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.resolver;
 
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
@@ -38,11 +37,6 @@ public interface ResolutionAccess {
      * request attributes from further mutation but will not perform resolution.
      */
     ImmutableAttributes getAttributes();
-
-    /**
-     * Get the default artifact sort order for this resolution.
-     */
-    ResolutionStrategy.SortOrder getDefaultSortOrder();
 
     /**
      * Get the raw results of the resolution. The returned results are lazy. Calling

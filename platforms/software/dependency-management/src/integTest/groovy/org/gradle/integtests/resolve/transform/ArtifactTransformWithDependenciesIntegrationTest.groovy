@@ -1241,7 +1241,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
             singleStep('hamcrest-core-1.3.jar'),
             singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
             singleStep('common.jar'),
-            singleStep('lib.jar', 'common.jar', 'slf4j-api-1.7.25.jar'),
+            singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common.jar'),
         )
     }
 

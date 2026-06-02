@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ComponentModuleMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -52,6 +54,7 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFac
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -79,6 +82,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final AttributeSchemaServices attributeSchemaServices;
     private final LocalVariantGraphResolveStateBuilder variantStateBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final boolean usedEnhancedOrdering;
     private final RootComponentProvider rootComponentProvider;
 
     public DefaultConfigurationResolver(
@@ -89,6 +93,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         AttributeSchemaServices attributeSchemaServices,
         LocalVariantGraphResolveStateBuilder variantStateBuilder,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
+        FeatureFlags featureFlags,
         RootComponentProvider rootComponentProvider
     ) {
         this.repositoriesSupplier = repositoriesSupplier;
@@ -98,6 +103,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.attributeSchemaServices = attributeSchemaServices;
         this.variantStateBuilder = variantStateBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.usedEnhancedOrdering = featureFlags.isEnabled(FeaturePreviews.Feature.ENHANCED_GRAPH_ORDERING);
         this.rootComponentProvider = rootComponentProvider;
     }
 
@@ -159,7 +165,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             rootComponent,
             rootVariant,
             moduleVersionLocks,
-            resolutionStrategy.getSortOrder(),
+            mapSortOrder(resolutionStrategy.getSortOrder(), usedEnhancedOrdering),
             configuration.getConfigurationIdentity(),
             immutableArtifactTypeRegistry,
             moduleReplacements,
@@ -173,6 +179,21 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             failureResolutions,
             resolutionStrategy.getCachePolicy().asImmutable()
         );
+    }
+
+    private static ResolutionParameters.SortOrder mapSortOrder(ResolutionStrategy.SortOrder sortOrder, boolean useEnhancedOrdering) {
+        if (useEnhancedOrdering) {
+            return switch (sortOrder) {
+                case DEFAULT -> ResolutionParameters.SortOrder.BFS;
+                case CONSUMER_FIRST -> ResolutionParameters.SortOrder.TOPOLOGICAL;
+                case DEPENDENCY_FIRST -> ResolutionParameters.SortOrder.TOPOLOGICAL_REVERSED;
+            };
+        } else {
+            return switch (sortOrder) {
+                case DEFAULT, CONSUMER_FIRST -> ResolutionParameters.SortOrder.COMPONENT_TOPOLOGICAL;
+                case DEPENDENCY_FIRST -> ResolutionParameters.SortOrder.COMPONENT_TOPOLOGICAL_REVERSED;
+            };
+        }
     }
 
     private static class ConfigurationLegacyResolutionParameters implements LegacyResolutionParameters {
@@ -301,6 +322,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
+        private final FeatureFlags featureFlags;
 
         public Factory(
             DependencyMetaDataProvider moduleIdentity,
@@ -313,7 +335,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             CalculatedValueContainerFactory calculatedValueContainerFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             ImmutableAttributesSchemaFactory attributesSchemaFactory,
-            LocalComponentGraphResolveStateFactory localResolveStateFactory
+            LocalComponentGraphResolveStateFactory localResolveStateFactory,
+            FeatureFlags featureFlags
         ) {
             this.moduleIdentity = moduleIdentity;
             this.repositoriesSupplier = repositoriesSupplier;
@@ -326,6 +349,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.attributesSchemaFactory = attributesSchemaFactory;
             this.localResolveStateFactory = localResolveStateFactory;
+            this.featureFlags = featureFlags;
         }
 
         @Override
@@ -344,6 +368,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 attributeSchemaServices,
                 variantStateBuilder,
                 calculatedValueContainerFactory,
+                featureFlags,
                 rootComponentProvider
             );
         }

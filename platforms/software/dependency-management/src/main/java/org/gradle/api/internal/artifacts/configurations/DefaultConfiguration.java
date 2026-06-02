@@ -584,11 +584,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public ResolutionStrategy.SortOrder getDefaultSortOrder() {
-            return getResolutionStrategy().getSortOrder();
-        }
-
-        @Override
         public ResolutionResultProvider<ResolverResults> getResults() {
             return new ResolverResultsResolutionResultProvider();
         }

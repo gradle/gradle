@@ -41,6 +41,20 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[dependency_resolution_ordering]]
+==== Dependency resolution ordering has changed
+
+The order in which resolved dependencies appear on the classpath and in resolution results has changed.
+Previously, Gradle used a depth-first traversal that could place transitive dependencies before more commonly used ones closer to the root.
+Gradle now uses a breadth-first topological ordering, which places dependencies closer to the root earlier in the result.
+
+The only ordering guarantee remains unchanged: artifacts for a node are always ordered before artifacts for its dependencies.
+The only exception is for graphs with cycles, where a topological ordering is impossible.
+In these cases, Gradle orders artifacts consistent with a BFS traversal.
+
+This change may affect builds that depend on a specific ordering of resolved artifacts.
+Additionally, constraint-only edges no longer influence traversal order.
+
 [[kotlin_dsl_impldep_compilation]]
 ==== Kotlin DSL scripts can no longer reference relocated internal dependencies
 

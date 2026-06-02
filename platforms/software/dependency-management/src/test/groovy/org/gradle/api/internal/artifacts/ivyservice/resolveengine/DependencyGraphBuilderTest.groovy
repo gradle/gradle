@@ -164,22 +164,23 @@ class DependencyGraphBuilderTest extends Specification {
         ResolutionParameters.FailureResolutions failureResolutions = () -> []
 
         builder.resolve(
-            root.component,
-            root.variant,
-            [],
-            edgeFilter,
-            componentSelectorConverter,
-            idResolver,
-            metaDataResolver,
-            moduleReplacements,
-            dependencySubstitutionApplicator,
-            conflictResolver,
-            ImmutableList.of(),
-            ConflictResolution.latest,
-            false,
-            false,
-            failureResolutions,
-            graphVisitor
+                root.component,
+                root.variant,
+                [],
+                edgeFilter,
+                componentSelectorConverter,
+                idResolver,
+                metaDataResolver,
+                moduleReplacements,
+                dependencySubstitutionApplicator,
+                conflictResolver,
+                ImmutableList.of(),
+                ResolutionParameters.SortOrder.BFS,
+                ConflictResolution.latest,
+                false,
+                false,
+                failureResolutions,
+                graphVisitor
         )
 
         return graphVisitor
@@ -1250,10 +1251,6 @@ class DependencyGraphBuilderTest extends Specification {
         @Override
         void visitNode(DependencyGraphNode node) {
             components.add(node.owner.moduleVersion)
-        }
-
-        @Override
-        void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
                     def breakage = failures.get(it.requested)

@@ -392,8 +392,8 @@ public interface ResolutionStrategy {
      * Specifies the ordering for resolved artifacts. Options are:
      * <ul>
      * <li>{@link SortOrder#DEFAULT} : Don't specify the sort order. Gradle will provide artifacts in the default order.</li>
-     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear <em>before</em> artifacts for its dependencies.</li>
-     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming component should appear <em>after</em> artifacts for its dependencies.</li>
+     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming node should appear <em>before</em> artifacts for its dependencies.</li>
+     * <li>{@link SortOrder#DEPENDENCY_FIRST} : Artifacts for a consuming node should appear <em>after</em> artifacts for its dependencies.</li>
      * </ul>
      * A best attempt will be made to sort artifacts according the supplied {@link SortOrder}, but no guarantees will be made in the presence of dependency cycles.
      *

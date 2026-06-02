@@ -121,7 +121,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         run 'show'
 
         then:
-        outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
+        outputContains("files: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test-1.0.jar, test2-1.0.jar]")
 
         where:
         expression << ALL_EXPRESSIONS

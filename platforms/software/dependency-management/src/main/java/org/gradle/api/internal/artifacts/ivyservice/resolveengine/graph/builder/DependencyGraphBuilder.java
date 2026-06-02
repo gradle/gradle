@@ -17,7 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.GradleException;
@@ -66,12 +70,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Project.class)
@@ -127,6 +134,7 @@ public class DependencyGraphBuilder {
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         ModuleConflictResolver<ComponentState> moduleConflictResolver,
         ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
+        ResolutionParameters.SortOrder sortOrder,
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
@@ -161,7 +169,7 @@ public class DependencyGraphBuilder {
 
         validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
 
-        assembleResult(resolveState, modelVisitor);
+        assembleResult(resolveState, sortOrder, modelVisitor);
     }
 
     /**
@@ -603,16 +611,166 @@ public class DependencyGraphBuilder {
     /**
      * Populates the result from the graph traversal state.
      */
-    private static void assembleResult(ResolveState resolveState, DependencyGraphVisitor visitor) {
-        visitor.start(resolveState.getRoot());
+    private static void assembleResult(ResolveState resolveState, ResolutionParameters.SortOrder sortOrder, DependencyGraphVisitor visitor) {
+        RootNode root = resolveState.getRoot();
+        visitor.start(root);
 
-        // Visit the nodes prior to visiting the edges
-        for (NodeState nodeState : resolveState.getNodes()) {
-            if (nodeState.shouldIncludedInGraphResult()) {
-                visitor.visitNode(nodeState);
+        int maxSize = resolveState.getNodes().size();
+        Consumer<NodeState> nodeVisitor = node -> {
+            // Virtual platforms are not visited in the final result since they
+            // are "virtual" and are not part of the user's mental model.
+            if (!node.getComponent().getModule().isVirtualPlatform()) {
+                visitor.visitNode(node);
             }
+        };
+
+        switch (sortOrder) {
+            case BFS -> visitBfs(resolveState, maxSize, nodeVisitor);
+            case TOPOLOGICAL -> visitBfsTopological(resolveState, maxSize, nodeVisitor);
+            case TOPOLOGICAL_REVERSED -> visitReversed(resolveState, maxSize, nodeVisitor, DependencyGraphBuilder::visitBfs);
+            case COMPONENT_TOPOLOGICAL -> visitComponentsTopological(resolveState, maxSize, nodeVisitor);
+            case COMPONENT_TOPOLOGICAL_REVERSED -> visitReversed(resolveState, maxSize, nodeVisitor, DependencyGraphBuilder::visitComponentsTopological);
         }
 
+        visitor.finish(root);
+    }
+
+    private static void visitReversed(ResolveState resolveState, int maxSize, Consumer<NodeState> visitor, OrderedVisitor delegate) {
+        List<NodeState> nodes = new ArrayList<>(maxSize);
+        delegate.visit(resolveState, maxSize, nodes::add);
+        for (NodeState node : Lists.reverse(nodes)) {
+            visitor.accept(node);
+        }
+    }
+
+    interface OrderedVisitor {
+        void visit(ResolveState resolveState, int maxSize, Consumer<NodeState> visitor);
+    }
+
+    /**
+     * Visits the nodes in the graph in BFS order.
+     * <p>
+     * BFS is preferred here to push nodes closer to the root to the front of ordering.
+     * When this graph represents a JVM classpath, these nodes are likely used earlier
+     * and more often, so ordering them earlier may improve classloading performance
+     * of the resulting classpath.
+     */
+    private static void visitBfs(ResolveState resolveState, int maxSize, Consumer<NodeState> visitor) {
+        RootNode root = resolveState.getRoot();
+
+        Deque<NodeState> queue = new ArrayDeque<>();
+        queue.add(root);
+
+        // Track nodes that have been added to the queue to guarantee each
+        // node enters the queue exactly once.
+        LongOpenHashSet seen = new LongOpenHashSet(maxSize);
+        seen.add(root.getNodeId());
+
+        while (!queue.isEmpty()) {
+            NodeState node = queue.poll();
+            visitor.accept(node);
+
+            for (EdgeState edge : node.getOutgoingEdges()) {
+                // Constraint edges should not affect traversal order. All nodes
+                // in the graph should have at least one non-constraint edge
+                // targeting it.
+                if (edge.isConstraint()) {
+                    continue;
+                }
+
+                for (NodeState target : edge.getTargetNodes()) {
+                    long targetId = target.getNodeId();
+                    if (seen.add(targetId)) {
+                        queue.add(target);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Visits the nodes in the graph in a topological order. For graphs with cycles,
+     * a topological ordering is impossible, in which case this method breaks cycles
+     * by visiting nodes that would be encountered first in a traditional BFS traversal.
+     * <p>
+     * BFS is preferred here to push nodes closer to the root to the front of ordering.
+     * When this graph represents a JVM classpath, these nodes are likely used earlier
+     * and more often, so ordering them earlier may improve classloading performance
+     * of the resulting classpath.
+     */
+    private static void visitBfsTopological(ResolveState resolveState, int maxSize, Consumer<NodeState> visitor) {
+        RootNode root = resolveState.getRoot();
+
+        Long2IntMap inDegrees = new Long2IntOpenHashMap(maxSize);
+        inDegrees.defaultReturnValue(-1);
+        inDegrees.put(root.getNodeId(), 0);
+
+        Deque<NodeState> queue = new ArrayDeque<>();
+        queue.add(root);
+
+        // Track nodes that have been added to the queue to guarantee each
+        // node enters the queue exactly once.
+        LongOpenHashSet seen = new LongOpenHashSet(maxSize);
+        seen.add(root.getNodeId());
+
+        List<NodeState> discoveryOrder = new ArrayList<>(maxSize);
+        int fallbackIndex = 0;
+
+        // Perform a modified version of Kahn's algorithm, with additional
+        // logic to handle graphs with cycles.
+        while (!queue.isEmpty() || fallbackIndex < discoveryOrder.size()) {
+            if (!queue.isEmpty()) {
+                NodeState node = queue.poll();
+                visitor.accept(node);
+
+                for (EdgeState edge : node.getOutgoingEdges()) {
+                    // Constraint edges should not affect traversal order. All nodes
+                    // in the graph should have at least one non-constraint edge
+                    // targeting it.
+                    if (edge.isConstraint()) {
+                        continue;
+                    }
+
+                    for (NodeState target : edge.getTargetNodes()) {
+                        long targetId = target.getNodeId();
+                        int current = inDegrees.get(targetId);
+                        if (current == inDegrees.defaultReturnValue()) {
+                            current = countNonConstraintIncomingEdges(target);
+                            discoveryOrder.add(target);
+                        }
+                        int remaining = current - 1;
+                        inDegrees.put(targetId, remaining);
+                        if (remaining == 0 && seen.add(targetId)) {
+                            queue.add(target);
+                        }
+                    }
+                }
+            } else {
+                // A cycle has been detected. A true topological sort is impossible.
+                // Break the cycle by choosing the unvisited node encountered earliest
+                // in the discovery order.
+                while (fallbackIndex < discoveryOrder.size()) {
+                    NodeState fallbackNode = discoveryOrder.get(fallbackIndex++);
+                    if (seen.add(fallbackNode.getNodeId())) {
+                        queue.add(fallbackNode);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private static int countNonConstraintIncomingEdges(NodeState node) {
+        int count = 0;
+        for (EdgeState edge : node.getIncomingEdges()) {
+            if (!edge.isConstraint()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static void visitComponentsTopological(ResolveState resolveState, int ignoredMaxSize, Consumer<NodeState> visitor) {
         // Collect the components to sort in consumer-first order
         LinkedList<ComponentState> queue = new LinkedList<>();
         for (ModuleResolveState module : resolveState.getModules()) {
@@ -645,7 +803,7 @@ public class DependencyGraphBuilder {
                     queue.removeFirst();
                     for (NodeState node : component.getNodes()) {
                         if (node.isSelected()) {
-                            visitor.visitEdges(node);
+                            visitor.accept(node);
                         }
                     }
                 }
@@ -655,7 +813,7 @@ public class DependencyGraphBuilder {
                 queue.removeFirst();
                 for (NodeState node : component.getNodes()) {
                     if (node.isSelected()) {
-                        visitor.visitEdges(node);
+                        visitor.accept(node);
                     }
                 }
             } else {
@@ -663,8 +821,6 @@ public class DependencyGraphBuilder {
                 queue.removeFirst();
             }
         }
-
-        visitor.finish(resolveState.getRoot());
     }
 
     enum VisitState {

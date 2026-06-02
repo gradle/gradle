@@ -92,7 +92,7 @@ class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTe
                 def files7 = compile.map { it.incoming.artifactView { lenient = true }.artifacts.artifactFiles.collect { it.name } }
                 def files8 = compile.map { it.incoming.artifactView { componentFilter { true } }.files.collect { it.name } }
                 def files9 = compile.map { it.incoming.artifactView { componentFilter { true } }.artifacts.artifactFiles.collect { it.name } }
-                
+
                 doLast {
                     println "artifacts 1: " + artifacts1.get()
                     println "artifacts 2: " + artifacts2.get()
@@ -183,18 +183,18 @@ class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTe
 
         then:
         // local artifacts are not de-duplicated. This is documenting existing behaviour rather than desired behaviour
-        outputContains("artifacts 1: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("artifacts 2: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("artifacts 3: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
+        outputContains("artifacts 1: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("artifacts 2: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("artifacts 3: [test-lib.jar, a.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
 
-        outputContains("files 1: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 2: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 3: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 4: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 5: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 6: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 7: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 8: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
-        outputContains("files 9: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, c.jar, c-lib.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar, test2-1.0.jar, test3-1.0.jar]")
+        outputContains("files 1: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 2: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 3: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 4: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 5: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 6: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 7: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 8: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
+        outputContains("files 9: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, c.jar, c-lib.jar, test3-1.0.jar, test-1.0.jar, test-1.0-from-main.jar, test-1.0-from-a.jar, test-1.0-from-c.jar]")
     }
 }

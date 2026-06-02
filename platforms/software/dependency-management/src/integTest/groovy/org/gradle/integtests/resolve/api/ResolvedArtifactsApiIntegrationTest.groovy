@@ -122,13 +122,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         run 'show'
 
         then:
-        outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("ids: [test-lib.jar, a.jar (project ':a'), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project ':b'), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
-        outputContains("unique ids: [test-lib.jar, a.jar (project ':a'), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project ':b'), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
-        outputContains("display-names: [test-lib.jar, a.jar (project ':a'), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project ':b'), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
-        outputContains("components: [test-lib.jar, project ':a', a-lib.jar, org:test:1.0, project ':b', b-lib.jar, org:test2:1.0]")
-        outputContains("unique components: [test-lib.jar, project ':a', a-lib.jar, org:test:1.0, project ':b', b-lib.jar, org:test2:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("files: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test-1.0.jar, test2-1.0.jar]")
+        outputContains("ids: [test-lib.jar, a.jar (project ':a'), a-lib.jar, b.jar (project ':b'), b-lib.jar, test-1.0.jar (org:test:1.0), test2-1.0.jar (org:test2:1.0)]")
+        outputContains("unique ids: [test-lib.jar, a.jar (project ':a'), a-lib.jar, b.jar (project ':b'), b-lib.jar, test-1.0.jar (org:test:1.0), test2-1.0.jar (org:test2:1.0)]")
+        outputContains("display-names: [test-lib.jar, a.jar (project ':a'), a-lib.jar, b.jar (project ':b'), b-lib.jar, test-1.0.jar (org:test:1.0), test2-1.0.jar (org:test2:1.0)]")
+        outputContains("components: [test-lib.jar, project ':a', a-lib.jar, project ':b', b-lib.jar, org:test:1.0, org:test2:1.0]")
+        outputContains("unique components: [test-lib.jar, project ':a', a-lib.jar, project ':b', b-lib.jar, org:test:1.0, org:test2:1.0]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}, {artifactType=jar, org.gradle.status=release}]")
 
         where:
         expression                                                     | _

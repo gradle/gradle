@@ -179,14 +179,14 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         when:
         run("impl:${language.compileTaskName}") //initial run
         then:
-        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
+        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar")
 
         when: //project dependency changes
         source api: ["class A { String change; }"]
         run("impl:${language.compileTaskName}")
 
         then:
-        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
+        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar")
 
         when: //transitive dependency is excluded
         file("impl/build.gradle") << "configurations.implementation.exclude module: 'hamcrest-core' \n"

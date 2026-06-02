@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
@@ -51,7 +50,7 @@ public class ResolutionParameters {
     private final LocalComponentGraphResolveState rootComponent;
     private final LocalVariantGraphResolveState rootVariant;
     private final ImmutableList<ModuleVersionLock> moduleVersionLocks;
-    private final ResolutionStrategy.SortOrder defaultSortOrder;
+    private final SortOrder sortOrder;
     private final @Nullable ConfigurationIdentity configurationIdentity;
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ImmutableModuleReplacements moduleReplacements;
@@ -70,7 +69,7 @@ public class ResolutionParameters {
         LocalComponentGraphResolveState rootComponent,
         LocalVariantGraphResolveState rootVariant,
         ImmutableList<ModuleVersionLock> moduleVersionLocks,
-        ResolutionStrategy.SortOrder defaultSortOrder,
+        SortOrder sortOrder,
         @Nullable ConfigurationIdentity configurationIdentity,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ImmutableModuleReplacements moduleReplacements,
@@ -88,7 +87,7 @@ public class ResolutionParameters {
         this.rootComponent = rootComponent;
         this.rootVariant = rootVariant;
         this.moduleVersionLocks = moduleVersionLocks;
-        this.defaultSortOrder = defaultSortOrder;
+        this.sortOrder = sortOrder;
         this.configurationIdentity = configurationIdentity;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.moduleReplacements = moduleReplacements;
@@ -181,8 +180,8 @@ public class ResolutionParameters {
     /**
      * The default sort ordering of artifacts. May be overridden during artifact selection.
      */
-    public ResolutionStrategy.SortOrder getDefaultSortOrder() {
-        return defaultSortOrder;
+    public SortOrder getSortOrder() {
+        return sortOrder;
     }
 
     /**
@@ -295,6 +294,15 @@ public class ResolutionParameters {
      */
     public CacheExpirationControl getCacheExpirationControl() {
         return cacheExpirationControl;
+    }
+
+    public enum SortOrder {
+        BFS,
+        TOPOLOGICAL,
+        TOPOLOGICAL_REVERSED,
+        // Legacy orderings, will go away in Gradle 10
+        COMPONENT_TOPOLOGICAL,
+        COMPONENT_TOPOLOGICAL_REVERSED,
     }
 
 }

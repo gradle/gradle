@@ -176,7 +176,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         def modA = mavenRepo.module("org.test", "A").dependsOn(modB).publish()
 
         then:
-        checkOrdered([modA, modC, modD, modB])
+        checkOrdered([modA, modB, modC, modD])
     }
 
     def "project and external and file dependencies are ordered"() {
@@ -219,8 +219,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             }
         """
 
-
         then:
-        checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
+        checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', 'b.jar', 'b-lib.jar', modB, 'c.jar', 'c-lib.jar', modC, modD])
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
@@ -30,20 +29,17 @@ public class ArtifactSelectionSpec {
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final boolean selectFromAllVariants;
     private final boolean allowNoMatchingVariants;
-    private final ResolutionStrategy.SortOrder sortOrder;
 
     public ArtifactSelectionSpec(
         ImmutableAttributes requestAttributes,
         Spec<? super ComponentIdentifier> componentFilter,
         boolean selectFromAllVariants,
-        boolean allowNoMatchingVariants,
-        ResolutionStrategy.SortOrder sortOrder
+        boolean allowNoMatchingVariants
     ) {
         this.requestAttributes = requestAttributes;
         this.componentFilter = componentFilter;
         this.selectFromAllVariants = selectFromAllVariants;
         this.allowNoMatchingVariants = allowNoMatchingVariants;
-        this.sortOrder = sortOrder;
     }
 
     /**
@@ -75,10 +71,4 @@ public class ArtifactSelectionSpec {
         return allowNoMatchingVariants;
     }
 
-    /**
-     * The order that artifacts should be sorted after selection.
-     */
-    public ResolutionStrategy.SortOrder getSortOrder() {
-        return sortOrder;
-    }
 }

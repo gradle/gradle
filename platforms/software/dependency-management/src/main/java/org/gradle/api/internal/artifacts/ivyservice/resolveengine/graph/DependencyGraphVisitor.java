@@ -22,24 +22,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
  * Implementations should make copies of whatever state they need to retain.
  */
 public interface DependencyGraphVisitor {
+
     /**
      * Starts traversal of the graph.
      */
     default void start(RootGraphNode root) {}
 
     /**
-     * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdges(DependencyGraphNode)} is called.
+     * Visits a node of the graph, including the root. Nodes are visited in consumer-first order.
      */
     default void visitNode(DependencyGraphNode node) {}
-
-    /**
-     * Visits edges to/from a node of the graph. Includes the root. This method is called for all nodes after {@link #visitNode(DependencyGraphNode)} has been called for all nodes.
-     * Nodes are visited in consumer-first order.
-     */
-    default void visitEdges(DependencyGraphNode node) {}
 
     /**
      * Completes traversal of the graph.
      */
     default void finish(RootGraphNode root) {}
+
 }

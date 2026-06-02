@@ -249,7 +249,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def artifacts = compile.artifacts.collect { it.file.name }
 
                     assert artifacts.size() == 5
-                    assert artifacts == ['a-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'b-2.0.jar', 'f-1.0.jar']
+                    assert artifacts == ['a-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar', 'b-2.0.jar']
 
                     def unresolved = compile.unresolvedModuleDependencies
                     assert unresolved.size() == 0
