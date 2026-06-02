@@ -109,13 +109,21 @@ include::inspect.adoc[leveloffset=+2]
 include::continuous_builds.adoc[leveloffset=+2]
 include::file_system_watching.adoc[leveloffset=+2]
 
-== DSL AND APIS
+== DSLS AND APIS
 
-include::groovy_build_script_primer.adoc[leveloffset=+2]
-include::kotlin_dsl.adoc[leveloffset=+2]
-include::public_apis.adoc[leveloffset=+2]
-include::default_script_imports.adoc[leveloffset=+2]
-include::migrating_from_groovy_to_kotlin_dsl.adoc[leveloffset=+2]
+=== Groovy
+
+include::groovy_build_script_primer.adoc[leveloffset=+3]
+
+=== Kotlin
+
+include::kotlin_dsl.adoc[leveloffset=+3]
+include::migrating_from_groovy_to_kotlin_dsl.adoc[leveloffset=+3]
+
+=== General
+
+include::public_apis.adoc[leveloffset=+3]
+include::default_script_imports.adoc[leveloffset=+3]
 
 == CORE PLUGINS
 
