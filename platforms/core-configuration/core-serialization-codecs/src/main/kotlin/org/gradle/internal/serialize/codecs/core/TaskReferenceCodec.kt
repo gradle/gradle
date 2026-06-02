@@ -18,8 +18,6 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -33,7 +31,6 @@ import org.gradle.internal.serialize.graph.writeEnum
 private
 enum class ReferenceType {
     SELF_REF,
-    TASK_REF,
     PROHIBITED
 }
 
@@ -43,11 +40,6 @@ object TaskReferenceCodec : Codec<Task> {
     override suspend fun WriteContext.encode(value: Task) = when {
         value === isolate.owner.delegate ->
             writeEnum(ReferenceType.SELF_REF)
-
-        isTaskReferencesAllowed(value) -> {
-            writeEnum(ReferenceType.TASK_REF)
-            writeString(value.name)
-        }
 
         else -> {
             writeEnum(ReferenceType.PROHIBITED)
@@ -60,25 +52,9 @@ object TaskReferenceCodec : Codec<Task> {
         }
     }
 
-    private
-    fun WriteContext.isTaskReferencesAllowed(value: Task): Boolean {
-        val owner = isolate.owner
-        val delegate = owner.delegate
-
-        val isTaskReferencesAllowed = owner is IsolateOwners.OwnerTask && owner.allowTaskReferences
-        val isTaskFromSameProject = delegate is Task && delegate.project == value.project
-
-        return isTaskReferencesAllowed && isTaskFromSameProject
-    }
-
     override suspend fun ReadContext.decode(): Task? = when (readEnum<ReferenceType>()) {
         ReferenceType.SELF_REF ->
             isolate.owner.delegate as Task
-
-        ReferenceType.TASK_REF -> {
-            val taskName = readString()
-            isolate.owner.service(TaskContainer::class.java).getByName(taskName)
-        }
 
         ReferenceType.PROHIBITED -> {
             logUnsupported(

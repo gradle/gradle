@@ -111,11 +111,7 @@ class TaskNodeCodec(
                     writeOnlyIfSpec(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
-                        withTaskReferencesAllowed {
-                            writeRegisteredPropertiesOf(
-                                task
-                            )
-                        }
+                        writeRegisteredPropertiesOf(task)
                     }
                     writeTaskActions(task)
                     writeDestroyablesOf(task)
@@ -615,13 +611,3 @@ fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out 
 }
 
 
-private
-inline fun IsolateContext.withTaskReferencesAllowed(action: () -> Unit) {
-    val ownerTask = isolate.owner as IsolateOwners.OwnerTask
-    try {
-        ownerTask.allowTaskReferences = true
-        action()
-    } finally {
-        ownerTask.allowTaskReferences = false
-    }
-}
