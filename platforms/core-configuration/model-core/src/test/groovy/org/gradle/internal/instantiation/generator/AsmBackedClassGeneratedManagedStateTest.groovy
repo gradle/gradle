@@ -29,6 +29,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithForwarderSetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
@@ -62,9 +63,22 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def bean = create(BeanWithAbstractProperty)
 
         expect:
+        bean instanceof Managed
         bean.name == null
         bean.setName("name")
         bean.name == "name"
+    }
+
+    def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndConcreteForwarderSetter() {
+        def bean = create(AbstractPropertyBeanWithForwarderSetter)
+
+        expect:
+        bean instanceof Managed
+        bean.prop.toString() == "property 'prop'"
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
     }
 
     def canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() {
