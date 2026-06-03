@@ -90,7 +90,22 @@ final class ProjectStateSynchronizer implements Synchronizer {
                 throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
             }
         } else {
-            return workerLeaseService.withReplacedLocks(currentLocks, projectLock, action);
+            // DEBUG (flaky investigation): trace contention on this project's lock.
+            debugLog("LOCK-ATTEMPT " + projectLock);
+            return workerLeaseService.withReplacedLocks(currentLocks, projectLock, () -> {
+                debugLog("LOCK-ACQUIRED " + projectLock);
+                try {
+                    return action.create();
+                } finally {
+                    debugLog("LOCK-RELEASED " + projectLock);
+                }
+            });
         }
+    }
+
+    // DEBUG (flaky investigation): direct stdout so it is forwarded to the tooling client and captured by CI.
+    private static void debugLog(String message) {
+        System.out.println("@@CFGDBG@@ " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "] " + message);
+        System.out.flush();
     }
 }

@@ -244,7 +244,20 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public <S extends @Nullable Object> S runWithModelLock(Supplier<S> action) {
-        return synchronizer.withLock(action::get);
+        // DEBUG (flaky investigation): trace model-build lock usage on this project's lock.
+        String dbgId = String.valueOf(identity.getBuildTreePath());
+        System.out.println("@@CFGDBG@@ " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "] runWithModelLock ENTER project=" + dbgId);
+        System.out.flush();
+        return synchronizer.withLock(() -> {
+            System.out.println("@@CFGDBG@@ " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "] runWithModelLock INSIDE-LOCK project=" + dbgId);
+            System.out.flush();
+            try {
+                return action.get();
+            } finally {
+                System.out.println("@@CFGDBG@@ " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "] runWithModelLock EXIT-LOCK project=" + dbgId);
+                System.out.flush();
+            }
+        });
     }
 
     @Override

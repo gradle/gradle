@@ -95,6 +95,12 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void ensureSelfConfigured() {
+        // DEBUG (flaky investigation): trace the configuration decision for each worker/project.
+        String dbgId = project == null ? "<uncreated>" : String.valueOf(project.getIdentityPath());
+        debugLog("ensureSelfConfigured ENTER project=" + dbgId
+            + " hasSeenConfigured=" + controller.hasSeenState(State.Configured)
+            + " isTransitioningToConfigured=" + controller.isTransitioningTo(State.Configured));
+
         // Avoid taking the controller lock if already configured, to avoid contention and deadlocks.
         // ProjectState#ensureConfigured tries to configure parent projects, and child projects shouldn't
         // need to all take the lock if the parent project(s) are already configured.
@@ -111,11 +117,22 @@ public class ProjectLifecycleController implements Closeable {
         // (model building requires the project to already be configured).
         while (controller.isTransitioningTo(State.Configured)) {
             if (controller.hasSeenState(State.Configured)) {
+                debugLog("ensureSelfConfigured WAIT->configured project=" + dbgId);
                 return;
             }
             LockSupport.parkNanos(100_000L);
         }
+        debugLog("ensureSelfConfigured LOCK-PATH (maybeTransition) project=" + dbgId
+            + " hasSeen=" + controller.hasSeenState(State.Configured)
+            + " isTransitioning=" + controller.isTransitioningTo(State.Configured));
         controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
+        debugLog("ensureSelfConfigured LOCK-PATH done project=" + dbgId);
+    }
+
+    // DEBUG (flaky investigation): direct stdout so it is forwarded to the tooling client and captured by CI.
+    private static void debugLog(String message) {
+        System.out.println("@@CFGDBG@@ " + System.currentTimeMillis() + " [" + Thread.currentThread().getName() + "] " + message);
+        System.out.flush();
     }
 
     public void ensureTasksDiscovered() {
