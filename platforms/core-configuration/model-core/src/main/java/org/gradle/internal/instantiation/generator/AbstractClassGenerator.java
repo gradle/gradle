@@ -641,6 +641,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         public Type getGenericReturnType() {
             return returnType;
         }
+
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+            return method.isAnnotationPresent(annotationType);
+        }
     }
 
     protected static class PropertyMetadata {
@@ -1103,7 +1107,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     return false;
                 }
             }
+            boolean allAbstract = allGettersAreAbstract(property);
             for (Method setter : property.setters) {
+                // When every getter is abstract, the user cannot be managing a backing field
+                // themselves (an abstract getter has no body to read it from). Any concrete
+                // setter must then be a forwarder (e.g. setX(value) { getX().set(value); }),
+                // so it shouldn't prevent the property from being claimed and given a managed body.
+                if (allAbstract) {
+                    continue;
+                }
                 if (!Modifier.isAbstract(setter.getModifiers())) {
                     return false;
                 }
@@ -1122,6 +1134,18 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Read only but unrecognized type
                 return false;
             }
+        }
+
+        private boolean allGettersAreAbstract(PropertyMetadata property) {
+            if (property.getters.isEmpty()) {
+                return false;
+            }
+            for (MethodMetadata getter : property.getters) {
+                if (!getter.isAbstract()) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
