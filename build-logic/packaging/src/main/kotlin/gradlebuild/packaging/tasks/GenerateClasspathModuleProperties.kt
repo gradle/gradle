@@ -241,7 +241,7 @@ abstract class GenerateSingleModuleProperties : DefaultTask() {
     /**
      * Names follow the same scheme as [GenerateClasspathModuleProperties] (see [distributionModuleNameOrNull]).
      */
-    fun configureDependenciesFrom(configuration: Configuration, excludingProjectName: String) {
+    fun configureDependenciesFrom(configuration: Configuration, excludingProjectName: String? = null) {
         dependencyNames.set(
             configuration.incoming.artifacts.resolvedArtifacts.map { artifacts ->
                 artifacts.mapNotNull { artifact ->
