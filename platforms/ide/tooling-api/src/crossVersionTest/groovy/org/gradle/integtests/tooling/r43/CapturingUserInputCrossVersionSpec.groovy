@@ -29,7 +29,11 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.answerOut
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPlugin
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
 
-@TargetGradleVersion(">=4.3")
+// 8.8 is excluded: it shipped the new client-side prompt protocol (PromptOutputEvent/UserResponse) but
+// still had the daemon greedily consume the client's stdin, so the forwarded answer is swallowed as raw
+// stdin before the prompt response is read and askYesNoQuestion returns null. The greedy consumption was
+// removed in 8.9 (commit 66832d04eff), and 8.7 and earlier use the older protocol that is unaffected.
+@TargetGradleVersion(">=4.3 !8.8")
 // The first compile against the Gradle API in a fresh user home is slow on EBS-backed CI agents
 @Timeout(300)
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
