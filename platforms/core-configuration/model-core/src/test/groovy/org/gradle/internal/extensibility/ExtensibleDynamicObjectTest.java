@@ -560,10 +560,15 @@ public class ExtensibleDynamicObjectTest {
         Bean bean = new Bean();
         bean.setParent(parent.getInheritable());
 
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasProperty("parentProperty"));
-        assertThat(inherited.getProperty("parentProperty"), equalTo((Object) "value"));
-        assertThat(inherited.getProperties().get("parentProperty"), equalTo((Object) "value"));
+        // The inherited view exposes only the object's own inheritable members;
+        // ancestors are reached by walking getParent() one level at a time.
+        HierarchicalDynamicObject inherited = bean.getInheritable();
+        assertFalse(inherited.hasProperty("parentProperty"));
+
+        HierarchicalDynamicObject parentLevel = inherited.getParent();
+        assertTrue(parentLevel.hasProperty("parentProperty"));
+        assertThat(parentLevel.getProperty("parentProperty"), equalTo((Object) "value"));
+        assertThat(parentLevel.getProperties().get("parentProperty"), equalTo((Object) "value"));
     }
 
     @Test
