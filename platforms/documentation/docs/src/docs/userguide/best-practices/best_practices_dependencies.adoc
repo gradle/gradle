@@ -537,19 +537,23 @@ Declaring sensible attributes ensures your build remains reliable as it scales a
 
 Avoid creating consumable and resolvable configurations without attributes:
 
-In `producer/build.gradle.kts`:
+In `producer/build.gradle(.kts)`:
 
 ====
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="producer/build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="producer/build.gradle[tags=avoid-this]"]
 ====
+
+<1> *No attributes declared on the configuration in the producer build*: This consumable configuration lacks attributes to describe what it provides.
+
+In `consumer/build.gradle(.kts)`:
+
 ====
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="consumer/build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="consumer/build.gradle[tags=avoid-this]"]
 ====
 
-<1> *No attributes declared on the configuration in the producer build*: This consumable configuration lacks attributes to describe what it provides.
-<2> *No attributes declared on the configuration in the consumer build*: This resolvable configuration lacks attributes to describe what it needs.
+<1> *No attributes declared on the configuration in the consumer build*: This resolvable configuration lacks attributes to describe what it needs.
 
 This approach works only because we explicitly name the configuration in the dependency declaration (`configuration = "customElements"`).
 Resolving configurations by name should be avoided.
@@ -568,20 +572,26 @@ Always declare attributes on consumable and resolvable configurations:
 </div>
 ++++
 
+In `producer/build.gradle(.kts)`:
+
 ====
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin",files="producer/build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/groovy",files="producer/build.gradle[tags=do-this]"]
 ====
+
+<1> *New Attribute type defined in producer*: The consumable configuration defines a new `custom` attribute that contains project-specific variant identification information.  The new Attribute is also added to the Gradle Attribute schema to ensure type-safety.
+<2> *Attributes declared in producer*: The consumable configuration adds `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.  These attributes will be used to identify this variant during resolution.
+
+In `consumer/build.gradle(.kts)`:
+
 ====
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin",files="consumer/build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/groovy",files="consumer/build.gradle[tags=do-this]"]
 ====
 
-<1> *New Attribute type defined in producer*: The consumable configuration defines a new `custom` attrbute that contains project-specific variant identification information.  The new Attribute is also added to the Gradle Attribute schema to ensure type-safety.
-<2> *Attributes declared in producer*: The consumable configuration adds `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.  These attributes will be used to identify this variant during resolution.
-<3> *The project dependency does not use configuration name*: It is no longer necessary to specify the configuration name in the dependency declaration, as variant-aware dependency resolution will be used to select the correct variant.
-<1> *New Attribute type defined in consumer*: The consumable configuration defines the same new `custom` attrbute that contains project-specific variant identification information.
-<2> *Attributes declared in consumer*: The resolvable configuration is identified as `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.
+<1> *The project dependency does not use configuration name*: It is no longer necessary to specify the configuration name in the dependency declaration, as variant-aware dependency resolution will be used to select the correct variant.
+<2> *New Attribute type defined in consumer*: The resolvable configuration defines the same new `custom` attribute that contains project-specific variant identification information.
+<3> *Attributes declared in consumer*: The resolvable configuration is identified as `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.
 
 By declaring compatible attributes, you decouple your projects from internal naming conventions, resulting in a more robust and maintainable build.
 

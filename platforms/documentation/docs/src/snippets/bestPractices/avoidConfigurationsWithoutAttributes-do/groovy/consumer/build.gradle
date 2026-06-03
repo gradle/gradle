@@ -1,19 +1,17 @@
-import org.gradle.api.attributes.Usage
-
 // tag::do-this[]
 def customElementsDependenciesProvider = configurations.dependencyScope('customElementsDependencies')
 
 dependencies {
-    customElementsDependencies(project(':producer')) // <3>
+    customElementsDependencies(project(':producer')) // <1>
 }
 
-def CUSTOM_ATTRIBUTE = Attribute.of("custom", String) // <4>
+def CUSTOM_ATTRIBUTE = Attribute.of("custom", String) // <2>
 dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
 
 
 def customElements = configurations.resolvable('customElements') {
     extendsFrom(customElementsDependenciesProvider.get())
-    attributes { // <5>
+    attributes { // <3>
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
         attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
     }

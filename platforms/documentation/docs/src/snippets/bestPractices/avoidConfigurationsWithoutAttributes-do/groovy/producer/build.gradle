@@ -1,5 +1,3 @@
-import org.gradle.api.attributes.Usage
-
 // tag::do-this[]
 def CUSTOM_ATTRIBUTE = Attribute.of("custom", String) // <1>
 dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)

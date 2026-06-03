@@ -5,15 +5,15 @@ import org.gradle.api.attributes.Category
 val customElementsDependencies = configurations.dependencyScope("customElementsDependencies")
 
 dependencies {
-    customElementsDependencies(project(":producer")) // <3>
+    customElementsDependencies(project(":producer")) // <1>
 }
 
-val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java) // <4>
+val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java) // <2>
 dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
 
 val customElements = configurations.resolvable("customElements") {
     extendsFrom(customElementsDependencies.get())
-    attributes { // <5>
+    attributes { // <3>
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
         attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
     }

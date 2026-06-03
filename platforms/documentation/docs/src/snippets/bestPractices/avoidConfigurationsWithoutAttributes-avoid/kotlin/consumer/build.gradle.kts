@@ -7,7 +7,7 @@ dependencies {
     customElementsDependencies(project(path = ":producer", configuration = "customElements"))
 }
 
-val customElements = configurations.resolvable("customElements") { // <2>
+val customElements = configurations.resolvable("customElements") { // <1>
     extendsFrom(customElementsDependencies.get())
 }
 
