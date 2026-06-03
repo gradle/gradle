@@ -1,20 +1,17 @@
 // tag::avoid-this[]
 abstract class VersionTask : DefaultTask() {
 
-    init {
-        outputDirectory.convention(project.layout.buildDirectory) // <1>
-    }
-
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
     @TaskAction
     fun run() {
-        val outFileName = "build_version.txt"
-        val outputFile = outputDirectory.file(outFileName)
-        outputFile.get().asFile.writeText(project.version.toString()) // <2>
+        val outputFile = outputDirectory.file("build_version.txt")
+        outputFile.get().asFile.writeText(project.version.toString()) // <1>
     }
 }
 
-tasks.register<VersionTask>("generateVersionFile")
+tasks.register<VersionTask>("generateVersionFile") {
+    outputDirectory.set(project.layout.buildDirectory)
+}
 // end::avoid-this[]

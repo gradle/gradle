@@ -1,1 +1,3 @@
-Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/0.0.0/userguide/upgrading_version_7.html#task_project
+* What went wrong:
+Execution failed for task ':generateVersionFile'.
+> Invocation of 'Task.project' by task ':generateVersionFile' at execution time is unsupported with the configuration cache.
