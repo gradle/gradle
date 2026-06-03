@@ -87,7 +87,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 
 | <<best_practices_testing.adoc#test_custom_types_with_testkit,Test your custom Task and Plugins with TestKit>> | Testing | 9.4.0
 
-| <<best_practices_tasks.adoc#map_versus_flatmap,Wiring Task Outputs with `map` and `flatMap`>> | Tasks | 9.5.0
+| <<best_practices_tasks.adoc#map_versus_flatmap,Wiring Task Outputs with `map` and `flatMap`>> | Tasks | 9.7.0
 |===
 
 ++++
