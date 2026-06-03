@@ -16,60 +16,83 @@
 
 package org.gradle.kotlin.dsl.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import org.gradle.util.GradleVersion
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
-import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
-class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIntegrationSpec {
+@RunWith(Parameterized::class)
+class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
+    private val gradleVersion: String,
+    private val kgpVersion: String,
+    private val kotlinLanguageVersion: String
+) : AbstractIntegrationTest() {
 
-    private static final String EMBEDDED_KOTLIN_VERSION = KotlinDependencyExtensionsKt.embeddedKotlinVersion
+    companion object {
+        @Parameterized.Parameters(name = "Gradle {0}, KGP {1}, Kotlin {2}")
+        @JvmStatic
+        fun scenarios(): List<Array<Any>> = listOf(
+            arrayOf("7.2", "1.9.22", "1.4"),
+            arrayOf("7.6", "1.9.22", "1.4"),
 
-    def "Kotlin plugin built with KGP #maxKgpVersion targeting Kotlin #kotlinLanguageVersion can be applied"() {
+            arrayOf("8.0", "1.9.22", "1.8"),
+            arrayOf("8.7", "1.9.22", "1.8"),
+            arrayOf("8.9", "1.9.23", "1.8"),
+            arrayOf("8.10", "1.9.24", "1.8"),
+            arrayOf("8.11", "2.0.20", "1.8"),
+            arrayOf("8.12", "2.0.21", "1.8")
+            ,
+            arrayOf("9.0.0", "2.2.0", "2.2"),
+            arrayOf("9.2.0", "2.2.20", "2.2"),
+            arrayOf("9.3.0", "2.2.21", "2.2"),
+            arrayOf("9.4.0", "2.3.0", "2.2"),
+            arrayOf("9.5.0", "2.3.20", "2.2"),
 
-        given:
-        buildPluginWith(maxKgpVersion, kotlinLanguageVersion)
-
-        when:
-        def result = applyPlugin()
-
-        then:
-        result.assertOutputContains("My Kotlin plugin applied!")
-        result.assertOutputContains("My task executed!")
-
-        where:
-        kotlinLanguageVersion | maxKgpVersion
-        "1.8"                 | "2.2.21"
-        "1.9"                 | "2.3.21"
-        "2.0"                 | EMBEDDED_KOTLIN_VERSION
-        "2.1"                 | EMBEDDED_KOTLIN_VERSION
-        "2.2"                 | EMBEDDED_KOTLIN_VERSION
+            arrayOf("9.6.0-RC-1", "2.3.21", "2.2"),
+        )
     }
 
-    private void buildPluginWith(String maxKgpVersion, String kotlinLanguageVersion) {
-        file("plugin/settings.gradle.kts").text = """
+    @Test
+    fun `plugin built with current Gradle can be applied with an older Gradle version`() {
+        buildPlugin()
+
+        val result = applyPlugin()
+
+        result.assertOutputContains("My Kotlin plugin applied!")
+        result.assertOutputContains("My task executed!")
+    }
+
+    private fun buildPlugin() {
+        file("plugin/settings.gradle.kts").setText(
+            """
             pluginManagement {
                 repositories {
-                    ${mavenCentralRepositoryDefinition(KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(KOTLIN)}
                 }
             }
             rootProject.name = "plugin"
-        """
-        file("plugin/build.gradle.kts").text = """
+            """
+        )
+        file("plugin/build.gradle.kts").setText(
+            """
             import org.jetbrains.kotlin.gradle.dsl.JvmTarget
             import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             plugins {
-                kotlin("jvm") version "$maxKgpVersion"
+                kotlin("jvm") version "$kgpVersion"
                 `java-gradle-plugin`
                 `maven-publish`
             }
             group = "com.example"
             version = "1.0"
-            ${mavenCentralRepository(KOTLIN)}
+            ${RepoScriptBlockUtil.mavenCentralRepository(KOTLIN)}
 
             gradlePlugin {
                 plugins {
@@ -96,8 +119,10 @@ class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIn
             publishing {
                 repositories { maven { url = uri("${mavenRepo.uri}") } }
             }
-        """
-        file("plugin/src/main/kotlin/com/example/MyPlugin.kt").text = """
+            """
+        )
+        file("plugin/src/main/kotlin/com/example/MyPlugin.kt").setText(
+            """
             package com.example
 
             import org.gradle.api.Plugin
@@ -111,31 +136,39 @@ class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIn
                     }
                 }
             }
-        """
+            """
+        )
 
-        executer.inDirectory(file("plugin"))
+        inDirectory(file("plugin"))
             .withTasks("publish")
             .noDeprecationChecks() // KGP emits deprecation warnings that vary by version and are not what we test here.
+            .withStackTraceChecksDisabled() // The Kotlin compiler daemon intermittently crashes and logs a stack trace before falling back; that's not what we test here.
             .run()
     }
 
-    private def applyPlugin() {
-        file("consumer/settings.gradle.kts").text = """
+    private fun applyPlugin(): ExecutionResult {
+        file("consumer/settings.gradle.kts").setText(
+            """
             pluginManagement {
                 repositories {
                     maven(url = "${mavenRepo.uri}")
-                    ${mavenCentralRepositoryDefinition(KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(KOTLIN)}
                 }
             }
             rootProject.name = "consumer"
-        """
-        file("consumer/build.gradle.kts").text = """
+            """
+        )
+        file("consumer/build.gradle.kts").setText(
+            """
             plugins {
                 id("my-plugin") version "1.0"
             }
-        """
+            """
+        )
 
-        return executer.inDirectory(file("consumer"))
+        val olderGradle = buildContext.distribution(gradleVersion)
+        return NoDaemonGradleExecuter(olderGradle, testDirectoryProvider, buildContext)
+            .usingProjectDirectory(file("consumer"))
             .withTasks("myTask")
             .noDeprecationChecks()
             .run()
