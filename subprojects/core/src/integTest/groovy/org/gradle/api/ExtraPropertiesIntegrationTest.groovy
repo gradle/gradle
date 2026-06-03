@@ -29,7 +29,8 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         extraPropertiesMultiBuild()
         expectParentPropertyAccessDeprecation('testProp', ':a', "root project 'extra-properties'")
         expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
-        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "project ':a'")
+        // The property is declared on the root project only, so the grandchild's lookup is attributed to the root
+        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "root project 'extra-properties'")
 
         expect:
         succeeds checkTestPropTasks()

@@ -177,16 +177,25 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     private DynamicObject snapshotInheritable() {
+        return snapshotInheritable(true);
+    }
+
+    private DynamicObject snapshotInheritable(boolean includeParent) {
         List<DynamicObject> delegates = new ArrayList<>(4);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
         }
         delegates.add(extensionContainer.getExtensionsAsDynamicObject());
-        if (parent != null) {
+        if (includeParent && parent != null) {
             delegates.add(parent);
         }
         return new CompositeDynamicObject(delegates, dynamicDelegate::getDisplayName);
+    }
+
+    @Override
+    public DynamicObject withoutParent() {
+        return delegateObjects;
     }
 
     @Override
@@ -196,7 +205,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         }
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
-            if (parent.hasProperty(name)) {
+            if (parent.withoutParent().hasProperty(name)) {
                 failOnParentAccessIfNeeded("property", name, parent);
                 return true;
             }
@@ -213,7 +222,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         }
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
-            result = parent.tryGetProperty(name);
+            result = parent.withoutParent().tryGetProperty(name);
             if (result.isFound()) {
                 failOnParentAccessIfNeeded("property", name, parent);
                 return result;
@@ -262,7 +271,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         }
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
-            if (parent.hasMethod(name, arguments)) {
+            if (parent.withoutParent().hasMethod(name, arguments)) {
                 failOnParentAccessIfNeeded("method", name, parent);
                 return true;
             }
@@ -278,7 +287,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         }
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
-            result = parent.tryInvokeMethod(name, arguments);
+            result = parent.withoutParent().tryInvokeMethod(name, arguments);
             if (result.isFound()) {
                 failOnParentAccessIfNeeded("method", name, parent);
                 return result;
@@ -358,6 +367,11 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         @Override
         public @Nullable HierarchicalDynamicObject getParent() {
             return parent;
+        }
+
+        @Override
+        public DynamicObject withoutParent() {
+            return snapshotInheritable(false);
         }
 
         @Override

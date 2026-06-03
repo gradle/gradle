@@ -31,4 +31,11 @@ public interface HierarchicalDynamicObject extends DynamicObject {
      */
     @Nullable HierarchicalDynamicObject getParent();
 
+    /**
+     * Returns a view of this object that contains only its own members, excluding any members
+     * contributed by its {@link #getParent() parent}. Allows the hierarchy to be walked one
+     * level at a time, attributing a match to the exact object that declares the member.
+     */
+    DynamicObject withoutParent();
+
 }
