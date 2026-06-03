@@ -58,7 +58,6 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider.IntermediateToolingModelResult
 import java.io.File
 
 
@@ -157,6 +156,12 @@ fun buildNonProjectScriptModels(
 }
 
 
+/**
+ * Builds Kotlin DSL script models for the whole project hierarchy.<p>
+ *
+ * Models returned are "best-effort", meaning that if configuration for a project is not complete we prefer to return "something" over "nothing",
+ * since then IDE can still show code highlighting for at least some parts of Kotlin DSL script, even if project configuration fails.
+ */
 private
 fun buildScriptModelsInHierarchy(
     rootProject: ProjectInternal,
@@ -190,7 +195,7 @@ fun buildScriptModelsInHierarchy(
 
     fun visitChildren(projectState: ProjectState, parentSourcePath: ClassPath) {
         val children = projectState.childProjects.toList()
-        val childrenResults = intermediateModelProvider.getIsolatedModels(projectState, children)
+        val childrenResults = intermediateModelProvider.getModelsAllowingFailures(projectState, children, IsolatedScriptsModel::class.java, null)
         childrenResults.zip(children).forEach { (result, child) ->
             for (failure in result.failures) {
                 val original = failure.original
@@ -210,11 +215,6 @@ fun buildScriptModelsInHierarchy(
 
     return outputModels
 }
-
-
-private
-fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<IntermediateToolingModelResult<IsolatedScriptsModel>> =
-    getModelsAllowingFailures(requester, targets, IsolatedScriptsModel::class.java, null)
 
 
 private
