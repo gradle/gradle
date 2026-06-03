@@ -26,7 +26,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
@@ -132,6 +131,60 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "LocalDateTime"                      | "LocalDateTime.of(2024, 1, 1, 1, 1)"      | "2024-01-01T01:01"
     }
 
+    def "reports a problem and restores as a standard type a custom descendant #concreteType of supported type #baseType"() {
+        buildFile << """
+            class $concreteType extends $baseType {}
+
+            class SomeTask extends DefaultTask {
+                private final $baseType value = new ${concreteType}()
+
+                @TaskAction
+                void run() {
+                    println "value type = " + value.getClass().name
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRunLenient "ok"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withUniqueProblems(
+                "Task `:ok` of type `SomeTask`: cannot fully support serializing a custom $kind type '$concreteType', a subtype of '$baseType': it will be restored as a standard $kind, losing any custom behavior. This will become an error in a future Gradle version"
+            )
+            problemsWithStackTraceCount = 0
+        }
+
+        and: "the cache is stored and then loaded, so the task already runs against the restored value"
+        outputContains("value type = $restoredType")
+
+        when: "the entry is reused, the value is restored as a standard type and nothing is serialized"
+        configurationCacheRunLenient "ok"
+
+        then:
+        outputContains("value type = $restoredType")
+
+        where:
+        concreteType              | baseType                                    | kind         | restoredType
+        "CustomArrayList"         | "java.util.ArrayList"                       | "collection" | "java.util.ArrayList"
+        "CustomLinkedList"        | "java.util.LinkedList"                      | "collection" | "java.util.LinkedList"
+        "CustomCopyOnWriteList"   | "java.util.concurrent.CopyOnWriteArrayList" | "collection" | "java.util.concurrent.CopyOnWriteArrayList"
+        "CustomHashSet"           | "java.util.HashSet"                         | "collection" | "java.util.LinkedHashSet"
+        "CustomTreeSet"           | "java.util.TreeSet"                         | "collection" | "java.util.TreeSet"
+        "CustomCopyOnWriteSet"    | "java.util.concurrent.CopyOnWriteArraySet"  | "collection" | "java.util.concurrent.CopyOnWriteArraySet"
+        "CustomArrayDeque"        | "java.util.ArrayDeque"                      | "collection" | "java.util.ArrayDeque"
+        "CustomHashMap"           | "java.util.HashMap"                         | "map"        | "java.util.LinkedHashMap"
+        "CustomLinkedHashMap"     | "java.util.LinkedHashMap"                   | "map"        | "java.util.LinkedHashMap"
+        "CustomTreeMap"           | "java.util.TreeMap"                         | "map"        | "java.util.TreeMap"
+        "CustomConcurrentHashMap" | "java.util.concurrent.ConcurrentHashMap"    | "map"        | "java.util.concurrent.ConcurrentHashMap"
+        "CustomProperties"        | "java.util.Properties"                      | "map"        | "java.util.Properties"
+        "CustomHashtable"         | "java.util.Hashtable"                       | "map"        | "java.util.Hashtable"
+    }
+
     private String integerArray() {
         "[Integer.MIN_VALUE, Integer.MAX_VALUE]"
     }
@@ -220,6 +273,44 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         then:
         outputContains("this.value = ${output}")
         outputContains("bean.value = ${output}")
+
+        where:
+        type          | reference                         | output
+        ImmutableList | "ImmutableList.of('a', 'b', 'c')" | "[a, b, c]"
+        ImmutableSet  | "ImmutableSet.of('a', 'b', 'c')"  | "[a, b, c]"
+        ImmutableMap | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+    }
+
+    def "serializing a Guava #type.simpleName does not report a problem"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            import ${type.name}
+
+            buildscript {
+                ${mavenCentralRepository()}
+                dependencies {
+                    classpath 'com.google.guava:guava:28.0-jre'
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final ${type.simpleName} guavaValue = ${reference}
+
+                @TaskAction
+                void run() {
+                    println "guava value = " + guavaValue
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("guava value = ${output}")
 
         where:
         type          | reference                         | output
