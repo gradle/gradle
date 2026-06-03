@@ -68,6 +68,102 @@ Gradle model types (e.g., `Gradle`, `Settings`, `Project`, `SourceSet`, `Configu
 For example, instead of referencing a Project to retrieve `project.version` at execution time, declare the project version as a `Property<String>` input.
 Similarly, instead of referencing a `SourceSet` for source files or classpath resolution, declare these as a `FileCollection` input.
 
+A common pattern reaches into `project.version` (or another model value) from within a task action:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("writeVersionStamp") {
+    val output = layout.buildDirectory.file("version.txt")
+    outputs.file(output)
+    doLast {
+        // BAD: project.version is the live Project model, accessed at execution time
+        output.get().asFile.writeText(project.version.toString())
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register('writeVersionStamp') {
+    def output = layout.buildDirectory.file('version.txt')
+    outputs.file output
+    doLast {
+        // BAD: project.version is the live Project model, accessed at execution time
+        output.get().asFile.text = project.version.toString()
+    }
+}
+----
+=====
+====
+
+The Configuration Cache-compatible version captures the value into a typed input property at configuration time, then reads from that property at execution time:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class WriteVersionStampTask : DefaultTask() {
+    @get:Input
+    abstract val version: Property<String>
+
+    @get:OutputFile
+    abstract val output: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        output.get().asFile.writeText(version.get())
+    }
+}
+
+tasks.register<WriteVersionStampTask>("writeVersionStamp") {
+    version = providers.provider { project.version.toString() }
+    output = layout.buildDirectory.file("version.txt")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class WriteVersionStampTask extends DefaultTask {
+    @Input
+    abstract Property<String> getVersion()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = version.get()
+    }
+}
+
+tasks.register('writeVersionStamp', WriteVersionStampTask) {
+    version = providers.provider { project.version.toString() }
+    output = layout.buildDirectory.file('version.txt')
+}
+----
+=====
+====
+
+What changed:
+
+* `project.version` is captured into a `Property<String>` at configuration time. The task body no longer touches `project`.
+* The value is wired with `providers.provider { ... }` so it is computed lazily at the configuration-to-execution boundary, not eagerly.
+* `output` is declared as an `@OutputFile`, which lets Gradle correctly track the output and gives the task automatic up-to-date checking.
+
+The same pattern applies to other Gradle model types: capture the value you actually need (`project.name`, `project.rootDir`, a source set's files, a configuration's resolved classpath) into a typed task property at configuration time.
+
 === Dependency Management Types
 
 The same requirement applies to dependency management types with some nuances.
@@ -277,6 +373,110 @@ Instead, they should be connected using <<lazy_configuration#working_with_task_d
 This requirement ensures that tasks remain isolated and correctly cacheable.
 As a result, it is unsupported to write tasks that configure other tasks at execution time.
 
+The pre-Configuration Cache pattern reaches directly into another task's properties from within a task action. Here `processData` reads the output of `generateData` by holding a reference to the task and dereferencing it at execution time:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val generateData = tasks.register<GenerateDataTask>("generateData") {
+    outputFile = layout.buildDirectory.file("data.json")
+}
+
+tasks.register("processData") {
+    dependsOn(generateData)
+    doLast {
+        // BAD: reading another task's property at execution time
+        val source = generateData.get().outputFile.get().asFile
+        println("Processing ${source.readText()}")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def generateData = tasks.register('generateData', GenerateDataTask) {
+    outputFile = layout.buildDirectory.file('data.json')
+}
+
+tasks.register('processData') {
+    dependsOn generateData
+    doLast {
+        // BAD: reading another task's property at execution time
+        def source = generateData.get().outputFile.get().asFile
+        println "Processing ${source.text}"
+    }
+}
+----
+=====
+====
+
+Under the Configuration Cache, `generateData.get()` would either fail outright (because the captured `TaskProvider` references a `Project`) or be serialized as a foreign task instance that does not reflect the actual execution-time state.
+
+The Configuration Cache-compatible version declares the source file as an `@InputFile` on the consuming task and wires the two tasks together with `flatMap`. Gradle infers the task dependency automatically from the property wiring:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class ProcessDataTask : DefaultTask() {
+    @get:InputFile
+    abstract val source: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        println("Processing ${source.get().asFile.readText()}")
+    }
+}
+
+val generateData = tasks.register<GenerateDataTask>("generateData") {
+    outputFile = layout.buildDirectory.file("data.json")
+}
+
+tasks.register<ProcessDataTask>("processData") {
+    source = generateData.flatMap { it.outputFile }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class ProcessDataTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getSource()
+
+    @TaskAction
+    void run() {
+        println "Processing ${source.get().asFile.text}"
+    }
+}
+
+def generateData = tasks.register('generateData', GenerateDataTask) {
+    outputFile = layout.buildDirectory.file('data.json')
+}
+
+tasks.register('processData', ProcessDataTask) {
+    source = generateData.flatMap { it.outputFile }
+}
+----
+=====
+====
+
+What changed:
+
+* `processData` now declares `source` as an `@InputFile`. The task action reads from `source.get()` and never touches the `generateData` instance.
+* `source = generateData.flatMap { it.outputFile }` wires the two tasks lazily. Gradle resolves the provider at execution time and infers the task dependency from the wiring, so the explicit `dependsOn` is no longer needed.
+* Because the consuming task holds only a typed input value (not a foreign task reference), it serializes cleanly into the cache entry.
+
 [[config_cache:requirements:shared_objects]]
 == Sharing Mutable Objects
 
@@ -337,17 +537,244 @@ Tasks must **not** access conventions, extensions, or extra properties at execut
 
 Instead, any value relevant to task execution should be explicitly modeled as a task property to ensure proper caching and reproducibility.
 
+A common pre-Configuration Cache pattern stores configuration values on a task's `ExtraPropertiesExtension` (the `ext` block) and reads them from within a task action. Here a `release` task reads a banner from `ext.banner`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("release") {
+    extra["banner"] = "=== Releasing build ${rootProject.version} ==="
+    doLast {
+        // BAD: reading extra properties at execution time
+        val banner: String by extra
+        println(banner)
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register('release') {
+    ext.banner = "=== Releasing build ${rootProject.version} ==="
+    doLast {
+        // BAD: reading extra properties at execution time
+        println(ext.banner)
+    }
+}
+----
+=====
+====
+
+Under the Configuration Cache, reading `extra["banner"]` (or `ext.banner`) from inside the task action is unsupported, because extension storage isn't part of the captured task state.
+
+The Configuration Cache-compatible version exposes the value as a typed `@Input` property on a proper task class:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class ReleaseTask : DefaultTask() {
+    @get:Input
+    abstract val banner: Property<String>
+
+    @TaskAction
+    fun run() {
+        println(banner.get())
+    }
+}
+
+tasks.register<ReleaseTask>("release") {
+    banner = providers.provider { "=== Releasing build ${rootProject.version} ===" }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class ReleaseTask extends DefaultTask {
+    @Input
+    abstract Property<String> getBanner()
+
+    @TaskAction
+    void run() {
+        println banner.get()
+    }
+}
+
+tasks.register('release', ReleaseTask) {
+    banner = providers.provider { "=== Releasing build ${rootProject.version} ===" }
+}
+----
+=====
+====
+
+What changed:
+
+* The value moves from `extra` / `ext` storage into a typed `@Input Property<String>` on the task.
+* The task action reads from `banner.get()` (a serialized field on the task instance) instead of the extension storage.
+* The wiring at registration uses `providers.provider { ... }` so the value is captured lazily at the configuration-to-execution boundary, which is also what makes the `rootProject.version` capture itself Configuration Cache-safe (see <<config_cache:requirements:gradle_model_types, Gradle Model Types>>).
+* Because the input is now declared with `@Input`, Gradle includes it in up-to-date checking, which improves correctness as a side benefit.
+
 [[config_cache:requirements:build_listeners]]
 == Using Build Listeners
 
 Plugins and build scripts must **not** register build listeners that are created at configuration time and triggered at execution time.
-This includes listeners such as `BuildListener` or `TaskExecutionListener`.
+This includes listeners such as `BuildListener`, `TaskExecutionListener`, and the `gradle.taskGraph.afterTask` and `gradle.buildFinished` callbacks.
+These callbacks run as part of the configuration phase, so they don't fire when the configuration phase is skipped on a cache hit.
 
-Recommended Alternatives:
+The Configuration Cache provides supported replacements for the two most common patterns: observing task execution events, and running logic at the end of the build.
 
-- Use <<build_services#build_services, Build Services>> to handle execution-time logic.
-- Register a Build Service to receive <<build_services#operation_listener, task execution notifications>>.
-- Replace `buildFinished` listeners with <<dataflow_actions.adoc#dataflow_action, dataflow actions>> to manage build results.
+=== Replacing `taskGraph.afterTask` and `buildFinished` with a Build Service
+
+The pre-Configuration Cache pattern registers a closure that captures script-level state. Here a callback collects failed tasks and prints them at the end of the build:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val failedTasks = mutableListOf<String>()
+
+gradle.taskGraph.afterTask {
+    if (state.failure != null) {
+        failedTasks.add(path)
+    }
+}
+
+gradle.buildFinished {
+    if (failedTasks.isNotEmpty()) {
+        println("Failed tasks: ${failedTasks.joinToString()}")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def failedTasks = []
+
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+    if (state.failure != null) {
+        failedTasks << task.path
+    }
+}
+
+gradle.buildFinished {
+    if (failedTasks) {
+        println "Failed tasks: ${failedTasks.join(', ')}"
+    }
+}
+----
+=====
+====
+
+Under the Configuration Cache, both callbacks are part of the configuration phase, so they will not fire on a cache hit. They are also incompatible at the registration site, since the closures capture mutable script state.
+
+The Configuration Cache-compatible replacement is a `BuildService` that implements `OperationCompletionListener`, registered with `BuildEventsListenerRegistry.onTaskCompletion`. End-of-build logic moves into the service's `close()` method:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskFailureResult
+
+abstract class FailureCollector :
+    BuildService<BuildServiceParameters.None>,
+    OperationCompletionListener,
+    AutoCloseable {
+
+    private val failedTasks = mutableListOf<String>()
+
+    override fun onFinish(event: FinishEvent) {
+        if (event is TaskFinishEvent && event.result is TaskFailureResult) {
+            failedTasks.add(event.descriptor.taskPath)
+        }
+    }
+
+    override fun close() {
+        if (failedTasks.isNotEmpty()) {
+            println("Failed tasks: ${failedTasks.joinToString()}")
+        }
+    }
+}
+
+val collector = gradle.sharedServices.registerIfAbsent("failureCollector", FailureCollector::class) {}
+val eventListenerRegistry = project.serviceOf<BuildEventsListenerRegistry>()
+eventListenerRegistry.onTaskCompletion(collector)
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskFailureResult
+
+abstract class FailureCollector implements
+    BuildService<BuildServiceParameters.None>,
+    OperationCompletionListener,
+    AutoCloseable {
+
+    private final List<String> failedTasks = []
+
+    @Override
+    void onFinish(FinishEvent event) {
+        if (event instanceof TaskFinishEvent && event.result instanceof TaskFailureResult) {
+            failedTasks << event.descriptor.taskPath
+        }
+    }
+
+    @Override
+    void close() {
+        if (failedTasks) {
+            println "Failed tasks: ${failedTasks.join(', ')}"
+        }
+    }
+}
+
+def collector = gradle.sharedServices.registerIfAbsent('failureCollector', FailureCollector) {}
+def eventListenerRegistry = project.gradle.services.get(BuildEventsListenerRegistry)
+eventListenerRegistry.onTaskCompletion(collector)
+----
+=====
+====
+
+What changed:
+
+* `gradle.taskGraph.afterTask` is replaced by a `BuildService` that implements `OperationCompletionListener`. The service receives `TaskFinishEvent` instances at execution time.
+* `gradle.buildFinished` end-of-build logic moves into the service's `close()` method. Gradle calls `close()` when the service is no longer needed, on both cache hits and cache misses.
+* The mutable script-level `failedTasks` list is replaced by a field on the service. State is owned by the service instance, not captured by a closure.
+* Registering the service with `BuildEventsListenerRegistry.onTaskCompletion` is the supported way to make the service survive the configuration-to-execution boundary under the Configuration Cache. Other ways of holding a build service reference (such as a captured `Provider` in a closure or lambda) may not survive a cache hit cleanly.
+
+=== Replacing `buildFinished` with a Dataflow Action
+
+For end-of-build logic that does *not* need to observe each task's outcome, use a <<dataflow_actions.adoc#dataflow_action, dataflow action>> instead. Dataflow actions are the supported replacement for plain `gradle.buildFinished` callbacks and they fire on both cache hits and cache misses.
+
+[NOTE]
+====
+A `BuildService` registered with `BuildEventsListenerRegistry.onTaskCompletion` is the supported survival path across the configuration-to-execution boundary. Other ways of holding a build service reference may not survive a cache hit cleanly.
+====
 
 [[config_cache:requirements:value_source]]
 == Using External Information Sources
@@ -473,6 +900,97 @@ In general, you should avoid reading the value of system properties and environm
 Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[`providers.systemProperty()`] or
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[`providers.environmentVariable()`] to task properties.
 
+The most common pre-Configuration Cache pattern reads an environment variable directly at configuration time and assigns the resolved string to a task property:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class StampBuildTask : DefaultTask() {
+    @get:Input
+    abstract val buildNumber: Property<String>
+
+    @get:OutputFile
+    abstract val output: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        output.get().asFile.writeText("Build ${buildNumber.get()}")
+    }
+}
+
+tasks.register<StampBuildTask>("stampBuild") {
+    // BAD: reads the env var at configuration time
+    buildNumber = System.getenv("BUILD_NUMBER") ?: "local"
+    output = layout.buildDirectory.file("build-stamp.txt")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class StampBuildTask extends DefaultTask {
+    @Input
+    abstract Property<String> getBuildNumber()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = "Build ${buildNumber.get()}"
+    }
+}
+
+tasks.register('stampBuild', StampBuildTask) {
+    // BAD: reads the env var at configuration time
+    buildNumber = System.getenv('BUILD_NUMBER') ?: 'local'
+    output = layout.buildDirectory.file('build-stamp.txt')
+}
+----
+=====
+====
+
+This works, but the env-var read happens during configuration, so changing `BUILD_NUMBER` invalidates the Configuration Cache and re-runs the configuration phase on every CI build.
+
+The Configuration Cache-friendly version uses `providers.environmentVariable()` and pipes the lazy provider into the task property:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register<StampBuildTask>("stampBuild") {
+    buildNumber = providers.environmentVariable("BUILD_NUMBER").orElse("local")
+    output = layout.buildDirectory.file("build-stamp.txt")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register('stampBuild', StampBuildTask) {
+    buildNumber = providers.environmentVariable('BUILD_NUMBER').orElse('local')
+    output = layout.buildDirectory.file('build-stamp.txt')
+}
+----
+=====
+====
+
+What changed:
+
+* `System.getenv("BUILD_NUMBER")` is replaced by `providers.environmentVariable("BUILD_NUMBER")`. The `Provider` is captured into the task property; the resolved value is read at execution time.
+* The fallback `?: "local"` becomes `.orElse("local")` on the provider.
+* The env var still becomes a build configuration input (changing its value invalidates the cache), but the read is now declared rather than implicit. The Configuration Cache report can see exactly which variables a build observed, and `providers.environmentVariable()` participates in the cache fingerprint correctly.
+* For system properties, the equivalent is `providers.systemProperty("name")`.
+
 Some access patterns that potentially enumerate all environment variables or system properties (for example, calling `System.getenv().forEach()` or using the iterator of its `keySet()`) are discouraged.
 In this case, Gradle cannot find out what properties are actual build configuration inputs, so every available property becomes one.
 Even adding a new property will invalidate the cache if this pattern is used.
@@ -538,6 +1056,100 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/fileContents
 In general, you should avoid reading files at configuration time, to avoid invalidating Configuration Cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[`providers.fileContents()`] to task properties.
 
+A typical pre-Configuration Cache pattern reads a config file at configuration time and uses its contents to compute a task input:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class GenerateReportTask : DefaultTask() {
+    @get:Input
+    abstract val title: Property<String>
+
+    @get:OutputFile
+    abstract val output: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        output.get().asFile.writeText("Title: ${title.get()}")
+    }
+}
+
+tasks.register<GenerateReportTask>("generateReport") {
+    // BAD: file read happens during configuration
+    title = file("config/title.txt").readText().trim()
+    output = layout.buildDirectory.file("report.txt")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class GenerateReportTask extends DefaultTask {
+    @Input
+    abstract Property<String> getTitle()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = "Title: ${title.get()}"
+    }
+}
+
+tasks.register('generateReport', GenerateReportTask) {
+    // BAD: file read happens during configuration
+    title = file('config/title.txt').text.trim()
+    output = layout.buildDirectory.file('report.txt')
+}
+----
+=====
+====
+
+This file read is invisible to Gradle. The file's contents become an implicit input but are not tracked as such, so changes to `config/title.txt` may or may not invalidate the cache depending on whether Gradle happens to detect the read.
+
+The Configuration Cache-friendly version reads the file through `providers.fileContents()`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register<GenerateReportTask>("generateReport") {
+    title = providers.fileContents(layout.projectDirectory.file("config/title.txt"))
+        .asText
+        .map { it.trim() }
+    output = layout.buildDirectory.file("report.txt")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register('generateReport', GenerateReportTask) {
+    title = providers.fileContents(layout.projectDirectory.file('config/title.txt'))
+        .asText
+        .map { it.trim() }
+    output = layout.buildDirectory.file('report.txt')
+}
+----
+=====
+====
+
+What changed:
+
+* `file("config/title.txt").readText()` is replaced by `providers.fileContents(...).asText`. The file becomes a tracked Configuration Cache input.
+* The `.trim()` post-processing happens inside `.map { ... }` on the provider, so it stays lazy and runs at execution time.
+* The file is now part of the build configuration fingerprint. Changing its contents correctly invalidates the cache; leaving it unchanged correctly hits the cache.
+
 [[config_cache:requirements:bytecode_modifications_and_isolation]]
 == Bytecode Modifications and Java Agent
 
@@ -549,7 +1161,126 @@ To work around this, you can use the <<worker_api.adoc#tasks_parallel_worker, Wo
 The bytecode of the worker's classpath is not modified, so the self-checks should pass.
 When process isolation is used, the worker action is executed in a separate worker process that doesn't have the Gradle Java agent installed.
 
-In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task to isolate the library.
+A task that calls a problematic library directly might look like this:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class VerifySignatureTask : DefaultTask() {
+    @get:InputFile
+    abstract val artifact: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        // BAD when the library does bytecode integrity checks on itself:
+        // it sees the Gradle-modified bytecode and fails
+        com.example.signing.SignatureVerifier.verify(artifact.get().asFile)
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class VerifySignatureTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getArtifact()
+
+    @TaskAction
+    void run() {
+        // BAD when the library does bytecode integrity checks on itself:
+        // it sees the Gradle-modified bytecode and fails
+        com.example.signing.SignatureVerifier.verify(artifact.get().asFile)
+    }
+}
+----
+=====
+====
+
+The Configuration Cache-compatible version moves the call into a worker action. The worker classpath is not modified by the Gradle Java agent, so library integrity self-checks pass. With process isolation, the worker runs in a separate JVM that doesn't have the agent installed at all:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+interface VerifyWorkParameters : WorkParameters {
+    val artifact: RegularFileProperty
+}
+
+abstract class VerifyWorkAction : WorkAction<VerifyWorkParameters> {
+    override fun execute() {
+        com.example.signing.SignatureVerifier.verify(parameters.artifact.get().asFile)
+    }
+}
+
+abstract class VerifySignatureTask : DefaultTask() {
+    @get:InputFile
+    abstract val artifact: RegularFileProperty
+
+    @get:Inject
+    abstract val workerExecutor: WorkerExecutor
+
+    @TaskAction
+    fun run() {
+        // Process isolation runs the action in a separate JVM without the Gradle agent
+        val workQueue = workerExecutor.processIsolation()
+        workQueue.submit(VerifyWorkAction::class) {
+            artifact = this@VerifySignatureTask.artifact
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+interface VerifyWorkParameters extends WorkParameters {
+    RegularFileProperty getArtifact()
+}
+
+abstract class VerifyWorkAction implements WorkAction<VerifyWorkParameters> {
+    @Override
+    void execute() {
+        com.example.signing.SignatureVerifier.verify(parameters.artifact.get().asFile)
+    }
+}
+
+abstract class VerifySignatureTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getArtifact()
+
+    @Inject
+    abstract WorkerExecutor getWorkerExecutor()
+
+    @TaskAction
+    void run() {
+        // Process isolation runs the action in a separate JVM without the Gradle agent
+        def workQueue = workerExecutor.processIsolation()
+        workQueue.submit(VerifyWorkAction) {
+            artifact = this.artifact
+        }
+    }
+}
+----
+=====
+====
+
+What changed:
+
+* The library call moves from the task action into a `WorkAction`. The worker classpath is separate from the build-script classpath and is not modified by the agent.
+* `processIsolation()` is used because it runs the worker in a separate JVM that does not have the Gradle Java agent installed at all. `classLoaderIsolation()` also avoids agent modification of the worker classpath, but it shares the JVM; choose `processIsolation()` if the library is sensitive to the agent's mere presence in the JVM.
+* Inputs are passed through `WorkParameters` rather than captured from the task, which keeps the work action serializable in its own right.
+
+In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task to isolate the library. The `JavaExec` JVM runs without the Gradle agent.
 
 [[config_cache:secrets]]
 == Handling of Credentials and Secrets
@@ -565,10 +1296,121 @@ To further enhance security, follow these recommendations:
 
 - Secure access to Configuration Cache entries.
 - Use `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` to store secrets.
-The content of this file is **not** included in the Configuration Cache—only its fingerprint is.
+The content of this file is **not** included in the Configuration Cache, only its fingerprint is.
 If storing secrets in this file, ensure access is **properly restricted**.
 
 See link:{gradle-issues}22618[gradle/gradle#22618].
+
+A common pre-Configuration Cache pattern reads a credential from an environment variable at configuration time and passes it into a task. The captured value lives on the task instance and ends up in the cache entry:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class PublishArtifactTask : DefaultTask() {
+    @get:Input
+    abstract val apiToken: Property<String>
+
+    @TaskAction
+    fun run() {
+        // ... uses apiToken.get() to call the registry
+    }
+}
+
+tasks.register<PublishArtifactTask>("publishArtifact") {
+    // BAD: the literal token value is captured into the task field at configuration time
+    apiToken = System.getenv("REGISTRY_TOKEN") ?: ""
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class PublishArtifactTask extends DefaultTask {
+    @Input
+    abstract Property<String> getApiToken()
+
+    @TaskAction
+    void run() {
+        // ... uses apiToken.get() to call the registry
+    }
+}
+
+tasks.register('publishArtifact', PublishArtifactTask) {
+    // BAD: the literal token value is captured into the task field at configuration time
+    apiToken = System.getenv('REGISTRY_TOKEN') ?: ''
+}
+----
+=====
+====
+
+Under the Configuration Cache, the resolved string value of `REGISTRY_TOKEN` is serialized into the cache entry alongside the rest of the task graph. The entry is encrypted on disk, but the value still lives in the file. The environment variable also becomes a build configuration input, so changing the token invalidates the cache (which produces a cache miss for every CI build that rotates credentials).
+
+The Configuration Cache-friendly pattern stores the secret in `GRADLE_USER_HOME/gradle.properties` (whose contents are *not* included in the cache, only its fingerprint) and reads it through `providers.gradleProperty()`. The lazy provider defers the read to execution time:
+
+[source,properties]
+.${GRADLE_USER_HOME}/gradle.properties
+----
+registryToken=...your token here...
+----
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class PublishArtifactTask : DefaultTask() {
+    @get:Input
+    abstract val apiToken: Property<String>
+
+    @TaskAction
+    fun run() {
+        // ... uses apiToken.get() to call the registry
+    }
+}
+
+tasks.register<PublishArtifactTask>("publishArtifact") {
+    // The Provider is captured, not the resolved value
+    apiToken = providers.gradleProperty("registryToken")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class PublishArtifactTask extends DefaultTask {
+    @Input
+    abstract Property<String> getApiToken()
+
+    @TaskAction
+    void run() {
+        // ... uses apiToken.get() to call the registry
+    }
+}
+
+tasks.register('publishArtifact', PublishArtifactTask) {
+    // The Provider is captured, not the resolved value
+    apiToken = providers.gradleProperty('registryToken')
+}
+----
+=====
+====
+
+What changed:
+
+* The secret moves from a process environment variable into `GRADLE_USER_HOME/gradle.properties`. Gradle records the file's fingerprint as a cache input, but the secret string itself is never stored in a Configuration Cache entry.
+* The build script uses `providers.gradleProperty("registryToken")` to read the value lazily. The `Provider` is captured into the task's `apiToken` field, not the resolved string.
+* On a cache hit, the provider is replayed against the current `GRADLE_USER_HOME/gradle.properties` at execution time. On a cache miss, the value is captured fresh. In neither case does the secret value end up in `.gradle/configuration-cache`.
+* This pattern also handles credential rotation cleanly: changing the token in `gradle.properties` causes Gradle to read the new value on the next build without re-running the configuration phase.
+
+For credentials provided to repositories specifically, use the link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[`PasswordCredentials`] mechanism with a credential identity prefix and let Gradle resolve it from properties or environment variables. See <<supported_repository_protocols.adoc#sec:basic_authentication, Basic authentication>> for the canonical setup.
 
 [[config_cache:secrets:configuring_encryption_key]]
 === Providing an Encryption Key with the `GRADLE_ENCRYPTION_KEY` Environment Variable

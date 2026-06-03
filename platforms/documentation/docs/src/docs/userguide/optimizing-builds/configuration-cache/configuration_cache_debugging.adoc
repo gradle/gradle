@@ -175,6 +175,49 @@ Configuration Cache entry reused.
 
 With these fixes in place, this task is fully compatible with the Configuration Cache.
 
+[[config_cache:debugging:common_errors]]
+== Common Errors and Where to Look
+
+This table maps common Configuration Cache error fragments to their likely cause and the place to look next.
+It is not exhaustive; it covers the recurring ones.
+
+[cols="2,2,2"]
+|===
+| Error fragment | Likely cause | Where to look
+
+| `cannot serialize object of type 'org.gradle.api.internal...DefaultResolvedArtifactResult'`
+| `ArtifactCollection.getResolvedArtifacts()` queried at configuration time
+| <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, Disallowed types>>; keep the `ArtifactCollection` itself and fetch the provider at execution time.
+
+| `field 'X' of task ... cannot serialize object of type ...`
+| A non-serializable runtime object (HttpClient, Connection, Thread) is stored in a task field
+| Move the instantiation into `@TaskAction` instead of holding it in a field. See <<configuration_cache_adoption.adoc#config_cache:adoption_guide:step7, Fix Problems Iteratively>>.
+
+| `value.owner must not be null`
+| Kotlin DSL `KotlinClosure1` capturing build-script state
+| Restructure the closure so it only captures values, not the enclosing script object.
+
+| `Could not find build 'X'`
+| Composite-build CC reuse edge case
+| link:{gradle-issues}20945[gradle/gradle#20945].
+
+| `Unable to make field ... accessible: module java.base does not "opens"`
+| JPMS / `--add-opens` interaction with reflective access
+| Add the required `--add-opens` directive to the Gradle daemon JVM via `org.gradle.jvmargs`.
+
+| `Cannot reference a Gradle script object from a Groovy closure`
+| Groovy closure captured a `Project`, `Gradle`, or script reference
+| Extract the values you need at configuration time into local variables; reference those inside the closure.
+
+| Invalidation reason naming an env var, sys prop, or file you do not control
+| A plugin is reading the full environment at configuration time, or a tool is updating a tracked file
+| Open the CC report's "build configuration inputs" list; either replace the read with a `providers.*` call, or use a suppressible input until the plugin is fixed.
+
+| `Calculating task graph as configuration cache cannot be reused because ... has changed` on every run
+| A configuration input changes every run (e.g., a per-process env var like `JAVA_MAIN_CLASS_<PID>`)
+| Open the CC report; switch the underlying read to a scoped `providers.*` API.
+|===
+
 [[sec:enable_warning_mode]]
 == Enable Warning Mode
 
@@ -322,6 +365,8 @@ Gradle TestKit is a library designed to facilitate testing Gradle plugins and bu
 For general guidance on using TestKit, refer to the <<test_kit.adoc#test_kit, dedicated chapter>>.
 
 To test your build logic with the Configuration Cache enabled, pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[`GradleRunner`], or use one of the other methods described in <<configuration_cache_enabling.adoc#config_cache:usage:enable, Enabling the Configuration Cache>>.
+
+A single run is not enough to verify Configuration Cache compatibility: a build can succeed under CC simply because the entry was stored, while a silent CC incompatibility only surfaces on the second run when Gradle tries to load that entry back. Two runs distinguish *CC tolerance* (the build runs once with `--configuration-cache` enabled) from *CC compatibility* (the build correctly reuses a stored entry).
 
 To properly test Configuration Cache behavior, tasks must be executed twice:
 

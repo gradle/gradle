@@ -1,0 +1,618 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
+[[config_cache:adoption_guide]]
+= Adopting the Configuration Cache
+
+This guide is a linear, step-by-step path for adopting the Configuration Cache (CC) in an existing project or plugin.
+
+[NOTE]
+====
+Since Gradle 9.0.0, the Configuration Cache is the link:https://blog.gradle.org/road-to-configuration-cache#preferred-mode-of-execution[preferred mode of execution].
+The work to make it the default in Gradle 10.0.0 is in progress.
+Adopting CC now puts your build ahead of that change.
+====
+
+[[config_cache:adoption_guide:overview]]
+== Adoption Goals
+
+You have successfully adopted the Configuration Cache when:
+
+. `org.gradle.configuration-cache=true` is set in your `gradle.properties` (committed, not local-only).
+. Your everyday development tasks (the ones developers run dozens of times a day) hit the cache.
+. CI runs with CC enabled and `org.gradle.configuration-cache.problems=fail` (the default).
+. Any task that genuinely cannot be CC-compatible is explicitly marked using <<configuration_cache_debugging.adoc#config_cache:task_opt_out, `notCompatibleWithConfigurationCache("reason")`>>.
+
+[[config_cache:adoption_guide:before_you_start]]
+== Before You Start
+
+Run through this checklist before you flip the switch.
+
+[cols="1,3,4"]
+|===
+| # | Prerequisite | Why it matters
+
+| 1
+| Start from a green build
+| Make sure your build is passing without CC first. Mixing pre-existing failures with CC-specific failures significantly complicates debugging.
+
+| 2
+| Identify your dev loop
+| Pick the 2 or 3 tasks your team actually runs most: `test`, `assemble`, `:app:installDebug`, or a custom code-gen task. Those are the tasks where a CC hit pays off, and they are the tasks you will iterate against.
+|===
+
+[TIP]
+====
+If you are migrating a large multi-module monorepo, do not try to enable CC across the whole tree on day one.
+Pick one well-isolated subproject, get it to a CC hit, then expand.
+====
+
+[[config_cache:adoption_guide:step1]]
+== Step 1: Update Gradle and Plugins
+
+CC quality improves substantially with each minor Gradle release, and the major plugin ecosystems have done most of their CC work in their latest versions.
+Before enabling CC, update the build to a recent Gradle version with current plugins.
+
+=== Update the Gradle wrapper
+
+Gradle 9.0.0 or later is strongly recommended.
+If you are not on Gradle 9.0.0 yet, update first using the <<upgrading_major_version_9.adoc#upgrading_major_version_9, upgrade guide>>, typically by bumping `gradle/wrapper/gradle-wrapper.properties` to a 9.x.y release.
+
+[NOTE]
+====
+**Wrapper bumps can cascade:** Updating the Gradle wrapper to a newer version can force matching bumps in adjacent build tooling:
+
+* Your project's pinned Kotlin compiler version, if it is older than the Kotlin runtime the new Gradle ships with. (For example, Gradle 9.5.1 ships Kotlin 2.3.20 internally; a project pinned to `kotlin = "2.0.21"` will fail to compile against it until that pin is raised.)
+* Your test framework variant if it is Groovy-major-locked. (For example, Gradle 9.0.0 ships Groovy 4; the Groovy-3-variant Spock release will refuse to load and the test compilation will fail with a clear `IncompatibleGroovyVersionException`.)
+* On Gradle 9+, JUnit Platform Launcher must be declared explicitly as a `testRuntimeOnly` dependency. Older Gradle versions auto-added it; the new behavior surfaces as a cryptic `Failed to load JUnit Platform` error on the first run of the test suite.
+
+None of these are blockers, but they will surface in sequence, each as a separate build failure, so budget for them as part of this step rather than as part of CC adoption itself.
+====
+
+=== Update your plugins
+
+Android Gradle Plugin (AGP), Kotlin Gradle Plugin (KGP), Spring Boot, and most major plugins now support CC.
+Bring them to current versions before you start.
+Check the <<configuration_cache_status.adoc#config_cache:plugins, plugin status page>> for known limitations on any plugin you depend on, and update accordingly.
+
+[[config_cache:adoption_guide:step2]]
+== Step 2: Enable the Configuration Cache and Run `help`
+
+Enable CC on the command line using the `--configuration-cache` flag and run `help` as the first test:
+
+[source,bash]
+----
+$ ./gradlew help --configuration-cache
+----
+
+The flag form lets you toggle CC on and off per invocation without changing files.
+
+`help` is a good first task because it configures the build but executes essentially nothing, giving you the cheapest, fastest signal that your **configuration phase** is CC-compatible.
+
+What you should see on a fresh run:
+
+[source,text]
+----
+Calculating task graph as no cached configuration is available for tasks: help
+...
+Configuration cache entry stored.
+----
+
+On the second run, you should see:
+
+[source,text]
+----
+Reusing configuration cache.
+...
+BUILD SUCCESSFUL
+----
+
+If `help` itself fails with CC problems, the problems are in your **build-script logic** (your top-level `settings.gradle(.kts)`, your `build.gradle(.kts)` files, your plugins applied in apply-plugin form, your init scripts).
+These have to be fixed before anything else makes sense.
+
+If `help` works, the configuration phase is broadly OK.
+The remaining problems are mostly in task implementations, which surface as you run real tasks (see the next step).
+
+[[config_cache:adoption_guide:step3]]
+== Step 3: When You Hit a Miss or Failure, Read the Report
+
+[NOTE]
+====
+If Step 2 succeeded cleanly with `Configuration cache entry stored.`, there is no report to read yet.
+Skip ahead to <<config_cache:adoption_guide:step5,Step 5>>.
+====
+
+When Gradle detects Configuration Cache problems on a miss or failure, it writes an HTML report at `build/reports/configuration-cache/<hash>/configuration-cache-report.html.`
+Open it in your browser; this report is the primary debugging tool for CC adoption.
+For the full debugging workflow, see <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Use the Configuration Report>> on the Debugging page.
+
+[source,text]
+----
+$ ./gradlew help --configuration-cache
+
+...
+
+See the complete report at file://Documents/Repositories/my-plugin/build/reports/configuration-cache/<hash>/configuration-cache-report.html
+
+...
+
+BUILD SUCCESSFUL in 9s
+2 actionable tasks: 2 executed
+Configuration cache entry discarded with 14 problems.
+----
+
+[IMPORTANT]
+====
+Do not confuse the Configuration Cache report with the general Gradle <<reporting_problems.adoc#sec:generated_html_report, Problems report>> at `build/reports/problems/problems-report.html`.
+====
+
+[[config_cache:adoption_guide:step4]]
+== Step 4: Fix your Build Logic
+
+If `help` failed under CC or stored its entry with problems, the violations are in your **build-script logic**.
+Specifically the code that runs during the configuration phase, before any task executes.
+That is everything in `settings.gradle(.kts)`, in every `build.gradle(.kts)`, in init scripts, and in any plugin code that runs at apply-plugin time.
+These have to be fixed first; everything downstream assumes the configuration phase is clean.
+
+The canonical fix catalog is <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache Requirements for your Build Logic>>.
+Every recognised violation pattern is documented there end-to-end, with before-and-after code samples for both Groovy and Kotlin DSLs.
+Each entry in the CC report links to the matching section of the requirements doc.
+
+The workflow for each violation:
+
+. Open the linked section of the requirements doc from the CC report entry.
+. Apply the canonical fix in your build script, settings script, init script, or plugin source.
+. Re-run `./gradlew help --configuration-cache` and check whether the entry is now stored cleanly.
+
+If you only have an error fragment to start from rather than a full report entry, use <<configuration_cache_debugging.adoc#config_cache:debugging:common_errors, Common Errors and Where to Look>> on the Debugging page to translate it to the underlying pattern, then apply the workflow above.
+
+The configuration-time patterns most often surfaced at this stage are reading the environment (`System.getenv` / `System.getProperty` → `providers.environmentVariable` / `providers.systemProperty`), reading files at configuration time (`File.readText` / `file(...).exists()` → `providers.fileContents`), and registering build listeners (replace with a `BuildService` implementing `OperationCompletionListener`).
+The full pattern catalog is in the <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache Requirements for your Build Logic>>.
+
+Iterate until `help` produces `Configuration cache entry stored.` with no problems reported.
+That signals the configuration phase is clean, and you can move on to running your real dev loop tasks.
+
+[TIP]
+====
+Fix build-logic violations *before* task-execution violations.
+A plugin's `apply()` method that touches `System.getenv` will fail every build under CC, regardless of which task is requested; a task implementation problem only fails when that specific task runs.
+Fixing configuration-phase issues first unblocks everything downstream.
+====
+
+[[config_cache:adoption_guide:step5]]
+== Step 5: Dry-Run Your Real Dev Loop
+
+Once `help` succeeds, expand to the tasks your team actually runs (the ones you identified in <<config_cache:adoption_guide:before_you_start, Before You Start>>).
+Each task has its own configure-time logic that `help` does not exercise, so each one may surface configuration-phase violations that did not show up at the `help` stage.
+
+In the examples below, replace `<your-task>` with one of those task names: `test`, `assemble`, `:app:installDebug`, `dependencyUpdates`, or whatever your dev loop actually uses.
+
+Surface configuration-time problems for each task without paying for execution by running with `--dry-run`:
+
+[source,bash]
+----
+$ ./gradlew <your-task> --configuration-cache --dry-run
+----
+
+`--dry-run` configures the build and prints the task graph but does not execute tasks.
+Any CC problem found at this stage is a **configuration-time** issue in the task's plugin or in the build script that registers it.
+Fix these the same way you fixed the `help` problems in <<config_cache:adoption_guide:step4,Step 4>>: open the CC report, click through to the matching section of the requirements doc, apply the canonical fix, re-run.
+
+Iterate the `--dry-run` invocation across each of your dev-loop tasks until each one stores its CC entry cleanly.
+Then proceed to running the tasks normally.
+
+[[config_cache:adoption_guide:step6]]
+== Step 6: Run Your Real Dev Loop
+
+With the configuration phase clean for each task, drop `--dry-run` and run the tasks normally:
+
+[source,bash]
+----
+$ ./gradlew <your-task> --configuration-cache
+----
+
+Problems found at this stage that did not surface with `--dry-run` are **execution-time** issues, typically tasks reading `project`, using `System.getenv()`, or holding non-serializable state in a field.
+Fix these iteratively (see <<config_cache:adoption_guide:step7, Step 7: Fix Problems Iteratively>>).
+
+Run the task twice.
+CC writes the entry on the first run, then loads it back immediately to validate that deserialization works.
+Run a third time and confirm that the output reads `Reusing configuration cache.`
+This is the first CC hit.
+
+[NOTE]
+====
+The `--configuration-cache` flag is repeated in every example so each invocation is self-contained.
+Once you are confident enough to flip the switch persistently, you can set `org.gradle.configuration-cache=true` in `gradle.properties` and drop the flag from the command line.
+That comes later in <<config_cache:adoption_guide:step9, Step 9: Roll Out to Your Team>>.
+====
+
+[[config_cache:adoption_guide:step7]]
+== Step 7: Fix Problems Iteratively
+
+[TIP]
+====
+Real builds usually mix Configuration Cache problems with unrelated deprecation warnings (Dokka, KGP, AGP, and other plugins all surface their own migration warnings during the build).
+Triage by the URL Gradle prints with each problem: lines that include `docs.gradle.org/.../configuration_cache.html` or `configuration_cache_requirements.html` are CC-specific and belong to this guide.
+Other deprecation warnings are independent migrations; defer them until your CC story is sorted unless they actively block the build.
+====
+
+**Violations fall into two categories.**
+Most CC report entries are *mechanical*: they map to a documented pattern, the fix is a small targeted refactor, and the canonical before/after is on the requirements page.
+Some entries, especially in plugins built around execution-time `Configuration` mutation or other older Gradle APIs, are *architectural*: the fix is not a refactor but a redesign of how the task does its work.
+Both categories are common.
+The mechanical category is the focus of this section; the architectural category is covered in <<config_cache:adoption_guide:when_small_fix_isnt_enough, When the Small-Fix Path Isn't Enough>>.
+
+When a task fails under CC, identify the violation pattern from the report and apply the canonical fix from the requirements page.
+The patterns are documented end-to-end (with before-and-after code samples for each) in <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache Requirements for your Build Logic>>.
+
+The patterns you will encounter most often are:
+
+* <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Using the `Project` Object at Execution Time>>: `project.copy {}`, `project.exec {}`, `project.version`, or anything else reached through `project` from a `@TaskAction` or `doLast {}`.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, Disallowed types referenced by tasks>>: live JVM state (`HttpClient`, `Connection`, `Thread`, `Socket`, `ClassLoader`) or unsupported Gradle types (`Configuration`, `SourceSet`) held in task fields.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, Reading System Properties and Environment Variables>>: `System.getenv` or `System.getProperty` at configuration time; replace with `providers.environmentVariable` or `providers.systemProperty`.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:undeclared_file_read, Undeclared Reading of Files>>: direct `File.readText()` or `file().exists()` at configuration time; replace with `providers.fileContents`.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, Using Build Listeners>>: `BuildListener`, `TaskExecutionListener`, `gradle.taskGraph.afterTask`, or `gradle.buildFinished` registered at configuration time; replace with a `BuildService` implementing `OperationCompletionListener`.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:task_extensions, Accessing Task Extensions or Conventions>>: reading `task.extensions[...]` or `task.ext` at execution time; expose the value as a typed task property.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:gradle_model_types, Gradle Model Types>>: capturing `Project`, `Gradle`, `Settings`, or `SourceSet` references in task fields; capture the value you actually need into a typed `Property` at configuration time.
+
+If you only have an error fragment to start from, use <<configuration_cache_debugging.adoc#config_cache:debugging:common_errors, Common Errors and Where to Look>> on the Debugging page to translate it to the underlying pattern and the fix.
+
+[[config_cache:adoption_guide:when_small_fix_isnt_enough]]
+=== When the Small-Fix Path Isn't Enough
+
+A subset of CC violations does not fit the small-fix path because the underlying task does fundamentally execution-time work that CC cannot serialize.
+The most common pattern is a task that mutates `Configuration` objects at `@TaskAction` time (typically via `Configuration.copyRecursive()`, then mutating dependencies, then resolving the copy).
+`Configuration` objects are not CC-serializable, runtime configuration creation is not CC-supported, and no `@TaskAction`-level refactor preserves both the behavior and CC-compatibility.
+
+Indicators that this pattern applies:
+
+* The violation traces back to `@TaskAction` code that calls `project.dependencies.create(...)`, `Configuration.copyRecursive()`, or otherwise constructs new `Configuration` instances at execution time.
+* The fix on the requirements page is structurally hard to apply because what you actually need is a *different* `Configuration` to resolve, and you don't have one created yet at configuration time.
+* Multiple report entries trace back to the same `@TaskAction`, suggesting the issue is the task's resolution model rather than any one line of code.
+
+The canonical CC-safe pattern is to move all `Configuration` construction to **configuration time**, and to expose the per-task results as `Provider<ResolvedComponentResult>` (or another resolution-result Provider type) that gets serialized into the CC entry and resolved lazily at execution time.
+
+The shape of the rewrite:
+
+. At configuration time (inside `project.afterEvaluate { ... }` or directly in the plugin's `apply()`), create the sibling/probe `Configuration` objects on the right project.
+. Configure them with their substituted dependencies, attributes, resolution-strategy rules, and component-selection rules.
+All of this is config-time work, so `project.X` access is fine.
+. Capture `sourceConfig.incoming.resolutionResult.rootComponent` (and any sibling probe's equivalent) as `Provider<ResolvedComponentResult>`.
+Providers are CC-serializable; the resolution they describe is lazy.
+. Pass the captured Providers to the task as inputs (as fields on the task, or as a `ListProperty<MyData>` containing them).
+. In `@TaskAction`, call `.get()` on the Providers and walk the `ResolvedComponentResult` tree to extract the per-dependency information you need.
+
+This pattern is what makes resolution lazy under CC: the `Configuration` object stays in the project at configuration time, and its resolution is described as a lazy graph that CC can serialize, replay, and invalidate when relevant inputs change.
+
+The downstream classes that the task delegates to must also have their `Project` references removed.
+The typical pattern is to capture the project information they actually use (`projectPath: String` for log labels, `projectDir: File` for output paths, a `Logging.getLogger(...)` instance for the logger) as plain serializable values at configuration time, and pass those down.
+After this refactor, no class downstream of the task should hold a live `Project` reference.
+
+==== What Architectural Rewrites Cost
+
+If your task fits this pattern, plan for the following:
+
+* **The Gradle minimum version of your plugin may go up.** `Provider<ResolvedComponentResult>` (as returned from `ResolutionResult.getRootComponent()`) is a Gradle 7.5+ API. If your plugin currently supports older Gradle versions, the CC-safe rewrite makes those versions unsupportable.
+* **Public APIs may need to change.** A `Spec<Configuration>` predicate that takes a live `Configuration` cannot be made CC-safe. Replacing it with a `Spec<String>` predicate that operates on the configuration's name (or another captured value) is a breaking source-level change for downstream users. There is rarely a fully source-compatible path.
+* **The downstream class chain will need to be refactored together.** Removing `Project` from one class is usually not enough; it cascades into any reporter, helper, or service class the task delegates to. Plan the work as a single refactoring effort rather than class-by-class.
+* **Some test fixtures may need updating.** Tests that assert on specific output ordering, on dependencies that no longer appear in your report, or on specific Gradle versions you no longer support, will need to be loosened or rewritten.
+
+==== Validating an Architectural Rewrite
+
+Plugins that self-apply their own published version (a common pattern in plugin repositories) cannot validate a fix purely by running their own task on their own build: the running plugin is whatever is published, not the local source.
+
+The recommended validation pattern is the **publish-to-a-local-maven + consumer build** loop:
+
+. Configure your plugin's `publishing` block to point at a local Maven directory inside your repo (for example `build/local-plugin-repo`), via the `maven-publish` plugin.
+
+. Publish your local plugin to that directory:
++
+[source,bash]
+----
+$ ./gradlew publish
+----
+
+. Ensure your plugin repository contains a small consumer build under `examples/` (or similar) that declares the same directory as a `maven { url = uri("../build/local-plugin-repo") }` repository in `pluginManagement.repositories` (or `buildscript.repositories`), and applies your plugin with a `+` version.
+
+. Run your dev-loop task in the consumer build with `--configuration-cache`, twice in a row:
++
+[source,bash]
+----
+$ ./gradlew -p examples/groovy <your-task> --configuration-cache
+$ ./gradlew -p examples/groovy <your-task> --configuration-cache
+----
+
+A successful CC adoption shows `Configuration cache entry stored.` on the first run and `Configuration cache entry reused.` on the second, with a substantially faster wall-clock time on the second run.
+
+Alternatively, you can configure a `pluginManagement.includeBuild("..")` consumer that substitutes the published plugin reference with your local source build.
+That requires no publishing step but adds a small composite-build directory to your repository.
+
+[IMPORTANT]
+====
+Avoid using `org.gradle.configuration-cache.problems=warn` to suppress problems during migration.
+
+The Gradle Configuration Cache team does not recommend warning mode as an adoption mechanism.
+Warning mode lets the build store and load CC entries that may be missing required state, which produces hard-to-diagnose deserialization failures and silent correctness issues later.
+The reliable path is what this guide describes: fix problems iteratively, and where a task cannot be fixed yet, mark it incompatible per <<config_cache:adoption_guide:step8, Step 8>>.
+
+For the full caveat about warning mode interacting with incompatible tasks, see <<configuration_cache_debugging.adoc#sec:enable_warning_mode, Enable Warning Mode>> on the debugging page.
+====
+
+[[config_cache:adoption_guide:step8]]
+== Step 8: Mark Incompatible Tasks
+
+Some tasks (your own, or from a third-party plugin you do not control) cannot reasonably be made CC-compatible on your current timeline.
+For these tasks, the appropriate mechanism is the per-task opt-out:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named("legacyReport") {
+    notCompatibleWithConfigurationCache("Uses the Project at execution time; tracked in TEAM-123")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named("legacyReport") {
+    notCompatibleWithConfigurationCache("Uses the Project at execution time; tracked in TEAM-123")
+}
+----
+=====
+====
+
+Effects of this opt-out:
+
+* CC problems *in this specific task* no longer cause the build to fail.
+* If the task is part of the requested task graph, Gradle discards the cache entry at the end of the build.
+* The next invocation that does *not* include this task can still produce and reuse a CC entry.
+
+For the reason string, include a ticket reference or a short explanation so anyone reading the build script later understands why and when the marker can be removed.
+
+For details, see <<configuration_cache_debugging.adoc#config_cache:task_opt_out, Declare Incompatible Tasks>>.
+For the interaction between this marker and warning mode (which is one of several reasons not to use warning mode), see <<configuration_cache_debugging.adoc#sec:enable_warning_mode, Enable Warning Mode>>.
+
+[TIP]
+====
+Track the count of `notCompatibleWithConfigurationCache(...)` calls in your build as a build-health metric.
+The number should only decrease over time.
+If it grows, the team is adding new incompatible tasks faster than existing ones are being fixed.
+====
+
+[[config_cache:adoption_guide:step9]]
+== Step 9: Roll Out to Your Team
+
+Once your dev loop is stable locally, broaden the rollout.
+
+Commit `org.gradle.configuration-cache=true` to the project-level `gradle.properties` so every developer and every CI job picks it up uniformly.
+
+Communicate the change to your team:
+
+* Expected impact: faster builds in most cases, occasionally a stricter error from a task they authored.
+* How to disable CC for a single invocation: `--no-configuration-cache`.
+* Where to find the CC report when something fails.
+* The list of currently-incompatible tasks and the tracking issue for each.
+
+[TIP]
+====
+A common rollout pattern for cautious teams: enable CC by default for one or two weeks; encourage developers to report any regression; then move on to CI.
+If you have an internal build-monitoring tool (Develocity, build scans, custom telemetry), use it to confirm that build durations are dropping and CC store/load times are healthy before you treat the rollout as done.
+====
+
+[[config_cache:adoption_guide:step10]]
+== Step 10: Enable on CI
+
+Once the developer workflow is stable, turn CC on in CI.
+
+The general principle: leave CI in the default **strict** problem mode (`org.gradle.configuration-cache.problems=fail`), not warning mode.
+CI is where regressions should fail visibly.
+
+[source,properties]
+.gradle.properties (committed)
+----
+org.gradle.configuration-cache=true
+# Leave the default; do NOT set this to "warn" on CI.
+# org.gradle.configuration-cache.problems=fail
+----
+
+=== Encryption Key on Shared CI Environments
+
+The CC entry on disk is encrypted with a machine-specific AES key stored in `GRADLE_USER_HOME`.
+On CI agents that share or rebuild `GRADLE_USER_HOME` across runs, you need to provide a stable key explicitly via the `GRADLE_ENCRYPTION_KEY` environment variable, or each new agent will be unable to decrypt entries written by previous agents.
+
+See <<configuration_cache_requirements.adoc#config_cache:secrets:configuring_encryption_key, Providing an Encryption Key>> and <<configuration_cache_requirements.adoc#config_cache:secrets:generating_encryption_key, Generating an Encryption Key>>.
+
+=== GitHub Actions Specifically
+
+The official `gradle/actions` GitHub Action only saves and restores Configuration Cache entries when a `cache-encryption-key` is provided.
+Without it, CC entries are written on every job but never restored, incurring storage cost without realizing the performance benefit.
+Configure the action with the encryption key:
+
+[source,yaml]
+----
+- name: Set up Gradle
+  uses: gradle/actions/setup-gradle@v4
+  with:
+    cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+----
+
+Generate the key once with `openssl rand -base64 16` and store it as a GitHub Actions secret named `GRADLE_ENCRYPTION_KEY`.
+
+=== Read-only Mode Is Not a CI Guardrail
+
+Read-only mode (`org.gradle.configuration-cache.read-only=true`) on CI is sometimes proposed as a way to "catch CC problems without storing the cache."
+This is not a reliable approach.
+
+Read-only mode is intended for ephemeral CI agents where the cache directory is discarded between runs and writing a CC entry would be wasted I/O.
+On a cache miss, read-only mode skips serialization entirely so the build runs as fast as possible.
+Because serialization is skipped, any execution-time CC violation in your build logic goes **undetected**: your build appears to succeed under CC when in fact it would fail in strict mode on a developer's machine.
+
+Use the default mode (with `org.gradle.configuration-cache.problems=fail`) if your goal is to verify CC compatibility.
+See the explicit caveat at <<configuration_cache_enabling.adoc#config_cache:usage:read_only, Making the Configuration Cache Read-Only>>.
+
+[[config_cache:adoption_guide:escape_hatches]]
+== When Full Adoption Is Not Possible
+
+Some tasks, plugins, or build features cannot reasonably be made CC-compatible on a given timeline.
+Gradle provides escape hatches, listed below in order of preference.
+
+[cols="1,4"]
+|===
+| Preferred order | Escape hatch
+
+| 1 (recommended)
+| `task.notCompatibleWithConfigurationCache("reason")` per task. Surgical, well-understood, supported. See <<configuration_cache_debugging.adoc#config_cache:task_opt_out, Declare Incompatible Tasks>>.
+
+| 2
+| Read-only mode (`org.gradle.configuration-cache.read-only=true`) for ephemeral CI agents only. Reuses entries when present, never writes. **Not** a guardrail against CC rot. See <<configuration_cache_enabling.adoc#config_cache:usage:read_only, Making the Configuration Cache Read-Only>>.
+
+| 3
+| Suppressible inputs: `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` and `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`. Use sparingly to mitigate noisy invalidation while the underlying plugin is being fixed. See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Opting Out of Configuration Input Detection>>.
+
+| 4
+| `--no-configuration-cache` for a specific invocation. Permanent flag in your CI job for one specific workflow. Reasonable when a single command is fundamentally incompatible.
+
+| Never
+| `org.gradle.configuration-cache.problems=warn` as a permanent setting. The Gradle CC team explicitly does not recommend warning mode for adoption. See <<configuration_cache_debugging.adoc#sec:enable_warning_mode, Enable Warning Mode>>.
+|===
+
+[[config_cache:adoption_guide:faq]]
+== Frequently Asked Questions
+
+[[config_cache:adoption_guide:faq:warn_mode]]
+=== Should I use `org.gradle.configuration-cache.problems=warn` during migration?
+
+**No.** The Gradle Configuration Cache team does not recommend warning mode as an adoption mechanism.
+
+Warning mode lets the build store and load CC entries that may be missing required state, which produces hard-to-diagnose failures (deserialization errors, silent correctness issues) on subsequent runs.
+It also masks problems that would otherwise force you to fix them, allowing incompatibilities to accumulate.
+
+The recommended adoption ratchet is:
+
+. Enable CC in `gradle.properties` (`org.gradle.configuration-cache=true`).
+. Run the build; for each failure, fix it iteratively (Step 7) or mark the offending task with `notCompatibleWithConfigurationCache("reason")` (Step 8).
+. Track the count of incompatible tasks as a build-health metric and reduce it over time.
+
+See the canonical warning at <<configuration_cache_debugging.adoc#sec:enable_warning_mode, Enable Warning Mode>> and <<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems, Ignoring Configuration Cache Problems>>.
+
+[[config_cache:adoption_guide:faq:dependency_resolution]]
+=== Does CC change dependency resolution behavior?
+
+**Yes. Dependency resolution is eager under CC, which is an important behavioral difference.**
+
+Without CC, dependency resolution is lazy.
+A `Configuration` is only resolved when a task that consumes its files actually runs.
+With CC, the resolved state of every declared `Configuration` in the task graph must be captured before execution begins, so it can be serialized into the cache entry.
+
+A practical consequence: with CC, a typo'd repository URL or an invalid dependency in a `Configuration` that *would have been skipped* in a vanilla build will surface as a resolution error.
+The build is more strictly correct under CC, not broken.
+
+If you see a CC build fail with a dependency-resolution error while the same build succeeds without CC, the dependency declaration was already invalid; CC just made it visible.
+
+[[config_cache:adoption_guide:faq:parallel]]
+=== Does `--no-parallel` work with CC?
+
+Not in the way the flag name implies.
+
+CC enables **intra-project parallel task execution** regardless of `--parallel`, `--no-parallel`, or `org.gradle.parallel`.
+Tasks within a single project run in parallel under CC because each task has its own isolated deserialized state and no project-level lock contention.
+
+`--parallel` is still meaningful: it controls **cross-project** parallel execution.
+CC composes with it for cross-project parallelism in multi-module builds.
+
+`--no-parallel`, on the other hand, is effectively ignored for the intra-project case when CC is enabled.
+
+[[config_cache:adoption_guide:faq:plugin_without_cc]]
+=== Will my plugin still work for users who do not enable CC?
+
+Yes.
+Making a plugin CC-compatible is **additive**: a CC-compatible plugin remains fully functional in builds that do not enable CC.
+The same code paths run; CC just imposes additional structural rules (no `Project` at execution time, no eager state-sharing across tasks, and so on) that, when satisfied, also produce a correct non-CC build.
+
+You do not need to publish two versions of a plugin (one with CC, one without).
+One version that satisfies CC requirements works in both modes.
+
+[[config_cache:adoption_guide:faq:ide]]
+=== How does CC interact with IDE syncs?
+
+**IDE syncs do not yet benefit from the Configuration Cache.**
+When IntelliJ IDEA, Android Studio, or Eclipse imports or re-syncs a Gradle project, configuration runs from scratch every time.
+
+What does benefit from CC is **running tasks from the IDE**.
+A `./gradlew test` triggered from IntelliJ's Gradle tool window goes through the same daemon and the same CC machinery as the command line.
+
+This may change in the future; the Gradle team is actively investigating IDE-sync CC support as part of the "CC by Default" project.
+See <<configuration_cache.adoc#config_cache:ide, Configuration Cache and the IDE>>.
+
+[[config_cache:adoption_guide:faq:secrets]]
+=== Are secrets in my build safe under CC?
+
+Generally yes, with one important caveat.
+The CC entry on disk is encrypted with a per-machine AES key.
+However, any value that flows into a task field (including credentials, tokens, API keys) is serialized into the cache entry.
+
+The recommended pattern is to keep secrets in `GRADLE_USER_HOME/gradle.properties`.
+The *contents* of that file are not included in the cache; only its fingerprint is.
+See <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Credentials and Secrets>> for the full guidance and the encryption key details.
+
+[[config_cache:adoption_guide:faq:detect]]
+=== Can my plugin detect whether CC is enabled?
+
+Yes.
+Inject the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service and read its `configurationCache.active` property.
+See <<configuration_cache.adoc#config_cache:reacting, Detecting the Configuration Cache from Build Logic>> for the canonical pattern.
+
+Use this sparingly.
+The goal of CC adoption is uniform behavior, not a different code path depending on CC state.
+The legitimate use cases are: disabling an optional plugin feature that is not yet CC-compatible; emitting an informational message to users; tweaking telemetry.
+
+[[config_cache:adoption_guide:where_to_help]]
+== Where to Get Help
+
+If you hit a CC problem that this guide does not cover:
+
+* For problems with a **Gradle core plugin** or a **core Gradle feature**, search the link:https://github.com/gradle/gradle/issues?q=is%3Aissue+label%3Ain%3Aconfiguration-cache[`in:configuration-cache` issue label] and file a new issue if needed.
+* For problems with a **community plugin**, check whether the plugin appears in the link:{gradle-issues}13490[community plugin tracking issue], and report it to the plugin's own issue tracker if not.
+* For general discussion, the link:https://discuss.gradle.org/[Gradle community forums] and the link:https://gradle-community.slack.com[Gradle Community Slack] are good places to ask.
+
+When filing a bug report, include:
+
+* A link to the page in this guide that you were following.
+* The Gradle version and any relevant plugin versions.
+* The full build failure output.
+* The self-contained `configuration-cache-report.html` file from `build/reports/configuration-cache/`.
+* A minimal reproducer build if you can produce one.
+
+[[config_cache:adoption_guide:next]]
+== What's Next
+
+Once CC is enabled, the metric to watch is the **cache hit rate**: the fraction of builds that reuse an existing entry rather than recomputing one.
+A near-100% hit rate on the inner dev loop signals a healthy adoption; a degrading rate over time signals new untracked inputs creeping in.
+link:https://gradle.com/develocity/[Develocity] and link:https://scans.gradle.com[Build Scans] expose per-task and per-build CC hit/miss telemetry.
+When hit rates drop, open the CC report's "build configuration inputs" list and look for inputs that change every run but are not actually used.
+Each is either a candidate for switching to a `provider` (so the input is dropped if unused) or for one of the temporary opt-outs in <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Opting Out of Configuration Input Detection>>.
+
+The next performance step beyond plain CC is typically **Parallel Configuration Cache** (`org.gradle.configuration-cache.parallel=true`), which parallelizes the storing and loading of CC entries themselves.
+It is still incubating; see <<configuration_cache_enabling.adoc#config_cache:usage:parallel, Enabling Parallel Configuration Caching>>.
+
+Looking further ahead, Isolated Projects builds on CC's per-project isolation to enable parallel project configuration, but it is pre-alpha and depends on CC being fully adopted first.
+For the current state of the Configuration Cache itself, see <<configuration_cache_status.adoc#config_cache_status, Configuration Cache Status>>.
