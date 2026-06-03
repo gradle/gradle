@@ -80,8 +80,7 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         then:
         def maxErrorAccessors = [
             // Order is important
-            new ReplacedAccessor("getMaxErrors", "()I", ACCESSORS_REMOVED),
-            new ReplacedAccessor("setMaxErrors", "(I)V", ACCESSORS_REMOVED)
+            new ReplacedAccessor("getMaxErrors", "()I", ACCESSORS_REMOVED)
         ]
         def minErrorAccessors = [
             // Order is important
@@ -92,13 +91,11 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         ]
         def sourceCompatibilityAccessors = [
                 // Order is important
-                new ReplacedAccessor("getSourceCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
-                new ReplacedAccessor("setSourceCompatibility", "(Ljava/lang/String;)V", ACCESSORS_REMOVED)
+                new ReplacedAccessor("getSourceCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED)
         ]
         def targetCompatibilityAccessors = [
                 // Order is important
-                new ReplacedAccessor("getTargetCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
-                new ReplacedAccessor("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;", ACCESSORS_REMOVED)
+                new ReplacedAccessor("getTargetCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED)
         ]
         def properties = [
                 // Order is important
@@ -134,6 +131,6 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
             .contentsAsString(StandardCharsets.UTF_8)
-            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"replacedAccessors\":[{\"binaryCompatibility\":\"ACCESSORS_REMOVED\",\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"binaryCompatibility\":\"ACCESSORS_REMOVED\",\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
+            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"replacedAccessors\":[{\"binaryCompatibility\":\"ACCESSORS_REMOVED\",\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"}]}]")
     }
 }
