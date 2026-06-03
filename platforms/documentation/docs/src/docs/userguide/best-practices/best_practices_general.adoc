@@ -988,7 +988,7 @@ NOTE: Remember that the goal of Incubating features is to put them in users' han
 === References
 
 - <<feature_lifecycle.adoc#sec:incubating_state, The Feature Lifecycle>>
-- <<best_practices_dependencies.adoc#sec:set_up_repositories_in_settings, Best Practice - Set up your Dependency Repositories in the Settings file>>
+- <<best_practices_dependencies.adoc#set_up_repositories_in_settings, Best Practice - Set up your Dependency Repositories in the Settings file>>
 
 === Tags
 
