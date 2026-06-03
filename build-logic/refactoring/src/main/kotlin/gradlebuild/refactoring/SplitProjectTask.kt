@@ -177,6 +177,7 @@ abstract class SplitProjectTask : DefaultTask() {
     abstract val testSourceDirectories: ConfigurableFileCollection
 
     @TaskAction
+    @Suppress("ThrowsCount")
     fun split() {
         val targetDir = targetProjectDirectory.get().asFile
         val buildFile = File(targetDir, "build.gradle.kts")
@@ -244,6 +245,7 @@ abstract class SplitProjectTask : DefaultTask() {
      * Prints a tree of classes to be moved and their dependencies, similar to
      * the output of `gradle :dependencies` or the Linux `tree` command.
      */
+    @Suppress("CyclomaticComplexMethod")
     private fun printDependencyTree(rootClassNames: Set<String>, result: AnalysisResult, showExternal: Boolean) {
         val graph = result.dependencyGraph
         val projectClasses = result.projectClasses

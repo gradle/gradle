@@ -121,34 +121,14 @@ abstract class AnalyzeClassDependenciesTask : DefaultTask() {
         // 1. Read and validate options
         val rootClassNames = rootClasses.orNull.toCommaSet()
         val rootPackageNames = rootPackages.orNull.toCommaSet()
-        if (rootClassNames.isEmpty() && rootPackageNames.isEmpty()) {
-            throw GradleException("At least one of --class or --package must be specified.")
-        }
-        if (!outputFile.isPresent) {
-            throw GradleException("--output is required.")
-        }
+        validateInputs(rootClassNames, rootPackageNames)
         val output = outputFile.get().asFile
 
         // 2. Index project class FQCNs by walking projectClassesDirs
         val projectClassFqcns = indexProjectClassFqcns()
 
         // 3. Resolve root classes
-        val unknownClasses = rootClassNames.filter { it !in projectClassFqcns }
-        val emptyPackages = rootPackageNames.filter { pkg ->
-            projectClassFqcns.none { it.startsWith("$pkg.") }
-        }
-        if (unknownClasses.isNotEmpty() || emptyPackages.isNotEmpty()) {
-            val sb = StringBuilder("Could not resolve all roots:")
-            if (unknownClasses.isNotEmpty()) {
-                sb.append("\n  Unknown classes:")
-                unknownClasses.forEach { sb.append("\n    - ").append(it) }
-            }
-            if (emptyPackages.isNotEmpty()) {
-                sb.append("\n  Empty packages (no project classes matched):")
-                emptyPackages.forEach { sb.append("\n    - ").append(it) }
-            }
-            throw GradleException(sb.toString())
-        }
+        validateRootsResolve(rootClassNames, rootPackageNames, projectClassFqcns)
         val expandedRoots = buildSet {
             addAll(rootClassNames)
             rootPackageNames.forEach { pkg ->
@@ -211,6 +191,38 @@ abstract class AnalyzeClassDependenciesTask : DefaultTask() {
 
         // 9. Log the output location
         println("Wrote dependency analysis to ${output.asClickableFileUrl()}")
+    }
+
+    private fun validateInputs(rootClassNames: Set<String>, rootPackageNames: Set<String>) {
+        if (rootClassNames.isEmpty() && rootPackageNames.isEmpty()) {
+            throw GradleException("At least one of --class or --package must be specified.")
+        }
+        if (!outputFile.isPresent) {
+            throw GradleException("--output is required.")
+        }
+    }
+
+    private fun validateRootsResolve(
+        rootClassNames: Set<String>,
+        rootPackageNames: Set<String>,
+        projectClassFqcns: Set<String>
+    ) {
+        val unknownClasses = rootClassNames.filter { it !in projectClassFqcns }
+        val emptyPackages = rootPackageNames.filter { pkg ->
+            projectClassFqcns.none { it.startsWith("$pkg.") }
+        }
+        if (unknownClasses.isEmpty() && emptyPackages.isEmpty()) return
+
+        val sb = StringBuilder("Could not resolve all roots:")
+        if (unknownClasses.isNotEmpty()) {
+            sb.append("\n  Unknown classes:")
+            unknownClasses.forEach { sb.append("\n    - ").append(it) }
+        }
+        if (emptyPackages.isNotEmpty()) {
+            sb.append("\n  Empty packages (no project classes matched):")
+            emptyPackages.forEach { sb.append("\n    - ").append(it) }
+        }
+        throw GradleException(sb.toString())
     }
 
     private fun indexProjectClassFqcns(): Set<String> {
