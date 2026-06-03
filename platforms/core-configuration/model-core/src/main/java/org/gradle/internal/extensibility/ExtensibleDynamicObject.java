@@ -183,9 +183,6 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
             delegates.add(beforeConvention);
         }
         delegates.add(extensionContainer.getExtensionsAsDynamicObject());
-        if (parent != null) {
-            delegates.add(parent);
-        }
         return new CompositeDynamicObject(delegates, dynamicDelegate::getDisplayName);
     }
 

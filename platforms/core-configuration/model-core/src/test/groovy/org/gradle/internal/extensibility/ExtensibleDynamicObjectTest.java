@@ -21,6 +21,8 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
@@ -190,7 +192,8 @@ public class ExtensibleDynamicObjectTest {
         assertFalse(bean.hasProperty("parentProperty"));
 
         bean.setParent(parent.getInheritable());
-        assertTrue(bean.hasProperty("parentProperty"));
+        // Resolving from the parent is deprecated, but remains the behavior under test here.
+        assertTrue(DeprecationLogger.whileDisabled((Factory<Boolean>) () -> bean.hasProperty("parentProperty")));
     }
 
     @Test
@@ -201,7 +204,8 @@ public class ExtensibleDynamicObjectTest {
         Bean bean = new Bean();
         bean.setParent(parent.getInheritable());
 
-        assertThat(bean.getProperty("parentProperty"), equalTo((Object) "value"));
+        // Resolving from the parent is deprecated, but remains the behavior under test here.
+        assertThat(DeprecationLogger.whileDisabled((Factory<Object>) () -> bean.getProperty("parentProperty")), equalTo((Object) "value"));
     }
 
     @Test
@@ -413,8 +417,9 @@ public class ExtensibleDynamicObjectTest {
 
         bean.setParent(parent.asHierarchicalDynamicObject());
 
-        assertTrue(bean.hasMethod("parentMethod", "a", "b"));
-        assertThat(bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b"), equalTo((Object) "parent:a.b"));
+        // Resolving from the parent is deprecated, but remains the behavior under test here.
+        assertTrue(DeprecationLogger.whileDisabled((Factory<Boolean>) () -> bean.hasMethod("parentMethod", "a", "b")));
+        assertThat(DeprecationLogger.whileDisabled((Factory<Object>) () -> bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b")), equalTo((Object) "parent:a.b"));
     }
 
     @Test
