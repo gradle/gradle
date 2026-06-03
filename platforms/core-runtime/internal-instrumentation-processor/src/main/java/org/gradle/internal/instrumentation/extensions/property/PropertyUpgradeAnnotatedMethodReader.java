@@ -56,9 +56,11 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -258,38 +260,71 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror, ReadRequestContext context) {
         if (isAnnotationOfType(annotationMirror, ToBeReplacedByLazyProperty.class)) {
             return readAccessorSpecsFromToBeReplacedByLazyProperty(method, annotationMirror, context);
         }
 
-        Element element = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
+        // If an adapter is defined, it fully drives accessor generation
+        Element adapter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
             .map(v -> types.asElement((TypeMirror) v.getValue()))
             .orElseThrow(() -> new IllegalArgumentException("Missing adapter value"));
-        if (!element.getSimpleName().toString().equals(DefaultValue.class.getSimpleName())) {
-            return readAccessorSpecsFromAdapter(element, method.getEnclosingElement(), annotationMirror);
+        if (!adapter.getSimpleName().toString().equals(DefaultValue.class.getSimpleName())) {
+            return readAccessorSpecsFromAdapter(adapter, method.getEnclosingElement(), annotationMirror);
         }
 
-        List<AnnotationMirror> replacedAccessors = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "replacedAccessors")
-            .map(v -> (List<AnnotationMirror>) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'replacedAccessors' attribute in @%s", ReplacesEagerProperty.class.getSimpleName())));
-        if (!replacedAccessors.isEmpty()) {
+        // Drop synthesised setters whose source-level counterpart already exists in the enclosing type's hierarchy
+        return computeDeclaredAccessorSpecs(method, annotationMirror).stream()
+            .filter(spec -> spec.accessorType != AccessorType.SETTER || !enclosingTypeHasMatchingSourceSetter(method, spec))
+            .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<AccessorSpec> computeDeclaredAccessorSpecs(ExecutableElement method, AnnotationMirror annotationMirror) {
+        // Distinguish an explicit `replacedAccessors = {...}` (including the empty `{}`)
+        // from omitting the attribute. An explicit empty list means "synthesise nothing"; omitting
+        // the attribute falls back to default GETTER (+SETTER) synthesis derived from the lazy
+        // method name. findAnnotationValue() returns only user-provided values;
+        // findAnnotationValueWithDefaults() would conflate the two by injecting the `default {}`.
+        Optional<? extends AnnotationValue> userProvided = AnnotationUtils.findAnnotationValue(annotationMirror, "replacedAccessors");
+        if (userProvided.isPresent()) {
+            List<AnnotationMirror> replacedAccessors = (List<AnnotationMirror>) userProvided.get().getValue();
+            if (replacedAccessors.isEmpty()) {
+                return Collections.emptyList();
+            }
             DeprecationSpec parentDeprecationSpec = readDeprecationSpec(annotationMirror);
             BinaryCompatibility parentBinaryCompatibility = readBinaryCompatibility(annotationMirror);
             return replacedAccessors.stream()
-                .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, parentBinaryCompatibility))
+                .map(a -> getAccessorSpec(method, a, parentDeprecationSpec, parentBinaryCompatibility))
                 .collect(Collectors.toList());
         }
 
-        // Provider has only a getter, no setter
-        if (GradleLazyType.PROVIDER.isEqualToRawTypeOf(TypeName.get(method.getReturnType()))) {
-            return Collections.singletonList(getAccessorSpec(method, AccessorType.GETTER, annotationMirror));
+        // Default fallback: synthesise only the eager GETTER from the lazy method name.
+        // Eager setters are no longer auto-synthesised — source-level setters cover binary
+        // compatibility where master had them; sites with no eager setter on master need no
+        // synthesis at all. Properties that genuinely need a synthesised setter (none on the
+        // branch today) can still opt in with an explicit @ReplacedAccessor(SETTER, ...) entry.
+        return Collections.singletonList(getAccessorSpec(method, AccessorType.GETTER, annotationMirror));
+    }
+
+    /**
+     * Returns true if the enclosing type (including supertypes) already declares a source-level
+     * setter that matches the given {@code setterSpec}: same name and a single parameter with
+     * the same erased type.
+     */
+    private boolean enclosingTypeHasMatchingSourceSetter(ExecutableElement method, AccessorSpec setterSpec) {
+        Element enclosing = method.getEnclosingElement();
+        if (!(enclosing instanceof TypeElement)) {
+            return false;
         }
-        return Arrays.asList(
-            getAccessorSpec(method, AccessorType.GETTER, annotationMirror),
-            getAccessorSpec(method, AccessorType.SETTER, annotationMirror)
-        );
+        String expectedName = setterSpec.methodName;
+        Type expectedParamType = setterSpec.parameters.get(0).getParameterType();
+        return elements.getAllMembers((TypeElement) enclosing).stream()
+            .filter(e -> e.getKind() == ElementKind.METHOD)
+            .map(e -> (ExecutableElement) e)
+            .anyMatch(e -> e.getSimpleName().toString().equals(expectedName)
+                && e.getParameters().size() == 1
+                && TypeUtils.extractType(e.getParameters().get(0).asType()).equals(expectedParamType));
     }
 
     private List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement annotatedMethod, AnnotationMirror annotation, ReadRequestContext context) {
