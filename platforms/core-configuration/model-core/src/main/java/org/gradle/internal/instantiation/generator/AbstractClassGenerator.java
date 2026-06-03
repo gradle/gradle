@@ -75,7 +75,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -642,6 +641,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         public Type getGenericReturnType() {
             return returnType;
         }
+
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+            return method.isAnnotationPresent(annotationType);
+        }
     }
 
     protected static class PropertyMetadata {
@@ -1104,11 +1107,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     return false;
                 }
             }
+            // When all getters are abstract, the user can't be managing a backing field themselves;
+            // any concrete setter is a forwarder, so don't let it prevent claiming.
+            boolean allAbstract = allGettersAreAbstract(property);
             for (Method setter : property.setters) {
-                if (!Modifier.isAbstract(setter.getModifiers())
-                    // TODO: fix/remove in Gradle 9.0, this takes care of Property<URI> in special way
-                    //    Note: we have a similar logic in AsmBackedClassGenerator#isLazyUriPropertyWithSetObject
-                    && !isLazyUriProperty(setter, property)) {
+                if (allAbstract) {
+                    continue;
+                }
+                if (!Modifier.isAbstract(setter.getModifiers())) {
                     return false;
                 }
             }
@@ -1128,19 +1134,22 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
         }
 
-        private boolean isLazyUriProperty(Method setter, PropertyMetadata property) {
-            MethodMetadata mainGetter = property.getMainGetter();
-            if (mainGetter == null) {
+        private boolean allGettersAreAbstract(PropertyMetadata property) {
+            // When the property has no concrete getter, the user cannot be managing a backing field
+            // themselves (an abstract getter has no body to read it from). Any concrete setter must
+            // therefore be a forwarder (e.g. setX(value) { getX().set(value); }) — it shouldn't
+            // prevent the property from being claimed and given a managed body.
+            if (property.getters.isEmpty()) {
                 return false;
             }
-            if (mainGetter.method.getReturnType().equals(Property.class)) {
-                @SuppressWarnings("unchecked")
-                TypeToken<Property<?>> typeToken = (TypeToken<Property<?>>) TypeToken.of(mainGetter.method.getGenericReturnType());
-                Class<?> nestedType = JavaReflectionUtil.extractNestedType(typeToken, Property.class, 0).getRawType();
-                return nestedType.equals(URI.class) && setter.getParameterTypes()[0].equals(String.class);
+            for (MethodMetadata getter : property.getters) {
+                if (!getter.isAbstract()) {
+                    return false;
+                }
             }
-            return false;
+            return true;
         }
+
 
         @Override
         void applyTo(ClassInspectionVisitor visitor) {

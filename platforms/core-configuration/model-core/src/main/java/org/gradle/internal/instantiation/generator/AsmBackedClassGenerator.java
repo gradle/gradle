@@ -16,7 +16,6 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
@@ -36,7 +35,6 @@ import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.Property;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
@@ -54,7 +52,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
@@ -86,7 +83,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -939,11 +935,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
-            // TODO: fix/remove in Gradle 9.0
-            if (isLazyUriPropertyWithSetObject(property, getter)) {
-                // For Property<URI> we allow keeping set<Name>(Object) if exists for now
+            // If the type already declares a set<Name>(Object) (e.g. an eager-style migration setter
+            // forwarding into the lazy container, or one synthesised by @ReplacesEagerProperty when the
+            // original type erases to Object), our setFromAnyValue-backed set<Name>(Object) would be a
+            // duplicate. Skip generation in that case.
+            if (property.getOverridableSetters().stream().anyMatch(setter ->
+                setter.getParameterCount() == 1
+                    && setter.getParameterTypes()[0].equals(Object.class)
+                    && setter.getReturnType().equals(Void.TYPE))) {
                 return;
             }
+
             // GENERATE public void set<Name>(Object p) {
             //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }
@@ -954,20 +956,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(1);
                 _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
-        }
-
-        private static boolean isLazyUriPropertyWithSetObject(PropertyMetadata property, MethodMetadata getter) {
-            if (getter.getReturnType().equals(Property.class)) {
-                @SuppressWarnings("unchecked")
-                TypeToken<Property<?>> typeToken = (TypeToken<Property<?>>) TypeToken.of(getter.getGenericReturnType());
-                Class<?> nestedType = JavaReflectionUtil.extractNestedType(typeToken, Property.class, 0).getRawType();
-                return nestedType.equals(URI.class) && property.getOverridableSetters().stream().anyMatch(ClassBuilderImpl::isSetObjectSetter);
-            }
-            return false;
-        }
-
-        private static boolean isSetObjectSetter(Method setter) {
-            return setter.getParameterCount() == 1 && setter.getParameterTypes()[0].equals(Object.class) && setter.getReturnType().equals(Void.TYPE);
         }
 
         /**
