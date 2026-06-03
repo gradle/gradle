@@ -28,7 +28,7 @@ image::configuration-cache-4.png[]
 
 [IMPORTANT]
 ====
-This feature is _will be enabled by default for Gradle 10_.
+This feature _will be enabled by default in Gradle 10_.
 Currently, it has the following limitations:
 
 - Some <<configuration_cache_status.adoc#config_cache:plugins:core, Core Gradle Plugins>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented, features>> have partial or pending support.
@@ -99,11 +99,11 @@ But **whether they run, and when they do, depends on a cache hit or miss**.
 
 | *Initialization*
 | Runs every build. Detects the settings file, creates the `Settings` and `Project` instances, and determines the structure of the build.
-| Runs every build. The settings script's contents contribute to the cache fingerprint, but the script itself only re-runs on a cache miss.
+| Runs every build.
 
 | *Configuration*
 | Runs every build. Evaluates init scripts, the settings script, `buildSrc`, and every project's build script; applies plugins; computes the task graph.
-| **Runs only on a cache miss.** On a hit, the entire configuration phase is skipped; Gradle restores the task graph directly from the cache.
+| **Runs only on a cache miss.** On a hit, the entire configuration phase is skipped — init scripts, the settings script, build scripts, and plugins are not re-evaluated. Gradle restores the task graph directly from the cache.
 
 | *Execution*
 | Runs the scheduled tasks against the just-computed task graph.
@@ -221,11 +221,10 @@ Most plugin-defined task and extension types end up handled by the bean codec wi
 - The *provider codec* handles `Provider` and `Property` instances.
 The provider codec **freezes lazy values**: the value a provider would compute is captured at store time and replayed at load time, so providers do not re-evaluate their original sources during execution.
 This is why properties wired through `Provider` and `Property` survive the cache round-trip cleanly even when the original source (e.g., a file or environment variable) is no longer accessible at execution time.
-- The *configuration codec* handles `Configuration` instances by resolving them and serializing the result as a file collection.
+- The *configuration codec* handles `Configuration` instances by resolving them at store time and serializing the result as a file collection.
 This is why dependency resolution is <<config_cache:intro:behavior_differences, eager under the Configuration Cache>>: every declared configuration must be resolved at store time so its files can be captured into the cache entry.
 At load time, the task sees the resolved files, not the original `Configuration` object.
-In practice, this means tasks that consume a configuration's files through a `FileCollection` or `ConfigurableFileCollection` work seamlessly.
-However, task code that calls resolution APIs directly on a `Configuration` at execution time will fail, because the live `Configuration` object is not available after deserialization.
+Task authors should still <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, prefer `FileCollection`>> over `Configuration` in their task inputs.
 
 Built-in codecs also exist for collections, files, file collections, dependency results, build services, lambdas, and many Gradle-specific types.
 When none of these match, the bean codec is the fallback.
