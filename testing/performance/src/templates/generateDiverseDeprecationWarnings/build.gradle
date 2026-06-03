@@ -1,0 +1,52 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Emits ~11k deprecations spread across many distinct script locations and fired through
+// deep call stacks, so that each one produces a different stack trace and resolvable
+// location. This stresses per-problem stack trace capture and location inference, unlike
+// generateLotsOfDeprecationWarnings which fires everything from a single shallow site.
+
+int numSites = 50
+int perSite = 200
+int baseDepth = 30
+
+File sitesDir = new File(projectDir, "sites")
+sitesDir.mkdirs()
+
+for (int n = 0; n < numSites; n++) {
+    int depth = baseDepth + (n % 16)
+    File site = new File(sitesDir, "dep_${n}.gradle")
+    if (!site.exists()) {
+        site.text = """\
+@groovy.transform.CompileStatic
+void fire(int depth, String message) {
+    if (depth > 1) {
+        fire(depth - 1, message)
+        return
+    }
+    org.gradle.internal.deprecation.DeprecationLogger.deprecate(message).willBecomeAnErrorInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+}
+
+for (int i = 0; i < ${perSite}; i++) {
+    fire(${depth}, "Some repetitive deprecation from site ${n}")
+    if (i % 10 == 0) {
+        fire(${depth}, "Some unique deprecation from site ${n} number " + i)
+    }
+}
+"""
+    }
+    apply from: "sites/dep_${n}.gradle"
+}

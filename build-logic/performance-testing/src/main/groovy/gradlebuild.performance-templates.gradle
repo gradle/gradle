@@ -107,6 +107,11 @@ performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
     from "src/templates/$name"
 }
 
+performanceTest.registerTestProject("generateDiverseDeprecationWarnings", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
 
 // === Gradle Kotlin DSL ===
 performanceTest.registerTestProject("ktsManyProjects", KtsProjectGeneratorTask) {
