@@ -71,4 +71,30 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
             "foo = new DefaultFoo()",
         ]
     }
+
+    def "reports a problem on project-level access to mutable Gradle state via #invocation"() {
+        settingsFile """
+            include("a")
+        """
+        file("a/build.gradle") << """
+            gradle.$invocation
+        """
+
+        when:
+        isolatedProjectsFails ":a:help"
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access Gradle.$problemAccess")
+        }
+
+        where:
+        invocation            | problemAccess
+        "getPlugins()"        | "getPlugins"
+        "apply([:])"          | "apply"
+        "apply({})"           | "apply"
+        "apply({} as Action)" | "apply"
+        "getPluginManager()"  | "getPluginManager"
+    }
 }
