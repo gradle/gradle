@@ -17,7 +17,9 @@ scala {
 }
 // end::scala-version[]
 
+// tag::dependencies[]
 dependencies {
     implementation 'commons-collections:commons-collections:3.2.2'
     testImplementation 'junit:junit:4.13'
 }
+// end::dependencies[]

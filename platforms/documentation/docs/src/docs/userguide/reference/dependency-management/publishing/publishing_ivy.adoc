@@ -142,8 +142,8 @@ This plugin provides <<glossary.adoc#sub:terminology_repository,repositories>> o
 Here's a simple example of defining a publishing repository:
 
 ====
-include::sample[dir="snippets/reference/dependency-management/publishing/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
-include::sample[dir="snippets/reference/dependency-management/publishing/quickstart/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/quickstart-ivy-publish/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/quickstart-ivy-publish/groovy",files="build.gradle[tags=repositories]"]
 ====
 
 The two main things you will want to configure are the repository's:
