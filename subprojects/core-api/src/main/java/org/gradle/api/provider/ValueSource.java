@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.file.RegularFile;
 import org.jspecify.annotations.Nullable;
 
@@ -94,11 +95,11 @@ import javax.inject.Inject;
  * </p>
  *
  * <p>
- * A {@code ValueSource} implementation can also implement {@link org.gradle.api.Describable Describable}
+ * A {@code ValueSource} implementation can also implement {@link Describable}
  * to provide a human-readable display name. Gradle uses this display name when reporting configuration
  * cache invalidation reasons. Without it, the invalidation message uses the implementation class name,
  * which may not be informative to users. For example:
- * <pre>
+ * <pre class='autoTested'>
  * public abstract class GitCommitValueSource
  *         implements ValueSource&lt;String, ValueSourceParameters.None&gt;, Describable {
  *
@@ -110,7 +111,7 @@ import javax.inject.Inject;
  *     {@literal @}Override
  *     {@literal @}Nullable
  *     public String obtain() {
- *         // your custom implementation
+ *         return null;
  *     }
  * }
  * </pre>
