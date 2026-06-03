@@ -67,7 +67,7 @@ Gradle's Java support was the first to introduce a new concept for building sour
 Source sets are a powerful concept that tie together several aspects of compilation:
 
  * the source files and where they're located
- * the compilation classpath, including any required dependencies (via Gradle <<glossary.adoc#sub:terminology_configuration,configurations>>)
+ * the compilation classpath, including any required dependencies (via Gradle configurations)
  * where the compiled class files are placed
 
 You can see how these relate to one another in this diagram:
@@ -165,7 +165,6 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) — a named collection of dependencies, grouped together for a specific goal such as compiling or running a module — a more flexible form of Maven scopes
  * _Module coordinate_ (ex: `org.hibernate:hibernate-core-3.6.7.Final`) — the ID of the dependency, usually in the form '__<group>__:__<module>__:__<version>__' (or '__<groupId>__:__<artifactId>__:__<version>__' in Maven terminology)
 
-You can find a more comprehensive glossary of dependency management terms <<glossary.adoc#dependency_management_terminology,here>>.
 
 As far as configurations go, the main ones of interest are:
 

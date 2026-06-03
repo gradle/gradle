@@ -104,7 +104,6 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
  * _Project reference_ (ex: `project(':common')`) - the project referenced by the specified path
 
-You can find a more comprehensive glossary of dependency management terms <<glossary.adoc#dependency_management_terminology,here>>.
 
 As far as configurations go, the main ones of interest are:
 

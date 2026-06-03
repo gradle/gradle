@@ -23,7 +23,7 @@ You will also benefit from robust support for multi-project builds and easy-to-u
 The biggest challenge in migrating from Ant to Gradle is that there is no such thing as a standard Ant build.
 That makes it difficult to provide specific instructions.
 Fortunately, Gradle has some great integration features with Ant that can make the process relatively smooth.
-Migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn't difficult because Gradle has a similar model based on <<glossary.adoc#sub:terminology_configuration,dependency configurations>> that works with Ivy-compatible repositories.
+Migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn't difficult because Gradle has a similar model based on dependency configurations that works with Ivy-compatible repositories.
 
 We will start by outlining the things you should consider when migrating a build from Ant to Gradle and offer some general guidelines on how to proceed.
 
@@ -205,7 +205,7 @@ But if the build performs some extra processing on the compiled classes, or does
 [[migant:managing_dependencies]]
 == Managing dependencies
 
-Ant builds typically take one of two approaches to dealing with binary <<glossary.adoc#sub:terminology_dependency,dependencies>> (such as libraries):
+Ant builds typically take one of two approaches to dealing with binary dependencies (such as libraries):
 
  * Storing them with the project in a local "lib" directory
  * Using https://ant.apache.org/ivy/[Apache Ivy] to manage them
@@ -263,7 +263,7 @@ Then, if you add a normal Maven or Ivy-compatible repository at a later date, Gr
 Apache Ivy is a standalone dependency management tool that is widely used with Ant. It works similarly to Gradle.
 In fact, they both allow you to:
 
- * Define your own <<glossary.adoc#sub:terminology_configuration,configurations>>
+ * Define your own configurations
  * Extend configurations from one another
  * Attach dependencies to configurations
  * Resolve dependencies from Ivy-compatible repositories
