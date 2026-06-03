@@ -49,7 +49,7 @@ import java.net.URI
  * Third-party / external dependencies are intentionally omitted from the output.
  */
 @DisableCachingByDefault(because = "Unable to snapshot ComponentIdentifier") // Same root cause as SplitProjectTask: gradle/gradle#36174
-abstract class AnalyzeDependenciesTask : DefaultTask() {
+abstract class AnalyzeClassDependenciesTask : DefaultTask() {
 
     /**
      * A comma-separated list of Fully Qualified Class Names (FQCNs) to start the analysis from.

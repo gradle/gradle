@@ -1,4 +1,4 @@
-import gradlebuild.refactoring.AnalyzeDependenciesTask
+import gradlebuild.refactoring.AnalyzeClassDependenciesTask
 import gradlebuild.refactoring.SplitProjectTask
 
 plugins {
@@ -40,7 +40,7 @@ tasks.register<SplitProjectTask>("splitProject") {
     })
 }
 
-tasks.register<AnalyzeDependenciesTask>("analyzeDependencies") {
+tasks.register<AnalyzeClassDependenciesTask>("analyzeClassDependencies") {
     group = "refactoring"
     description = "Analyzes the transitive project-class dependency closure for the given roots"
 
