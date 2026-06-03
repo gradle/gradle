@@ -201,9 +201,11 @@ It is not exhaustive; it covers the recurring ones.
 | Composite-build CC reuse edge case
 | link:{gradle-issues}20945[gradle/gradle#20945].
 
-| `Unable to make field ... accessible: module java.base does not "opens"`
-| JPMS / `--add-opens` interaction with reflective access
-| Add the required `--add-opens` directive to the Gradle daemon JVM via `org.gradle.jvmargs`.
+| `Unable to make field ... accessible: module java.base does not "opens" ...`
+| JPMS reflective-access blocked during CC serialization (typically lambdas, `SerializedLambda`).
+The CC report may show `0 problems` even though the build fails.
+| For the Gradle daemon, add `--add-opens` directives via `org.gradle.jvmargs` in `gradle.properties`.
+For TestKit, set them as `jvmArgs` on the test task — see <<config_cache:testing,Test your Build Logic>>.
 
 | `Cannot reference a Gradle script object from a Groovy closure`
 | Groovy closure captured a `Project`, `Gradle`, or script reference
@@ -379,6 +381,35 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit/groo
 <3> Assert that the Configuration Cache gets reused.
 
 If Gradle encounters problems with the Configuration Cache, it will fail the build and report the issues, causing the test to fail.
+
+[NOTE]
+====
+**JPMS and `--add-opens` with TestKit.**
+When CC serializes lambdas or reflective state on JDK 17+, the module system may block reflective access with a message like:
+
+[source,text]
+----
+Unable to make field private final java.lang.Object[] java.lang.invoke.SerializedLambda.capturedArgs accessible:
+module java.base does not "opens java.lang.invoke" to unnamed module ...
+----
+
+The Gradle daemon supplies the required `--add-opens` directives by default.
+TestKit's `GradleRunner` does not, so they have to be set explicitly on the test task that runs the functional tests:
+
+[source,kotlin]
+----
+tasks.named<Test>("test") {
+    jvmArgs(
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+    )
+}
+----
+
+Without these, the CC report may show `0 problems` even though the build fails on a reflective-access error.
+====
 
 [TIP]
 ====
