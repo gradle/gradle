@@ -67,11 +67,11 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
     abstract String parentMethodLookupDeprecationFor(String methodName);
 
     protected static String formatParentMethodLookupDeprecation(String methodName, String referrerPath, String resolverDisplayName) {
-        return "Implicitly resolving methods in the project hierarchy has been deprecated. " +
+        return "Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '${methodName}' was not declared in project '${referrerPath}' and was resolved from ${resolverDisplayName}. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects"
     }
 
     def "project (#projectDep) vs external resolves to (#winner), when preferProjectModules=#preferProjectModules and depSubstitution=#depSubstitution"() {

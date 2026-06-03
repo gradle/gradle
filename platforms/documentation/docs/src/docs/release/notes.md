@@ -178,10 +178,10 @@ This implicit inheritance creates hidden coupling between projects and makes bui
 Starting in Gradle 9.6.0, both implicit references and explicit APIs (`findProperty()`, `property()`, `hasProperty()`) emit a deprecation warning when they resolve through the hierarchy.
 This behavior will be removed in Gradle 10.
 
-See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup) for migration paths, including `gradle.properties`, convention plugins, and explicit references.
+See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects) for migration paths, including `gradle.properties`, convention plugins, and explicit references.
 
 ##### Opt into Gradle 10 behavior by disabling project hierarchy lookup
-Gradle 9.6.0 [deprecates implicit lookup of properties and methods through the project hierarchy](userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup); this behavior will be removed in Gradle 10.
+Gradle 9.6.0 [deprecates implicit lookup of properties and methods through the project hierarchy](userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects); this behavior will be removed in Gradle 10.
 
 Once you have addressed all related deprecations, enable the new `NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY` feature preview to adopt the Gradle 10 behavior early.
 

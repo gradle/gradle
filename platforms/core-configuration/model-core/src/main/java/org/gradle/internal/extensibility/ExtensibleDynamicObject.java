@@ -295,11 +295,11 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
                     + ", or unset the org.gradle.internal.fail-on-parent-property-lookup system property."
             );
         }
-        DeprecationLogger.deprecateAction("Implicitly resolving " + pluralize(memberKind) + " in the project hierarchy")
+        DeprecationLogger.deprecateAction("Implicit lookup of " + pluralize(memberKind) + " in parent projects")
             .withContext(capitalize(memberKind) + " '" + memberName + "' was not declared in " + getDisplayName()
                 + " and was resolved from " + resolvedParent.getDisplayName() + ".")
             .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_implicit_project_hierarchy_lookup")
+            .withUpgradeGuideSection(9, "deprecated_implicit_lookup_in_parent_projects")
             .nagUser();
     }
 

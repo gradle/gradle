@@ -123,7 +123,7 @@ public interface CrossProjectModelAccess {
      * <p>The contract differs between Vintage and Isolated Projects builds:
      * <ul>
      *   <li><b>Vintage</b>: returns the parent project's inherited scope. The caller wires this object into the child's
-     *       dynamic scope so that an unresolved reference in the child walks up the project hierarchy. The walk is
+     *       dynamic scope so that an unresolved reference in the child walks up the parent projects. The walk is
      *       deprecated and emits a warning at the lookup site, but still succeeds for compatibility.
      *   <li><b>Isolated Projects</b>: returns {@code null}. The caller must skip parent wiring entirely; an unresolved
      *       reference in the child fails with the standard {@code MissingPropertyException} /

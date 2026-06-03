@@ -24,21 +24,21 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Under Isolated Projects, parent-project lookup is disabled entirely (see IsolatedProjectsAccessFromGroovyDslIntegrationTest); no deprecation fires")
 class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String DEPRECATION_DOC_URL = "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
+    private static final String DEPRECATION_DOC_URL = "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects"
 
     private static final String PROPERTY_DEPRECATION = propertyDeprecation("foo", "project ':a'", "root project 'root'")
 
     private static final String METHOD_DEPRECATION = methodDeprecation("someMethod", "project ':a'", "root project 'root'")
 
     private static String propertyDeprecation(String name, String lookupProject, String declaringProject) {
-        "Implicitly resolving properties in the project hierarchy has been deprecated. " +
+        "Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
             "Consult the upgrading guide for further information: $DEPRECATION_DOC_URL"
     }
 
     private static String methodDeprecation(String name, String lookupProject, String declaringProject) {
-        "Implicitly resolving methods in the project hierarchy has been deprecated. " +
+        "Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
             "Consult the upgrading guide for further information: $DEPRECATION_DOC_URL"

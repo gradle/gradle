@@ -631,11 +631,11 @@ allprojects {
                 }
             }
         """)
-        executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property 'foo' was not declared in project ':a:child' and was resolved from project ':a'. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
         when:
         run(":a:child:printExt")
@@ -644,7 +644,7 @@ allprojects {
         outputContains("The Foo says Moo!!!")
         receivedProblems.size().times { i ->
             verifyAll(receivedProblem(i)) {
-                fqid == 'deprecation:implicitly-resolving-properties-in-the-project-hierarchy'
+                fqid == 'deprecation:implicit-lookup-of-properties-in-parent-projects'
             }
         }
     }
