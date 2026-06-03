@@ -100,6 +100,8 @@ import javax.inject.Inject;
  * cache invalidation reasons. Without it, the invalidation message uses the implementation class name,
  * which may not be informative to users. For example:
  * <pre class='autoTested'>
+ * import org.gradle.api.provider.ValueSourceParameters
+ *
  * public abstract class GitCommitValueSource
  *         implements ValueSource&lt;String, ValueSourceParameters.None&gt;, Describable {
  *
@@ -109,7 +111,6 @@ import javax.inject.Inject;
  *     }
  *
  *     {@literal @}Override
- *     {@literal @}Nullable
  *     public String obtain() {
  *         return null;
  *     }
