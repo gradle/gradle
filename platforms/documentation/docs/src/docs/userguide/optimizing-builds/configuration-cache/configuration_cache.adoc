@@ -212,3 +212,20 @@ To enable it for a specific run configuration:
 3. Navigate to `Project Settings`, check `Override project settings`, and add the same system properties as `JVM arguments`.
 
 Using these methods together, you can enable the Configuration Cache globally while disabling it for certain run configurations, or vice versa.
+
+[[config_cache:reacting]]
+== Detecting the Configuration Cache from Build Logic
+
+Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
+
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+
+This information can be used to:
+
+- Configure plugin features differently when the Configuration Cache is enabled.
+- Disable an optional feature that is not yet compatible with the Configuration Cache.
+- Provide additional guidance to users, such as informing them of temporary limitations or suggesting adjustments to their setup.
+
+Use this sparingly.
+The goal of adoption is uniform behavior, not a different code path depending on cache state.

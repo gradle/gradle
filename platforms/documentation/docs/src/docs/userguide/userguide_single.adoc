@@ -320,8 +320,9 @@ include::common_caching_problems.adoc[leveloffset=+2]
 // Configuration Cache
 include::configuration_cache.adoc[leveloffset=+2]
 include::configuration_cache_enabling.adoc[leveloffset=+2]
-include::configuration_cache_requirements.adoc[leveloffset=+2]
+include::configuration_cache_adoption.adoc[leveloffset=+2]
 include::configuration_cache_debugging.adoc[leveloffset=+2]
+include::configuration_cache_requirements.adoc[leveloffset=+2]
 include::configuration_cache_status.adoc[leveloffset=+2]
 
 // Isolated Projects

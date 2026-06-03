@@ -251,7 +251,7 @@ However, only providers returned from link:{javadocPath}/org/gradle/api/services
 Starting with Gradle 9, using other kinds of providers (including even `registerIfAbsent(...).map { it }`) results in a Configuration Cache problem being emitted.
 Prior to that, such providers were silently ignored.
 
-Check the <<configuration_cache_enabling#config_cache:adoption:changes_in_behavior,adoption guide>> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
+See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs,Opting Out of Configuration Input Detection>> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
 build.
 
 See link:{gradle-issues}33772[gradle/gradle#33772].
