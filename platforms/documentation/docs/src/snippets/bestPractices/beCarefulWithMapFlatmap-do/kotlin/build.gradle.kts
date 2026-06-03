@@ -27,18 +27,18 @@ abstract class ConsumerTask : DefaultTask() {
 // end::common-tasks[]
 
 // tag::flatmap-provider[]
-val generator = tasks.register<GeneratorTask>("generate") {
+val lazyGenerator = tasks.register<GeneratorTask>("generateLazy") {
     outputFile.set(layout.buildDirectory.file("output.txt"))
 }
 
-tasks.register<ConsumerTask>("consume") {
+tasks.register<ConsumerTask>("consumeLazy") {
     // CORRECT: flatMap extracts the Provider property
-    // The dependency on 'generate' is preserved
-    inputFile.set(generator.flatMap { it.outputFile })
+    // The dependency on 'generateLazy' is preserved
+    inputFile.set(lazyGenerator.flatMap { it.outputFile })
 
     // CORRECT: Chain map on the Provider to read content lazily
     inputContent.set(
-        generator.flatMap { it.outputFile }
+        lazyGenerator.flatMap { it.outputFile }
             .map { it.asFile.readText() }
     )
 }
@@ -72,9 +72,9 @@ tasks.register<ConsumerTask>("consumeLegacy") {
 tasks.register<ConsumerTask>("consumeChained") {
     // CORRECT: Chain transformations on the Provider itself
     // First flatMap extracts the Provider, then map transforms it
-    inputFile.set(generator.flatMap { it.outputFile })
+    inputFile.set(lazyGenerator.flatMap { it.outputFile })
     inputContent.set(
-        generator.flatMap { it.outputFile }
+        lazyGenerator.flatMap { it.outputFile }
             .map { it.asFile.readText() }
             .map { it.uppercase() }
     )
@@ -97,13 +97,13 @@ abstract class ProducerTask @Inject constructor(
     }
 }
 
-val producer = tasks.register<ProducerTask>("producer") {
+val derivedProducer = tasks.register<ProducerTask>("produceDerived") {
     someDirectory.set(layout.buildDirectory.dir("output"))
 }
 
-tasks.register<Sync>("consumeSync") {
+tasks.register<Sync>("consumeDerivedSync") {
     // WORKAROUND: Using map with .get() preserves the dependency
-    from(producer.map { it.outputFile.get() })
+    from(derivedProducer.map { it.outputFile.get() })
     into(layout.buildDirectory.dir("sync"))
 }
 // end::derived-property-fix[]

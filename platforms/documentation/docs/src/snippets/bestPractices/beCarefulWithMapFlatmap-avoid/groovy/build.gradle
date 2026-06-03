@@ -27,32 +27,32 @@ abstract class ConsumerTask extends DefaultTask {
 // end::common-tasks[]
 
 // tag::naked-provider[]
-def generator = tasks.register('generate', GeneratorTask) {
+def nakedGenerator = tasks.register('generateNaked', GeneratorTask) {
     outputFile = layout.buildDirectory.file('output.txt')
 }
 
-tasks.register('consumeNaked', ConsumerTask) {
-    // BROKEN: Creating provider {} inside flatMap creates a "naked provider"
-    // The resulting provider has NO knowledge of the 'generator' task
-    inputFile = generator.flatMap { it.outputFile }
+// BROKEN: standalone provider {} has no connection to the generator task.
+// Gradle will not add 'generateNaked' to the task graph when 'consumeNaked' runs.
+Provider<String> content = providers.provider {
+    nakedGenerator.get().outputFile.get().asFile.text
+}
 
-    // BROKEN: Don't chain without map
-    inputContent = generator.flatMap {
-        provider { it.outputFile.get().asFile.text }
-    }
+tasks.register('consumeNaked', ConsumerTask) {
+    inputFile = nakedGenerator.flatMap { it.outputFile }
+    inputContent = content
 }
 // end::naked-provider[]
 
 // tag::config-time-read[]
-def generator2 = tasks.register('generate2', GeneratorTask) {
-    outputFile = layout.buildDirectory.file('output2.txt')
+def eagerGenerator = tasks.register('generateEager', GeneratorTask) {
+    outputFile = layout.buildDirectory.file('eager-output.txt')
 }
 
 tasks.register('consumeEager', ConsumerTask) {
     // BROKEN: Tries to read the file at configuration time
     // The file doesn't exist yet - generator hasn't run!
-    inputFile = generator2.flatMap { it.outputFile }
-    inputContent = generator2.map {
+    inputFile = eagerGenerator.flatMap { it.outputFile }
+    inputContent = eagerGenerator.map {
         it.outputFile.get().asFile.text // FAILS HERE
     }
 }
@@ -66,7 +66,7 @@ abstract class ProducerTask extends DefaultTask {
     // This property is DERIVED via map - not directly annotated
     @OutputFile
     Provider<RegularFile> getOutputFile() {
-        someDirectory.map { it.file('output.txt') }
+        return someDirectory.map { it.file('output.txt') }
     }
 
     @TaskAction
@@ -75,13 +75,13 @@ abstract class ProducerTask extends DefaultTask {
     }
 }
 
-def producer = tasks.register('producer', ProducerTask) {
+def derivedProducer = tasks.register('produceDerived', ProducerTask) {
     someDirectory = layout.buildDirectory.dir('output')
 }
 
-tasks.register('consume', Sync) {
+tasks.register('consumeDerived', Sync) {
     // BROKEN: flatMap on a derived property may lose the task dependency
-    from(producer.flatMap { it.outputFile })
+    from(derivedProducer.flatMap { it.outputFile })
     into(layout.buildDirectory.dir('sync'))
 }
 // end::derived-property[]

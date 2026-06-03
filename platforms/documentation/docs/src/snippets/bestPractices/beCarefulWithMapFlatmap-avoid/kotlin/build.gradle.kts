@@ -27,32 +27,32 @@ abstract class ConsumerTask : DefaultTask() {
 // end::common-tasks[]
 
 // tag::naked-provider[]
-val generator = tasks.register<GeneratorTask>("generate") {
+val nakedGenerator = tasks.register<GeneratorTask>("generateNaked") {
     outputFile.set(layout.buildDirectory.file("output.txt"))
 }
 
-tasks.register<ConsumerTask>("consumeNaked") {
-    // BROKEN: Creating provider {} inside flatMap creates a "naked provider"
-    // The resulting provider has NO knowledge of the 'generator' task
-    inputFile.set(generator.flatMap { it.outputFile })
+// BROKEN: standalone provider {} has no connection to the generator task.
+// Gradle will not add 'generateNaked' to the task graph when 'consumeNaked' runs.
+val content: Provider<String> = provider {
+    nakedGenerator.get().outputFile.get().asFile.readText()
+}
 
-    // BROKEN: Don't chain without map
-    inputContent.set(generator.flatMap {
-        provider { it.outputFile.get().asFile.readText() }
-    })
+tasks.register<ConsumerTask>("consumeNaked") {
+    inputFile.set(nakedGenerator.flatMap { it.outputFile })
+    inputContent.set(content)
 }
 // end::naked-provider[]
 
 // tag::config-time-read[]
-val generator2 = tasks.register<GeneratorTask>("generate2") {
-    outputFile.set(layout.buildDirectory.file("output2.txt"))
+val eagerGenerator = tasks.register<GeneratorTask>("generateEager") {
+    outputFile.set(layout.buildDirectory.file("eager-output.txt"))
 }
 
 tasks.register<ConsumerTask>("consumeEager") {
     // BROKEN: Tries to read the file at configuration time
     // The file doesn't exist yet - generator hasn't run!
-    inputFile.set(generator2.flatMap { it.outputFile })
-    inputContent.set(generator2.map {
+    inputFile.set(eagerGenerator.flatMap { it.outputFile })
+    inputContent.set(eagerGenerator.map {
         it.outputFile.get().asFile.readText() // FAILS HERE
     })
 }
@@ -75,13 +75,13 @@ abstract class ProducerTask @Inject constructor(
     }
 }
 
-val producer = tasks.register<ProducerTask>("producer") {
+val derivedProducer = tasks.register<ProducerTask>("produceDerived") {
     someDirectory.set(layout.buildDirectory.dir("output"))
 }
 
-tasks.register<Sync>("consume") {
+tasks.register<Sync>("consumeDerived") {
     // BROKEN: flatMap on a derived property may lose the task dependency
-    from(producer.flatMap { it.outputFile })
+    from(derivedProducer.flatMap { it.outputFile })
     into(layout.buildDirectory.dir("sync"))
 }
 // end::derived-property[]

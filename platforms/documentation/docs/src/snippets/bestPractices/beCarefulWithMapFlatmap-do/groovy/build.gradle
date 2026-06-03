@@ -27,17 +27,17 @@ abstract class ConsumerTask extends DefaultTask {
 // end::common-tasks[]
 
 // tag::flatmap-provider[]
-def generator = tasks.register('generate', GeneratorTask) {
+def lazyGenerator = tasks.register('generateLazy', GeneratorTask) {
     outputFile = layout.buildDirectory.file('output.txt')
 }
 
-tasks.register('consume', ConsumerTask) {
+tasks.register('consumeLazy', ConsumerTask) {
     // CORRECT: flatMap extracts the Provider property
-    // The dependency on 'generate' is preserved
-    inputFile = generator.flatMap { it.outputFile }
+    // The dependency on 'generateLazy' is preserved
+    inputFile = lazyGenerator.flatMap { it.outputFile }
 
     // CORRECT: Chain map on the Provider to read content lazily
-    inputContent = generator.flatMap { it.outputFile }
+    inputContent = lazyGenerator.flatMap { it.outputFile }
         .map { it.asFile.text }
 }
 // end::flatmap-provider[]
@@ -70,8 +70,8 @@ tasks.register('consumeLegacy', ConsumerTask) {
 tasks.register('consumeChained', ConsumerTask) {
     // CORRECT: Chain transformations on the Provider itself
     // First flatMap extracts the Provider, then map transforms it
-    inputFile = generator.flatMap { it.outputFile }
-    inputContent = generator.flatMap { it.outputFile }
+    inputFile = lazyGenerator.flatMap { it.outputFile }
+    inputContent = lazyGenerator.flatMap { it.outputFile }
         .map { it.asFile.text }
         .map { it.toUpperCase() }
 }
@@ -84,7 +84,7 @@ abstract class ProducerTask extends DefaultTask {
 
     @OutputFile
     Provider<RegularFile> getOutputFile() {
-        someDirectory.map { it.file('output.txt') }
+        return someDirectory.map { it.file('output.txt') }
     }
 
     @TaskAction
@@ -93,13 +93,13 @@ abstract class ProducerTask extends DefaultTask {
     }
 }
 
-def producer = tasks.register('producer', ProducerTask) {
+def derivedProducer = tasks.register('produceDerived', ProducerTask) {
     someDirectory = layout.buildDirectory.dir('output')
 }
 
-tasks.register('consumeSync', Sync) {
+tasks.register('consumeDerivedSync', Sync) {
     // WORKAROUND: Using map with .get() preserves the dependency
-    from(producer.map { it.outputFile.get() })
+    from(derivedProducer.map { it.outputFile.get() })
     into(layout.buildDirectory.dir('sync'))
 }
 // end::derived-property-fix[]

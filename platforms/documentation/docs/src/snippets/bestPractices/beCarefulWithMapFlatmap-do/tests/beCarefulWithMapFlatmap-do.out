@@ -1,6 +1,6 @@
-> Task :generate
+> Task :generateLazy
 
-> Task :consume
+> Task :consumeLazy
 Input file: /home/user/gradle/samples/build/output.txt
 Content: Generated content
 

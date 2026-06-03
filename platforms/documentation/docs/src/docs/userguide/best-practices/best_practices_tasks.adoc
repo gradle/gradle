@@ -561,3 +561,131 @@ Now when running `consumer` task, then `greeterB`, the `consumer` task remains `
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
+
+[[map_versus_flatmap]]
+== Wiring Task Outputs with `map` and `flatMap`
+
+Use `flatMap` to extract a `Provider`-typed output from a task, and `map` to transform the resulting value.
+Together, they preserve the task dependency chain so Gradle knows which tasks must run first.
+
+=== Explanation
+
+When wiring task outputs to inputs, `flatMap` extracts a `Provider`-typed output from a task while preserving the task dependency.
+Then `map` transforms that value.
+For example, reading a file's contents or extracting a path, without breaking the chain.
+The typical pattern looks like:
+
+[source,kotlin]
+----
+consumer.inputContent.set(
+    producer.flatMap { it.outputFile }       // extract the Provider, keeping the task dependency
+        .map { it.asFile.readText() }        // transform the value lazily at execution time
+)
+----
+
+For dependency tracking to work, task outputs should be directly annotated abstract getters:
+
+[source,kotlin]
+----
+@get:OutputFile
+abstract val outputFile: RegularFileProperty
+----
+
+With this pattern, `flatMap` reliably carries the task dependency and `map` safely transforms the result.
+
+A few specific patterns break this chain:
+
+1. **Do not call `.get()` inside `map` or `flatMap`** — the file doesn't exist yet at configuration time, breaking lazy configuration and task dependency tracking
+2. **Do not use standalone `provider {}` to wrap task outputs** — `provider {}` produces a disconnected provider with no task dependency information
+3. **Use directly annotated abstract getters for task outputs** — `flatMap` can only track dependencies through directly annotated abstract getters, not outputs computed via `.map {}`. Getters that return `Provider` instead of `Property` also break tracking, even when annotated. Dependency tracking through `@Nested` objects is unreliable and should be avoided.
+4. **Use `map` for plain values, `flatMap` for `Provider`-typed outputs** — `flatMap` requires its closure to return a `Provider`; use `map` to extract `File` or `String` values
+
+=== 1. Do not call `.get()` inside `map` or `flatMap`
+
+Calling `.get()` inside `map` to read file content fails because the file does not exist yet at configuration time — the producer task has not run.
+This pattern also breaks the Configuration Cache.
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=config-time-read]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=config-time-read]"]
+====
+
+==== Do This Instead
+
+Use the `flatMap`/`map` chain instead.
+The `map` on a `flatMap` result is evaluated lazily at execution time, when the file exists:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
+====
+
+This preserves the task dependency because the provider chain remains connected to the original task.
+
+=== 2. Do not use standalone `provider {}` to wrap task outputs
+
+A standalone `provider {}` creates a provider with no connection to any task.
+Gradle cannot determine that it depends on the producer task, so the producer will not be added to the task graph.
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=naked-provider]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=naked-provider]"]
+====
+
+==== Do This Instead
+
+Use `flatMap` to extract the `Provider`-typed output, then chain `map` to transform the value:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
+====
+
+=== 3. Use directly annotated abstract getters for task outputs
+
+When a task's output is computed via `.map {}` rather than directly annotated with `@OutputFile`, `flatMap` may extract the mapped provider without preserving the task dependency.
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=derived-property]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=derived-property]"]
+====
+
+==== Do This Instead
+
+As a workaround, use `.map { it.property.get() }` to preserve the dependency:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=derived-property-fix]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=derived-property-fix]"]
+====
+
+The preferred approach is to use directly annotated abstract getters instead of derived ones, so that `flatMap` works reliably:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=direct-annotation]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=direct-annotation]"]
+====
+
+=== 4. Use `map` for plain values, `flatMap` for `Provider`-typed outputs
+
+When a task uses old-style getters (like `File`) instead of `Provider`-typed outputs, use `map` instead of `flatMap` to extract the value.
+The `flatMap` method requires its closure to return a `Provider`, so it cannot be used with plain values:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=eager-property]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=eager-property]"]
+====
+
+=== References
+
+- <<lazy_configuration.adoc#sec:working_with_task_output_properties,Working with Task Output Properties>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:task-configuration-avoidance,#task-configuration-avoidance>>`
