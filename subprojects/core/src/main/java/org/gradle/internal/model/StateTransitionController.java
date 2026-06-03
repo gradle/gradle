@@ -71,6 +71,18 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
+     * Returns true if a transition to the given state is currently in progress (on any thread).
+     *
+     * <p>
+     * Lock-free and advisory only: it provides no thread-safety for code that follows the call.
+     * It is intended for deciding whether to wait for another worker to finish a transition,
+     * rather than contending for the state lock.
+     */
+    public boolean isTransitioningTo(T target) {
+        return state.isTransitioningTo(target);
+    }
+
+    /**
      * Checks that the expected state has been seen. Ignores any transition in progress or failures of previous operations.
      *
      * <p>
@@ -360,6 +372,8 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         public abstract boolean inStateOrTransitioningTo(T toState);
 
+        public abstract boolean isTransitioningTo(T toState);
+
         public abstract boolean hasSeenStateAndNotTransitioning(T toState);
 
         public abstract boolean hasSeenStateIgnoringTransitions(T toState);
@@ -457,6 +471,12 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public boolean isTransitioningTo(T toState) {
+            // Not transitioning while in a stable state.
+            return false;
+        }
+
+        @Override
         public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
             if (state == toState) {
                 return true;
@@ -543,6 +563,11 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public boolean isTransitioningTo(T toState) {
+            return targetState == toState;
+        }
+
+        @Override
         public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
             return fromState.hasSeenStateIgnoringTransitionsOrFailures(toState);
         }
@@ -624,6 +649,12 @@ public class StateTransitionController<T extends StateTransitionController.State
         @Override
         public boolean inStateOrTransitioningTo(T toState) {
             throwFailure();
+            return false;
+        }
+
+        @Override
+        public boolean isTransitioningTo(T toState) {
+            // A failed state is not transitioning; let the caller observe the failure via the locked path.
             return false;
         }
 

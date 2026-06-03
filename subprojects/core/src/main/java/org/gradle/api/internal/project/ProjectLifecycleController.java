@@ -33,6 +33,7 @@ import org.gradle.internal.work.Synchronizer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * Controls the lifecycle of the mutable {@link ProjectInternal} instance for a project, plus its services.
@@ -99,6 +100,20 @@ public class ProjectLifecycleController implements Closeable {
         // need to all take the lock if the parent project(s) are already configured.
         if (controller.hasSeenState(State.Configured)) {
             return;
+        }
+        // The check above is not atomic with the lock acquisition below. If another worker is already
+        // configuring this project (e.g. when project-scoped tooling models are built in parallel and a
+        // child project asks for its parent to be configured), wait for that configuration to complete
+        // WITHOUT taking the project lock. Taking the lock here can deadlock: this same project lock may
+        // shortly be held for a long time by another operation on this project, such as building this
+        // project's tooling model under DefaultProjectState#runWithModelLock. We only take the lock when
+        // no one else is configuring the project, in which case the model-building lock cannot yet be held
+        // (model building requires the project to already be configured).
+        while (controller.isTransitioningTo(State.Configured)) {
+            if (controller.hasSeenState(State.Configured)) {
+                return;
+            }
+            LockSupport.parkNanos(100_000L);
         }
         controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
     }
