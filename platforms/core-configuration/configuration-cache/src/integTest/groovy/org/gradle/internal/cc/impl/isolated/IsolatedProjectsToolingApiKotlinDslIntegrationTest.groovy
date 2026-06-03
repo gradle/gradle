@@ -17,6 +17,10 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.FetchModelResult
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkKotlinDslScriptsModel
@@ -58,6 +62,34 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         fixture.assertModelLoaded()
     }
 
+    def "resilient fetch of KotlinDslScripts model for multi-project build under IP does not deadlock"() {
+        // Reproduces the stage-1 accessor deadlock from PR #37967: the resilient, project-targeted
+        // BuildController.fetch holds the root project lock while the model builder fans out workers
+        // that contend for the shared stage-1 accessor classpath lazy. The root has no build script
+        // so the lazy is first touched concurrently by the fan-out workers, not the outer thread.
+        withSettings("""
+            rootProject.name = "root"
+            include("a", "b", "c", "d")
+        """)
+        withBuildScriptIn("a")
+        withBuildScriptIn("b")
+        withBuildScriptIn("c")
+        withBuildScriptIn("d")
+
+        when:
+        def originalModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when:
+        withIsolatedProjects()
+        def model = runBuildAction(new FetchResilientKotlinDslScriptsModelForRoot())
+
+        then:
+        checkKotlinDslScriptsModel(model, originalModel)
+    }
+
     def "can fetch KotlinDslScripts model for build with third party buildscript dependency"() {
         withSettings("""
             rootProject.name = "root"
@@ -93,5 +125,15 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
             modelsCreated(":a:b", [isolatedScriptsModel])
         }
         checkKotlinDslScriptsModel(model, originalModel)
+    }
+
+    static class FetchResilientKotlinDslScriptsModelForRoot implements BuildAction<KotlinDslScriptsModel>, Serializable {
+
+        @Override
+        KotlinDslScriptsModel execute(BuildController controller) {
+            GradleBuild build = controller.getBuildModel()
+            FetchModelResult<KotlinDslScriptsModel> result = controller.fetch(build.rootProject, KotlinDslScriptsModel)
+            return result.model
+        }
     }
 }
