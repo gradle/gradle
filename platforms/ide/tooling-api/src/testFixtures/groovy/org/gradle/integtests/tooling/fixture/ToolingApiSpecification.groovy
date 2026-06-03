@@ -342,8 +342,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("9.6")) {
-            return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'help', 'javaToolchains', 'projects', 'properties', 'repositories', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
+        if (targetVersion >= GradleVersion.version("9.7")) {
+            // 'repositories' is a root-only consumer task (see SoftwareReportingTasksPlugin);
+            // 'generateRepositoriesReportData' is the per-project producer.
+            return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'generateRepositoriesReportData', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("9.0")) {
             return ['artifactTransforms', 'buildEnvironment', 'dependencies', 'dependencyInsight', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("8.13")) {
@@ -406,7 +408,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
      */
     Set<String> getRootProjectImplicitTasks() {
         final rootOnlyTasks
-        if (targetVersion >= GradleVersion.version("8.8")) {
+        if (targetVersion >= GradleVersion.version("9.7")) {
+            // 'repositories' is a root-only consumer task (see SoftwareReportingTasksPlugin's producer/consumer split).
+            rootOnlyTasks = ['init', 'wrapper', 'updateDaemonJvm', 'repositories']
+        } else if (targetVersion >= GradleVersion.version("8.8")) {
             rootOnlyTasks = ['init', 'wrapper', 'updateDaemonJvm']
         } else {
             rootOnlyTasks = ['init', 'wrapper']
