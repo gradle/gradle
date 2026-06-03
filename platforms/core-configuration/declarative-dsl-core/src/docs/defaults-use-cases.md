@@ -83,6 +83,15 @@ The declaring builds could be:
 
 Potential problems: plugin versioning.
 
+#### Special case: defaults attached to members
+
+The definition owner could declare the following kinds of defaults:
+* A default value for a property, at the property declaration; this will be the effective value if not overridden anywhere in the
+    user build.
+* For a container, a set of default elements in it that will be present even if not specified by the user
+  * At the container declaration, it makes sense to provide only the identities for the default elements. If they need
+    additional configuration, this is the distributable defaults use case (with defaults provided by the plugin owner).
+
 ### Gradle User Home defaults
 
 Defaults could be provided for all builds on a local machine.
@@ -351,4 +360,83 @@ ad-hoc project types and provide different defaults to them compared to the orig
 
 This has another implication: a value type (a type that is assignable to properties) must not be a target
 to features (or, a weaker restriction: values of such types used as property values cannot be targets to features).
-Otherwise, overriding property values would drop applied features.
+Otherwise, overriding property values would drop applied features. This justifies having both properties and 
+nested models/containers coexisting in definitions.
+
+These restrictions allow the users who have the intuition of imperative build configuration to use it with DCL
+that is driven by static data and documents until the very end where it gets projected onto the JVM world. 
+Namely, if you think of a feature application as an operation that has side effects on the build model, you would not
+expect the defaults-system to undo such operations when it combines defaults with the actual configuration.
+
+# Tooling use cases
+
+What should the DCL tooling be able to do with defaults?
+
+## Getting effective definitions
+
+The tooling is able to compose all defaults that are applicable to the definition into one effective definition.
+This is done at the data level without lowering it to JVM or any other non-Declarative representation.
+
+### Showing effective definition
+
+The tooling shows the effective definition in a GUI or by adding more information to the editor (like inlay hints).
+For the defaults in the effective definition, there might be markers telling where it came from 
+(settings file, project-subtree, plugin-provided defaults, etc.). If there are multiple overrides of a single
+value, it should be possible to see all of them (maybe in a hint when you focus on that value).
+
+### Navigation related to defaults
+
+From a definition (either in a project or in some defaults), the tooling navigates:
+* to every default definition that precedes the current definition and provides data 
+  * or can provide data but doesn't: "Where can I put defaults for this?"
+* from defaults, to every usage that provides data: "Where is this overridden?"
+  * or can provide data but doesn't: "Where is this default effective?"
+
+### Defaults-aware code completion
+
+In a project build definition, if the defaults make sure that the effective definition already 
+has a nested object (an applied feature, or a container element), the code completion should be aware of that
+and should provide a hint that it is already present. For container elements, code completion should suggest
+the present elements as separate items (like `sourceSet("main") { }` in addition to `sourceSet` with a new name)
+
+## Inspections and refactoring
+
+### Unused defaults
+
+A project type or a feature is not used anywhere in the build, so the defaults are useless and can be removed.
+
+#### Unused optional defaults
+
+With the optional/non-forcing defaults, if they do not become effective anywhere because the corresponding nested definitions
+do not appear in project definitions, the tooling should be able to tell so and suggest removing them.
+
+### Useless defaults (project-wide)
+
+If a default is overridden in all effective definitions, the tooling should be able to detect it and suggest removing the default.
+
+### Part of definition can be a default (project-wide)
+
+If a part of the definition appears uniformly in a scope (all projects, or a project-subtree that can provide defaults),
+the tooling should be able to detect it and suggest extracting the part into the corresponding defaults.
+
+### Useless data in a definition
+
+If a definition duplicates the defaults, the tooling should be able to detect it and suggest removing the duplicate.
+
+### Extract to defaults
+
+The tooling should be able to extract a part of a definition into the defaults (letting the user choose the scope: defaults
+for the project type or feature or named defaults or local project type; global or local to subproject-tree). 
+
+Since that can affect other projects, the tooling 
+should show the predicted effect: which projects get new data in their definitions (and maybe the details on the data).
+
+### Push defaults downstream
+
+If the user does not want a default anymore and wants every project (or a narrower scope) to provide a value, they can push the defaults
+closer to the effective definitions.
+
+The tooling should be able to move a set of defaults to the project definitions (or to more specific defaults, like in subprojects).
+This should be done in a way that effective definitions stay the same. The tooling should let the user preview the effect.
+If the effective definition has some of the defaults overridden, the tooling should only put the rest.
+
