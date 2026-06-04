@@ -271,19 +271,17 @@ class ConfigurationCacheProblems(
     }
 
     override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
+        // IP severity is governed only by IP settings, independent of the CC `--configuration-cache-problems` flag.
         val severity = when {
             // "Dangerously ignore problems" mode: keep going past IP violations so a parallel build
             // or sync can be timed, and succeed the build at the end even with these violations.
             isIsolatedProjectsDangerouslyIgnoreProblems -> ProblemSeverity.Suppressed
-            // TODO:isolated untie IP behavior from the CC flag
-            // Warning mode explicitly asks the build to keep going and surface all problems at the end.
-            isWarningMode -> ProblemSeverity.Deferred
             // Diagnostics mode runs project configuration sequentially to collect every violation deterministically.
             isIsolatedProjectsDiagnostics -> ProblemSeverity.Deferred
             // Default (optimistic-parallel) mode: fail fast so user code does not run against unreliable state.
             else -> ProblemSeverity.Interrupting
         }
-        onProblem(problem, severity)
+        onProblem(problem, severity, isolated = true)
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -291,9 +289,9 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
-        if (summarizer.onProblem(problem, severity)) {
-            problemsService.onProblem(problem, severity)
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, isolated: Boolean = false) {
+        if (summarizer.onProblem(problem, severity, isolated)) {
+            problemsService.onProblem(problem, severity, isolated)
             report.onProblem(problem)
         }
 
@@ -307,7 +305,7 @@ class ConfigurationCacheProblems(
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
-    fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+    fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity, isolated: Boolean) {
         val message = problem.message.render()
         internalReporter.internalCreate {
             id(
@@ -322,7 +320,8 @@ class ConfigurationCacheProblems(
                 trace(problem.trace.containingUserCode)
             }
         }.also {
-            if (severity == ProblemSeverity.Interrupting || (severity == ProblemSeverity.Deferred && !isWarningMode)) {
+            // IP-deferred problems always report as errors; CC-deferred problems only when not in warn mode.
+            if (severity == ProblemSeverity.Interrupting || (severity == ProblemSeverity.Deferred && (isolated || !isWarningMode))) {
                 internalReporter.reportError(it)
             } else {
                 internalReporter.report(it)
@@ -353,7 +352,9 @@ class ConfigurationCacheProblems(
     }
 
     fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
-        val failDueToProblems = summary.deferredProblemCount > 0 && !isWarningMode
+        // IP violations fail the build regardless of the CC warn flag; CC problems honor it.
+        val failDueToProblems = summary.deferredIsolatedProblemCount > 0 ||
+            (summary.deferredProblemCount > 0 && !isWarningMode)
         val hasTooManyProblems = hasTooManyProblems(summary)
         val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
@@ -535,7 +536,11 @@ class ConfigurationCacheProblems(
     private
     fun discardStateDueToProblems(summary: Summary) =
         incompatibleTasks.isNotEmpty() || shouldDegradeGracefully() ||
-            summary.consoleProblemCount > 0 && !isWarningMode
+            // IP-diagnostics violations (Deferred) discard the entry regardless of the CC warn flag.
+            summary.deferredIsolatedProblemCount > 0 ||
+            // Otherwise discard on any console problem unless warn mode keeps a reusable entry;
+            // dangerously-ignore (IP violations as Suppressed) always discards.
+            summary.consoleProblemCount > 0 && (!isWarningMode || isIsolatedProjectsDangerouslyIgnoreProblems)
 
     private
     fun hasTooManyProblems(summary: Summary) =

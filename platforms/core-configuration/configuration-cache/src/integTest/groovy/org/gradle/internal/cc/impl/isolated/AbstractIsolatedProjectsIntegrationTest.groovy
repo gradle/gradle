@@ -102,21 +102,31 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigura
     }
 
     /**
+     * Applies the executer arguments for the given IP {@code mode} without invoking a build, leaving
+     * the invocation to the caller. Use when the build is not a plain CLI run, e.g. a Tooling API
+     * build action, to exercise the same scenario under both IP execution modes.
+     */
+    void withIsolatedProjectsUsing(IsolatedProjectsMode mode, String... moreExecuterArgs) {
+        switch (mode) {
+            case IsolatedProjectsMode.DIAGNOSTICS:
+                withIsolatedProjectsDiagnostics(moreExecuterArgs)
+                break
+            case IsolatedProjectsMode.FAIL_FAST:
+                withIsolatedProjects(moreExecuterArgs)
+                break
+            default:
+                throw new IllegalArgumentException("Unsupported IP mode: $mode")
+        }
+    }
+
+    /**
      * Runs tasks under {@code mode} and expects failure. Pair with
      * {@link IsolatedProjectsFixture#assertIsolatedProjectsProblems} to exercise the same scenario
      * under both IP execution modes.
      */
     void isolatedProjectsFailsUsing(IsolatedProjectsMode mode, String... tasks) {
-        switch (mode) {
-            case IsolatedProjectsMode.DIAGNOSTICS:
-                isolatedProjectsDiagnosticsFails(tasks)
-                break
-            case IsolatedProjectsMode.FAIL_FAST:
-                isolatedProjectsFails(tasks)
-                break
-            default:
-                throw new IllegalArgumentException("Unsupported IP mode: $mode")
-        }
+        withIsolatedProjectsUsing(mode)
+        fails(tasks)
     }
 
     /**

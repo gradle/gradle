@@ -106,6 +106,29 @@ class ConfigurationCacheProblemsSummaryTest {
     }
 
     @Test
+    fun `tracks isolated deferred problems as a subset of deferred problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "cc failure"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem("a/build.gradle.kts", "ip failure"), ProblemSeverity.Deferred, isolated = true)
+
+        val summary = subject.get()
+        assertThat(summary.deferredProblemCount, equalTo(2))
+        assertThat(summary.deferredIsolatedProblemCount, equalTo(1))
+    }
+
+    @Test
+    fun `isolated flag only counts deferred problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "suppressed"), ProblemSeverity.Suppressed, isolated = true)
+
+        val summary = subject.get()
+        assertThat(summary.deferredProblemCount, equalTo(0))
+        assertThat(summary.deferredIsolatedProblemCount, equalTo(0))
+    }
+
+    @Test
     fun `problems are deduplicated regardless of severity`() {
         val subject = ConfigurationCacheProblemsSummary()
         val trace = buildLogicLocationTrace("build.gradle.kts", 1)

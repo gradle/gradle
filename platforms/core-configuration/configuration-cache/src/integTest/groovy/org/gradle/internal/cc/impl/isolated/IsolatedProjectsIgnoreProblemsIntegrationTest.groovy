@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.util.internal.ToBeImplemented
 
 /**
  * Tests for the "dangerously ignore problems" IP mode, where IP violations are reported but do not
@@ -239,8 +238,7 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
         postBuildOutputDoesNotContain(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
     }
 
-    @ToBeImplemented("problems=warn stores a reusable entry instead of discarding it under dangerously-ignore")
-    def "combining the flag with problems=warn stores a reusable entry instead of discarding it"() {
+    def "combining the flag with problems=warn still discards the entry"() {
         given:
         createDirs("a", "b")
         settingsFile << """
@@ -257,12 +255,41 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
         run(ENABLE_CLI, ENABLE_DANGEROUSLY_IGNORE_PROBLEMS, WARN_PROBLEMS_CLI_OPT, "help")
 
         then:
+        // dangerously-ignore reclassifies IP violations to Suppressed so the entry is discarded and never
+        // reused, regardless of the CC warn-mode flag.
         assertIgnoreProblemsBannerShownAtStartAndEnd("> Configure project :")
         outputContains(GROOVY_VIOLATION)
-        // The dangerously-ignore mode reclassifies IP violations to Suppressed precisely so the entry is
-        // discarded and never reused; warn mode currently defeats that, storing a reusable entry. This pins
-        // the current (wrong) behavior. When fixed, this should read "discarded with 2 problems." and the
-        // assertion should become fixture.assertStateStoredAndDiscarded { ... }.
-        result.assertHasPostBuildOutput("Configuration cache entry stored with 2 problems.")
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            reportedOutsideBuildFailure = true
+            projectsConfigured(":", ":a", ":b")
+            problem(GROOVY_VIOLATION, 2)
+        }
+    }
+
+    def "a configuration cache problem still fails the build while IP violations are ignored"() {
+        given:
+        createDirs("a", "b")
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            allprojects {
+                plugins.apply('java-library')
+            }
+            tasks.register('broken') {
+                doLast { println project.name }
+            }
+        """
+
+        when:
+        fails(ENABLE_CLI, ENABLE_DANGEROUSLY_IGNORE_PROBLEMS, "broken")
+
+        then:
+        assertIgnoreProblemsBannerShownAtStartAndEnd("> Configure project :")
+        // The genuine configuration cache problem fails the build; the IP violation is only reported.
+        failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
+        outputContains(GROOVY_VIOLATION)
     }
 }
