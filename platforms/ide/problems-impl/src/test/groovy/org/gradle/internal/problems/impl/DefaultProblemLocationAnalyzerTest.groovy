@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems
+package org.gradle.internal.problems.impl
 
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin

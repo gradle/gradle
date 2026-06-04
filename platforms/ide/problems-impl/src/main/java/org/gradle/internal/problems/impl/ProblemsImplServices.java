@@ -16,13 +16,29 @@
 
 package org.gradle.internal.problems.impl;
 
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.internal.problems.BoundedCallerStackCapturer;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class ProblemsImplServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(BoundedCallerStackCapturer.class, DefaultBoundedCallerStackCapturer.class);
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionServices());
+    }
+
+    private static class BuildSessionServices implements ServiceRegistrationProvider {
+        @Provides
+        ProblemLocationAnalyzer createProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
+            return new DefaultProblemLocationAnalyzer(listenerManager);
+        }
     }
 }

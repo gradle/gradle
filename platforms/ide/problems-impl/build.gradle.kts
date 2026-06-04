@@ -26,6 +26,10 @@ dependencies {
 
     compileOnly(libs.jspecify)
 
+    implementation(projects.baseServices)
+    implementation(projects.classloaders)
+    implementation(projects.core)
+    implementation(projects.hashing)
     implementation(projects.logging)
 }
 

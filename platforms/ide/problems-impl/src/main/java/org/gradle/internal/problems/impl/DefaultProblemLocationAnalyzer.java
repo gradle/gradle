@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.internal.problems.impl;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeId;
@@ -23,11 +23,10 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.gradle.internal.problems.failure.StackFramePredicate;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
 import org.jspecify.annotations.Nullable;
 
@@ -37,8 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServiceScope(Scope.BuildTree.class)
-public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
+class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
 
     private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
 
@@ -57,7 +55,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             scripts.put(scriptOrigin.getFileName(), scriptOrigin);
@@ -65,7 +63,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
     }
 
     @Override

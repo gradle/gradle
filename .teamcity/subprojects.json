@@ -1283,7 +1283,7 @@
   {
     "name": "problems-impl",
     "path": "platforms/ide/problems-impl",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
