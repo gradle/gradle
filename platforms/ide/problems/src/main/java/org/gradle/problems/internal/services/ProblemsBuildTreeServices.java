@@ -17,6 +17,8 @@
 package org.gradle.problems.internal.services;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.GradleException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
@@ -30,6 +32,7 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -122,5 +125,28 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildStateRegistry);
         }
         return new NoOpProblemReportCreator();
+    }
+
+    /**
+     * Fails with an actionable error when a plugin requests the removed {@code InternalProblems} internal type.
+     *
+     * @deprecated Will be removed in Gradle 10.0
+     */
+    @Deprecated
+    @Provides
+    org.gradle.api.problems.internal.InternalProblems createInternalProblems(UserCodeApplicationContext userCodeContext) {
+        UserCodeApplicationContext.Application current = userCodeContext.current();
+        String culprit;
+        if (current == null) {
+            culprit = "A plugin you are using";
+        } else {
+            String displayName = current.getSource().getDisplayName().getDisplayName();
+            culprit = Character.toUpperCase(displayName.charAt(0)) + displayName.substring(1);
+        }
+        throw new GradleException(
+            culprit + " relies on 'org.gradle.api.problems.internal.InternalProblems', " +
+                "a Gradle internal API that was removed in Gradle 9.6.0. " +
+                "Update the plugin to a version that no longer uses Gradle internal APIs, or use Gradle 9.5. " +
+                new DocumentationRegistry().getDocumentationRecommendationFor("information", "upgrading_version_9", "agp_8x_incompatible"));
     }
 }
