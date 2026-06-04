@@ -24,7 +24,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["generateLotsOfDeprecationWarnings", "generateDiverseDeprecationWarnings"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["generateLotsOfDeprecationWarnings", "generateDiverseDeprecationWarnings", "largeJavaMultiProjectDeprecations"])
 )
 class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many deprecation warnings"() {

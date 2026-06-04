@@ -70,7 +70,9 @@ dependencies {
     runtimeOnly(testLibs.jetty)
     runtimeOnly(testLibs.mySqlConnector)
 
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("Generated Java test projects apply java/eclipse/idea, which require the full distribution to run.")
+    }
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {

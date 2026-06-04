@@ -312,7 +312,35 @@
   }, {
     "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings",
     "groups" : [ {
+      "testProject" : "generateDiverseDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "generateLotsOfDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectDeprecations",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings with all warnings shown",
+    "groups" : [ {
+      "testProject" : "generateDiverseDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "generateLotsOfDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectDeprecations",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
