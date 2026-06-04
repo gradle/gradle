@@ -684,7 +684,7 @@ include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",f
 
 === References
 
-- <<lazy_configuration.adoc#sec:working_with_task_output_properties,Working with Task Output Properties>>
+- <<lazy_configuration.adoc#working_with_task_dependencies_in_lazy_properties,Working with task inputs and outputs>>
 
 === Tags
 
