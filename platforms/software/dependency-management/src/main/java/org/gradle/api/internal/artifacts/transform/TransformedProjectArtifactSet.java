@@ -28,6 +28,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -42,15 +44,18 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     private final VariantIdentifier sourceVariantId;
     private final ComponentVariantIdentifier targetVariant;
     private final Collection<TransformStepNode> transformedArtifacts;
+    private final WorkExecutionTracker workExecutionTracker;
 
     public TransformedProjectArtifactSet(
         VariantIdentifier sourceVariantId,
         ComponentVariantIdentifier targetVariant,
-        Collection<TransformStepNode> transformedArtifacts
+        Collection<TransformStepNode> transformedArtifacts,
+        WorkExecutionTracker workExecutionTracker
     ) {
         this.sourceVariantId = sourceVariantId;
         this.targetVariant = targetVariant;
         this.transformedArtifacts = transformedArtifacts;
+        this.workExecutionTracker = workExecutionTracker;
     }
 
     public VariantIdentifier getSourceVariantId() {
@@ -82,6 +87,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
 
     @Override
     public void visit(ArtifactVisitor visitor) {
+        nagIfUndeclared();
         DisplayName artifactSetName = Describables.of(targetVariant.getComponentId());
         for (TransformStepNode node : transformedArtifacts) {
             node.executeIfNotAlready();
@@ -96,6 +102,24 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
             }
         }
         visitor.endVisitCollection(this);
+    }
+
+    private void nagIfUndeclared() {
+        if (!workExecutionTracker.isExecutingTaskOrTransformAction()) {
+            return;
+        }
+        for (TransformStepNode node : transformedArtifacts) {
+            if (!node.wasScheduled()) {
+                DeprecationLogger.deprecate(
+                    "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input"
+                )
+                    .withAdvice("Declare the FileCollection as a task input (for example via inputs.files(view)) so the transform is wired into the execution plan.")
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "undeclared_artifact_transform_input")
+                    .nagUser();
+                return;
+            }
+        }
     }
 
     @Override

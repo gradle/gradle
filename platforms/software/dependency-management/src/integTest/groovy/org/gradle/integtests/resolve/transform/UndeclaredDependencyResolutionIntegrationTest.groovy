@@ -428,7 +428,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
 
     private void expectUndeclaredTransformDeprecation() {
         // The message text must exactly match the deprecation emitted in
-        // TransformedProjectArtifactSet#nagIfUndeclared (see DeprecationLogger.deprecateBehaviour call).
+        // TransformedProjectArtifactSet#nagIfUndeclared (see DeprecationLogger.deprecate call).
         executer.expectDocumentedDeprecationWarning(
             "Querying the output of an artifact transform of a project artifact " +
                 "from a task action without declaring it as a task input has been deprecated. " +
