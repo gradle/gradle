@@ -62,15 +62,17 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
+    private final BoundedCallerStackCapturer boundedCallerStackCapturer;
 
     @Inject
     public DefaultProblemDiagnosticsFactory(
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
-        BuildModelParameters buildModelParameters
+        BuildModelParameters buildModelParameters,
+        BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
-        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters));
+        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters), boundedCallerStackCapturer);
     }
 
     private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
@@ -82,12 +84,14 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
-        int maxStackTraces
+        int maxStackTraces,
+        BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
         this.failureFactory = failureFactory;
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
+        this.boundedCallerStackCapturer = boundedCallerStackCapturer;
     }
 
     @Override
@@ -138,7 +142,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
             if (exception == null) {
-                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+                return locationFromStackTrace(getImplicitCallerThrowable(), false, false, NO_OP);
             } else {
                 return locationFromStackTrace(exception, true, true, NO_OP);
             }
@@ -146,7 +150,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Override
         public ProblemDiagnostics forCurrentCaller() {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+            return locationFromStackTrace(getImplicitCallerThrowable(), false, false, NO_OP);
         }
 
         @Override
@@ -156,7 +160,20 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Override
         public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, transformer);
+            return locationFromStackTrace(getImplicitCallerThrowable(), false, false, transformer);
+        }
+
+        /**
+         * Within the limit, captures the full caller stack as before. Past the limit, captures a cheap
+         * bounded prefix for location inference (when a capturer is available) instead of nothing, so
+         * locations remain available for an unbounded number of problems.
+         */
+        @Nullable
+        private Throwable getImplicitCallerThrowable() {
+            if (remainingStackTraces.getAndDecrement() > 0) {
+                return EXCEPTION_FACTORY.get();
+            }
+            return boundedCallerStackCapturer.captureCallerStack();
         }
 
         @Nullable

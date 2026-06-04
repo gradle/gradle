@@ -28,7 +28,8 @@ import spock.lang.Specification
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
-    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2)
+    def boundedCallerStackCapturer = Mock(BoundedCallerStackCapturer)
+    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2, boundedCallerStackCapturer)
 
     def "uses caller's stack trace to calculate problem location"() {
         given:

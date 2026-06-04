@@ -20,6 +20,7 @@ import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.Describables
+import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
@@ -53,5 +54,39 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
         location.sourceShortDisplayName == shortDisplayName
         location.lineNumber == 7
         location.formatted == "<long source>: line 7"
+    }
+
+    def "bounded stack prefix yields the same location as the full stack"() {
+        given:
+        def failureFactory = DefaultFailureFactory.withDefaultClassifier()
+        def scriptFrame = new StackTraceElement("Build_gradle", "run", "build.gradle", 7)
+        def fullStack = [
+            new StackTraceElement("org.gradle.internal.problems.impl.DefaultBoundedCallerStackCapturer", "captureCallerStack", "DefaultBoundedCallerStackCapturer.java", 40),
+            new StackTraceElement("org.gradle.internal.deprecation.DeprecationLogger", "nagUserWith", "DeprecationLogger.java", 300),
+            scriptFrame,
+            new StackTraceElement("org.gradle.api.internal.project.DefaultProject", "evaluate", "DefaultProject.java", 100),
+            new StackTraceElement("org.gradle.launcher.Main", "main", "Main.java", 50)
+        ] as StackTraceElement[]
+        // What the bounded walk keeps: from the top down to and including the Gradle boundary after the first user frame.
+        def boundedPrefix = (fullStack[0..3]) as StackTraceElement[]
+
+        analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId),
+            new ClassLoaderScopeOrigin.Script("build.gradle", Describables.of("<long>"), Describables.of("<short>")))
+
+        when:
+        def full = analyzer.locationForUsage(failureFor(failureFactory, fullStack), false)
+        def bounded = analyzer.locationForUsage(failureFor(failureFactory, boundedPrefix), false)
+
+        then:
+        full.lineNumber == 7
+        bounded.lineNumber == full.lineNumber
+        bounded.formatted == full.formatted
+        bounded.sourceLongDisplayName == full.sourceLongDisplayName
+    }
+
+    private static Failure failureFor(DefaultFailureFactory failureFactory, StackTraceElement[] stack) {
+        def throwable = new Exception()
+        throwable.stackTrace = stack
+        failureFactory.create(throwable)
     }
 }
