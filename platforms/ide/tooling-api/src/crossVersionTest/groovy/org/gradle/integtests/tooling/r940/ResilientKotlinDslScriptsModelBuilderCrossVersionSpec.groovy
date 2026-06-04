@@ -815,13 +815,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     /**
      * Candidate jar name prefixes that may carry the Gradle public API.
      *
-     * Gradle 9.7+ embeds a {@code gradle-public-api-legacy} ABI jar in {@code :distributions-full}.
-     * When the running Gradle has no such jar (older versions, non-full distributions, and in-process
-     * tests), falls back to the generated {@code gradle-api} jar.
+     * Gradle 9.7+ compiles Kotlin DSL scripts against the embedded {@code gradle-public-api-legacy}
+     * ABI jar; earlier versions use the generated {@code gradle-api} jar.
      */
     List<String> expectedPublicApiJarPrefixes() {
         GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("9.7")
-            ? ["gradle-public-api-legacy", "gradle-api"]
+            ? ["gradle-public-api-legacy"]
             : ["gradle-api"]
     }
 
