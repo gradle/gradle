@@ -25,6 +25,7 @@ import java.io.File;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
@@ -231,6 +232,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks("do-stuff").run().assertTasksScheduled(":child1:do-stuff", ":child2:do-stuff");
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     @Test
     public void multiProjectBuildCanHaveAllProjectsAsChildrenOfSettingsDir() {
         TestFile settingsFile = testFile("settings.gradle");
@@ -247,6 +249,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks(":sub:thing").run().assertTasksScheduled(":sub:thing");
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     @Test
     public void usesRootProjectAsDefaultProjectWhenInSettingsDir() {
         TestFile settingsDir = testFile("gradle");

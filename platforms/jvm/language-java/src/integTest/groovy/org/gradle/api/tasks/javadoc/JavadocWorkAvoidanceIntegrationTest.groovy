@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
@@ -58,6 +59,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project task configuration")
     def "does not regenerate javadoc when the upstream jar is just rebuilt without changes"() {
         given:
         succeeds(":a:javadoc")
@@ -75,6 +77,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project task configuration")
     def "order of upstream jar entries does not matter"() {
         given:
         file("a/build.gradle") << '''
@@ -119,6 +122,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             ":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project task configuration")
     def "timestamp of upstream jar entries does not matter"() {
         given:
         file("a/build.gradle") << '''
@@ -154,6 +158,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             ":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project task configuration")
     def "duplicates in an upstream jar are not ignored"() {
         given:
         file("a/build.gradle") << '''
@@ -215,6 +220,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6168")
+    @ToBeFixedForIsolatedProjects(because = "cross-project task configuration")
     def "removes stale outputs from last execution"() {
         def aaJava = file('a/src/main/java/AA.java')
         aaJava << '''

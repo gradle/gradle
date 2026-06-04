@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
     def "can publish single jar with specified coordinates"() {
@@ -189,6 +191,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications 'main' in root project 'duplicate-publications' and 'other' in root project 'duplicate-publications' will overwrite each other!")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "warns when publications in different projects share the same coordinates"() {
         given:
         createDirs("projectA", "projectB")

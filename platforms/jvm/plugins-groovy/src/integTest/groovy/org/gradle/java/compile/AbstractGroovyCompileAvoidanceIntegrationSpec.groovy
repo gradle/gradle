@@ -18,6 +18,7 @@ package org.gradle.java.compile
 
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -100,6 +101,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project Groovy compilation")
     def 'always recompile if compilation avoidance is not enabled'() {
         given:
         settingsFile.text = settingsFile.text.readLines().findAll { !it.contains("enableFeaturePreview") }.join('\n')
@@ -141,6 +143,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         executedAndNotSkipped ":b:compileGroovy"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project Groovy compilation")
     def "recompile with change of local ast transformation"() {
         given:
         executer.beforeExecute {
@@ -182,6 +185,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         failure.assertHasCause('Bad AST transformation!')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "recompile with change of global ast transformation"() {
         given:
         executer.beforeExecute {

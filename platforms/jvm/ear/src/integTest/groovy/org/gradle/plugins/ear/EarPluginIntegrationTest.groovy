@@ -19,6 +19,7 @@ package org.gradle.plugins.ear
 import groovy.xml.XmlSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.CoreMatchers
@@ -459,6 +460,7 @@ ear {
         ear.assertContainsFile("META-INF/application.xml")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "ear contains runtime classpath of upstream java project"() {
         given:
         createDirs("a", "b", "c", "d", "e")
@@ -506,6 +508,7 @@ ear {
         ear.assertNotContainsFile("lib/e.jar")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ear plugin cross-project configuration")
     def "ear contains runtime classpath of upstream java-library project"() {
         given:
         createDirs("a", "b", "c", "d", "e")

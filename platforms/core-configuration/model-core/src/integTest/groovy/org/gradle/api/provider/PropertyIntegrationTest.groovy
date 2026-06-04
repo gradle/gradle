@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
@@ -597,6 +598,7 @@ assert custom.prop.get() == "value 4"
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12811")
+    @ToBeFixedForIsolatedProjects(because = "cross-project property access")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
         createDirs("producer", "consumer")
         settingsFile << """
@@ -656,6 +658,7 @@ assert custom.prop.get() == "value 4"
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12969")
+    @ToBeFixedForIsolatedProjects(because = "cross-project property access")
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
         createDirs("producer", "consumer")
         settingsFile << """

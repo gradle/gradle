@@ -17,6 +17,7 @@
 package org.gradle.testing.testsuites.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
     // region basic functionality
@@ -211,6 +212,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def 'can add dependencies to other projects to #suiteDesc'() {
         given:
         multiProjectBuild('root', ['consumer', 'util']) {

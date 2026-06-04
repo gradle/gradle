@@ -27,6 +27,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -330,6 +331,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
+    @ToBeFixedForIsolatedProjects(because = "reporting plugin uses cross-project configuration")
     void 'reports from subprojects are aggregated'() {
         given:
         goodCode()

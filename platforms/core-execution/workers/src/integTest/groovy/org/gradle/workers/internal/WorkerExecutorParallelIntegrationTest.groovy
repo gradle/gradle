@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -554,6 +555,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)"() {
         given:
         createDirs("childProject")
@@ -639,6 +641,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "does not start task in another project when a task action is executing without --parallel"() {
         given:
         createDirs("childProject")
@@ -669,6 +672,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "can start task in another project when a task submits async work without --parallel"() {
         given:
         createDirs("childProject")
@@ -776,6 +780,7 @@ See https://github.com/gradle/gradle/pull/25540 for details."""
         succeeds("allTasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "can start task in another project when a task awaits async work (with --parallel)"() {
         given:
         createDirs("childProject")

@@ -18,11 +18,13 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 
 @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
 class EclipseJavaProjectModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "depend on modular project"() {
         setup:
         /*

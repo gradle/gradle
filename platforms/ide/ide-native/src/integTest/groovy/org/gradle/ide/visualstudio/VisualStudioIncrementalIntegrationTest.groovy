@@ -21,6 +21,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.apache.commons.io.FileUtils.copyFile
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -239,6 +240,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Visual Studio uses allprojects/subprojects")
     def "visual studio tasks re-execute when new component is added"() {
         app.writeSources(file("src/main"))
 

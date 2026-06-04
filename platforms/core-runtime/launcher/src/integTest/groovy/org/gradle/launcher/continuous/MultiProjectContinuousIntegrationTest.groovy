@@ -21,6 +21,7 @@ import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.OsTestPreconditions
 
 import spock.lang.Ignore
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
@@ -54,6 +55,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "continuous build cross-project")
     def "changes to upstream project triggers build of downstream"() {
         expect:
         succeeds "build"
@@ -145,6 +147,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
     }
 
     // here to put more stress on parallel execution
+    @ToBeFixedForIsolatedProjects(because = "continuous build cross-project")
     def "reasonable sized multi-project"() {
         given:
         def extraProjectNames = (0..100).collect { "project$it" }

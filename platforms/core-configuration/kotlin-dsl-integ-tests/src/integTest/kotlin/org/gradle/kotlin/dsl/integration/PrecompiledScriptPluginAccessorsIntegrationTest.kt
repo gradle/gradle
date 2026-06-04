@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
@@ -100,6 +101,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
         build("clean", "--rerun-tasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `accessors are available after registering plugin`() {
         withSettings(
@@ -212,6 +214,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
     private
     inline fun <reified T> nameOf() = T::class.qualifiedName
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
 

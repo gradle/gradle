@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -37,6 +38,7 @@ import static org.gradle.util.Matchers.containsText
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @Requires(TestEnvironmentPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
+@ToBeFixedForIsolatedProjects(because = "downstream of multi-project build abort due to configure projects from root")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements VerifiesGenericTestReportResults {
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()

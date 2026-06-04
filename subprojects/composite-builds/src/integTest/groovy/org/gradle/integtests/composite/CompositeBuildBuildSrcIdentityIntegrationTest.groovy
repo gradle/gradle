@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -33,6 +34,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         includedBuilds << buildB
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "includes build identifier in logging output with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -57,6 +59,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         "rootProject.name='someLib'" | "configured root project name"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -134,6 +137,7 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:buildB:1.0"
 

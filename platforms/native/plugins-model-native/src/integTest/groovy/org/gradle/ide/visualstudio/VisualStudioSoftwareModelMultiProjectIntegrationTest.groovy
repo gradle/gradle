@@ -19,6 +19,7 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
+import org.gradle.integtests.fixtures.UnsupportedWithIsolatedProjects
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -26,6 +27,7 @@ import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
+@UnsupportedWithIsolatedProjects(because = "software model")
 class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     Set<String> projectConfigurations = ['debug', 'release'] as Set
 

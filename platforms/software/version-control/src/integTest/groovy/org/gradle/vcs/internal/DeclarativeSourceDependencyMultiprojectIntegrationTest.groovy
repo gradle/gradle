@@ -16,6 +16,9 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
+@ToBeFixedForIsolatedProjects(because = "included build uses allprojects { apply plugin: 'java' }")
 class DeclarativeSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
     @Override
     void mappingFor(String gitRepo, String coords, String repoDef) {

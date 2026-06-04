@@ -16,8 +16,10 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class MixedWarAndEjbProjectIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project can use compiled classes from an EAR project"() {
         given:
         file("settings.gradle") << 'include "a", "b"'

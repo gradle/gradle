@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.junit.Test
 import spock.lang.Issue
 
@@ -43,6 +44,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         libEntriesInClasspathFileHaveFilenames("foo.jar")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     @Issue("GRADLE-2526")
     void overwritesDependentModules() {
@@ -63,6 +65,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         classpath2.lib("myartifactdep-1.0.jar")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "respects dependency substitution rules"() {
         // given:

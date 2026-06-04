@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.fixtures
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
@@ -50,6 +51,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIdeIntegrati
         } // else, unspecified
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin uses allprojects/subprojects across included builds")
     def "workspace includes projects from included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {
@@ -87,6 +89,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIdeIntegrati
         workspace.assertContains(project(buildB.file("p2"), "p2"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin uses allprojects/subprojects across included builds")
     def "workspace includes projects from nested included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {

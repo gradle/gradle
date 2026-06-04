@@ -18,6 +18,7 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
@@ -32,6 +33,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
         executer.withRepositoryMirrors()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "multi-project test fixture configures from root")
     def javaLibraryCanDependOnScalaLibraryProject() {
         when:
         run ":compileJava"

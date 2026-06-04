@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
@@ -80,6 +81,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo script plugin applied")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "can apply a precompiled script plugin by id to a multi-project build from root"() {
         given:
         enablePrecompiledPluginsInBuildSrc()

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -24,6 +25,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void buildsCorrectModuleDependencies() {
         def settingsFile = file("settings.gradle")
@@ -80,6 +82,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void buildsCorrectModuleDependenciesForDependencyOnRoot() {
         createDirs("api")
@@ -114,6 +117,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert dependencies.modules.size() == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("settings.gradle")
@@ -167,6 +171,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         dependencies.assertHasModule('TEST', "impl")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
         createDirs("api", "util", "other")
@@ -219,6 +224,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         utilDependencies.assertHasModule(['TEST'], "root-project-1")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void dealsWithDuplicatedModuleNames() {
       /*
@@ -321,6 +327,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void allowsFullyReconfiguredModuleNames() {
         //use case from the mailing list
@@ -367,6 +374,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert moduleFileNames.contains("master.iml")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void handlesModuleDependencyCycles() {
         def settingsFile = file("settings.gradle")
@@ -425,6 +433,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         dependencies.assertHasModule('COMPILE', "two")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
@@ -493,6 +502,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
         def settingsFile = file("settings.gradle")
@@ -530,6 +540,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert !getFile(project: 'contrib', "cool-contrib.iml").exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void handlesInternalDependenciesToNonIdeaProjects() {
         def settingsFile = file("settings.gradle")
@@ -562,6 +573,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert getFile(project: 'api', 'api.iml').exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void doesNotCreateDuplicateEntriesInIpr() {
         def settingsFile = file("settings.gradle")
@@ -590,6 +602,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert content.count('filepath="$PROJECT_DIR$/api/api.iml"') == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void buildsCorrectModuleDependenciesWithScopes() {
         def settingsFile = file("settings.gradle")

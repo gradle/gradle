@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implements ValidatePluginsTrait {
@@ -251,6 +252,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         assertValidationSucceeds()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "can validate task classes using types from other projects"() {
         settingsFile << """
             include 'lib'

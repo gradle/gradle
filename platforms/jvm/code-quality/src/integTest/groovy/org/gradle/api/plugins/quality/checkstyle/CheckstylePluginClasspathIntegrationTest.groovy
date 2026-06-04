@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 @Issue("gradle/gradle#855")
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
@@ -29,6 +30,7 @@ class CheckstylePluginClasspathIntegrationTest extends MultiVersionIntegrationSp
         goodCode()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "checkstyle plugin uses cross-project configuration")
     def "accepts throwing exception from other project"() {
         expect:
         succeeds("checkstyleMain")

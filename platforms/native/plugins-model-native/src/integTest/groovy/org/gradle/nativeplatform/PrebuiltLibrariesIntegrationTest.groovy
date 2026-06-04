@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -189,6 +190,7 @@ model {
         installation("build/install/main").exec().out == app.frenchOutput
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "locates prebuilt library in another project"() {
         given:
         app.executable.writeSources(file("projectA/src/main"))
@@ -330,6 +332,7 @@ model {
         failure.assertHasCause("Could not locate library 'other' required by 'main' in project ':'.")
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
         given:
         settingsFile.text = "include ':projectA', ':projectB'"

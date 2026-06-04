@@ -17,6 +17,7 @@ package org.gradle.api.reporting.dependencies
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import spock.lang.Issue
@@ -196,6 +197,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].name == "foo:bar:2.0"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "generates report for multiple projects"() {
         given:
         createDirs("a", "b")
@@ -245,6 +247,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/project/dependencies/root.js").assertExists();
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "generates index.html file"() {
         given:
         createDirs("a", "b")
@@ -393,6 +396,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2979")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()

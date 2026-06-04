@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class MavenGradleModuleMetadataPublishIntegrationTest extends AbstractMavenPublishIntegTest {
     def setup() {
@@ -424,6 +425,7 @@ class TestCapability implements Capability {
         true    | true
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "maps project dependencies"() {
         given:
         createDirs("a", "b")

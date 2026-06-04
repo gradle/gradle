@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GitUtility
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -119,6 +120,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/22172')
+    @ToBeFixedForIsolatedProjects(because = "subprojects, applies CodeNarc/Checkstyle to subprojects")
     void 'CodeNarc/Checkstyle do not fail with PermGen space error'() {
         given:
         withCheckstyle()

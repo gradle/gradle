@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -44,6 +45,7 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
         assert ipr.contains('<mapping directory="" vcs="Git"/>')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void enablesCustomizationsOnNewModel() {
         //when

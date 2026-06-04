@@ -24,6 +24,7 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
@@ -66,6 +67,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         assert moduleContent == moduleContentAfterMerge
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void canCreateAndDeleteMetaData() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
@@ -92,6 +94,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         assertHasExpectedContents('root.iml')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
         createDirs("a", "b")
@@ -101,6 +104,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         assertHasExpectedContents('root.ipr')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void worksWithNonStandardLayout() {
         createDirs("a child project")
@@ -120,6 +124,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         assertHasExpectedContents('root.iml')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void addsScalaSdkAndCompilerLibraries() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
@@ -146,6 +151,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         hasScalaSdk('project4/project4.iml', '3.0.1')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void addsScalaFacetAndCompilerLibraries() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")

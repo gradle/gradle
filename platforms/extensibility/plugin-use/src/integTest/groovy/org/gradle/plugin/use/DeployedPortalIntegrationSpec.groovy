@@ -23,6 +23,7 @@ import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
 
 import static org.hamcrest.CoreMatchers.startsWith
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 //These tests depend on https://plugins.gradle.org
 @Requires(TestEnvironmentPreconditions.Online)
@@ -56,6 +57,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         fails("helloWorld")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "plugin use cross-project classloading")
     def "Can apply plugins to subprojects"() {
         when:
         createDirs("sub")

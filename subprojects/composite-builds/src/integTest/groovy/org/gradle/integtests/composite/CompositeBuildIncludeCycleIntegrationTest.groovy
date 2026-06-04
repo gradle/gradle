@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
@@ -175,6 +176,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         canRunFromCache(buildA, 'task1')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "can depend back on root build"() {
         given:
         def rootBuild = multiProjectBuild('rootBuild', ['root1', 'root2']) {
@@ -208,6 +210,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         canRunFromCache(rootBuild, ':root1:compileJava')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can depend back on root build and back on an included build"() {
         given:
         def rootBuild = multiProjectBuild('rootBuild', ['root1', 'root2', 'x3']) {

@@ -19,6 +19,7 @@ package org.gradle.testing
 import com.google.common.base.Utf8
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.SafeFileLocationUtils
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.test.fixtures.file.TestFile
@@ -187,6 +188,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
     }
 
     @Requires(TestEnvironmentPreconditions.Online)
+    @ToBeFixedForIsolatedProjects(because = "include 'dependency' without a per-subproject build script")
     def "re-runs tests when resources are renamed in a jar"() {
         given:
         buildFile << """

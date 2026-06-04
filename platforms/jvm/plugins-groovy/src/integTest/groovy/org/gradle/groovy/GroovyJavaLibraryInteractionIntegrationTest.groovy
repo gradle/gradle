@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -119,6 +120,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         'java'         | 'implementation' | false             | true                      | "jar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Groovy plugin cross-project configuration")
     def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
         given:
         multiProjectBuild('issue7398', ['groovyLib', 'javaLib']) {

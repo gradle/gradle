@@ -18,8 +18,10 @@ package org.gradle.internal.work
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.operations.DefaultBuildOperationsParameters
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class ResourceLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "work resource tracking across projects")
     def "displays resource lock statistics after build finishes"() {
         createDirs("child")
         settingsFile << """

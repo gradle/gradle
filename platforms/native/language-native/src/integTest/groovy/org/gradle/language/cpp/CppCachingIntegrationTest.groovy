@@ -21,6 +21,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
@@ -50,6 +51,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         app.main.writeToProject(project)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def 'compilation can be cached (#buildType)'() {
         setupProject()
 
@@ -79,6 +81,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         buildType << [debug, release]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "compilation task is relocatable for release"() {
 
         def originalLocation = file('original-location')

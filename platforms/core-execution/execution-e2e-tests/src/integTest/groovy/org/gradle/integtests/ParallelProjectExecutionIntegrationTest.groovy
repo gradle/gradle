@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -51,6 +52,7 @@ allprojects {
         executer.withArgument('--info')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "executes dependency project targets concurrently"() {
         projectDependency from: 'a', to: ['b', 'c', 'd']
 
@@ -61,6 +63,7 @@ allprojects {
         run ':a:pingServer'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "executes dependency project targets concurrently where possible"() {
 
         projectDependency from: 'a', to: ['b', 'c']
@@ -75,6 +78,7 @@ allprojects {
         run ':a:pingServer'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and both b & c fail"() {
         projectDependency from: 'a', to: ['b', 'c']
         failingBuild 'b'
@@ -90,6 +94,7 @@ allprojects {
         failure.assertHasCause('c failed')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "tasks are executed when they are ready and not necessarily alphabetically"() {
         buildFile("b/build.gradle", """
             tasks.named("pingA") {
@@ -109,6 +114,7 @@ allprojects {
         run 'b:pingC'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "finalizer tasks are run in parallel"() {
         buildFile("c/build.gradle", """
             tasks.named("ping") {
@@ -129,6 +135,7 @@ allprojects {
         run 'd:ping'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
         buildFile("a/build.gradle", """
             tasks.named("pingA") {

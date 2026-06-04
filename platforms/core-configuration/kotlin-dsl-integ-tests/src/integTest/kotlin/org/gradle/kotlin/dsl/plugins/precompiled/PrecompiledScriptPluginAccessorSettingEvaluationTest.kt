@@ -22,11 +22,13 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
 import java.io.File
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorSettingEvaluationTest : AbstractPrecompiledScriptPluginTest() {
 
+    @ToBeFixedForIsolatedProjects(because = "precompiled script plugins cross-project")
     @Test
     fun `settings and init scripts are not evaluated when generating accessors`() {
         // given:

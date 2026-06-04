@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
@@ -62,6 +63,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         return "application"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "relinks when an upstream dependency changes in ABI compatible way"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -97,6 +99,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/debug").exec().out == app.expectedOutput.replace("Hello", "Goodbye")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "recompiles when an upstream dependency changes in non-ABI compatible way"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -390,6 +393,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/some-app").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against a library"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -421,6 +425,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries("Greeter")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against a library specifying target machines"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -458,6 +463,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries("Greeter")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "fails when dependency library does not specify the same target machines"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -493,6 +499,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
                                "  - No variants exist.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a static library"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -526,6 +533,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a library with both linkage defined"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -559,6 +567,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries("Greeter")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against library with API dependencies"() {
         createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
@@ -611,6 +620,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against static library with API dependencies"() {
         createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
@@ -666,6 +676,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against static library with API dependencies to shared library"() {
         createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
@@ -721,6 +732,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "can compile and link against shared library with API dependencies to static library"() {
         createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
@@ -776,6 +788,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a library with debug and release variants"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -823,6 +836,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a static library with debug and release variants"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -869,6 +883,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift uses allprojects/subprojects (software model)")
     def "honors changes to library buildDir"() {
         createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
@@ -910,6 +925,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         sharedLibrary("app/build/install/main/debug/lib/Log").file.assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "multiple components can share the same source directory"() {
         createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"

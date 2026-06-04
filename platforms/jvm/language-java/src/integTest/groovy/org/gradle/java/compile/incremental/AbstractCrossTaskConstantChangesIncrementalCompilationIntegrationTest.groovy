@@ -17,6 +17,7 @@
 package org.gradle.java.compile.incremental
 
 import groovy.test.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 abstract class AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
 
@@ -35,6 +36,7 @@ abstract class AbstractCrossTaskConstantChangesIncrementalCompilationIntegration
         impl.recompiledClasses('Y')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects { } used by AbstractCrossTaskIncrementalCompilationSupport")
     def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
         source api: ["class A { final static int x = 1; }", "class B extends A {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -47,6 +49,7 @@ abstract class AbstractCrossTaskConstantChangesIncrementalCompilationIntegration
         impl.recompiledClasses('ImplB')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects { } used by AbstractCrossTaskIncrementalCompilationSupport")
     def "private constant in upstream project does not trigger full rebuild"() {
         source api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -59,6 +62,7 @@ abstract class AbstractCrossTaskConstantChangesIncrementalCompilationIntegration
         impl.noneRecompiled()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects { } used by AbstractCrossTaskIncrementalCompilationSupport")
     def "detects that changed class still has the same constants so no recompile is necessary"() {
         source api: ["class A { public static final int FOO = 123;}"],
             impl: ["class B { void foo() { int x = 123; }}"]

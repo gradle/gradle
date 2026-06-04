@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import spock.lang.Issue
@@ -151,6 +152,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "can aggregate jacoco execution data from dependent projects"() {
         given:
         file("application/build.gradle") << """
@@ -173,6 +175,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("transitive.Powerize")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "aggregated report does not contain external dependencies"() {
         given:
         file("application/build.gradle") << """
@@ -192,6 +195,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "aggregated report resolves sources variant of project dependencies"() {
         given:
         file("application/build.gradle") << """
@@ -222,6 +226,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         outputContains(file('transitive/src/main/resources').absolutePath)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "aggregated report resolves classes variant of project dependencies"() {
         given:
         file("application/build.gradle") << """
@@ -252,6 +257,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain(file('transitive/build/libs/transitive-1.0.jar').absolutePath)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def 'aggregated report infers dependency versions from platform'() {
         given:
         file("application/build.gradle") << """
@@ -274,6 +280,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.codehaus.janino.Parser")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def 'multiple test suites create multiple aggregation tasks'() {
         given:
         file("transitive/build.gradle") << """
@@ -373,6 +380,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         integTestReport.assertHasClassCoverage("transitive.Divisor")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def "can aggregate jacoco reports from root project"() {
         given:
         buildFile << """
@@ -409,6 +417,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25618")
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "can aggregate jacoco reports when dependency publishes test fixtures"() {
         given:
         buildFile << """
@@ -456,6 +465,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("transitive.Powerize")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def "can aggregate jacoco reports from root project when subproject doesn't have tests"() {
         given:
         buildFile << """
@@ -494,6 +504,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassButNoCoverage("transitive.Powerize")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "can aggregate jacoco reports from root project with platform"() {
         given:
         file("transitive/build.gradle") << """
@@ -542,6 +553,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.codehaus.janino.Parser")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def 'test verification failure prevents creation of aggregated report'() {
         given:
         file("application/build.gradle") << """
@@ -577,6 +589,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def 'test verification failure creates aggregated report with --continue flag'() {
         given:
         file("application/build.gradle") << """
@@ -618,6 +631,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("transitive.Powerize")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def 'catastrophic failure of single test prevents creation of aggregated report'() {
         given:
         file("application/build.gradle") << """
@@ -697,6 +711,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29916")
+    @ToBeFixedForIsolatedProjects(because = "jacoco aggregation resolves subproject artifacts at config time")
     def "can create jacoco report while report tasks are realized early"() {
         buildFile << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'

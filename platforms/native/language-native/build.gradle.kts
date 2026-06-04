@@ -87,6 +87,4 @@ packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

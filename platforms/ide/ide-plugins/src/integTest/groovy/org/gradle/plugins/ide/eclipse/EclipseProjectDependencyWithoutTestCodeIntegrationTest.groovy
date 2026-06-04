@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEclipseIntegrationSpec {
 
@@ -40,6 +41,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "test code is not available by default"() {
         when:
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
@@ -49,6 +51,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         classpath('b').project('a').assertHasAttribute(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_VALUE)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "test code is available if target project applies the java-test-fixtures plugin"() {
         file('a/build.gradle') << """
             plugins {
@@ -64,6 +67,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         classpath('b').project('a').assertHasNoAttribute(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_VALUE)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "test code is available if target project has the eclipse.classpath.containsTestFixtures=true configuration"() {
         file('a/build.gradle') << """
             eclipse {
@@ -81,6 +85,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         classpath('b').project('a').assertHasAttribute(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, 'false')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "eclipse.classpath.containsTestFixtures configuration has precedence over the applied java-test-fixtures plugin"() {
         file('a/build.gradle') << """
             plugins {

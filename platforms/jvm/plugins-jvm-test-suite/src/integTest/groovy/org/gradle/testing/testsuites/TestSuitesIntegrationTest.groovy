@@ -27,6 +27,7 @@ import org.gradle.api.testing.toolchains.internal.TestNGTestToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "new test suites adds appropriate test tasks"() {
@@ -1088,6 +1089,7 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     @Issue("https://github.com/gradle/gradle/issues/36428")
+    @ToBeFixedForIsolatedProjects(because = "test suites cross-project")
     def "cross-project dependency manipulation with allDependencies.configureEach does not break test suite creation"() {
         given: "a multi-project build with cross-project configuration accessing allDependencies"
         settingsFile << """

@@ -27,12 +27,14 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Rule
     HttpServer server
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "classes from cache are used when dependent class is changed in ABI compatible way"() {
         given:
         project_a_depends_on_project_b()
@@ -54,6 +56,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         skipped ':a:compileJava'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "classes from cache are not used when dependent class is changed in ABI breaking way"() {
         given:
         project_a_depends_on_project_b()

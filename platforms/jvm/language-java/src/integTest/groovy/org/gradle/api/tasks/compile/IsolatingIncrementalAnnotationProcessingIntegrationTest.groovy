@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
@@ -46,6 +47,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         withProcessor(helperProcessor)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files are recompiled when annotated file changes"() {
         given:
         def a = java "@Helper class A {}"
@@ -62,6 +64,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
     }
 
     @Issue("https://github.com/micronaut-projects/micronaut-core/issues/6536")
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "remembers generated files across multiple compilations"() {
         given:
         def a = java "@Helper class A {}"
@@ -80,6 +83,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("B")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files are recompiled when annotated file is affected by a change"() {
         given:
         def util = java "class Util {}"
@@ -100,6 +104,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21203")
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files are recompiled when annotated file is affected by a change through method return type parameter"() {
         given:
         def util = java "class Util {}"
@@ -122,6 +127,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "classes depending on generated files are recompiled when annotated file's ABI is affected by a change"() {
         given:
         def util = java "class Util {}"
@@ -146,6 +152,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt", "Dependent")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "annotation processing across projects")
     def "classes depending on generated files are not recompiled when annotated file's implementation is affected by a change"() {
         given:
         def util = java "class Util {}"
@@ -170,6 +177,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "incremental processing works on subsequent incremental compilations"() {
         given:
         def a = java "@Helper class A {}"
@@ -186,6 +194,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "incremental processing works on subsequent incremental compilations after failure"() {
         given:
         def a = java "@Helper class A {}"
@@ -219,6 +228,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "annotated files are not recompiled on unrelated changes"() {
         given:
         java "@Helper class A {}"
@@ -234,6 +244,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledClasses("Unrelated")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "annotated files are not recompiled on unrelated changes even after failure"() {
         given:
         java "@Helper class A {}"
@@ -258,6 +269,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledClasses("Unrelated")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "classes depending on generated file are recompiled when source file changes"() {
         given:
         def a = java "@Helper class A {}"
@@ -276,6 +288,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt", "Dependent")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "source file is reprocessed when dependency of generated file changes"() {
         given:
         withProcessor(new OpaqueDependencyProcessor())
@@ -293,6 +306,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledClasses("AThingy", "Dependency")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "classes files of generated sources are deleted when annotated file is deleted"() {
         given:
         def a = java "@Helper class A {}"
@@ -308,6 +322,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.deletedFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files are deleted when annotated file is deleted"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -330,6 +345,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         !file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files and classes are deleted when processor is removed"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -354,6 +370,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.deletedFiles("AHelper")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "all files are recompiled when processor changes"() {
         given:
         java "@Helper class A {}"
@@ -368,6 +385,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "all files are recompiled if compiler does not support incremental annotation processing"() {
         given:
         buildFile << """
@@ -392,6 +410,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("the chosen compiler did not support incremental annotation processing")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "all files are recompiled if a generated source file is deleted"() {
         given:
         java "@Helper class A {}"
@@ -407,6 +426,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "all files are recompiled if a generated class is deleted"() {
         given:
         java "@Helper class A {}"
@@ -422,6 +442,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "all files are recompiled if a generated resource is deleted"() {
         given:
         java "@Helper class A {}"
@@ -437,6 +458,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "processors must provide an originating element for each source element"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -453,6 +475,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "processors must provide an originating element for each resource"() {
         given:
         withProcessor(new ResourceGeneratingProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -469,6 +492,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated resource 'A.txt in SOURCE_OUTPUT' must have exactly one originating element, but had 0.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "processors cannot provide multiple originating elements for types"() {
         given:
         helperProcessor.withMultipleOriginatingElements = true
@@ -490,6 +514,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains(" must have exactly one originating element, but had 2.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "processors cannot provide multiple originating elements for resources"() {
         given:
         helperProcessor.withMultipleOriginatingElements = true
@@ -510,6 +535,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains(" must have exactly one originating element, but had 2.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "processors can generate identical resources in different locations"() {
         given:
         def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
@@ -537,6 +563,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
     }
 
     @Issue(["https://github.com/gradle/gradle/issues/8128", "https://bugs.openjdk.java.net/browse/JDK-8162455"])
+    @ToBeFixedForIsolatedProjects(because = "annotation processing across projects")
     def "incremental processing doesn't trigger unmatched processor option warning"() {
         buildFile << """
             dependencies {
@@ -557,6 +584,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledClasses("B")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "reports isolating processor in build operation"() {
         java "class Irrelevant {}"
 

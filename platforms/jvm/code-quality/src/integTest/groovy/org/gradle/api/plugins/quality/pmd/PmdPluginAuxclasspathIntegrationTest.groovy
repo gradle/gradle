@@ -22,6 +22,7 @@ import org.junit.Assume
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.containsString
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
     private static final String ASSERTJ_STR = "'org.assertj:assertj-core:3.23.1'" // Some arbitrary dependency which is not already on the worker classpath.
@@ -97,6 +98,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         """.stripIndent()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "pmd plugin uses cross-project configuration")
     def "auxclasspath configured for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -111,6 +113,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             assertContents(containsText("auxclasspath configured"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "pmd plugin uses cross-project configuration")
     def "auxclasspath configured for test sourceset of rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -127,6 +130,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             assertContents(containsText("auxclasspath configured"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "pmd plugin uses cross-project configuration")
     def "auxclasspath not configured properly for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -149,6 +153,7 @@ project("rule-using") {
             assertContents(containsText("auxclasspath not configured"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "pmd plugin uses cross-project configuration")
     def "auxclasspath contains transitive implementation dependencies"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -163,6 +168,7 @@ project("rule-using") {
             assertContents(containsText("auxclasspath configured"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "pmd plugin uses cross-project configuration")
     def "auxclasspath does not contain transitive compileOnly dependencies"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -177,6 +183,7 @@ project("rule-using") {
             assertContents(containsText("auxclasspath not configured"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "pmd plugin uses cross-project configuration")
     def "auxclasspath contains pmdAux dependencies"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 

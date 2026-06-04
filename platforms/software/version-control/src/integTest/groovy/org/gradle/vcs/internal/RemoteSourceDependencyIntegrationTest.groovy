@@ -17,10 +17,12 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 
+@ToBeFixedForIsolatedProjects(because = "allprojects in included build")
 class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer httpServer = new BlockingHttpServer()

@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -333,6 +334,7 @@ The following types/formats are supported:
         deeperCheckout.file('.git').assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects in included build, BlockingHttpServer timeout downstream")
     def 'can resolve the same version for latest.integration within the same build session'() {
         given:
         BlockingHttpServer server = new BlockingHttpServer()

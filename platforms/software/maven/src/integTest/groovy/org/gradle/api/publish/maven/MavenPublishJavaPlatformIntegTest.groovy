@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaPlatformModule
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaPlatformModule javaPlatform = javaPlatform(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
@@ -88,6 +89,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "can define a platform with local projects"() {
         given:
         settingsFile << """
@@ -149,6 +151,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "can define a platform with local projects with customized artifacts"() {
         given:
         createDirs("core", "utils")

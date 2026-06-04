@@ -18,8 +18,10 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 
+@ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
 class ScalaCompileMultiProjectTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     def setup() {
         buildFile << """

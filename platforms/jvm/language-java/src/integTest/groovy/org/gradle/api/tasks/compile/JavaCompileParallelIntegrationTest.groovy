@@ -25,11 +25,13 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 @Requires([TestExecutionPreconditions.NotParallelExecutor])
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 

@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -293,6 +294,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         classpath.lib('baz.txt').assertIsExcludedFromDeployment()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     @Issue("GRADLE-1881")
     void "uses eclipse project name for wtp module dependencies"() {
@@ -334,6 +336,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         assert contribComponent.deployName == 'cool-contrib'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     @Issue("GRADLE-1881")
     void "does not explode if dependent project does not have eclipse plugin"() {
@@ -451,6 +454,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         assert component.contains('coolAppDir')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     @Issue("GRADLE-1974")
     void "may use web libraries container"() {

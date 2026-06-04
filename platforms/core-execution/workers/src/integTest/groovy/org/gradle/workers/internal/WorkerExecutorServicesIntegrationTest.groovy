@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -86,6 +87,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "workers with injected FileSystemOperations service always resolve files from the project directory using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.file.FileSystemOperations fileOperations

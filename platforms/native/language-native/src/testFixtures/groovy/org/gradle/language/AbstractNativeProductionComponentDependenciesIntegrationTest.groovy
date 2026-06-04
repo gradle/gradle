@@ -16,7 +16,10 @@
 
 package org.gradle.language
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 abstract class AbstractNativeProductionComponentDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
+    @ToBeFixedForIsolatedProjects(because = "C++/Swift cross-project native component config")
     def "can define different implementation dependencies on each binary"() {
         given:
         createDirs("lib")

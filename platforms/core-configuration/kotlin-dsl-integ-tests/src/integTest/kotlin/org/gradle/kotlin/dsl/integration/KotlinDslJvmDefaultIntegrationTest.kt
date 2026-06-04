@@ -22,6 +22,7 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 
 class KotlinDslJvmDefaultIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -97,6 +98,7 @@ class KotlinDslJvmDefaultIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `kotlin-dsl java and groovy consumers can use kotlin interface default methods directly`() {
 

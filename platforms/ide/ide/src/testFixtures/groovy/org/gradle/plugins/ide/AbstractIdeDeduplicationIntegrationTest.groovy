@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 
 abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjectIntegrationTest {
 
@@ -23,6 +25,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         return deprecatedTaskNames
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "unique project names are not deduplicated"() {
         given:
         project("root") {
@@ -46,6 +49,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foobar/app") == "app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "deduplicates duplicate ide project names"() {
         given:
         project("root") {
@@ -69,6 +73,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, IDE plugin aggregates subprojects")
     def "dedups child project with same name as parent project"() {
         given:
         project("root") {
@@ -88,6 +93,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
 
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, IDE plugin aggregates subprojects")
     def "handles calculated name matches existing project name"() {
         given:
         project("root") {
@@ -114,6 +120,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("baz/bar") == "baz-bar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, IDE plugin aggregates subprojects")
     def "dedups projects with different nested level"() {
         given:
         project("root") {
@@ -137,6 +144,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("services/bar/app") == "bar-app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "dedups root project name"() {
         given:
         project("app") {
@@ -152,6 +160,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("app") == "app-app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "deduplication works on deduplicated parent module name"() {
         given:
         project("root") {
@@ -179,6 +188,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "allows deduplication with parent not part of the target list"() {
         given:
         project("root") {
@@ -206,6 +216,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, IDE plugin aggregates subprojects")
     def "allows deduplication when root project does not apply IDE plugin"() {
         given:
         project("root", false) {
@@ -228,6 +239,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "removes duplicate words from project dedup prefix"() {
         given:
         project("root"){
@@ -265,6 +277,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("impl/myproject/myproject-foo/app") == "impl-myproject-foo-app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, IDE plugin aggregates subprojects")
     def "will use configured module name"() {
         given:
         project("root") {
@@ -289,6 +302,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "will not de-duplicate module that conflicts with configured module name"() {
         given:
         project("root") {

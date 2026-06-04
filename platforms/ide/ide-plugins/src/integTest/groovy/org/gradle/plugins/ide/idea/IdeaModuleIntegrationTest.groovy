@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -442,6 +443,7 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         content.contains 'hibernate-core.jar'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given

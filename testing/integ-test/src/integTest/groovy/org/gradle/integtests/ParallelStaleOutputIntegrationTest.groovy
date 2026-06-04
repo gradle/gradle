@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
 import org.gradle.util.Matchers
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 @Issue(["https://github.com/gradle/gradle/issues/17812", "https://github.com/gradle/gradle/issues/22090"])
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
         buildFile << """
             abstract class BadTask extends DefaultTask {

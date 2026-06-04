@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -33,6 +34,7 @@ import static org.gradle.test.preconditions.TestEnvironmentPreconditions.HasXCTe
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 @Requires(HasXCTest)
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@ToBeFixedForIsolatedProjects(because = "configure projects from root")
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     @Override
     def getSwiftToolChain() {
