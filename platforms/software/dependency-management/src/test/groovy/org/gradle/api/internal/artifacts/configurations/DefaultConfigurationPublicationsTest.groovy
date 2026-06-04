@@ -131,7 +131,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         child1.artifacts == [] as Set
 
         def child2 = variants[1]
-        child2.displayName.displayName == '<config> variant child'
+        child2.displayName.displayName == "<config> variant 'child'"
         child2.attributes == AttributeTestUtil.attributes(["thing": "value"])
         child2.artifacts == variantDef.artifacts
     }

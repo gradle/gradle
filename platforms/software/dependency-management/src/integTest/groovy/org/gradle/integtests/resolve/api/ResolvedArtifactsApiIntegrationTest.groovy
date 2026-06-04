@@ -563,7 +563,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
           - Provides artifactType 'txt' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'zero' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var1' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
