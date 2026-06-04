@@ -53,7 +53,7 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
                     extendsFrom(deps)
                 }
             }
-            tasks.register("resolveLenient") {
+            tasks.register("resolveLenientFiles") {
                 def files = configurations.res.incoming.artifactView {
                     lenient = true
                 }.files
@@ -61,18 +61,26 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
                     println "files = " + files*.name.sort()
                 }
             }
-            tasks.register("printFailures") {
-                def failures = configurations.res.incoming.artifactView {
+            tasks.register("resolveLenientArtifacts") {
+                def artifacts = configurations.res.incoming.artifactView {
                     lenient = true
-                }.artifacts.failures
+                }.artifacts
                 doLast {
-                    failures.each { println("failure: " + it.message) }
+                    println "files = " + artifacts*.file*.name.sort()
+                }
+            }
+            tasks.register("printFailures") {
+                def artifacts = configurations.res.incoming.artifactView {
+                    lenient = true
+                }.artifacts
+                doLast {
+                    artifacts.failures.each { println("failure: " + it.message) }
                 }
             }
         """
     }
 
-    def "lenient artifact view keeps successful artifacts when a dependency does not exist across CC store/load"() {
+    def "lenient artifact view keeps successful artifacts when a dependency does not exist across CC store/load (#task)"() {
         def good = mavenHttpRepo.module("org", "good").publish()
         def missing = mavenHttpRepo.module("org", "missing")
 
@@ -89,21 +97,24 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         good.pom.expectGet()
         good.artifact.expectGet()
         missing.pom.expectGetMissing()
-        succeeds("resolveLenient")
+        succeeds(task)
 
         then:
         configurationCache.assertStateStored()
         outputContains("files = [good-1.0.jar]")
 
         when:
-        succeeds("resolveLenient")
+        succeeds(task)
 
         then:
         configurationCache.assertStateLoaded()
         outputContains("files = [good-1.0.jar]")
+
+        where:
+        task << ["resolveLenientFiles", "resolveLenientArtifacts"]
     }
 
-    def "lenient artifact view keeps successful artifacts when one artifact download is broken across CC store/load"() {
+    def "lenient artifact view keeps successful artifacts when one artifact download is broken across CC store/load (#task)"() {
         def good = mavenHttpRepo.module("org", "good").publish()
         def broken = mavenHttpRepo.module("org", "broken").publish()
 
@@ -121,18 +132,21 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         good.artifact.expectGet()
         broken.pom.expectGet()
         broken.artifact.expectGetBroken()
-        succeeds("resolveLenient")
+        succeeds(task)
 
         then:
         configurationCache.assertStateStored()
         outputContains("files = [good-1.0.jar]")
 
         when:
-        succeeds("resolveLenient")
+        succeeds(task)
 
         then:
         configurationCache.assertStateLoaded()
         outputContains("files = [good-1.0.jar]")
+
+        where:
+        task << ["resolveLenientFiles", "resolveLenientArtifacts"]
     }
 
     def "lenient artifact view failures are preserved across CC store/load even when other dependencies succeed"() {
@@ -164,6 +178,56 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         then:
         configurationCache.assertStateLoaded()
         outputContains("failure: Could not find org:missing:1.0")
+    }
+
+    def "ArtifactCollection accessors work after CC load when a lenient failure is present"() {
+        def good = mavenHttpRepo.module("org", "good").publish()
+        def missing = mavenHttpRepo.module("org", "missing")
+
+        withBasicProject()
+        withRepo()
+        buildFile """
+            dependencies {
+                deps("org:good:1.0")
+                deps("org:missing:1.0")
+            }
+            tasks.register("inspectArtifactCollection") {
+                def artifacts = configurations.res.incoming.artifactView {
+                    lenient = true
+                }.artifacts
+                def artifactFiles = artifacts.artifactFiles
+                def resolvedArtifacts = artifacts.resolvedArtifacts
+                doLast {
+                    println "artifacts = " + artifacts*.file*.name.sort()
+                    println "artifactFiles = " + artifactFiles*.name.sort()
+                    println "resolvedArtifacts = " + resolvedArtifacts.get()*.file*.name.sort()
+                    println "failures = " + artifacts.failures*.message.sort()
+                }
+            }
+        """
+
+        when:
+        good.pom.expectGet()
+        good.artifact.expectGet()
+        missing.pom.expectGetMissing()
+        succeeds("inspectArtifactCollection")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("artifacts = [good-1.0.jar]")
+        outputContains("artifactFiles = [good-1.0.jar]")
+        outputContains("resolvedArtifacts = [good-1.0.jar]")
+        outputContains("failures = [Could not find org:missing:1.0")
+
+        when:
+        succeeds("inspectArtifactCollection")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("artifacts = [good-1.0.jar]")
+        outputContains("artifactFiles = [good-1.0.jar]")
+        outputContains("resolvedArtifacts = [good-1.0.jar]")
+        outputContains("failures = [Could not find org:missing:1.0")
     }
 
     def "lenient artifact view permits transform with failed input across CC store/load"() {
