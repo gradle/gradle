@@ -26,6 +26,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
+import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
@@ -45,7 +46,7 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
             val sourceVariantId = readNonNull<VariantIdentifier>()
             val targetVariant = readNonNull<ComponentVariantIdentifier>()
             val nodes: List<TransformStepNode> = readList().uncheckedCast()
-            TransformedProjectArtifactSet(sourceVariantId, targetVariant, nodes)
+            TransformedProjectArtifactSet(sourceVariantId, targetVariant, nodes, ownerService())
         }
     }
 }
