@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
+
 // This tests current behaviour, not desired behaviour
 class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
     @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
@@ -42,6 +44,36 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         then:
         assertTransformed()
         output.contains("result = [a.jar.green, b.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "demonstrates CC bug: undeclared project-artifact transform output query fails with project-not-found"() {
+        // Characterization test for the bug in issue #37219.
+        //
+        // Without Configuration Cache, querying the file collection from a `doLast` action triggers
+        // the transform inline and succeeds (see the @ToBeFixedForConfigurationCache test above).
+        //
+        // With Configuration Cache enabled, the very first run already fails when the task action
+        // resolves the artifact view: the producer project's state cannot be reached because the
+        // transform was not declared as a task input (no edge in the work graph), so under CC
+        // restrictions `ProjectStateRegistry.stateFor(...)` reports the producer project as missing.
+        //
+        // This test asserts the current broken behavior. Phase 1 of the fix replaces it with a
+        // deprecation warning emitted before the failure; phase 2 turns the deprecation into a
+        // hard error and removes the path entirely.
+
+        setupBuildWithProjectArtifactTransforms()
+        taskQueriesFilesWithoutDeclaringInput()
+
+        when:
+        executer.withArgument("--configuration-cache")
+        fails("broken")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasCause("Could not resolve all files for configuration ':implementation'.")
+        failure.assertThatCause(containsString("project ':a' not found."))
+        failure.assertThatCause(containsString("project ':b' not found."))
     }
 
     @UnsupportedWithConfigurationCache(because = "task dependency logic is not executed when loaded from the configuration cache")
