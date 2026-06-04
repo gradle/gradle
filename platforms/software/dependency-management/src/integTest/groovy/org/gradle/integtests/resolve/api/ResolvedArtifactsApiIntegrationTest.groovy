@@ -611,10 +611,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             }
 
             task show {
-                inputs.files configurations.compile
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes({it.attribute(usage, 'transformed')})
                 }.artifacts
+                inputs.files artifacts.artifactFiles
                 doLast {
                     println "files: " + artifacts.collect { it.file.name }
                     println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }

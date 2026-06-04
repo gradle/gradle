@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
@@ -24,6 +25,7 @@ import static org.hamcrest.CoreMatchers.containsString
 
 // This tests current behaviour, not desired behaviour
 class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
+    @ToBeFixedForConfigurationCache(because = "phase 1 emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning; phase 2 turns the warning into a hard error before the project lookup")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "querying transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithProjectArtifactTransforms()
@@ -83,6 +85,9 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         taskQueriesFilesDuringTaskGraphCalculation()
 
         when:
+        // The dependsOn closure query during task graph calculation does not fire the deprecation
+        // (no task action on the stack); the doLast query during execution does.
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -90,6 +95,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.count("result = [a.jar.green, b.jar.green]") == 2
 
         when:
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -113,6 +119,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "phase 1 emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning; phase 2 turns the warning into a hard error before the project lookup")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "querying chained transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithChainedProjectArtifactTransforms()
@@ -141,6 +148,9 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         taskQueriesFilesDuringTaskGraphCalculation()
 
         when:
+        // The dependsOn closure query during task graph calculation does not fire the deprecation
+        // (no task action on the stack); the doLast query during execution does.
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -148,6 +158,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.count("result = [a.jar.red.green, b.jar.red.green]") == 2
 
         when:
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
