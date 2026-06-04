@@ -30,24 +30,20 @@ import java.util.Objects;
  * properly implement {@link #equals(Object)} and {@link #hashCode()}.
  */
 public final class SourceVariantData {
-    private final String variantName;
+    private final String variantDisplayName;
     private final ImmutableAttributes attributes;
 
-    public SourceVariantData(String variantName, ImmutableAttributes attributes) {
-        this.variantName = variantName;
+    public SourceVariantData(String variantDisplayName, ImmutableAttributes attributes) {
+        this.variantDisplayName = variantDisplayName;
         this.attributes = attributes;
-    }
-
-    public String getVariantName() {
-        return variantName;
     }
 
     public ImmutableAttributes getAttributes() {
         return attributes;
     }
 
-    public String getFormattedVariantName() {
-        return variantName;
+    public String getVariantDisplayName() {
+        return variantDisplayName;
     }
 
     @Override
@@ -60,12 +56,12 @@ public final class SourceVariantData {
         }
 
         SourceVariantData that = (SourceVariantData) o;
-        return Objects.equals(variantName, that.variantName) && Objects.equals(attributes, that.attributes);
+        return Objects.equals(variantDisplayName, that.variantDisplayName) && Objects.equals(attributes, that.attributes);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(variantName);
+        int result = Objects.hashCode(variantDisplayName);
         result = 31 * result + Objects.hashCode(attributes);
         return result;
     }
