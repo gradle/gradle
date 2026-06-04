@@ -642,9 +642,9 @@ Reading the files of a `FileCollection` whose artifacts are produced by an artif
 Without the Configuration Cache, this pattern silently runs the transform inline on the calling thread.
 With the Configuration Cache, the producer project's state is not reachable from a task action that did not declare the transform as an input, and the first build fails with `project <name> not found`.
 
-To fix this, declare the `FileCollection` as a task input — typically via `inputs.files(...)`, or by exposing it through a typed `@InputFiles` property on a custom task. The transform steps will then be wired into the execution plan.
+To fix this, declare the artifact view as a task input — either via `inputs.files(...)` on the `FileCollection` exposed by `ArtifactView.getFiles()`, or, when consuming an `ArtifactCollection`, via `inputs.files(...)` on `ArtifactCollection.getArtifactFiles()`. Both wire the transform steps into the execution plan. You can also expose the collection through a typed `@InputFiles` property on a custom task type.
 
-For example:
+Declaring a transformed `FileCollection` view as a task input:
 
 [source,groovy]
 ----
@@ -664,6 +664,31 @@ tasks.register("consume") {
     inputs.files(view).withPropertyName("colored")
     doLast {
         println "result = " + view.files.name
+    }
+}
+----
+
+Declaring a transformed `ArtifactCollection` view as a task input — note that declaring the raw `Configuration` (`inputs.files(configurations.compile)`) is NOT enough, because it only schedules the source artifacts, not the transforms:
+
+[source,groovy]
+----
+def artifacts = configurations.compile.incoming.artifactView {
+    attributes { it.attribute(usage, 'transformed') }
+}.artifacts
+
+// Deprecated: declaring the raw configuration doesn't wire the transform.
+tasks.register("show") {
+    inputs.files configurations.compile
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+    }
+}
+
+// Recommended: declare the transformed artifact view's artifactFiles as the input.
+tasks.register("show") {
+    inputs.files artifacts.artifactFiles
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
     }
 }
 ----
