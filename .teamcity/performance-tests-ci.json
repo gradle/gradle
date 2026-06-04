@@ -53,14 +53,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
-    "groups" : [ {
-      "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
     "groups" : [ {
       "testProject" : "nowInAndroidBuild",

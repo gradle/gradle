@@ -16,7 +16,7 @@
 
 plugins {
     id("gradlebuild.no-module-annotation")
-    id("gradlebuild.public-api-jar")
+    id("gradlebuild.public-api-publish")
     id("gradlebuild.publish-defaults")
     id("signing")
 }

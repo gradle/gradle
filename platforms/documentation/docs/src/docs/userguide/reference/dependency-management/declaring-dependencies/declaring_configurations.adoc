@@ -329,8 +329,8 @@ Suppose you want to generate Javadocs with AsciiDoc formatting embedded within y
 By setting up the `asciidoclet` configuration, you enable Gradle to use Asciidoclet, allowing your Javadoc task to produce HTML documentation with enhanced formatting options:
 
 ====
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/basic/kotlin",files="build.gradle.kts[tags=create-custom-doclet]"]
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/basic/groovy",files="build.gradle[tags=create-custom-doclet]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/asciidoclet/kotlin",files="build.gradle.kts[tags=create-custom-doclet]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/asciidoclet/groovy",files="build.gradle[tags=create-custom-doclet]"]
 ====
 
 You can manage custom configurations using the `configurations` block.
