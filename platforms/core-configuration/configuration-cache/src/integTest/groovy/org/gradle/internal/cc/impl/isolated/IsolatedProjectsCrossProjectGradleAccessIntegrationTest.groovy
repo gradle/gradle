@@ -33,10 +33,10 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         """
 
         when:
-        isolatedProjectsFails ":a:help"
+        isolatedProjectsFailsUsing mode, ":a:help"
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a")
             problem("Build file 'a/build.gradle': line 8: Project ':a' cannot access Gradle.extensions")
         }
@@ -70,6 +70,9 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
             "ext",
             "foo = new DefaultFoo()",
         ]
+
+        combined:
+        mode << ALL_MODES
     }
 
     def "reports a problem on project-level access to mutable Gradle state via #invocation"() {
@@ -81,10 +84,10 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         """
 
         when:
-        isolatedProjectsFails ":a:help"
+        isolatedProjectsFailsUsing mode, ":a:help"
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a")
             problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access Gradle.$problemAccess")
         }
@@ -96,5 +99,8 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         "apply({})"           | "apply"
         "apply({} as Action)" | "apply"
         "getPluginManager()"  | "getPluginManager"
+
+        combined:
+        mode << ALL_MODES
     }
 }
