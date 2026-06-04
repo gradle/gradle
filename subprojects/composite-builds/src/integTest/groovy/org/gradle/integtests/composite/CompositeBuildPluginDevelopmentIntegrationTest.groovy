@@ -679,6 +679,7 @@ dependencies {
 }
 tasks.register("resolve") {
     def compileClasspath = configurations.compileClasspath
+    inputs.files(compileClasspath)
     doLast {
         compileClasspath.files
     }
@@ -693,6 +694,7 @@ dependencies {
 }
 tasks.register("resolve") {
     def compileClasspath = configurations.compileClasspath
+    inputs.files(compileClasspath)
     doLast {
         compileClasspath.files
     }

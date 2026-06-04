@@ -131,6 +131,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectUndeclaredTransformInputDeprecation()
         run 'otherBuild'
 
         then:
@@ -291,4 +292,15 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         def runNestedBuildOps = buildOperations.all(RunNestedBuildBuildOperationType)
         runNestedBuildOps.size() == 3
     }
+
+    // region helpers
+    private void expectUndeclaredTransformInputDeprecation() {
+        executer.expectDocumentedDeprecationWarning(
+            "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10. " +
+            "Declare the FileCollection as a task input (for example via inputs.files(view)) so the transform is wired into the execution plan. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
+        )
+    }
+    // endregion
 }
