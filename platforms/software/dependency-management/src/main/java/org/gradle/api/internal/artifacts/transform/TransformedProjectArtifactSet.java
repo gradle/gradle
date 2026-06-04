@@ -109,7 +109,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
             return;
         }
         for (TransformStepNode node : transformedArtifacts) {
-            if (!node.wasScheduled()) {
+            if (!node.wasScheduledViaTaskDependency()) {
                 DeprecationLogger.deprecate(
                     "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input"
                 )

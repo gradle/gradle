@@ -62,16 +62,9 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     private final long transformStepNodeId;
 
     private PlannedTransformStepIdentity cachedIdentity;
-    /**
-     * Whether this node has been registered with the execution plan via a declared task dependency.
-     *
-     * <p>{@code false} for nodes that are only reachable through a {@link org.gradle.api.file.FileCollection}
-     * queried by a task action without being declared as that task's input. Such nodes will run inline via
-     * {@link #executeIfNotAlready()} on the calling thread, which under Configuration Cache fails with
-     * "project not found" because the producer project's state is not reachable from a task action
-     * that did not declare the transform as an input.
-     */
-    private volatile boolean scheduled;
+
+    /** Whether this node entered the execution plan via a declared task dependency. */
+    private volatile boolean scheduledViaTaskDependency;
 
     protected TransformStepNode(
         long transformStepNodeId,
@@ -93,12 +86,12 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         return transformStepNodeId;
     }
 
-    public boolean wasScheduled() {
-        return scheduled;
+    public boolean wasScheduledViaTaskDependency() {
+        return scheduledViaTaskDependency;
     }
 
-    public void markScheduled() {
-        this.scheduled = true;
+    public void markScheduledViaTaskDependency() {
+        this.scheduledViaTaskDependency = true;
     }
 
     public ComponentVariantIdentifier getTargetComponentVariant() {

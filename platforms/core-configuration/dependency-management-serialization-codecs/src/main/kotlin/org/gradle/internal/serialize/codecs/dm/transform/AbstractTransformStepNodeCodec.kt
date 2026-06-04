@@ -43,7 +43,7 @@ abstract class AbstractTransformStepNodeCodec<T : TransformStepNode>(
             write(value.sourceAttributes)
             write(unpackTransformStep(value))
             encodeSourceArtifact(value)
-            writeBoolean(value.wasScheduled())
+            writeBoolean(value.wasScheduledViaTaskDependency())
         }
     }
 
@@ -55,7 +55,7 @@ abstract class AbstractTransformStepNodeCodec<T : TransformStepNode>(
             val transformStepSpec = readNonNull<TransformStepSpec>()
             val node = recreate(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStepSpec)
             if (readBoolean()) {
-                node.markScheduled()
+                node.markScheduledViaTaskDependency()
             }
             node
         }

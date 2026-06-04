@@ -34,7 +34,7 @@ public class TransformStepNodeDependencyResolver implements DependencyResolver {
             DefaultTransformNodeDependency transformNodeDependency = (DefaultTransformNodeDependency) node;
             for (TransformStepNode transformStepNode : transformNodeDependency.getNodes()) {
                 resolveAction.execute(transformStepNode);
-                transformStepNode.markScheduled();
+                transformStepNode.markScheduledViaTaskDependency();
             }
             return true;
         }
