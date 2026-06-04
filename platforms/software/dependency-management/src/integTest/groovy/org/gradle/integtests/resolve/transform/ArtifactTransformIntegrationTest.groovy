@@ -1661,6 +1661,10 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar, jar2.jar]")
 
         when:
+        // queryView's doLast iterates configView without declaring inputs.files(configView),
+        // so the project-artifact transforms run inline at execution time — triggers the
+        // new undeclared-transform deprecation.
+        expectUndeclaredTransformDeprecation()
         succeeds "queryView"
 
         then:
@@ -1671,6 +1675,7 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
 
         when:
+        expectUndeclaredTransformDeprecation()
         succeeds "queryView"
 
         then:
@@ -2941,6 +2946,18 @@ Found the following transformation chains:
                 }
             }
         """
+    }
+
+    private void expectUndeclaredTransformDeprecation() {
+        executer.expectDocumentedDeprecationWarning(
+            "Querying the output of an artifact transform of a project artifact " +
+                "from a task action without declaring it as a task input has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "Declare the FileCollection as a task input (for example via inputs.files(view)) " +
+                "so the transform is wired into the execution plan. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
+        )
     }
 
     def configurationAndTransform(String transformImplementation = "FileSizer") {
