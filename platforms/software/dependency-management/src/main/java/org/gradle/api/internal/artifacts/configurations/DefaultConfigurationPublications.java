@@ -39,8 +39,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.FinalizableValue;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
@@ -49,7 +47,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications {
 
