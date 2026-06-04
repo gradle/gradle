@@ -4,6 +4,11 @@ plugins {
     id("maven-publish")
 }
 
+tasks.named("compileJava") { // <1>
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -11,7 +16,8 @@ publishing {
         }
     }
 }
-tasks.named("generatePomFileForMavenPublication") { // <1>
+
+tasks.named("generatePomFileForMavenPublication") { // <2>
     pom.url = "sample.gradle.org"
 }
 // end::avoid-this[]
