@@ -25,7 +25,7 @@ import static org.hamcrest.CoreMatchers.containsString
 
 // This tests current behaviour, not desired behaviour
 class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
-    @ToBeFixedForConfigurationCache(because = "phase 1 emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning; phase 2 turns the warning into a hard error before the project lookup")
+    @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "querying transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithProjectArtifactTransforms()
@@ -48,21 +48,19 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.green, b.jar.green]")
     }
 
+    @UnsupportedWithConfigurationCache(because = "explicitly enables Configuration Cache in the test body to demonstrate the project-not-found failure")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "demonstrates CC bug: undeclared project-artifact transform output query fails with project-not-found"() {
         // Characterization test for the bug in issue #37219.
-        //
-        // Without Configuration Cache, querying the file collection from a `doLast` action triggers
-        // the transform inline and succeeds (see the @ToBeFixedForConfigurationCache test above).
         //
         // With Configuration Cache enabled, the very first run already fails when the task action
         // resolves the artifact view: the producer project's state cannot be reached because the
         // transform was not declared as a task input (no edge in the work graph), so under CC
         // restrictions `ProjectStateRegistry.stateFor(...)` reports the producer project as missing.
         //
-        // This test asserts the current broken behavior. Phase 1 of the fix replaces it with a
-        // deprecation warning emitted before the failure; phase 2 turns the deprecation into a
-        // hard error and removes the path entirely.
+        // A deprecation warning is currently emitted before the failure. Eventually this access
+        // pattern should produce a hard error before the project lookup, replacing the cryptic
+        // "project not found" with a clear up-front diagnostic.
 
         setupBuildWithProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
