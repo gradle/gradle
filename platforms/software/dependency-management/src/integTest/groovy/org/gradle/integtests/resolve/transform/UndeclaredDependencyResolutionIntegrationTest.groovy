@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
@@ -25,13 +24,13 @@ import static org.hamcrest.CoreMatchers.containsString
 
 // This tests current behaviour, not desired behaviour
 class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
-    @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
     @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "task can query FileCollection containing the output of transform of project artifacts without declaring this access"() {
+    def "querying transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
 
         when:
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -39,6 +38,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.green, b.jar.green]")
 
         when:
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -67,6 +67,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.withArgument("--configuration-cache")
+        expectUndeclaredTransformDeprecation()
         fails("broken")
 
         then:
@@ -112,12 +113,13 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
-    def "task can query FileCollection containing the output of chained transform of project artifacts without declaring this access"() {
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "querying chained transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithChainedProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
 
         when:
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -125,6 +127,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.red.green, b.jar.red.green]")
 
         when:
+        expectUndeclaredTransformDeprecation()
         run("broken")
 
         then:
@@ -421,6 +424,20 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
                 }
             }
         """
+    }
+
+    private void expectUndeclaredTransformDeprecation() {
+        // The message text must exactly match the deprecation emitted in
+        // TransformedProjectArtifactSet#nagIfUndeclared (see DeprecationLogger.deprecateBehaviour call).
+        executer.expectDocumentedDeprecationWarning(
+            "Querying the output of an artifact transform of a project artifact " +
+                "from a task action without declaring it as a task input has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "Declare the FileCollection as a task input (for example via inputs.files(view)) " +
+                "so the transform is wired into the execution plan. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
+        )
     }
 
 }
