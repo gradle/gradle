@@ -126,6 +126,12 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             }
             """
         )
+        file("plugin/gradle.properties").setText(
+            """
+            # KGP 1.9.x registers its build statistics (FUS) listener via an unsupported provider, which is a configuration cache problem.
+            enable_kotlin_performance_profile=false
+            """
+        )
         file("plugin/src/main/kotlin/com/example/MyPlugin.kt").setText(
             """
             package com.example
