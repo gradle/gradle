@@ -16,12 +16,14 @@
 
 package org.gradle.kotlin.dsl.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.gradle.util.GradleVersion
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -60,6 +62,8 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
     @Test
     fun `plugin built with current Gradle can be applied with an older Gradle version`() {
+        assumeTrue(JavaVersion.current() < JavaVersion.VERSION_25 || GradleVersion.version(gradleVersion) >= GradleVersion.version("9.0.0"))
+
         buildPlugin()
 
         val result = applyPlugin()
