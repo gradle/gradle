@@ -28,28 +28,27 @@ import org.gradle.internal.serialize.graph.readNonNull
 
 
 class ChainedTransformStepNodeCodec(
-    private val transformStepNodeFactory: TransformStepNodeFactory,
-    private val buildOperationRunner: BuildOperationRunner,
-    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
-) : AbstractTransformStepNodeCodec<TransformStepNode.ChainedTransformStepNode>() {
+    transformStepNodeFactory: TransformStepNodeFactory,
+    buildOperationRunner: BuildOperationRunner,
+    calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : AbstractTransformStepNodeCodec<TransformStepNode.ChainedTransformStepNode>(
+    transformStepNodeFactory,
+    buildOperationRunner,
+    calculatedValueContainerFactory
+) {
 
-    override suspend fun WriteContext.doEncode(value: TransformStepNode.ChainedTransformStepNode) {
-        writeLong(value.transformStepNodeId)
-        write(value.targetComponentVariant)
-        write(value.sourceAttributes)
-        write(unpackTransformStep(value))
+    override suspend fun WriteContext.encodeSourceArtifact(value: TransformStepNode.ChainedTransformStepNode) {
         write(value.previousTransformStepNode)
-        writeBoolean(value.wasScheduled())
     }
 
-    override suspend fun ReadContext.doDecode(): TransformStepNode.ChainedTransformStepNode {
-        val transformStepNodeId = readLong()
-        val targetComponentVariant = readNonNull<ComponentVariantIdentifier>()
-        val sourceAttributes = readNonNull<AttributeContainer>()
-        val transformStepSpec = readNonNull<TransformStepSpec>()
+    override suspend fun ReadContext.recreate(
+        transformStepNodeId: Long,
+        targetComponentVariant: ComponentVariantIdentifier,
+        sourceAttributes: AttributeContainer,
+        transformStepSpec: TransformStepSpec
+    ): TransformStepNode.ChainedTransformStepNode {
         val previousStep = readNonNull<TransformStepNode>()
-        val scheduled = readBoolean()
-        val node = transformStepNodeFactory.recreateChained(
+        return transformStepNodeFactory.recreateChained(
             transformStepNodeId,
             targetComponentVariant,
             sourceAttributes,
@@ -59,9 +58,5 @@ class ChainedTransformStepNodeCodec(
             buildOperationRunner,
             calculatedValueContainerFactory
         )
-        if (scheduled) {
-            node.markScheduled()
-        }
-        return node
     }
 }
