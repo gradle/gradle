@@ -47,12 +47,7 @@ public final class SourceVariantData {
     }
 
     public String getFormattedVariantName() {
-        int variantIdx = variantName.indexOf(" variant ");
-        if (variantIdx == -1) {
-            return variantName;
-        } else {
-            return variantName.substring(0, variantIdx + 9) + "'" + variantName.substring(variantIdx + 9) + "'";
-        }
+        return variantName;
     }
 
     @Override
