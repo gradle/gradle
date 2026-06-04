@@ -16,8 +16,6 @@
 
 package org.gradle.features.internal.binding;
 
-import org.gradle.api.Plugin;
-
 import java.util.List;
 
 /**
@@ -31,7 +29,7 @@ public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     }
 
     @Override
-    public void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, Plugin<?> plugin, ProjectFeatureImplementation<?, ?> projectFeatureImplementation) {
-        defaultsHandlers.forEach(handler -> handler.apply(target, definition, classLoaderContext, projectFeatureImplementation.getFeatureName(), plugin));
+    public void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, ProjectFeatureImplementation<?, ?> projectFeatureImplementation) {
+        defaultsHandlers.forEach(handler -> handler.apply(target, definition, classLoaderContext, projectFeatureImplementation.getFeatureName()));
     }
 }

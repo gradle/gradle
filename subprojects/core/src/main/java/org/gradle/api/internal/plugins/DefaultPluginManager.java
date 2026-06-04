@@ -194,6 +194,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             // plugins.withType() callbacks waiting to build on what the plugin did
             instances.put(pluginClass, pluginInstance);
             pluginContainer.pluginAdded(pluginInstance);
+        } else if (plugin.getType() == PotentialPlugin.Type.PROJECT_FEATURE_DECLARATION_CLASS) {
+            // Register-only, like the rules branch: there is no Plugin instance to produce or store.
+            target.applyProjectFeatureDeclaration(pluginId, pluginClass);
         } else {
             target.applyRules(pluginId, pluginClass);
         }

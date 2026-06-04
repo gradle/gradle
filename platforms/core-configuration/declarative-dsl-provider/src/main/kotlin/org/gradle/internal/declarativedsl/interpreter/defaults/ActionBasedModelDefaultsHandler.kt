@@ -17,7 +17,6 @@ package org.gradle.internal.declarativedsl.interpreter.defaults
 
 import org.gradle.api.Action
 import org.gradle.api.GradleException
-import org.gradle.api.Plugin
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.DynamicObjectAware
@@ -38,7 +37,7 @@ class ActionBasedModelDefaultsHandler(
     private val projectFeatureDeclarations: ProjectFeatureDeclarations,
 ) : ModelDefaultsHandler {
 
-    override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
+    override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String) {
         val projectFeatureImplementations: Set<ProjectFeatureImplementation<*, *>> = projectFeatureDeclarations.getProjectFeatureImplementations()[projectFeatureName]!!
 
         val projectFeatureImplementation: ProjectFeatureImplementation<*, *>? = projectFeatureImplementations.find {

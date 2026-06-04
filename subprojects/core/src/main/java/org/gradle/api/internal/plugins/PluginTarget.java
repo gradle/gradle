@@ -36,4 +36,11 @@ public interface PluginTarget {
     void applyRules(@Nullable String pluginId, Class<?> clazz);
 
     void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass);
+
+    /**
+     * Applies a schema project type/feature declaration: a class that is a schema apply action rather than a
+     * {@link Plugin}. Only the settings target supports this (it registers the declaration); other targets
+     * reject it with a clear error.
+     */
+    void applyProjectFeatureDeclaration(@Nullable String pluginId, Class<?> declarationClass);
 }

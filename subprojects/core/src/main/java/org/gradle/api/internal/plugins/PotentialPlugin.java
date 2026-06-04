@@ -29,7 +29,8 @@ public interface PotentialPlugin<T> {
         UNKNOWN,
         IMPERATIVE_CLASS,
         PURE_RULE_SOURCE_CLASS,
-        HYBRID_IMPERATIVE_AND_RULES_CLASS
+        HYBRID_IMPERATIVE_AND_RULES_CLASS,
+        PROJECT_FEATURE_DECLARATION_CLASS
     }
 
     Class<? extends T> asClass();

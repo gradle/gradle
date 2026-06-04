@@ -229,7 +229,8 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
 private fun ProjectFeatureInfo<*, *>.projectFeatureOriginMetadata(): DefaultProjectFeatureOrigin = DefaultProjectFeatureOrigin(
     delegate.featureName,
     delegate.pluginClass.name,
-    delegate.registeringPluginClass.name,
+    // Null for schema declarations applied directly in settings (no registering ecosystem plugin).
+    delegate.registeringPluginClass?.name ?: "",
     delegate.registeringPluginId,
     (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
     (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,

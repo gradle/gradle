@@ -17,7 +17,6 @@
 package org.gradle.features.internal.binding;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
@@ -53,9 +52,19 @@ public interface ProjectFeatureImplementation<OwnDefinition extends Definition<O
 
     Map<Class<?>, Class<?>> getNestedBuildModelTypes();
 
-    Class<? extends Plugin<Project>> getPluginClass();
+    /**
+     * The class that defines this feature. For the binding path this is the {@link Plugin} that
+     * hosts the binding; for the schema (direct-application) path this is the schema apply action
+     * class itself, which is not a {@link Plugin}. Used for reporting and (when it is actually a
+     * {@link Plugin}) for applying the project plugin when the feature is first used.
+     */
+    Class<?> getPluginClass();
 
-    Class<? extends Plugin<Settings>> getRegisteringPluginClass();
+    /**
+     * The settings plugin that registered this feature via {@code @RegistersProjectFeatures}, or
+     * {@code null} when the feature was applied directly in settings (the schema/direct path).
+     */
+    @Nullable Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
     @Nullable String getRegisteringPluginId();
 

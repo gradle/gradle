@@ -39,6 +39,15 @@ public interface ProjectFeatureDeclarations {
     void addDeclaration(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
+     * Declares a schema apply action class as providing a project type or feature directly (applied in a
+     * settings {@code plugins { }} block, with no registering settings plugin). The class must implement
+     * {@code SchemaProjectTypeApplyAction} or {@code SchemaProjectFeatureApplyAction} and carry the matching
+     * {@code @ProjectType}/{@code @ProjectFeature} annotation. Cannot be called once the list of project
+     * features has been queried via {@link #getProjectFeatureImplementations()}.
+     */
+    void addSchemaDeclaration(@Nullable String pluginId, Class<?> schemaApplyActionClass);
+
+    /**
      * Returns a map of available project features, along with their types and associated plugins, keyed by project feature name.  Note that once
      * method is called, calling {@link #addDeclaration(String, Class, Class)} will result in an error.
      */

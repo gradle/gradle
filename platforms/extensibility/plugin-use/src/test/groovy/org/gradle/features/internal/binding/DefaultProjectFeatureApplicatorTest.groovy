@@ -31,7 +31,6 @@ import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.Cast
@@ -68,7 +67,6 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     def instantiator = TestUtil.instantiatorFactory().inject(new Services())
     def applicator = instantiator.newInstance(DefaultProjectFeatureApplicator.class, classLoaderScope, objectFactory, internalProblemReporter, services)
     def plugin = Mock(Plugin)
-    def plugins = Mock(PluginContainer)
     def boundProjectTypeImplementation = Mock(BoundProjectFeatureImplementation)
     def applyActionFactory = Mock(ProjectFeatureApplyActionFactory)
     def foo = definitionOf(Foo)
@@ -111,15 +109,13 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
         _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
         _ * applyActionFactory.create(_) >> Mock(ProjectFeatureApplyAction)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, boundProjectTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, boundProjectTypeImplementation)
         1 * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
         1 * featureObjectFactory.newInstance(Foo) >> foo
         1 * typeAnnotationMetadataStore.getTypeAnnotationMetadata(Foo) >> Mock(TypeAnnotationMetadata) {
             _ * it.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
         }
         1 * boundProjectTypeImplementation.definitionPublicType >> Foo
-        1 * pluginManager.pluginContainer >> plugins
-        1 * plugins.getPlugin(plugin.class) >> plugin
 
         and:
         returned.definitionInstance == foo
@@ -145,10 +141,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
         _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
         _ * applyActionFactory.create(_) >> Mock(ProjectFeatureApplyAction)
-        _ * pluginManager.pluginContainer >> plugins
-        _ * plugins.getPlugin(plugin.class) >> plugin
         1 * pluginManager.apply(plugin.class)
-        1 * modelDefaultsApplicator.applyDefaultsTo(project, _, _, plugin, boundProjectTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(project, _, _, boundProjectTypeImplementation)
         1 * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
         1 * featureObjectFactory.newInstance(Foo) >> foo
         1 * typeAnnotationMetadataStore.getTypeAnnotationMetadata(Foo) >> Mock(TypeAnnotationMetadata) {
@@ -175,15 +169,13 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
         _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
         _ * applyActionFactory.create(_) >> applyAction
-        _ * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, boundProjectTypeImplementation)
+        _ * modelDefaultsApplicator.applyDefaultsTo(target, _, _, boundProjectTypeImplementation)
         _ * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
         _ * featureObjectFactory.newInstance(Foo) >> foo
         _ * typeAnnotationMetadataStore.getTypeAnnotationMetadata(Foo) >> Mock(TypeAnnotationMetadata) {
             _ * it.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
         }
         _ * boundProjectTypeImplementation.definitionPublicType >> Foo
-        _ * pluginManager.pluginContainer >> plugins
-        _ * plugins.getPlugin(plugin.class) >> plugin
 
         def featureApplication = applicator.registerFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
 
