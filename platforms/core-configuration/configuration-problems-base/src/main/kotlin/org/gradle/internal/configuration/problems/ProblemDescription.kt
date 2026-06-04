@@ -47,6 +47,7 @@ fun firstTypeFrom(trace: PropertyTrace): Class<*> =
 private
 fun typeFrom(trace: PropertyTrace): Class<out Any>? = when (trace) {
     is PropertyTrace.Bean -> trace.type
+    is PropertyTrace.SerializedLambda -> java.lang.invoke.SerializedLambda::class.java
     is PropertyTrace.Task -> trace.type
     else -> null
 }

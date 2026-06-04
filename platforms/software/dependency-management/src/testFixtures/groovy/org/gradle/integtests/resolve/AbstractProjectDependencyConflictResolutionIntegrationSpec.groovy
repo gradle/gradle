@@ -56,24 +56,6 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
      */
     abstract boolean isAutoDependencySubstitution();
 
-    /**
-     * The deprecation warning expected when the {@code check()} task helper calls {@code projectId(...)}
-     * or {@code moduleId(...)} during configuration of {@code ProjectA}. Subclasses whose
-     * {@link #moduleDefinition} configures modules via {@code project(':...') {}} blocks inside a parent
-     * build script will see those calls walk up the project hierarchy and trigger the implicit
-     * parent-method-lookup deprecation added in Gradle 9.6. Subclasses that inline the check helper
-     * into each module's own build script return {@code null}.
-     */
-    abstract String parentMethodLookupDeprecationFor(String methodName);
-
-    protected static String formatParentMethodLookupDeprecation(String methodName, String referrerPath, String resolverDisplayName) {
-        return "Implicitly resolving methods in the project hierarchy has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Method '${methodName}' was not declared in project '${referrerPath}' and was resolved from ${resolverDisplayName}. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
-    }
-
     def "project (#projectDep) vs external resolves to (#winner), when preferProjectModules=#preferProjectModules and depSubstitution=#depSubstitution"() {
         def transitiveDep = "2.0"
         given:
@@ -114,7 +96,6 @@ $includeMechanism 'ProjectA'
             task check {
                 dependsOn ${dependsOnMechanism('ProjectA', 'checkModuleC_conf')}
             }
-            ${checkHelper(buildId, projectPath)}
 """
         moduleDefinition('ModuleC', """
             group = "myorg"
@@ -125,6 +106,17 @@ $includeMechanism 'ProjectA'
 """)
 
         moduleDefinition('ProjectA', """
+            def moduleId(String group, String name, String version) {
+                def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
+                return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
+            }
+
+            def projectId(String projectName) {
+                def buildId = $buildId
+                def projectPath = $projectPath
+                return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
+            }
+
             repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations { conf }
@@ -143,15 +135,6 @@ $includeMechanism 'ProjectA'
 """)
 
         then:
-        def declaredDeprecation = parentMethodLookupDeprecationFor('projectId')
-        if (declaredDeprecation != null) {
-            // Subclass uses project(':ProjectA') {} blocks (or the equivalent nested in a composite),
-            // so check() embeds projectId()/moduleId() calls that walk up the project hierarchy.
-            // Two warnings fire per row: one always for projectId (from $declaredDependencyId) and
-            // one for the method referenced by the winner expression.
-            executer.expectDocumentedDeprecationWarning(declaredDeprecation)
-            executer.expectDocumentedDeprecationWarning(parentMethodLookupDeprecationFor(winnerMethod))
-        }
         succeeds('check')
 
         where:
@@ -187,20 +170,6 @@ $includeMechanism 'ProjectA'
 
                 assert projectDependency && projectDependency.selected.id == expected
             }
-        }
-"""
-    }
-
-    static String checkHelper(String buildId, String projectPath) { """
-        def moduleId(String group, String name, String version) {
-            def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
-            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
-        }
-
-        def projectId(String projectName) {
-            def buildId = $buildId
-            def projectPath = $projectPath
-            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
         }
 """
     }

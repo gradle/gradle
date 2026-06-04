@@ -84,10 +84,11 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         and: "Kotlin DSL script compile classpath"
         !kotlinModel.compileClassPath.isEmpty()
-        kotlinModel.compileClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
         kotlinModel.compileClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
         kotlinModel.compileClassPath.find { it.name.contains("kotlin-stdlib-") && it.name.endsWith(".jar") }
         kotlinModel.compileClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
+        // This spec uses :distributions-jvm which does not embed the public-API ABI jar
+        kotlinModel.compileClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
 
         and: "Kotlin DSL script implicit imports"
         kotlinModel.implicitImports.find {it.equals("org.gradle.api.Action")}

@@ -34,8 +34,18 @@ public interface GradleApiClasspathProvider {
     ClassPath getGradleApi();
 
     /**
+     * Returns the classpath for the Kotlin DSL ABI.
+     *
+     * <p>Falls back to {@link #getGradleKotlinDslApi()} when the running distribution does
+     * not contain the ABI jar. Production distributions always have it.
+     */
+    ClassPath getGradleKotlinDslAbi();
+
+    /**
      * Returns the classpath for the Kotlin DSL API.
+     *
+     * <p>Built from the dynamically-generated {@code gradle-api.jar} plus Kotlin DSL specific libraries
+     * and extensions.
      */
     ClassPath getGradleKotlinDslApi();
-
 }

@@ -54,7 +54,6 @@ class CompositeBuildProjectDependencyConflictResolutionIntegrationTest extends A
     void moduleDefinition(String name, String definition) {
         buildTestFixture.populate(name) {
             buildFile << definition
-            buildFile << checkHelper(buildId, projectPath)
         }
     }
 
@@ -63,10 +62,4 @@ class CompositeBuildProjectDependencyConflictResolutionIntegrationTest extends A
         true
     }
 
-    @Override
-    String parentMethodLookupDeprecationFor(String methodName) {
-        // moduleDefinition() inlines checkHelper() into each included build's own build script,
-        // so projectId()/moduleId() resolve locally without walking the project hierarchy.
-        null
-    }
 }

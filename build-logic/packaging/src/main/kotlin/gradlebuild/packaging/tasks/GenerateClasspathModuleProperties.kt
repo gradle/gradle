@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -37,7 +36,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
@@ -145,18 +143,11 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
     }
 
     private fun getIdentity(component: ResolvedComponentResult): Pair<String, ModuleAlias?> {
-        when (val id = component.id) {
-            is ModuleComponentIdentifier -> {
-                val moduleName: String = id.module
-                val alias = ModuleAlias(id.group, id.module, id.version)
-                return moduleName to alias
-            }
-            is ProjectComponentIdentifier -> {
-                val moduleName: String = "gradle-" + id.projectName
-                return moduleName to null
-            }
-            else -> throw AssertionError("Unknown component type ${component.id}")
-        }
+        val id = component.id
+        val moduleName = id.distributionModuleNameOrNull()
+            ?: throw AssertionError("Unknown component type $id")
+        val alias = (id as? ModuleComponentIdentifier)?.let { ModuleAlias(it.group, it.module, it.version) }
+        return moduleName to alias
     }
 
     data class GraphNode(
@@ -181,8 +172,7 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
             val componentId = ids[i]
 
             nodesWithoutArtifacts.remove(componentId)
-            val graphNode = nodesByComponentId[componentId] ?:
-                error("Could not find graph node for artifact $componentId")
+            val graphNode = nodesByComponentId[componentId] ?: error("Could not find graph node for artifact $componentId")
 
             val dependencyNames = graphNode.dependencyComponentIds.map {
                 nodesByComponentId.getModuleName(it)
@@ -226,26 +216,68 @@ data class ModuleAlias(
 )
 
 
+/**
+ * Generates the module properties file for a single distribution jar, given its registry module name
+ * explicitly. [GenerateClasspathModuleProperties] derives names from a resolved dependency graph instead.
+ */
 @CacheableTask
-abstract class GenerateEmptyModuleProperties : DefaultTask() {
+abstract class GenerateSingleModuleProperties : DefaultTask() {
 
     @get:Input
+    abstract val moduleName: Property<String>
+
+    /** Absent when the distribution does not include the jar, in which case no file is produced. */
+    @get:Input
+    @get:Optional
     abstract val artifactFileName: Property<String>
 
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
+    /** Left empty for jars without dependencies; otherwise set through [configureDependenciesFrom]. */
+    @get:Input
+    abstract val dependencyNames: ListProperty<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    /**
+     * Names follow the same scheme as [GenerateClasspathModuleProperties] (see [distributionModuleNameOrNull]).
+     */
+    fun configureDependenciesFrom(configuration: Configuration, excludingProjectName: String) {
+        dependencyNames.set(
+            configuration.incoming.artifacts.resolvedArtifacts.map { artifacts ->
+                artifacts.mapNotNull { artifact ->
+                    val id = artifact.id.componentIdentifier
+                    if (id is ProjectComponentIdentifier && id.projectName == excludingProjectName) null
+                    else id.distributionModuleNameOrNull()
+                }.sorted()
+            }
+        )
+    }
 
     @TaskAction
     fun generate() {
+        // No such jar in this distribution; produce no file.
+        val fileName = artifactFileName.orNull ?: return
         generateProperties(
-            listOf(),
+            dependencyNames.get(),
             null,
-            artifactFileName.get(),
-            outputFile.get().asFile
+            fileName,
+            outputDir.get().file(moduleName.get() + ".properties").asFile
         )
     }
 
 }
+
+
+/**
+ * Module name used to reference a component in the distribution's runtime module registry.
+ * Returns `null` for component types that don't map to a distribution module.
+ */
+internal fun ComponentIdentifier.distributionModuleNameOrNull(): String? =
+    when (this) {
+        is ModuleComponentIdentifier -> module
+        is ProjectComponentIdentifier -> "gradle-$projectName"
+        else -> null
+    }
 
 
 fun generateProperties(

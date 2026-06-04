@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -139,6 +140,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming test3-3.3.jar to test3-3.3.jar.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "transformations are applied in parallel for project artifacts"() {
         given:
         createDirs("lib1", "lib2", "lib3")
@@ -382,6 +384,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "only one transformer execution per workspace"() {
 
         createDirs("lib", "app1", "app2")

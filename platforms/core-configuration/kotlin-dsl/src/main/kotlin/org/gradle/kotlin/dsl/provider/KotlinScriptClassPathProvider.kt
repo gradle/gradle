@@ -18,18 +18,21 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.FileCollectionDependency
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation
 import org.gradle.api.internal.classpath.GradleApiClasspathProvider
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.kotlin.dsl.accessors.isDclEnabled
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -64,36 +67,60 @@ fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
 
-internal
-typealias JarsProvider = () -> Collection<File>
-
-
 @ServiceScope(Scope.Build::class)
 class KotlinScriptClassPathProvider(
-    private val moduleRegistry: ModuleRegistry,
-    private val classPathRegistry: ClassPathRegistry,
-    private val coreAndPluginsScope: ClassLoaderScope,
-    private val gradleApiJarsProvider: JarsProvider,
+    gradleProperties: GradleProperties,
+    moduleRegistry: ModuleRegistry,
+    dependencyFactory: DependencyFactory,
+    classPathRegistry: ClassPathRegistry,
+    coreAndPluginsScope: ClassLoaderScope,
 ) : GradleApiClasspathProvider {
 
-    /**
-     * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
-     */
     private
-    val gradleKotlinDslClasspath: ClassPath by lazy {
-        gradleApi + gradleApiExtensions + gradleKotlinDslJars
+    val gradleAbiClasspath: ClassPath by lazy {
+        // Matches gradlebuild.basics.PublicApiVariants.LEGACY_MODULE_NAME in build-logic,
+        moduleRegistry.findModule("gradle-public-api-legacy")
+            ?.let { moduleRegistry.getRuntimeClasspath(listOf(it)) }
+            ?.let { cp ->
+                when (gradleProperties.isDclEnabled) {
+                    // Declarative Gradle is not part of the public api yet, only add it to the compilation classpath if enabled
+                    // TODO:declarative drop once `org.gradle.features.*` graduates to PublicApi.include
+                    true -> cp + moduleRegistry.getRuntimeClasspath("gradle-project-features")
+                    false -> cp
+                }
+            }
+        // Support integ-tests on non-full distros (no ABI jar), fallback to the generated API jar
+            ?: gradleApiClasspath
     }
-
-    override fun getGradleKotlinDslApi(): ClassPath =
-        gradleKotlinDslClasspath
 
     private
     val gradleApiClasspath: ClassPath by lazy {
-        DefaultClassPath.of(gradleApiJarsProvider())
+        DefaultClassPath.of(
+            (dependencyFactory.gradleApi() as FileCollectionDependency).files.files
+        )
+    }
+
+    internal
+    val gradleKotlinDslAbiClasspath: ClassPath by lazy {
+        gradleAbiClasspath + gradleApiExtensions + gradleKotlinDslJars
+    }
+
+    /**
+     * Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
+     */
+    private
+    val gradleKotlinDslApiClasspath: ClassPath by lazy {
+        gradleApiClasspath + gradleApiExtensions + gradleKotlinDslJars
     }
 
     override fun getGradleApi(): ClassPath =
         gradleApiClasspath
+
+    override fun getGradleKotlinDslAbi(): ClassPath =
+        gradleKotlinDslAbiClasspath
+
+    override fun getGradleKotlinDslApi(): ClassPath =
+        gradleKotlinDslApiClasspath
 
     /**
      * Generated extensions to the Gradle API.
@@ -124,9 +151,8 @@ class KotlinScriptClassPathProvider(
         cachedScopeCompilationClassPath.computeIfAbsent(scope, ::computeCompilationClassPath)
 
     private
-    fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath {
-        return gradleKotlinDslApi + exportClassPathFromHierarchyOf(scope)
-    }
+    fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath =
+        gradleKotlinDslAbiClasspath + exportClassPathFromHierarchyOf(scope)
 
     internal
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
@@ -145,7 +171,7 @@ class KotlinScriptClassPathProvider(
 
     private
     val gradleJars by lazy {
-        classPathRegistry.getClassPath(gradleApiNotation.name).asFiles
+        classPathRegistry.getClassPath(ClassPathNotation.GRADLE_API.name).asFiles
     }
 
     private
@@ -154,16 +180,6 @@ class KotlinScriptClassPathProvider(
     private
     val cachedClassLoaderClassPath = ClassLoaderClassPathCache()
 }
-
-
-internal
-fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactoryInternal): JarsProvider =
-    { (dependencyFactory.gradleApi() as FileCollectionDependency).files.files }
-
-
-private
-val gradleApiNotation = DependencyFactoryInternal.ClassPathNotation.GRADLE_API
-
 
 private
 fun isKotlinJar(name: String): Boolean =

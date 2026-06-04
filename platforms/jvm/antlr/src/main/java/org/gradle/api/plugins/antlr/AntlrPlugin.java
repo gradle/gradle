@@ -32,7 +32,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.file.FilePathUtil;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.List;
 
 import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
@@ -83,20 +82,21 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     //    naming conventions via call to sourceSet.getTaskName()
                     final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
-                    // 3) Set up the Antlr output directory
-                    final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
-                    final File outputDirectory = new File(outputDirectoryName);
-
-                    // 4) Register a source-generating task, and
+                    // 3) Register a source-generating task, and
                     TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, task -> {
                         task.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
                         task.setGroup("antlr");
-                        // 4.1) set up convention mapping for default sources (allows user to not have to specify)
+                        // 3.1) point the task at the antlr source set
                         task.setSource(antlrSourceSet);
-                        task.setOutputDirectory(outputDirectory);
+                        // 3.2) Use convention mapping so layout.buildDirectory changes are
+                        //      picked up even if the task was realized eagerly.
+                        task.getConventionMapping().map("outputDirectory", () ->
+                            project.getLayout().getBuildDirectory()
+                                .dir("generated-src/antlr/" + sourceSet.getName())
+                                .get().getAsFile());
                     });
 
-                    // 5) Add that task's outputs to the Java source set
+                    // 4) Add that task's outputs to the Java source set
                     sourceSet.getJava().srcDir(antlrTask.map(task -> {
                         String relativeOutputDirectory = project.relativePath(task.getOutputDirectory());
                         return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments()));

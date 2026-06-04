@@ -18,14 +18,12 @@ package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
 @TargetGradleVersion(">=4.3")
 @Timeout(120)
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/5166")
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

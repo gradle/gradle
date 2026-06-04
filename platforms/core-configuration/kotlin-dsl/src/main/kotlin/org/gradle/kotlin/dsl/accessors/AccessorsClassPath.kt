@@ -154,8 +154,17 @@ fun isDclEnabledForScriptTarget(target: Any): Boolean {
         is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
-    return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
+    return gradleProperties?.isDclEnabled ?: false
 }
+
+internal val GradleProperties.isDclEnabled: Boolean
+    get() = try {
+        getBooleanKotlinDslOption(this, DCL_ENABLED_PROPERTY_NAME, false)
+    } catch (_: IllegalStateException) {
+        // Properties may not be loaded yet, e.g. base/resilient script model before settings evaluation.
+        // Treat DCL as disabled rather than failing.
+        false
+    }
 
 const val DCL_ENABLED_PROPERTY_NAME = "org.gradle.kotlin.dsl.dcl"
 

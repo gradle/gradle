@@ -232,7 +232,7 @@ public abstract class AntlrTask extends SourceTask {
             }
             if (rebuildRequired) {
                 try {
-                    getDeleter().ensureEmptyDirectory(outputDirectory);
+                    getDeleter().ensureEmptyDirectory(getOutputDirectory());
                 } catch (IOException ex) {
                     throw UncheckedException.throwAsUncheckedException(ex);
                 }

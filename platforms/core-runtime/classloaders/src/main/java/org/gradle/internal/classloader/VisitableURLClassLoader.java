@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.ClassLoadTimeTransform;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.jspecify.annotations.Nullable;
 
@@ -164,15 +165,24 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         private final TransformReplacer replacer;
         private final TransformErrorHandler errorHandler;
+        @Nullable
+        private final ClassLoadTimeTransform classLoadTimeTransform;
 
         public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
             super(name, parent, classPath);
             replacer = new TransformReplacer(classPath);
             errorHandler = new TransformErrorHandler(name);
+            classLoadTimeTransform = classPath.getClassLoadTimeTransform();
         }
 
         @Override
         public byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            if (classLoadTimeTransform != null && className != null) {
+                // A third-party agent is attached; rewrite the JVM-supplied buffer so we layer
+                // Gradle's instrumentation on top of the third-party transformer's output.
+                return classLoadTimeTransform.transform(protectionDomain, className, classfileBuffer);
+            }
+            // No third-party agent to compose with; substitute the bytes Gradle rewrote during artifact transform.
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

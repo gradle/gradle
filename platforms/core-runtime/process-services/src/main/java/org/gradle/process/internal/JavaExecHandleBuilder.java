@@ -496,7 +496,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
         File argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt");
-        effectiveArguments.addAll(ArgWriter.argsFileGenerator(argsFile, ArgWriter.javaStyleFactory()).apply(argsFileContents));
+        effectiveArguments.addAll(ArgWriter.javaStyle().generateArgsFile(argsFileContents, argsFile));
     }
 
     private static Manifest toManifest(FileCollection classpath) {

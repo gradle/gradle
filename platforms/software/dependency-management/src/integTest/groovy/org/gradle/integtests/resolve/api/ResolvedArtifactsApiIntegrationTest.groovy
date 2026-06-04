@@ -701,13 +701,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
             dependencies {
                 compile project(':b')
-                compile rootProject.files('lib.jar')
+                compile files(rootProject.isolated.projectDirectory.file('lib.jar'))
                 compile files('lib.jar')
             }
             artifacts {
                 compile file('one/lib.jar')
                 compile file('two/lib.jar')
-                compile rootProject.file('lib.jar')
+                compile file(rootProject.isolated.projectDirectory.file('lib.jar'))
             }
         """
 
@@ -715,11 +715,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             $header
 
             dependencies {
-                compile rootProject.files('lib.jar')
+                compile files(rootProject.isolated.projectDirectory.file('lib.jar'))
                 compile files('lib.jar')
             }
             artifacts {
-                compile rootProject.file('lib.jar')
+                compile file(rootProject.isolated.projectDirectory.file('lib.jar'))
             }
         """
 

@@ -21,8 +21,13 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Interface used between the worker and the daemon to report problems.
+ * Wire protocol used by the worker to report problems back to the daemon.
  */
 public interface WorkerProblemProtocol {
+    /**
+     * Reports a problem emitted by the worker.
+     *
+     * @throws IllegalStateException if no problems service is currently bound on the daemon side
+     */
     void reportProblem(Problem problem, @Nullable OperationIdentifier id);
 }

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
@@ -90,6 +91,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts for external dependencies matching on implicit format attribute"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -134,6 +136,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can use transformations in build script dependencies"() {
         file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
 
@@ -174,6 +177,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming commons-math3-3.6.1.jar to commons-math3-3.6.1.jar.txt") == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
         given:
         buildFile << """
@@ -221,6 +225,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects matching on implicit format attribute"() {
         given:
         buildFile << """
@@ -279,6 +284,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can map artifact extension to implicit attributes"() {
         given:
         createDirs("app2")
@@ -380,6 +386,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects, files and external dependencies"() {
         def dependency = mavenRepo.module("test", "test-dependency", "1.3").publish()
         dependency.artifactFile.text = "dependency"
@@ -461,6 +468,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 7
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
         given:
         buildFile << """
@@ -518,6 +526,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not apply transform to variants with requested implicit format attribute"() {
         given:
         buildFile << """
@@ -567,6 +576,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
         given:
         buildFile << """
@@ -617,6 +627,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies transforms to artifacts from local projects matching on some variant attributes"() {
         given:
         buildFile << """
@@ -721,6 +732,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
         given:
         buildFile << """
@@ -853,6 +865,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transforms can be applied to multiple files with the same name"() {
         given:
         buildFile << """
@@ -914,6 +927,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can register the input as an output"() {
         buildFile << """
             def f = file("lib.jar")
@@ -960,6 +974,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16962")
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transforms registering the input as an output can use normalization"() {
         file("input1.jar").text = "jar"
         file("input2.jar").text = "jar"
@@ -1030,6 +1045,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22735")
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform selection prioritizes shorter transforms over attribute schema matching"() {
 
         // The lib project defines two variants:
@@ -1141,6 +1157,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("files: [lib.jar.txt]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can generate multiple output files for a single input"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -1189,6 +1206,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can generate an empty output"() {
         mavenRepo.module("test", "test", "1.3").publish()
         mavenRepo.module("test", "test2", "2.3").publish()
@@ -1234,6 +1252,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user receives reasonable error message when multiple transforms are available to produce requested variant"() {
         given:
         buildFile << """
@@ -1316,6 +1335,7 @@ Found the following transformation chains:
                       - extra 'baz'"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
         given:
         buildFile << """
@@ -1441,6 +1461,7 @@ Found the following transformation chains:
                       - artifactType 'transformed'"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "result is applied for all query methods"() {
         def resolve = new ResolveTestFixture(testDirectory)
 
@@ -1488,6 +1509,7 @@ Found the following transformation chains:
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transforms are applied lazily in file collections"() {
         def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
         def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
@@ -1657,6 +1679,7 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when a transform throws exception and continues with other inputs"() {
         given:
         buildFile << """
@@ -1795,6 +1818,7 @@ Found the following transformation chains:
         outputContains("files: [thing1.jar.txt, thing2.jar.txt]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1827,6 +1851,7 @@ Found the following transformation chains:
         method << ['dir', 'file']
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform returns a non-existing file"() {
         given:
         buildFile << """
@@ -1862,6 +1887,7 @@ Found the following transformation chains:
         outputContains(":resolve NO-SOURCE")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform registers a #type output via #method"() {
         given:
         buildFile << """
@@ -1932,6 +1958,7 @@ Found the following transformation chains:
         'dir'  | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "directories are created for outputs in the workspace"() {
         given:
         buildFile << """
@@ -1967,6 +1994,7 @@ Found the following transformation chains:
         succeeds "resolve"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "directories are not created for output #method which is part of the input"() {
         given:
         buildFile << """
@@ -2013,6 +2041,7 @@ Found the following transformation chains:
         method << ["file", "dir"]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -2045,6 +2074,7 @@ Found the following transformation chains:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -2085,6 +2115,7 @@ Found the following transformation chains:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "user gets a reasonable error message when transform cannot be instantiated"() {
         given:
         buildFile << """
@@ -2193,6 +2224,7 @@ Found the following transformation chains:
         outputContains("files: [a.jar, c.jar, c-2.0.jar]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "provides useful error message when registration action fails"() {
         when:
         buildFile << """
@@ -2210,6 +2242,7 @@ Found the following transformation chains:
         failure.assertHasCause("Bad registration")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"
@@ -2282,6 +2315,7 @@ Found the following transformation chains:
         type = scheduled ? 'scheduled' : 'immediate'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transformation attribute cycles are permitted"() {
         mavenRepo.module("test", "a", "1.0").publish()
 
@@ -2342,6 +2376,7 @@ Found the following transformation chains:
         outputContains("files: [a-1.0.jar.txt.txt.txt]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "artifacts with same component id and extension, but different classifier are uniquely identifiable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
         module.getArtifactFile(classifier: "foo").text = "1234"
@@ -2392,6 +2427,7 @@ Found the following transformation chains:
         succeeds "hasUniqueArtifactIds"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "artifact excludes applied to external dependency on different graphs are honored"() {
         def m1 = ivyRepo.module("test", "test", "1.3")
         m1.artifact(name: "test-one", conf: "*")
@@ -2466,6 +2502,7 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "artifacts with the same id but different content are transformed independently"() {
         def repo1 = new MavenFileRepository(testDirectory.file("repo1"))
         def repo2 = new MavenFileRepository(testDirectory.file("repo2"))
@@ -2529,6 +2566,7 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform runs only once even when variant is consumed from multiple projects"() {
         given:
         createDirs("app2")
@@ -2575,6 +2613,7 @@ Found the following transformation chains:
         output.count("Transforming") == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can resolve transformed variant during configuration time"() {
         given:
         buildFile << """
@@ -2623,6 +2662,7 @@ Found the following transformation chains:
         output.count("Transforming") == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "notifies transform listeners and build operation listeners on successful execution"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -2690,6 +2730,7 @@ Found the following transformation chains:
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "notifies transform listeners and build operation listeners on failed execution"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -2764,6 +2805,7 @@ Found the following transformation chains:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6156")
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "stops resolving dependencies of task when artifact transforms are encountered"() {
         given:
         buildFile << """
@@ -2811,6 +2853,7 @@ Found the following transformation chains:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33298")
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "does not OOM due to exhaustively searching all possible transform paths when many unrelated transforms are registered"() {
         buildFile << """
             @CacheableTransform

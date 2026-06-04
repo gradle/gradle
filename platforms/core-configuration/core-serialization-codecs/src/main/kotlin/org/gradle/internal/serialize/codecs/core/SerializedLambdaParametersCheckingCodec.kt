@@ -17,14 +17,15 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes
-import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.logUnsupported
+import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.objectweb.asm.Type
 import org.objectweb.asm.Type.getArgumentTypes
 import java.lang.invoke.SerializedLambda
@@ -47,7 +48,19 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
 
     override suspend fun WriteContext.encode(value: SerializedLambda) {
         checkLambdaCapturedArgTypesAreSupported(value)
-        encodeBean(value)
+        withPropertyTrace(
+            PropertyTrace.SerializedLambda(
+                value.implClass.replace('/', '.'),
+                value.implMethodName,
+                value.implMethodSignature,
+                trace
+            )
+        ) {
+            writeClass(SerializedLambda::class.java)
+            beanStateWriterFor(SerializedLambda::class.java).run {
+                writeStateOf(value)
+            }
+        }
     }
 
     private

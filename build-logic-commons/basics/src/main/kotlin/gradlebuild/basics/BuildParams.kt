@@ -49,7 +49,6 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_URL
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_USERNAME
-import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
@@ -122,7 +121,6 @@ object BuildParams {
     const val PERFORMANCE_CHANNEL_ENV = "PERFORMANCE_CHANNEL"
     const val PERFORMANCE_DB_URL = "org.gradle.performance.db.url"
     const val PERFORMANCE_DB_USERNAME = "org.gradle.performance.db.username"
-    const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val PERFORMANCE_STAGE_ENV = "PERFORMANCE_STAGE"
     const val RERUN_ALL_TESTS = "rerunAllTests"
@@ -296,10 +294,6 @@ val Project.flakyTestStrategy: FlakyTestStrategy
 
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
     get() = gradleProperty(BUILD_IGNORE_INCOMING_BUILD_RECEIPT).presence()
-
-val Project.performanceDependencyBuildIds: Provider<String>
-    get() = gradleProperty(PERFORMANCE_DEPENDENCY_BUILD_IDS).orElse("")
-
 
 val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
