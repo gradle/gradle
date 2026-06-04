@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 
@@ -37,12 +38,19 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     private final BuildOperationRunner buildOperationRunner;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final TransformStepNodeFactory transformStepNodeFactory;
+    private final WorkExecutionTracker workExecutionTracker;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
 
-    public DefaultTransformedVariantFactory(BuildOperationRunner buildOperationRunner, CalculatedValueContainerFactory calculatedValueContainerFactory, TransformStepNodeFactory transformStepNodeFactory) {
+    public DefaultTransformedVariantFactory(
+        BuildOperationRunner buildOperationRunner,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        TransformStepNodeFactory transformStepNodeFactory,
+        WorkExecutionTracker workExecutionTracker
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.transformStepNodeFactory = transformStepNodeFactory;
+        this.workExecutionTracker = workExecutionTracker;
     }
 
     @Override
@@ -129,7 +137,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         }
         ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities());
         List<TransformStepNode> transformStepNodes = createTransformStepNodes(sourceArtifacts, sourceAttributes, targetComponentVariant, variantDefinition, dependenciesResolver);
-        return new TransformedProjectArtifactSet(sourceVariant.getSourceVariantId(), targetComponentVariant, transformStepNodes);
+        return new TransformedProjectArtifactSet(sourceVariant.getSourceVariantId(), targetComponentVariant, transformStepNodes, workExecutionTracker);
     }
 
     private List<TransformStepNode> createTransformStepNodes(
