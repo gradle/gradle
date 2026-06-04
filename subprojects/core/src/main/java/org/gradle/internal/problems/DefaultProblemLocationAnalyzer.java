@@ -33,19 +33,16 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
 
     private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
 
-    private final Lock lock = new ReentrantLock();
-    private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
+    private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new ConcurrentHashMap<>();
     private final ClassLoaderScopeRegistryListenerManager listenerManager;
 
     public DefaultProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
@@ -56,24 +53,14 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     @Override
     public void close() throws IOException {
         listenerManager.remove(this);
-        lock.lock();
-        try {
-            scripts.clear();
-        } finally {
-            lock.unlock();
-        }
+        scripts.clear();
     }
 
     @Override
     public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
-            lock.lock();
-            try {
-                scripts.put(scriptOrigin.getFileName(), scriptOrigin);
-            } finally {
-                lock.unlock();
-            }
+            scripts.put(scriptOrigin.getFileName(), scriptOrigin);
         }
     }
 
@@ -109,12 +96,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             }
         }
 
-        lock.lock();
-        try {
-            return locationFromStackRange(startPos, endPos, stack);
-        } finally {
-            lock.unlock();
-        }
+        return locationFromStackRange(startPos, endPos, stack);
     }
 
     private static int getStartPosWithLocation(Failure failure) {
@@ -144,7 +126,11 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             return null;
         }
 
-        ClassLoaderScopeOrigin.Script source = scripts.get(frame.getFileName());
+        String fileName = frame.getFileName();
+        if (fileName == null) {
+            return null;
+        }
+        ClassLoaderScopeOrigin.Script source = scripts.get(fileName);
         if (source == null) {
             return null;
         }
