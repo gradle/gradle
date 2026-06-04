@@ -39,6 +39,7 @@ class ChainedTransformStepNodeCodec(
         write(value.sourceAttributes)
         write(unpackTransformStep(value))
         write(value.previousTransformStepNode)
+        writeBoolean(value.wasScheduled())
     }
 
     override suspend fun ReadContext.doDecode(): TransformStepNode.ChainedTransformStepNode {
@@ -47,7 +48,8 @@ class ChainedTransformStepNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformStepSpec = readNonNull<TransformStepSpec>()
         val previousStep = readNonNull<TransformStepNode>()
-        return transformStepNodeFactory.recreateChained(
+        val scheduled = readBoolean()
+        val node = transformStepNodeFactory.recreateChained(
             transformStepNodeId,
             targetComponentVariant,
             sourceAttributes,
@@ -57,5 +59,9 @@ class ChainedTransformStepNodeCodec(
             buildOperationRunner,
             calculatedValueContainerFactory
         )
+        if (scheduled) {
+            node.markScheduled()
+        }
+        return node
     }
 }

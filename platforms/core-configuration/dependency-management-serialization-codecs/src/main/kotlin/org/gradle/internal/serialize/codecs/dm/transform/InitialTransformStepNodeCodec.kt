@@ -40,6 +40,7 @@ class InitialTransformStepNodeCodec(
         write(value.sourceAttributes)
         write(unpackTransformStep(value))
         write(value.inputArtifact)
+        writeBoolean(value.wasScheduled())
     }
 
     override suspend fun ReadContext.doDecode(): TransformStepNode.InitialTransformStepNode {
@@ -48,7 +49,8 @@ class InitialTransformStepNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformStepSpec = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
-        return transformStepNodeFactory.recreateInitial(
+        val scheduled = readBoolean()
+        val node = transformStepNodeFactory.recreateInitial(
             transformStepNodeId,
             targetComponentVariant,
             sourceAttributes,
@@ -58,5 +60,9 @@ class InitialTransformStepNodeCodec(
             buildOperationRunner,
             calculatedValueContainerFactory
         )
+        if (scheduled) {
+            node.markScheduled()
+        }
+        return node
     }
 }
