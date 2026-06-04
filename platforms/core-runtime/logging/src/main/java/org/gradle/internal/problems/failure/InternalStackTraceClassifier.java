@@ -30,15 +30,16 @@ public class InternalStackTraceClassifier implements StackTraceClassifier {
     }
 
     private static boolean isInternal(String className) {
-        // JDK calls
-        return className.startsWith("java.") ||
+        // Gradle calls dominate, check first
+        return isGradleCall(className) ||
+            // JDK calls
+            className.startsWith("java.") ||
             className.startsWith("jdk.") ||
             className.startsWith("sun.") ||
             className.startsWith("com.sun.") ||
             // Groovy calls
             className.startsWith("groovy.lang") ||
-            className.startsWith("org.codehaus.groovy.") ||
-            isGradleCall(className);
+            className.startsWith("org.codehaus.groovy.");
     }
 
     public static boolean isGradleCall(String className) {
