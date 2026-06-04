@@ -424,7 +424,7 @@ Gradle automatically imports `gradle/libs.versions.toml` as the `libs` catalog. 
 
 ### Unresolved version references in TOML
 
-If a TOML file uses `version.ref = "kotlin"` but the version is injected programmatically via `version("kotlin", "2.4.0-RC2")` in settings, the `[versions]` block must **not** define `kotlin`. Gradle validates TOML files independently — missing refs cause errors during auto-import but work correctly when loaded via `from(files(...))`.
+If a TOML file uses `version.ref = "kotlin"` but the version is injected programmatically via `version("kotlin", "2.4.0")` in settings, the `[versions]` block must **not** define `kotlin`. Gradle validates TOML files independently — missing refs cause errors during auto-import but work correctly when loaded via `from(files(...))`.
 
 This is another reason to avoid auto-import with non-standard filenames.
 

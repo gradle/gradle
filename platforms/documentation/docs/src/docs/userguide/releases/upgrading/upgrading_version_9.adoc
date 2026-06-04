@@ -41,9 +41,9 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 2.4.0-Beta2
+==== Upgrade to Kotlin 2.4.0
 
-The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0-Beta2[Kotlin 2.4.0-Beta2].
+The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0[Kotlin 2.4.0].
 
 [[kotlin_dsl_impldep_compilation]]
 ==== Kotlin DSL scripts can no longer reference relocated internal dependencies
