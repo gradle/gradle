@@ -852,16 +852,6 @@ When this happens, configurations in the substituted project could be selected t
 
 Consuming non-consumable configurations in this manner is deprecated and will result in an error in Gradle 9.0.0.
 
-[[variants_with_no_artifacts]]
-==== Primary variants without artifacts are no longer removed when secondary variants are present
-
-You can define [secondary variants](https://docs.gradle.org/8.9/userguide/publishing_customization.html#sec:publishing-custom-components) for a consumable primary variant that has no artifacts.
-
-In earlier versions of Gradle, doing so would cause the primary variant to be silently excluded from variant selection, because it lacked artifacts.
-Starting with Gradle 9.0, such primary variants are now considered during variant selection, even if they have no artifacts.
-
-NOTE: In rare cases, when the variant selection request is underspecified, this change may cause Gradle to select a different variant than it did before.
-
 [[extending_configurations_in_same_project]]
 ==== Deprecated extending configurations in the same project
 
