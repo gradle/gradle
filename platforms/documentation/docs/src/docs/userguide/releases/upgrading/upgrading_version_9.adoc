@@ -634,6 +634,40 @@ tasks.register("okay") {
 }
 ----
 
+[[undeclared_artifact_transform_input]]
+==== Deprecation of querying an undeclared artifact transform output from a task action
+
+Reading the files of a `FileCollection` whose artifacts are produced by an artifact transform of a project artifact, from inside a task action that does not declare those files as a task input, is now deprecated and will become an error in Gradle 10.
+
+Without the Configuration Cache, this pattern silently runs the transform inline on the calling thread.
+With the Configuration Cache, the producer project's state is not reachable from a task action that did not declare the transform as an input, and the first build fails with `project <name> not found`.
+
+To fix this, declare the `FileCollection` as a task input — typically via `inputs.files(...)`, or by exposing it through a typed `@InputFiles` property on a custom task. The transform steps will then be wired into the execution plan.
+
+For example:
+
+[source,groovy]
+----
+def view = configurations.implementation.incoming.artifactView {
+    attributes.attribute(color, 'green')
+}.files
+
+// Deprecated: the doLast reads view.files without declaring view as a task input.
+tasks.register("consume") {
+    doLast {
+        println "result = " + view.files.name
+    }
+}
+
+// Recommended: declare the FileCollection as a task input.
+tasks.register("consume") {
+    inputs.files(view).withPropertyName("colored")
+    doLast {
+        println "result = " + view.files.name
+    }
+}
+----
+
 [[dependency_project_notation]]
 ==== Deprecation of using Project objects as dependency notation
 
