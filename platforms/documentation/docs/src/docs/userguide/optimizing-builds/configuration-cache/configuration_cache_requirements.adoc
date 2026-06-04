@@ -379,7 +379,7 @@ Passing a provider of a `BuildService` (or anything derived from it via `map` or
 
 If you do not need the service-derived value at configuration time, use `@ServiceReference` for direct injection or store the build service reference in an `@Internal`-annotated property on a task instead.
 
-If you need the value at configuration time, you can wrap the computation in a `ValueSource` and use an opaque provider to preserve laziness:
+Sometimes you may want to use a `BuildService` to derive a parameter for a `ValueSource`, like this:
 
 [source,kotlin]
 ----
@@ -387,15 +387,24 @@ val serviceProvider = gradle.sharedServices.registerIfAbsent("myService", MyServ
 
 val valueSource = providers.of(MyValueSource::class) {
     parameters {
-        // This does NOT work:
-        // value = serviceProvider.map { it.getValueFromService() }
+        // Doesn't work when valueSource.get() is called at configuration time
+        value = serviceProvider.map { it.getValueFromService() }
+    }
+}
+----
 
-        // Workaround — preserves laziness:
+This is only supported by the Configuration Cache if the resulting `ValueSource` isn't used at configuration time.
+If you need the value at configuration time, you have to compute the value eagerly, wrapping the computation in a `provider {}` block to preserve laziness:
+
+[source,kotlin]
+----
+val serviceProvider = gradle.sharedServices.registerIfAbsent("myService", MyService::class) { /* ... */ }
+
+val valueSource = providers.of(MyValueSource::class) {
+    parameters {
         value = provider { serviceProvider.get().getValueFromService() }
     }
 }
-
-println(valueSource.get())
 ----
 
 WARNING: With this workaround, the entire computation of `getValueFromService()` contributes to configuration inputs rather than being lazily evaluated when checking the fingerprint.
