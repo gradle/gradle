@@ -388,13 +388,13 @@ val serviceProvider = gradle.sharedServices.registerIfAbsent("myService", MyServ
 val valueSource = providers.of(MyValueSource::class) {
     parameters {
         // Doesn't work when valueSource.get() is called at configuration time
-        value = serviceProvider.map { it.getValueFromService() }
+        input = serviceProvider.map { it.getValueFromService() }
     }
 }
 ----
 
 This is only supported by the Configuration Cache if the resulting `ValueSource` isn't used at configuration time.
-If you need the value at configuration time, you have to compute the value eagerly, wrapping the computation in a `provider {}` block to preserve laziness:
+If you need the `ValueSource`'s value at configuration time, you have to tell the Configuration Cache to use the computed input value for fingerprinting by wrapping the eager computation in a `provider {}` block:
 
 [source,kotlin]
 ----
@@ -402,7 +402,7 @@ val serviceProvider = gradle.sharedServices.registerIfAbsent("myService", MyServ
 
 val valueSource = providers.of(MyValueSource::class) {
     parameters {
-        value = provider { serviceProvider.get().getValueFromService() }
+        input = provider { serviceProvider.get().getValueFromService() }
     }
 }
 ----
