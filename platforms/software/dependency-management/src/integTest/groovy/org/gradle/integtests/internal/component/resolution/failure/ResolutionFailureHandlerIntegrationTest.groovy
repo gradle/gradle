@@ -474,8 +474,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
        - Configuration ':default':
            - Unmatched attribute:
                - Provides artifactType 'txt' but the consumer didn't ask for it
-       - Configuration ':default' variant v1
-       - Configuration ':default' variant v2""")
+       - Configuration ':default' variant 'v1'
+       - Configuration ':default' variant 'v2'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
