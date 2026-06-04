@@ -130,8 +130,7 @@ See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> sectio
 [[variants_with_no_artifacts]]
 ==== Primary variants without artifacts are no longer removed when secondary variants are present
 
-You can define link:https://docs.gradle.org/8.9/userguide/publishing_customization.html#sec:publishing-custom-components[secondary variants] for a consumable primary variant that has no artifacts.
-For more details on how secondary variants participate in selection, see <<variant_aware_resolution.adoc#sec:secondary-variants,Secondary Variants>>.
+You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary variants>> for a consumable primary variant that has no artifacts.
 
 In earlier versions of Gradle, doing so would cause the primary variant to be silently excluded from variant selection, because it lacked artifacts.
 Starting with Gradle 10.0, such primary variants are now considered during variant selection, even if they have no artifacts.
