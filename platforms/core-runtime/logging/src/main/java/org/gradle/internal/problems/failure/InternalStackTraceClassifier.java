@@ -29,7 +29,7 @@ public class InternalStackTraceClassifier implements StackTraceClassifier {
         return isInternal(frame.getClassName()) ? StackTraceRelevance.INTERNAL : null;
     }
 
-    private static boolean isInternal(String className) {
+    public static boolean isInternal(String className) {
         // Gradle calls dominate, check first
         return isGradleCall(className) ||
             // JDK calls

@@ -22,16 +22,15 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Captures a bounded prefix of the calling thread's stack, cheaply, for problem location inference.
+ * Captures a cheap, bounded view of the calling thread's stack, enough for the location analyser to
+ * infer where a problem originates.
  *
- * <p>The returned throwable's {@link Throwable#getStackTrace()} is a prefix of the calling thread's
- * stack: from the top down to and including the first user-code frame plus the following Gradle
- * boundary frame, capped at a maximum depth. That is enough for the location analyser to infer the
- * problem location without materialising the whole stack, which is what makes it affordable to
- * infer locations for an unbounded number of problems.</p>
+ * <p>Full stack capture is why problem locations are capped: doing it for every problem is too
+ * costly. This service provides a location past that cap, for an unbounded number of problems, by
+ * capturing only as much of the stack as the location needs.</p>
  */
 @NullMarked
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BoundedCallerStackCapturer {
 
     /**

@@ -27,7 +27,7 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
     def "deprecations past the stacktrace capture cap still get a location"() {
         given:
         settingsFile "rootProject.name = 'root'"
-        // The default-mode capture cap is 50; fire well past it from the build script.
+        // Cap is 50; fire well past it.
         buildFile """
             (1..120).each { n ->
                 org.gradle.internal.deprecation.DeprecationLogger.deprecate("Looped deprecation " + n)
@@ -47,8 +47,39 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         deprecations.size() == 120
 
         and:
-        // Before the bounded-walk change, deprecations past the cap had an empty stack and no location.
-        // Now every one, including those past the cap, resolves to the build script.
+        // Every one, even past the cap, resolves to build.gradle.
         deprecations.every { (it.details['deprecation'].stackTrace as String).contains('build.gradle') }
+    }
+
+    def "distinct call sites fired past the cap each resolve to their own line"() {
+        given:
+        settingsFile "rootProject.name = 'root'"
+        // Flood one site past the cap, then 3 distinct lines. Flood must not starve them.
+        buildFile """
+            (1..80).each { n ->
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate("Flooded site " + n)
+                    .willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+            }
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate("Site A").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate("Site B").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate("Site C").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+        """
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds 'help'
+
+        then:
+        def deprecations = operations.only("Apply build file 'build.gradle' to root project 'root'")
+            .progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
+        def lineOf = { label ->
+            def stack = deprecations.find { it.details['deprecation'].summary.contains(label) }.details['deprecation'].stackTrace as String
+            def matcher = stack =~ /build\.gradle:(\d+)/
+            matcher ? matcher[0][1] as int : null
+        }
+
+        and:
+        // 3 distinct sites, 3 distinct lines.
+        ['Site A', 'Site B', 'Site C'].collect { lineOf(it) }.findAll { it != null }.unique().size() == 3
     }
 }

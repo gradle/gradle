@@ -16,9 +16,11 @@
 
 package org.gradle.internal.problems.impl;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.gradle.internal.problems.BoundedCallerStackCapturer;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
-import org.gradle.internal.problems.failure.StackTraceClassifier;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.StackWalker.StackFrame;
@@ -29,54 +31,87 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Captures a bounded prefix of the calling thread's stack using {@link StackWalker}.
+ * {@link StackWalker}-based capture that resolves each distinct call site once and reuses the result.
+ *
+ * <p>Resolving stack frames is the dominant cost, and the same call site always yields the same
+ * location, so the resolved prefix is cached per site. The expensive resolution is then paid once per
+ * site rather than once per problem, which is what keeps capturing locations past the cap affordable.</p>
+ *
+ * <p>The cache is keyed on the located frame (the first user frame with a line) because that is the
+ * frame the location is taken from. Keying on the nearest user frame instead would conflate distinct
+ * sites that happen to share a line-less synthetic nearest frame, attributing one to the other.</p>
  */
 public class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
 
-    /**
-     * Bounds the walk for the degenerate case of a stack with no user-code frame. Comfortably above
-     * the depth-to-first-user-frame measured in real builds (~13 to 37).
-     */
+    // Walk cap when no user frame. Above measured depth-to-user (~13-37).
     private static final int MAX_DEPTH = 50;
 
-    // MAX_DEPTH = buffer size hint: alloc once, no grow.
-    private static final StackWalker WALKER = StackWalker.getInstance(EnumSet.noneOf(StackWalker.Option.class), MAX_DEPTH);
-    private static final StackTraceClassifier INTERNAL_CLASSIFIER = new InternalStackTraceClassifier();
+    // StackWalker buffer hint. Keep small: big hint fetches a whole batch up front, mostly wasted.
+    private static final int ESTIMATE_DEPTH = 8;
+
+    // Runaway cap. Evicted site just re-captures, still correct.
+    private static final int MAX_CACHED_SITES = 10_000;
+
+    private static final StackWalker WALKER = StackWalker.getInstance(EnumSet.noneOf(StackWalker.Option.class), ESTIMATE_DEPTH);
+
+    private final Cache<String, StackTraceElement[]> prefixBySite =
+        CacheBuilder.newBuilder().maximumSize(MAX_CACHED_SITES).build();
 
     @Nullable
     @Override
     public Throwable captureCallerStack() {
-        StackTraceElement[] prefix = WALKER.walk(DefaultBoundedCallerStackCapturer::boundedPrefix);
+        StackTraceElement[] prefix = WALKER.walk(this::cachedBoundedPrefix);
         return prefix == null ? null : new BoundedStackHolder(prefix);
     }
 
-    private static StackTraceElement @Nullable[] boundedPrefix(Stream<StackFrame> frames) {
-        List<StackTraceElement> prefix = new ArrayList<>(MAX_DEPTH);
-        boolean foundUserCode = false;
+    @VisibleForTesting
+    StackTraceElement @Nullable [] cachedBoundedPrefix(Stream<StackFrame> frames) {
         Iterator<StackFrame> iterator = frames.iterator();
+        List<StackTraceElement> prefix = null; // from first user frame
+        String site = null;                    // located-frame key (first user frame with a line)
         for (int depth = 0; depth < MAX_DEPTH && iterator.hasNext(); depth++) {
-            StackTraceElement element = iterator.next().toStackTraceElement();
+            StackFrame frame = iterator.next();
+            String className = frame.getClassName();
+            if (prefix == null && InternalStackTraceClassifier.isInternal(className)) {
+                continue; // skip leading machinery, no resolve
+            }
+            StackTraceElement element = frame.toStackTraceElement();
+            if (prefix == null) {
+                prefix = new ArrayList<>(MAX_DEPTH);
+            }
             prefix.add(element);
-            if (!foundUserCode) {
-                if (isUserCode(element) && element.getLineNumber() >= 0) {
-                    foundUserCode = true;
+            if (site == null && element.getLineNumber() >= 0 && !InternalStackTraceClassifier.isInternal(className)) {
+                // Located frame: where the location comes from. Key on it; hit reuses its prefix.
+                site = siteKey(element);
+                StackTraceElement[] cached = prefixBySite.getIfPresent(site);
+                if (cached != null) {
+                    return cached;
                 }
-            } else if (InternalStackTraceClassifier.isGradleCall(element.getClassName())) {
-                // Include this Gradle boundary frame, matching the analyser's end position, then stop.
-                break;
+            }
+            if (InternalStackTraceClassifier.isGradleCall(className)) {
+                break; // include Gradle boundary, stop
             }
         }
-        return foundUserCode ? prefix.toArray(new StackTraceElement[0]) : null;
+        if (prefix == null) {
+            return null; // no user frame
+        }
+        StackTraceElement[] result = prefix.toArray(new StackTraceElement[0]);
+        if (site != null) {
+            prefixBySite.put(site, result);
+        }
+        return result;
     }
 
-    private static boolean isUserCode(StackTraceElement element) {
-        return INTERNAL_CLASSIFIER.classify(element) == null;
+    private static String siteKey(StackTraceElement element) {
+        return element.getClassName() + '#' + element.getMethodName() + '@' + element.getLineNumber();
     }
 
-    /**
-     * Carries an explicitly-set stack trace without paying the native {@code fillInStackTrace} cost,
-     * by overriding it to a no-op. {@link #setStackTrace} still works because the trace is writable.
-     */
+    @VisibleForTesting
+    long cachedSiteCount() {
+        return prefixBySite.size();
+    }
+
+    // Holds a stack trace, skips costly native fillInStackTrace
     private static final class BoundedStackHolder extends Exception {
         BoundedStackHolder(StackTraceElement[] stackTrace) {
             super();

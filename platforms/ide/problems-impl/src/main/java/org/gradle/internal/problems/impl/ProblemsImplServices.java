@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class ProblemsImplServices extends AbstractGradleModuleServices {
     @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
+    public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(BoundedCallerStackCapturer.class, DefaultBoundedCallerStackCapturer.class);
     }
 
