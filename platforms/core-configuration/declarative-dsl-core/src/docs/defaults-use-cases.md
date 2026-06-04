@@ -4,6 +4,8 @@
 
 ### Build-scoped defaults
 
+> State: ✅ Implemented
+
 Defaults scoped to one build, provided within that build. 
 
 > This is the only supported scenario with current DCL 
@@ -22,6 +24,8 @@ defaults {
 ```
 
 ### Project-subtree-scoped defaults
+
+> State: 💭 Discussed as a possible feature in the reworked project structure
 
 With more flexibility in project structure declarations,
 defaults could be provided within the structural units 
@@ -44,6 +48,8 @@ A natural extension would be to support different ecosystems in the project subt
 This would solve the gradual plugin version migration problem in large builds. 
 
 ## Named defaults
+
+> State: 💭 Discussed as a possible alternative to ad-hoc project types
 
 This is another way to cover defaults that are only applied within a specific scope.
 Instead of a global set of defaults, the user would create named sets of defaults and apply them by name
@@ -73,6 +79,8 @@ javaApplication { // Uses the defaults from the client named defaults set
 
 ### Distributable defaults
 
+> State: 🤷 No thorough design
+
 Sets of defaults could be written in one build and then distributed for consumption
 in other builds. The declaring build would depend on the schemas of the plugins
 that it provides the defaults for.
@@ -85,6 +93,8 @@ Potential problems: plugin versioning.
 
 #### Special case: defaults attached to members
 
+> State: 💭 Discussed as a good feature to have in productized Declarative
+
 The definition owner could declare the following kinds of defaults:
 * A default value for a property, at the property declaration; this will be the effective value if not overridden anywhere in the
     user build.
@@ -94,6 +104,8 @@ The definition owner could declare the following kinds of defaults:
 
 ### Gradle User Home defaults
 
+> State: 🤷 No thorough design
+
 Defaults could be provided for all builds on a local machine.
 This could be: authentication details, machine-specific paths.
 
@@ -102,6 +114,8 @@ Potential problems: plugin versioning; might need more than one set of defaults.
 # How to apply defaults
 
 ## Defaults for a project type
+
+> State: ✅ Implemented
 
 These are mixed into the configuration whenever the project type is used, unconditionally.
 
@@ -113,6 +127,8 @@ defaults {
 ```
 
 ## Defaults for container elements
+
+> State: ✅ Implemented
 
 > Note: this might appear anywhere else in defaults where a container is used
 
@@ -131,6 +147,8 @@ defaults {
 ```
 
 ## Defaults for container elements with no identity
+
+> State: ✅ Implemented
 
 When a container element has no identity key, all items from the defaults are present in the result but cannot be additionally configured. This is the case with dependencies:
 
@@ -154,6 +172,8 @@ javaLibrary {
 
 ## Defaults for an ad-hoc project type
 
+> State: 👍 Approved for implementation once ad-hoc project types arrive
+
 A special case is defaults for a "lightweight project type" (a new project type produced
 from an existing one).
 
@@ -168,6 +188,8 @@ defaults {
 ```
 
 ## Defaults for a set of project types, based on the definition supertype
+
+> State: 💭 Discussed with no final decision to implement
 
 Assume there are several project types that share a definition supertype:
 
@@ -196,6 +218,8 @@ defaults {
 ```
 
 ## Non-forcing / conditional / optional / nested defaults
+
+> State: 💭👍 Discussed and agreed on the feature's usefulness, no final decision to implement
 
 In the cases above, the whole content of a project-type defaults block is applied to the project using that project type.
 
@@ -234,6 +258,8 @@ defaults {
 
 ## Defaults for all container elements
 
+> State: 💭 Discussed as a valuable extension of containers + defaults, no final design
+
 A container with user-defined elements might have defaults for all elements
 
 ```kotlin
@@ -255,6 +281,8 @@ defaults {
 
 ## Defaults for project features
 
+> State: 💭 Discussed as a useful feature, still has design problems to solve
+
 It makes sense to provide defaults for a project feature, meaning that those defaults are applied wherever the feature is used.
 
 ```kotlin
@@ -273,11 +301,15 @@ Potential problems: identifying a feature; features sharing a name but having di
 
 ## Defaults for a family of project features sharing a definition type
 
+> State: 🤷 Discussed briefly with no design decisions made
+
 This is similar to defaults for a family of project types with a shared definition supertype, but for features.
 
 # Special cases
 
 ## Defaults for collections
+
+> State: ✅ Implemented, supported in the tooling demo 
 
 A collection-typed property can have a default value with some elements in it.
 The build file can then either append to that value, adding new elements, or assign a new value to the property,
@@ -330,6 +362,8 @@ myProjectType {
 
 ## Defaults using project-specific services
 
+> State: ✅ Implemented for `projectLayout`
+
 It sometimes makes sense to provide a set of defaults that means different things in different projects. 
 For instance, project-specific paths could be used in defaults but get evaluated to different real paths in each project:
 
@@ -374,10 +408,14 @@ What should the DCL tooling be able to do with defaults?
 
 ## Getting effective definitions
 
+> State: ✅ Implemented, supported in the tooling demo
+
 The tooling is able to compose all defaults that are applicable to the definition into one effective definition.
 This is done at the data level without lowering it to JVM or any other non-Declarative representation.
 
 ### Showing effective definition
+
+> State: ✅ Implemented, supported in the tooling demo
 
 The tooling shows the effective definition in a GUI or by adding more information to the editor (like inlay hints).
 For the defaults in the effective definition, there might be markers telling where it came from 
@@ -386,6 +424,8 @@ value, it should be possible to see all of them (maybe in a hint when you focus 
 
 ### Navigation related to defaults
 
+> State: ✅⬜️ Partially implemented in the tooling demo, no global analysis so far 
+
 From a definition (either in a project or in some defaults), the tooling navigates:
 * to every default definition that precedes the current definition and provides data 
   * or can provide data but doesn't: "Where can I put defaults for this?"
@@ -393,6 +433,8 @@ From a definition (either in a project or in some defaults), the tooling navigat
   * or can provide data but doesn't: "Where is this default effective?"
 
 ### Defaults-aware code completion
+
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin, should be easy to support
 
 In a project build definition, if the defaults make sure that the effective definition already 
 has a nested object (an applied feature, or a container element), the code completion should be aware of that
@@ -403,27 +445,39 @@ the present elements as separate items (like `sourceSet("main") { }` in addition
 
 ### Unused defaults
 
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
+
 A project type or a feature is not used anywhere in the build, so the defaults are useless and can be removed.
 
 #### Unused optional defaults
+
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
 
 With the optional/non-forcing defaults, if they do not become effective anywhere because the corresponding nested definitions
 do not appear in project definitions, the tooling should be able to tell so and suggest removing them.
 
 ### Useless defaults (project-wide)
 
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
+
 If a default is overridden in all effective definitions, the tooling should be able to detect it and suggest removing the default.
 
 ### Part of definition can be a default (project-wide)
+
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
 
 If a part of the definition appears uniformly in a scope (all projects, or a project-subtree that can provide defaults),
 the tooling should be able to detect it and suggest extracting the part into the corresponding defaults.
 
 ### Useless data in a definition
 
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
+
 If a definition duplicates the defaults, the tooling should be able to detect it and suggest removing the duplicate.
 
 ### Extract to defaults
+
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
 
 The tooling should be able to extract a part of a definition into the defaults (letting the user choose the scope: defaults
 for the project type or feature or named defaults or local project type; global or local to subproject-tree). 
@@ -432,6 +486,8 @@ Since that can affect other projects, the tooling
 should show the predicted effect: which projects get new data in their definitions (and maybe the details on the data).
 
 ### Push defaults downstream
+
+> State: ⬜️ Not implemented in the LSP or IntelliJ plugin
 
 If the user does not want a default anymore and wants every project (or a narrower scope) to provide a value, they can push the defaults
 closer to the effective definitions.
