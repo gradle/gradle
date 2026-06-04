@@ -1966,6 +1966,21 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container.elements.get()) == [a, b, c]
     }
 
+    def "elements are lazy and reflect later additions"() {
+        containerAllowsExternalProviders()
+
+        given:
+        def elements = container.elements
+        def collection = TestUtil.objectFactory().setProperty(type)
+
+        when:
+        container.addAllLater(collection)
+        collection.addAll([a, b, c])
+
+        then:
+        toList(elements.get()) == [a, b, c]
+    }
+
     def "elements carry build dependencies"() {
         containerAllowsExternalProviders()
 
