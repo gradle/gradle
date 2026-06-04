@@ -286,18 +286,19 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     def "can declare build dependency of outgoing variant artifact using String notation"() {
         given:
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                configurations {
-                    compile {
-                        outgoing {
-                            attributes.attribute(Attribute.of('usage', String), 'other')
-                            variants {
-                                classes {
-                                    artifact(file('classes')) {
-                                        builtBy 'classes'
-                                    }
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    outgoing {
+                        variants {
+                            classes {
+                                artifact(file('classes')) {
+                                    builtBy 'classes'
                                 }
+                                attributes.attribute(Attribute.of('other', String), 'select')
                             }
                         }
                     }
@@ -308,6 +309,8 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
         file("b/build.gradle") << """
             $header
+
+            configurations.compile.attributes.attribute(Attribute.of('other', String), 'select')
 
             dependencies {
                 compile project(':a')

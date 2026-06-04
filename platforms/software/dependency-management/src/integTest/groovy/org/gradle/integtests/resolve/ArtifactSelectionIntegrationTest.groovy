@@ -745,7 +745,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("files: [test-lib.jar, transformed-b2.jar, test-1.0.jar]")
-        outputContains("components: [test-lib.jar, project :ui, org:test:1.0]")
+        outputContains("components: [test-lib.jar, project ':ui', org:test:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
     }
 

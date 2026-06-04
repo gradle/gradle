@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
+import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -143,46 +144,68 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         """
 
         buildFile << """
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
-configurations {
-    compile {
-        attributes.attribute(Attribute.of('other', String), 'select')
-    }
-}
-dependencies {
-    compile project(':a')
-}
-project(':a') {
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact file('a1.jar')
-                        attributes.attribute(flavor, 'one')
-                        attributes.attribute(Attribute.of('other', String), 'select')
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                    attributes.attribute(Attribute.of('other', String), 'select')
+                }
+            }
+
+            dependencies {
+                compile project(':a')
+            }
+
+            task show {
+                inputs.files configurations.compile
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id.displayName }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact file('a1.jar')
+                                attributes.attribute(flavor, 'one')
+                                attributes.attribute(Attribute.of('other', String), 'select')
+                            }
+                        }
                     }
                     attributes.attribute(usage, 'compile')
                 }
             }
-        }
-    }
-    dependencies {
-        compile project(':b')
-    }
-}
-project(':b') {
-    configurations {
-        compile {
-            outgoing {
-                variants {
-                    var1 {
-                        artifact file('b2.jar')
-                        attributes.attribute(flavor, 'two')
-                        attributes.attribute(Attribute.of('other', String), 'select')
+            dependencies {
+                compile project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact file('b2.jar')
+                                attributes.attribute(flavor, 'two')
+                                attributes.attribute(Attribute.of('other', String), 'select')
+                            }
+                        }
                     }
                     attributes.attribute(usage, 'compile')
                 }
@@ -194,8 +217,8 @@ project(':b') {
 
         then:
         outputContains("files: [a1.jar, b2.jar]")
-        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
-        outputContains("components: [project :a, project :b]")
+        outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
+        outputContains("components: [project ':a', project ':b']")
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, other=select, usage=compile}, {artifactType=jar, flavor=two, other=select, usage=compile}]")
 
         where:
@@ -455,61 +478,77 @@ project(':b') {
         buildFile << """
             $header
 
-configurations {
-    compile {
-        attributes.attribute(Attribute.of('other', String), 'select')
-    }
-}
-
-dependencies {
-    compile project(':a')
-}
-
-project(':a') {
-    task oneJar(type: Jar) { archiveBaseName = 'a1' }
-    task twoJar(type: Jar) { archiveBaseName = 'a2' }
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                attributes.attribute(flavor, 'zero')
-                attributes.attribute(Attribute.of('mismatch', String), 'mismatch')
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                        attributes.attribute(Attribute.of('other', String), 'select')
-                    }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
-                        attributes.attribute(Attribute.of('other', String), 'select')
-                    }
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
                 }
             }
-        }
-    }
-    dependencies {
-        compile project(':b')
-    }
-}
-project(':b') {
-    task oneJar(type: Jar) { archiveBaseName = 'b1' }
-    task twoJar(type: Jar) { archiveBaseName = 'b2' }
-    configurations {
-        compile {
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                        attributes.attribute(Attribute.of('other', String), 'select')
+
+            dependencies {
+                compile project(':a')
+            }
+
+            task show {
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    throw new RuntimeException()
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            task oneJar(type: Jar) { archiveBaseName = 'a1' }
+            task twoJar(type: Jar) { archiveBaseName = 'a2' }
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    attributes.attribute(flavor, 'zero')
+                    outgoing {
+                        artifact file('dummy.txt')
+                        variants {
+                            var1 {
+                                artifact tasks.oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact tasks.twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
                     }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
-                        attributes.attribute(Attribute.of('other', String), 'select')
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+            dependencies {
+                compile project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            task oneJar(type: Jar) { archiveBaseName = 'b1' }
+            task twoJar(type: Jar) { archiveBaseName = 'b2' }
+            configurations {
+                compile {
+                    attributes.attribute(flavor, 'zero')
+                    outgoing {
+                        artifact file('dummy.txt')
+                        variants {
+                            var1 {
+                                artifact tasks.oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact tasks.twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
                     }
+                    attributes.attribute(usage, 'compile')
                 }
             }
         """
@@ -518,19 +557,18 @@ project(':b') {
         fails 'show'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'other' with value 'select', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
   - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Doesn't say anything about other (required 'select')
+          - Provides artifactType 'txt' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'zero' but the consumer didn't ask for it
-          - Provides mismatch 'mismatch' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant var1 declares attribute 'other' with value 'select', attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'var2' declares attribute 'other' with value 'select', attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var2' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
@@ -586,13 +624,37 @@ project(':b') {
                 }
             }
 
-project(':a') {
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            attributes.attribute(flavor, 'one')
-            outgoing {
-                artifact file('a1.jar')
+            task show {
+                inputs.files configurations.compile
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes({it.attribute(usage, 'transformed').attribute(Attribute.of('other', String), 'select')})
+                }.artifacts
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact file('a1.jar')
+                                attributes.attribute(flavor, 'one')
+                                attributes.attribute(Attribute.of('other', String), 'select')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
             }
         """
 
@@ -602,6 +664,7 @@ project(':a') {
             configurations {
                 compile {
                     attributes.attribute(usage, 'compile')
+                    attributes.attribute(Attribute.of('other', String), 'select')
                 }
             }
 
@@ -617,7 +680,7 @@ project(':a') {
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project ':a', project ':b', org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, other=select, usage=transformed}, {artifactType=jar, other=select, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
     }
 
     def "more than one local file can have a given base name"() {
@@ -996,12 +1059,7 @@ project(':a') {
                 compile project(':b')
             }
 
-project(':a') {
-    configurations.default.outgoing.variants {
-        v1 { }
-        v2 { }
-    }
-}
+            configurations.compile.attributes.attribute(usage, "compile")
 
             task resolveLenient {
                 def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
@@ -1056,7 +1114,7 @@ project(':a') {
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
   - Configuration ':a:default':
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
@@ -1115,18 +1173,21 @@ Searched in the following locations:
         file("a/build.gradle") << """
             $common
 
-task resolveLenient {
-    def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
-    inputs.files lenientView.files
-    doLast {
-        def resolvedFiles = ['c-jar1.jar']
-        assert lenientView.files.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
-        assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.failures.size() == 3
-    }
-}
-"""
+            task jar1(type: Jar)
+            task jar2(type: Jar)
+            task defaultJar(type: Jar) { archiveBaseName = 'a-default' }
+            dependencies {
+                compile project(':c')
+            }
+            // Give primary 'default' an artifact so artifact-level variant selection lists it
+            // alongside v1 and v2 as ambiguous (matching master's intent now that primary
+            // variants with no artifacts but with secondary variants remain selectable).
+            artifacts { 'default' tasks.defaultJar }
+            configurations.default.outgoing.variants {
+                v1 { artifact tasks.jar1 }
+                v2 { artifact tasks.jar2 }
+            }
+        """
 
         file("b/build.gradle") << """
             $common

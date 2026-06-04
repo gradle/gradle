@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -200,7 +199,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
-        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
@@ -270,7 +268,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
-        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
@@ -288,32 +285,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         buildFile << """
             $header
-
-dependencies {
-    compile project(':a')
-}
-
-project(':a') {
-    dependencies {
-        attributesSchema.attribute(flavor)
-        compile project(':b')
-    }
-    configurations.compile {
-        attributes.attribute(Attribute.of('flavor', String), 'mismatch')
-        outgoing.artifact file('dummy.txt')
-    }
-    ${freeAndPaidFlavoredJars('a')}
-}
-project(':b') {
-    dependencies {
-        attributesSchema.attribute(flavor)
-    }
-    configurations.compile {
-        attributes.attribute(Attribute.of('flavor', String), 'mismatch')
-        outgoing.artifact file('dummy.txt')
-    }
-    ${freeAndPaidFlavoredJars('b')}
-}
 
             dependencies {
                 compile project(':a')
@@ -336,6 +307,10 @@ project(':b') {
                 attributesSchema.attribute(flavor)
                 compile project(':b')
             }
+            configurations.compile {
+                attributes.attribute(flavor, 'mismatch')
+                outgoing.artifact file('dummy.txt')
+            }
             ${freeAndPaidFlavoredJars('a')}
         """
 
@@ -347,12 +322,16 @@ project(':b') {
             dependencies {
                 attributesSchema.attribute(flavor)
             }
+            configurations.compile {
+                attributes.attribute(flavor, 'mismatch')
+                outgoing.artifact file('dummy.txt')
+            }
             ${freeAndPaidFlavoredJars('b')}
         """
 
         expect:
         fails("show")
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
   - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'txt' but the consumer didn't ask for it
@@ -425,7 +404,6 @@ project(':b') {
         """
 
         expect:
-        maybeExpectDeprecation(expression)
         fails("show")
 
         // Eager expressions (Set<File>) resolve all transitive dependencies and report all failures.
@@ -446,7 +424,7 @@ project(':b') {
           - Doesn't say anything about usage (required 'compile')""")
         } else {
             // Lazy FileCollection expressions resolve the project dependency graph but not external or file dependencies
-            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
 
         where:
@@ -617,7 +595,6 @@ project(':b') {
         }
 
         when:
-        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:

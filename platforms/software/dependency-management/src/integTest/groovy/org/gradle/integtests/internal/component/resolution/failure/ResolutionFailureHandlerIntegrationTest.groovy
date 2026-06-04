@@ -470,7 +470,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > More than one variant of root project : matches the consumer attributes:
+        assertFullMessageCorrect("""   > More than one variant of root project 'example' matches the consumer attributes:
        - Configuration ':default':
            - Unmatched attribute:
                - Provides artifactType 'txt' but the consumer didn't ask for it
