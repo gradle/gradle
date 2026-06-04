@@ -18,6 +18,7 @@ package org.gradle.testing.testsuites.dependencies
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -223,6 +224,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def 'can add dependencies to other projects to #suiteDesc'() {
         given:
         settingsKotlinFile << """

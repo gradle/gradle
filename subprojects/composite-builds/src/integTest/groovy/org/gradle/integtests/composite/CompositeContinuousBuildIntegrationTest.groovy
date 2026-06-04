@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
@@ -182,6 +183,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         stopGradle()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "will rebuild on change for build included into a multi-project build"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """

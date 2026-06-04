@@ -14,10 +14,12 @@ import org.junit.Assume.assumeThat
 import org.junit.Test
 import spock.lang.Issue
 import java.io.StringWriter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 

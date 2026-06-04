@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.opentest4j.TestAbortedException
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -54,6 +55,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "recompiles binary when toolchain changes from #toolChainBefore to #toolChainAfter"() {
         buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)
         def useAlternateToolChain = false

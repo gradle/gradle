@@ -76,9 +76,7 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 // Problems should not be part of the public API, this only contains internal types
 // TODO Find a way to not register this and the task instead

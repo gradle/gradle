@@ -43,9 +43,7 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 errorprone {
     nullawayEnabled = true
