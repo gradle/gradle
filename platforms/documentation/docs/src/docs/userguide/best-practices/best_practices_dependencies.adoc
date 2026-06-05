@@ -517,7 +517,7 @@ Unable to find a matching variant of project :producer:
 
 While Gradle can resolve configurations by selecting them directly by name, this approach is outdated:
 
-- It was <<upgrading_version_8.adoc#selecting_variant_by_configuration_name,deprecated for Maven repositories>> in Gradle 8.10 and removed in Gradle 9.0.0. It is only recommended for Ivy repositories.
+- It was <<upgrading_version_8.adoc#selecting_variant_by_configuration_name,deprecated for Maven repositories>> in Gradle 8.10 and removed in Gradle 9.0.0. It is only necessary for use with Ivy repositories.
 This mechanism can still be used for local project dependencies, but should be avoided.
 - Configuration names should be treated as internal implementation details. Relying on them for resolution forces the consumer to know too much about the producer's internal structure.
 
@@ -525,7 +525,7 @@ When adding attributes to a configuration, common attributes to use include:
 
 * `Category.CATEGORY_ATTRIBUTE` - Indicates the category of the component (e.g., `LIBRARY`, `DOCUMENTATION`)
 * For JVM Projects:
-** `Usage.USAGE_ATTRIBUTE` - Indicates which classpath this varuabt represents (e.g., `JAVA_RUNTIME`, `JAVA_API`)
+** `Usage.USAGE_ATTRIBUTE` - Indicates which classpath this variant represents (e.g., `JAVA_RUNTIME`, `JAVA_API`)
 ** `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` - Indicates the packaging of the classes (e.g., `JAR`, `CLASSES`)
 
 While attributes are not yet strictly required for all resolvable configurations, omitting them leads to fragile builds.

@@ -2,15 +2,6 @@
 def CUSTOM_ATTRIBUTE = Attribute.of("custom", String) // <1>
 dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
 
-configurations {
-    consumable('customElements') {
-        attributes { // <2>
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
-            attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
-        }
-    }
-}
-
 def generateFile = tasks.register('generateFile') {
     def outputFile = layout.buildDirectory.file('custom/output.txt')
     outputs.file(outputFile)
@@ -19,7 +10,15 @@ def generateFile = tasks.register('generateFile') {
     }
 }
 
-artifacts {
-    customElements generateFile
+configurations {
+    consumable('customElements') {
+        attributes { // <2>
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
+        }
+        outgoing {
+            artifact(generateFile)
+        }
+    }
 }
 // end::do-this[]

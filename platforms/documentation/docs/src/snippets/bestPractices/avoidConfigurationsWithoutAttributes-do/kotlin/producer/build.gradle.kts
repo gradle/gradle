@@ -5,15 +5,6 @@ import org.gradle.api.attributes.Category
 val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java) // <1>
 dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
 
-configurations {
-    consumable("customElements") {
-        attributes { // <2>
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
-        }
-    }
-}
-
 val generateFile = tasks.register("generateFile") {
     val outputFile = layout.buildDirectory.file("custom/output.txt")
     outputs.file(outputFile)
@@ -22,7 +13,16 @@ val generateFile = tasks.register("generateFile") {
     }
 }
 
-artifacts {
-    add("customElements", generateFile)
+configurations {
+    consumable("customElements") {
+        attributes { // <2>
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
+        }
+        outgoing {
+            artifact(generateFile)
+        }
+    }
 }
+
 // end::do-this[]
