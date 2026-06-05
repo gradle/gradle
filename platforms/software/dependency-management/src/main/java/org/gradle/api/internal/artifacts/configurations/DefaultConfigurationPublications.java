@@ -111,8 +111,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 //        if (allArtifactSet.isEmpty() && secondaryVariantsExist) {
 //            DeprecationLogger.deprecateBehaviour("The " + displayName + " has no artifacts and thus should not define any secondary variants.")
 //                .withAdvice("Secondary variant(s): " + variants.stream().map(v -> "'" + v.getName() + "'").collect(Collectors.joining(", ")) + " should be made directly consumable.")
-//                .willBeRemovedInGradle9()
-//                .withUpgradeGuideSection(8, "variants_with_no_artifacts")
+//                .willBeRemovedInGradleX()
+//                .withUpgradeGuideSection(Y, "variants_with_no_artifacts")
 //                .nagUser();
 //        }
 
