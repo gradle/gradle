@@ -504,7 +504,7 @@ When creating custom configurations that are meant to be consumed or resolved, a
 
 === Explanation
 
-Gradle uses <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware dependency resolution>> to select the appropriate artifacts.
+Gradle uses <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware dependency resolution>> to select the appropriate variants of a project.
 Attributes serve as the primary matching mechanism between resolvable configurations (what a consumer needs) and consumable configurations (what a producer provides as variants).
 
 Even if a producer project has only one consumable configuration, omitting attributes will cause variant-aware resolution to fail with the following error:
@@ -525,8 +525,8 @@ When adding attributes to a configuration, common attributes to use include:
 
 * `Category.CATEGORY_ATTRIBUTE` - Indicates the category of the component (e.g., `LIBRARY`, `DOCUMENTATION`)
 * For JVM Projects:
-** `Usage.USAGE_ATTRIBUTE` - Indicates how the dependency is used (e.g., `JAVA_RUNTIME`, `JAVA_API`)
-** `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` - Indicates the type of library elements (e.g., `JAR`, `CLASSES`)
+** `Usage.USAGE_ATTRIBUTE` - Indicates which classpath this varuabt represents (e.g., `JAVA_RUNTIME`, `JAVA_API`)
+** `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` - Indicates the packaging of the classes (e.g., `JAR`, `CLASSES`)
 
 While attributes are not yet strictly required for all resolvable configurations, omitting them leads to fragile builds.
 Declaring sensible attributes ensures your build remains reliable as it scales and evolves.
