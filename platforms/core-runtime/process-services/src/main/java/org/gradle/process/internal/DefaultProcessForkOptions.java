@@ -173,7 +173,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
         target.setExecutable(executable);
-        target.setWorkingDir(getWorkingDir());
+        target.getWorkingDirectory().set(getWorkingDirectory());
         target.setEnvironment(getEnvironment());
         return this;
     }

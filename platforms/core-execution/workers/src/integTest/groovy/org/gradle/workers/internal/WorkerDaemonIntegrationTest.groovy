@@ -102,7 +102,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         fails("runInWorker")
 
         then:
-        failureCauseContains('Setting the working directory of a worker is not supported')
+        failureCauseContains("The value for property 'workingDirectory' cannot be changed any further")
     }
 
     def "interesting worker daemon fork options are honored"() {

@@ -530,7 +530,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
         execHandleBuilder.setExecutable(getExecutable());
-        execHandleBuilder.setWorkingDir(getWorkingDir());
+        execHandleBuilder.setWorkingDir(getWorkingDirectory().get().getAsFile());
         execHandleBuilder.setEnvironment(getEnvironment());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }

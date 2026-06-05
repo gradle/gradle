@@ -73,8 +73,8 @@ public class DefaultExecAction implements ExecAction {
         if (execSpec.getExecutable() != null) {
             execHandleBuilder.setExecutable(execSpec.getExecutable());
         }
-        if (execSpec.getWorkingDir() != null) {
-            execHandleBuilder.setWorkingDir(execSpec.getWorkingDir());
+        if (execSpec.getWorkingDirectory().isPresent()) {
+            execHandleBuilder.setWorkingDir(execSpec.getWorkingDirectory().get().getAsFile());
         }
         execHandleBuilder.setArgs(execSpec.getArgs());
         execHandleBuilder.getArgumentProviders().addAll(execSpec.getArgumentProviders());
@@ -110,7 +110,7 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public File getWorkingDir() {
-        return execSpec.getWorkingDir();
+        return execSpec.getWorkingDirectory().get().getAsFile();
     }
 
     @Override

@@ -260,7 +260,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         }
         return new EffectiveJavaForkOptions(
             getExecutable(),
-            getWorkingDir(),
+            getWorkingDirectory().get().getAsFile(),
             getEnvironment(),
             copy
         );

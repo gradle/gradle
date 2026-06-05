@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 
@@ -28,7 +29,9 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.Visual
 class CommandLineToolVersionLocatorTest extends VswhereSpec {
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)
     def execActionFactory = Mock(ExecActionFactory)
-    def execAction = Mock(ExecAction)
+    def execAction = Mock(ExecAction) {
+        getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty()
+    }
     def vswhereLocator = Mock(VswhereVersionLocator)
     def locator = new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator)
 

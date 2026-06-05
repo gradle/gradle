@@ -36,7 +36,7 @@ class JacocoTaskExtensionSpec extends Specification {
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
         agent.jar >> temporaryFolder.file('fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file(".")
+        task.getWorkingDirectory() >> workingDirProperty(temporaryFolder.file("."))
         expect:
         extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false"
     }
@@ -45,7 +45,7 @@ class JacocoTaskExtensionSpec extends Specification {
         given:
         agent.supportsJmx() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+        task.getWorkingDirectory() >> workingDirProperty(temporaryFolder.file("workingDir"))
 
         expect:
         extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
@@ -55,7 +55,7 @@ class JacocoTaskExtensionSpec extends Specification {
         given:
         agent.supportsInclNoLocationClasses() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+        task.getWorkingDirectory() >> workingDirProperty(temporaryFolder.file("workingDir"))
 
         expect:
         extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
@@ -66,7 +66,7 @@ class JacocoTaskExtensionSpec extends Specification {
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
         agent.jar >> temporaryFolder.file('workingDir/subfolder/fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+        task.getWorkingDirectory() >> workingDirProperty(temporaryFolder.file("workingDir"))
 
         extension.with {
             destinationFile = temporaryFolder.file('build/jacoco/fake.exec')
@@ -114,6 +114,12 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg
         then:
         thrown Exception
+    }
+
+    private workingDirProperty(File dir) {
+        def property = project.objects.directoryProperty()
+        property.set(dir)
+        return property
     }
 
 }
