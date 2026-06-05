@@ -17,84 +17,60 @@
 package org.gradle.internal.jacoco;
 
 import com.google.common.collect.ImmutableMap;
-import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
-public class AntJacocoReport implements Action<AntBuilderDelegate> {
+public abstract class AntJacocoReport extends AntWorkAction<JacocoReportParameters> {
 
-    private final JacocoReportParameters params;
-
-    public AntJacocoReport(JacocoReportParameters params) {
-        this.params = params;
+    @Override
+    protected String getActionName() {
+        return "jacoco-report";
     }
 
     @Override
     public void execute(AntBuilderDelegate antBuilder) {
-        antBuilder.invokeMethod("taskdef", ImmutableMap.of(
-            "name", "jacocoReport",
-            "classname", "org.jacoco.ant.ReportTask"
-        ));
-        final Map<String, Object> emptyArgs = Collections.emptyMap();
-        antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
-            @SuppressWarnings("unused") // Magic Groovy method
-            public Object doCall(Object ignore) {
-                antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
-                    @SuppressWarnings("unused") // Magic Groovy method
-                    public Object doCall(Object ignore) {
-                        params.getExecutionData().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                        return Void.class;
-                    }
-                }});
-                Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
-                antBuilder.invokeMethod("structure", new Object[]{structureArgs, new Closure<Object>(this, this) {
-                    @SuppressWarnings("unused") // Magic Groovy method
-                    public Object doCall(Object ignore) {
-                        antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
-                            @SuppressWarnings("unused") // Magic Groovy method
-                            public Object doCall(Object ignore) {
-                                params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                                return Void.class;
-                            }
-                        }});
-                        final Map<String, Object> sourcefilesArgs;
-                        String encoding = params.getEncoding().getOrNull();
-                        if (encoding == null) {
-                            sourcefilesArgs = emptyArgs;
-                        } else {
-                            sourcefilesArgs = Collections.singletonMap("encoding", encoding);
-                        }
-                        antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
-                            @SuppressWarnings("unused") // Magic Groovy method
-                            public Object doCall(Object ignore) {
-                                params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                                return Void.class;
-                            }
-                        }});
-                        return Void.class;
-                    }
-                }});
-                if (params.getGenerateHtml().get()) {
-                    antBuilder.invokeMethod("html", new Object[]{
-                        ImmutableMap.<String, Object>of("destdir", params.getHtmlDestination().getAsFile().get())
-                    });
+        JacocoReportParameters params = getParameters();
+        antBuilder.taskdef("jacocoReport", "org.jacoco.ant.ReportTask");
+        antBuilder.createNode("jacocoReport", Collections.emptyMap(), () -> {
+            antBuilder.createNode("executiondata", Collections.emptyMap(), () -> {
+                antBuilder.addFiles("resources", params.getExecutionData().filter(File::exists));
+            });
+            Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
+            antBuilder.createNode("structure", structureArgs, () -> {
+                antBuilder.createNode("classfiles", Collections.emptyMap(), () -> {
+                    antBuilder.addFiles("resources", params.getAllClassesDirs().filter(File::exists));
+                });
+                final Map<String, Object> sourcefilesArgs;
+                String encoding = params.getEncoding().getOrNull();
+                if (encoding == null) {
+                    sourcefilesArgs = Collections.emptyMap();
+                } else {
+                    sourcefilesArgs = Collections.singletonMap("encoding", encoding);
                 }
-                if (params.getGenerateXml().get()) {
-                    antBuilder.invokeMethod("xml", new Object[]{
-                        ImmutableMap.<String, Object>of("destfile", params.getXmlDestination().getAsFile().get())
-                    });
-                }
-                if (params.getGenerateCsv().get()) {
-                    antBuilder.invokeMethod("csv", new Object[]{
-                        ImmutableMap.<String, Object>of("destfile", params.getCsvDestination().getAsFile().get())
-                    });
-                }
-                return Void.class;
+                antBuilder.createNode("sourcefiles", sourcefilesArgs, () -> {
+                    antBuilder.addFiles("resources", params.getAllSourcesDirs().filter(File::exists));
+                });
+            });
+            if (params.getGenerateHtml().get()) {
+                antBuilder.createNode("html",
+                    ImmutableMap.of("destdir", params.getHtmlDestination().getAsFile().get())
+                );
             }
-        }});
+            if (params.getGenerateXml().get()) {
+                antBuilder.createNode("xml",
+                    ImmutableMap.of("destfile", params.getXmlDestination().getAsFile().get())
+                );
+            }
+            if (params.getGenerateCsv().get()) {
+                antBuilder.createNode("csv",
+                    ImmutableMap.of("destfile", params.getCsvDestination().getAsFile().get())
+                );
+            }
+        });
     }
+
 }

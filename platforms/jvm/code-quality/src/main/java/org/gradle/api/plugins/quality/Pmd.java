@@ -22,8 +22,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
+import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
@@ -84,7 +84,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         validateThreads(getThreads().get());
 
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
-        workQueue.submit(PmdAction.class, this::setupParameters);
+        workQueue.submit(PmdInvoker.class, this::setupParameters);
     }
 
     private void setupParameters(PmdActionParameters parameters) {

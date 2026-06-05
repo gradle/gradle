@@ -16,7 +16,6 @@ dependencies {
     implementation(projects.daemonServerWorker)
     implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
-    implementation(libs.groovy)
 }
 
 gradleModule {
