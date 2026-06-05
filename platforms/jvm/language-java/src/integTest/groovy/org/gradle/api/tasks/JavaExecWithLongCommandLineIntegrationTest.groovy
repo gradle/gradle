@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
@@ -25,6 +26,7 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
+import static org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects.Skip.FLAKY
 import static org.gradle.util.Matchers.containsText
 
 class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
@@ -74,6 +76,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/5122")
+    @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "Long command line detection is non-deterministic under IP, so the build does not reliably fail as expected")
     def "still fail when classpath doesn't shorten the command line enough with #method"() {
         def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs() * 16)
         buildFile << """

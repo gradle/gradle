@@ -38,32 +38,27 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         def jdks = Iterables.cycle(java8CompatibleJdks).iterator()
 
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
-        buildFile << """
-            subprojects {
-                apply plugin: 'java'
-
-                ${mavenCentralRepository()}
-
-                dependencies {
-                    implementation 'commons-lang:commons-lang:2.5'
-                }
-            }
-        """
 
         projectNames.each { projectName ->
             def jdk = jdks.next()
             def javaHome = TextUtil.escapeString(jdk.javaHome.absolutePath)
             def version = jdk.javaVersion
-            buildFile << """
-project(':$projectName') {
-    tasks.withType(JavaCompile) {
-        sourceCompatibility = '${version}'
-        targetCompatibility = '${version}'
+            file("${projectName}/build.gradle") << """
+apply plugin: 'java'
 
-        options.with {
-            fork = true
-            forkOptions.javaHome = file("${javaHome}")
-        }
+${mavenCentralRepository()}
+
+dependencies {
+    implementation 'commons-lang:commons-lang:2.5'
+}
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = '${version}'
+    targetCompatibility = '${version}'
+
+    options.with {
+        fork = true
+        forkOptions.javaHome = file("${javaHome}")
     }
 }
 """

@@ -118,7 +118,3 @@ packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
     excludePatterns.add("org/gradle/api/tasks/**")
 }
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

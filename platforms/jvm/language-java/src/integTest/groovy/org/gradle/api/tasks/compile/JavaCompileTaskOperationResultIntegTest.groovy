@@ -26,13 +26,15 @@ class JavaCompileTaskOperationResultIntegTest extends AbstractIntegrationSpec {
             include 'processor'
         """
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
-            }
+            apply plugin: 'java'
+
             dependencies {
                 compileOnly project(':processor')
                 annotationProcessor project(':processor')
             }
+        """
+        file("processor/build.gradle") << """
+            apply plugin: 'java'
         """
         file("src/main/java/SomeClass.java") << """
             @Helper class SomeClass {}

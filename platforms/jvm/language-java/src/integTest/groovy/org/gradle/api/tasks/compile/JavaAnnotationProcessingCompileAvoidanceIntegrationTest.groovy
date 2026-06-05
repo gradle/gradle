@@ -23,15 +23,18 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        settingsFile << "include 'a', 'b'"
+        settingsFile << '''
+            include 'a', 'b'
+        '''
+
         buildFile << '''
-            allprojects {
-                apply plugin: 'java'
-            }
+            apply plugin: 'java'
         '''
 
         // annotation processor path uses @Classpath
         file('a/build.gradle') << '''
+            apply plugin: 'java'
+
             configurations {
                 annotationProcessor
             }
@@ -53,6 +56,9 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
             aprop=avalue
         '''
 
+        file('b/build.gradle') << '''
+            apply plugin: 'java'
+        '''
         file('b/src/main/java/B.java') << '''
             public class B {
                 public int truth() { return 0; }

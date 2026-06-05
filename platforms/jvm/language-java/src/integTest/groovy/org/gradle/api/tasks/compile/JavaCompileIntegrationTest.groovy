@@ -117,17 +117,17 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "don't implicitly compile source files from classpath"() {
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            subprojects {
-                apply plugin: 'java'
-                tasks.withType(JavaCompile) {
-                    options.compilerArgs << '-Xlint:all' << '-Werror'
-                }
+        def subprojectConfig = """
+            apply plugin: 'java'
+            tasks.withType(JavaCompile) {
+                options.compilerArgs << '-Xlint:all' << '-Werror'
             }
-            project(':b') {
-                dependencies {
-                    implementation project(':a')
-                }
+        """
+        file("a/build.gradle") << subprojectConfig
+        file("b/build.gradle") << subprojectConfig
+        file("b/build.gradle") << """
+            dependencies {
+                implementation project(':a')
             }
         """
 
@@ -141,7 +141,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         // This makes sure the test above is correct AND you can get back javac's default behavior if needed
         when:
-        buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
+        file("b/build.gradle") << "compileJava { options.sourcepath = classpath }"
         run("compileJava")
         then:
         file("b/build/classes/java/main/Bar.class").exists()
@@ -283,15 +283,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         given:
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            allprojects {
-                apply plugin: 'java-library'
+        def projectConfig = """
+            apply plugin: 'java-library'
 
-                repositories {
-                   maven { url = '$mavenRepo.uri' }
-                }
+            repositories {
+               maven { url = '$mavenRepo.uri' }
             }
         """
+        buildFile << projectConfig
+        file('a/build.gradle') << projectConfig
+        file('b/build.gradle') << projectConfig
 
         file('a/build.gradle') << '''
             dependencies {

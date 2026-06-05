@@ -170,13 +170,15 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
     }
 
     void project_a_depends_on_project_b() {
-        settingsFile << "include 'a', 'b'"
+        settingsFile << '''
+            include 'a', 'b'
+        '''
         buildFile << '''
-            allprojects {
-                apply plugin: 'java'
-            }
+            apply plugin: 'java'
         '''
         file('a/build.gradle') << '''
+            apply plugin: 'java'
+
             dependencies {
                 implementation project(':b')
             }
@@ -188,6 +190,9 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
                     int x = truth();
                 }
             }
+        '''
+        file('b/build.gradle') << '''
+            apply plugin: 'java'
         '''
         file('b/src/main/java/B.java') << '''
             public class B {

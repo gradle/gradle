@@ -44,12 +44,11 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
         settingsFile << """
             include "annotation", "library", "processor"
-            gradle.lifecycle.beforeProject {
-                apply plugin: 'java'
-            }
         """
 
         buildFile << """
+            apply plugin: 'java'
+
             dependencies {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
@@ -59,7 +58,17 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             }
         """
 
+        annotationProjectDir.file("build.gradle") << """
+            apply plugin: 'java'
+        """
+
+        libraryProjectDir.file("build.gradle") << """
+            apply plugin: 'java'
+        """
+
         processorProjectDir.file("build.gradle") << """
+            apply plugin: 'java'
+
             dependencies {
                 implementation project(":annotation")
                 implementation project(":library")
