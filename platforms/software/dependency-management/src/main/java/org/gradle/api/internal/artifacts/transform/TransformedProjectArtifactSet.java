@@ -113,7 +113,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
                 DeprecationLogger.deprecate(
                     "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input"
                 )
-                    .withAdvice("Declare the FileCollection as a task input (for example via inputs.files(view)) so the transform is wired into the execution plan.")
+                    .withAdvice("Declare the configuration's files or artifacts resulting from the transform as a task input to ensure the transform is wired into the execution plan.")
                     .willBeRemovedInGradle10()
                     .withUpgradeGuideSection(9, "undeclared_artifact_transform_input")
                     .nagUser();
