@@ -245,7 +245,8 @@ sealed class PropertyTrace {
     data class SerializedLambda(
         val implClass: String,
         val implMethodName: String,
-        val implMethodSignature: String,
+        val functionalInterfaceClass: String,
+        val instantiatedReturnType: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCodeMessage: StructuredMessage
@@ -255,10 +256,10 @@ sealed class PropertyTrace {
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {
                 text("lambda of type ")
-                reference("java.lang.invoke.SerializedLambda")
-                text(" (method: ")
-                reference("$implClass.$implMethodName$implMethodSignature")
-                text(") found in ")
+                reference(functionalInterfaceClass)
+                text(" returning ")
+                reference(instantiatedReturnType)
+                text(" found in ")
             }
         }
     }

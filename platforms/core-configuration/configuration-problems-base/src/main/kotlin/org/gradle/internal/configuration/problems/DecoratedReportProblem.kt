@@ -61,7 +61,12 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
     fun JsonWriter.writePropertyTrace(trace: PropertyTrace) {
         when (trace) {
             is PropertyTrace.Property -> {
-                when (trace.kind) {
+                val parent = trace.trace
+                if (trace.kind == PropertyKind.Field && trace.name == "capturedArgs" && parent is PropertyTrace.SerializedLambda) {
+                    property("kind", "CapturedArguments")
+                    property("class", parent.implClass)
+                    property("method", parent.implMethodName)
+                } else when (trace.kind) {
                     PropertyKind.Field -> {
                         kind(trace)
                         property("declaringType", firstTypeFrom(trace.trace).name)
@@ -106,9 +111,8 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
 
             is PropertyTrace.SerializedLambda -> {
                 property("kind", "SerializedLambda")
-                property("implClass", trace.implClass)
-                property("implMethodName", trace.implMethodName)
-                property("implMethodSignature", trace.implMethodSignature)
+                property("type", trace.functionalInterfaceClass)
+                property("returns", trace.instantiatedReturnType)
             }
 
             is PropertyTrace.Project -> {

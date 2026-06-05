@@ -201,7 +201,8 @@ abstract class ConfigurationCacheReportFixture {
                 case "SystemProperty" -> trace['name']
                 case "Task" -> trace['path']
                 case "Bean" -> trace['type']
-                case "SerializedLambda" -> "lambda ${trace['implClass']}.${trace['implMethodName']}${trace['implMethodSignature']}"
+                case "CapturedArguments" -> "captured arguments of ${trace['class']}.${trace['method']}"
+                case "SerializedLambda" -> "lambda of type ${trace['type']} returning ${trace['returns']}"
                 case "Project" -> "Project '${trace['path']}'"
                 case "BuildLogic" -> trace['location'].toString().capitalize() // Build file 'build.gradle'
                 case "BuildLogicClass" -> trace['type']

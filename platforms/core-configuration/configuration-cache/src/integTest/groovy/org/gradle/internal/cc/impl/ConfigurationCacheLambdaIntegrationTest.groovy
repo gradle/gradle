@@ -428,7 +428,7 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         problems.htmlReport(failure.error).assertContents {
             problemsWithStackTraceCount = 0
             withProblem("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.") {
-                at(":ok").at("supplier").at("lambda my.LambdaTask.lambda\$captureProject\$")
+                at(":ok").at("supplier").at("lambda of type java.util.function.Supplier returning java.lang.String").at("captured arguments of my.LambdaTask.captureProject")
             }
             ignoringUnexpectedInputs()
         }

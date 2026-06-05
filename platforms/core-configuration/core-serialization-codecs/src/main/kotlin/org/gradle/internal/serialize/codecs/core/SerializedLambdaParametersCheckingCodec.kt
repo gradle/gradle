@@ -50,10 +50,11 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
         checkLambdaCapturedArgTypesAreSupported(value)
         withPropertyTrace(
             PropertyTrace.SerializedLambda(
-                value.implClass.replace('/', '.'),
-                value.implMethodName,
-                value.implMethodSignature,
-                trace
+                implClass = value.implClass.replace('/', '.'),
+                implMethodName = sourceMethodName(value.implMethodName),
+                functionalInterfaceClass = value.functionalInterfaceClass.replace('/', '.'),
+                instantiatedReturnType = Type.getReturnType(value.instantiatedMethodType).className,
+                trace = trace
             )
         ) {
             writeClass(SerializedLambda::class.java)
@@ -94,4 +95,12 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     private
     val unsupportedTypes: Map<Type, KClass<*>> =
         unsupportedFieldDeclaredTypes.associateBy { Type.getType(it.java) }
+
+
+    private
+    fun sourceMethodName(implMethodName: String): String =
+        SYNTHETIC_LAMBDA_METHOD.matchEntire(implMethodName)?.groupValues?.get(1) ?: implMethodName
+
+    private
+    val SYNTHETIC_LAMBDA_METHOD = Regex("""lambda\$(.+)\$\d+""")
 }
