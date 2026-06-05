@@ -29,12 +29,37 @@ import groovy.transform.SelfType
  */
 @SelfType(HasGradleExecutor)
 trait UndeclaredArtifactTransformInputDeprecation {
+    /**
+     * Expect the deprecation without contextual task/configuration detail.
+     * Use when the offending transform has no resolvable configuration identity
+     * (e.g. ad-hoc artifact views).
+     */
     void expectUndeclaredArtifactTransformInputDeprecation() {
+        executer.expectDocumentedDeprecationWarning(deprecationSummary() + " " + deprecationAdvice())
+    }
+
+    /**
+     * Expect the deprecation with the contextual line identifying the offending
+     * task and configuration.
+     *
+     * @param taskPath full task path, e.g. ":consumer:resolve"
+     * @param configName name of the configuration being queried, e.g. "implementation"
+     */
+    void expectUndeclaredArtifactTransformInputDeprecation(String taskPath, String configName) {
         executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10. " +
-            "Declare the configuration's files or artifacts resulting from the transform as a task input to ensure the transform is wired into the execution plan. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
+            deprecationSummary() + " " +
+                "Task '${taskPath}' queried artifact transform output of configuration '${configName}' without declaring it as an input. " +
+                deprecationAdvice()
         )
+    }
+
+    private static String deprecationSummary() {
+        "Querying the output of an artifact transform from a task action without declaring it as a task input has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10."
+    }
+
+    private static String deprecationAdvice() {
+        "Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
     }
 }

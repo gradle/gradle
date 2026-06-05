@@ -118,6 +118,68 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "querying transform output of dependency-requiring transform names the offending task and configuration"() {
+        // When the transform declares @InputArtifactDependencies, the upstream resolver carries
+        // through the originating configuration's identity, so the deprecation includes a
+        // contextual line identifying the offending task and configuration.
+        createDirs("a", "b")
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                    }
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + ".green")
+                    if (input.file) {
+                        output.text = input.text + ".green"
+                    } else {
+                        output.text = "missing.green"
+                    }
+                }
+            }
+
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+            }
+
+            def view = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+
+            task broken {
+                doLast {
+                    println "result = " + view.files.name
+                }
+            }
+        """
+
+        when:
+        expectUndeclaredArtifactTransformInputDeprecation(":broken", "implementation")
+        run("broken")
+
+        then:
+        output.contains("result = [a.jar.green, b.jar.green]")
+    }
+
     @ToBeFixedForConfigurationCache(because = "phase 1 emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning; phase 2 turns the warning into a hard error before the project lookup")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "querying chained transform output of project artifacts without declaring this access emits deprecation"() {

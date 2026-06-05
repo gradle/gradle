@@ -17,9 +17,10 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     // This tests current behaviour, not desired behaviour
     @UnsupportedWithConfigurationCache(because = "Task does not declare that it uses the transform outputs")
     def "can consume transform outputs produced by another project without declaring this access"() {
@@ -53,15 +54,7 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact " +
-                "from a task action without declaring it as a task input has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Declare the FileCollection as a task input (for example via inputs.files(view)) " +
-                "so the transform is wired into the execution plan. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("sneaky:sneaky", "--parallel")
 
         then:

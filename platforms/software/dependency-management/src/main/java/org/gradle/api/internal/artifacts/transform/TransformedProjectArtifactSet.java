@@ -29,9 +29,12 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -110,16 +113,32 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         }
         for (TransformStepNode node : transformedArtifacts) {
             if (!node.wasScheduledViaTaskDependency()) {
-                DeprecationLogger.deprecate(
-                    "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input"
-                )
-                    .withAdvice("Declare the configuration's files or artifacts resulting from the transform as a task input to ensure the transform is wired into the execution plan.")
+                // isExecutingTaskOrTransformAction() guarantees a current task is on the stack.
+                String taskPath = workExecutionTracker.getCurrentTask().get().getPath();
+                String configName = configurationNameOf(node);
+                DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
+                    "Querying the output of an artifact transform from a task action without declaring it as a task input"
+                );
+                if (configName != null) {
+                    deprecation = deprecation.withContext(String.format(
+                        "Task '%s' queried artifact transform output of configuration '%s' without declaring it as an input.",
+                        taskPath, configName
+                    ));
+                }
+                deprecation
+                    .withAdvice("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
                     .willBeRemovedInGradle10()
                     .withUpgradeGuideSection(9, "undeclared_artifact_transform_input")
                     .nagUser();
                 return;
             }
         }
+    }
+
+    @Nullable
+    private static String configurationNameOf(TransformStepNode node) {
+        ConfigurationIdentity id = node.getUpstreamDependencies().getConfigurationIdentity();
+        return id == null ? null : id.getName();
     }
 
     @Override
