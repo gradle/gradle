@@ -426,7 +426,7 @@ The Isolated Projects <<#sec:constraints,constraints>> validate the usages of AP
 
 Under Isolated Project, the implicit resolution of properties and methods from parent projects does not happen.
 In Gradle 9.6.0, this behavior is deprecated when running without Isolated Projects.
-The corresponding <<upgrading_version_9.adoc#deprecated_implicit_project_hierarchy_lookup,upgrade guide entry>> details the cases when it is applicable.
+The corresponding <<upgrading_version_9.adoc#deprecated_implicit_lookup_in_parent_projects,upgrade guide entry>> details the cases when it is applicable.
 
 [WARNING]
 ====
