@@ -90,9 +90,9 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        nagIfUndeclared();
         DisplayName artifactSetName = Describables.of(targetVariant.getComponentId());
         for (TransformStepNode node : transformedArtifacts) {
+            nagIfUndeclared(node);
             node.executeIfNotAlready();
             Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
@@ -107,32 +107,30 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         visitor.endVisitCollection(this);
     }
 
-    private void nagIfUndeclared() {
+    private void nagIfUndeclared(TransformStepNode node) {
+        if (node.wasScheduledViaTaskDependency()) {
+            return;
+        }
         if (!workExecutionTracker.isExecutingTaskOrTransformAction()) {
             return;
         }
-        for (TransformStepNode node : transformedArtifacts) {
-            if (!node.wasScheduledViaTaskDependency()) {
-                // isExecutingTaskOrTransformAction() guarantees a current task is on the stack.
-                String taskPath = workExecutionTracker.getCurrentTask().get().getPath();
-                String configName = configurationNameOf(node);
-                DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
-                    "Querying the output of an artifact transform from a task action without declaring it as a task input"
-                );
-                if (configName != null) {
-                    deprecation = deprecation.withContext(String.format(
-                        "Task '%s' queried artifact transform output of configuration '%s' without declaring it as an input.",
-                        taskPath, configName
-                    ));
-                }
-                deprecation
-                    .withAdvice("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
-                    .willBeRemovedInGradle10()
-                    .withUpgradeGuideSection(9, "undeclared_artifact_transform_input")
-                    .nagUser();
-                return;
-            }
+        // isExecutingTaskOrTransformAction() guarantees a current task is on the stack.
+        String taskPath = workExecutionTracker.getCurrentTask().get().getPath();
+        String configName = configurationNameOf(node);
+        DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
+            "Querying the output of an artifact transform from a task action without declaring it as a task input"
+        );
+        if (configName != null) {
+            deprecation = deprecation.withContext(String.format(
+                "Task '%s' queried artifact transform output of configuration '%s' without declaring it as an input.",
+                taskPath, configName
+            ));
         }
+        deprecation
+            .withAdvice("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "undeclared_artifact_transform_input")
+            .nagUser();
     }
 
     @Nullable
