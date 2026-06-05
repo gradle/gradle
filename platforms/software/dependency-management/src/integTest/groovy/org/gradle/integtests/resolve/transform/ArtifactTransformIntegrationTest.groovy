@@ -516,7 +516,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":lib:jar1", ":lib:zip1", ":app:resolve")
 
         and:
-        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
+        outputContains("variants: [{artifactType=size, org.gradle.fallback-variant=false, usage=api}, {artifactType=size, org.gradle.fallback-variant=false, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.zip.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
@@ -624,7 +624,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
-        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
+        outputContains("variants: [{artifactType=size, org.gradle.fallback-variant=false, usage=api}, {artifactType=size, org.gradle.fallback-variant=false, usage=api}]")
         outputContains("artifacts: [lib1.jar (project ':lib'), lib2.zip (project ':lib')]")
         outputContains("components: [project ':lib', project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
@@ -724,7 +724,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":lib:jar1", ":app:resolve")
 
         and:
-        outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
+        outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, org.gradle.fallback-variant=false, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.red")
 
         and:
@@ -856,7 +856,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         and:
         // The identifier's original filename should reference the filename from the source variant, not simply the prior transformed variant in the chain
         outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project ':lib')]")
-        outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
+        outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, org.gradle.fallback-variant=false, usage=api}]")
         // Should belong to same component as the originals
         outputContains("artifacts: [lib1.jar.blue.red (project ':lib')]")
         outputContains("components: [project ':lib']")

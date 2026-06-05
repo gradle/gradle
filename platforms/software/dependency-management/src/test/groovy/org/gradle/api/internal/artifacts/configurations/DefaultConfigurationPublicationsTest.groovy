@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.FallbackVariant
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser
@@ -127,12 +128,17 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         def child1 = variants.first() // Implicit variant
         child1.displayName.displayName == '<config>'
-        child1.attributes == AttributeTestUtil.attributes([:])
+        child1.attributes == AttributeTestUtil.attributesTyped([
+            (FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE): AttributeTestUtil.named(FallbackVariant, FallbackVariant.TRUE)
+        ])
         child1.artifacts == [] as Set
 
         def child2 = variants[1]
         child2.displayName.displayName == "<config> variant 'child'"
-        child2.attributes == AttributeTestUtil.attributes(["thing": "value"])
+        child2.attributes == AttributeTestUtil.attributesTyped([
+            (Attribute.of("thing", String)): "value",
+            (FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE): AttributeTestUtil.named(FallbackVariant, FallbackVariant.FALSE)
+        ])
         child2.artifacts == variantDef.artifacts
     }
 

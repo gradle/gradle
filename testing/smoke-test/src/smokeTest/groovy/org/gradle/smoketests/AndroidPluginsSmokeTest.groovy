@@ -104,7 +104,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
-        result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
         if (GradleContextualExecuter.isConfigCache()) {

@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFa
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport;
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
@@ -261,9 +262,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
+        AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, FallbackVariantSupport fallbackVariantSupport) {
             DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, instantiatorFactory, isolatableFactory);
             platformSupport.configureSchema(attributesSchema);
+            fallbackVariantSupport.configureSchema(attributesSchema);
             GradlePluginVariantsSupport.configureSchema(attributesSchema);
             return attributesSchema;
         }
