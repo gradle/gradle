@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -48,7 +49,7 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
 @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
-class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
+class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture, UndeclaredArtifactTransformInputDeprecation {
 
     @EqualsAndHashCode
     static class TypedNodeId {
@@ -1331,7 +1332,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         // The view is wired via files.from(view) without inputs.files(view), so the chained
         // transform steps are not scheduled in the plan. Reading files.files in the task action
         // runs them inline — exactly the case the new undeclared-transform deprecation flags.
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run ":consumer:resolveWithoutDependencies"
 
         then:
@@ -1348,17 +1349,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getExecutePlannedStepOperations(0).empty
     }
 
-    private void expectUndeclaredTransformDeprecation() {
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact " +
-                "from a task action without declaring it as a task input has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Declare the FileCollection as a task input (for example via inputs.files(view)) " +
-                "so the transform is wired into the execution plan. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
-    }
 
     def "planned transform steps from script plugin buildscript block are not captured"() {
         setupProjectTransformInBuildScriptBlock(true)

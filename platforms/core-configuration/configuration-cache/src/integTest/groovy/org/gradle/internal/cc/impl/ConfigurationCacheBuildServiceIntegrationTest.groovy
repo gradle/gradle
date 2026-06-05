@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.OperationFinishEvent
@@ -51,7 +52,7 @@ import spock.lang.Issue
 import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
-class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements UndeclaredArtifactTransformInputDeprecation {
 
     @Issue('https://github.com/gradle/gradle/issues/31039')
     def "build service with transformer-dependent parameter"() {
@@ -127,7 +128,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        expectUndeclaredTransformInputDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         configurationCacheRun 'ok'
 
         then:
@@ -135,7 +136,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains "value: file.txt"
 
         when:
-        expectUndeclaredTransformInputDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         configurationCacheRun 'ok'
 
         then:
@@ -862,15 +863,4 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
         outputDoesNotContain onFinishMessage
     }
-
-    // region helpers
-    private void expectUndeclaredTransformInputDeprecation() {
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10. " +
-            "Declare the FileCollection as a task input (for example via inputs.files(view)) so the transform is wired into the execution plan. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
-    }
-    // endregion
 }

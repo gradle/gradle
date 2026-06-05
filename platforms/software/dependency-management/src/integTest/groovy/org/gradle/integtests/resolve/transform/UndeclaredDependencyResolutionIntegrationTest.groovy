@@ -18,13 +18,14 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
 
 // This tests current behaviour, not desired behaviour
-class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
+class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "querying transform output of project artifacts without declaring this access emits deprecation"() {
@@ -32,7 +33,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         taskQueriesFilesWithoutDeclaringInput()
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -40,7 +41,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.green, b.jar.green]")
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -67,7 +68,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.withArgument("--configuration-cache")
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         fails("broken")
 
         then:
@@ -85,7 +86,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         when:
         // The dependsOn closure query during task graph calculation does not fire the deprecation
         // (no task action on the stack); the doLast query during execution does.
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -93,7 +94,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.count("result = [a.jar.green, b.jar.green]") == 2
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -124,7 +125,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         taskQueriesFilesWithoutDeclaringInput()
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -132,7 +133,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.red.green, b.jar.red.green]")
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -148,7 +149,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         when:
         // The dependsOn closure query during task graph calculation does not fire the deprecation
         // (no task action on the stack); the doLast query during execution does.
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -156,7 +157,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.count("result = [a.jar.red.green, b.jar.red.green]") == 2
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -433,20 +434,6 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
                 }
             }
         """
-    }
-
-    private void expectUndeclaredTransformDeprecation() {
-        // The message text must exactly match the deprecation emitted in
-        // TransformedProjectArtifactSet#nagIfUndeclared (see DeprecationLogger.deprecate call).
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact " +
-                "from a task action without declaring it as a task input has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Declare the FileCollection as a task input (for example via inputs.files(view)) " +
-                "so the transform is wired into the execution plan. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
     }
 
 }

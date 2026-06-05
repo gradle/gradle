@@ -21,13 +21,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-class LoggingIntegrationTest extends AbstractIntegrationSpec {
+class LoggingIntegrationTest extends AbstractIntegrationSpec implements UndeclaredArtifactTransformInputDeprecation {
 
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule public final Sample sampleResources = new Sample(testDirectoryProvider)
@@ -184,7 +185,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         // The nestedBuildLog GradleBuild task triggers the undeclared-transform deprecation
         // at lifecycle level; not visible at quiet level
         if (level != 'quiet') {
-            expectUndeclaredTransformInputDeprecation()
+            expectUndeclaredArtifactTransformInputDeprecation()
         }
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
         run "log"
@@ -211,7 +212,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         // The nestedBuildLog GradleBuild task triggers the undeclared-transform deprecation
         // at lifecycle level; not visible at quiet level
         if (level != 'quiet') {
-            expectUndeclaredTransformInputDeprecation()
+            expectUndeclaredArtifactTransformInputDeprecation()
         }
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
         run "log"
@@ -278,17 +279,6 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         where:
         level << ['quiet', 'lifecycle', 'info', 'debug']
     }
-
-    // region helpers
-    private void expectUndeclaredTransformInputDeprecation() {
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10. " +
-            "Declare the FileCollection as a task input (for example via inputs.files(view)) so the transform is wired into the execution plan. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
-    }
-    // endregion
 }
 
 class LogLevel {

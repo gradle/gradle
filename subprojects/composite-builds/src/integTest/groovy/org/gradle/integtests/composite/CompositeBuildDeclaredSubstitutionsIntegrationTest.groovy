@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -23,7 +24,7 @@ import spock.lang.Issue
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
-class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest implements UndeclaredArtifactTransformInputDeprecation {
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
@@ -389,7 +390,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         buildB.file("buildSrc/build.gradle").touch()
 
         then:
-        expectUndeclaredTransformInputDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         execute(buildA, ":buildC:dependencies")
     }
 
@@ -450,7 +451,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         """)
 
         then:
-        expectUndeclaredTransformInputDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         execute(buildA, ":buildC:dependencies")
     }
 
@@ -460,15 +461,4 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             root(":", "org.test:buildA:1.0", closure)
         }
     }
-
-    // region helpers
-    private void expectUndeclaredTransformInputDeprecation() {
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact from a task action without declaring it as a task input has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10. " +
-            "Declare the FileCollection as a task input (for example via inputs.files(view)) so the transform is wired into the execution plan. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
-    }
-    // endregion
 }

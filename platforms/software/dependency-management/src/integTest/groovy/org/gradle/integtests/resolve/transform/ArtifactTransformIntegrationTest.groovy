@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
@@ -29,7 +30,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     def setup() {
         createDirs("lib", "app")
         settingsFile << """
@@ -1664,7 +1665,7 @@ Found the following transformation chains:
         // queryView's doLast iterates configView without declaring inputs.files(configView),
         // so the project-artifact transforms run inline at execution time — triggers the
         // new undeclared-transform deprecation.
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         succeeds "queryView"
 
         then:
@@ -1675,7 +1676,7 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
 
         when:
-        expectUndeclaredTransformDeprecation()
+        expectUndeclaredArtifactTransformInputDeprecation()
         succeeds "queryView"
 
         then:
@@ -2946,18 +2947,6 @@ Found the following transformation chains:
                 }
             }
         """
-    }
-
-    private void expectUndeclaredTransformDeprecation() {
-        executer.expectDocumentedDeprecationWarning(
-            "Querying the output of an artifact transform of a project artifact " +
-                "from a task action without declaring it as a task input has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Declare the FileCollection as a task input (for example via inputs.files(view)) " +
-                "so the transform is wired into the execution plan. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input"
-        )
     }
 
     def configurationAndTransform(String transformImplementation = "FileSizer") {
