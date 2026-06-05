@@ -51,7 +51,7 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
         withPropertyTrace(
             PropertyTrace.SerializedLambda(
                 implClass = value.implClass.replace('/', '.'),
-                implMethodName = sourceMethodName(value.implMethodName),
+                implMethodName = value.implMethodName,
                 functionalInterfaceClass = value.functionalInterfaceClass.replace('/', '.'),
                 instantiatedReturnType = Type.getReturnType(value.instantiatedMethodType).className,
                 trace = trace
@@ -95,12 +95,4 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     private
     val unsupportedTypes: Map<Type, KClass<*>> =
         unsupportedFieldDeclaredTypes.associateBy { Type.getType(it.java) }
-
-
-    private
-    fun sourceMethodName(implMethodName: String): String =
-        SYNTHETIC_LAMBDA_METHOD.matchEntire(implMethodName)?.groupValues?.get(1) ?: implMethodName
-
-    private
-    val SYNTHETIC_LAMBDA_METHOD = Regex("""lambda\$(.+)\$\d+""")
 }

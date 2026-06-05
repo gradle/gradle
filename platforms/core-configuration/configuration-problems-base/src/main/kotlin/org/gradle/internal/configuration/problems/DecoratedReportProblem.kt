@@ -64,8 +64,7 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
                 val parent = trace.trace
                 if (trace.kind == PropertyKind.Field && trace.name == "capturedArgs" && parent is PropertyTrace.SerializedLambda) {
                     property("kind", "CapturedArguments")
-                    property("class", parent.implClass)
-                    property("method", parent.implMethodName)
+                    lambda(parent)
                 } else when (trace.kind) {
                     PropertyKind.Field -> {
                         kind(trace)
@@ -143,6 +142,27 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
     private fun JsonWriter.kind(trace: PropertyTrace.Property) {
         property("kind", trace.kind.name)
         property("name", trace.name)
+    }
+
+    /**
+     * Javac names the synthetic method backing a lambda body `lambda$<enclosingMethod>$<n>` —
+     * e.g. a lambda defined in `Foo.bar()` becomes `lambda$bar$0` (verified for Java 8 through 25).
+     * This regex extracts the enclosing method name back from that synthetic name.
+     */
+    private
+    val syntheticLambdaMethodName = Regex("""lambda\$(.+)\$\d+""")
+
+    fun JsonWriter.lambda(parent: PropertyTrace.SerializedLambda) {
+        val syntheticLambda = syntheticLambdaMethodName.matchEntire(parent.implMethodName)
+        if (syntheticLambda != null) {
+            property("subkind", "lambdaBody")
+            property("class", parent.implClass)
+            property("method", syntheticLambda.groupValues[1])
+        } else {
+            property("subkind", "boundReceiver")
+            property("class", parent.implClass)
+            property("method", parent.implMethodName)
+        }
     }
 }
 

@@ -384,7 +384,7 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22920")
-    def "report identifies lambda by impl class and method when it appears in property trace"() {
+    def "report identifies #kind by impl method when it appears in property trace"() {
         given:
         file("buildSrc/src/main/java/my/LambdaTask.java").tap {
             parentFile.mkdirs()
@@ -407,6 +407,11 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
                         setSupplier(() -> "project name is " + p.getName());
                     }
 
+                    public void captureProjectBoundRef() {
+                        Project p = getProject();
+                        setSupplier(p::getName);
+                    }
+
                     @TaskAction
                     void printValue() {
                         System.out.println("supplier -> " + supplier.get());
@@ -417,7 +422,7 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
 
         buildFile << """
             task ok(type: my.LambdaTask) {
-                captureProject()
+                ${setupCall}()
             }
         """
 
@@ -428,9 +433,14 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         problems.htmlReport(failure.error).assertContents {
             problemsWithStackTraceCount = 0
             withProblem("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.") {
-                at(":ok").at("supplier").at("lambda of type java.util.function.Supplier returning java.lang.String").at("captured arguments of my.LambdaTask.captureProject")
+                at(":ok").at("supplier").at("lambda of type java.util.function.Supplier returning java.lang.String").at(expectedCapturedArgs)
             }
             ignoringUnexpectedInputs()
         }
+
+        where:
+        kind               | setupCall                | expectedCapturedArgs
+        "lambda body"      | "captureProject"         | "captured state from method my.LambdaTask.captureProject"
+        "bound method ref" | "captureProjectBoundRef" | "bound receiver of method org.gradle.api.Project.getName"
     }
 }
