@@ -16,13 +16,14 @@
 
 package org.gradle.kotlin.dsl.plugins
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
-import org.gradle.util.GradleVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,17 +64,19 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
     @Test
     fun `plugin built with current Gradle can be applied with an older Gradle version`() {
-        assumeTrue(JavaVersion.current() < JavaVersion.VERSION_25 || GradleVersion.version(gradleVersion) >= GradleVersion.version("9.0.0"))
+        val gradleDistribution = buildContext.distribution(gradleVersion)
+        val applyJdk = getHighestAvailableSupportedJdkForGradleVersion(gradleDistribution)
 
-        buildPlugin()
+        val compileJdk = getJdkSuitableForKGPCompilation()
+        buildPlugin(compileJdk)
 
-        val result = applyPlugin()
+        val result = applyPlugin(applyJdk)
 
         result.assertOutputContains("My Kotlin plugin applied!")
         result.assertOutputContains("My task executed!")
     }
 
-    private fun buildPlugin() {
+    private fun buildPlugin(jdk: Jvm) {
         file("plugin/settings.gradle.kts").setText(
             """
             pluginManagement {
@@ -152,12 +155,13 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 
         inDirectory(file("plugin"))
             .withTasks("publish")
+            .withJavaHome(jdk.javaHome.absolutePath)
             .noDeprecationChecks() // KGP emits deprecation warnings that vary by version and are not what we test here.
             .withStackTraceChecksDisabled() // The Kotlin compiler daemon intermittently crashes and logs a stack trace before falling back; that's not what we test here.
             .run()
     }
 
-    private fun applyPlugin(): ExecutionResult {
+    private fun applyPlugin(jdk: Jvm): ExecutionResult {
         file("consumer/settings.gradle.kts").setText(
             """
             pluginManagement {
@@ -180,8 +184,25 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         val olderGradle = buildContext.distribution(gradleVersion)
         return NoDaemonGradleExecuter(olderGradle, testDirectoryProvider, buildContext)
             .usingProjectDirectory(file("consumer"))
+            .withJavaHome(jdk.javaHome.absolutePath)
             .withTasks("myTask")
             .noDeprecationChecks()
             .run()
+    }
+
+    private fun getJdkSuitableForKGPCompilation(): Jvm {
+        // The Gradle daemon building the plugin (i.e. current Gradle) must run on a JDK the KGP version under test can host its compiler on.
+        // JDK 17 works for all KGP versions under test and is the minimum version currently required by Gradle.
+        val jdk = AvailableJavaHomes.getJdk17()
+        assumeTrue(jdk != null)
+        return jdk!!
+    }
+
+    private fun getHighestAvailableSupportedJdkForGradleVersion(gradleDistribution: GradleDistribution): Jvm {
+        val jdks = AvailableJavaHomes.getAvailableJdks { metadata -> gradleDistribution.daemonWorksWith(metadata.getJavaMajorVersion()) }
+        jdks.sortByDescending { it.javaVersion }
+        val jdk = jdks.firstOrNull()
+        assumeTrue(jdk != null)
+        return jdk!!
     }
 }
