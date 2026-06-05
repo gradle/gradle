@@ -128,10 +128,10 @@ Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelo
 [[v9_deprecations_9_6]]
 === Deprecations
 
-[[deprecated_implicit_project_hierarchy_lookup]]
-==== Deprecation of implicit lookup of properties and methods in the project hierarchy
+[[deprecated_implicit_lookup_in_parent_projects]]
+==== Deprecation of implicit lookup of properties and methods in parent projects
 
-In Gradle's Groovy and Kotlin DSLs, when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match:
+In Gradle's Groovy and Kotlin DSLs, when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the parent projects looking for a match:
 
 ====
 [.multi-language-sample]
@@ -207,7 +207,7 @@ It will also affect the output of the `properties` task when invoked for subproj
 [[deprecated_develocity_plugin_pre_4_0]]
 ==== Deprecation of Develocity plugin versions before 4.0
 
-Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_project_hierarchy_lookup,deprecated>> and will be removed in Gradle 10.
+Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_lookup_in_parent_projects,deprecated>> and will be removed in Gradle 10.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
 See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
