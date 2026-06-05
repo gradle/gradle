@@ -57,6 +57,7 @@ Class <org.gradle.api.UnknownTaskException> is in a generic package in (UnknownT
 Class <org.gradle.api.XmlProvider> is in a generic package in (XmlProvider.java:0)
 Class <org.gradle.api.initialization.ConfigurableIncludedBuild> is in a generic package in (ConfigurableIncludedBuild.java:0)
 Class <org.gradle.api.initialization.ConfigurableIncludedPluginBuild> is in a generic package in (ConfigurableIncludedPluginBuild.java:0)
+Class <org.gradle.api.initialization.EcosystemApplyAction> is in a generic package in (EcosystemApplyAction.java:0)
 Class <org.gradle.api.initialization.IncludedBuild> is in a generic package in (IncludedBuild.java:0)
 Class <org.gradle.api.initialization.ProjectDescriptor> is in a generic package in (ProjectDescriptor.java:0)
 Class <org.gradle.api.initialization.Settings> is in a generic package in (Settings.java:0)

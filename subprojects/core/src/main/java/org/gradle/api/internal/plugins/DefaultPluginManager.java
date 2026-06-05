@@ -197,6 +197,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } else if (plugin.getType() == PotentialPlugin.Type.PROJECT_FEATURE_DECLARATION_CLASS) {
             // Register-only, like the rules branch: there is no Plugin instance to produce or store.
             target.applyProjectFeatureDeclaration(pluginId, pluginClass);
+        } else if (plugin.getType() == PotentialPlugin.Type.ECOSYSTEM_APPLY_ACTION) {
+            // Register-only: registers the aggregated features and the ecosystem; no Plugin instance.
+            target.applyEcosystemAction(pluginId, pluginClass);
         } else {
             target.applyRules(pluginId, pluginClass);
         }

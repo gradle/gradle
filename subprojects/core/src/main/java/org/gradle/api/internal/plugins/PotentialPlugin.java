@@ -30,7 +30,8 @@ public interface PotentialPlugin<T> {
         IMPERATIVE_CLASS,
         PURE_RULE_SOURCE_CLASS,
         HYBRID_IMPERATIVE_AND_RULES_CLASS,
-        PROJECT_FEATURE_DECLARATION_CLASS
+        PROJECT_FEATURE_DECLARATION_CLASS,
+        ECOSYSTEM_APPLY_ACTION
     }
 
     Class<? extends T> asClass();

@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.initialization.EcosystemApplyAction
 import org.gradle.features.binding.SchemaDefinition
 import org.gradle.features.binding.SchemaProjectFeatureApplyAction
 import org.gradle.features.binding.SchemaProjectTypeApplyAction
@@ -46,6 +47,16 @@ class PluginInspectorTest extends Specification {
         inspector.inspect(SchemaFeature).type == PotentialPlugin.Type.PROJECT_FEATURE_DECLARATION_CLASS
     }
 
+    def "recognizes an ecosystem apply action"() {
+        when:
+        def potential = inspector.inspect(Ecosystem)
+
+        then:
+        potential.type == PotentialPlugin.Type.ECOSYSTEM_APPLY_ACTION
+        !potential.imperative
+        !potential.hasRules
+    }
+
     def "recognizes an imperative plugin"() {
         expect:
         inspector.inspect(ImperativePlugin).type == PotentialPlugin.Type.IMPERATIVE_CLASS
@@ -71,5 +82,8 @@ class PluginInspectorTest extends Specification {
     static class ImperativePlugin implements Plugin<Project> {
         @Override
         void apply(Project project) {}
+    }
+
+    static class Ecosystem implements EcosystemApplyAction {
     }
 }

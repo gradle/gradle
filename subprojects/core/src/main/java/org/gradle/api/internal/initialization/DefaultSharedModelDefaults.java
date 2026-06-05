@@ -20,32 +20,39 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.EcosystemApplyAction;
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.features.internal.binding.ProjectFeatureImplementation;
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
+    private final Instantiator instantiator;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
     private final List<ModelDefaultRegistration<?>> registrations = new ArrayList<>();
+    // Deduped by class so each ecosystem's apply(...) runs at most once.
+    private final Set<Class<? extends EcosystemApplyAction>> ecosystems = new LinkedHashSet<>();
     boolean processed = false;
 
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProjectLayout> projectLayout = new ThreadLocal<>();
 
     @Inject
-    public DefaultSharedModelDefaults(ProjectFeatureDeclarations projectFeatureDeclarations) {
+    public DefaultSharedModelDefaults(ProjectFeatureDeclarations projectFeatureDeclarations, Instantiator instantiator) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -68,10 +75,22 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     }
 
     @Override
+    public void registerEcosystem(Class<? extends EcosystemApplyAction> ecosystemClass) {
+        if (processed) {
+            throw new IllegalStateException("Cannot register an ecosystem after processing.");
+        }
+        ecosystems.add(ecosystemClass);
+    }
+
+    @Override
     public void processRegistrations() {
         if (processed) {
             return;
         }
+
+        // Run each ecosystem's apply(...) first so its add(...) calls are recorded before the replay
+        // loop. The deduping set guarantees each ecosystem's apply runs at most once.
+        ecosystems.forEach(ecosystemClass -> instantiator.newInstance(ecosystemClass).apply(this));
 
         registrations.forEach(registration -> {
             if (projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(registration.name)) {

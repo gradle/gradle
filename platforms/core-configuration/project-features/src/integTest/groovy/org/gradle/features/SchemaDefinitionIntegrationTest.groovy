@@ -20,13 +20,16 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
+import static org.hamcrest.CoreMatchers.containsString
+
 /**
  * Exercises the {@code SchemaDefinition} / {@code SchemaProjectTypeApplyAction} /
- * {@code SchemaProjectFeatureApplyAction} API end-to-end through the real
- * feature-application pipeline, registered via the <em>aggregation</em> path: a settings plugin
- * annotated with {@code @RegistersProjectFeatures} lists the schema apply actions directly — no
- * {@code Plugin<Project>} shell and no {@code Binding}/{@code bind()} class. (The direct
- * settings-application path is covered by {@code SchemaDirectApplicationIntegrationTest}.)
+ * {@code SchemaProjectFeatureApplyAction} API end-to-end through the real feature-application
+ * pipeline, registered via an {@code EcosystemApplyAction} (research Option 6): the ecosystem
+ * aggregates the schema apply actions via {@code @RegistersProjectFeatures} and seeds defaults via
+ * {@code apply(SharedModelDefaults)} — no {@code Plugin<Settings>} registrar, no {@code Plugin<Project>}
+ * shell, and no {@code Binding}/{@code bind()} class. (The direct settings-application path is covered
+ * by {@code SchemaDirectApplicationIntegrationTest}.)
  *
  * <p>Each apply action registers a task that prints a marker literal emitted only
  * from inside the simplified {@code apply(...)} method, so a passing assertion proves
@@ -76,11 +79,53 @@ class SchemaDefinitionIntegrationTest extends AbstractIntegrationSpec implements
         outputContains("SCHEMA_FEATURE_APPLY_RAN value=xyz parentId=abc")
     }
 
+    def 'ecosystem-seeded default applies when the build does not set it'() {
+        given:
+        schemaPlugins()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << """
+            myProjectType {
+            }
+        """
+
+        when:
+        run("printMyProjectType")
+
+        then:
+        outputContains("SCHEMA_TYPE_APPLY_RAN id=default-id")
+    }
+
+    def 'applying an ecosystem to a project fails with a clear settings-only error'() {
+        given:
+        schemaPlugins()
+
+        settingsFile << """
+            pluginManagement {
+                includeBuild("plugins")
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("com.example.test-software-ecosystem")
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertThatCause(containsString("can only be applied in a settings 'plugins { }' block"))
+    }
+
     /**
      * Writes an included "plugins" build containing a no-build-model project type and a
      * no-build-model project feature, authored as schema apply actions (no {@code Plugin}/{@code Binding}
-     * shells), plus a settings plugin that registers them directly via {@code @RegistersProjectFeatures},
-     * exposed under the {@code com.example.test-software-ecosystem} plugin id.
+     * shells), plus an {@code EcosystemApplyAction} that aggregates them via {@code @RegistersProjectFeatures}
+     * and seeds a default {@code id} via {@code apply(SharedModelDefaults)}, exposed under the
+     * {@code com.example.test-software-ecosystem} plugin id.
      */
     private void schemaPlugins() {
         PluginBuilder pluginBuilder = new PluginBuilder(file("plugins"))
@@ -163,22 +208,29 @@ class SchemaDefinitionIntegrationTest extends AbstractIntegrationSpec implements
             }
         '''
 
-        pluginBuilder.java("ProjectTypeRegistrationPlugin.java") << '''
+        pluginBuilder.java("MyEcosystem.java") << '''
             package org.gradle.test;
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.initialization.EcosystemApplyAction;
+            import org.gradle.api.initialization.SharedModelDefaults;
             import org.gradle.features.annotations.RegistersProjectFeatures;
 
+            import javax.inject.Inject;
+
             @RegistersProjectFeatures({ MyProjectTypeAction.class, MyFeatureAction.class })
-            public abstract class ProjectTypeRegistrationPlugin implements Plugin<Settings> {
+            public class MyEcosystem implements EcosystemApplyAction {
+                @Inject
+                public MyEcosystem() { }
+
                 @Override
-                public void apply(Settings settings) {
+                public void apply(SharedModelDefaults defaults) {
+                    defaults.add("myProjectType", MyProjectTypeDefinition.class,
+                        definition -> definition.getId().convention("default-id"));
                 }
             }
         '''
 
-        pluginBuilder.addPluginId("com.example.test-software-ecosystem", "ProjectTypeRegistrationPlugin")
+        pluginBuilder.addPluginId("com.example.test-software-ecosystem", "MyEcosystem")
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
         pluginBuilder.prepareToExecute()
     }

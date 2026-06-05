@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.annotations.TypeMetadata
@@ -34,9 +35,10 @@ import spock.lang.Specification
 class ProjectFeatureDeclarationPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
     def projectFeatureDeclarations = Mock(ProjectFeatureDeclarations)
+    def sharedModelDefaults = Mock(SharedModelDefaultsInternal)
     def inspectionScheme = Mock(InspectionScheme)
     def problems = TestUtil.problemsService()
-    def pluginTarget = new ProjectFeatureDeclarationPluginTarget(delegate, projectFeatureDeclarations, inspectionScheme, problems)
+    def pluginTarget = new ProjectFeatureDeclarationPluginTarget(delegate, projectFeatureDeclarations, sharedModelDefaults, inspectionScheme, problems)
     def registrationPlugin = Mock(Plugin)
     def metadataStore = Mock(TypeMetadataStore)
     def registrationPluginTypeMetadata = Mock(TypeMetadata)

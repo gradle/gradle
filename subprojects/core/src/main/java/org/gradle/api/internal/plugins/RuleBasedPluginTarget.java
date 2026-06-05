@@ -76,6 +76,11 @@ public class RuleBasedPluginTarget implements PluginTarget {
     }
 
     @Override
+    public void applyEcosystemAction(@Nullable String pluginId, Class<?> ecosystemClass) {
+        imperativeTarget.applyEcosystemAction(pluginId, ecosystemClass);
+    }
+
+    @Override
     public String toString() {
         return target.toString();
     }

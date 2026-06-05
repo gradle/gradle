@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.file.BuildLayout;
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -106,11 +107,13 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         ProjectFeatureDeclarations projectFeatureRegistry,
+        SharedModelDefaultsInternal sharedModelDefaults,
         ProblemsInternal problems
     ) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
             projectFeatureRegistry,
+            sharedModelDefaults,
             pluginScheme.getInspectionScheme(),
             problems
         );

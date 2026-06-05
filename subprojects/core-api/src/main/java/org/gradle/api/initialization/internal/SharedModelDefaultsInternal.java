@@ -17,9 +17,20 @@
 package org.gradle.api.initialization.internal;
 
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.EcosystemApplyAction;
 import org.gradle.api.initialization.SharedModelDefaults;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface SharedModelDefaultsInternal extends SharedModelDefaults {
+
+    /**
+     * Registers an ecosystem whose {@link EcosystemApplyAction#apply(SharedModelDefaults)} is run (at most
+     * once) when shared model defaults are processed, at settings time, after feature discovery. Registering
+     * the same ecosystem class more than once has no additional effect.
+     */
+    void registerEcosystem(Class<? extends EcosystemApplyAction> ecosystemClass);
 
     /**
      * Specifies the current project when interpreting defaults configuration

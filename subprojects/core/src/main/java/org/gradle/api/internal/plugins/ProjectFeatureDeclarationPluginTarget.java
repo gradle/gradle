@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -54,12 +55,14 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
+    private final SharedModelDefaultsInternal sharedModelDefaults;
     private final InspectionScheme inspectionScheme;
     private final ProblemsInternal problems;
 
-    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, InspectionScheme inspectionScheme, ProblemsInternal problems) {
+    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, SharedModelDefaultsInternal sharedModelDefaults, InspectionScheme inspectionScheme, ProblemsInternal problems) {
         this.delegate = delegate;
         this.projectFeatureDeclarations = projectFeatureDeclarations;
+        this.sharedModelDefaults = sharedModelDefaults;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
@@ -95,6 +98,16 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
         validateSchemaDeclaration(declarationClass);
         // Applied directly in settings, so there is no registering settings plugin.
         projectFeatureDeclarations.addSchemaDeclaration(pluginId, declarationClass, null);
+    }
+
+    @Override
+    public void applyEcosystemAction(@Nullable String pluginId, Class<?> ecosystemClass) {
+        // Register-only: register the ecosystem's @RegistersProjectFeatures members (recording the ecosystem
+        // as their registering class) and register the ecosystem itself so its apply(SharedModelDefaults) runs
+        // at processRegistrations() time. There is no imperative plugin to apply, so we do not delegate.
+        TypeMetadata ecosystemMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(ecosystemClass);
+        findAndAddProjectFeatures(pluginId, ecosystemMetadata);
+        sharedModelDefaults.registerEcosystem(Cast.uncheckedCast(ecosystemClass));
     }
 
     private static boolean isSchemaApplyAction(Class<?> type) {

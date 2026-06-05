@@ -43,4 +43,12 @@ public interface PluginTarget {
      * reject it with a clear error.
      */
     void applyProjectFeatureDeclaration(@Nullable String pluginId, Class<?> declarationClass);
+
+    /**
+     * Applies an ecosystem apply action: a class that aggregates project features (via
+     * {@code @RegistersProjectFeatures}) and seeds defaults, rather than a {@link Plugin}. Only the settings
+     * target supports this (it registers the members and the ecosystem); other targets reject it with a clear
+     * error.
+     */
+    void applyEcosystemAction(@Nullable String pluginId, Class<?> ecosystemClass);
 }

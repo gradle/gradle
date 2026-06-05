@@ -21,7 +21,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.flow.FlowScope;
-import org.gradle.api.initialization.SharedModelDefaults;
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -825,8 +825,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, ProjectFeatureDeclarations projectFeatureDeclarations) {
-        return instantiator.newInstance(DefaultSharedModelDefaults.class, projectFeatureDeclarations);
+    protected SharedModelDefaultsInternal createSharedModelDefaults(ServiceRegistry buildScopeServices, Instantiator instantiator, InstantiatorFactory instantiatorFactory, ProjectFeatureDeclarations projectFeatureDeclarations) {
+        // The injecting instantiator lets ecosystems declared with @Inject constructors resolve build-scope services.
+        return instantiator.newInstance(DefaultSharedModelDefaults.class, projectFeatureDeclarations, instantiatorFactory.inject(buildScopeServices));
     }
 
     @Provides

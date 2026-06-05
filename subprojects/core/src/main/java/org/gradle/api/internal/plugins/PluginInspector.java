@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.initialization.EcosystemApplyAction;
 import org.gradle.features.binding.SchemaProjectFeatureApplyAction;
 import org.gradle.features.binding.SchemaProjectTypeApplyAction;
 import org.gradle.internal.Cast;
@@ -43,6 +44,10 @@ public class PluginInspector {
         if (implementsInterface) {
             @SuppressWarnings("unchecked") Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;
             return Cast.uncheckedCast(toImperative(cast, hasRules));
+        } else if (EcosystemApplyAction.class.isAssignableFrom(type)) {
+            // An ecosystem aggregates members; a schema apply action is a member. They are disjoint roles,
+            // so checking ecosystem before schema is a deliberate, harmless precedence.
+            return new PotentialEcosystemApplyActionPlugin<T>(type);
         } else if (isSchemaApplyAction(type)) {
             return new PotentialProjectFeatureDeclarationPlugin<T>(type);
         } else if (hasRules) {
@@ -179,6 +184,35 @@ public class PluginInspector {
         @Override
         public Type getType() {
             return Type.PROJECT_FEATURE_DECLARATION_CLASS;
+        }
+    }
+
+    private static class PotentialEcosystemApplyActionPlugin<T> implements PotentialPlugin<T> {
+
+        private final Class<T> clazz;
+
+        public PotentialEcosystemApplyActionPlugin(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public Class<T> asClass() {
+            return clazz;
+        }
+
+        @Override
+        public boolean isImperative() {
+            return false;
+        }
+
+        @Override
+        public boolean isHasRules() {
+            return false;
+        }
+
+        @Override
+        public Type getType() {
+            return Type.ECOSYSTEM_APPLY_ACTION;
         }
     }
 

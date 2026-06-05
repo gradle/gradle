@@ -103,6 +103,19 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     }
 
     @Override
+    public void applyEcosystemAction(@Nullable String pluginId, Class<?> ecosystemClass) {
+        String idSuffix = pluginId == null ? "" : " (id '" + pluginId + "')";
+        String message = String.format(
+            "Ecosystem '%s'%s can only be applied in a settings 'plugins { }' block, but was applied %s.",
+            ecosystemClass.getName(), idSuffix, targetType.getApplyTargetDescription());
+        ProblemId id = ProblemId.create("ecosystem-wrong-target", "Ecosystem applied to an unsupported target", GradleCoreProblemGroup.pluginApplication());
+        throw problems.getInternalReporter()
+            .throwing(new IllegalArgumentException(message), id, spec ->
+                spec.contextualLabel(message)
+                    .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString()));
+    }
+
+    @Override
     public String toString() {
         return target.toString();
     }
