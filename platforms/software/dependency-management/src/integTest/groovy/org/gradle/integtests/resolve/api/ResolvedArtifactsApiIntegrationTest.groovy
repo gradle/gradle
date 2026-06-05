@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
-import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -219,7 +218,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
         outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, other=select, usage=compile}, {artifactType=jar, flavor=two, other=select, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, other=select, usage=compile}, {artifactType=jar, flavor=two, org.gradle.fallback-variant=false, other=select, usage=compile}]")
 
         where:
         expression                                                    | _
@@ -340,7 +339,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
         outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, usage=compile}, {artifactType=jar, flavor=two, org.gradle.fallback-variant=false, usage=compile}]")
 
         and:
         result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
@@ -457,7 +456,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
         outputContains("components: [project ':a', project ':b']")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, usage=compile}, {artifactType=jar, flavor=two, org.gradle.fallback-variant=false, usage=compile}]")
 
         and:
         result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
@@ -680,7 +679,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project ':a', project ':b', org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, other=select, usage=transformed}, {artifactType=jar, other=select, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, other=select, usage=transformed}, {artifactType=jar, other=select, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
     }
 
     def "more than one local file can have a given base name"() {
@@ -1115,15 +1114,14 @@ Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:default':
-      - Unmatched attribute:
-          - Doesn't say anything about usage (required 'compile')
   - Configuration ':a:default' variant 'v1':
-      - Unmatched attribute:
+      - Unmatched attributes:
           - Doesn't say anything about usage (required 'compile')
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
   - Configuration ':a:default' variant 'v2':
-      - Unmatched attribute:
-          - Doesn't say anything about usage (required 'compile')""")
+      - Unmatched attributes:
+          - Doesn't say anything about usage (required 'compile')
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
     }
 
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
