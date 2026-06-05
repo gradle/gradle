@@ -264,6 +264,30 @@ sealed class PropertyTrace {
         }
     }
 
+    data class CapturedLambdaArguments(
+        val subkind: Subkind,
+        val owningClass: String,
+        val owningMethod: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        enum class Subkind { LambdaBody, BoundReceiver }
+
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
+
+        override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                when (subkind) {
+                    Subkind.LambdaBody -> text("captured state from method ")
+                    Subkind.BoundReceiver -> text("bound receiver of method ")
+                }
+                reference("$owningClass.$owningMethod")
+                text(" of ")
+            }
+        }
+    }
+
     data class Property(
         val kind: PropertyKind,
         val name: String,
@@ -388,6 +412,7 @@ sealed class PropertyTrace {
         get() = when (this) {
             is Bean -> trace
             is SerializedLambda -> trace
+            is CapturedLambdaArguments -> trace
             is Property -> trace
             is VirtualProperty -> owner
             is SystemProperty -> trace
