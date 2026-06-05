@@ -22,6 +22,8 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
@@ -355,6 +357,45 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""Inconsistency between attributes of a constraint and a dependency, on attribute 'custom' : dependency requires 'c1' while constraint required 'c2'""")
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "Fails resolution because two constraints request conflicting attribute values"() {
+        given:
+        repository {
+            'org:test:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c1')
+                        }
+                    }
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        }
+                    }
+                }
+                conf 'org:test'
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
+        failure.assertThatCause(containsString("Requested values: <no value>, c1, c2"))
+        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) wants 'org:test:1.0' with attribute custom = c1"))
+        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) wants 'org:test:1.0' with attribute custom = c2"))
+        failure.assertThatCause(containsString("Possible solutions:"))
+        failure.assertThatCause(containsString("- Configure all dependencies to use the same 'custom' attribute value."))
+        failure.assertThatCause(containsString("- For advanced cases where different values should be treated as compatible, define a compatibility rule."))
+        failure.assertThatCause(containsString("/userguide/variant_attributes.html for details on attributes and compatibility rules."))
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
