@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -61,11 +62,11 @@ class IncompatibleDependencyAttributesMessageBuilder {
         }
         fmt.endChildren();
 
-        fmt.node("Possible resolutions:");
+        fmt.node("Possible solutions:");
         fmt.startChildren();
-        fmt.node("- Make all callers request the same value for attribute '" + attribute.getName() + "'.");
-        fmt.node("- Or declare an attribute compatibility rule so different values can be considered compatible.");
-        fmt.node("See: https://docs.gradle.org/current/userguide/variant_attributes.html for details on attributes and compatibility rules.");
+        fmt.node("- Configure all dependencies to use the same '" + attribute.getName() + "' attribute value.");
+        fmt.node("- For advanced cases where different values should be treated as compatible, define a compatibility rule.");
+        fmt.node("See: " + new DocumentationRegistry().getDocumentationFor("variant_attributes") + " for details on attributes and compatibility rules.");
         fmt.endChildren();
 
         return fmt.toString();

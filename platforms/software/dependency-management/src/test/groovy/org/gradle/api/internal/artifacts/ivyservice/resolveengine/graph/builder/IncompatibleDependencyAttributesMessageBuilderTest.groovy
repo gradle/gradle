@@ -20,19 +20,12 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.attributes.AttributeMergingException
+import org.gradle.internal.component.model.DependencyMetadata
 import spock.lang.Specification
 
 import java.util.function.Consumer
 
 class IncompatibleDependencyAttributesMessageBuilderTest extends Specification {
-
-    def setup() {
-        MessageBuilderHelper.metaClass.static.formattedPathsTo = { edge -> ['Dependency path: A'] }
-    }
-
-    def cleanup() {
-        MessageBuilderHelper.metaClass = null
-    }
 
     def "buildMergeErrorMessage shows both concrete conflicting values"() {
         given:
@@ -55,8 +48,21 @@ class IncompatibleDependencyAttributesMessageBuilderTest extends Specification {
             getSelector() >> sel2
             getRequested() >> sel2
         }
-        def e1 = Mock(EdgeState) { getSelector() >> s1 }
-        def e2 = Mock(EdgeState) { getSelector() >> s2 }
+        def dm = Mock(DependencyMetadata) { isConstraint() >> false }
+        def root = Mock(NodeState) {
+            getIncomingEdges() >> []
+            getDisplayName() >> 'root'
+        }
+        def e1 = Mock(EdgeState) {
+            getSelector() >> s1
+            getFrom() >> root
+            getDependencyMetadata() >> dm
+        }
+        def e2 = Mock(EdgeState) {
+            getSelector() >> s2
+            getFrom() >> root
+            getDependencyMetadata() >> dm
+        }
         def edges = [e1, e2]
         def module = Mock(ModuleResolveState)
         module.visitAllIncomingEdges(_) >> { Consumer<EdgeState> visitor -> edges.each(visitor.&accept) }
@@ -94,8 +100,21 @@ class IncompatibleDependencyAttributesMessageBuilderTest extends Specification {
             getSelector() >> sel2
             getRequested() >> sel2
         }
-        def e1 = Mock(EdgeState) { getSelector() >> s1 }
-        def e2 = Mock(EdgeState) { getSelector() >> s2 }
+        def dm = Mock(DependencyMetadata) { isConstraint() >> false }
+        def root = Mock(NodeState) {
+            getIncomingEdges() >> []
+            getDisplayName() >> 'root'
+        }
+        def e1 = Mock(EdgeState) {
+            getSelector() >> s1
+            getFrom() >> root
+            getDependencyMetadata() >> dm
+        }
+        def e2 = Mock(EdgeState) {
+            getSelector() >> s2
+            getFrom() >> root
+            getDependencyMetadata() >> dm
+        }
         def edges = [e1, e2]
         def module = Mock(ModuleResolveState)
         module.visitAllIncomingEdges(_) >> { Consumer<EdgeState> visitor -> edges.each(visitor.&accept) }
