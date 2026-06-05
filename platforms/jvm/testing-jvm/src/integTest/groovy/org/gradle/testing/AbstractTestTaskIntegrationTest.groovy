@@ -40,19 +40,17 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
     def setup() {
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
+            apply plugin: 'java'
 
-                repositories {
-                    mavenCentral()
-                }
-
-                dependencies {
-                    ${testFrameworkDependencies}
-                }
-
-                test.${configureTestFramework}
+            repositories {
+                mavenCentral()
             }
+
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+
+            test.${configureTestFramework}
         """
     }
 
@@ -196,6 +194,9 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         """
         settingsFile << """
             include 'dependency'
+        """
+        file("dependency/build.gradle") << """
+            apply plugin: 'java'
         """
         file("src/test/java/MyTest.java") << """
             ${testFrameworkImports}

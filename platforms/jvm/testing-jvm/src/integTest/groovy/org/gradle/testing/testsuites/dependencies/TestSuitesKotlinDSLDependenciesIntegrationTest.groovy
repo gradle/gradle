@@ -232,23 +232,31 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         """
 
         buildKotlinFile << """
-            allprojects {
-                group = "org.test"
-                version = "1.0"
-            }
-
-            subprojects {
-                apply(plugin = "java-library")
-            }
+            group = "org.test"
+            version = "1.0"
         """
 
         file('util/build.gradle.kts') << """
+            plugins {
+                `java-library`
+            }
+
+            group = "org.test"
+            version = "1.0"
+
             dependencies {
                 api("org.apache.commons:commons-lang3:3.11")
             }
         """
 
         file('consumer/build.gradle.kts') << """
+            plugins {
+                `java-library`
+            }
+
+            group = "org.test"
+            version = "1.0"
+
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             testing {

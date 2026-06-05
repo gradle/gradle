@@ -35,6 +35,14 @@ import java.lang.annotation.Target
     String because() default "";
 
     /**
+     * Restricts the annotation to the named bottom (most derived) spec classes.
+     * Useful when annotating a test declared in an abstract base class that should only be
+     * marked for some of its subclasses. When empty (the default) the annotation applies to
+     * every spec that inherits the annotated element.
+     */
+    String[] bottomSpecs() default [];
+
+    /**
      * Reason for skipping a test with isolated projects.
      */
     enum Skip {

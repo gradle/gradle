@@ -214,11 +214,12 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     def 'can add dependencies to other projects to #suiteDesc'() {
         given:
         multiProjectBuild('root', ['consumer', 'util']) {
-            buildFile << """
-                subprojects { apply plugin: 'java-library'}
-                project(':util') {
-                    dependencies { api 'org.apache.commons:commons-lang3:3.11' }
-                }
+            project('consumer').buildFile << """
+                apply plugin: 'java-library'
+            """
+            project('util').buildFile << """
+                apply plugin: 'java-library'
+                dependencies { api 'org.apache.commons:commons-lang3:3.11' }
             """
         }
 

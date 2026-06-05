@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForIsolatedProjects(bottomSpecs = "TestTaskJdkRelocationIntegrationTest", because = "Test task is not relocatable under IP: the relocated run re-executes and produces a different test report")
     def "task is relocatable"() {
         setupProjectInOriginalLocation()
 

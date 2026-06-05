@@ -35,6 +35,9 @@ class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtensio
 
     @Override
     void visitFeatureAnnotation(ToBeFixedForIsolatedProjects annotation, FeatureInfo feature) {
+        if (!isEnabledBottomSpec(annotation.bottomSpecs(), feature.spec.bottomSpec.name)) {
+            return
+        }
         visitAnnotation(annotation, feature)
     }
 
@@ -49,5 +52,9 @@ class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtensio
         }
 
         toBeFixedSpecInterceptor.intercept(specElementInfo, new String[0])
+    }
+
+    private static boolean isEnabledBottomSpec(String[] bottomSpecs, String bottomSpecName) {
+        bottomSpecs.length == 0 || bottomSpecs.contains(bottomSpecName)
     }
 }
