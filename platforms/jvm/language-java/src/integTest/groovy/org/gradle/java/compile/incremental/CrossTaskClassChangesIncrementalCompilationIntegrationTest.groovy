@@ -34,10 +34,7 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
     }
 
     def "detects change to transitive superclass in an upstream project"() {
-        createDirs("app")
-        settingsFile << """
-            include 'app'
-        """
+        subproject("app")
         addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         source api: ["class A {}"]
@@ -54,10 +51,7 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
     }
 
     def "detects change to transitive dependency in an upstream project"() {
-        createDirs("app")
-        settingsFile << """
-            include 'app'
-        """
+        subproject("app")
         addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         source api: ["class A {}"]
@@ -74,10 +68,7 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
     }
 
     def "distinguishes between api and implementation changes"() {
-        createDirs("app")
-        settingsFile << """
-            include 'app'
-        """
+        subproject("app")
         addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         source api: ["class A {}"]
@@ -94,10 +85,7 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
     }
 
     def "detects deletions of transitive dependency in an upstream project"() {
-        createDirs("app")
-        settingsFile << """
-            include 'app'
-        """
+        subproject("app")
         addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         source api: ["class A {}"]

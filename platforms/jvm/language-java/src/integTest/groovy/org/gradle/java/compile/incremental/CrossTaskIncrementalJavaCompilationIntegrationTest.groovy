@@ -209,7 +209,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes"() {
         given:
-        settingsFile << "include 'otherApi'"
+        subproject("otherApi")
         file("impl/build.gradle") << "dependencies { implementation(project(':otherApi')) }"
 
         file("api/src/main/${language.name}/module-info.${language.name}") << """

@@ -17,14 +17,6 @@
 package org.gradle.java.compile.incremental
 
 abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
-    def setup() {
-        buildFile << """
-            allprojects {
-                ${mavenCentralRepository()}
-            }
-       """
-    }
-
     def "doesn't recompile if implementation dependency changed in ABI compatible way"() {
         given:
         file('settings.gradle') << "include 'a'\n"
@@ -32,16 +24,16 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
             import org.apache.commons.math3.util.BigReal;
             public class ToolImpl { public void execute() { BigReal read = BigReal.ONE; } }
 '''
-        buildFile << """
-            project(':a') {
-                apply plugin: '${language.name}'
+        file("a/build.gradle") << """
+            apply plugin: '${language.name}'
 
-                dependencies {
-                    implementation 'org.apache.commons:commons-math3:3.4'
-                }
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'org.apache.commons:commons-math3:3.4'
             }
             """
-        configureGroovyIncrementalCompilation("subprojects")
+        configureGroovyIncrementalCompilation("a")
 
         when:
         succeeds "a:${language.compileTaskName}"
@@ -50,7 +42,8 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
         executedAndNotSkipped ":a:${language.compileTaskName}"
 
         when:
-        buildFile.text = buildFile.text.replace("3.4", "3.4.1")
+        def aBuildFile = file("a/build.gradle")
+        aBuildFile.text = aBuildFile.text.replace("3.4", "3.4.1")
 
         then:
         succeeds "a:${language.compileTaskName}"

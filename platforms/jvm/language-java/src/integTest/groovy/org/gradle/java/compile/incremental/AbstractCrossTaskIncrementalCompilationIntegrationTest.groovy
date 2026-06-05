@@ -45,11 +45,9 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
-        buildFile << """
-            project(':impl') {
-                ${mavenCentralRepository()}
-                dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
-            }
+        file("impl/build.gradle") << """
+            ${mavenCentralRepository()}
+            dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
         """
         source api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
 
@@ -59,7 +57,8 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run language.compileTaskName }
 
         when:
-        buildFile.text = buildFile.text.replace('3.3', '3.3.1')
+        def implBuildFile = file("impl/build.gradle")
+        implBuildFile.text = implBuildFile.text.replace('3.3', '3.3.1')
         run "impl:${language.compileTaskName}"
 
         then:
@@ -114,8 +113,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     def "handles multiple compile tasks in the same project"() {
-        createDirs("other")
-        settingsFile << "\n include 'other'" //add an extra project
+        subproject("other") //add an extra project
         source impl: ["class ImplA extends A {}"], api: ["class A {}"], other: ["class Other {}"]
 
         //new separate compile task (compileIntegTest${language.captalizedName}) depends on class from the extra project
@@ -294,8 +292,10 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run("impl:${language.compileTaskName}") }
 
         when:
-        file("impl/build.gradle").text = """
-            configurations.implementation.dependencies.clear()  //kill project dependency
+        // Re-create impl from scratch with only the junit dependency (no api project dependency)
+        file("impl/build.gradle").text = ""
+        configureSubprojectBuildScript("impl")
+        file("impl/build.gradle") << """
             dependencies {
                 implementation 'junit:junit:4.11'
                 implementation localGroovy()
