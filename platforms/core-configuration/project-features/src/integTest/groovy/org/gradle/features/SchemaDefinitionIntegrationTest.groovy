@@ -23,8 +23,10 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 /**
  * Exercises the {@code SchemaDefinition} / {@code SchemaProjectTypeApplyAction} /
  * {@code SchemaProjectFeatureApplyAction} API end-to-end through the real
- * feature-application pipeline, using a hand-authored plugin (the shared
- * {@code testScenario} fixtures still emit the non-schema apply-action types).
+ * feature-application pipeline, registered via the <em>aggregation</em> path: a settings plugin
+ * annotated with {@code @RegistersProjectFeatures} lists the schema apply actions directly — no
+ * {@code Plugin<Project>} shell and no {@code Binding}/{@code bind()} class. (The direct
+ * settings-application path is covered by {@code SchemaDirectApplicationIntegrationTest}.)
  *
  * <p>Each apply action registers a task that prints a marker literal emitted only
  * from inside the simplified {@code apply(...)} method, so a passing assertion proves
@@ -76,8 +78,9 @@ class SchemaDefinitionIntegrationTest extends AbstractIntegrationSpec implements
 
     /**
      * Writes an included "plugins" build containing a no-build-model project type and a
-     * no-build-model project feature bound to it, plus a settings plugin that registers
-     * them, exposed under the {@code com.example.test-software-ecosystem} plugin id.
+     * no-build-model project feature, authored as schema apply actions (no {@code Plugin}/{@code Binding}
+     * shells), plus a settings plugin that registers them directly via {@code @RegistersProjectFeatures},
+     * exposed under the {@code com.example.test-software-ecosystem} plugin id.
      */
     private void schemaPlugins() {
         PluginBuilder pluginBuilder = new PluginBuilder(file("plugins"))
@@ -94,47 +97,29 @@ class SchemaDefinitionIntegrationTest extends AbstractIntegrationSpec implements
             }
         '''
 
-        pluginBuilder.java("MyProjectTypePlugin.java") << '''
+        pluginBuilder.java("MyProjectTypeAction.java") << '''
             package org.gradle.test;
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.features.annotations.BindsProjectType;
-            import org.gradle.features.binding.ProjectTypeBinding;
-            import org.gradle.features.binding.ProjectTypeBindingBuilder;
+            import org.gradle.api.tasks.TaskContainer;
+            import org.gradle.features.annotations.ProjectType;
             import org.gradle.features.binding.SchemaProjectTypeApplyAction;
-            import org.gradle.features.registration.TaskRegistrar;
 
             import javax.inject.Inject;
 
-            @BindsProjectType(MyProjectTypePlugin.Binding.class)
-            public abstract class MyProjectTypePlugin implements Plugin<Project> {
+            @ProjectType(name = "myProjectType")
+            public abstract class MyProjectTypeAction implements SchemaProjectTypeApplyAction<MyProjectTypeDefinition> {
+                @Inject
+                public MyProjectTypeAction() { }
 
-                static class Binding implements ProjectTypeBinding {
-                    @Override
-                    public void bind(ProjectTypeBindingBuilder builder) {
-                        builder.bindProjectType("myProjectType", MyProjectTypeDefinition.class, ApplyAction.class);
-                    }
-                }
-
-                static abstract class ApplyAction implements SchemaProjectTypeApplyAction<MyProjectTypeDefinition> {
-                    @Inject
-                    public ApplyAction() { }
-
-                    @Inject
-                    protected abstract TaskRegistrar getTaskRegistrar();
-
-                    @Override
-                    public void apply(MyProjectTypeDefinition definition) {
-                        getTaskRegistrar().register("printMyProjectType", task -> {
-                            String id = definition.getId().get();
-                            task.doLast(t -> System.out.println("SCHEMA_TYPE_APPLY_RAN id=" + id));
-                        });
-                    }
-                }
+                @Inject
+                protected abstract TaskContainer getTasks();
 
                 @Override
-                public void apply(Project project) {
+                public void apply(MyProjectTypeDefinition definition) {
+                    getTasks().register("printMyProjectType", task -> {
+                        String id = definition.getId().get();
+                        task.doLast(t -> System.out.println("SCHEMA_TYPE_APPLY_RAN id=" + id));
+                    });
                 }
             }
         '''
@@ -150,48 +135,30 @@ class SchemaDefinitionIntegrationTest extends AbstractIntegrationSpec implements
             }
         '''
 
-        pluginBuilder.java("MyFeaturePlugin.java") << '''
+        pluginBuilder.java("MyFeatureAction.java") << '''
             package org.gradle.test;
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.features.annotations.BindsProjectFeature;
-            import org.gradle.features.binding.ProjectFeatureBinding;
-            import org.gradle.features.binding.ProjectFeatureBindingBuilder;
+            import org.gradle.api.tasks.TaskContainer;
+            import org.gradle.features.annotations.ProjectFeature;
             import org.gradle.features.binding.SchemaProjectFeatureApplyAction;
-            import org.gradle.features.registration.TaskRegistrar;
 
             import javax.inject.Inject;
 
-            @BindsProjectFeature(MyFeaturePlugin.Binding.class)
-            public abstract class MyFeaturePlugin implements Plugin<Project> {
+            @ProjectFeature(name = "myFeature")
+            public abstract class MyFeatureAction implements SchemaProjectFeatureApplyAction<MyFeatureDefinition, MyProjectTypeDefinition> {
+                @Inject
+                public MyFeatureAction() { }
 
-                static class Binding implements ProjectFeatureBinding {
-                    @Override
-                    public void bind(ProjectFeatureBindingBuilder builder) {
-                        builder.bindProjectFeatureToDefinition("myFeature", MyFeatureDefinition.class, MyProjectTypeDefinition.class, ApplyAction.class);
-                    }
-                }
-
-                static abstract class ApplyAction implements SchemaProjectFeatureApplyAction<MyFeatureDefinition, MyProjectTypeDefinition> {
-                    @Inject
-                    public ApplyAction() { }
-
-                    @Inject
-                    protected abstract TaskRegistrar getTaskRegistrar();
-
-                    @Override
-                    public void apply(MyFeatureDefinition definition, MyProjectTypeDefinition parent) {
-                        getTaskRegistrar().register("printMyFeature", task -> {
-                            String value = definition.getValue().get();
-                            String parentId = parent.getId().get();
-                            task.doLast(t -> System.out.println("SCHEMA_FEATURE_APPLY_RAN value=" + value + " parentId=" + parentId));
-                        });
-                    }
-                }
+                @Inject
+                protected abstract TaskContainer getTasks();
 
                 @Override
-                public void apply(Project project) {
+                public void apply(MyFeatureDefinition definition, MyProjectTypeDefinition parent) {
+                    getTasks().register("printMyFeature", task -> {
+                        String value = definition.getValue().get();
+                        String parentId = parent.getId().get();
+                        task.doLast(t -> System.out.println("SCHEMA_FEATURE_APPLY_RAN value=" + value + " parentId=" + parentId));
+                    });
                 }
             }
         '''
@@ -203,7 +170,7 @@ class SchemaDefinitionIntegrationTest extends AbstractIntegrationSpec implements
             import org.gradle.api.initialization.Settings;
             import org.gradle.features.annotations.RegistersProjectFeatures;
 
-            @RegistersProjectFeatures({ MyProjectTypePlugin.class, MyFeaturePlugin.class })
+            @RegistersProjectFeatures({ MyProjectTypeAction.class, MyFeatureAction.class })
             public abstract class ProjectTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings settings) {

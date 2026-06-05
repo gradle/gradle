@@ -93,7 +93,13 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
         // Register-only: a schema apply action applied directly in settings registers a project
         // type/feature declaration. There is no imperative plugin to apply, so we do not delegate.
         validateSchemaDeclaration(declarationClass);
-        projectFeatureDeclarations.addSchemaDeclaration(pluginId, declarationClass);
+        // Applied directly in settings, so there is no registering settings plugin.
+        projectFeatureDeclarations.addSchemaDeclaration(pluginId, declarationClass, null);
+    }
+
+    private static boolean isSchemaApplyAction(Class<?> type) {
+        return SchemaProjectTypeApplyAction.class.isAssignableFrom(type)
+            || SchemaProjectFeatureApplyAction.class.isAssignableFrom(type);
     }
 
     private void validateSchemaDeclaration(Class<?> declarationClass) {
@@ -130,10 +136,16 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
         });
     }
 
-    private void addFeatureDeclarations(Class<? extends Plugin<Project>>[] featurePlugins, Class<? extends Plugin<Settings>> registeringPlugin, @Nullable String pluginId) {
-        for (Class<? extends Plugin<Project>> projectFeatureImplClass : featurePlugins) {
-            validateProjectFeatures(projectFeatureImplClass, registeringPlugin);
-            projectFeatureDeclarations.addDeclaration(pluginId, projectFeatureImplClass, registeringPlugin);
+    private void addFeatureDeclarations(Class<?>[] featureClasses, Class<? extends Plugin<Settings>> registeringPlugin, @Nullable String pluginId) {
+        for (Class<?> featureClass : featureClasses) {
+            if (isSchemaApplyAction(featureClass)) {
+                validateSchemaDeclaration(featureClass);
+                projectFeatureDeclarations.addSchemaDeclaration(pluginId, featureClass, registeringPlugin);
+            } else {
+                Class<? extends Plugin<Project>> projectFeatureImplClass = Cast.uncheckedCast(featureClass);
+                validateProjectFeatures(projectFeatureImplClass, registeringPlugin);
+                projectFeatureDeclarations.addDeclaration(pluginId, projectFeatureImplClass, registeringPlugin);
+            }
         }
     }
 

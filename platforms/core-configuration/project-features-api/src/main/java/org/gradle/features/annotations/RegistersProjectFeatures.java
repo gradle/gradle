@@ -17,8 +17,6 @@
 package org.gradle.features.annotations;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,9 +33,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RegistersProjectFeatures {
     /**
-     * The {@link Project} plugins that provide the project features.
+     * The classes that provide the project features. Each may be either a {@code Plugin<Project>}
+     * carrying a {@code @BindsProjectType}/{@code @BindsProjectFeature} annotation, or a schema apply
+     * action ({@code SchemaProjectTypeApplyAction}/{@code SchemaProjectFeatureApplyAction}) carrying a
+     * {@code @ProjectType}/{@code @ProjectFeature} annotation.
      *
      * @since 8.9
      */
-    Class<? extends Plugin<Project>>[] value();
+    Class<?>[] value();
 }

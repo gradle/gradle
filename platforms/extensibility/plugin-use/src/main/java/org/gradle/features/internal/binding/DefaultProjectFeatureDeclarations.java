@@ -85,11 +85,11 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     @Override
-    public void addSchemaDeclaration(@Nullable String pluginId, Class<?> schemaApplyActionClass) {
+    public void addSchemaDeclaration(@Nullable String pluginId, Class<?> schemaApplyActionClass, @Nullable Class<? extends Plugin<Settings>> registeringPluginClass) {
         if (projectFeatureImplementations != null) {
             throw new IllegalStateException("Cannot register a plugin after project types have been discovered");
         }
-        schemaDeclarations.add(new SchemaDeclaration(pluginId, schemaApplyActionClass));
+        schemaDeclarations.add(new SchemaDeclaration(pluginId, schemaApplyActionClass, registeringPluginClass));
     }
 
     private Map<String, Set<ProjectFeatureImplementation<?, ?>>> discoverProjectFeatureImplementations() {
@@ -112,7 +112,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations
     ) {
         ProjectFeatureBindingDeclaration<?, ?> binding = SchemaBindingFactory.buildBinding(declaration.applyActionClass);
-        RegisteringPluginKey registeringPluginKey = new RegisteringPluginKey(null, declaration.pluginId);
+        RegisteringPluginKey registeringPluginKey = new RegisteringPluginKey(declaration.registeringPluginClass, declaration.pluginId);
         registerFeature(registeringPluginKey, declaration.applyActionClass, (ProjectFeatureBindingDeclaration) binding, projectFeatureDeclarations);
     }
 
@@ -300,10 +300,13 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         @Nullable
         private final String pluginId;
         private final Class<?> applyActionClass;
+        @Nullable
+        private final Class<? extends Plugin<Settings>> registeringPluginClass;
 
-        private SchemaDeclaration(@Nullable String pluginId, Class<?> applyActionClass) {
+        private SchemaDeclaration(@Nullable String pluginId, Class<?> applyActionClass, @Nullable Class<? extends Plugin<Settings>> registeringPluginClass) {
             this.pluginId = pluginId;
             this.applyActionClass = applyActionClass;
+            this.registeringPluginClass = registeringPluginClass;
         }
     }
 
