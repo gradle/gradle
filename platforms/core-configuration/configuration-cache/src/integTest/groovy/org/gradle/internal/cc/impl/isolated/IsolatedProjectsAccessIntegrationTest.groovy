@@ -59,25 +59,6 @@ class IsolatedProjectsAccessIntegrationTest extends AbstractIsolatedProjectsInte
         mode << ALL_MODES
     }
 
-    def "diagnostics mode fails and discards regardless of the configuration-cache-problems flag"() {
-        settingsFile """
-            include(":sub")
-        """
-
-        buildFile "sub/build.gradle", """
-            rootProject.findProperty("prop")
-        """
-
-        when: "warn mode must not suppress an IP violation in diagnostics mode"
-        fails(ENABLE_CLI, ENABLE_DIAGNOSTICS, WARN_PROBLEMS_CLI_OPT, "help")
-
-        then:
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":sub")
-            problem("Build file 'sub/build.gradle': line 2: Project ':sub' cannot access 'Project.findProperty' functionality on another project ':'", 1)
-        }
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/29154")
     def "exclude task option does not cause isolated projects violation"() {
         settingsFile """

@@ -78,7 +78,7 @@ class ConfigurationCacheProblemsSummary(
      * Tracked separately because IP failure is independent of the CC `--configuration-cache-problems` flag.
      */
     private
-    var deferredIsolatedProblemCount: Int = 0
+    var deferredIsolatedProjectsProblemCount: Int = 0
 
     /**
      * Problems reported by CC-incompatible tasks.
@@ -130,7 +130,7 @@ class ConfigurationCacheProblemsSummary(
             totalProblemCount = totalProblemCount,
             reportUniqueProblemCount = problemCauses.size,
             deferredProblemCount = deferredProblemCount,
-            deferredIsolatedProblemCount = deferredIsolatedProblemCount,
+            deferredIsolatedProjectsProblemCount = deferredIsolatedProjectsProblemCount,
             consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount,
             overflownProblemCount = overflownProblemCount,
             consoleProblemCauses = problemCausesForConsole(),
@@ -159,15 +159,15 @@ class ConfigurationCacheProblemsSummary(
      * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of unique problems was reached,
      * or the problem was not report-unique.
      */
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, isolated: Boolean = false): Boolean {
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, forIsolatedProjects: Boolean = false): Boolean {
         lock.withLock {
             // count problems regardless of uniqueness / overflowing
             totalProblemCount += 1
             when (severity) {
                 ProblemSeverity.Deferred -> {
                     deferredProblemCount += 1
-                    if (isolated) {
-                        deferredIsolatedProblemCount += 1
+                    if (forIsolatedProjects) {
+                        deferredIsolatedProjectsProblemCount += 1
                     }
                 }
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
@@ -254,7 +254,7 @@ class Summary(
      * Subset of [deferredProblemCount] originating from Isolated Projects violations, which fail the
      * build regardless of the CC `--configuration-cache-problems` flag.
      */
-    val deferredIsolatedProblemCount: Int,
+    val deferredIsolatedProjectsProblemCount: Int,
 
     /**
      * Problems that should appear in the console summary.

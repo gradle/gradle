@@ -110,22 +110,22 @@ class ConfigurationCacheProblemsSummaryTest {
         val subject = ConfigurationCacheProblemsSummary()
 
         subject.onProblem(buildLogicProblem("build.gradle.kts", "cc failure"), ProblemSeverity.Deferred)
-        subject.onProblem(buildLogicProblem("a/build.gradle.kts", "ip failure"), ProblemSeverity.Deferred, isolated = true)
+        subject.onProblem(buildLogicProblem("a/build.gradle.kts", "ip failure"), ProblemSeverity.Deferred, forIsolatedProjects = true)
 
         val summary = subject.get()
         assertThat(summary.deferredProblemCount, equalTo(2))
-        assertThat(summary.deferredIsolatedProblemCount, equalTo(1))
+        assertThat(summary.deferredIsolatedProjectsProblemCount, equalTo(1))
     }
 
     @Test
     fun `isolated flag only counts deferred problems`() {
         val subject = ConfigurationCacheProblemsSummary()
 
-        subject.onProblem(buildLogicProblem("build.gradle.kts", "suppressed"), ProblemSeverity.Suppressed, isolated = true)
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "suppressed"), ProblemSeverity.Suppressed, forIsolatedProjects = true)
 
         val summary = subject.get()
         assertThat(summary.deferredProblemCount, equalTo(0))
-        assertThat(summary.deferredIsolatedProblemCount, equalTo(0))
+        assertThat(summary.deferredIsolatedProjectsProblemCount, equalTo(0))
     }
 
     @Test

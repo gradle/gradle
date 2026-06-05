@@ -40,7 +40,7 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigura
     final def fixture = new IsolatedProjectsFixture(this)
 
     void withIsolatedProjects(String... moreExecuterArgs) {
-        executer.withArgument(ENABLE_CLI, *moreExecuterArgs)
+        executer.withArguments(ENABLE_CLI, *moreExecuterArgs)
     }
 
     void withIsolatedProjectsDiagnostics(String... moreExecuterArgs) {

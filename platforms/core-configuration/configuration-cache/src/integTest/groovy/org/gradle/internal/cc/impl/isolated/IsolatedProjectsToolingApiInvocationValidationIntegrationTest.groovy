@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
-    def "dangerously ignoring problems lets a sync with cross-project access succeed"() {
+    def "dangerously ignoring problems lets fetching a tooling model with cross-project access succeed"() {
         given:
         includeProjects("a", "b")
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -35,7 +35,14 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         then:
         model != null
         outputContains(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
-        outputContains("Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'")
+        fixture.assertModelStoredAndDiscarded {
+            hasStoreFailure = false
+            // :a and :b not configured since they're not needed.
+            // Other tests use diagnostics mode which does configure all projects.
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
+        }
     }
 
     def "reports cross project access from build script when fetching custom tooling model"() {

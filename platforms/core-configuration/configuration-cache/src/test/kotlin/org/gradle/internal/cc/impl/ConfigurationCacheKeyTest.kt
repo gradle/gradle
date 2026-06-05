@@ -125,7 +125,7 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
-    fun `cache key honours dangerously ignore problems option`() {
+    fun `cache key honours isolated projects dangerously ignore problems option`() {
         // The flag only resolves to true under Isolated Projects, so enable IP on both sides.
         assertThat(
             cacheKeyStringFromStartParameter {

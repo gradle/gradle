@@ -34,11 +34,11 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
     def "cross-project access succeeds and shows the banner instead of failing"() {
         given:
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
-        buildFile << """
+        buildFile """
             allprojects {
                 plugins.apply('java-library')
             }
@@ -59,11 +59,11 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
     def "cross-project access in the Kotlin DSL succeeds and shows the banner"() {
         given:
         createDirs("a", "b")
-        settingsKotlinFile << """
+        settingsKotlinFile """
             include("a")
             include("b")
         """
-        buildKotlinFile << """
+        buildKotlinFile """
             allprojects {
                 plugins.apply("java-library")
             }
@@ -84,11 +84,11 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
     def "discarded entry is not reused: a second run reconfigures and re-reports"() {
         given:
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
-        buildFile << """
+        buildFile """
             allprojects {
                 plugins.apply('java-library')
             }
@@ -119,11 +119,11 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
     def "is orthogonal to diagnostics: combined run still succeeds"() {
         given:
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
-        buildFile << """
+        buildFile """
             allprojects {
                 plugins.apply('java-library')
             }
@@ -143,8 +143,8 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
 
     def "a clean build shows the banner but stores and reuses a normal cache entry"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << "task ok {}"
+        settingsFile "rootProject.name = 'root'"
+        buildFile "task ok {}"
 
         when:
         isolatedProjectsSucceedsIgnoringProblems("ok")
@@ -193,11 +193,11 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
     def "a genuine task failure still fails the build while the IP violation is only reported"() {
         given:
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
-        buildFile << """
+        buildFile """
             allprojects {
                 plugins.apply('java-library')
             }
@@ -226,8 +226,8 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
 
     def "the flag is inert when Isolated Projects is not enabled"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << "task ok { doLast {} }"
+        settingsFile "rootProject.name = 'root'"
+        buildFile "task ok { doLast {} }"
 
         when:
         run("-D${StartParameterBuildOptions.IsolatedProjectsDangerouslyIgnoreProblemsOption.PROPERTY_NAME}=true", "ok")
@@ -238,14 +238,14 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
         postBuildOutputDoesNotContain(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
     }
 
-    def "combining the flag with problems=warn still discards the entry"() {
+    def "combining the flag with CC warn-mode still discards the entry"() {
         given:
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
-        buildFile << """
+        buildFile """
             allprojects {
                 plugins.apply('java-library')
             }
@@ -267,14 +267,42 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
         }
     }
 
-    def "a configuration cache problem still fails the build while IP violations are ignored"() {
+    def "IP violations still fail the build in CC warn-mode when the flag is not enabled [#mode]"() {
         given:
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
-        buildFile << """
+        buildFile """
+            allprojects {
+                plugins.apply('java-library')
+            }
+        """
+
+        when: "CC warn-mode must not suppress IP violations without dangerously-ignore-problems"
+        withIsolatedProjectsUsing(mode, WARN_PROBLEMS_CLI_OPT)
+        fails("help")
+
+        then:
+        outputDoesNotContain(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
+        fixture.assertIsolatedProjectsProblems(mode) {
+            projectsConfigured(":", ":a", ":b")
+            problem(GROOVY_VIOLATION, 2)
+        }
+
+        where:
+        mode << ALL_MODES
+    }
+
+    def "a configuration cache problem still fails the build while IP violations are ignored"() {
+        given:
+        createDirs("a", "b")
+        settingsFile """
+            include("a")
+            include("b")
+        """
+        buildFile """
             allprojects {
                 plugins.apply('java-library')
             }
