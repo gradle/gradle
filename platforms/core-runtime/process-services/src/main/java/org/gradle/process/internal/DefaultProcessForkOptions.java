@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
@@ -112,12 +113,12 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     public ProcessForkOptions workingDir(Object dir) {
         if (dir instanceof DirectoryProperty) {
             getWorkingDirectory().set((DirectoryProperty) dir);
+        } else if (dir instanceof Directory) {
+            getWorkingDirectory().set((Directory) dir);
         } else if (dir instanceof Provider) {
             getWorkingDirectory().fileProvider(((Provider<?>) dir).map((SerializableTransformer<File, Object>) value -> {
-                if (value instanceof File) {
-                    return (File) value;
-                } else if (value instanceof FileSystemLocation) {
-                    return ((FileSystemLocation) value).getAsFile();
+                if (value instanceof FileSystemLocation) {
+                    return resolver.resolve(((FileSystemLocation) value).getAsFile());
                 } else {
                     return resolver.resolve(value);
                 }
