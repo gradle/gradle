@@ -21,8 +21,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 class IncompatibleDependencyAttributesMessageBuilder {
     static String buildMergeErrorMessage(ModuleResolveState module, AttributeMergingException e) {
@@ -34,18 +34,15 @@ class IncompatibleDependencyAttributesMessageBuilder {
         fmt.append(attribute.getName());
         fmt.append("'.");
 
-        Set<EdgeState> incomingEdges = module.getIncomingEdges();
-        incomingEdges.addAll(module.getUnattachedEdges());
+        Set<EdgeState> incomingEdges = new LinkedHashSet<>();
+        module.visitAllIncomingEdges(incomingEdges::add);
 
-        // Collect distinct requested values so we can show them up-front (helps identify the real conflict)
         Set<String> distinctValues = new LinkedHashSet<>();
         for (EdgeState incomingEdge : incomingEdges) {
-            SelectorState selector = incomingEdge.getSelector();
+            ComponentSelector componentSelector = incomingEdge.getSelector().getSelector();
             Object value = null;
-            DependencyMetadata dependencyMetadata = selector.getDependencyMetadata();
-            ComponentSelector selectorObj = dependencyMetadata.getSelector();
-            if (selectorObj instanceof ModuleComponentSelector) {
-                value = ((ModuleComponentSelector) selectorObj).getAttributes().getAttribute(attribute);
+            if (componentSelector instanceof ModuleComponentSelector) {
+                value = ((ModuleComponentSelector) componentSelector).getAttributes().getAttribute(attribute);
             }
             distinctValues.add(value == null ? "<no value>" : value.toString());
         }
@@ -61,7 +58,7 @@ class IncompatibleDependencyAttributesMessageBuilder {
                 String requestedAttribute = formatAttributeQuery(selector, attribute);
                 fmt.node(path + " " + requestedAttribute);
             }
-        });
+        }
         fmt.endChildren();
 
         fmt.node("Possible resolutions:");
@@ -74,7 +71,8 @@ class IncompatibleDependencyAttributesMessageBuilder {
         return fmt.toString();
     }
 
-    private static String formatAttributeQuery(ComponentSelector selector, Attribute<?> attribute) {
+    private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute) {
+        ComponentSelector selector = state.getSelector();
         if (selector instanceof ModuleComponentSelector) {
             StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
             Object value = selector.getAttributes().getAttribute(attribute);
