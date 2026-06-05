@@ -71,6 +71,11 @@ public class RuleBasedPluginTarget implements PluginTarget {
     }
 
     @Override
+    public void applyProjectFeatureDeclaration(@Nullable String pluginId, Class<?> declarationClass) {
+        imperativeTarget.applyProjectFeatureDeclaration(pluginId, declarationClass);
+    }
+
+    @Override
     public String toString() {
         return target.toString();
     }

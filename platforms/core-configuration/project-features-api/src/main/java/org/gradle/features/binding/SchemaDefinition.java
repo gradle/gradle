@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.features.internal.binding;
+package org.gradle.features.binding;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.Incubating;
 
 /**
- * Applies the model defaults from a given project type to a target object.
+ * A {@link Definition} that has no build model. Used by project types and project
+ * features whose apply actions only need the definition (a schema), not a build
+ * model or application context.
+ *
+ * @since 9.7.0
  */
-@ServiceScope({Scope.Build.class, Scope.Project.class})
-public interface ModelDefaultsHandler {
-    void apply(Object target, Object definition, ModelDefaultsApplicator.ClassLoaderContext classLoaderScope, String projectFeatureName);
+@Incubating
+public interface SchemaDefinition extends Definition<BuildModel.None> {
 }

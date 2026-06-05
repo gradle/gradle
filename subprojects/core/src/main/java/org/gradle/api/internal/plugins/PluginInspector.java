@@ -17,6 +17,8 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.features.binding.SchemaProjectFeatureApplyAction;
+import org.gradle.features.binding.SchemaProjectTypeApplyAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -41,11 +43,18 @@ public class PluginInspector {
         if (implementsInterface) {
             @SuppressWarnings("unchecked") Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;
             return Cast.uncheckedCast(toImperative(cast, hasRules));
+        } else if (isSchemaApplyAction(type)) {
+            return new PotentialProjectFeatureDeclarationPlugin<T>(type);
         } else if (hasRules) {
             return new PotentialPureRuleSourceClassPlugin<T>(type);
         } else {
             return new PotentialUnknownTypePlugin<T>(type);
         }
+    }
+
+    private static boolean isSchemaApplyAction(Class<?> type) {
+        return SchemaProjectTypeApplyAction.class.isAssignableFrom(type)
+            || SchemaProjectFeatureApplyAction.class.isAssignableFrom(type);
     }
 
     private <T extends Plugin<?>> PotentialPlugin<T> toImperative(Class<T> type, boolean hasRules) {
@@ -141,6 +150,35 @@ public class PluginInspector {
         @Override
         public boolean isHasRules() {
             return false;
+        }
+    }
+
+    private static class PotentialProjectFeatureDeclarationPlugin<T> implements PotentialPlugin<T> {
+
+        private final Class<T> clazz;
+
+        public PotentialProjectFeatureDeclarationPlugin(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public Class<T> asClass() {
+            return clazz;
+        }
+
+        @Override
+        public boolean isImperative() {
+            return false;
+        }
+
+        @Override
+        public boolean isHasRules() {
+            return false;
+        }
+
+        @Override
+        public Type getType() {
+            return Type.PROJECT_FEATURE_DECLARATION_CLASS;
         }
     }
 

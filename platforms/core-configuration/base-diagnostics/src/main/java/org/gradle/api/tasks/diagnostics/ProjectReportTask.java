@@ -175,7 +175,14 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
                 textOutput.withStyle(Identifier).text(type.getFeatureName());
                 textOutput.append(" (").append(type.getDefinitionPublicType().getName()).append(")").println();
                 textOutput.append("        ").append("Defined in: ").append(type.getPluginClass().getName()).println();
-                textOutput.append("        ").append("Registered by: ").append(type.getRegisteringPluginClass().getName()).println();
+                Class<?> registeringPluginClass = type.getRegisteringPluginClass();
+                if (registeringPluginClass != null) {
+                    textOutput.append("        ").append("Registered by: ").append(registeringPluginClass.getName()).println();
+                } else {
+                    String registeringPluginId = type.getRegisteringPluginId();
+                    textOutput.append("        ").append("Registered by: ")
+                        .append(registeringPluginId != null ? "directly applied as " + registeringPluginId : "directly applied").println();
+                }
             });
         }
     }

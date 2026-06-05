@@ -17,7 +17,6 @@
 package org.gradle.features.internal.binding;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
@@ -43,7 +42,8 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
     private final Class<OwnBuildModel> buildModelType;
     private final Class<? extends OwnBuildModel> buildModelImplementationType;
     private final Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes;
-    private final Class<? extends Plugin<Project>> pluginClass;
+    private final Class<?> pluginClass;
+    @Nullable
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
     @Nullable
@@ -60,8 +60,8 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
         Class<OwnBuildModel> buildModelType,
         Class<? extends OwnBuildModel> buildModelImplementationType,
         Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes,
-        Class<? extends Plugin<Project>> pluginClass,
-        Class<? extends Plugin<Settings>> registeringPluginClass,
+        Class<?> pluginClass,
+        @Nullable Class<? extends Plugin<Settings>> registeringPluginClass,
         @Nullable String registeringPluginId,
         ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> applyActionFactory
     ) {
@@ -126,10 +126,11 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
     }
 
     @Override
-    public Class<? extends Plugin<Project>> getPluginClass() {
+    public Class<?> getPluginClass() {
         return pluginClass;
     }
 
+    @Nullable
     @Override
     public Class<? extends Plugin<Settings>> getRegisteringPluginClass() {
         return registeringPluginClass;

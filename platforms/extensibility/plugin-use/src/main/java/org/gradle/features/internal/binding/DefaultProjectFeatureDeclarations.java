@@ -59,6 +59,7 @@ import static java.util.Collections.singletonList;
  */
 public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarations {
     private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
+    private final List<SchemaDeclaration> schemaDeclarations = new ArrayList<>();
 
     @Nullable
     private Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureImplementations;
@@ -83,6 +84,14 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         pluginClasses.computeIfAbsent(pluginKey, k -> new LinkedHashSet<>()).add(pluginClass);
     }
 
+    @Override
+    public void addSchemaDeclaration(@Nullable String pluginId, Class<?> schemaApplyActionClass) {
+        if (projectFeatureImplementations != null) {
+            throw new IllegalStateException("Cannot register a plugin after project types have been discovered");
+        }
+        schemaDeclarations.add(new SchemaDeclaration(pluginId, schemaApplyActionClass));
+    }
+
     private Map<String, Set<ProjectFeatureImplementation<?, ?>>> discoverProjectFeatureImplementations() {
         Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations = new LinkedHashMap<>();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
@@ -93,12 +102,23 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 registerFeaturesIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureDeclarations);
             })
         );
+        schemaDeclarations.forEach(declaration -> registerSchemaDeclaration(declaration, projectFeatureDeclarations));
         return ImmutableMap.copyOf(projectFeatureDeclarations);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void registerSchemaDeclaration(
+        SchemaDeclaration declaration,
+        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations
+    ) {
+        ProjectFeatureBindingDeclaration<?, ?> binding = SchemaBindingFactory.buildBinding(declaration.applyActionClass);
+        RegisteringPluginKey registeringPluginKey = new RegisteringPluginKey(null, declaration.pluginId);
+        registerFeature(registeringPluginKey, declaration.applyActionClass, (ProjectFeatureBindingDeclaration) binding, projectFeatureDeclarations);
     }
 
     private <T extends Definition<V>, V extends BuildModel> void registerFeature(
         RegisteringPluginKey registeringPlugin,
-        Class<? extends Plugin<Project>> pluginClass,
+        Class<?> pluginClass,
         ProjectFeatureBindingDeclaration<T, V> binding,
         Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations
     ) {
@@ -127,7 +147,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             k -> new LinkedHashSet<>()
         );
 
-        List<Class<? extends Plugin<Project>>> existingPluginClasses = implementations.stream().filter(existingFeature ->
+        List<Class<?>> existingPluginClasses = implementations.stream().filter(existingFeature ->
                 // If the feature name matches another registration, check if the target types are ambiguous
                 existingFeature.getFeatureName().equals(binding.getName()) && TargetTypeInformationChecks.isOverlappingBindingType(existingFeature.getTargetDefinitionType(), binding.targetDefinitionType()))
             .map(ProjectFeatureImplementation::getPluginClass)
@@ -276,11 +296,22 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         }
     }
 
+    private static class SchemaDeclaration {
+        @Nullable
+        private final String pluginId;
+        private final Class<?> applyActionClass;
+
+        private SchemaDeclaration(@Nullable String pluginId, Class<?> applyActionClass) {
+            this.pluginId = pluginId;
+            this.applyActionClass = applyActionClass;
+        }
+    }
+
     public static class RegisteringPluginKey {
-        public final Class<? extends Plugin<Settings>> pluginClass;
+        public final @Nullable Class<? extends Plugin<Settings>> pluginClass;
         public final @Nullable String pluginId;
 
-        public RegisteringPluginKey(Class<? extends Plugin<Settings>> pluginClass, @Nullable String pluginId) {
+        public RegisteringPluginKey(@Nullable Class<? extends Plugin<Settings>> pluginClass, @Nullable String pluginId) {
             this.pluginClass = pluginClass;
             this.pluginId = pluginId;
         }

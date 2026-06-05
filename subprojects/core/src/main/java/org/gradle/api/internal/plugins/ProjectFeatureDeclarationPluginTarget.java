@@ -22,12 +22,17 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.features.annotations.BindsProjectFeature;
 import org.gradle.features.annotations.BindsProjectType;
+import org.gradle.features.annotations.ProjectFeature;
+import org.gradle.features.annotations.ProjectType;
 import org.gradle.features.annotations.RegistersProjectFeatures;
+import org.gradle.features.binding.SchemaProjectFeatureApplyAction;
+import org.gradle.features.binding.SchemaProjectTypeApplyAction;
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -81,6 +86,36 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     @Override
     public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass) {
         delegate.applyImperativeRulesHybrid(pluginId, plugin, declaringClass);
+    }
+
+    @Override
+    public void applyProjectFeatureDeclaration(@Nullable String pluginId, Class<?> declarationClass) {
+        // Register-only: a schema apply action applied directly in settings registers a project
+        // type/feature declaration. There is no imperative plugin to apply, so we do not delegate.
+        validateSchemaDeclaration(declarationClass);
+        projectFeatureDeclarations.addSchemaDeclaration(pluginId, declarationClass);
+    }
+
+    private void validateSchemaDeclaration(Class<?> declarationClass) {
+        boolean isType = SchemaProjectTypeApplyAction.class.isAssignableFrom(declarationClass);
+        boolean isFeature = SchemaProjectFeatureApplyAction.class.isAssignableFrom(declarationClass);
+
+        if (isType == isFeature) {
+            throw invalidSchemaDeclaration(declarationClass, "must implement exactly one of SchemaProjectTypeApplyAction or SchemaProjectFeatureApplyAction");
+        }
+        if (isType && !declarationClass.isAnnotationPresent(ProjectType.class)) {
+            throw invalidSchemaDeclaration(declarationClass, "is a SchemaProjectTypeApplyAction but is not annotated with @ProjectType");
+        }
+        if (isFeature && !declarationClass.isAnnotationPresent(ProjectFeature.class)) {
+            throw invalidSchemaDeclaration(declarationClass, "is a SchemaProjectFeatureApplyAction but is not annotated with @ProjectFeature");
+        }
+    }
+
+    private RuntimeException invalidSchemaDeclaration(Class<?> declarationClass, String reason) {
+        String message = "Project feature declaration '" + declarationClass.getName() + "' " + reason + ".";
+        ProblemId id = ProblemId.create("invalid-schema-feature-declaration", "Invalid schema project type or feature declaration", GradleCoreProblemGroup.validation().type());
+        return problems.getInternalReporter()
+            .throwing(new InvalidUserDataException(message), id, spec -> spec.contextualLabel(message));
     }
 
     @Override

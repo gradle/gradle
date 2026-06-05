@@ -104,7 +104,12 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 checkSingleProjectTypeApplication(parentDefinitionContext, projectFeature);
             }
 
-            getPluginManager().apply(projectFeature.getPluginClass());
+            // Schema declarations point getPluginClass() at the apply action class (not a Plugin), so
+            // there is no project plugin to apply for those; only apply when it is actually a Plugin.
+            Class<?> pluginClass = projectFeature.getPluginClass();
+            if (Plugin.class.isAssignableFrom(pluginClass)) {
+                getPluginManager().apply(pluginClass);
+            }
 
             return instantiateBoundFeatureObjects(parentDefinition, projectFeature);
         });
@@ -118,8 +123,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
         if (result.isNew) {
             pendingFeatureApplications.add(result.featureApplication);
-            Plugin<Project> plugin = getPluginManager().getPluginContainer().getPlugin(projectFeature.getPluginClass());
-            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication.getDefinitionInstance(), new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication.getDefinitionInstance(), new ClassLoaderContextFromScope(classLoaderScope), projectFeature);
         }
 
         return result.featureApplication;
