@@ -16,6 +16,7 @@
 package org.gradle.docs.asciidoctor
 
 import org.asciidoctor.Asciidoctor
+import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
 import spock.lang.Specification
 import spock.lang.Subject
@@ -39,7 +40,7 @@ class GuidesContributeIncludeProcessorTest extends Specification {
             |include::contribute[]
             |""".stripMargin()
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains('Please <a href="https://github.com/gradle/guides/issues/new">add an issue</a> or pull request to <a href="https://github.com/gradle/guides">gradle/guides</a>')
@@ -54,7 +55,7 @@ class GuidesContributeIncludeProcessorTest extends Specification {
             |""".stripMargin()
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains('Please <a href="https://github.com/gradle/guides/issues/new">add an issue</a> or pull request to <a href="https://github.com/gradle/guides">gradle/guides</a>')
@@ -69,7 +70,7 @@ class GuidesContributeIncludeProcessorTest extends Specification {
             |""".stripMargin()
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains('Please <a href="https://github.com/gradle/guides/issues/new?labels=in:creating-build-scans">add an issue</a> or pull request to <a href="https://github.com/gradle/guides/tree/master/subprojects/creating-build-scans">gradle/guides</a>')
@@ -85,7 +86,7 @@ class GuidesContributeIncludeProcessorTest extends Specification {
             |""".stripMargin()
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains('Please <a href="https://github.com/gradle/guides/issues/new?labels=in:creating-build-scans">add an issue</a> or pull request to <a href="https://github.com/gradle/guides/tree/master/subprojects/creating-build-scans">gradle/guides</a>')
