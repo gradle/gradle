@@ -21,11 +21,10 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.file.archive.ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES
+import org.gradle.internal.classpath.ClasspathBuilder
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
-import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
@@ -35,8 +34,6 @@ import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import java.io.File
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 
 internal
@@ -93,8 +90,8 @@ fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File?, packagePath: String) 
 internal
 fun emitAccessorsToJars(
     projectSchema: ProjectSchema<TypeAccessibility>,
-    classesJar: ZipOutputStream,
-    sourcesJar: ZipOutputStream,
+    classesBuilder: ClasspathBuilder.EntryBuilder,
+    sourcesBuilder: ClasspathBuilder.EntryBuilder,
     outputPackage: OutputPackage,
     format: AccessorFormat
 ): List<InternalName> {
@@ -106,8 +103,8 @@ fun emitAccessorsToJars(
         accessorsFor(projectSchema).map { accessor ->
             emitClassToJars(
                 accessor,
-                classesJar,
-                sourcesJar,
+                classesBuilder,
+                sourcesBuilder,
                 outputPackage,
                 format,
                 moduleName,
@@ -116,7 +113,7 @@ fun emitAccessorsToJars(
             )
         }.toList()
 
-    classesJar.putReproducibleEntry(
+    classesBuilder.put(
         "META-INF/$moduleName.kotlin_module",
         moduleMetadataBytesFor(emittedClassNames)
     )
@@ -128,8 +125,8 @@ fun emitAccessorsToJars(
 private
 fun emitClassToJars(
     accessor: Accessor,
-    classesJar: ZipOutputStream,
-    sourcesJar: ZipOutputStream,
+    classesBuilder: ClasspathBuilder.EntryBuilder,
+    sourcesBuilder: ClasspathBuilder.EntryBuilder,
     outputPackage: OutputPackage,
     format: AccessorFormat,
     moduleName: String,
@@ -152,9 +149,9 @@ fun emitClassToJars(
         moduleName,
         useLowPriorityOverloadResolution
     )
-    classesJar.putReproducibleEntry("$className.class", classBytes)
+    classesBuilder.put("$className.class", classBytes)
 
-    sourcesJar.putReproducibleEntry(
+    sourcesBuilder.put(
         "${className.value.removeSuffix("Kt")}.kt",
         accessorSourceContent(sourceCode, requiredImports, outputPackage.name)
     )
@@ -182,18 +179,6 @@ fun accessorSourceContent(
         sb.appendReproducibleNewLine()
     }
     return sb.toString().toByteArray(Charsets.UTF_8)
-}
-
-
-internal
-fun ZipOutputStream.putReproducibleEntry(path: String, bytes: ByteArray) {
-    val entry = ZipEntry(path).apply {
-        time = CONSTANT_TIME_FOR_ZIP_ENTRIES
-        size = bytes.size.toLong()
-    }
-    putNextEntry(entry)
-    write(bytes)
-    closeEntry()
 }
 
 

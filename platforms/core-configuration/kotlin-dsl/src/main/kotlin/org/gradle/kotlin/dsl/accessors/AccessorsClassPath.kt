@@ -28,6 +28,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.InPlaceClasspathBuilder
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
@@ -75,14 +76,11 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
-import java.io.BufferedOutputStream
 import java.io.Closeable
 import java.io.File
-import java.io.FileOutputStream
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
-import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 
@@ -302,7 +300,7 @@ fun IO.buildAccessorsFor(
 }
 
 
-fun buildAccessorsToJars(
+internal fun buildAccessorsToJars(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     classesJar: File,
@@ -311,8 +309,9 @@ fun buildAccessorsToJars(
     format: AccessorFormat = AccessorFormats.default
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-    ZipOutputStream(BufferedOutputStream(FileOutputStream(classesJar))).use { classesOut ->
-        ZipOutputStream(BufferedOutputStream(FileOutputStream(sourcesJar))).use { sourcesOut ->
+    val classpathBuilder = InPlaceClasspathBuilder()
+    classpathBuilder.jar(classesJar) { classesOut ->
+        classpathBuilder.jar(sourcesJar) { sourcesOut ->
             emitAccessorsToJars(
                 availableSchema,
                 classesOut,
