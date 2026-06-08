@@ -76,6 +76,13 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Source locations for more problems
+
+To keep stack trace capture affordable, Gradle used to stop attaching a source location to problems past a low limit, so builds that report many problems (deprecations especially) left most of them without a file and line.
+It now infers a location for problems past that limit too, so the console, the [problems report](userguide/reporting_problems.html#sec:generated_html_report), and the Tooling API carry a source location for many more of them.
+
+![Problems report listing many problems with their source locations](release-notes-assets/problems-locations.png)
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
