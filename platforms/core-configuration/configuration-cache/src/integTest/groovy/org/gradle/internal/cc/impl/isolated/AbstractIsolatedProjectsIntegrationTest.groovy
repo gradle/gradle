@@ -22,6 +22,13 @@ import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatu
 abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
     public static final String ENABLE_CLI = "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true"
     public static final String ENABLE_DIAGNOSTICS = "-D${StartParameterBuildOptions.IsolatedProjectsDiagnosticsOption.PROPERTY_NAME}=true"
+
+    /**
+     * Convenience constant for parameterizing IP-violation tests over every supported mode.
+     * Use as {@code where: mode << ALL_MODES} or via Spock 2.4 {@code combined:} blocks.
+     */
+    public static final List<IsolatedProjectsMode> ALL_MODES = IsolatedProjectsMode.values().toList()
+
     final def fixture = new IsolatedProjectsFixture(this)
 
     void withIsolatedProjects(String... moreExecuterArgs) {
@@ -42,5 +49,37 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigura
 
     void isolatedProjectsDiagnosticsFails(String... tasks) {
         fails(ENABLE_CLI, ENABLE_DIAGNOSTICS, *tasks)
+    }
+
+    /**
+     * Runs tasks under {@code mode} and expects failure. Pair with
+     * {@link IsolatedProjectsFixture#assertIsolatedProjectsProblems} to exercise the same scenario
+     * under both IP execution modes.
+     */
+    void isolatedProjectsFailsUsing(IsolatedProjectsMode mode, String... tasks) {
+        switch (mode) {
+            case IsolatedProjectsMode.DIAGNOSTICS:
+                isolatedProjectsDiagnosticsFails(tasks)
+                break
+            case IsolatedProjectsMode.FAIL_FAST:
+                isolatedProjectsFails(tasks)
+                break
+            default:
+                throw new IllegalArgumentException("Unsupported IP mode: $mode")
+        }
+    }
+
+    /**
+     * The IP execution mode under test.
+     *
+     * <p>{@link #DIAGNOSTICS} configures projects sequentially and collects every violation
+     * as a deferred CC problem; the cache entry is stored and then discarded.
+     *
+     * <p>{@link #FAIL_FAST} (default) configures projects in optimistic parallel and the
+     * first violation throws, halting configuration before the cache is written.
+     */
+    enum IsolatedProjectsMode {
+        DIAGNOSTICS,
+        FAIL_FAST
     }
 }

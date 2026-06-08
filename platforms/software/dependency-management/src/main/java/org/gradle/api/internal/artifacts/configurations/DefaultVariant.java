@@ -64,7 +64,7 @@ public abstract class DefaultVariant implements ConfigurationVariantInternal {
         this.name = name;
         this.artifactNotationParser = artifactNotationParser;
 
-        this.displayName = Describables.of(parentDisplayName, "variant", name);
+        this.displayName = Describables.of(parentDisplayName, Describables.quoted("variant", name));
         this.attributes = attributesFactory.freezable(attributesFactory.mutable(parentAttributes), displayName);
         this.artifacts = new DefaultPublishArtifactSet(displayName, domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
     }

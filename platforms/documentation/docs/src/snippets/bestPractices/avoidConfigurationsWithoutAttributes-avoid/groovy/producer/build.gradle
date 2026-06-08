@@ -1,0 +1,15 @@
+// tag::avoid-this[]
+configurations.consumable('customElements') // <1>
+
+def generateFile = tasks.register('generateFile') {
+    def outputFile = layout.buildDirectory.file('custom/output.txt')
+    outputs.file(outputFile)
+    doLast {
+        outputFile.get().asFile.text = 'Custom output from producer'
+    }
+}
+
+artifacts {
+    customElements generateFile
+}
+// end::avoid-this[]
