@@ -213,7 +213,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         configurationCache.assertStateLoaded()
     }
 
-    def "clear then getProperty on clone source invalidates cache"() {
+    def "clear then getProperty on clone source returns null and hits cache"() {
         given:
         buildFile("""
             def props = ((Properties) System.getProperties().clone())
@@ -234,7 +234,68 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         configurationCacheRun("-Dfoo=external", "printProperty")
 
         then:
+        configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/37526")
+    def "mutate then read same key on clone is not tracked"() {
+        given:
+        buildFile("""
+            def clone = (Properties) System.getProperties().clone()
+            clone.setProperty("foo", "mutated")
+            def captured = clone.getProperty("foo")
+            tasks.register("printProperty") {
+                doLast { println("captured = \${captured}") }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dfoo=v1", "printProperty")
+
+        then:
         configurationCache.assertStateStored()
+        outputContains("captured = mutated")
+
+        when:
+        configurationCacheRun("-Dfoo=v1", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("captured = mutated")
+    }
+
+    def "untouched key read on clone is still tracked after mutating another key"() {
+        given:
+        buildFile("""
+            def clone = (Properties) System.getProperties().clone()
+            clone.setProperty("touched", "mutated")
+            def captured = clone.getProperty("untouched")
+            tasks.register("printProperty") {
+                doLast { println("untouched = \${captured}") }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Duntouched=v1", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("untouched = v1")
+
+        when:
+        configurationCacheRun("-Duntouched=v1", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when: 'changing the untouched key invalidates the cache'
+        configurationCacheRun("-Duntouched=v2", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("untouched = v2")
     }
 
     def "writing to cloned system properties does not modify real system properties"() {

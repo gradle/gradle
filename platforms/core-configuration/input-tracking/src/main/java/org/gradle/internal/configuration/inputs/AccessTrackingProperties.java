@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -490,8 +491,9 @@ public class AccessTrackingProperties extends Properties {
         // Continue tracking individual property access on the clone, not reporting aggregate access.
         // Cloning alone doesn't mean the caller will read all properties — they may only access specific ones.
         // Mutations on the clone must NOT be reported: they only affect the clone's delegate, not the real system properties.
+        // Reads of mutated properties are not reported as well.
         // See https://github.com/gradle/gradle/issues/17344
-        return new AccessTrackingProperties(clonedDelegate, new ReadOnlyListener(listener));
+        return new AccessTrackingProperties(clonedDelegate, new ReadUnchangedListener(listener));
     }
 
     @Override
@@ -662,36 +664,47 @@ public class AccessTrackingProperties extends Properties {
     }
 
     /**
-     * A listener wrapper that forwards only read access notifications, ignoring mutations.
+     * A listener wrapper that forwards only read access notifications
+     * for keys that have not been mutated on this cloned instance.
      * Used by {@link #clone()} so that reads on the cloned properties are still tracked
      * as fingerprint inputs, but writes to the clone don't affect the original properties'
      * fingerprint or get replayed onto real {@code System.getProperties()} on cache hit.
      */
-    private static class ReadOnlyListener implements Listener {
+    private static class ReadUnchangedListener implements Listener {
         private final Listener delegate;
+        private final Set<Object> mutatedKeys = ConcurrentHashMap.newKeySet();
+        private volatile boolean cleared;
 
-        ReadOnlyListener(Listener delegate) {
+        ReadUnchangedListener(Listener delegate) {
             this.delegate = delegate;
         }
 
         @Override
         public void onAccess(Object key, @Nullable Object value) {
+            if (cleared || mutatedKeys.contains(key)) {
+                return;
+            }
             delegate.onAccess(key, value);
         }
 
         @Override
         public void onChange(Object key, Object newValue) {
-            // Ignored: mutations on the clone don't affect the original properties.
+            if (!cleared) {
+                mutatedKeys.add(key);
+            }
         }
 
         @Override
         public void onRemove(Object key) {
-            // Ignored: mutations on the clone don't affect the original properties.
+            if (!cleared) {
+                mutatedKeys.add(key);
+            }
         }
 
         @Override
         public void onClear() {
-            // Ignored: mutations on the clone don't affect the original properties.
+            cleared = true;
+            mutatedKeys.clear();
         }
     }
 }

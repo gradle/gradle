@@ -757,7 +757,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         clone.getProperty('existing') == 'modified'
     }
 
-    def "clone() still tracks access"() {
+    def "clone() forwards reads of untouched keys"() {
         given:
         def original = getMapUnderTestToWrite()
 
@@ -767,6 +767,86 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         (1.._) * onAccess.accept('existing', 'existingValue')
+    }
+
+    def "clone() does not forward subsequent reads of mutated key after #mutationName"() {
+        given:
+        def original = getMapUnderTestToWrite()
+        def clone = (Properties) original.clone()
+
+        when:
+        doMutate(clone)
+
+        then:
+        _ * onAccess.accept('existing', _)
+        0 * onChange._
+        0 * onRemove._
+        0 * onClear._
+
+        when:
+        clone.getProperty('existing')
+        clone.get('existing')
+        clone.containsKey('existing')
+
+        then:
+        0 * onAccess.accept('existing', _)
+
+        where:
+        mutationName              | doMutate
+        'setProperty'             | { p -> p.setProperty('existing', 'modified') }
+        'put'                     | { p -> p.put('existing', 'modified') }
+        'remove'                  | { p -> p.remove('existing') }
+        'replace(k,v)'            | { p -> p.replace('existing', 'modified') }
+        'replace(k,old,new)'      | { p -> p.replace('existing', 'existingValue', 'modified') }
+        'computeIfPresent'        | { p -> p.computeIfPresent('existing', (k, v) -> 'modified') }
+        'compute'                 | { p -> p.compute('existing', (k, v) -> 'modified') }
+        'merge'                   | { p -> p.merge('existing', 'modified', String::concat) }
+        'entrySet entry setValue' | { p ->
+            def entry = p.entrySet().find { entry -> entry.getKey() == 'existing' }
+            entry.setValue('modified')
+        }
+    }
+
+    def "clone() does not forward any read after clear()"() {
+        given:
+        def original = getMapUnderTestToWrite()
+        def clone = (Properties) original.clone()
+
+        when:
+        clone.clear()
+
+        then:
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
+        0 * onClear._
+
+        when:
+        clone.getProperty('existing')
+        clone.get('other')
+        clone.containsKey('missing')
+
+        then:
+        0 * onAccess._
+    }
+
+    def "clone() still forwards reads of untouched keys after mutating another key"() {
+        given:
+        def original = getMapUnderTestToWrite()
+        def clone = (Properties) original.clone()
+
+        when:
+        clone.setProperty('existing', 'modified')
+
+        then:
+        _ * onAccess.accept('existing', _)
+
+        when:
+        clone.getProperty('other')
+
+        then:
+        (1.._) * onAccess.accept('other', 'otherValue')
+        0 * onAccess.accept('existing', _)
     }
 
     def "clone() does not report mutations to listener"() {
