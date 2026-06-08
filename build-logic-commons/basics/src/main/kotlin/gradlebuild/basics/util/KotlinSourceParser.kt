@@ -17,23 +17,17 @@
 package gradlebuild.basics.util
 
 
-import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
-import org.gradle.internal.jvm.Jvm
-import org.jetbrains.kotlin.K1Deprecation
-import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
-import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
+import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironmentMode
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreProjectEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.setupIdeaStandaloneExecution
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.parsing.KotlinParserDefinition
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 
 
@@ -53,71 +47,61 @@ class KotlinSourceParser {
         }
     }
 
-    private
-    val messageCollector: MessageCollector
-        get() = PrintingMessageCollector(System.out, MessageRenderer.PLAIN_RELATIVE_PATHS, false)
-
     fun <T : Any> mapParsedKotlinFiles(vararg sourceRoots: File, block: (KtFile) -> T): List<T> =
         withParsedKotlinSource(sourceRoots.toList()) { ktFiles ->
             ktFiles.map(block)
         }
 
-    fun parseSourceRoots(sourceRoots: List<File>, compilationClasspath: List<File>): ParsedKotlinFiles =
+    fun parseSourceRoots(sourceRoots: List<File>): ParsedKotlinFiles =
         Disposer.newDisposable().let { disposable ->
-            ParsedKotlinFiles(disposable.parseKotlinFiles(sourceRoots, compilationClasspath), disposable)
+            ParsedKotlinFiles(disposable.parseKotlinFiles(sourceRoots), disposable)
         }
 
     private
-    fun <T : Any?> withParsedKotlinSource(sourceRoots: List<File>, block: (List<KtFile>) -> T) =
+    fun <T> withParsedKotlinSource(sourceRoots: List<File>, block: (List<KtFile>) -> T) =
         Disposer.newDisposable().use {
-            parseKotlinFiles(sourceRoots, emptyList()).let(block)
+            parseKotlinFiles(sourceRoots).let(block)
         }
 
-    @OptIn(K1Deprecation::class)
     private
-    fun Disposable.parseKotlinFiles(sourceRoots: List<File>, compilationClasspath: List<File>): List<KtFile> {
-        configureKotlinCompilerIoForWindowsSupport()
-        val configuration = newCompilerConfiguration().apply {
-
-            put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-            put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
-            put(CommonConfigurationKeys.MODULE_NAME, "parser")
-
-            configureKotlinCompilerForGradleBuild()
-
-            addJvmClasspathRoots(PathUtil.getJdkClassesRoots(Jvm.current().javaHome))
-            addJvmClasspathRoots(compilationClasspath)
-            addKotlinSourceRoots(sourceRoots.map { it.canonicalPath })
-        }
-        val environment = KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
-        return environment.getSourceFiles()
+    fun Disposable.parseKotlinFiles(sourceRoots: List<File>): List<KtFile> {
+        val psiManager = PsiManager.getInstance(KotlinCoreProjectEnvironment(this, applicationEnvironment).project)
+        val localFileSystem = applicationEnvironment.localFileSystem
+        return sourceRoots.asSequence()
+            .flatMap { it.walkTopDown() }
+            .filter { it.isFile && (it.extension == KotlinFileType.EXTENSION || it.extension == KotlinFileType.SCRIPT_EXTENSION) }
+            .mapNotNull { sourceFile ->
+                localFileSystem.findFileByPath(sourceFile.canonicalFile.invariantSeparatorsPath)
+                    ?.let { psiManager.findFile(it) as? KtFile }
+            }
+            .toList()
     }
+}
 
-    private
-    fun configureKotlinCompilerIoForWindowsSupport() =
-        org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
 
-    // Prefer `CompilerConfiguration.Companion.create()` (Kotlin 2.4+ exposes it as an extension in `org.jetbrains.kotlin.cli`)
-    // and fall back to the no-arg constructor on older versions, where the constructor is still part of the public API.
-    // TODO: remove this once the wrapper is based on Kotlin 2.4.0-RC or later, just call the create() method directly
-    private val newCompilerConfiguration: () -> CompilerConfiguration = run {
-        val viaCreate = runCatching {
-            val createKt = Class.forName("org.jetbrains.kotlin.cli.CreateKt")
-            val companion = CompilerConfiguration::class.java.getField("Companion").get(null)
-            val createMethod = createKt.getMethod("create", companion.javaClass)
-            return@runCatching { createMethod.invoke(null, companion) as CompilerConfiguration }
-        }.getOrNull()
-        viaCreate ?: run {
-            val ctor = CompilerConfiguration::class.java.getDeclaredConstructor()
-            val factory: () -> CompilerConfiguration = { ctor.newInstance() }
-            factory
-        }
+/**
+ * A single, process-wide Kotlin compiler application environment shared by all parsers.
+ *
+ * Creating one is expensive (it registers all the IntelliJ core services and the Kotlin parser) and it
+ * installs a global [org.jetbrains.kotlin.com.intellij.openapi.application.Application], so we create it once
+ * and reuse it for every parse, handing each parse its own short-lived [KotlinCoreProjectEnvironment]. It is
+ * intentionally never disposed: it lives for as long as the (short-lived) build/worker process.
+ */
+private
+val applicationEnvironment: KotlinCoreApplicationEnvironment by lazy {
+    setIdeaIoUseFallback()
+    setupIdeaStandaloneExecution()
+    val disposable = Disposer.newDisposable("Disposable for the application environment of KotlinSourceParser")
+    KotlinCoreApplicationEnvironment.create(disposable, KotlinCoreApplicationEnvironmentMode.Production).apply {
+        registerFileType(KotlinFileType.INSTANCE, KotlinFileType.EXTENSION)
+        registerFileType(KotlinFileType.INSTANCE, KotlinFileType.SCRIPT_EXTENSION)
+        registerParserDefinition(KotlinParserDefinition())
     }
 }
 
 
 private
-inline fun <T : Any?> Disposable.use(action: Disposable.() -> T) =
+inline fun <T> Disposable.use(action: Disposable.() -> T) =
     try {
         action(this)
     } finally {
