@@ -73,7 +73,9 @@ The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in R
    When a public API accepts an `Action<...>` / `Closure` that registers behavior (rules, callbacks, configuration blocks), one of the following MUST hold:
 
    * the API exposes an observer over the *result* of all registered actions (e.g. the set of rules they produced, the count and provenance of registered actions, or an equivalent introspection surface), or
-   * the API is re-modelled so that the configuration is data, not opaque behavior — typically a managed domain object container, a `NamedDomainObjectContainer`, or a `Property<T>` over a value type, whose contents are themselves observable.
+   * the API is re-modelled so that the configuration is data, not opaque behavior — typically a managed domain object container, a `NamedDomainObjectContainer`, or a `Property<T>` over a value type.
+     The container MUST let callers enumerate what has been configured (entries, names, identities); it does NOT have to expose recursive observability into the internal state of each entry.
+     Whether an entry type is itself observable is governed by this ADR independently — only if and to the extent the entry type is itself a public configuration API.
 
    The first form preserves the action-based shape; the second eliminates the problem.
    New APIs SHOULD prefer the second.
@@ -95,6 +97,7 @@ The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in R
 * **Default-restoration** — a public way to return the configured behavior to the state it would have been in if no setter had ever been called.
   `Property.unset()` is the canonical shape; `resetX()` / `clearX()` / a documented nullable setter are acceptable alternatives.
 * **Action introspection** — a public way to observe the effect of action-based mutators after the fact: either the data they produced (rules, substitutions, registered objects) or, at minimum, their count and origin.
+  Container membership (the entries, names, and identities a `NamedDomainObjectContainer` or equivalent holds) counts as introspection over the registered actions' result; recursive observability into each entry's own setters is out of scope for this requirement.
 
 ## Consequences
 
