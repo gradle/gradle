@@ -780,23 +780,11 @@ def scriptMethod(Closure closure) {
         properties['someTask'] == testTask
     }
 
-    def extraPropertiesAreInheritable() {
+    def "extra properties are not visible to child projects"() {
         when:
         project.ext.somename = 'somevalue'
         then:
-        project.inheritedScope.hasProperty('somename')
-        project.inheritedScope.getProperty('somename') == 'somevalue'
-    }
-
-    def inheritedPropertiesAreInheritable() {
-        when:
-        project.ext.somename = 'somevalue'
-        then:
-        // The inherited scope exposes only the project's own inheritable members;
-        // ancestors are reached by walking getParent() one level at a time.
-        !child1.inheritedScope.hasProperty('somename')
-        child1.inheritedScope.parent.hasProperty('somename')
-        child1.inheritedScope.parent.getProperty('somename') == 'somevalue'
+        !child1.hasProperty('somename')
     }
 
     def getProjectProperty() {

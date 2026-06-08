@@ -72,7 +72,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
@@ -747,11 +746,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public void evaluationDependsOnChildren() {
         onMutableStateAccess("evaluationDependsOnChildren");
         delegate.evaluationDependsOnChildren();
-    }
-
-    @Override
-    public HierarchicalDynamicObject getInheritedScope() {
-        return delegate.getInheritedScope();
     }
 
     @Override

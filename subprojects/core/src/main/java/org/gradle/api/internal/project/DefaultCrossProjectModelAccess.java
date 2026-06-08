@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.GradleLifecycleActionExecutor;
 import org.gradle.util.Path;
@@ -107,13 +106,5 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public TaskExecutionGraphInternal taskGraphForProject(ProjectIdentity referrer, TaskExecutionGraphInternal taskGraph) {
         return taskGraph;
-    }
-
-    @Override
-    @Nullable
-    public HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer) {
-        ProjectState parent = referrer.getParent();
-        // We purposefully leak mutable state here, as we're not in IP so it's safe.
-        return parent != null ? parent.fromMutableState(ProjectInternal::getInheritedScope) : null;
     }
 }

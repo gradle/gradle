@@ -17,86 +17,45 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 
 class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
-    def 'extra properties are inherited to child and grandchild projects'() {
+    def 'extra properties declared on the root project are not inherited by child projects'() {
         given:
-        extraPropertiesMultiBuild()
-        expectParentPropertyAccessDeprecation('testProp', ':a', "root project 'extra-properties'")
-        expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
-        // The property is declared on the root project only, so the grandchild's lookup is attributed to the root
-        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "root project 'extra-properties'")
+        settingsFile << """
+            rootProject.name = "extra-properties"
+            include "a"
+        """
+        buildFile << """
+            ext.testProp = 'rootValue'
+        """
+        file("a/build.gradle") << """
+            println("testProp: " + testProp)
+        """
 
         expect:
-        succeeds checkTestPropTasks()
+        fails(":a:help")
+        failure.assertHasCause("Could not get unknown property 'testProp' for project ':a' of type org.gradle.api.Project.")
     }
 
     @Issue('GRADLE-3530')
-    @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
-    def 'extra properties can be overridden on child projects'() {
+    def 'a child project uses its own extra property rather than one declared on the root project'() {
         given:
-        extraPropertiesMultiBuild('a': 'aValue', 'a:a1': 'aValue') {
-            buildFile << """
-                project(':a') {
-                    ext.testProp = 'aValue'
-                }
-            """.stripIndent()
-        }
-        expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
-        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "project ':a'")
+        settingsFile << """
+            rootProject.name = "extra-properties"
+            include "a"
+        """
+        buildFile << """
+            ext.testProp = 'rootValue'
+        """
+        file("a/build.gradle") << """
+            ext.testProp = 'aValue'
+            println("testProp: " + testProp)
+        """
 
         expect:
-        succeeds checkTestPropTasks()
-    }
-
-    private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName) {
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Property '${propertyName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
-    }
-
-    BuildTestFile extraPropertiesMultiBuild(Map expectedPropPerProject = [:], @DelegatesTo(BuildTestFile) Closure configuration = {}) {
-        expectedPropPerProject = [a: 'rootValue', b: 'rootValue', 'a:a1': 'rootValue'] + expectedPropPerProject
-        def root = multiProjectBuild('extra-properties', ['a', 'b']) {
-            createDirs("a", "a/a1")
-            settingsFile << "include ':a:a1'"
-
-            buildFile """
-                ext.testProp = 'rootValue'
-
-                task checkTestProp {
-                    def testPropValue = provider { testProp }
-                    doLast {
-                        assert testPropValue.get() == 'rootValue'
-                    }
-                }
-            """
-
-            ['a', 'b', 'a:a1'].each {
-                buildFile """
-                    project(':${it}') {
-                        task checkTestProp {
-                            def testPropValue = provider { testProp }
-                            doLast {
-                                assert testPropValue.get() == '${expectedPropPerProject[it]}'
-                            }
-                        }
-                    }
-            """
-            }
-        }
-        root.with(configuration)
-        root
-    }
-
-    String[] checkTestPropTasks() {
-        ['', ':a', ':b', ':a:a1'].collect { "${it}:checkTestProp".toString() }
+        succeeds(":a:help")
+        outputContains("testProp: aValue")
     }
 }

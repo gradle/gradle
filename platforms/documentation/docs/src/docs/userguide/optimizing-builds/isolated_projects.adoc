@@ -424,27 +424,11 @@ The Isolated Projects <<#sec:constraints,constraints>> validate the usages of AP
 [[sec:no_implicit_parents_lookup]]
 === No implicit lookup of properties and methods in parent projects
 
-Under Isolated Project, the implicit resolution of properties and methods from parent projects does not happen.
-In Gradle 9.6.0, this behavior is deprecated when running without Isolated Projects.
-The corresponding <<upgrading_version_9.adoc#deprecated_implicit_lookup_in_parent_projects,upgrade guide entry>> details the cases when it is applicable.
+A child project does not implicitly resolve properties or methods from its parent projects.
+This applies to all Gradle modes: the implicit lookup was deprecated in Gradle 9.6.0 and removed in Gradle 10, so the behavior is now the same with and without Isolated Projects.
 
-[WARNING]
-====
-The `Project.findProperty()` API allows to lookup properties leniently,
-which means that the behavior change will not produce an error, but rather return a different value.
-====
-
-The lenient property lookups are common place in build logic and plugins.
-Due to this, it is highly recommended to address relevant deprecations before migrating to Isolated Projects.
-
-You can align the behavior across all Gradle modes by using a feature preview flag.
-It is recommended to enable this flag in builds that are migrating to or already using Isolated Projects.
-
-[source,kotlin]
-----
-// settings.gradle.kts
-enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
-----
+An unresolved reference fails at the lookup site rather than resolving from an ancestor project.
+Note that `Project.findProperty()` returns `null` for a property that is only defined in a parent project, rather than the parent's value.
 
 [[sec:properties_report_no_inherited]]
 === Properties report does not include properties inherited from parent projects

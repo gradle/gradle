@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -115,25 +114,4 @@ public interface CrossProjectModelAccess {
      * @return A task graph instance that implements correct cross-project model access.
      */
     TaskExecutionGraphInternal taskGraphForProject(ProjectIdentity referrer, TaskExecutionGraphInternal taskGraph);
-
-    /**
-     * Produces a {@code DynamicObject} for the inherited scope from the parent project of the specified project, behaving correctly
-     * regarding cross-project model access.
-     *
-     * <p>The contract differs between Vintage and Isolated Projects builds:
-     * <ul>
-     *   <li><b>Vintage</b>: returns the parent project's inherited scope. The caller wires this object into the child's
-     *       dynamic scope so that an unresolved reference in the child walks up the parent projects. The walk is
-     *       deprecated and emits a warning at the lookup site, but still succeeds for compatibility.
-     *   <li><b>Isolated Projects</b>: returns {@code null}. The caller must skip parent wiring entirely; an unresolved
-     *       reference in the child fails with the standard {@code MissingPropertyException} /
-     *       {@code MissingMethodException}, matching the eventual Gradle 10 behavior.
-     * </ul>
-     *
-     * @param referrer The project that needs to get an inherited scope dynamic object from its parent.
-     * @return The parent's inherited scope, or {@code null} if there is no parent project or parent-walk is disabled
-     * (Isolated Projects). The returned object handles cross-project model access according to the current policy.
-     */
-    @Nullable
-    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer);
 }

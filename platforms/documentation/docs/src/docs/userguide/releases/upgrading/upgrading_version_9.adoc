@@ -190,20 +190,6 @@ include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/kotlin",fi
 include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/groovy",files="child/build.gradle[tags=helper]"]
 ====
 
-===== Opt into Gradle 10 behavior by disabling implicit lookup in parent projects
-
-Once you have addressed all related deprecations, you can use a feature preview to adopt the Gradle 10 behavior early.
-This prevents new accidental implicit lookups from parent projects.
-
-[source,kotlin]
-----
-// settings.gradle.kts
-enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
-----
-
-This will affect the behavior of APIs and DSL constructs mentioned above.
-It will also affect the output of the `properties` task when invoked for subprojects.
-
 [[deprecated_develocity_plugin_pre_4_0]]
 ==== Deprecation of Develocity plugin versions before 4.0
 

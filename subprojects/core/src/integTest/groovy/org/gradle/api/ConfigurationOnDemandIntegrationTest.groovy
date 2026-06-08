@@ -616,8 +616,10 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "reaches out to a property of the parent project")
-    def "extra properties defined in parent project are accessible to child"() {
+    def "extra properties defined in parent project are not accessible to child"() {
+        // This build fails with a plain MissingPropertyException, which is not reported via the Problems service.
+        disableProblemsApiCheck()
+
         createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"
         buildFile('a/build.gradle', """
@@ -631,22 +633,10 @@ allprojects {
                 }
             }
         """)
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Property 'foo' was not declared in project ':a:child' and was resolved from project ':a'. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
-        when:
-        run(":a:child:printExt")
-
-        then:
-        outputContains("The Foo says Moo!!!")
-        receivedProblems.size().times { i ->
-            verifyAll(receivedProblem(i)) {
-                fqid == 'deprecation:implicit-lookup-of-properties-in-parent-projects'
-            }
-        }
+        expect:
+        fails(":a:child:printExt")
+        failure.assertHasCause("Could not get unknown property 'foo' for task ':a:child:printExt' of type org.gradle.api.DefaultTask.")
     }
 
     @ToBeFixedForConfigurationCache(because = "test expects configuration phase on second run")

@@ -28,7 +28,6 @@ import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
@@ -36,7 +35,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
@@ -71,7 +69,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
-        return withCallerContext(() -> dynamicObject.getProperty(property));
+        return dynamicObject.getProperty(property);
     }
 
     @Override
@@ -91,46 +89,12 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     }
 
     public boolean hasProperty(String property) {
-        return withCallerContext(() -> dynamicObject.hasProperty(property));
+        return dynamicObject.hasProperty(property);
     }
 
     @Override
     public Object invokeMethod(String name, Object args) {
-        return withCallerContext(() -> dynamicObject.invokeMethod(name, (Object[]) args));
-    }
-
-    /**
-     * Wraps a dynamic-object lookup with the {@link ExtensibleDynamicObject.CallerContext.Instances#BUILD_SCRIPT}
-     * caller context on the underlying project's {@link ExtensibleDynamicObject}, so that any
-     * parent-walk deprecation or Isolated Projects violation can be annotated as originating
-     * from a Groovy build script's implicit lookup rather than an explicit API call.
-     *
-     * <p>Settings and init scripts have no project-level dynamic object; their lookups go
-     * through here unchanged.
-     */
-    private <T> T withCallerContext(Supplier<T> action) {
-        ExtensibleDynamicObject targetDynamicObject = targetExtensibleDynamicObject();
-        if (targetDynamicObject == null) {
-            return action.get();
-        }
-        ExtensibleDynamicObject.CallerContext previous = targetDynamicObject.getCallerContext();
-        targetDynamicObject.setCallerContext(ExtensibleDynamicObject.CallerContext.Instances.BUILD_SCRIPT);
-        try {
-            return action.get();
-        } finally {
-            targetDynamicObject.setCallerContext(previous);
-        }
-    }
-
-    @Nullable
-    private ExtensibleDynamicObject targetExtensibleDynamicObject() {
-        if (target instanceof DynamicObjectAware) {
-            DynamicObject dyn = ((DynamicObjectAware) target).getAsDynamicObject();
-            if (dyn instanceof ExtensibleDynamicObject) {
-                return (ExtensibleDynamicObject) dyn;
-            }
-        }
-        return null;
+        return dynamicObject.invokeMethod(name, (Object[]) args);
     }
 
     @Override
