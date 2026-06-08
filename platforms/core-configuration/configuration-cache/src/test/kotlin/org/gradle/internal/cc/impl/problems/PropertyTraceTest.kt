@@ -19,11 +19,8 @@ package org.gradle.internal.cc.impl.problems
 import org.gradle.api.Task
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
-
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -57,6 +54,35 @@ class PropertyTraceTest {
                 "field `f` of " +
                     "`${beanType.name}` bean found in " +
                     "input property `i` of " +
+                    "task `:t` of type `${taskType.name}`"
+            )
+        )
+    }
+
+    @Test
+    fun `serialized lambda trace renders impl class, method and signature`() {
+        val taskType = Task::class.java
+
+        assertThat(
+            PropertyTrace.Property(
+                PropertyKind.Field,
+                "capturedArgs",
+                PropertyTrace.SerializedLambda(
+                    "pkg.SomeClass",
+                    "lambda\$method$0",
+                    "(Ljava/lang/String;)Ljava/lang/Object;",
+                    PropertyTrace.Property(
+                        PropertyKind.Field,
+                        "supplier",
+                        PropertyTrace.Task(taskType, ":t")
+                    )
+                )
+            ).toString(),
+            equalTo(
+                "field `capturedArgs` of " +
+                    "lambda of type `java.lang.invoke.SerializedLambda` " +
+                    "(method: `pkg.SomeClass.lambda\$method\$0(Ljava/lang/String;)Ljava/lang/Object;`) found in " +
+                    "field `supplier` of " +
                     "task `:t` of type `${taskType.name}`"
             )
         )

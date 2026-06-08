@@ -395,7 +395,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("""   > No variants of root project 'example' match the consumer attributes:
        - Configuration ':myElements' declares attribute 'color' with value 'blue':
            - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
-       - Configuration ':myElements' variant secondary declares attribute 'color' with value 'blue':
+       - Configuration ':myElements' variant 'secondary' declares attribute 'color' with value 'blue':
            - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'""")
 
         and: "Helpful resolutions are provided"
@@ -470,8 +470,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > More than one variant of root project 'example' matches the consumer attributes:
-       - Configuration ':default' variant v1
-       - Configuration ':default' variant v2""")
+       - Configuration ':default' variant 'v1'
+       - Configuration ':default' variant 'v2'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()

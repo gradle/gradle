@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -365,6 +366,7 @@ abstract class Resolve extends Copy {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "cannot register a transform from a custom classloader"() {
         createDirs("producer", "consumer")
         settingsFile << """

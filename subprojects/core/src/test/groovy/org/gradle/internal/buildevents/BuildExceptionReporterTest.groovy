@@ -45,6 +45,7 @@ import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -258,6 +259,55 @@ $MESSAGE
    {info}> {normal}<cause1.2>
 {info}> {normal}<cause2>
    {info}> {normal}<cause2.1>
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$TRY_SCAN
+$GET_HELP
+"""
+    }
+
+    def "unpacks InvocationTargetException so the real cause is shown"() {
+        Throwable exception = new LocationAwareException(
+            new GradleException(MESSAGE, new InvocationTargetException(new RuntimeException(FAILURE))),
+            LOCATION, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+$LOCATION line: 42
+
+* What went wrong:
+$MESSAGE
+{info}> {normal}$FAILURE
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$TRY_SCAN
+$GET_HELP
+"""
+    }
+
+    def "keeps InvocationTargetException with no target in the output"() {
+        Throwable exception = new LocationAwareException(
+            new GradleException(MESSAGE, new InvocationTargetException(null)), LOCATION, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+$LOCATION line: 42
+
+* What went wrong:
+$MESSAGE
+{info}> {normal}java.lang.reflect.InvocationTargetException (no error message)
 
 * Try:
 $STACKTRACE

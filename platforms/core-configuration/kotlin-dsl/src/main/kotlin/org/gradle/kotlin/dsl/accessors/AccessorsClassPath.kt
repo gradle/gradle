@@ -42,7 +42,7 @@ import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.file.TreeType.DIRECTORY
+import org.gradle.internal.file.TreeType.FILE
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -55,9 +55,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.provider.KotlinDslInternalOptions
-import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
-import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
@@ -77,11 +75,14 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
+import java.io.BufferedOutputStream
 import java.io.Closeable
 import java.io.File
+import java.io.FileOutputStream
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 
@@ -92,7 +93,6 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory,
     internalOptions: InternalOptions,
 ) {
 
@@ -128,11 +128,10 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                     fileCollectionFactory,
                     inputFingerprinter,
                     workspaceProvider,
-                    asyncIO,
                     isDclEnabledForScriptTarget(scriptTarget),
-                    cachingDisabled,
-                )
-                executionEngine.createRequest(work)
+            cachingDisabled,
+        )
+         executionEngine.createRequest(work)
                     .execute()
                     .getOutputAs(AccessorsClassPath::class.java)
                     .get()
@@ -154,8 +153,17 @@ fun isDclEnabledForScriptTarget(target: Any): Boolean {
         is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
-    return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
+    return gradleProperties?.isDclEnabled ?: false
 }
+
+internal val GradleProperties.isDclEnabled: Boolean
+    get() = try {
+        getBooleanKotlinDslOption(this, DCL_ENABLED_PROPERTY_NAME, false)
+    } catch (_: IllegalStateException) {
+        // Properties may not be loaded yet, e.g. base/resilient script model before settings evaluation.
+        // Treat DCL as disabled rather than failing.
+        false
+    }
 
 const val DCL_ENABLED_PROPERTY_NAME = "org.gradle.kotlin.dsl.dcl"
 
@@ -167,7 +175,6 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory,
     private val isDclEnabled: Boolean,
     private val cachingDisabled: Boolean,
 ) : ImmutableUnitOfWork {
@@ -178,6 +185,12 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
+
+        /**
+         * Bump this version when the output format changes to invalidate
+         * existing workspaces that used a different layout (e.g. directories vs JARs).
+         */
+        const val OUTPUT_FORMAT_VERSION = 2
     }
 
     override fun getBuildOperationWorkType(): Optional<String> {
@@ -193,14 +206,12 @@ class GenerateProjectAccessors(
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {
         val workspace = executionContext.workspace
-        asyncIO.runBlocking {
-            buildAccessorsFor(
-                scriptTargetSchema,
-                classPath,
-                srcDir = getSourcesOutputDir(workspace),
-                binDir = getClassesOutputDir(workspace)
-            )
-        }
+        buildAccessorsToJars(
+            scriptTargetSchema,
+            classPath,
+            classesJar = getClassesOutputFile(workspace),
+            sourcesJar = getSourcesOutputFile(workspace)
+        )
         return object : WorkOutput {
             override fun getDidWork() = WorkOutput.WorkResult.DID_WORK
 
@@ -209,12 +220,13 @@ class GenerateProjectAccessors(
     }
 
     override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
-        DefaultClassPath.of(getClassesOutputDir(workspace)),
-        DefaultClassPath.of(getSourcesOutputDir(workspace))
+        DefaultClassPath.of(getClassesOutputFile(workspace)),
+        DefaultClassPath.of(getSourcesOutputFile(workspace))
     )
 
     override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
         val hasher = Hashing.newHasher()
+        hasher.putInt(OUTPUT_FORMAT_VERSION)
         requireNotNull(scalarInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
         requireNotNull(scalarInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(fileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
@@ -244,20 +256,20 @@ class GenerateProjectAccessors(
     }
 
     override fun visitOutputs(workspace: File, visitor: OutputVisitor) {
-        val sourcesOutputDir = getSourcesOutputDir(workspace)
-        val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
+        val sourcesOutputFile = getSourcesOutputFile(workspace)
+        val classesOutputFile = getClassesOutputFile(workspace)
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, FILE, OutputFileValueSupplier.fromStatic(sourcesOutputFile, fileCollectionFactory.fixed(sourcesOutputFile)))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, FILE, OutputFileValueSupplier.fromStatic(classesOutputFile, fileCollectionFactory.fixed(classesOutputFile)))
     }
 }
 
 
 private
-fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+fun getClassesOutputFile(workspace: File) = File(workspace, "classes.jar")
 
 
 private
-fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
+fun getSourcesOutputFile(workspace: File) = File(workspace, "sources.jar")
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
@@ -287,6 +299,29 @@ fun IO.buildAccessorsFor(
         OutputPackage(packageName),
         format
     )
+}
+
+
+fun buildAccessorsToJars(
+    projectSchema: TypedProjectSchema,
+    classPath: ClassPath,
+    classesJar: File,
+    sourcesJar: File,
+    packageName: String = KOTLIN_DSL_PACKAGE_NAME,
+    format: AccessorFormat = AccessorFormats.default
+) {
+    val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
+    ZipOutputStream(BufferedOutputStream(FileOutputStream(classesJar))).use { classesOut ->
+        ZipOutputStream(BufferedOutputStream(FileOutputStream(sourcesJar))).use { sourcesOut ->
+            emitAccessorsToJars(
+                availableSchema,
+                classesOut,
+                sourcesOut,
+                OutputPackage(packageName),
+                format
+            )
+        }
+    }
 }
 
 

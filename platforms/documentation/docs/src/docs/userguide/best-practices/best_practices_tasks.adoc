@@ -561,3 +561,71 @@ Now when running `consumer` task, then `greeterB`, the `consumer` task remains `
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
+
+[[dont_hardcode_task_names]]
+== Don’t hardcode Task names unless they are documented as Public API
+
+Hardcoding task names can make a build fragile when upgrading Gradle or third-party plugins.
+
+=== Explanation
+
+Some task names in Gradle are part of the <<public_apis.adoc#public_gradle_apis,Gradle public API>> and are stable.
+Most other task names in Gradle and third-party plugins are internal implementation details. They may be renamed or removed in future versions and should not be relied upon.
+Task types are also not guaranteed to remain stable; plugin authors may refactor them. 
+
+In practice, configuring tasks by type is usually more robust than depending on specific names, especially in ecosystems like Android or Kotlin where many tasks are generated dynamically.
+
+Prefer, in order:
+
+1. *Plugin DSL* - Configure tasks via extension blocks provided by a plugin that are automatically wired to the tasks that plugin creates.  This is the most future-proof and stable option.
+2. *Task types* - More robust than names in many cases, but can still change across plugin versions, depending on the plugin's backwards compatibility policies.
+3. *Task names* - Use only when they are explicitly documented as <<public_apis.adoc#public_gradle_apis,public API>>.
+
+As a plugin author, provide a DSL extension for users to configure behavior declaratively. Internally wire the configuration into your tasks. Avoid exposing task names as part of your public API unless you are prepared to maintain them with deprecation cycles.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> Looking up `compileJava` by name: This relies on the hardcoded `"compileJava"` string.
+<2> Using `tasks.named` to get the `generatePomFileForMavenPublication` task: This unnecessarily relies on this task's name, even though it's the only `GenerateMavenPom` task that needs configuring.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidHardcodingTaskNames-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+A better option for the `compileJava` configuration is to use a public constant — this task name is part of <<public_apis.adoc#public_gradle_apis,public API>>, so referencing it via the constant is safe:
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=ok]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=ok]"]
+====
+
+<1> Using `tasks.named` with `JavaPlugin.COMPILE_JAVA_TASK_NAME`: Replaces the hardcoded string with a public constant.
+
+The best option is to use the plugin DSL where possible — this avoids referring to tasks by name or type at all:
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=best]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=best]"]
+====
+
+<1> Using Java DSL: Entirely avoids implementation details of `java-library` plugin and sets `sourceCompatibility` for all `JavaCompile` tasks.
+<2> Using publishing DSL: Avoids hardcoding task names and ensures that the generated POM has the expected URL.
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:upgrades,#upgrades>>`

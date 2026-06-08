@@ -48,13 +48,13 @@ enum class DocumentationSection(val page: String, val anchor: String) {
     NotYetImplemented("configuration_cache_status", "config_cache:not_yet_implemented"),
     NotYetImplementedSourceDependencies("configuration_cache_status", "config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("configuration_cache_status", "config_cache:not_yet_implemented:java_serialization"),
-    NotYetImplementedTestKitJavaAgent("configuration_cache_status", "config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     NotYetImplementedBuildServiceInFingerprint("configuration_cache_status", "config_cache:not_yet_implemented:build_services_in_fingerprint"),
     NotYetImplementedBuildEventListeners("configuration_cache_status", "config_cache:not_yet_implemented:more_build_event_listeners"),
     TaskOptOut("configuration_cache_debugging", "config_cache:task_opt_out"),
     RequirementsBuildListeners("configuration_cache_requirements","config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("configuration_cache_requirements","config_cache:requirements:disallowed_types"),
     RequirementsExternalProcess("configuration_cache_requirements","config_cache:requirements:external_processes"),
+    RequirementsJavaAgent("configuration_cache_requirements", "config_cache:requirements:java_agent"),
     RequirementsTaskAccess("configuration_cache_requirements","config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("configuration_cache_requirements","config_cache:requirements:reading_sys_props_and_env_vars"),
     RequirementsUseProjectDuringExecution("configuration_cache_requirements","config_cache:requirements:use_project_during_execution"),
@@ -242,6 +242,27 @@ sealed class PropertyTrace {
         }
     }
 
+    data class SerializedLambda(
+        val implClass: String,
+        val implMethodName: String,
+        val implMethodSignature: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
+
+        override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("lambda of type ")
+                reference("java.lang.invoke.SerializedLambda")
+                text(" (method: ")
+                reference("$implClass.$implMethodName$implMethodSignature")
+                text(") found in ")
+            }
+        }
+    }
+
     data class Property(
         val kind: PropertyKind,
         val name: String,
@@ -365,6 +386,7 @@ sealed class PropertyTrace {
     val tail: PropertyTrace?
         get() = when (this) {
             is Bean -> trace
+            is SerializedLambda -> trace
             is Property -> trace
             is VirtualProperty -> owner
             is SystemProperty -> trace

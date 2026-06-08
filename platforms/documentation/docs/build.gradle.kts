@@ -107,8 +107,8 @@ java {
 }
 
 asciidoctorj {
-    setVersion("2.5.13")
-    modules.pdf.setVersion("2.3.10")
+    setVersion(buildLibs.versions.asciidoctor.get())
+    modules.pdf.setVersion("2.3.23")
     // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
     // TODO: tables are not handled properly in pdfs
     fatalWarnings.add(

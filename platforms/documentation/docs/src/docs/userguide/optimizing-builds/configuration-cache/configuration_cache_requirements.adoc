@@ -412,6 +412,75 @@ Recommended Alternatives:
 - Register a Build Service to receive <<build_services#operation_listener, task execution notifications>>.
 - Replace `buildFinished` listeners with <<dataflow_actions.adoc#dataflow_action, dataflow actions>> to manage build results.
 
+[[config_cache:requirements:build_services]]
+== Using Build Services
+
+<<build_services#build_services, Build Services>> are the Gradle-supported way to share state across tasks, replace `BuildListener`-style hooks, and observe task execution events.
+They are also the most common feature-level integration point with the Configuration Cache, and a few caveats apply.
+
+*Parameter values are part of the cache entry.*
+The parameters interface of a build service is a custom Gradle type, and its property values are serialized into the Configuration Cache entry alongside the rest of the build's configured state.
+Parameter property types must be Configuration Cache-compatible.
+Standard managed property types (`Property<T>`, `RegularFileProperty`, `ListProperty<T>`, and so on) are supported containers, but the value type `T` must also be serializable by the Configuration Cache.
+For example, `Property<String>` is safe, but `Property<Thread>` is not.
+Raw `Configuration` references, live JVM state, and `Project` references are not supported as parameter values.
+
+*The service lifecycle differs under the Configuration Cache.*
+Only the parameters are cached — service instances are not.
+With the Configuration Cache enabled, build services follow this lifecycle:
+
+. *End of the configuration phase:* all build services that were created at configuration time (by calling `get()` on their provider) are destroyed.
+The one exception is a service registered as an `OperationCompletionListener` and created at configuration time — the same instance is reused during the execution phase of that build.
+. *Execution time:* services are created upon first use.
+This includes re-creating services that were destroyed in step 1.
+As a consequence, a build service may be created and destroyed _twice_ in a single build.
+. *Cache hit (no configuration phase):* all services are created from scratch upon first use.
+Registered `OperationCompletionListener` services are created upon the first event if nothing triggers them earlier.
+
+*A `BuildServiceProvider` cannot drive a `ValueSource` at configuration time.*
+Passing a provider of a `BuildService` (or anything derived from it via `map` or `flatMap`) as a `ValueSourceParameters` value that is read at configuration time is not supported.
+
+If you do not need the service-derived value at configuration time, use `@ServiceReference` for direct injection or store the build service reference in an `@Internal`-annotated property on a task instead.
+
+Sometimes you may want to use a `BuildService` to derive a parameter for a `ValueSource`, like this:
+
+[source,kotlin]
+----
+val serviceProvider = gradle.sharedServices.registerIfAbsent("myService", MyService::class) { /* ... */ }
+
+val valueSource = providers.of(MyValueSource::class) {
+    parameters {
+        // Doesn't work when valueSource.get() is called at configuration time
+        input = serviceProvider.map { it.getValueFromService() }
+    }
+}
+----
+
+This is only supported by the Configuration Cache if the resulting `ValueSource` isn't used at configuration time.
+If you need the `ValueSource`'s value at configuration time, you have to tell the Configuration Cache to use the computed input value for fingerprinting by wrapping the eager computation in a `provider {}` block:
+
+[source,kotlin]
+----
+val serviceProvider = gradle.sharedServices.registerIfAbsent("myService", MyService::class) { /* ... */ }
+
+val valueSource = providers.of(MyValueSource::class) {
+    parameters {
+        input = provider { serviceProvider.get().getValueFromService() }
+    }
+}
+----
+
+WARNING: With this workaround, the entire computation of `getValueFromService()` contributes to configuration inputs rather than being lazily evaluated when checking the fingerprint.
+The cache is invalidated whenever the computation's result changes, not just when the `ValueSource` result changes.
+This approach also does not work when the computed value is transient and changes between builds (for example, a publishing URL).
+
+See <<configuration_cache_status.adoc#config_cache:not_yet_implemented:build_services_in_fingerprint, the related not-yet-implemented entry>> for the current state.
+
+*Register as `OperationCompletionListener` to observe task execution.*
+A build service that implements `OperationCompletionListener` and is registered via link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`] is the supported way to observe task execution under the Configuration Cache.
+If the service was created at configuration time, the same instance is reused during the execution phase of that build.
+On a cache hit, when no configuration phase runs, the service is created from scratch upon the first event.
+
 [[config_cache:requirements:value_source]]
 == Using External Information Sources
 
@@ -665,3 +734,18 @@ Once generated, set the Base64-encoded key as the value of the `GRADLE_ENCRYPTIO
 ----
 $ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
 ----
+
+[[config_cache:requirements:java_agent]]
+== Third-party Java Agents with the Configuration Cache
+
+The Configuration Cache supports third-party `-javaagent:` attachments to the build JVM (for example a coverage agent such as Jacoco, IntelliJ's `idea_rt.jar`, or a custom user agent) in regular daemon builds and in <<test_kit#test_kit, TestKit>>'s default (daemon) mode.
+
+Only agents attached at JVM startup are supported. Agents attached dynamically via the Attach API after the JVM has started are not detected and may cause incorrect bytecode observation on classes loaded after attachment.
+
+It is not supported when TestKit runs in embedded mode (`withDebug(true)`). To use a third-party Java agent with the Configuration Cache from there, drop `withDebug(true)` and let TestKit use its daemon default.
+
+To debug the daemon TestKit spawns with the Configuration Cache enabled:
+
+* Do not use `withDebug(true)`.
+* Pass `-Dorg.gradle.debug=true` to the build under test (see <<command_line_interface.adoc#sec:command_line_debugging,debugging options>>).
+* Attach the debugger manually.

@@ -17,9 +17,10 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import spock.lang.Issue
 
-@ToBeFixedForIsolatedProjects(because = "The `properties` task calls Project.getProperties() internally, which is a hard violation under Isolated Projects")
 class PropertyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -52,5 +53,27 @@ class PropertyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "properties", "-q", "--property=nonexistent"
         then:
         outputContains 'nonexistent: null'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35797")
+    @Requires(value = TestExecutionPreconditions.IsolatedProjects, reason = "Under Isolated Projects the parent walk is disabled, so parent-only properties must not appear in a child's properties report")
+    def "subproject properties report does not include parent-only properties under Isolated Projects"() {
+        given:
+        settingsFile << """
+            include 'sub'
+        """
+        buildFile << """
+            ext.parentOnly = 'from-root'
+        """
+        file("sub/build.gradle") << """
+            ext.childOnly = 'from-sub'
+        """
+
+        when:
+        run ":sub:properties", "-q"
+
+        then:
+        outputContains 'childOnly: from-sub'
+        outputDoesNotContain 'parentOnly'
     }
 }

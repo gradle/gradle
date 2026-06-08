@@ -326,11 +326,11 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expect:
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'free' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'paid' but the consumer didn't ask for it""")
@@ -396,9 +396,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expect:
         fails("show")
         failure.assertHasCause("""No variants of project ':a' match the consumer attributes:
-  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
-  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         // Eager expressions (Set<File>) resolve all transitive dependencies and report all failures.

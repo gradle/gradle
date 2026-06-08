@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -160,8 +161,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler, ProblemsInternal problems) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler, problems);
         }
     }
 }
