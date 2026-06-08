@@ -183,12 +183,6 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
-
-        /**
-         * Bump this version when the output format changes to invalidate
-         * existing workspaces that used a different layout (e.g. directories vs JARs).
-         */
-        const val OUTPUT_FORMAT_VERSION = 2
     }
 
     override fun getBuildOperationWorkType(): Optional<String> {
@@ -224,7 +218,6 @@ class GenerateProjectAccessors(
 
     override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
         val hasher = Hashing.newHasher()
-        hasher.putInt(OUTPUT_FORMAT_VERSION)
         requireNotNull(scalarInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
         requireNotNull(scalarInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(fileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
