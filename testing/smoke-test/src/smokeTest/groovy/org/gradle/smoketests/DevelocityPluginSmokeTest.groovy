@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UnsupportedWithIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
@@ -467,7 +467,7 @@ public class MyFlakyTest {
         ciScriptVersion = ci.gitRef
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Test specifically verifies IP unsafe behavior")
+    @UnsupportedWithIsolatedProjects(because = "Subproject build script accesses root project tasks (the legacy cross-project API this test exercises)")
     def "can use ImportJUnitXmlReports across projects"() {
         when:
         usePluginVersion version
