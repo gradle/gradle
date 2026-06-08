@@ -569,7 +569,7 @@ Do not access a `Project` instance inside a task action or task property.
 
 === Explanation
 
-Accessing the `Project` instance during task execution is not compatible with the Configuration Cache and should be avoided.
+Accessing the `Project` instance during task execution is not compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and should be avoided.
 Alternatives exist for almost every use case involving data or operations from the `Project` object:
 
 - Specify the data you were previously retrieving from the `Project` instance as an explicit task input.
