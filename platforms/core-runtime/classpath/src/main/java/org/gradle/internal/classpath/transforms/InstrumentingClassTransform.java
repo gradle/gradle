@@ -85,7 +85,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 39;
+    private static final int DECORATION_FORMAT = 40;
 
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
