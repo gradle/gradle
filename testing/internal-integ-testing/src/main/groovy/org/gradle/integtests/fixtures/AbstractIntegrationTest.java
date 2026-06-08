@@ -50,13 +50,16 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 
     @Rule
-    public final UnsupportedWithConfigurationCacheRule unsupportedWithConfigurationCache = new UnsupportedWithConfigurationCacheRule();
+    public final GradleModeTestingRules.UnsupportedWithCC unsupportedWithConfigurationCache = new GradleModeTestingRules.UnsupportedWithCC();
 
     @Rule
-    public final ToBeFixedForConfigurationCacheRule toBeFixedForConfigurationCache = new ToBeFixedForConfigurationCacheRule();
+    public final GradleModeTestingRules.ToBeFixedForCC toBeFixedForConfigurationCache = new GradleModeTestingRules.ToBeFixedForCC();
 
     @Rule
-    public final ToBeFixedForIsolatedProjectsRule toBeFixedForIsolatedProjects = new ToBeFixedForIsolatedProjectsRule();
+    public final GradleModeTestingRules.UnsupportedWithIP unsupportedWithIsolatedProjects = new GradleModeTestingRules.UnsupportedWithIP();
+
+    @Rule
+    public final GradleModeTestingRules.ToBeFixedForIP toBeFixedForIsolatedProjects = new GradleModeTestingRules.ToBeFixedForIP();
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();

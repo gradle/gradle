@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter;
+import org.gradle.integtests.fixtures.executer.IsolatedProjectsGradleExecuter;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -24,17 +24,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
- * Denotes a test for a feature that is unsupported with configuration cache.
- * Do not use this for tests for features that are supported by configuration cache but where the test happens to be incompatible.
+ * Denotes a test for a feature that is unsupported with Isolated Projects.
+ * Do not use this for tests for features that are supported by Isolated Projects but where the test happens to be incompatible.
  *
- * <p>The annotated test will be skipped by the {@link ConfigurationCacheGradleExecuter}.
+ * <p>The annotated test will be skipped by the {@link IsolatedProjectsGradleExecuter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-@ExtensionAnnotation(GradleModeTestingExtensions.UnsupportedWithCC.class)
-public @interface UnsupportedWithConfigurationCache {
+@ExtensionAnnotation(GradleModeTestingExtensions.UnsupportedWithIP.class)
+public @interface UnsupportedWithIsolatedProjects {
 
     String because() default "";
 
