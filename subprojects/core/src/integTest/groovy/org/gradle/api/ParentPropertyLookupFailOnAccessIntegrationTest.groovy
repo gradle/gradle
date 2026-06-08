@@ -81,21 +81,30 @@ class ParentPropertyLookupFailOnAccessIntegrationTest extends AbstractIntegratio
             println hasProperty('foo')
             println fooMethod()
         """)
-        5.times {
-            executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Property 'foo' was not declared in project ':child' and was resolved from root project 'root'. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
+        // `println foo`, `getProperty('foo')`, `hasProperty('foo')` reach the dynamic-object path
+        // without explicit caller context, so they emit the implicit-access message.
+        3.times {
+            expectParentLookupDeprecation('property', 'foo', null)
         }
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Method 'fooMethod' was not declared in project ':child' and was resolved from root project 'root'. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
+        // `findProperty('foo')` and `property('foo')` are wired with explicit caller context, which
+        // is surfaced in the deprecation context (the action itself stays stable for Develocity).
+        ['findProperty', 'property'].each { api ->
+            expectParentLookupDeprecation('property', 'foo', "${api}()")
+        }
+        expectParentLookupDeprecation('method', 'fooMethod', null)
 
         expect:
         succeeds "help"
+    }
+
+    private void expectParentLookupDeprecation(String memberKind, String memberName, String initiatedBy) {
+        def plural = memberKind == 'property' ? 'properties' : 'methods'
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of ${plural} in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "${memberKind.capitalize()} '${memberName}' was not declared in project ':child' and was resolved from root project 'root'. " +
+            (initiatedBy ? "This lookup was initiated by '${initiatedBy}'. " : "") +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }
 
     def "succeeds when child defines the property locally even with flag set"() {

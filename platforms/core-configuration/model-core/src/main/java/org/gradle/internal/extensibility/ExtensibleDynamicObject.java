@@ -73,6 +73,83 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     @Nullable
     private HierarchicalDynamicObject parent;
     private boolean failOnParentAccess;
+    // Thread safety: only accessed while the project lock is held during configuration.
+    // Callers are expected to set/clear this around a single lookup using try/finally.
+    @Nullable
+    private CallerContext callerContext;
+
+    /**
+     * Describes how a property/method lookup was initiated, used to annotate the parent-walk
+     * deprecation message with caller-specific detail.
+     *
+     * <p>External callers set the context on the {@link ExtensibleDynamicObject} of the project
+     * (or script) issuing the lookup via {@link #setCallerContext(CallerContext)} immediately
+     * before invoking a lookup method, and restore the previous value in a {@code finally} block.
+     * When a lookup walks into the parent, the context currently set on the referrer's dynamic
+     * object is read to enrich the deprecation message.
+     */
+    public abstract static class CallerContext {
+        private CallerContext() {}
+
+        public abstract boolean isExplicitApiCall();
+
+        /**
+         * The API method name (e.g. {@code "property()"}, {@code "findProperty()"}, or
+         * {@code "val ... by project"}). Only valid for explicit API calls.
+         */
+        public abstract String apiName();
+
+        /**
+         * Holder class to avoid initialization-order surprises between the outer class and its
+         * private subclasses.
+         */
+        public static final class Instances {
+            /** {@code project.property("foo")}. */
+            public static final CallerContext PROPERTY = new ExplicitApiCall("property()");
+            /** {@code project.findProperty("foo")}. */
+            public static final CallerContext FIND_PROPERTY = new ExplicitApiCall("findProperty()");
+            /** {@code project.hasProperty("foo")}. */
+            public static final CallerContext HAS_PROPERTY = new ExplicitApiCall("hasProperty()");
+            /** {@code project.getProperty("foo")}. */
+            public static final CallerContext GET_PROPERTY = new ExplicitApiCall("getProperty()");
+            /** Kotlin DSL {@code val foo by project} property delegation. */
+            public static final CallerContext KOTLIN_DELEGATION = new ExplicitApiCall("val ... by project");
+            /** Implicit reference in a Groovy build script (e.g. bare {@code foo} or {@code foo()}). */
+            public static final CallerContext BUILD_SCRIPT = new BuildScriptAccess();
+
+            private Instances() {}
+        }
+
+        private static final class ExplicitApiCall extends CallerContext {
+            private final String api;
+
+            ExplicitApiCall(String api) {
+                this.api = api;
+            }
+
+            @Override
+            public boolean isExplicitApiCall() {
+                return true;
+            }
+
+            @Override
+            public String apiName() {
+                return api;
+            }
+        }
+
+        private static final class BuildScriptAccess extends CallerContext {
+            @Override
+            public boolean isExplicitApiCall() {
+                return false;
+            }
+
+            @Override
+            public String apiName() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, new BeanDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
@@ -147,6 +224,26 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
      */
     public void setFailOnParentAccess(boolean failOnParentAccess) {
         this.failOnParentAccess = failOnParentAccess;
+    }
+
+    /**
+     * Returns the {@link CallerContext} currently set on this dynamic object via
+     * {@link #setCallerContext(CallerContext)}, or {@code null} if none is active. Callers wrap a
+     * lookup by capturing this value, setting their own context, and restoring the captured value
+     * in a {@code finally} block.
+     */
+    @Nullable
+    public CallerContext getCallerContext() {
+        return callerContext;
+    }
+
+    /**
+     * Sets the {@link CallerContext} for the next property/method lookup. Callers must restore the
+     * previous context (see {@link #getCallerContext()}) in a {@code finally} block after the
+     * lookup completes.
+     */
+    public void setCallerContext(@Nullable CallerContext callerContext) {
+        this.callerContext = callerContext;
     }
 
     public ExtensionContainer getExtensions() {
@@ -296,11 +393,19 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
             );
         }
         DeprecationLogger.deprecateAction("Implicit lookup of " + pluralize(memberKind) + " in parent projects")
-            .withContext(capitalize(memberKind) + " '" + memberName + "' was not declared in " + getDisplayName()
-                + " and was resolved from " + resolvedParent.getDisplayName() + ".")
+            .withContext(buildDeprecationContext(memberKind, memberName, resolvedParent))
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(9, "deprecated_implicit_lookup_in_parent_projects")
             .nagUser();
+    }
+
+    private String buildDeprecationContext(String memberKind, String memberName, DynamicObject resolvedParent) {
+        String context = capitalize(memberKind) + " '" + memberName + "' was not declared in " + getDisplayName()
+            + " and was resolved from " + resolvedParent.getDisplayName() + ".";
+        if (callerContext != null && callerContext.isExplicitApiCall()) {
+            return context + " This lookup was initiated by '" + callerContext.apiName() + "'.";
+        }
+        return context;
     }
 
     private static String pluralize(String memberKind) {
