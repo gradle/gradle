@@ -30,10 +30,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ToBeFixedSpecInterceptor {
 
-    private final String feature
+    private final String gradleMode
 
-    ToBeFixedSpecInterceptor(String feature) {
-        this.feature = feature
+    ToBeFixedSpecInterceptor(String gradleMode) {
+        this.gradleMode = gradleMode
     }
 
     void intercept(SpecElementInfo specElementInfo, String[] iterationMatchers) {
@@ -52,17 +52,9 @@ class ToBeFixedSpecInterceptor {
         }
     }
 
-    static boolean iterationMatches(String[] iterationMatchers, String iterationName) {
-        isAllIterations(iterationMatchers) || iterationMatchers.any { iterationName.matches(it) }
-    }
-
-    static boolean isAllIterations(String[] iterationMatchers) {
-        iterationMatchers.length == 0
-    }
-
     static class UnexpectedSuccessException extends Exception {
-        UnexpectedSuccessException(String feature) {
-            super("Expected to fail with $feature, but succeeded!")
+        UnexpectedSuccessException(String gradleMode) {
+            super("Expected to fail with $gradleMode, but succeeded!")
         }
     }
 
@@ -70,10 +62,10 @@ class ToBeFixedSpecInterceptor {
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            if (failsAsExpected(invocation, feature)) {
+            if (failsAsExpected(invocation, gradleMode)) {
                 return
             }
-            throw new UnexpectedSuccessException(feature)
+            throw new UnexpectedSuccessException(gradleMode)
         }
     }
 
@@ -94,14 +86,14 @@ class ToBeFixedSpecInterceptor {
             try {
                 invocation.proceed()
             } catch (Throwable ex) {
-                expectedFailure(ex, feature)
+                expectedFailure(ex, gradleMode)
                 pass.set(true)
             }
 
             if (pass.get()) {
                 throw new TestAbortedException("Failed as expected.")
             } else {
-                throw new UnexpectedSuccessException(feature)
+                throw new UnexpectedSuccessException(gradleMode)
             }
         }
 
@@ -116,8 +108,8 @@ class ToBeFixedSpecInterceptor {
 
             @Override
             void intercept(IMethodInvocation invocation) throws Throwable {
-                if (iterationMatches(iterationMatchers, invocation.iteration.displayName)) {
-                    if (failsAsExpected(invocation, feature)) {
+                if (GradleModeTestingPolicy.iterationMatches(iterationMatchers, invocation.iteration.displayName)) {
+                    if (failsAsExpected(invocation, gradleMode)) {
                         pass.set(true)
                     }
                 } else {
@@ -127,11 +119,11 @@ class ToBeFixedSpecInterceptor {
         }
     }
 
-    private static boolean failsAsExpected(IMethodInvocation invocation, String feature) {
+    private static boolean failsAsExpected(IMethodInvocation invocation, String gradleMode) {
         try {
             invocation.proceed()
         } catch (Throwable ex) {
-            expectedFailure(ex, feature)
+            expectedFailure(ex, gradleMode)
             ignoreCleanupAssertionsOf(invocation)
             return true
         }
@@ -141,7 +133,7 @@ class ToBeFixedSpecInterceptor {
                 expectations.resetExpectations()
             }
         } catch (Throwable ex) {
-            expectedFailure(ex, feature)
+            expectedFailure(ex, gradleMode)
             ignoreCleanupAssertionsOf(invocation)
             return true
         }
@@ -177,8 +169,8 @@ class ToBeFixedSpecInterceptor {
         ClassInspector.inspect(instance.getClass()).instanceFields
     }
 
-    private static void expectedFailure(Throwable ex, String feature) {
-        System.err.println("Failed with $feature as expected:")
+    private static void expectedFailure(Throwable ex, String gradleMode) {
+        System.err.println("Failed with $gradleMode as expected:")
         ex.printStackTrace()
     }
 }

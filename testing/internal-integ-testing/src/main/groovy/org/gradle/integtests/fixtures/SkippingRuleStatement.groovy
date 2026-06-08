@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,30 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.jspecify.annotations.NullMarked
-import org.junit.rules.TestRule
-import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+import static org.junit.Assume.assumeTrue
+
 /**
- * JUnit Rule supporting the {@link ToBeFixedForIsolatedProjects} annotation.
+ * Skips a JUnit test that is unsupported under the active Gradle mode.
  */
 @NullMarked
-class ToBeFixedForIsolatedProjectsRule implements TestRule {
+class SkippingRuleStatement extends Statement {
+
+    private final String gradleMode
+    private final String reason
+
+    SkippingRuleStatement(String gradleMode, String reason) {
+        this.gradleMode = gradleMode
+        this.reason = reason
+    }
 
     @Override
-    Statement apply(Statement base, Description description) {
-        def annotation = description.getAnnotation(ToBeFixedForIsolatedProjects.class)
-        if (GradleContextualExecuter.isNotIsolatedProjects() || annotation == null) {
-            return base
-        }
-
-        return new ExpectingFailureRuleStatement(base, "Isolated Projects")
+    void evaluate() throws Throwable {
+        String message = reason == null || reason.isEmpty()
+            ? "Test does not support ${gradleMode}"
+            : "Test does not support ${gradleMode}: $reason"
+        assumeTrue(message, false)
     }
 }

@@ -19,26 +19,30 @@ package org.gradle.integtests.fixtures
 import org.gradle.test.fixtures.file.AbstractTestDirectoryProvider
 import org.junit.runners.model.Statement
 
+/**
+ * Inverts pass/fail for a JUnit test that is known to fail under a given Gradle mode:
+ * a failure means the test behaved as expected, a pass is reported as an unexpected success.
+ */
 class ExpectingFailureRuleStatement extends Statement {
 
     private final Statement next
 
-    private final String feature
+    private final String gradleMode
 
-    ExpectingFailureRuleStatement(Statement next, String feature) {
+    ExpectingFailureRuleStatement(Statement next, String gradleMode) {
         this.next = next
-        this.feature = feature
+        this.gradleMode = gradleMode
     }
 
     @Override
     void evaluate() throws Throwable {
         try {
             next.evaluate()
-            throw new ToBeFixedSpecInterceptor.UnexpectedSuccessException(feature)
+            throw new ToBeFixedSpecInterceptor.UnexpectedSuccessException(gradleMode)
         } catch (ToBeFixedSpecInterceptor.UnexpectedSuccessException ex) {
             throw ex
         } catch (Throwable ex) {
-            System.err.println("Failed with $feature as expected:")
+            System.err.println("Failed with $gradleMode as expected:")
             ex.printStackTrace()
             if (next instanceof AbstractTestDirectoryProvider.TestDirectoryCleaningStatement) {
                 next.cleanup()

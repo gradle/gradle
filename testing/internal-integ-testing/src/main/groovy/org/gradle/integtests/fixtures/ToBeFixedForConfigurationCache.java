@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@ExtensionAnnotation(ToBeFixedForConfigurationCacheExtension.class)
+@ExtensionAnnotation(GradleModeTestingExtensions.ToBeFixedForCC.class)
 public @interface ToBeFixedForConfigurationCache {
 
     /**

@@ -17,8 +17,10 @@
 package org.gradle.test.fixtures;
 
 /**
- * Allows {@link org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension} to verify
- * test expectations before cleanup so they can be silenced if necessary.
+ * Lets the {@code @ToBeFixedFor*} interceptors verify deferred test expectations before
+ * cleanup, so they can be silenced when the test failed as expected.
+ *
+ * @see org.gradle.integtests.fixtures.GradleModeTestingExtensions
  */
 public interface ResettableExpectations {
     /**

@@ -30,13 +30,25 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
-@ExtensionAnnotation(ToBeFixedForIsolatedProjectsExtension.class)
+@ExtensionAnnotation(GradleModeTestingExtensions.ToBeFixedForIP.class)
 public @interface ToBeFixedForIsolatedProjects {
 
     /**
      * Set to some {@link Skip} to skip the annotated test.
      */
     Skip skip() default Skip.DO_NOT_SKIP;
+
+    /**
+     * Declare to which bottom spec this annotation should be applied.
+     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
+     */
+    String[] bottomSpecs() default {};
+
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
 
     String because() default "";
 
