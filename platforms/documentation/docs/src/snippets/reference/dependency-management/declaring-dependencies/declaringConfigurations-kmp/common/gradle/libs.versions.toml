@@ -5,7 +5,7 @@ android-minSdk = "24"
 android-targetSdk = "36"
 androidx-activity = "1.11.0"
 androidx-lifecycle = "2.9.4"
-composeMultiplatform = "1.9.0"
+composeMultiplatform = "1.9.3"
 kotlin = "2.2.20"
 
 [libraries]
@@ -16,6 +16,7 @@ androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
