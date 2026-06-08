@@ -97,7 +97,8 @@ class CalculateArtifactsCodec(
      *
      * @return a pair of (resolved artifacts, collected failures); either list may be empty.
      */
-    private fun extractFilesAndFailures(value: AbstractTransformedArtifactSet.CalculateArtifacts): Pair<MutableList<Artifact>, MutableList<Throwable>> {
+    private
+    fun extractFilesAndFailures(value: AbstractTransformedArtifactSet.CalculateArtifacts): Pair<MutableList<Artifact>, MutableList<Throwable>> {
         // TODO: Serialize the whole ResolvableArtifact, not just the files.
         val files = mutableListOf<Artifact>()
         val failures = mutableListOf<Throwable>()
@@ -134,7 +135,7 @@ class CalculateArtifactsCodec(
         })
         return Pair(files, failures)
     }
-    
+
     private
     fun buildDelegate(
         ownerId: ComponentIdentifier,
@@ -142,14 +143,21 @@ class CalculateArtifactsCodec(
         files: List<Artifact>,
         failures: List<Throwable>
     ): ResolvedArtifactSet {
-        val fixed: ResolvedArtifactSet? = if (files.isNotEmpty()) FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory) else null
-        if (failures.isEmpty()) {
-            return fixed ?: FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory)
+        if (files.isEmpty() && failures.isEmpty()) {
+            // no failures and no files
+            return ResolvedArtifactSet.EMPTY
+        } else if (failures.isEmpty()) {
+            // no failures, but some files
+            return FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory)
+        } else {
+            // some failures, possibly with files
+            val sets = mutableListOf<ResolvedArtifactSet>()
+            if (files.isNotEmpty()) {
+                sets.add(FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory))
+            }
+            failures.forEach { sets.add(BrokenArtifactSet(it)) }
+            return CompositeArtifactSet(sets)
         }
-        val sets = mutableListOf<ResolvedArtifactSet>()
-        if (fixed != null) sets.add(fixed)
-        failures.forEach { sets.add(BrokenArtifactSet(it)) }
-        return if (sets.size == 1) sets[0] else CompositeArtifactSet(sets)
     }
 
     private

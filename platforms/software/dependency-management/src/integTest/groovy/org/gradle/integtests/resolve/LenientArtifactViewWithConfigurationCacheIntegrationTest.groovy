@@ -47,32 +47,34 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
             plugins {
                 id("jvm-ecosystem")
             }
+
             configurations {
                 dependencyScope("deps")
                 resolvable("res") {
                     extendsFrom(deps)
                 }
             }
+
+            def artifactView = configurations.res.incoming.artifactView {
+                lenient = true
+            }
+
             tasks.register("resolveLenientFiles") {
-                def files = configurations.res.incoming.artifactView {
-                    lenient = true
-                }.files
+                inputs.files(artifactView.files)
                 doLast {
-                    println "files = " + files*.name.sort()
+                    println "files = " + inputs.files*.name.sort()
                 }
             }
             tasks.register("resolveLenientArtifacts") {
-                def artifacts = configurations.res.incoming.artifactView {
-                    lenient = true
-                }.artifacts
+                def artifacts = artifactView.artifacts
+                inputs.files(artifacts.artifactFiles)
                 doLast {
                     println "files = " + artifacts*.file*.name.sort()
                 }
             }
             tasks.register("printFailures") {
-                def artifacts = configurations.res.incoming.artifactView {
-                    lenient = true
-                }.artifacts
+                def artifacts = artifactView.artifacts
+                inputs.files(artifacts.artifactFiles)
                 doLast {
                     artifacts.failures.each { println("failure: " + it.message) }
                 }
@@ -85,8 +87,8 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         def missing = mavenHttpRepo.module("org", "missing")
 
         withBasicProject()
-        withRepo()
         buildFile """
+            ${withRepo()}
             dependencies {
                 deps("org:good:1.0")
                 deps("org:missing:1.0")
@@ -119,8 +121,8 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         def broken = mavenHttpRepo.module("org", "broken").publish()
 
         withBasicProject()
-        withRepo()
         buildFile """
+            ${withRepo()}
             dependencies {
                 deps("org:good:1.0")
                 deps("org:broken:1.0")
@@ -154,8 +156,8 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         def missing = mavenHttpRepo.module("org", "missing")
 
         withBasicProject()
-        withRepo()
         buildFile """
+            ${withRepo()}
             dependencies {
                 deps("org:good:1.0")
                 deps("org:missing:1.0")
@@ -185,8 +187,8 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         def missing = mavenHttpRepo.module("org", "missing")
 
         withBasicProject()
-        withRepo()
         buildFile """
+            ${withRepo()}
             dependencies {
                 deps("org:good:1.0")
                 deps("org:missing:1.0")
@@ -246,6 +248,8 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
                 id("jvm-ecosystem")
             }
 
+            ${withRepo()}
+
             def artifactType = Attribute.of('artifactType', String)
 
             abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
@@ -271,9 +275,6 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
                 }
                 deps("org:good:1.0")
                 deps("org:broken:1.0")
-            }
-            repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
             }
             tasks.register("resolveLenientTransform") {
                 def files = configurations.res.incoming.artifactView {
@@ -309,8 +310,8 @@ class LenientArtifactViewWithConfigurationCacheIntegrationTest extends AbstractH
         outputContains("files = [good-1.0.jar]")
     }
 
-    private void withRepo() {
-        buildFile << """
+    private String withRepo() {
+        return """
             repositories {
                 maven { url = '${mavenHttpRepo.uri}' }
             }
