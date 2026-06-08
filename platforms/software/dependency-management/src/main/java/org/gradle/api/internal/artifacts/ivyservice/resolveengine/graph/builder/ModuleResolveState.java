@@ -325,13 +325,9 @@ public class ModuleResolveState implements CandidateModule {
 
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
-        boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
         for (SelectorState selectorState : selectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
-        }
-        if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection();
         }
     }
 
@@ -390,7 +386,8 @@ public class ModuleResolveState implements CandidateModule {
     void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
         // Remove the unattached edge first, as clearing the selector may trigger re-selection and mutate the unattached edge
         removeUnattachedEdge(incomingEdge);
-        incomingEdge.clearSelector();
+        boolean needsSelection = incomingEdge.clearSelector();
+        boolean isPending = false;
         if (!incomingEdge.isConstraint()) {
             pendingDependencies.decreaseHardEdgeCount();
             if (pendingDependencies.isPending()) {
@@ -398,7 +395,13 @@ public class ModuleResolveState implements CandidateModule {
                 // All incoming constraint edges must now be removed, as we are no longer part of the graph.
                 clearIncomingAttachedConstraints(removalSource);
                 clearIncomingUnattachedConstraints(removalSource);
+                isPending = true;
             }
+        }
+        // We removed an edge targeting this module, which dropped an existing selector, requiring this
+        // module to select a new target component.
+        if (needsSelection && !isPending && getSelectors().size() != 0 && getSelected() != null) {
+            maybeUpdateSelection();
         }
     }
 

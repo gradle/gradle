@@ -179,6 +179,18 @@ class ConfigurationCacheStartParameter internal constructor(
     val isIsolatedProjects: Boolean
         get() = modelParameters.isIsolatedProjects
 
+    /**
+     * Determines whether Isolated Projects Diagnostics mode is enabled.
+     *
+     * In Diagnostics mode, project configuration runs sequentially so that all IP violations can be collected
+     * deterministically. Outside Diagnostics mode, IP runs in optimistic-parallel mode and violations should
+     * fail the build as soon as they are discovered.
+     *
+     * Uses a build model parameter rather than a start parameter as the latter is not final and can be affected by other options of the build.
+     */
+    val isIsolatedProjectsDiagnostics: Boolean
+        get() = modelParameters.isIsolatedProjectsDiagnostics
+
     val entriesPerKey: Int
         get() = startParameter.configurationCacheEntriesPerKey
 }

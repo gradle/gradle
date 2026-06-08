@@ -32,7 +32,7 @@ class DevelocityPluginRequiredServicesIntegrationTest extends AbstractIntegratio
     def "required services are correct"() {
         given:
         buildFile << """
-            def serviceRef = gradle.extensions.serviceRef
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task check {
                 doLast {
                     def service = serviceRef.get()

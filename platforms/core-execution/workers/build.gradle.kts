@@ -23,6 +23,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
+    api(projects.problemsApi)
     api(projects.workerMain)
     api(projects.workerProcessServices)
 

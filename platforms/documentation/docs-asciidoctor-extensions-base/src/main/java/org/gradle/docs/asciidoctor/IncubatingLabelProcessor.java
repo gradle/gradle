@@ -16,8 +16,8 @@
 
 package org.gradle.docs.asciidoctor;
 
-import org.asciidoctor.ast.ContentNode;
 import org.asciidoctor.ast.PhraseNode;
+import org.asciidoctor.ast.StructuralNode;
 import org.asciidoctor.extension.Format;
 import org.asciidoctor.extension.InlineMacroProcessor;
 import org.asciidoctor.extension.Name;
@@ -39,7 +39,7 @@ import static org.asciidoctor.extension.FormatType.SHORT;
 public class IncubatingLabelProcessor extends InlineMacroProcessor {
 
     @Override
-    public PhraseNode process(ContentNode parent, String target, Map<String, Object> attributes) {
+    public PhraseNode process(StructuralNode parent, String target, Map<String, Object> attributes) {
         String html = "<span class=\"incubating-label\">Incubating</span>";
         return createPhraseNode(parent, "quoted", html, attributes, new HashMap<>());
     }

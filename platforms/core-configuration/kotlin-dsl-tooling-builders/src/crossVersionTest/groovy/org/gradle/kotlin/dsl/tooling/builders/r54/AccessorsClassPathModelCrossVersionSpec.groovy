@@ -22,6 +22,8 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVers
 
 import org.hamcrest.Matcher
 
+import java.util.zip.ZipFile
+
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.not
@@ -87,7 +89,7 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
     private Matcher<Iterable<? super File>> hasAccessorsClasses() {
         return hasItem(
             matching({ it.appendText("accessors classes") }) { File file ->
-                new File(file, accessorsClassFilePath).isFile()
+                containsEntry(file, accessorsClassFilePath)
             }
         )
     }
@@ -95,9 +97,21 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
     private Matcher<Iterable<? super File>> hasAccessorsSource() {
         return hasItem(
             matching({ it.appendText("accessors source") }) { File file ->
-                new File(file, accessorsSourceFilePath).isFile()
+                containsEntry(file, accessorsSourceFilePath)
             }
         )
+    }
+
+    private static boolean containsEntry(File file, String entryPath) {
+        if (file.isDirectory()) {
+            return new File(file, entryPath).isFile()
+        }
+        if (file.isFile() && file.name.endsWith(".jar")) {
+            return new ZipFile(file).withCloseable { zip ->
+                zip.getEntry(entryPath) != null
+            }
+        }
+        return false
     }
 
     private File setOfAutomaticAccessorsFor(Iterable<String> plugins) {
@@ -110,7 +124,7 @@ class AccessorsClassPathModelCrossVersionSpec extends AbstractKotlinScriptModelC
     private File accessorsClassFor(File buildFile) {
         return classPathFor(projectDir, buildFile)
             .tap { println(it) }
-            .find { it.isDirectory() && new File(it, accessorsClassFilePath).isFile() }
+            .find { containsEntry(it, accessorsClassFilePath) }
     }
 
     private String accessorsClassFilePath = "org/gradle/kotlin/dsl/ArchivesConfigurationAccessorsKt.class"

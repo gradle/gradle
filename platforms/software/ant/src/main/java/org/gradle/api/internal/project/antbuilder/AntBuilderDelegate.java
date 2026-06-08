@@ -15,148 +15,168 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import groovy.lang.Closure;
-import groovy.util.BuilderSupport;
-import groovy.util.Node;
-import groovy.util.NodeList;
-import groovy.xml.XmlParser;
-import org.gradle.internal.Cast;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
+import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.IntersectionPatternSet;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
+import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class AntBuilderDelegate extends BuilderSupport {
+public class AntBuilderDelegate {
 
-    private final Object originalBuilder;
     private final DynamicObject builder;
     private final ClassLoader antlibClassLoader;
 
+    private Object current;
+
     public AntBuilderDelegate(Object builder, ClassLoader antlibClassLoader) {
-        this.originalBuilder = builder;
         this.builder = DynamicObjectUtil.asDynamicObject(builder);
         this.antlibClassLoader = antlibClassLoader;
     }
 
-    public AntBuilderDelegate getAnt() {
-        return this;
-    }
-
-    public void taskdef(Map<String, String> args) {
-        Set<String> argNames = args.keySet();
-        if (argNames.equals(ImmutableSet.of("name", "classname"))) {
-            try {
-                String name = args.get("name");
-                String className = args.get("classname");
-                addTaskDefinition(name, className);
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
+    public void addFiles(String childNodeName, Iterable<File> params) {
+        createNode(childNodeName, Collections.emptyMap(), () -> {
+            for (File file : params) {
+                String filename = maskFilename(file.getAbsolutePath());
+                createNode("file", Collections.singletonMap("file", filename));
             }
-        } else if (argNames.equals(Collections.singleton("resource"))) {
-            InputStream instr = antlibClassLoader.getResourceAsStream(args.get("resource"));
-            try {
-                Node xml = new XmlParser().parse(instr);
-                for (Object taskdefObject : (NodeList) xml.get("taskdef")) {
-                    Node taskdef = (Node) taskdefObject;
-                    String name = (String) taskdef.get("@name");
-                    String className = (String) taskdef.get("@classname");
-                    addTaskDefinition(name, className);
-                }
-            } catch (Exception ex) {
-                throw UncheckedException.throwAsUncheckedException(ex);
-            } finally {
-                IoActions.closeQuietly(instr);
+        });
+    }
+
+    public void addDirectoryTrees(String childNodeName, Collection<DirectoryTree> directoryTrees) {
+        for (DirectoryTree tree : directoryTrees) {
+            if (!tree.getDir().exists()) {
+                continue;
             }
+
+            String directory = maskFilename(tree.getDir().getAbsolutePath());
+            createNode(childNodeName, Collections.singletonMap("dir", directory), () -> {
+                addPatternSet(tree.getPatterns());
+            });
+        }
+    }
+
+    private void addPatternSet(PatternSet patterns) {
+        if (!patterns.getIncludeSpecsView().isEmpty() || !patterns.getExcludeSpecsView().isEmpty()) {
+            throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
+        }
+
+        addPatternToAntBuilder(patterns);
+    }
+
+    private void addPatternToAntBuilder(PatternSet patterns) {
+        if (patterns instanceof IntersectionPatternSet) {
+            createNode("and", Collections.emptyMap(), () -> {
+                addIncludesAndExcludes(patterns);
+                addPatternToAntBuilder(((IntersectionPatternSet) patterns).getOther());
+            });
         } else {
-            throw new RuntimeException("Unsupported parameters for taskdef(): " + args);
+            addIncludesAndExcludes(patterns);
         }
     }
 
-    private void addTaskDefinition(String name, String className) throws ClassNotFoundException {
-        DynamicObject project = DynamicObjectUtil.asDynamicObject(builder.getProperty("project"));
-        project.invokeMethod("addTaskDefinition", name, antlibClassLoader.loadClass(className));
+    private void addIncludesAndExcludes(PatternSet patterns) {
+        createNode("and", Collections.emptyMap(), () -> {
+            boolean caseSensitive = patterns.isCaseSensitive();
+            Set<String> includes = patterns.getIncludesView();
+            if (!includes.isEmpty()) {
+                createNode("or", Collections.emptyMap(), () ->
+                    addFilenames(includes, caseSensitive)
+                );
+            }
+
+            Set<String> excludes = patterns.getExcludesView();
+            if (!excludes.isEmpty()) {
+                createNode("not", Collections.emptyMap(), () -> {
+                    createNode("or", Collections.emptyMap(), () ->
+                        addFilenames(excludes, caseSensitive)
+                    );
+                });
+            }
+        });
     }
 
-    public Object propertyMissing(String name) {
-        return builder.getProperty(name);
-    }
-
-    @Override
-    protected Object createNode(Object name) {
-        return builder.invokeMethod("createNode", name);
-    }
-
-    @Override
-    protected Object createNode(Object name, Map attributes) {
-        if (name.equals("taskdef")) {
-            taskdef(Cast.<Map<String, String>>uncheckedCast(attributes));
-        } else {
-            return builder.invokeMethod("createNode", name, attributes);
+    private void addFilenames(Iterable<String> filenames, boolean caseSensitive) {
+        Map<String, Object> props = new HashMap<>(2);
+        props.put("casesensitive", caseSensitive);
+        for (String filename : filenames) {
+            props.put("name", maskFilename(filename));
+            createNode("filename", props);
         }
-        return null;
     }
 
-    @Override
-    protected Object createNode(Object name, Map attributes, Object value) {
-        return builder.invokeMethod("createNode", name, attributes, value);
-    }
-
-    @Override
-    protected Object createNode(Object name, Object value) {
-        return builder.invokeMethod("createNode", name, value);
-    }
-
-    @Override
-    protected void setParent(Object parent, Object child) {
-        builder.invokeMethod("setParent", parent, child);
-    }
-
-    @Override
-    protected void nodeCompleted(Object parent, Object node) {
-        if (parent == null && node == null) {// happens when dispatching to taskdef via createNode()
-            return;
+    public void taskdef(String name, String classname) {
+        try {
+            getProject().invokeMethod("addTaskDefinition", name, antlibClassLoader.loadClass(classname));
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
         }
+    }
+
+    public void createNode(String methodName, String content) {
+        Object node = builder.invokeMethod("createNode", methodName, content);
+        nodeCompleted(current, node);
+    }
+
+    public void createNode(String methodName, Map<String, Object> parameters) {
+        Object node = builder.invokeMethod("createNode", methodName, parameters);
+        nodeCompleted(current, node);
+    }
+
+    public void createNode(String methodName, Map<String, Object> parameters, Runnable closure) {
+        Object node = builder.invokeMethod("createNode", methodName, parameters);
+
+        if (closure != null) {
+            // push new node on stack
+            Object oldCurrent = current;
+            this.current = node;
+            closure.run();
+            this.current = oldCurrent;
+        }
+
+        nodeCompleted(current, node);
+    }
+
+    /**
+     * A hook to allow nodes to be processed once they have had all of their
+     * children applied.
+     *
+     * @param node   the current node being processed
+     * @param parent the parent of the node being processed
+     */
+    private void nodeCompleted(Object parent, Object node) {
         builder.invokeMethod("nodeCompleted", parent, node);
-    }
-
-    @Override
-    protected Object postNodeCompletion(Object parent, Object node) {
-        return builder.invokeMethod("postNodeCompletion", parent, node);
-    }
-
-    public Object getBuilder() {
-        return originalBuilder;
-    }
-
-    public void invokeMethod(String methodName, Runnable closure) {
-        invokeMethod(methodName, ImmutableMap.of(), closure);
-    }
-
-    public void invokeMethod(String methodName, Map<String, Object> parameters, Runnable closure) {
-        invokeMethod(methodName, new Object[]{parameters, new Closure<Object>(this, this) {
-            @SuppressWarnings("unused") // Magic Groovy method
-            public Object doCall(Object ignored) {
-                closure.run();
-                return null;
-            }
-        }});
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getProjectProperties() {
-        try {
-            Object project = this.getProperty("project");
-            return (Map<String, Object>) project.getClass().getDeclaredMethod("getProperties").invoke(project);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        return (Map<String, Object>) getProject().invokeMethod("getProperties");
     }
+
+    public DynamicObject getProject() {
+        return DynamicObjectUtil.asDynamicObject(builder.invokeMethod("getProject"));
+    }
+
+    public void setSaveStreams(boolean value) {
+        builder.invokeMethod("setSaveStreams", value);
+    }
+
+    /**
+     * Masks a string against Ant property expansion.
+     * This needs to be used when adding a File as a String property.
+     *
+     * @param string to mask
+     *
+     * @return The masked String
+     */
+    public static String maskFilename(String string) {
+        return string.replaceAll("\\$", "\\$\\$");
+    }
+
 }

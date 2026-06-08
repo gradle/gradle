@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -35,7 +36,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         productionCode()
 
         def version = distribution.version.version
-        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+        def generatedJarsDirectory = "user-home/caches/$version/$GeneratedGradleJarCache.CACHE_KEY"
 
         when:
         succeeds("help")
@@ -56,7 +57,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         testCode()
 
         def version = distribution.version.version
-        def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+        def generatedJarsDirectory = "user-home/caches/$version/$GeneratedGradleJarCache.CACHE_KEY"
         def testKitJar = file("$generatedJarsDirectory/gradle-test-kit-${version}.jar")
 
         when:
@@ -82,7 +83,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         def generatedJars = [
             'gradle-api',
             'gradle-test-kit'
-        ].collect { file("user-home/caches/$version/generated-gradle-jars/${it}-${version}.jar" )}
+        ].collect { file("user-home/caches/$version/$GeneratedGradleJarCache.CACHE_KEY/${it}-${version}.jar" )}
 
         when:
         run "classes", "testClasses"

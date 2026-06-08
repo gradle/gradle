@@ -1226,6 +1226,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         );
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public Map<String, ? extends @Nullable Object> collectPropertiesInternal() {
+        return extensibleDynamicObject.getProperties();
+    }
+
     @Override
     public WorkResult copy(Closure closure) {
         return copy(configureUsing(closure));

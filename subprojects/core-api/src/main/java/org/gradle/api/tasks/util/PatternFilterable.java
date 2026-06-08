@@ -104,7 +104,7 @@ public interface PatternFilterable {
     PatternFilterable setExcludes(Iterable<String> excludes);
 
     /**
-     * Adds an ANT style include pattern. This method may be called multiple times to append new patterns and multiple
+     * Adds an Ant style include pattern. This method may be called multiple times to append new patterns and multiple
      * patterns may be specified in a single call.
      *
      * If includes are not provided, then all files in this container will be included. If includes are provided, then a
@@ -117,7 +117,7 @@ public interface PatternFilterable {
     PatternFilterable include(String... includes);
 
     /**
-     * Adds an ANT style include pattern. This method may be called multiple times to append new patterns and multiple
+     * Adds an Ant style include pattern. This method may be called multiple times to append new patterns and multiple
      * patterns may be specified in a single call.
      *
      * If includes are not provided, then all files in this container will be included. If includes are provided, then a
@@ -155,7 +155,7 @@ public interface PatternFilterable {
     PatternFilterable include(Closure includeSpec);
 
     /**
-     * Adds an ANT style exclude pattern. This method may be called multiple times to append new patterns and multiple
+     * Adds an Ant style exclude pattern. This method may be called multiple times to append new patterns and multiple
      * patterns may be specified in a single call.
      *
      * If excludes are not provided, then no files will be excluded. If excludes are provided, then files must not match
@@ -168,7 +168,7 @@ public interface PatternFilterable {
     PatternFilterable exclude(String... excludes);
 
     /**
-     * Adds an ANT style exclude pattern. This method may be called multiple times to append new patterns and multiple
+     * Adds an Ant style exclude pattern. This method may be called multiple times to append new patterns and multiple
      * patterns may be specified in a single call.
      *
      * If excludes are not provided, then no files will be excluded. If excludes are provided, then files must not match

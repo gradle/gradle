@@ -59,6 +59,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.isNestedClassInsideEnclosedRunner;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
@@ -303,12 +304,13 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         }
 
         private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
-            if (testIdentifier.isTest()) {
+            Set<TestIdentifier> children = testPlan.getChildren(testIdentifier);
+            if (testIdentifier.isTest() || (testIdentifier.getParentId().isPresent() && children.isEmpty())) {
                 listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
             } else {
                 listener.executionStarted(testIdentifier);
 
-                for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
+                for (TestIdentifier child : children) {
                     dryRun(child, testPlan, listener);
                 }
                 listener.executionFinished(testIdentifier, TestExecutionResult.successful());

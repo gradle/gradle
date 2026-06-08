@@ -36,8 +36,6 @@ sealed class IsolateOwners : IsolateOwner {
 
     class OwnerTask(
         override val delegate: Task,
-        // TODO:configuration-cache - consider immutability
-        var allowTaskReferences: Boolean = false
     ) : IsolateOwners() {
         override fun <T : Any> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
     }
