@@ -46,6 +46,10 @@ The feature will enter incubation once Gradle's core has stronger support for th
 
 While the feature is experimental, notable changes are documented here rather than in release notes:
 
+* Gradle 9.7.0
+** The new <<sec:dangerously_ignore_problems,dangerously-ignore-problems>> mode lets you ignore Isolated Projects violations to evaluate parallel build and sync performance without fixing violations first.
+** Isolated Projects violation severity is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
+
 * Gradle 9.6.0
 ** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
 `getRegistrations` now only permits the `findByName(String)` method. All other methods emit Isolated Projects violations.
