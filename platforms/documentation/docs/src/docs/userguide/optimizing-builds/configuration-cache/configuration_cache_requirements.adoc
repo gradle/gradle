@@ -323,7 +323,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedRefe
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/kotlin",files="build.gradle.kts[tags=widen-do]"]
 ====
-<1> The explicit `Provider<out FileCollection>` type drops the container reference.
+<1> The explicit `Provider` type, dropping both the container reference and the unsupported `Configuration` type, allows the Configuration Cache to simplify the internal representation and ignore the unsupported state.
 
 [TIP]
 ====
