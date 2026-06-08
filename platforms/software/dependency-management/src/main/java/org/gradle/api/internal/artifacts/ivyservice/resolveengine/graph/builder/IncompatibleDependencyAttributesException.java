@@ -65,7 +65,7 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
         for (EdgeState edge : incomingEdges) {
             Object value = findRequestedAttributeValue(edge, attribute);
             if (value != null) {
-                distinctValues.add(value.toString());
+                distinctValues.add("'" + value + "'");
             }
         }
 
@@ -82,7 +82,8 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
             SelectorState selector = edge.getSelector();
             boolean isConstraint = edge.getDependencyMetadata().isConstraint();
             for (String path : MessageBuilderHelper.formattedPathsTo(edge)) {
-                fmt.node(path + " " + formatAttributeQuery(selector, attribute, value, isConstraint));
+                String quotelessPath = stripSingleQuotesFromPath(path);
+                fmt.node(quotelessPath + " " + formatAttributeQuery(selector, attribute, value, isConstraint));
             }
         }
         fmt.endChildren();
@@ -90,23 +91,27 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
         return fmt.toString();
     }
 
+    private static String stripSingleQuotesFromPath(String path) {
+        return path.replaceAll("'([^()]+)' \\(", "$1 (");
+    }
+
     private static @Nullable Object findRequestedAttributeValue(EdgeState edge, Attribute<?> attribute) {
         ComponentSelector selector = edge.getSelector().getSelector();
         if (selector instanceof ModuleComponentSelector) {
-            return ((ModuleComponentSelector) selector).getAttributes().getAttribute(attribute);
+            return selector.getAttributes().getAttribute(attribute);
         }
         return null;
     }
 
     private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute, Object value, boolean isConstraint) {
         String verb = isConstraint ? "requires" : "depends on";
-        return verb + " '" + state.getRequested() + "' with attribute " + attribute.getName() + " = " + value;
+        return verb + " '" + state.getRequested() + "' with attribute '" + attribute.getName() + "' = '" + value + "'";
     }
 
     private static List<String> buildResolutions(Attribute<?> attribute) {
         DocumentationRegistry docs = new DocumentationRegistry();
         return ImmutableList.of(
-            "Configure all dependencies to use the same '" + attribute.getName() + "' attribute value.",
+            "Configure all dependencies to use the same value for the attribute '" + attribute.getName() + "'.",
             "For advanced cases where different values should be treated as compatible, define a compatibility rule. See: " + docs.getDocumentationFor("variant_attributes", "sec:abm-compatibility-rules") + "."
         );
     }

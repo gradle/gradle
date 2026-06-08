@@ -42,14 +42,14 @@ class IncompatibleDependencyAttributesExceptionTest extends Specification {
 
         then:
         ex.message.contains("Cannot select a variant of 'com.example:lib' because the dependency requirements request incompatible values for attribute 'minified'.")
-        ex.message.contains('Requested values: true, false')
+        ex.message.contains("Requested values: 'true', 'false'")
         ex.message.contains("Constraint path: root requires")
-        ex.message.contains('with attribute minified = true')
-        ex.message.contains('with attribute minified = false')
+        ex.message.contains("with attribute 'minified' = 'true'")
+        ex.message.contains("with attribute 'minified' = 'false'")
 
         and:
         ex.resolutions.size() == 2
-        ex.resolutions[0] == "Configure all dependencies to use the same 'minified' attribute value."
+        ex.resolutions[0] == "Configure all dependencies to use the same value for the attribute 'minified'."
         ex.resolutions[1].startsWith('For advanced cases where different values should be treated as compatible, define a compatibility rule. See: ')
         ex.resolutions[1].contains('/userguide/variant_attributes.html#sec:abm-compatibility-rules')
     }
@@ -70,8 +70,8 @@ class IncompatibleDependencyAttributesExceptionTest extends Specification {
 
         then:
         !ex.message.contains('<no value>')
-        ex.message.contains('Requested values: true, false')
-        ex.message.count('with attribute minified =') == 2
+        ex.message.contains("Requested values: 'true', 'false'")
+        ex.message.count("with attribute 'minified' =") == 2
     }
 
     def "a dependency that declares the attribute is shown with verb 'depends on'"() {
@@ -89,9 +89,9 @@ class IncompatibleDependencyAttributesExceptionTest extends Specification {
 
         then:
         ex.message.contains("Dependency path: root depends on")
-        ex.message.contains('with attribute minified = true')
+        ex.message.contains("with attribute 'minified' = 'true'")
         ex.message.contains("Constraint path: root requires")
-        ex.message.contains('with attribute minified = false')
+        ex.message.contains("with attribute 'minified' = 'false'")
     }
 
     private EdgeState mockConstraintEdge(Attribute<?> attribute, Object value) {

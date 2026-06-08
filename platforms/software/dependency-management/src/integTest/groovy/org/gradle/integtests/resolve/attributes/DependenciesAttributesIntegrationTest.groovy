@@ -390,12 +390,12 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
-        failure.assertThatCause(containsString("Requested values: c1, c2"))
-        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) requires 'org:test:1.0' with attribute custom = c1"))
-        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) requires 'org:test:1.0' with attribute custom = c2"))
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c1'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c2'"))
         failure.assertThatCause(not(containsString("<no value>")))
         failure.assertThatCause(not(containsString("Possible solutions:")))
-        failure.assertHasResolution("Configure all dependencies to use the same 'custom' attribute value.")
+        failure.assertHasResolution("Configure all dependencies to use the same value for the attribute 'custom'.")
         failure.assertHasResolution("For advanced cases where different values should be treated as compatible, define a compatibility rule. See: https://docs.gradle.org/current/userguide/variant_attributes.html#sec:abm-compatibility-rules.")
     }
 
@@ -448,9 +448,9 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
-        failure.assertThatCause(containsString("Requested values: c1, c2"))
-        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) requires 'org:test:1.0' with attribute custom = c1"))
-        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) --> 'project ':projectB'' (conf) requires 'org:test:1.0' with attribute custom = c2"))
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c1'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) --> project ':projectB' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c2'"))
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -500,10 +500,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
-        failure.assertThatCause(containsString("Requested values: c1, c2"))
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2'"))
         // c2 should not appear duplicated in the Requested values list
-        failure.assertThatCause(not(containsString("c1, c2, c2")))
-        failure.assertThatCause(not(containsString("c2, c2")))
+        failure.assertThatCause(not(containsString("'c1', 'c2', 'c2'")))
+        failure.assertThatCause(not(containsString("'c2', 'c2'")))
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -534,10 +534,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
-        failure.assertThatCause(containsString("Requested values: c1, c2, c3"))
-        failure.assertThatCause(containsString("Dependency path: 'root project 'test'' (conf) depends on 'org:test:1.0' with attribute custom = c1"))
-        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) requires 'org:test:1.0' with attribute custom = c2"))
-        failure.assertThatCause(containsString("Constraint path: 'root project 'test'' (conf) requires 'org:test:1.0' with attribute custom = c3"))
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2', 'c3'"))
+        failure.assertThatCause(containsString("Dependency path: root project 'test' (conf) depends on 'org:test:1.0' with attribute 'custom' = 'c1'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c2'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c3'"))
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
