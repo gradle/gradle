@@ -65,10 +65,12 @@ jobs:
           git push origin --delete tide/update-agp 2>/dev/null || true
           git push origin tide/update-agp
 
-          gh pr create \
+          pr_url=$(gh pr create \
             --base master \
             --title "Update tested AGP versions" \
             --body "Update tested AGP versions" \
             --reviewer "gradle/bt-tide" \
-            --label "a:chore,in:performance-test,in:smoke-test,re:android"
-          gh pr comment tide/update-agp --body '@bot-gradle test and merge'
+            --label "a:chore,in:performance-test,in:smoke-test,re:android")
+          # Add the PR to the TIDE team's board (project 147)
+          gh project item-add 147 --owner gradle --url "$pr_url"
+          gh pr comment "$pr_url" --body '@bot-gradle test and merge'
