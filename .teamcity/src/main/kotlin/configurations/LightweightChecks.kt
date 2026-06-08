@@ -63,6 +63,15 @@ class LightweightChecks(
                         doesNotEqual("teamcity.build.branch", BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
                     }
                 }
+                script {
+                    name = "CHECK_AI_ATTRIBUTION"
+                    scriptContent =
+                        """
+                        set -eu
+                        "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "$defaultJavaBinary" .teamcity/scripts/CheckAiAttribution.java
+                        """.trimIndent()
+                }
                 if (model.branch.isMaster) {
                     script {
                         name = "CHECK_BAD_MERGE"
