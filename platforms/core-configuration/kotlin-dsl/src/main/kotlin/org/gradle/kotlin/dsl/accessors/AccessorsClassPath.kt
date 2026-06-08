@@ -763,17 +763,25 @@ fun IO.writeAccessorsTo(
     packageName: String = KOTLIN_DSL_PACKAGE_NAME
 ) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
-        if (imports.isNotEmpty()) {
-            imports.forEach {
-                appendReproducibleNewLine("import $it")
-            }
-            appendReproducibleNewLine()
+        appendImportsAndAccessors(packageName, imports, accessors)
+    }
+}
+
+internal fun Appendable.appendImportsAndAccessors(
+    packageName: String,
+    imports: List<String>,
+    accessors: Iterable<String>
+) {
+    appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
+    if (imports.isNotEmpty()) {
+        imports.forEach {
+            appendReproducibleNewLine("import $it")
         }
-        accessors.forEach {
-            appendReproducibleNewLine(it)
-            appendReproducibleNewLine()
-        }
+        appendReproducibleNewLine()
+    }
+    accessors.forEach {
+        appendReproducibleNewLine(it)
+        appendReproducibleNewLine()
     }
 }
 

@@ -167,17 +167,7 @@ fun accessorSourceContent(
     packageName: String = KOTLIN_DSL_PACKAGE_NAME
 ): ByteArray {
     val sb = StringBuilder()
-    sb.appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
-    if (imports.isNotEmpty()) {
-        imports.forEach {
-            sb.appendReproducibleNewLine("import $it")
-        }
-        sb.appendReproducibleNewLine()
-    }
-    accessors.forEach {
-        sb.appendReproducibleNewLine(it)
-        sb.appendReproducibleNewLine()
-    }
+    sb.appendImportsAndAccessors(packageName, imports, accessors)
     return sb.toString().toByteArray(Charsets.UTF_8)
 }
 
