@@ -127,9 +127,9 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                     inputFingerprinter,
                     workspaceProvider,
                     isDclEnabledForScriptTarget(scriptTarget),
-            cachingDisabled,
-        )
-         executionEngine.createRequest(work)
+                    cachingDisabled,
+                )
+                executionEngine.createRequest(work)
                     .execute()
                     .getOutputAs(AccessorsClassPath::class.java)
                     .get()
