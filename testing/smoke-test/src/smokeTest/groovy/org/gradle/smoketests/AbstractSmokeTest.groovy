@@ -45,7 +45,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final DocumentationRegistry DOCS = new DocumentationRegistry()
-    protected static final String DEPRECATED_PARENT_PROPERTY_ACCESS_URL = DOCS.getDocumentationFor("upgrading_version_9", "deprecated_implicit_project_hierarchy_lookup")
+    protected static final String DEPRECATED_PARENT_PROPERTY_ACCESS_URL = DOCS.getDocumentationFor("upgrading_version_9", "deprecated_implicit_lookup_in_parent_projects")
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
 
