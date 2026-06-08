@@ -79,7 +79,7 @@ Use a less specific type that gives necessary features instead:
 * If referencing a `SourceDirectorySet`, declare a `FileTree` input.
 
 Additionally, referencing resolved dependency results directly is disallowed (e.g., `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult`).
-Instead, use lazy providers that defer resolution to execution time:
+Instead, use lazy providers that defer resolution:
 
 * Use a `Provider<ResolvedComponentResult>` from `ResolutionResult.getRootComponent()` for dependency graph metadata.
 * Use `ArtifactCollection.getResolvedArtifacts()`, which returns a `Provider<Set<ResolvedArtifactResult>>`, for artifact metadata and files.
