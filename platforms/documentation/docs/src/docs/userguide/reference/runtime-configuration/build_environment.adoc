@@ -210,7 +210,7 @@ To access those, use `project.findProperty("name")` or extra properties directly
 
 For other ways to access properties, see the following methods on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object:
 
-- `findProperty("name")` — returns the value or `null`, checking dynamically configured containers, like extra properties, and parent projects as well.
+- `findProperty("name")` — returns the value or `null`, checking dynamically configured containers like extra properties.
 - `property("name")` — returns the value or throws if the property is missing
 - `hasProperty("name")` — checks if the property exists
 
