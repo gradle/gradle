@@ -16,7 +16,7 @@ This release improves [Configuration Cache](#configuration-cache-improvements) h
 
 The [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting) gains a `--non-interactive` option to disable interactive prompts when running Gradle in automated environments, support for the `NO_COLOR` environment variable to suppress color output, and sortable columns in HTML test reports.
 
-[Build authoring](#build-authoring-improvements) includes an important deprecation: implicit property and method lookup through the project hierarchy now emits a warning and will be removed in Gradle 10. A new `NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY` feature preview lets you adopt the Gradle 10 behavior early once related deprecations are addressed.
+[Build authoring](#build-authoring-improvements) includes an important deprecation: implicit property and method lookup in parent projects now emits a warning and will be removed in Gradle 10. A new `NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS` feature preview lets you adopt the Gradle 10 behavior early once related deprecations are addressed.
 
 [Plugin authors](#core-plugin-and-plugin-authoring-enhancements) get clearer validation errors when the `@Optional` annotation is misused on task properties.
 
@@ -159,8 +159,8 @@ See the [Test reporting](userguide/java_testing.html#test_reporting) section in 
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-#### Deprecation of implicit property and method lookup in the project hierarchy
-In Gradle's [Groovy DSL](userguide/groovy_build_script_primer.html), when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match.
+#### Deprecation of implicit lookup of properties and methods in parent projects
+In Gradle's [Groovy DSL](userguide/groovy_build_script_primer.html), when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the parent projects looking for a match.
 For example:
 
 ```groovy
@@ -170,26 +170,26 @@ ext.foo = "hello"
 
 ```groovy
 // child/build.gradle
-println(foo) // Resolved through hierarchy — now deprecated
+println(foo) // Resolved through parent projects — now deprecated
 ```
 
-This implicit inheritance creates hidden coupling between projects and makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing).
+This behavior is not unique to Groovy DSL, as this inherently comes from how `findProperty()` and related methods work.
+However, such implicit inheritance creates hidden coupling between projects and makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing).
 
-Starting in Gradle 9.6.0, both implicit references and explicit APIs (`findProperty()`, `property()`, `hasProperty()`) emit a deprecation warning when they resolve through the hierarchy.
+Starting in Gradle 9.6.0, both implicit references and explicit APIs (`findProperty()`, `property()`, `hasProperty()`) emit a deprecation warning when they get resolved from parent projects.
 This behavior will be removed in Gradle 10.
 
 See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects) for migration paths, including `gradle.properties`, convention plugins, and explicit references.
 
-##### Opt into Gradle 10 behavior by disabling project hierarchy lookup
-Gradle 9.6.0 [deprecates implicit lookup of properties and methods through the project hierarchy](userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects); this behavior will be removed in Gradle 10.
+##### Opt into Gradle 10 behavior by disabling implicit lookup in parent projects
 
-Once you have addressed all related deprecations, enable the new `NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY` feature preview to adopt the Gradle 10 behavior early.
+Once you have addressed all related deprecations, you can enable the new `NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS` feature preview to adopt the Gradle 10 behavior early.
 
-This prevents new accidental implicit lookups in the project hierarchy:
+This prevents new accidental implicit lookups from parent projects:
 
 ```groovy
-// settings.gradle
-enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
+// settings.gradle[.kts]
+enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
 ```
 
 #### Groovy DSL type coercions for lazy properties
