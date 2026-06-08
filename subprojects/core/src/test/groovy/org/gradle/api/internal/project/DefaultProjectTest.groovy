@@ -720,7 +720,7 @@ def scriptMethod(Closure closure) {
 
         then:
         project."$propertyName" == expectedValue
-        child1."$propertyName" == expectedValue
+        !child1.hasProperty(propertyName)
     }
 
     def propertyMissingWithNullProperty() {

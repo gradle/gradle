@@ -19,8 +19,6 @@ import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -116,40 +114,6 @@ include 'child'
                 .assertHasCause("failure")
                 .assertHasFileName("Build file '$childBuildFile'")
                 .assertHasLineNumber(3)
-    }
-
-    @Requires(
-        value = TestExecutionPreconditions.NotIsolatedProjects,
-        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
-    )
-    def "produces reasonable error message from a method inherited from a script containing only methods"() {
-        createDirs("child")
-        settingsFile << """
-include 'child'
-"""
-        buildFile << """
-// Build script contains only methods
-def broken() {
-    throw new RuntimeException('failure')
-}
-
-def doSomething() {
-    broken()
-}
-"""
-        final childBuildFile = file("child/build.gradle")
-        childBuildFile << """
-    doSomething()
-"""
-
-        when:
-        fails()
-
-        then:
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
-                .assertHasCause("failure")
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(4)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14984")
