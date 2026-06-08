@@ -54,7 +54,6 @@ import java.net.URI
  * which are dependencies. For each class to move, the task locates the corresponding Java source file
  * for the project classes to be moved, and for each dependency, determines the corresponding [ComponentIdentifier].
  */
-@DisableCachingByDefault(because = "Unable to snapshot ComponentIdentifier") // Can be made cacheable after https://github.com/gradle/gradle/pull/36174
 abstract class SplitProjectTask : DefaultTask() {
 
     /**
@@ -238,7 +237,6 @@ abstract class SplitProjectTask : DefaultTask() {
         println("- Update the the current project to depend on `projects.${toProjectAccessorName(":${toProject.get()}")}`: ${currentProjectDirectory.file("build.gradle.kts").get().asFile.asClickableFileUrl()}")
         println("- Run `./gradlew :generateSubprojectsInfo`")
         println("- Run `./gradlew projectHealth --continue` and resolve any reported dependency declaration issues")
-        println("- Sync the build and commit the idea.xml file changes")
     }
 
     /**

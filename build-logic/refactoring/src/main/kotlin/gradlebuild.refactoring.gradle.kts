@@ -50,8 +50,6 @@ tasks.register<AnalyzeClassDependenciesTask>("analyzeClassDependencies") {
     javaSourceDirectories.from(main.map { it.java.sourceDirectories })
     groovySourceDirectories.from(main.map { it.extensions.findByType<GroovySourceDirectorySet>()!!.sourceDirectories })
 
-    projectPath.set(project.path)
-
     val resolvedArtifacts = main.flatMap { sourceSet ->
         project.configurations.named(sourceSet.compileClasspathConfigurationName)
     }.flatMap { config ->

@@ -72,7 +72,6 @@ abstract class AnalyzeClassDependenciesTask : DefaultTask() {
      * Path to the JSON output file. Required.
      */
     @get:OutputFile
-    @get:Optional
     @get:Option(option = "output", description = "Path to write the JSON output file")
     abstract val outputFile: RegularFileProperty
 
@@ -109,12 +108,6 @@ abstract class AnalyzeClassDependenciesTask : DefaultTask() {
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val groovySourceDirectories: ConfigurableFileCollection
-
-    /**
-     * The Gradle path of the subproject being analyzed (e.g., `:core`).
-     */
-    @get:Internal
-    abstract val projectPath: Property<String>
 
     @TaskAction
     fun analyze() {
@@ -178,7 +171,7 @@ abstract class AnalyzeClassDependenciesTask : DefaultTask() {
 
         // 7. Build top-level output
         val json = AnalysisJson(
-            projectPath = projectPath.get(),
+            projectPath = project.path,
             roots = expandedRoots.sorted(),
             subprojectDependencies = subprojectPaths.toList(),
             projectClasses = projectClassEntries
