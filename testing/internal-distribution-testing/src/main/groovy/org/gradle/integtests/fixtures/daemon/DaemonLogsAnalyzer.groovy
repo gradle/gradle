@@ -68,8 +68,8 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
             if (pid != null) {
                 try {
                     new ProcessFixture(pid).waitForFinish()
-                } catch (Throwable ignored) {
-                    // Best-effort: process may already be gone.
+                } catch (Throwable t) {
+                    println "Can't confirm cleanup of daemon with pid $pid: ${t.message}"
                 }
             }
         }

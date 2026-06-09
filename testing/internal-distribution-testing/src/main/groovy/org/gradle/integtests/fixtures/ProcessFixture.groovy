@@ -148,19 +148,20 @@ class ProcessFixture {
     }
 
     /**
-     * Blocks until the process represented by {@link #pid} has exited.
+     * Blocks until the process represented by {@link #pid} has exited, or throws with a clear
+     * message naming the process if it is still running after {@code timeoutInSeconds}.
      */
-    void waitForFinish() {
+    void waitForFinish(double timeoutInSeconds = 10) {
         if (pid == null) {
             throw new RuntimeException("Unable to wait for process to finish because provided pid is null!")
         }
         if (OperatingSystem.current().unix) {
-            ConcurrentTestUtil.poll {
-                bash("ps -o pid= -p $pid; exit 0").trim() == ""
+            ConcurrentTestUtil.poll(timeoutInSeconds) {
+                assert bash("ps -o pid= -p $pid; exit 0").trim() == "" : "Process $pid is still running after waiting ${timeoutInSeconds}s for it to finish"
             }
         } else if (OperatingSystem.current().windows) {
-            ConcurrentTestUtil.poll {
-                execute(["tasklist.exe", "/fi", "\"PID eq $pid\""] as Object[], SafeStreams.emptyInput()).contains("No tasks are running which match the specified criteria.")
+            ConcurrentTestUtil.poll(timeoutInSeconds) {
+                assert execute(["tasklist.exe", "/fi", "\"PID eq $pid\""] as Object[], SafeStreams.emptyInput()).contains("No tasks are running which match the specified criteria.") : "Process $pid is still running after waiting ${timeoutInSeconds}s for it to finish"
             }
         } else {
             throw new RuntimeException("This implementation does not know how to wait for process to finish on os: " + OperatingSystem.current())
