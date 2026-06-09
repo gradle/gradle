@@ -131,6 +131,7 @@ class KnownProblemIds {
         'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
         'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
+        'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
         'plugin-application:target-type-mismatch': ['Unexpected plugin type'],
         'task-selection:ambiguous-matches': ['Ambiguous matches'],
         'task-selection:selection-failed': ['Selection failed'],
