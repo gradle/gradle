@@ -62,6 +62,14 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     @Incubating
     public static final String ARTIFACT_TRANSFORMS_TASK = DiagnosticsTaskNames.ARTIFACT_TRANSFORMS_TASK;
 
+    /**
+     * The name of the repositories report task.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    public static final String REPOSITORIES_TASK = DiagnosticsTaskNames.REPOSITORIES_TASK;
+
     public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
 
 

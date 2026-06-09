@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.attributes.Attribute;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,4 +45,27 @@ public interface RepositoryContentDescriptorInternal extends RepositoryContentDe
      */
     @Nullable
     Map<Attribute<Object>, Set<Object>> getRequiredAttributes();
+
+    /**
+     * Returns user-facing descriptions of include rules declared on this descriptor,
+     * for use by diagnostic reporting.
+     *
+     * <p>Each entry is a human-readable form such as
+     * {@code includeGroup("com.example")} or
+     * {@code includeVersion("g", "m", "1.0")}. Entries preserve declaration order.
+     *
+     * <p>Note: {@code includeModule(group, module)} and {@code includeModuleByRegex(groupRegex, moduleRegex)}
+     * store identically internally and are both rendered as {@code includeModuleByRegex(...)}.
+     *
+     * @return immutable list of rule descriptions, empty when none
+     */
+    List<String> describeIncludeRules();
+
+    /**
+     * Returns user-facing descriptions of exclude rules declared on this descriptor,
+     * for use by diagnostic reporting.
+     *
+     * @return immutable list of rule descriptions, empty when none
+     */
+    List<String> describeExcludeRules();
 }

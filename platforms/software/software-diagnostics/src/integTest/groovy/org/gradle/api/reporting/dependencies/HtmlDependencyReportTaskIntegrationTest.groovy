@@ -27,6 +27,20 @@ import spock.lang.Issue
 class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
+        // Remove the diagnostic configurations registered by SoftwareReportingTasksPlugin so that
+        // tests focused on user-defined configurations are not polluted by the diagnostics machinery.
+        settingsFile << """
+            gradle.lifecycle.beforeProject { p ->
+                p.afterEvaluate {
+                    ['repositoriesReportElements', 'repositoriesData', 'repositoriesDataDependencies'].each { name ->
+                        def cfg = p.configurations.findByName(name)
+                        if (cfg != null) {
+                            p.configurations.remove(cfg)
+                        }
+                    }
+                }
+            }
+        """
     }
 
     def "renders graph"() {

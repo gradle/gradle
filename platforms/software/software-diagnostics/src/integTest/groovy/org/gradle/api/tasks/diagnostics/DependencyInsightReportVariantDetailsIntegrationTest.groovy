@@ -35,6 +35,17 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         settingsFile << """
             gradle.lifecycle.beforeProject { project ->
                 project.pluginManager.apply('org.gradle.jvm-ecosystem')
+                project.afterEvaluate {
+                    // Remove the diagnostic configurations registered by SoftwareReportingTasksPlugin
+                    // so that tests focused on user-defined configurations and variants are not
+                    // polluted by the diagnostics machinery.
+                    ['repositoriesReportElements', 'repositoriesData', 'repositoriesDataDependencies'].each { name ->
+                        def cfg = project.configurations.findByName(name)
+                        if (cfg != null) {
+                            project.configurations.remove(cfg)
+                        }
+                    }
+                }
             }
         """
     }

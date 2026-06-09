@@ -25,6 +25,18 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"
+            // Remove the diagnostic configurations registered by SoftwareReportingTasksPlugin so that
+            // tests focused on user-defined configurations are not polluted by the diagnostics machinery.
+            gradle.lifecycle.beforeProject { p ->
+                p.afterEvaluate {
+                    ['repositoriesReportElements', 'repositoriesData', 'repositoriesDataDependencies'].each { name ->
+                        def cfg = p.configurations.findByName(name)
+                        if (cfg != null) {
+                            p.configurations.remove(cfg)
+                        }
+                    }
+                }
+            }
         """
     }
 
