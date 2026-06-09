@@ -17,7 +17,9 @@
 package org.gradle.cache.internal
 
 import org.gradle.internal.session.BuildSessionLifecycleListener
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
+import java.lang.ref.WeakReference
 import java.util.function.Function
 
 class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemoryCacheTest {
@@ -95,5 +97,29 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemo
 
         cache.put(String, c)
         cache.getIfPresent(String) == c
+    }
+
+    def "does not retain a class loaded by a custom classloader after the session ends"() {
+        given:
+        def cache = factory.newClassMap()
+        // A GroovyClassLoader is not a VisitableURLClassLoader, so the value is stored via ClassValue
+        def loader = new GroovyClassLoader(getClass().classLoader)
+        def type = loader.parseClass("class Leaky {}")
+        cache.get(type, { new Object() } as Function)
+        def typeRef = new WeakReference<Class<?>>(type)
+
+        when: "the session ends and every test-side reference to the class is dropped"
+        listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
+        loader.clearCache()
+        type = null
+        loader = null
+
+        then: "the class can be unloaded even though the cache is still alive"
+        ConcurrentTestUtil.poll(10) {
+            System.gc()
+            // Keep the cache reachable, so the test checks the cache's retention rather than GC of the cache itself
+            assert cache != null
+            assert typeRef.get() == null
+        }
     }
 }
