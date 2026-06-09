@@ -152,6 +152,58 @@ class ConfigurationCacheKeyTest {
         )
     }
 
+    @Test
+    fun `model query cache key differs by current directory when project directory is not set`() {
+        val rootDir = file("root").apply { mkdirs() }
+        val subA = rootDir.createDir("a")
+        val subB = rootDir.createDir("b")
+
+        assertThat(
+            modelCacheKeyStringFromStartParameter { setCurrentDir(subA) },
+            equalTo(modelCacheKeyStringFromStartParameter { setCurrentDir(subA) })
+        )
+        assertThat(
+            modelCacheKeyStringFromStartParameter { setCurrentDir(subA) },
+            not(equalTo(modelCacheKeyStringFromStartParameter { setCurrentDir(subB) }))
+        )
+    }
+
+    @Test
+    fun `model query cache key includes project directory even when an action also runs tasks`() {
+        val rootDir = file("root").apply { mkdirs() }
+        val subA = rootDir.createDir("a")
+        val subB = rootDir.createDir("b")
+
+        assertThat(
+            cacheKeyString({ projectDir = subA }) { ModelOnlyRequirements(it, runsTasks = true) },
+            not(
+                equalTo(
+                    cacheKeyString({ projectDir = subB }) { ModelOnlyRequirements(it, runsTasks = true) }
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `task-only cache key is unaffected by project directory when no unqualified task name is present`() {
+        val rootDir = file("root").apply { mkdirs() }
+        val subA = rootDir.createDir("a")
+        val subB = rootDir.createDir("b")
+
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                projectDir = subA
+                setTaskNames(listOf(":help"))
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    projectDir = subB
+                    setTaskNames(listOf(":help"))
+                }
+            )
+        )
+    }
+
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String =
         cacheKeyString(configure) { RunTasksRequirements(it) }
@@ -188,9 +240,10 @@ class ConfigurationCacheKeyTest {
 
     private
     class ModelOnlyRequirements(
-        private val startParameter: StartParameterInternal
+        private val startParameter: StartParameterInternal,
+        private val runsTasks: Boolean = false
     ) : BuildActionModelRequirements {
-        override fun isRunsTasks(): Boolean = false
+        override fun isRunsTasks(): Boolean = runsTasks
         override fun isCreatesModel(): Boolean = true
         override fun getStartParameter(): StartParameterInternal = startParameter
         override fun getActionDisplayName(): DisplayName = Describables.of("creating tooling model")

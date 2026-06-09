@@ -20,10 +20,10 @@ import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
 class IsolatedProjectsToolingApiTargetProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
-    def "model cache key differentiates between target subproject directories"() {
+    def "caches model per target project directory"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'root'
             include('a')
             include('b')
@@ -31,20 +31,46 @@ class IsolatedProjectsToolingApiTargetProjectIntegrationTest extends AbstractIso
         file("a/build.gradle") << "plugins.apply(my.MyPlugin)"
         file("b/build.gradle") << "plugins.apply(my.MyPlugin)"
 
-        when:
+        when: "first query targets subproject 'a' — stores a new cache entry"
         withIsolatedProjects()
         executer.inDirectory(file("a"))
-        def modelA = fetchModel(SomeToolingModel)
+        def modelA1 = fetchModel(SomeToolingModel)
 
         then:
-        modelA.message == "It works from project :a"
+        modelA1.message == "It works from project :a"
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":a")
+        }
 
-        when:
+        when: "query targets subproject 'b' — must miss :a's cache and store its own"
         withIsolatedProjects()
         executer.inDirectory(file("b"))
-        def modelB = fetchModel(SomeToolingModel)
+        def modelB1 = fetchModel(SomeToolingModel)
 
         then:
-        modelB.message == "It works from project :b"
+        modelB1.message == "It works from project :b"
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":b")
+        }
+
+        when: "repeat query against 'a' — loads from :a's cache"
+        withIsolatedProjects()
+        executer.inDirectory(file("a"))
+        def modelA2 = fetchModel(SomeToolingModel)
+
+        then:
+        modelA2.message == "It works from project :a"
+        fixture.assertModelLoaded()
+
+        when: "repeat query against 'b' — loads from :b's cache"
+        withIsolatedProjects()
+        executer.inDirectory(file("b"))
+        def modelB2 = fetchModel(SomeToolingModel)
+
+        then:
+        modelB2.message == "It works from project :b"
+        fixture.assertModelLoaded()
     }
 }
