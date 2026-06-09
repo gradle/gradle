@@ -20,117 +20,13 @@ import spock.lang.Specification
 
 import java.lang.reflect.Method
 
+// classes and methods validated via reflection
 @SuppressWarnings('unused')
 class GradleModeTestingIntentValidatorTest extends Specification {
 
-    // --- Fixture classes covering the truth table ---
-    //
-    // Layout: base classes carry class-level intents; child classes either inherit
-    // cleanly or add their own class/method-level intents. The "feature methods"
-    // are just regular methods named feat() / featAnnotated*().
+    // --- Accept cases ---
 
-    static class CleanBase {
-        void feat() {}
-    }
-
-    @ToBeFixedForIsolatedProjects
-    static class ToBeFixedIpBase {
-        void feat() {}
-    }
-
-    @UnsupportedWithIsolatedProjects
-    static class UnsupportedIpBase {
-        void feat() {}
-    }
-
-    // OK cases
-
-    static class CleanChild extends CleanBase {}
-
-    static class ChildWithMethodToBeFixedIp extends CleanBase {
-        @ToBeFixedForIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    static class ChildWithMethodUnsupportedIp extends CleanBase {
-        @UnsupportedWithIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    static class ChildInheritingToBeFixedIp extends ToBeFixedIpBase {}
-
-    static class ChildInheritingUnsupportedIp extends UnsupportedIpBase {}
-
-    // Cross-mode (different modes do not interfere)
-
-    @UnsupportedWithConfigurationCache
-    static class ChildClassCcMethodIp extends CleanBase {
-        @ToBeFixedForIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    // FAIL: class-vs-method conflict, same mode
-
-    @UnsupportedWithIsolatedProjects
-    static class ChildClassUnsupportedIpMethodToBeFixedIp extends CleanBase {
-        @ToBeFixedForIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    @ToBeFixedForIsolatedProjects
-    static class ChildClassToBeFixedIpMethodUnsupportedIp extends CleanBase {
-        @UnsupportedWithIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    // FAIL: hierarchy has two class-level intents (same mode)
-
-    @UnsupportedWithIsolatedProjects
-    static class ChildClassUnsupportedIpOverToBeFixedIpBase extends ToBeFixedIpBase {}
-
-    @ToBeFixedForIsolatedProjects
-    static class ChildClassToBeFixedIpOverUnsupportedIpBase extends UnsupportedIpBase {}
-
-    // FAIL: superclass class-level + child method-level (same mode)
-
-    static class ChildInheritsUnsupportedIpMethodToBeFixedIp extends UnsupportedIpBase {
-        @ToBeFixedForIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    static class ChildInheritsToBeFixedIpMethodUnsupportedIp extends ToBeFixedIpBase {
-        @UnsupportedWithIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    // FAIL: two method-level intents of the same mode on one method
-
-    static class TwoMethodIntentsSameMode extends CleanBase {
-        @ToBeFixedForIsolatedProjects
-        @UnsupportedWithIsolatedProjects
-        void featAnnotated() {}
-    }
-
-    // FAIL: same annotation declared on base AND child (same type repeated through hierarchy)
-
-    @ToBeFixedForIsolatedProjects
-    static class ChildClassToBeFixedIpOverToBeFixedIpBase extends ToBeFixedIpBase {}
-
-    // FAIL (CC variant): exercise mode-agnostic behavior — same rule must fire for Configuration Cache
-
-    @UnsupportedWithConfigurationCache
-    static class CcBase {
-        void feat() {}
-    }
-
-    static class ChildInheritsCcUnsupportedMethodCcToBeFixed extends CcBase {
-        @ToBeFixedForConfigurationCache
-        void featAnnotated() {}
-    }
-
-    // --- The truth table ---
-
-    def "validateFeature: #scenario"() {
+    def "validateFeature accepts non-conflicting spec: #scenario"() {
         given:
         Method method = findFeatureMethod(specClass)
 
@@ -150,33 +46,7 @@ class GradleModeTestingIntentValidatorTest extends Specification {
         "class CC + method IP (different modes, no conflict)" | ChildClassCcMethodIp
     }
 
-    def "validateFeature throws: #scenario"() {
-        given:
-        Method method = findFeatureMethod(specClass)
-
-        when:
-        GradleModeTestingIntentValidator.validateFeature(specClass, method)
-
-        then:
-        IllegalStateException ex = thrown()
-        for (String expected : expectedMessageFragments) {
-            assert ex.message.contains(expected): "expected fragment '${expected}' in: ${ex.message}"
-        }
-
-        where:
-        scenario                                                      | specClass                                   | expectedMessageFragments
-        "class UnsupportedIp + method ToBeFixedIp"                    | ChildClassUnsupportedIpMethodToBeFixedIp    | ["Isolated Projects", "UnsupportedWithIsolatedProjects", "ToBeFixedForIsolatedProjects"]
-        "class ToBeFixedIp + method UnsupportedIp"                    | ChildClassToBeFixedIpMethodUnsupportedIp    | ["Isolated Projects", "ToBeFixedForIsolatedProjects", "UnsupportedWithIsolatedProjects"]
-        "hierarchy: child UnsupportedIp over base ToBeFixedIp"        | ChildClassUnsupportedIpOverToBeFixedIpBase  | ["Isolated Projects", "UnsupportedWithIsolatedProjects", "ToBeFixedForIsolatedProjects"]
-        "hierarchy: child ToBeFixedIp over base UnsupportedIp"        | ChildClassToBeFixedIpOverUnsupportedIpBase  | ["Isolated Projects", "ToBeFixedForIsolatedProjects", "UnsupportedWithIsolatedProjects"]
-        "inherited class UnsupportedIp + method ToBeFixedIp on child" | ChildInheritsUnsupportedIpMethodToBeFixedIp | ["Isolated Projects", "UnsupportedWithIsolatedProjects", "ToBeFixedForIsolatedProjects"]
-        "inherited class ToBeFixedIp + method UnsupportedIp on child" | ChildInheritsToBeFixedIpMethodUnsupportedIp | ["Isolated Projects", "ToBeFixedForIsolatedProjects", "UnsupportedWithIsolatedProjects"]
-        "two method-level intents of the same mode on one method"     | TwoMethodIntentsSameMode                    | ["Isolated Projects", "ToBeFixedForIsolatedProjects", "UnsupportedWithIsolatedProjects"]
-        "same annotation on base and child (hierarchy)"               | ChildClassToBeFixedIpOverToBeFixedIpBase    | ["Isolated Projects", "ToBeFixedForIsolatedProjects"]
-        "CC variant: inherited UnsupportedCc + method ToBeFixedCc"    | ChildInheritsCcUnsupportedMethodCcToBeFixed | ["Configuration Cache", "UnsupportedWithConfigurationCache", "ToBeFixedForConfigurationCache"]
-    }
-
-    def "validateSpec: #scenario"() {
+    def "validateSpec accepts non-conflicting hierarchy: #scenario"() {
         when:
         GradleModeTestingIntentValidator.validateSpec(specClass)
 
@@ -192,33 +62,145 @@ class GradleModeTestingIntentValidatorTest extends Specification {
         "two intents of different modes are ok" | ChildClassCcMethodIp
     }
 
-    def "validateSpec throws: #scenario"() {
+    // --- IP: class-vs-method conflicts ---
+
+    def "validateFeature rejects IP class-vs-method conflict: #scenario"() {
+        given:
+        Method method = findFeatureMethod(specClass)
+
+        when:
+        GradleModeTestingIntentValidator.validateFeature(specClass, method)
+
+        then:
+        IllegalStateException ex = thrown()
+        assert normalize(ex.message, specClass) == "Conflicting Isolated Projects gating on <SPEC>: ${messagePart}." +
+            " At most one intent annotation of a given mode may be reachable for a feature."
+
+        where:
+        scenario                                         | specClass
+        "class Unsupported + method ToBeFixed"           | ChildClassUnsupportedIpMethodToBeFixedIp
+        "class ToBeFixed + method Unsupported"           | ChildClassToBeFixedIpMethodUnsupportedIp
+        "inherited class Unsupported + method ToBeFixed" | ChildInheritsUnsupportedIpMethodToBeFixedIp
+        "inherited class ToBeFixed + method Unsupported" | ChildInheritsToBeFixedIpMethodUnsupportedIp
+        __
+        _ | messagePart
+        _ | "@UnsupportedWithIsolatedProjects on class <SPEC> conflicts with @ToBeFixedForIsolatedProjects on method <SPEC>.featAnnotated()"
+        _ | "@ToBeFixedForIsolatedProjects on class <SPEC> conflicts with @UnsupportedWithIsolatedProjects on method <SPEC>.featAnnotated()"
+        _ | "@UnsupportedWithIsolatedProjects on class ${UnsupportedIpBase.name} conflicts with @ToBeFixedForIsolatedProjects on method <SPEC>.featAnnotated()"
+        _ | "@ToBeFixedForIsolatedProjects on class ${ToBeFixedIpBase.name} conflicts with @UnsupportedWithIsolatedProjects on method <SPEC>.featAnnotated()"
+    }
+
+    // --- CC: class-vs-method conflicts ---
+
+    def "validateFeature rejects CC class-vs-method conflict: #scenario"() {
+        given:
+        Method method = findFeatureMethod(specClass)
+
+        when:
+        GradleModeTestingIntentValidator.validateFeature(specClass, method)
+
+        then:
+        IllegalStateException ex = thrown()
+        assert normalize(ex.message, specClass) == "Conflicting Configuration Cache gating on <SPEC>: ${messagePart}." +
+            " At most one intent annotation of a given mode may be reachable for a feature."
+
+        where:
+        scenario                                         | specClass
+        "class Unsupported + method ToBeFixed"           | ChildClassUnsupportedCcMethodToBeFixedCc
+        "class ToBeFixed + method Unsupported"           | ChildClassToBeFixedCcMethodUnsupportedCc
+        "inherited class Unsupported + method ToBeFixed" | ChildInheritsUnsupportedCcMethodToBeFixedCc
+        "inherited class ToBeFixed + method Unsupported" | ChildInheritsToBeFixedCcMethodUnsupportedCc
+        __
+        _ | messagePart
+        _ | "@UnsupportedWithConfigurationCache on class <SPEC> conflicts with @ToBeFixedForConfigurationCache on method <SPEC>.featAnnotated()"
+        _ | "@ToBeFixedForConfigurationCache on class <SPEC> conflicts with @UnsupportedWithConfigurationCache on method <SPEC>.featAnnotated()"
+        _ | "@UnsupportedWithConfigurationCache on class ${UnsupportedCcBase.name} conflicts with @ToBeFixedForConfigurationCache on method <SPEC>.featAnnotated()"
+        _ | "@ToBeFixedForConfigurationCache on class ${ToBeFixedCcBase.name} conflicts with @UnsupportedWithConfigurationCache on method <SPEC>.featAnnotated()"
+    }
+
+    // --- IP: hierarchy conflicts ---
+
+    def "validateSpec rejects IP hierarchy conflict: #scenario"() {
         when:
         GradleModeTestingIntentValidator.validateSpec(specClass)
 
         then:
         IllegalStateException ex = thrown()
-        for (String expected : expectedMessageFragments) {
-            assert ex.message.contains(expected): "expected fragment '${expected}' in: ${ex.message}"
-        }
+        assert normalize(ex.message, specClass) == "Conflicting Isolated Projects gating on <SPEC>:" +
+            " multiple class-level intent annotations are reachable for this mode, but at most one is allowed.\n" +
+            messagePart
 
         where:
-        scenario                                               | specClass                                  | expectedMessageFragments
-        "hierarchy: child UnsupportedIp over base ToBeFixedIp" | ChildClassUnsupportedIpOverToBeFixedIpBase | ["Isolated Projects", "UnsupportedWithIsolatedProjects", "ToBeFixedForIsolatedProjects"]
-        "hierarchy: child ToBeFixedIp over base UnsupportedIp" | ChildClassToBeFixedIpOverUnsupportedIpBase | ["Isolated Projects", "ToBeFixedForIsolatedProjects", "UnsupportedWithIsolatedProjects"]
-        "same annotation on base and child (hierarchy)"        | ChildClassToBeFixedIpOverToBeFixedIpBase   | ["Isolated Projects", "ToBeFixedForIsolatedProjects"]
+        scenario                                | specClass
+        "child Unsupported over base ToBeFixed" | ChildClassUnsupportedIpOverToBeFixedIpBase
+        "child ToBeFixed over base Unsupported" | ChildClassToBeFixedIpOverUnsupportedIpBase
+        "same annotation on base and child"     | ChildClassToBeFixedIpOverToBeFixedIpBase
+        __
+        _ | messagePart
+        _ | "  - @UnsupportedWithIsolatedProjects on class <SPEC>\n  - @ToBeFixedForIsolatedProjects on class ${ToBeFixedIpBase.name}\n"
+        _ | "  - @ToBeFixedForIsolatedProjects on class <SPEC>\n  - @UnsupportedWithIsolatedProjects on class ${UnsupportedIpBase.name}\n"
+        _ | "  - @ToBeFixedForIsolatedProjects on class <SPEC>\n  - @ToBeFixedForIsolatedProjects on class ${ToBeFixedIpBase.name}\n"
     }
 
-    def "per-class verdict is cached and reused across feature lookups"() {
-        given:
-        Method m1 = findFeatureMethod(ChildInheritingToBeFixedIp)
+    // --- CC: hierarchy conflicts ---
 
+    def "validateSpec rejects CC hierarchy conflict: #scenario"() {
         when:
-        GradleModeTestingIntentValidator.validateFeature(ChildInheritingToBeFixedIp, m1)
-        GradleModeTestingIntentValidator.validateFeature(ChildInheritingToBeFixedIp, m1)
+        GradleModeTestingIntentValidator.validateSpec(specClass)
 
         then:
-        noExceptionThrown()
+        IllegalStateException ex = thrown()
+        assert normalize(ex.message, specClass) == "Conflicting Configuration Cache gating on <SPEC>:" +
+            " multiple class-level intent annotations are reachable for this mode, but at most one is allowed.\n" +
+            messagePart
+
+        where:
+        scenario                                | specClass
+        "child Unsupported over base ToBeFixed" | ChildClassUnsupportedCcOverToBeFixedCcBase
+        "child ToBeFixed over base Unsupported" | ChildClassToBeFixedCcOverUnsupportedCcBase
+        "same annotation on base and child"     | ChildClassToBeFixedCcOverToBeFixedCcBase
+        __
+        _ | messagePart
+        _ | "  - @UnsupportedWithConfigurationCache on class <SPEC>\n  - @ToBeFixedForConfigurationCache on class ${ToBeFixedCcBase.name}\n"
+        _ | "  - @ToBeFixedForConfigurationCache on class <SPEC>\n  - @UnsupportedWithConfigurationCache on class ${UnsupportedCcBase.name}\n"
+        _ | "  - @ToBeFixedForConfigurationCache on class <SPEC>\n  - @ToBeFixedForConfigurationCache on class ${ToBeFixedCcBase.name}\n"
+    }
+
+    // --- Two method-level intents of the same mode ---
+
+    def "validateFeature rejects two IP method-level intents on one method"() {
+        Class<?> specClass = TwoMethodIntentsSameModeIp
+        Method method = findFeatureMethod(specClass)
+
+        when:
+        GradleModeTestingIntentValidator.validateFeature(specClass, method)
+
+        then:
+        IllegalStateException ex = thrown()
+        assert normalize(ex.message, specClass) == "Conflicting Isolated Projects gating on <SPEC>: " +
+            "method <SPEC>.featAnnotated() carries multiple intent annotations for this mode: " +
+            "@ToBeFixedForIsolatedProjects and @UnsupportedWithIsolatedProjects. At most one is allowed."
+    }
+
+    def "validateFeature rejects two CC method-level intents on one method"() {
+        Class<?> specClass = TwoMethodIntentsSameModeCc
+        Method method = findFeatureMethod(specClass)
+
+        when:
+        GradleModeTestingIntentValidator.validateFeature(specClass, method)
+
+        then:
+        IllegalStateException ex = thrown()
+        assert normalize(ex.message, specClass) == "Conflicting Configuration Cache gating on <SPEC>: " +
+            "method <SPEC>.featAnnotated() carries multiple intent annotations for this mode: " +
+            "@ToBeFixedForConfigurationCache and @UnsupportedWithConfigurationCache. At most one is allowed."
+    }
+
+    // --- Expected-message builders ---
+
+
+    private static String normalize(String message, Class<?> specClass) {
+        return message.replace(specClass.name, "<SPEC>")
     }
 
     private static Method findFeatureMethod(Class<?> specClass) {
@@ -230,5 +212,142 @@ class GradleModeTestingIntentValidatorTest extends Specification {
             }
         }
         throw new IllegalStateException("No feature method on ${specClass}")
+    }
+
+    // --- Fixture classes ---
+    //
+    // Base classes carry class-level intents; child classes either inherit cleanly
+    // or add their own class/method-level intents. The "feature methods" are just
+    // regular methods named feat() / featAnnotated().
+
+    static class CleanBase {
+        void feat() {}
+    }
+
+    // -- IP base classes --
+    @ToBeFixedForIsolatedProjects
+    static class ToBeFixedIpBase {
+        void feat() {}
+    }
+
+    @UnsupportedWithIsolatedProjects
+    static class UnsupportedIpBase {
+        void feat() {}
+    }
+
+    // -- CC base classes --
+    @ToBeFixedForConfigurationCache
+    static class ToBeFixedCcBase {
+        void feat() {}
+    }
+
+    @UnsupportedWithConfigurationCache
+    static class UnsupportedCcBase {
+        void feat() {}
+    }
+
+    // -- OK cases --
+    static class CleanChild extends CleanBase {}
+
+    static class ChildWithMethodToBeFixedIp extends CleanBase {
+        @ToBeFixedForIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    static class ChildWithMethodUnsupportedIp extends CleanBase {
+        @UnsupportedWithIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    static class ChildInheritingToBeFixedIp extends ToBeFixedIpBase {}
+
+    static class ChildInheritingUnsupportedIp extends UnsupportedIpBase {}
+
+    // -- Cross-mode (no conflict; different modes do not interfere) --
+    @UnsupportedWithConfigurationCache
+    static class ChildClassCcMethodIp extends CleanBase {
+        @ToBeFixedForIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    // -- IP: class A + method B (same mode) --
+    @UnsupportedWithIsolatedProjects
+    static class ChildClassUnsupportedIpMethodToBeFixedIp extends CleanBase {
+        @ToBeFixedForIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    @ToBeFixedForIsolatedProjects
+    static class ChildClassToBeFixedIpMethodUnsupportedIp extends CleanBase {
+        @UnsupportedWithIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    // -- CC: class A + method B (same mode) --
+    @UnsupportedWithConfigurationCache
+    static class ChildClassUnsupportedCcMethodToBeFixedCc extends CleanBase {
+        @ToBeFixedForConfigurationCache
+        void featAnnotated() {}
+    }
+
+    @ToBeFixedForConfigurationCache
+    static class ChildClassToBeFixedCcMethodUnsupportedCc extends CleanBase {
+        @UnsupportedWithConfigurationCache
+        void featAnnotated() {}
+    }
+
+    // -- IP: inherited class + method on child (same mode) --
+    static class ChildInheritsUnsupportedIpMethodToBeFixedIp extends UnsupportedIpBase {
+        @ToBeFixedForIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    static class ChildInheritsToBeFixedIpMethodUnsupportedIp extends ToBeFixedIpBase {
+        @UnsupportedWithIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    // -- CC: inherited class + method on child (same mode) --
+    static class ChildInheritsUnsupportedCcMethodToBeFixedCc extends UnsupportedCcBase {
+        @ToBeFixedForConfigurationCache
+        void featAnnotated() {}
+    }
+
+    static class ChildInheritsToBeFixedCcMethodUnsupportedCc extends ToBeFixedCcBase {
+        @UnsupportedWithConfigurationCache
+        void featAnnotated() {}
+    }
+
+    // -- IP: hierarchy has two class-level intents (same mode) --
+    @UnsupportedWithIsolatedProjects
+    static class ChildClassUnsupportedIpOverToBeFixedIpBase extends ToBeFixedIpBase {}
+
+    @ToBeFixedForIsolatedProjects
+    static class ChildClassToBeFixedIpOverUnsupportedIpBase extends UnsupportedIpBase {}
+
+    @ToBeFixedForIsolatedProjects
+    static class ChildClassToBeFixedIpOverToBeFixedIpBase extends ToBeFixedIpBase {}
+
+    // -- CC: hierarchy has two class-level intents (same mode) --
+    @UnsupportedWithConfigurationCache
+    static class ChildClassUnsupportedCcOverToBeFixedCcBase extends ToBeFixedCcBase {}
+
+    @ToBeFixedForConfigurationCache
+    static class ChildClassToBeFixedCcOverUnsupportedCcBase extends UnsupportedCcBase {}
+
+    @ToBeFixedForConfigurationCache
+    static class ChildClassToBeFixedCcOverToBeFixedCcBase extends ToBeFixedCcBase {}
+
+    // -- Two method-level intents of the same mode on one method --
+    static class TwoMethodIntentsSameModeIp extends CleanBase {
+        @ToBeFixedForIsolatedProjects
+        @UnsupportedWithIsolatedProjects
+        void featAnnotated() {}
+    }
+
+    static class TwoMethodIntentsSameModeCc extends CleanBase {
+        @ToBeFixedForConfigurationCache
+        @UnsupportedWithConfigurationCache
+        void featAnnotated() {}
     }
 }
