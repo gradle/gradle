@@ -33,6 +33,8 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
             include 'a', 'b', 'c'
         """
         buildFile << """
+            abstract class EmptyService implements BuildService<org.gradle.api.services.BuildServiceParameters.None> {}
+
             allprojects {
                 task ping {
                     def projectName = project.name
@@ -50,7 +52,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         withParallelThreads(2)
 
         buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {}
+            def service = gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {}
 
             allprojects {
                 ping.usesService(service)
@@ -74,7 +76,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         withParallelThreads(2)
 
         buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {
+            def service = gradle.sharedServices.registerIfAbsent("exclusive", EmptyService) {
                 maxParallelUsages = 1
             }
 
@@ -99,7 +101,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         withParallelThreads(2)
 
         buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("service", BuildService) {
+            def service = gradle.sharedServices.registerIfAbsent("service", EmptyService) {
                 maxParallelUsages = 2
             }
 
@@ -124,7 +126,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         withParallelThreads(3)
 
         buildFile << """
-            def service = gradle.sharedServices.registerIfAbsent("service", BuildService) {
+            def service = gradle.sharedServices.registerIfAbsent("service", EmptyService) {
                 maxParallelUsages = 2
             }
 
@@ -149,10 +151,10 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         withParallelThreads(3)
 
         buildFile << """
-            def service1 = gradle.sharedServices.registerIfAbsent("service1", BuildService) {
+            def service1 = gradle.sharedServices.registerIfAbsent("service1", EmptyService) {
                 maxParallelUsages = 2
             }
-            def service2 = gradle.sharedServices.registerIfAbsent("service2", BuildService) {
+            def service2 = gradle.sharedServices.registerIfAbsent("service2", EmptyService) {
                 maxParallelUsages = 3
             }
 

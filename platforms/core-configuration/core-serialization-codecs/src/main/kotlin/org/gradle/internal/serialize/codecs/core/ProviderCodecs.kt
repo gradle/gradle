@@ -188,7 +188,7 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     override suspend fun ReadContext.decode(): RegisteredFlowAction {
         val flowActionClass = readClassOf<FlowAction<FlowParameters>>()
         withFlowActionIsolate(flowActionClass, verifiedIsolateOwner()) {
-            return RegisteredFlowAction(flowActionClass, read()?.uncheckedCast())
+            return RegisteredFlowAction(flowActionClass, readNonNull())
         }
     }
 
@@ -253,7 +253,7 @@ class BuildServiceProviderCodec(
             val implementationType = readClassOf<BuildService<*>>()
             val isResolved = readBoolean()
             if (isResolved) {
-                val parameters = read() as BuildServiceParameters?
+                val parameters = readNonNull<BuildServiceParameters>()
                 val maxUsages = readInt()
                 buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
@@ -313,13 +313,9 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
         // TODO:configuration-cache `encodePreservingSharedIdentityOf` should be unnecessary for shared objects
         encodePreservingSharedIdentityOf(value) {
             value.run {
-                val hasParameters = parametersType != null
                 writeClass(valueSourceType)
-                writeBoolean(hasParameters)
-                if (hasParameters) {
-                    writeClass(parametersType as Class<*>)
-                    write(parameters)
-                }
+                writeClass(parametersType as Class<*>)
+                write(parameters)
             }
         }
     }
@@ -329,16 +325,15 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
         // TODO:configuration-cache `decodePreservingSharedIdentity` should be unnecessary for shared objects
         decodePreservingSharedIdentity {
             val valueSourceType = readClass()
-            val hasParameters = readBoolean()
-            val parametersType = if (hasParameters) readClass() else null
-            val parameters = if (hasParameters) read()!! else null
+            val parametersType = readClass()
+            val parameters = read()!!
 
             val valueSourceProviderFactory = isolate.owner.serviceOf<ValueSourceProviderFactory>()
             val provider =
                 valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
                     valueSourceType.uncheckedCast(),
-                    parametersType?.uncheckedCast(),
-                    parameters?.uncheckedCast()
+                    parametersType.uncheckedCast(),
+                    parameters.uncheckedCast()
                 )
             provider.uncheckedCast()
         }

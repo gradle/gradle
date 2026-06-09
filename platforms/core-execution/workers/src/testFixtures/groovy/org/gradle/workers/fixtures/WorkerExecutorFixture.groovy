@@ -127,9 +127,11 @@ class WorkerExecutorFixture {
                             forkMode = this.forkMode
                         }
                     }).submit(workActionClass) { parameters ->
-                        files = list.collect { it as String }
-                        outputDir = new File(outputFileDirPath)
-                        bar = foo
+                        if (!(parameters instanceof org.gradle.workers.WorkParameters.None)) {
+                            files = list.collect { it as String }
+                            outputDir = new File(outputFileDirPath)
+                            bar = foo
+                        }
                         additionalParameters.call(parameters)
                     }
                 }

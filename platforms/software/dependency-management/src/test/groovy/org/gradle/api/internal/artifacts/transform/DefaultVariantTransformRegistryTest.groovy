@@ -29,6 +29,7 @@ import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.internal.ProblemsInternal
@@ -131,7 +132,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == ParameterlessTestTransform
-        registration.transformStep.transform.isolatedParameters.supplier.parameterObject == null
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject.is(NoneParameters.singletonOf(TransformParameters.None))
     }
 
     def "cannot use TransformParameters as parameter type"() {
@@ -147,33 +148,34 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.message == 'Could not create the parameters for DefaultVariantTransformRegistryTest.UnspecifiedTestTransform: must use a sub-type of TransformParameters as the parameters type. Use TransformParameters.None as the parameters type for implementations that do not take parameters.'
     }
 
-    def "cannot configure parameters for parameterless action"() {
+    def "configure parameters closure runs for parameterless action"() {
+        def observed = null
+
         when:
         registry.registerTransform(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
             it.parameters {
+                observed = it
             }
         }
 
         then:
-        def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=from} to {TEST=to}).'
-        e.cause.message == 'Cannot configure parameters for artifact transform without parameters.'
+        observed.is(NoneParameters.singletonOf(TransformParameters.None))
     }
 
-    def "cannot query parameters object for parameterless action"() {
+    def "query parameters object for parameterless action returns None.INSTANCE"() {
+        def observed = null
+
         when:
         registry.registerTransform(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
-            it.parameters
+            observed = it.parameters
         }
 
         then:
-        def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=from} to {TEST=to})."
-        e.cause.message == 'Cannot query parameters for artifact transform without parameters.'
+        observed.is(NoneParameters.singletonOf(TransformParameters.None))
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
