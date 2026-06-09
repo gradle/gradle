@@ -17,7 +17,6 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -143,7 +142,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior"
     )
-    def "methods defined in a build script are visible to scripts applied to sub projects"() {
+    def "methods defined in a build script are not visible to scripts applied to sub projects"() {
         given:
         settingsFile << """
             rootProject.name = 'root'
@@ -158,17 +157,12 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
         file("sub/build.gradle") << "apply from: 'script.gradle'"
         file("sub/script.gradle") << "someMethod()"
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Method 'someMethod' was not declared in project ':sub' and was resolved from root project 'root'. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
         when:
-        run "help"
+        fails "help"
 
         then:
-        output.contains("from some method")
+        failure.assertHasCause("Could not find method someMethod() for arguments [] on project ':sub' of type org.gradle.api.Project.")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3082")
@@ -212,7 +206,6 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("unable to resolve class Foo"))
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Investigate")
     def "script plugin buildscript does not affect client"() {
         given:
         def jar = file("plugin.jar")
@@ -249,7 +242,8 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
         file("sub/build.gradle") << """
             try {
-                getClass().classLoader.loadClass(pluginClass.name)
+                // The plugin class is referenced by name; pluginClass is not inherited from the root project.
+                getClass().classLoader.loadClass("org.gradle.test.TestPlugin")
                 assert false
             } catch (ClassNotFoundException ignore) {
                 println "not in sub"
@@ -257,11 +251,6 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
                 getClass().classLoader.close()
             }
         """
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Property 'pluginClass' was not declared in project ':sub' and was resolved from root project 'root'. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
         when:
         succeeds "hello"

@@ -91,10 +91,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.internal.buildoption.FeatureFlags;
-import org.gradle.internal.buildoption.InternalOption;
-import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -107,7 +103,6 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
@@ -150,7 +145,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -166,18 +160,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
     private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
-
-    /**
-     * Internal flag that, when set, makes any property or method that resolves through the
-     * parent-project chain throw {@link org.gradle.api.InvalidUserCodeException} at the lookup
-     * site. Used as a CI-side enforcement / pre-flight-check mechanism for the eventual
-     * Gradle 10 behavior in which parent-project lookup is removed entirely.
-     *
-     * <p>Wired into {@link ExtensibleDynamicObject#setFailOnParentAccess(boolean)} on every
-     * Project that has a parent.
-     */
-    public static final InternalOption<Boolean> FAIL_ON_PARENT_PROPERTY_LOOKUP =
-        InternalOptions.ofBoolean("org.gradle.internal.fail-on-parent-property-lookup", false);
 
     private final ProjectState owner;
     private final ClassLoaderScope classLoaderScope;
@@ -263,18 +245,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
-        if (parentInherited != null) {
-            // The NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS feature preview opts Vintage builds into the
-            // eventual Gradle 10 behavior early: don't wire the parent at all, so the parent walk
-            // (and therefore the deprecation) does not fire. Under Isolated Projects, no parent is
-            // inherited in the first place.
-            boolean noImplicitParentLookup = services.get(FeatureFlags.class).isEnabled(FeaturePreviews.Feature.NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS);
-            if (!noImplicitParentLookup) {
-                extensibleDynamicObject.setParent(parentInherited);
-                extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
-            }
-        }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         ProjectFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(ProjectFeatureApplicator.class), services.get(ProjectFeatureDeclarations.class), getObjects());
@@ -459,11 +429,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public DynamicObject getAsDynamicObject() {
         return extensibleDynamicObject;
-    }
-
-    @Override
-    public HierarchicalDynamicObject getInheritedScope() {
-        return extensibleDynamicObject.getInheritable();
     }
 
     @Override
@@ -1161,8 +1126,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
-        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.GET_PROPERTY,
-            () -> extensibleDynamicObject.getProperty(propertyName));
+        return property(propertyName);
     }
 
     /**
@@ -1185,17 +1149,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Nullable
     public Object property(String propertyName) throws MissingPropertyException {
-        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.PROPERTY,
-            () -> extensibleDynamicObject.getProperty(propertyName));
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     @Override
     @Nullable
     public Object findProperty(String propertyName) {
-        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.FIND_PROPERTY, () -> {
-            DynamicInvokeResult result = extensibleDynamicObject.tryGetProperty(propertyName);
-            return result.isFound() ? result.getValue() : null;
-        });
+        DynamicInvokeResult result = extensibleDynamicObject.tryGetProperty(propertyName);
+        return result.isFound() ? result.getValue() : null;
     }
 
     @Override
@@ -1205,18 +1166,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public boolean hasProperty(String propertyName) {
-        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.HAS_PROPERTY,
-            () -> extensibleDynamicObject.hasProperty(propertyName));
-    }
-
-    private <T> T withCallerContext(ExtensibleDynamicObject.CallerContext context, Supplier<T> action) {
-        ExtensibleDynamicObject.CallerContext previous = extensibleDynamicObject.getCallerContext();
-        extensibleDynamicObject.setCallerContext(context);
-        try {
-            return action.get();
-        } finally {
-            extensibleDynamicObject.setCallerContext(previous);
-        }
+        return extensibleDynamicObject.hasProperty(propertyName);
     }
 
     @SuppressWarnings("deprecation")

@@ -70,7 +70,6 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
-import org.gradle.internal.metaobject.HierarchicalDynamicObject
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
@@ -141,11 +140,6 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun taskGraphForProject(referrer: ProjectIdentity, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
         return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrer, ipProblems, this, coupledProjectsListener, projectStateLookup)
-    }
-
-    override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
-        // Isolated Projects: parent-walk is disabled to match Gradle 10 behavior.
-        return null
     }
 
     private

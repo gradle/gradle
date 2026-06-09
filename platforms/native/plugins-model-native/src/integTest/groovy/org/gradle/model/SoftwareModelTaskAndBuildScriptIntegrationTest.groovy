@@ -17,8 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class SoftwareModelTaskAndBuildScriptIntegrationTest extends AbstractIntegrationSpec {
 
@@ -38,8 +36,7 @@ class SoftwareModelTaskAndBuildScriptIntegrationTest extends AbstractIntegration
         result.assertTasksScheduled(":sayHelloToUser")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
-    def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
+    def "methods defined in project build script are not visible to descendant projects when script contains only methods and model block"() {
         createDirs("child1")
         settingsFile << """
 rootProject.name = 'root'
@@ -61,28 +58,7 @@ println "child: " + doSomething(11)
 """
 
         expect:
-        // Invoke twice to exercise script caching
-        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
-        succeeds("hello")
-        outputContains("child: 11")
-
-        and:
-        if (GradleContextualExecuter.notConfigCache) {
-            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
-        }
-        succeeds("hello")
-        if (GradleContextualExecuter.notConfigCache) {
-            outputContains("child: 11")
-        } else {
-            outputDoesNotContain("child:")
-        }
-    }
-
-    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
-        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
+        fails("hello")
+        failure.assertHasCause("Could not find method doSomething() for arguments [11] on project ':child1' of type org.gradle.api.Project.")
     }
 }
