@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
-@ToBeFixedForIsolatedProjects(because = "allprojects")
+@ToBeFixedForIsolatedProjects(because = "allprojects, project(':foo'), etc")
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
     abstract boolean isUseJar()
 
