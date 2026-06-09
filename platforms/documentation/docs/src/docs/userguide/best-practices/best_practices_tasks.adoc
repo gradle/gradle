@@ -693,7 +693,7 @@ Additionally, because the `Project` object is not accessed after configuration, 
 
 === References
 
-- <<configuration_cache.adoc#config_cache:requirements:use_project_during_execution,Configuration Cache Requirements>>
+- <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,Configuration Cache Requirements>>
 
 === Tags
 
