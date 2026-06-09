@@ -28,6 +28,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.InPlaceClasspathBuilder
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
@@ -75,14 +76,11 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
-import java.io.BufferedOutputStream
 import java.io.Closeable
 import java.io.File
-import java.io.FileOutputStream
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
-import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 
@@ -129,9 +127,9 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                     inputFingerprinter,
                     workspaceProvider,
                     isDclEnabledForScriptTarget(scriptTarget),
-            cachingDisabled,
-        )
-         executionEngine.createRequest(work)
+                    cachingDisabled,
+                )
+                executionEngine.createRequest(work)
                     .execute()
                     .getOutputAs(AccessorsClassPath::class.java)
                     .get()
@@ -185,12 +183,6 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
-
-        /**
-         * Bump this version when the output format changes to invalidate
-         * existing workspaces that used a different layout (e.g. directories vs JARs).
-         */
-        const val OUTPUT_FORMAT_VERSION = 2
     }
 
     override fun getBuildOperationWorkType(): Optional<String> {
@@ -226,7 +218,6 @@ class GenerateProjectAccessors(
 
     override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
         val hasher = Hashing.newHasher()
-        hasher.putInt(OUTPUT_FORMAT_VERSION)
         requireNotNull(scalarInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
         requireNotNull(scalarInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(fileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
@@ -302,7 +293,7 @@ fun IO.buildAccessorsFor(
 }
 
 
-fun buildAccessorsToJars(
+internal fun buildAccessorsToJars(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     classesJar: File,
@@ -311,8 +302,9 @@ fun buildAccessorsToJars(
     format: AccessorFormat = AccessorFormats.default
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-    ZipOutputStream(BufferedOutputStream(FileOutputStream(classesJar))).use { classesOut ->
-        ZipOutputStream(BufferedOutputStream(FileOutputStream(sourcesJar))).use { sourcesOut ->
+    val classpathBuilder = InPlaceClasspathBuilder()
+    classpathBuilder.jar(classesJar) { classesOut ->
+        classpathBuilder.jar(sourcesJar) { sourcesOut ->
             emitAccessorsToJars(
                 availableSchema,
                 classesOut,
@@ -764,17 +756,25 @@ fun IO.writeAccessorsTo(
     packageName: String = KOTLIN_DSL_PACKAGE_NAME
 ) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
-        if (imports.isNotEmpty()) {
-            imports.forEach {
-                appendReproducibleNewLine("import $it")
-            }
-            appendReproducibleNewLine()
+        appendImportsAndAccessors(packageName, imports, accessors)
+    }
+}
+
+internal fun Appendable.appendImportsAndAccessors(
+    packageName: String,
+    imports: List<String>,
+    accessors: Iterable<String>
+) {
+    appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
+    if (imports.isNotEmpty()) {
+        imports.forEach {
+            appendReproducibleNewLine("import $it")
         }
-        accessors.forEach {
-            appendReproducibleNewLine(it)
-            appendReproducibleNewLine()
-        }
+        appendReproducibleNewLine()
+    }
+    accessors.forEach {
+        appendReproducibleNewLine(it)
+        appendReproducibleNewLine()
     }
 }
 
