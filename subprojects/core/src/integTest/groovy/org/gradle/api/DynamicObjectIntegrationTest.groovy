@@ -29,7 +29,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Project ':child' Reporter accesses the project model")
     def canAddDynamicPropertiesToProject() {
         createDirs("child")
         settingsFile """
@@ -73,7 +72,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         succeeds("testTask")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Project ':child' Reporter accesses the project model")
     def canAddDynamicMethodsToProject() {
         createDirs("child")
         settingsFile """
