@@ -142,9 +142,9 @@ The Configuration Cache serializes a fixed set of standard collection, set, map,
 These types, and Guava's immutable collections (`ImmutableList`, `ImmutableSet`, `ImmutableMap`), are stored and restored faithfully.
 
 A _custom_ subtype of one of the standard types above (for example, `class MyList extends ArrayList<String> {}`) cannot be restored as its own type: it is restored as the nearest standard type instead.
-Any state or behavior added by the custom type — extra fields, overridden methods — is silently lost.
+Any state or behavior added by the custom type — extra fields, overridden methods — is lost.
 
-To avoid the problem, do not reference a custom collection or map subtype from task fields or task actions.
+Referencing a custom collection or map subtype from task fields or task actions is deprecated and will become an error in Gradle 10.
 Use a standard collection type (for example, a plain `ArrayList` or `LinkedHashMap`) and hold any extra data in separate, explicitly serialized fields.
 
 [[config_cache:requirements:use_project_during_execution]]

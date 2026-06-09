@@ -93,7 +93,7 @@ If you have custom code that branched on `getParameters() == null` to detect a p
 ==== Deprecation of serializing custom collection and map types with the configuration cache
 
 The configuration cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
-A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, silently losing any state or behavior the custom type adds.
+A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, losing any state or behavior the custom type adds.
 
 Referencing such a custom subtype from a task field or task action is now deprecated.
 It is reported as a configuration cache problem and will become an error in Gradle 10.
