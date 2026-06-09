@@ -278,7 +278,7 @@ The Configuration Cache eliminates this contention by giving each task an isolat
 This complements Gradle's existing `--parallel` flag, which executes tasks across *different* projects in parallel.
 With the Configuration Cache, parallelism applies *within* a single project as well.
 
-IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially should properly wire task inputs and outputs to enforce task order or use <<build_services.adoc#accessing_the_build_service_concurrently, shared build services>> to coordinate access to shared resources.
+IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially should properly wire task inputs and outputs to enforce task order or use <<build_services.adoc#sec:accessing_the_build_service_concurrently, shared build services>> to coordinate access to shared resources.
 
 === Cached Dependency Resolution
 
@@ -333,7 +333,7 @@ However, anything with access to both the cache directory and the encryption key
 
 System properties and environment variables referenced during the configuration phase are recorded in the fingerprint.
 If credentials are passed through these mechanisms, their values become part of the stored data.
-Use lazy wiring, like `providers.environmentVariable`, to feed sensitive data to tasks and only obtain the values at execution time.
+Use lazy wiring, like link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[`providers.environmentVariable()`], to feed sensitive data to tasks and only obtain the values at execution time.
 
 To reduce the risk of exposing sensitive values through the Configuration Cache:
 

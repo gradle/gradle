@@ -642,7 +642,7 @@ To further enhance security, follow these recommendations:
 The content of this file is **not** included in the Configuration Cache — only its fingerprint is.
 If storing secrets in this file, ensure access is **properly restricted**.
 - **Use the <<supported_repository_protocols.adoc#sec:handling-credentials, Gradle credentials API>>** for repository authentication, so that credential values are looked up from Gradle properties rather than hardcoded in build scripts.
-- **Use lazy wiring** like `providers.environmentVariable` to feed sensitive data to tasks and only obtain the values at execution time, keeping them out of the serialized task graph.
+- **Use lazy wiring** like link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[`providers.environmentVariable()`] to feed sensitive data to tasks and only obtain the values at execution time, keeping them out of the serialized task graph.
 - **Mark fields holding runtime secrets as `transient`** if the value is not needed after deserialization.
 - **Restrict access** to the `.gradle/configuration-cache` directory and the encryption key in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
 
