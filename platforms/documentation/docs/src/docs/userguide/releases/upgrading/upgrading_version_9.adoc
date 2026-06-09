@@ -87,6 +87,21 @@ Null-checks against the result are no longer required.
 No source change is needed in typical builds.
 If you have custom code that branched on `getParameters() == null` to detect a parameterless action, replace it with `getParameters() instanceof WorkParameters.None` (or the equivalent `None` type).
 
+=== Deprecations
+
+[[deprecated_custom_collection_types_with_cc]]
+==== Deprecation of serializing custom collection and map types with the configuration cache
+
+The configuration cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
+A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, silently losing any state or behavior the custom type adds.
+
+Referencing such a custom subtype from a task field or task action is now deprecated.
+It is reported as a configuration cache problem and will become an error in Gradle 10.
+
+To fix it, use a standard collection or map type instead of a custom subtype, and store any extra data in separate fields.
+
+See <<configuration_cache_requirements.adoc#config_cache:requirements:custom_collection_types, Custom Collection and Map Types>> for details.
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
