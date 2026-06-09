@@ -507,8 +507,10 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29154")
-    @ToBeFixedForIsolatedProjects(because = "-x is not IP compatible")
+    @ToBeFixedForIsolatedProjects(
+        because = "-x is not IP compatible",
+        issue = "https://github.com/gradle/gradle/issues/29154"
+    )
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
         createDirs("a", "b", "c", "c/child")
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
@@ -548,8 +550,10 @@ project(':b') {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29154")
-    @ToBeFixedForIsolatedProjects(because = "-x is not IP compatible")
+    @ToBeFixedForIsolatedProjects(
+        because = "-x is not IP compatible",
+        issue = "https://github.com/gradle/gradle/issues/29154"
+    )
     def "configures all subprojects of default project when excluded task path is not qualified and an exact match not found in default project"() {
         createDirs("a", "b", "c", "c/child")
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
@@ -587,8 +591,10 @@ allprojects {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29154")
-    @ToBeFixedForIsolatedProjects(because = "-x is not IP compatible")
+    @ToBeFixedForIsolatedProjects(
+        because = "-x is not IP compatible",
+        issue = "https://github.com/gradle/gradle/issues/29154"
+    )
     def "configures all subprojects of default projects when excluded task path is not qualified and uses camel case matching"() {
         createDirs("a", "b", "b/child", "c")
         settingsFile << "include 'a', 'b', 'b:child', 'c'"
