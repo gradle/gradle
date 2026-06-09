@@ -34,6 +34,7 @@ import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
@@ -69,6 +70,14 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
+    /**
+     * Notified when {@link #takeOwnership} must block waiting for in-process cache ownership,
+     * so the blocked thread can release its worker lease and project locks for the duration of
+     * the wait (see {@link org.gradle.internal.concurrent.BlockingNotifier}). Defaults to
+     * {@link BlockingNotifier#NO_NOTIFICATION} when there is no live session to compensate.
+     */
+    private final BlockingNotifier blockingNotifier;
+
     private ManagedExecutor cacheUpdateExecutor;
     private ExclusiveCacheAccessingWorker cacheAccessWorker;
     private final Lock stateLock = new ReentrantLock(); // protects the following state
@@ -83,10 +92,15 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private boolean alreadyCleaned;
 
     public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
+        this(cacheDisplayName, lockTarget, lockOptions, baseDir, lockManager, initializationAction, cleanupAction, executorFactory, BlockingNotifier.NO_NOTIFICATION);
+    }
+
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory, BlockingNotifier blockingNotifier) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
         this.executorFactory = executorFactory;
+        this.blockingNotifier = blockingNotifier;
         this.operations = new CacheAccessOperationsStack();
 
         Consumer<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
@@ -245,19 +259,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     @Override
     public <T> T useCache(Supplier<? extends T> factory) {
-        boolean wasStarted;
-        stateLock.lock();
-        try {
-            takeOwnership();
-            try {
-                wasStarted = onStartWork();
-            } catch (Throwable t) {
-                releaseOwnership();
-                throw UncheckedException.throwAsUncheckedException(t);
-            }
-        } finally {
-            stateLock.unlock();
-        }
+        boolean wasStarted = acquireOwnershipAndStartWork();
         try {
             return factory.get();
         } finally {
@@ -273,6 +275,52 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             } finally {
                 stateLock.unlock();
             }
+        }
+    }
+
+    /**
+     * Takes cache ownership and starts work, returning whether this call started the unit of work.
+     *
+     * <p>When ownership is uncontended (cache free or already owned by this thread) this happens
+     * inline on the fast path and the {@link #blockingNotifier} is never consulted. When another
+     * thread owns the cache, the wait is performed inside {@link BlockingNotifier#blocking}, which
+     * drops this thread's worker lease and project locks for the duration of the wait and
+     * reacquires them only after {@code stateLock} has been released again — avoiding a
+     * lock-order inversion between {@code stateLock} and the project locks.
+     */
+    private boolean acquireOwnershipAndStartWork() {
+        stateLock.lock();
+        try {
+            if (owner == null || owner == Thread.currentThread()) {
+                return takeOwnershipAndStartWork();
+            }
+        } finally {
+            stateLock.unlock();
+        }
+        // Contended: stateLock is released, so wait via the notifier and let it drop this
+        // thread's worker lease and project locks while blocked, reacquiring them only after
+        // the lambda below releases stateLock again.
+        return blockingNotifier.blocking(() -> {
+            stateLock.lock();
+            try {
+                return takeOwnershipAndStartWork();
+            } finally {
+                stateLock.unlock();
+            }
+        });
+    }
+
+    /**
+     * Waits until the current thread can take ownership, then starts the unit of work.
+     * Must be called while holding the lock.
+     */
+    private boolean takeOwnershipAndStartWork() {
+        takeOwnership();
+        try {
+            return onStartWork();
+        } catch (Throwable t) {
+            releaseOwnership();
+            throw UncheckedException.throwAsUncheckedException(t);
         }
     }
 

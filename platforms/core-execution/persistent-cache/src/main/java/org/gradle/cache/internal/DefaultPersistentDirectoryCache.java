@@ -22,6 +22,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,21 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         FileLockManager lockManager,
         ExecutorFactory executorFactory
     ) {
-        super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
+        this(dir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory, BlockingNotifier.NO_NOTIFICATION);
+    }
+
+    public DefaultPersistentDirectoryCache(
+        File dir,
+        String displayName,
+        Map<String, ?> properties,
+        LockOptions lockOptions,
+        Consumer<? super PersistentCache> initAction,
+        CacheCleanupStrategy cacheCleanupStrategy,
+        FileLockManager lockManager,
+        ExecutorFactory executorFactory,
+        BlockingNotifier blockingNotifier
+    ) {
+        super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, blockingNotifier);
         this.initAction = initAction;
         this.properties.putAll(properties);
     }

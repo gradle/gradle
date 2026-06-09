@@ -21,6 +21,7 @@ import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.UnknownModuleException;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.internal.CacheBlockingNotifier;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -50,7 +51,7 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
 
     @Provides
     @Override
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner, CacheBlockingNotifier cacheBlockingNotifier) {
         return new TestInMemoryCacheFactory();
     }
 

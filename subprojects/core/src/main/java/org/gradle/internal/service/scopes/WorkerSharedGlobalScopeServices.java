@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
+import org.gradle.cache.internal.CacheBlockingNotifier;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -99,8 +100,13 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory);
+    CacheBlockingNotifier createCacheBlockingNotifier() {
+        return new CacheBlockingNotifier();
+    }
+
+    @Provides
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner, CacheBlockingNotifier cacheBlockingNotifier) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory, cacheBlockingNotifier);
     }
 
     @Provides

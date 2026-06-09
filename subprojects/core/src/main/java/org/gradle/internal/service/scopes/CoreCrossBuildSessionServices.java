@@ -41,8 +41,8 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.work.CacheNotifyingWorkerLeaseService;
 import org.gradle.internal.work.DefaultResourceLockStatistics;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.ResourceLockStatistics;
@@ -54,7 +54,7 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     @Provides
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
-        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
+        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, CacheNotifyingWorkerLeaseService.class);
     }
 
     @Provides

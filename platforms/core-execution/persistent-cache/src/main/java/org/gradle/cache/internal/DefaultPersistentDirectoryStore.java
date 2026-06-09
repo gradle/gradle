@@ -22,6 +22,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.jspecify.annotations.Nullable;
@@ -41,6 +42,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
+    private final BlockingNotifier blockingNotifier;
     private final String displayName;
 
     protected final File propertiesFile;
@@ -57,10 +59,23 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         FileLockManager fileLockManager,
         ExecutorFactory executorFactory
     ) {
+        this(dir, displayName, lockOptions, cacheCleanupStrategy, fileLockManager, executorFactory, BlockingNotifier.NO_NOTIFICATION);
+    }
+
+    public DefaultPersistentDirectoryStore(
+        File dir,
+        @Nullable String displayName,
+        LockOptions lockOptions,
+        CacheCleanupStrategy cacheCleanupStrategy,
+        FileLockManager fileLockManager,
+        ExecutorFactory executorFactory,
+        BlockingNotifier blockingNotifier
+    ) {
         this.dir = dir;
         this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
+        this.blockingNotifier = blockingNotifier;
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
@@ -81,7 +96,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), cleanupExecutor, executorFactory);
+        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), cleanupExecutor, executorFactory, blockingNotifier);
     }
 
     private File getLockTarget() {
