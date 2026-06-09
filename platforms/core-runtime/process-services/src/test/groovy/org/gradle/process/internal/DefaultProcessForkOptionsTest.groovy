@@ -71,7 +71,7 @@ class DefaultProcessForkOptionsTest extends Specification {
         options.copyTo(target)
 
         then:
-        target.getWorkingDir().asFile.get() == baseDir.absoluteFile
+        target.getWorkingDirectory().asFile.get() == baseDir.absoluteFile
         target.getExecutable().get() == 'executable'
         target.getEnvironment().get() == [key: '12']
     }

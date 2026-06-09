@@ -64,7 +64,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
         task.applicationName.get() == project.application.applicationName.get()
-        task.outputDir.getAsFile().get() == project.file('build/scripts')
+        task.outputDirectory.getAsFile().get() == project.file('build/scripts')
         task.defaultJvmOpts.get() == []
         task.gitRef.get() == DefaultGradleVersion.current().getScriptTemplateGitRevision()
     }
