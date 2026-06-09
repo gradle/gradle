@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -173,7 +175,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         // Need to wait for work to complete, so release worker lease while waiting
-        workerLeases.blocking(() -> {
+        // We purposefully only drop the project lock if the work might need it (allowAccessToProjectState)
+        withProjectLockChangePolicy(Factories.toFactory(() -> workerLeases.blocking(() -> {
             lock.lock();
             try {
                 // Wait for any work still running in other threads
@@ -189,7 +192,21 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             } finally {
                 lock.unlock();
             }
-        });
+        })));
+    }
+
+    /**
+     * Runs the given work, disallowing changes to the set of project locks held by the current
+     * thread unless this queue's operations are allowed to access project state.
+     *
+     * <p>See <a href="https://github.com/gradle/gradle/issues/38154">gradle/gradle#38154</a> and
+     * {@link org.gradle.internal.resources.ProjectLeaseRegistry#whileDisallowingProjectLockChanges}.
+     */
+    private <R> R withProjectLockChangePolicy(Factory<R> factory) {
+        if (allowAccessToProjectState) {
+            return factory.create();
+        }
+        return workerLeases.whileDisallowingProjectLockChanges(factory);
     }
 
     private void markFinished() {
@@ -343,21 +360,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private int executePendingWork() {
-            if (allowAccessToProjectState) {
-                return doRunBatch();
-            } else {
-                // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
-                // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
-                // holds without causing a deadlock. This in turn implies that this thread does not need to release the project locks it holds while
-                // blocking waiting for an operation to complete and does not need to deal with another thread stealing its project lock(s) while blocking.
-                //
-                // Eventually, this should become the default and only behaviour for all worker threads and changes to locks made only when starting or
-                // finishing an execution node. Adding this constraint here means that we can make all build operation queue workers compliant with this
-                // constraint and then gradually roll this out to other worker threads, such as task action workers.
-                //
-                // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
-                return workerLeases.whileDisallowingProjectLockChanges(this::doRunBatch);
-            }
+            return withProjectLockChangePolicy(this::doRunBatch);
         }
 
         /**
