@@ -211,7 +211,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
-            StartParameter startParameter,
+            StartParameterInternal startParameter,
             FailureFactory failureFactory,
             ProblemsInternal problemsService,
             ProblemStream problemStream,

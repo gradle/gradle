@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.exec
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
@@ -51,7 +51,7 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             listener,
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
-            Stub(StartParameter),
+            Stub(StartParameterInternal),
             Stub(ProblemStream),
             buildStateRegistry,
             buildActionRunner
@@ -77,7 +77,7 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             Stub(BuildTreeLifecycleListener),
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
-            Stub(StartParameter),
+            Stub(StartParameterInternal),
             Stub(ProblemStream),
             buildStateRegistry,
             Mock(BuildActionRunner)
