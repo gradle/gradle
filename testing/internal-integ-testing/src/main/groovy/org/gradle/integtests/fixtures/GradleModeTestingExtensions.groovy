@@ -35,6 +35,11 @@ final class GradleModeTestingExtensions {
         )
 
         @Override
+        void visitSpecAnnotation(ToBeFixedForConfigurationCache annotation, SpecInfo spec) {
+            adapter.applyAtSpec(annotation, spec)
+        }
+
+        @Override
         void visitFeatureAnnotation(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
             adapter.applyAtFeature(annotation, feature)
         }

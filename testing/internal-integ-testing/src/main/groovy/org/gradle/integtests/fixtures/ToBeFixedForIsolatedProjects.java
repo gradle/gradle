@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
  * Set {@link #skip()} into any other value apart from {@link Skip#DO_NOT_SKIP DO_NOT_SKIP} to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(GradleModeTestingExtensions.ToBeFixedForIP.class)
 @GradleModeTestingIntent(mode = GradleModeTesting.ISOLATED_PROJECTS, kind = GradleModeTestingIntent.Kind.TO_BE_FIXED)
 public @interface ToBeFixedForIsolatedProjects {
