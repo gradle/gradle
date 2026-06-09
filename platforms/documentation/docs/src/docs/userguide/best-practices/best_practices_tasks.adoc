@@ -563,7 +563,7 @@ Now when running `consumer` task, then `greeterB`, the `consumer` task remains `
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
 
 [[dont_hardcode_task_names]]
-== Don’t hardcode Task names unless they are documented as Public API
+== Don't hardcode Task names unless they are documented as Public API
 
 Hardcoding task names can make a build fragile when upgrading Gradle or third-party plugins.
 
@@ -571,7 +571,7 @@ Hardcoding task names can make a build fragile when upgrading Gradle or third-pa
 
 Some task names in Gradle are part of the <<public_apis.adoc#public_gradle_apis,Gradle public API>> and are stable.
 Most other task names in Gradle and third-party plugins are internal implementation details. They may be renamed or removed in future versions and should not be relied upon.
-Task types are also not guaranteed to remain stable; plugin authors may refactor them. 
+Task types are also not guaranteed to remain stable; plugin authors may refactor them.
 
 In practice, configuring tasks by type is usually more robust than depending on specific names, especially in ecosystems like Android or Kotlin where many tasks are generated dynamically.
 
@@ -629,3 +629,72 @@ include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:upgrades,#upgrades>>`
+
+[[dont_access_project_instance_inside_task]]
+== Don't access a `Project` instance during Task Execution
+
+Do not access a `Project` instance inside a task action or task property.
+
+=== Explanation
+
+Accessing the `Project` instance during task execution is not compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and should be avoided.
+Alternatives exist for almost every use case involving data or operations from the `Project` object:
+
+- Specify the data you were previously retrieving from the `Project` instance as an explicit task input.
+- Use similar functionality already exposed through the `Task` object (e.g., `Task.getLogger()` instead of `Project.getLogger()`).
+- Capture `Project` values in a local variable during task configuration, which can then be referenced during execution.
+
+NOTE: Accessing the `Project` instance during _task configuration_ is expected and safe — this is how you wire task input properties to project properties.
+The problem arises when `Project` is accessed during _task execution_ (e.g., inside `@TaskAction` or `doLast`).
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Reading `project.version` in a task action*: Inside the task's action, the `Project` instance is accessed to read the `version` property.
+
+There are two main problems with this setup:
+
+1. Accessing the `Project` instance during task execution will cause Configuration Cache failures.
+2. Because the version is not declared as a task input, Gradle cannot track it. This leads to incorrect up-to-date results if the project version changes.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/dontAccessProject-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/dontAccessProject-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+To ensure compatibility, avoid accessing the `Project` instance during task execution.
+Instead, tasks should explicitly declare all required inputs.
+
+====
+include::sample[dir="snippets/bestPractices/dontAccessProject-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/dontAccessProject-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Declare the version as an input property*: This allows Gradle to track the version string for up-to-date checks.
+<2> *Assign the version during configuration*: It is safe to read `project.version` during the configuration phase to assign it to a task input.
+<3> *Set the output location*: Use `project.layout` during configuration to define the task's output directory.
+
+Now, when running the task, there are no "hidden inputs" that Gradle cannot track.
+This ensures that up-to-date checks accurately determine when a task needs to run again.
+Additionally, because the `Project` object is not accessed after configuration, the Configuration Cache will function correctly.
+
+=== References
+
+- <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,Configuration Cache Requirements>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
