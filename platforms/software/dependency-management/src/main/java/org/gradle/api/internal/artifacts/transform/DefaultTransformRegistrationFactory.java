@@ -100,7 +100,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     }
 
     @Override
-    public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
+    public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         ProblemsInternal problems = (ProblemsInternal) internalServices.get(ProblemsInternal.class);

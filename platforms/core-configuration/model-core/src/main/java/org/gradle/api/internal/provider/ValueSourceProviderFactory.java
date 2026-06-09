@@ -43,8 +43,8 @@ public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        @Nullable Class<P> parametersType,
-        @Nullable P parameters
+        Class<P> parametersType,
+        P parameters
     );
 
     /**
@@ -76,10 +76,8 @@ public interface ValueSourceProviderFactory {
 
             Class<? extends ValueSource<T, P>> getValueSourceType();
 
-            @Nullable
             Class<P> getValueSourceParametersType();
 
-            @Nullable
             P getValueSourceParameters();
         }
     }

@@ -36,6 +36,8 @@ import org.gradle.internal.configuration.problems.DefaultIsolatedProjectsProblem
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.Provides
@@ -49,7 +51,10 @@ import java.util.function.Consumer
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scope.Build)
-    def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
+    def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
+    }
+    def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
     def ipProblemsReporter = new DefaultIsolatedProjectsProblemsReporter(
@@ -226,7 +231,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can tweak max parallel usage via the registration"() {
         when:
-        registerService("service", BuildService) {
+        registerService("service", NoParamsServiceImpl) {
             it.maxParallelUsages = 42
         }
         def registration = registry.registrations.getByName("service")
@@ -253,7 +258,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can use base service type to create a service with no state"() {
         when:
-        def provider = registerService("service", BuildService)
+        def provider = registerService("service", NoParamsServiceImpl)
         def service = provider.get()
 
         then:
@@ -262,7 +267,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "registration for service with no state is visible"() {
         when:
-        registerService("service", BuildService)
+        registerService("service", NoParamsServiceImpl)
 
         then:
         registry.registrations.getByName("service") != null
@@ -336,7 +341,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can locate resource corresponding to service registration"() {
         when:
-        def service1 = registerService("service", BuildService) {
+        def service1 = registerService("service", NoParamsServiceImpl) {
             it.maxParallelUsages = 42
         }
         def service2 = registerService("no-max", ServiceImpl)
