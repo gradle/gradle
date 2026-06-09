@@ -67,6 +67,7 @@ import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
@@ -323,18 +324,21 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
     private
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         // TODO:configuration-cache `decodePreservingSharedIdentity` should be unnecessary for shared objects
-        decodePreservingSharedIdentity {
+        decodePreservingIdentity(sharedIdentities) { id ->
             val valueSourceType = readClass()
             val parametersType = readClass()
-            val parameters = read()!!
 
+            val readContext = this
             val valueSourceProviderFactory = isolate.owner.serviceOf<ValueSourceProviderFactory>()
-            val provider =
-                valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
-                    valueSourceType.uncheckedCast(),
-                    parametersType.uncheckedCast(),
-                    parameters.uncheckedCast()
-                )
+            val provider = valueSourceProviderFactory.instantiateValueSourceProviderForDeserialization<Any, ValueSourceParameters>(
+                valueSourceType.uncheckedCast(),
+                parametersType.uncheckedCast()
+            ) { providerInstance ->
+                readContext.runReadOperation {
+                    sharedIdentities.putInstance(id, providerInstance)
+                    read()!!.uncheckedCast()
+                }
+            }
             provider.uncheckedCast()
         }
 }

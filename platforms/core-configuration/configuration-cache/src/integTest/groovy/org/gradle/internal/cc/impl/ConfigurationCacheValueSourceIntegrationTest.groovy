@@ -927,4 +927,64 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         and:
         configurationCache.assertStateLoaded()
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/32828")
+    def "value source whose parameters reference an extension's nested bean does not deadlock on store/load"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            import javax.inject.Inject
+
+            abstract class B {
+                abstract Property<String> getName()
+            }
+
+            abstract class A {
+                @Nested abstract B getB()
+
+                final Provider<String> calculated
+
+                @Inject
+                A(ProviderFactory providers) {
+                    getB().name.convention("hi")
+                    calculated = providers.of(MySrc) { spec ->
+                        spec.parameters.b.set(getB())
+                    }
+                }
+            }
+
+            abstract class MySrc implements ValueSource<String, Params> {
+                interface Params extends ValueSourceParameters {
+                    @Nested Property<B> getB()
+                }
+                String obtain() {
+                    parameters.b.get().name.get() + "!"
+                }
+            }
+
+            abstract class ShowTask extends DefaultTask {
+                @Input abstract Property<String> getValue()
+                @TaskAction void run() { println("v=" + value.get()) }
+            }
+
+            def aInstance = objects.newInstance(A)
+            tasks.register("show", ShowTask) {
+                value = aInstance.calculated
+            }
+        """
+
+        when:
+        configurationCacheRun "show"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("v=hi!")
+
+        when:
+        configurationCacheRun "show"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("v=hi!")
+    }
 }
