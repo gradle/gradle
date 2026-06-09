@@ -179,7 +179,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
         ProjectLayout layout = project.getLayout();
         ProviderFactory providers = project.getProviders();
-        Provider<Directory> reportsDir = extension.getReportsDir();
+        Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             String name = report.getName();
             boolean shouldRequireByDefault = name.equals("html") || name.equals("xml");

@@ -102,7 +102,7 @@ public class JvmPluginsHelper {
                 javadoc.getClasspath().setFrom(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
-                    javadoc.getDestinationDir().convention(javaPluginExtension.getDocsDir().dir(javadocTaskName));
+                    javadoc.getDestinationDirectory().convention(javaPluginExtension.getDocsDir().dir(javadocTaskName));
                     javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
                 }
             });

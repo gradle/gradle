@@ -144,7 +144,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         def task = project.task('otherScaladoc', type: ScalaDoc)
 
         then:
-        task.destinationDir.asFile.get() == project.java.docsDir.file("scaladoc").get().asFile
+        task.destinationDirectory.asFile.get() == project.java.docsDir.file("scaladoc").get().asFile
         task.title.get() == "test-project 1.0 API"
         task dependsOn()
     }

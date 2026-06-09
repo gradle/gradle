@@ -53,8 +53,8 @@ public class MinimalGroovyCompileOptions implements Serializable {
         this.fileExtensions = ImmutableList.copyOf(compileOptions.getFileExtensions().get());
         this.forkOptions = new MinimalGroovyCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.optimizationOptions = Maps.newHashMap(compileOptions.getOptimizationOptions().get());
-        this.stubDir = compileOptions.getStubDir().getAsFile().getOrNull();
-        this.configurationScript = compileOptions.getConfigurationScript().getAsFile().getOrNull();
+        this.stubDir = compileOptions.getStubDirectory().getAsFile().getOrNull();
+        this.configurationScript = compileOptions.getConfigurationScriptFile().getAsFile().getOrNull();
         this.javaAnnotationProcessing = compileOptions.getJavaAnnotationProcessing().get();
         this.parameters = compileOptions.getParameters().get();
         this.disabledGlobalASTTransformations = compileOptions.getDisabledGlobalASTTransformations().get();

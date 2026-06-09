@@ -188,7 +188,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
             startScripts.getApplicationName().convention(pluginExtension.getApplicationName());
             startScripts.getGitRef().set(DefaultGradleVersion.current().getScriptTemplateGitRevision());
-            startScripts.getOutputDir().convention(project.getLayout().getBuildDirectory().dir("scripts"));
+            startScripts.getOutputDirectory().convention(project.getLayout().getBuildDirectory().dir("scripts"));
             startScripts.getExecutableDir().convention(pluginExtension.getExecutableDir());
             startScripts.getDefaultJvmOpts().convention(pluginExtension.getApplicationDefaultJvmArgs());
 

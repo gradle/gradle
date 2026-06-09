@@ -23,6 +23,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -257,12 +258,24 @@ public abstract class JacocoTaskExtension {
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      *
-     * @since 3.4
+     * @since 9.7.0
      */
+    @Incubating
     @Optional
     @LocalState
-    @ReplacesEagerProperty
-    public abstract DirectoryProperty getClassDumpDir();
+    public abstract DirectoryProperty getClassDumpDirectory();
+
+    /**
+     * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
+     */
+    @ReplacedBy("classDumpDirectory")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getClassDumpDirectory() instead", willBeDeprecated = true)
+    public File getClassDumpDir() {
+        return getClassDumpDirectory().isPresent() ? getClassDumpDirectory().get().getAsFile() : null;
+    }
 
     /**
      * Sets path to dump all class files the agent sees are dumped to. Defaults to no dumps.
@@ -270,7 +283,7 @@ public abstract class JacocoTaskExtension {
      * @since 3.4
      */
     public void setClassDumpDir(@Nullable File classDumpDir) {
-        getClassDumpDir().set(classDumpDir);
+        getClassDumpDirectory().set(classDumpDir);
     }
 
     /**
@@ -331,7 +344,7 @@ public abstract class JacocoTaskExtension {
             argument.append("output", getOutput().map(Output::getAsArg).getOrNull());
             argument.append("address", getAddress().getOrNull());
             argument.append("port", getPort().getOrNull());
-            argument.append("classdumpdir", getClassDumpDir().getAsFile().getOrNull());
+            argument.append("classdumpdir", getClassDumpDirectory().getAsFile().getOrNull());
 
             if (agent.supportsJmx()) {
                 argument.append("jmx", getJmx().getOrNull());

@@ -80,7 +80,7 @@ class GroovyBasePluginTest extends Specification {
         def task = project.task('otherGroovydoc', type: Groovydoc)
 
         then:
-        task.destinationDir.asFile.get() == project.java.docsDir.file('groovydoc').get().asFile
+        task.destinationDirectory.asFile.get() == project.java.docsDir.file('groovydoc').get().asFile
         task.docTitle.get() == "test-project 1.0 API"
         task.windowTitle.get() == "test-project 1.0 API"
     }

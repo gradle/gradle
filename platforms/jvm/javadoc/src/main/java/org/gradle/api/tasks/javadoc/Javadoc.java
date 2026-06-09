@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -54,6 +55,7 @@ import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -140,7 +142,7 @@ public abstract class Javadoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        File destinationDir = getDestinationDir().getAsFile().get();
+        File destinationDir = getDestinationDirectory().getAsFile().get();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
@@ -244,23 +246,36 @@ public abstract class Javadoc extends SourceTask {
     /**
      * <p>Returns the directory to generate the documentation into.</p>
      *
+     * @return The directory property.
+     * @since 9.7.0
+     */
+    @Incubating
+    @Internal
+    public abstract DirectoryProperty getDestinationDirectory();
+
+    /**
+     * <p>Returns the directory to generate the documentation into.</p>
+     *
      * @return The directory.
      */
-    @Internal
-    @ReplacesEagerProperty
-    public abstract DirectoryProperty getDestinationDir();
+    @ReplacedBy("destinationDirectory")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
+    public File getDestinationDir() {
+        return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
+    }
 
     /**
      * <p>Sets the directory to generate the documentation into.</p>
      */
     public void setDestinationDir(@Nullable File destinationDir) {
-        getDestinationDir().set(destinationDir);
+        getDestinationDirectory().set(destinationDir);
     }
 
     @OutputDirectory
     @ReplacesEagerProperty(adapter = OutputDirectoryAdapter.class)
     protected Provider<Directory> getOutputDirectory() {
-        return getDestinationDir().orElse(optionsDestinationDir);
+        return getDestinationDirectory().orElse(optionsDestinationDir);
     }
 
     /**

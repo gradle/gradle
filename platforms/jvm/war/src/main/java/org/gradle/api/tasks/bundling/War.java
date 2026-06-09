@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -73,7 +75,7 @@ public abstract class War extends Jar {
 
         CopySpecInternal renameSpec = webInf.addChild();
         renameSpec.into("");
-        renameSpec.from((Callable<?>) () -> getWebXml().getOrNull());
+        renameSpec.from((Callable<File>) () -> getWebXmlFile().getAsFile().getOrNull());
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
     }
 
@@ -155,13 +157,26 @@ public abstract class War extends Jar {
     /**
      * Returns the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
      *
-     * @return The {@code web.xml} file.
+     * @return The {@code web.xml} file property.
+     * @since 9.7.0
      */
+    @Incubating
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    @ReplacesEagerProperty
-    public abstract RegularFileProperty getWebXml();
+    public abstract RegularFileProperty getWebXmlFile();
+
+    /**
+     * Returns the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
+     *
+     * @return The {@code web.xml} file.
+     */
+    @ReplacedBy("webXmlFile")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWebXmlFile() instead", willBeDeprecated = true)
+    public File getWebXml() {
+        return getWebXmlFile().isPresent() ? getWebXmlFile().get().getAsFile() : null;
+    }
 
     /**
      * Sets the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
@@ -169,7 +184,7 @@ public abstract class War extends Jar {
      * @param webXml The {@code web.xml} file. Maybe null.
      */
     public void setWebXml(@Nullable File webXml) {
-        getWebXml().set(webXml);
+        getWebXmlFile().set(webXml);
     }
 
     /**

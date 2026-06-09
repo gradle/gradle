@@ -107,7 +107,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
         ProjectLayout layout = project.getLayout();
         ProviderFactory providers = project.getProviders();
-        Provider<Directory> reportsDir = extension.getReportsDir();
+        Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
             report.getOutputLocation().convention(

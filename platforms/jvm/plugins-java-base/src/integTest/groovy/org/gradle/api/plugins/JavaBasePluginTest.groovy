@@ -287,7 +287,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.destinationDir.get().asFile == project.java.docsDir.file("javadoc").get().asFile
+        javadoc.destinationDirectory.get().asFile == project.java.docsDir.file("javadoc").get().asFile
         javadoc.title.get() == "test-project 1.0 API"
     }
 

@@ -47,7 +47,7 @@ class GroovyCompileOptionsTest {
         assertEquals(['java', 'groovy'], compileOptions.fileExtensions.get())
         assertEquals('UTF-8', compileOptions.encoding.get())
         assertNotNull(compileOptions.forkOptions)
-        assertNull(compileOptions.configurationScript.asFile.orNull)
+        assertNull(compileOptions.configurationScriptFile.asFile.orNull)
         assertFalse(compileOptions.javaAnnotationProcessing.get())
         assertFalse(compileOptions.parameters.get())
     }

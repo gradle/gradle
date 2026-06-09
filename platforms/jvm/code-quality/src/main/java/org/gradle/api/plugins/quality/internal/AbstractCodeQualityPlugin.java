@@ -126,7 +126,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @SuppressWarnings("rawtypes")
     private void configureExtensionRule() {
-        extension.getReportsDir().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()));
+        extension.getReportsDirectory().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()));
 
         withBasePlugin(new Action<Plugin>() {
             @Override

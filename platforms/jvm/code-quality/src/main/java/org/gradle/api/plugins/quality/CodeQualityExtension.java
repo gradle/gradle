@@ -15,10 +15,13 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.File;
@@ -83,14 +86,25 @@ public abstract class CodeQualityExtension {
 
     /**
      * The directory where reports will be generated.
+     *
+     * @since 9.7.0
      */
-    @ReplacesEagerProperty
-    public abstract DirectoryProperty getReportsDir();
+    @Incubating
+    public abstract DirectoryProperty getReportsDirectory();
 
     /**
      * The directory where reports will be generated.
      */
+    @ReplacedBy("reportsDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getReportsDirectory() instead", willBeDeprecated = true)
+    public File getReportsDir() {
+        return getReportsDirectory().isPresent() ? getReportsDirectory().get().getAsFile() : null;
+    }
+
+    /**
+     * Sets the directory where reports will be generated.
+     */
     public void setReportsDir(File reportsDir) {
-        getReportsDir().set(reportsDir);
+        getReportsDirectory().set(reportsDir);
     }
 }

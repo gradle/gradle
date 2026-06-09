@@ -116,7 +116,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {
         Provider<String> reportFormat = extension.getReportFormat();
-        Provider<Directory> reportsDir = extension.getReportsDir();
+        Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             report.getRequired().convention(reportFormat.map(format -> report.getName().equals(format)));
             report.getOutputLocation().convention(reportsDir.map(directory -> {

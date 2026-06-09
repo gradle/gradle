@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
@@ -44,7 +44,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -61,7 +61,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -141,7 +140,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     private final ModularitySpec modularity;
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
-    private final DirectoryProperty outputDir;
     private final Property<String> applicationName;
     private String exitEnvironmentVar;
 
@@ -149,9 +147,10 @@ public abstract class CreateStartScripts extends ConventionTask {
         getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         this.applicationName = getObjectFactory().property(String.class);
-        this.outputDir = getObjectFactory().directoryProperty();
         this.optsEnvironmentVar = getObjectFactory().property(String.class).convention(getApplicationName().map(appName -> GUtil.toConstant(appName) + "_OPTS"));
         this.executableDir = getObjectFactory().property(String.class).convention("bin");
+        getUnixScriptFile().convention(getOutputDirectory().file(getApplicationName()));
+        getWindowsScriptFile().convention(getOutputDirectory().file(getApplicationName().map(applicationName -> applicationName + ".bat")));
     }
 
     @Inject
@@ -206,39 +205,61 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     /**
      * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
-     * TODO: This should be Provider[RegularFile], but we don't support such upgrade with @ReplacesEagerProperty
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @Internal
-    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getUnixScript"))
-    public RegularFileProperty getUnixScript() {
-        return getObjectFactory().fileProperty().value(
-            getOutputDir().zip(getApplicationName(), Directory::file)
-        );
+    public abstract RegularFileProperty getUnixScriptFile();
+
+    /**
+     * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
+     */
+    @ReplacedBy("unixScriptFile")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getUnixScriptFile() instead", willBeDeprecated = true)
+    public File getUnixScript() {
+        return getUnixScriptFile().isPresent() ? getUnixScriptFile().get().getAsFile() : null;
     }
 
     /**
      * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
-     * TODO: This should be Provider[RegularFile], but we don't support such upgrade with @ReplacesEagerProperty
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @Internal
-    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getWindowsScript"))
-    public RegularFileProperty getWindowsScript() {
-        return getObjectFactory().fileProperty().value(
-            getOutputDir().zip(getApplicationName(), (outputDir, applicationName) -> outputDir.file(applicationName + ".bat"))
-        );
+    public abstract RegularFileProperty getWindowsScriptFile();
+
+    /**
+     * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
+     */
+    @ReplacedBy("windowsScriptFile")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWindowsScriptFile() instead", willBeDeprecated = true)
+    public File getWindowsScript() {
+        return getWindowsScriptFile().isPresent() ? getWindowsScriptFile().get().getAsFile() : null;
     }
 
     /**
      * The directory to write the scripts into.
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @OutputDirectory
-    @ReplacesEagerProperty
-    public DirectoryProperty getOutputDir() {
-        return outputDir;
+    public abstract DirectoryProperty getOutputDirectory();
+
+    /**
+     * The directory to write the scripts into.
+     */
+    @ReplacedBy("outputDirectory")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getOutputDirectory() instead", willBeDeprecated = true)
+    public File getOutputDir() {
+        return getOutputDirectory().isPresent() ? getOutputDirectory().get().getAsFile() : null;
     }
 
     public void setOutputDir(@Nullable File outputDir) {
-        getOutputDir().set(outputDir);
+        getOutputDirectory().set(outputDir);
     }
 
     /**
@@ -389,12 +410,12 @@ public abstract class CreateStartScripts extends ConventionTask {
         generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(getMainModule().isPresent(), getClasspath())));
         String executableDir = getExecutableDir().getOrNull();
         if (StringUtils.isEmpty(executableDir)) {
-            generator.setScriptRelPath(getUnixScript().getAsFile().get().getName());
+            generator.setScriptRelPath(getUnixScriptFile().get().getAsFile().getName());
         } else {
-            generator.setScriptRelPath(executableDir + "/" + getUnixScript().getAsFile().get().getName());
+            generator.setScriptRelPath(executableDir + "/" + getUnixScriptFile().get().getAsFile().getName());
         }
-        generator.generateUnixScript(getUnixScript().getAsFile().get());
-        generator.generateWindowsScript(getWindowsScript().getAsFile().get());
+        generator.generateUnixScript(getUnixScriptFile().get().getAsFile());
+        generator.generateWindowsScript(getWindowsScriptFile().get().getAsFile());
     }
 
     private AppEntryPoint getEntryPoint() {

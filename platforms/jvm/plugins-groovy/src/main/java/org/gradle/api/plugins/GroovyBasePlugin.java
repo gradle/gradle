@@ -170,7 +170,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             }));
-            groovydoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("groovydoc"));
+            groovydoc.getDestinationDirectory().convention(javaPluginExtension(project).getDocsDir().dir("groovydoc"));
             groovydoc.getDocTitle().convention(project.getProviders().provider(() -> ReportUtilities.getApiDocTitleFor(project)));
             groovydoc.getWindowTitle().convention(project.getProviders().provider(() -> ReportUtilities.getApiDocTitleFor(project)));
             groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
