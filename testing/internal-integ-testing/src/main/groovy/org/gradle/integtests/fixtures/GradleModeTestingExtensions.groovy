@@ -92,10 +92,13 @@ final class GradleModeTestingExtensions {
         }
 
         private IMethodInterceptor perIterationSkipInterceptor(A annotation, String bottomSpecName) {
+            // Capture as a local: Groovy closures resolve fields via runtime property lookup,
+            // which can't see private fields inherited from a superclass.
+            GradleModeTestingPolicy<A> capturedPolicy = policy
             return { invocation ->
-                if (policy.decide(annotation, bottomSpecName, invocation.iteration.displayName) == GradleModeTestingPolicy.Verdict.SKIP) {
-                    String reason = policy.skipReason(annotation)
-                    throw new TestAbortedException(reason ? "Unsupported with ${policy.gradleMode()}: $reason" : "Unsupported with ${policy.gradleMode()}")
+                if (capturedPolicy.decide(annotation, bottomSpecName, invocation.iteration.displayName) == GradleModeTestingPolicy.Verdict.SKIP) {
+                    String reason = capturedPolicy.skipReason(annotation)
+                    throw new TestAbortedException(reason ? "Unsupported with ${capturedPolicy.gradleMode()}: $reason" : "Unsupported with ${capturedPolicy.gradleMode()}")
                 }
                 invocation.proceed()
             } as IMethodInterceptor
