@@ -47,6 +47,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
 
@@ -112,6 +113,19 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         return new ValueSourceProvider<>(
             new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
         );
+    }
+
+    @Override
+    @NonNull
+    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProviderForDeserialization(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Class<P> parametersType,
+        Function<Provider<T>, P> parametersDecoder
+    ) {
+        LazilyObtainedValue<T, P> lazyValue = new LazilyObtainedValue<>(valueSourceType, parametersType, null);
+        ValueSourceProvider<T, P> provider = new ValueSourceProvider<>(lazyValue);
+        lazyValue.parameters = parametersDecoder.apply(provider);
+        return provider;
     }
 
     @NonNull
@@ -251,7 +265,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public final Class<P> parametersType;
 
-        public final P parameters;
+        @Nullable
+        private P parameters;
 
         private final CalculatedValue<@Nullable T> value;
         // A temporary holder for the source used to obtain the value.
@@ -262,7 +277,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private LazilyObtainedValue(
             Class<? extends ValueSource<T, P>> sourceType,
             Class<P> parametersType,
-            P parameters
+            @Nullable P parameters
         ) {
             this.sourceType = sourceType;
             this.parametersType = parametersType;
