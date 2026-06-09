@@ -91,7 +91,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
         JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
         javaForkOptions.systemProperty("xsbt.skip.cp.lookup", true);
-        javaForkOptions.getWorkingDir().set(daemonWorkingDir);
+        javaForkOptions.getWorkingDirectory().set(daemonWorkingDir);
         javaForkOptions.getExecutable().set(spec.getJavaExecutable().getAbsolutePath());
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));

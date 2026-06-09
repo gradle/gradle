@@ -68,11 +68,11 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
 
     @OutputDirectory
     public File getOutputDir() {
-        return getWorkingDir().getAsFile().get();
+        return getWorkingDirectory().getAsFile().get();
     }
 
     public void setOutputDir(File outputDir) {
-        getWorkingDir().set(outputDir);
+        getWorkingDirectory().set(outputDir);
     }
 
     /**

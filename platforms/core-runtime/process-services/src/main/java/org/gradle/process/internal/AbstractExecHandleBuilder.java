@@ -63,7 +63,12 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
+        return delegate.getWorkingDirectory();
+    }
+
+    @Override
+    public File getWorkingDir() {
         return delegate.getWorkingDir();
     }
 

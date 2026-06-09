@@ -325,7 +325,7 @@ public abstract class JacocoTaskExtension {
     @Internal
     @ReplacesEagerProperty
     public Provider<String> getAsJvmArg() {
-        return task.getWorkingDir().map(workingDir -> {
+        return task.getWorkingDirectory().map(workingDir -> {
             StringBuilder builder = new StringBuilder();
             ArgumentAppender argument = new ArgumentAppender(builder, workingDir.getAsFile());
             builder.append("-javaagent:");

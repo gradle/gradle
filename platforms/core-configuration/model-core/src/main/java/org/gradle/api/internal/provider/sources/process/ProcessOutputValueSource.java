@@ -91,7 +91,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
             spec.getIgnoreExitValue().set(getParameters().getIgnoreExitValue().orElse(false));
 
             if (getParameters().getWorkingDirectory().isPresent()) {
-                spec.getWorkingDir().set(getParameters().getWorkingDirectory());
+                spec.getWorkingDirectory().set(getParameters().getWorkingDirectory());
             }
             // TODO(mlopatkin): Check if this logic ok for Gradle 9.0
             // For some reason getParameters().getEnvironment() is MapProperty<Object, Object> at runtime so we need to map it

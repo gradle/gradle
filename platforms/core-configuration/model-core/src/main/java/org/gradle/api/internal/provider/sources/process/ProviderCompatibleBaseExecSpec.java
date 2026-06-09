@@ -53,7 +53,7 @@ abstract class ProviderCompatibleBaseExecSpec<T extends BaseExecSpec> implements
     public void copyToParameters(ProcessOutputValueSource.Parameters parameters) {
         parameters.getCommandLine().set(getCommandLine());
         parameters.getEnvironment().set(getEnvironment());
-        parameters.getWorkingDirectory().set(getWorkingDir());
+        parameters.getWorkingDirectory().set(getWorkingDirectory());
         parameters.getIgnoreExitValue().set(getIgnoreExitValue());
     }
 }

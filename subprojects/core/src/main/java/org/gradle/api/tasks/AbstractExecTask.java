@@ -19,10 +19,12 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -219,7 +221,17 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     @Internal
     // TODO:LPTR Should be a content-less @InputDirectory
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
+        return execSpec.getWorkingDirectory();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ReplacedBy("workingDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
+    public File getWorkingDir() {
         return execSpec.getWorkingDir();
     }
 

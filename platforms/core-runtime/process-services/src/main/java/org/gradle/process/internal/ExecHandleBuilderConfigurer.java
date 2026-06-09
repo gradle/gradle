@@ -43,8 +43,8 @@ public class ExecHandleBuilderConfigurer {
         if (spec.getExecutable().isPresent()) {
             builder.setExecutable(spec.getExecutable().get());
         }
-        if (spec.getWorkingDir().isPresent()) {
-            builder.setWorkingDir(spec.getWorkingDir().get().getAsFile());
+        if (spec.getWorkingDirectory().isPresent()) {
+            builder.setWorkingDir(spec.getWorkingDirectory().get().getAsFile());
         }
         builder.setEnvironment(spec.getEnvironment().get());
         return builder;

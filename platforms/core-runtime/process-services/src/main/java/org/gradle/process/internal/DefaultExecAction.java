@@ -82,7 +82,12 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
+        return execSpec.getWorkingDirectory();
+    }
+
+    @Override
+    public File getWorkingDir() {
         return execSpec.getWorkingDir();
     }
 

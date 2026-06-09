@@ -18,22 +18,11 @@ package org.gradle.process;
 
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
-import java.io.File;
-
 class ProcessForkOptionsAdapters {
     static class ExecutableAdapter {
         @BytecodeUpgrade
         static String getExecutable(ProcessForkOptions options) {
             return options.getExecutable().getOrNull();
-        }
-
-
-    }
-
-    static class WorkingDirAdapter {
-        @BytecodeUpgrade
-        static File getWorkingDir(ProcessForkOptions options) {
-            return options.getWorkingDir().getAsFile().getOrNull();
         }
 
 

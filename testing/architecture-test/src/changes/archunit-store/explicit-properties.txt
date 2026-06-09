@@ -29,7 +29,7 @@ Method <org.gradle.api.tasks.AbstractExecTask.getIgnoreExitValue()> is not abstr
 Method <org.gradle.api.tasks.AbstractExecTask.getIsIgnoreExitValue()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardInput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardOutput()> is not abstract
-Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDir()> is not abstract
+Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDirectory()> is not abstract
 Method <org.gradle.api.tasks.Delete.getIsFollowSymlinks()> is not abstract
 Method <org.gradle.api.tasks.Exec.getArgs()> is not abstract
 Method <org.gradle.api.tasks.Exec.getErrorOutput()> is not abstract
@@ -60,7 +60,7 @@ Method <org.gradle.api.tasks.JavaExec.getMinHeapSize()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getStandardInput()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getStandardOutput()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getSystemProperties()> is not abstract
-Method <org.gradle.api.tasks.JavaExec.getWorkingDir()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getWorkingDirectory()> is not abstract
 Method <org.gradle.api.tasks.SourceTask.getSource()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFile()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsPreserveFileTimestamps()> is not abstract
@@ -103,7 +103,7 @@ Method <org.gradle.api.tasks.testing.Test.getMaxHeapSize()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getMinHeapSize()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getStableClasspath()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getSystemProperties()> is not abstract
-Method <org.gradle.api.tasks.testing.Test.getWorkingDir()> is not abstract
+Method <org.gradle.api.tasks.testing.Test.getWorkingDirectory()> is not abstract
 Method <org.gradle.api.tasks.wrapper.Wrapper.getBatchScript()> is not abstract
 Method <org.gradle.api.tasks.wrapper.Wrapper.getPropertiesFile()> is not abstract
 Method <org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.getXcodeProjectLocations()> is not abstract

@@ -29,7 +29,7 @@ class JacocoTaskExtensionSpec extends Specification {
 
     JacocoAgentJar agent = Mock()
     JavaForkOptions task = Mock(JavaForkOptions) {
-        getWorkingDir() >> TestFiles.filePropertyFactory().newDirectoryProperty().fileValue(temporaryFolder.file("workingDir"))
+        getWorkingDirectory() >> TestFiles.filePropertyFactory().newDirectoryProperty().fileValue(temporaryFolder.file("workingDir"))
     }
     JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, agent, task)
 

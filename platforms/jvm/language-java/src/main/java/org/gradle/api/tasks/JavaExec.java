@@ -26,6 +26,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -34,6 +35,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -604,7 +606,17 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Internal
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
+        return javaExecSpec.getWorkingDirectory();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ReplacedBy("workingDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
+    public File getWorkingDir() {
         return javaExecSpec.getWorkingDir();
     }
 

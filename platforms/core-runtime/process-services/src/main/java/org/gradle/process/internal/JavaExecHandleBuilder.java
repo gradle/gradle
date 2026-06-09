@@ -198,7 +198,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
 
     @Override
     public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        javaOptions.getWorkingDir().set(dir);
+        javaOptions.getWorkingDirectory().set(dir);
         return this;
     }
 
@@ -442,7 +442,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
         execHandleBuilder.setExecutable(javaOptions.getExecutable().get());
-        execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir().getAsFile().get());
+        execHandleBuilder.setWorkingDir(javaOptions.getWorkingDirectory().getAsFile().get());
         execHandleBuilder.setEnvironment(javaOptions.getEnvironment().get());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }

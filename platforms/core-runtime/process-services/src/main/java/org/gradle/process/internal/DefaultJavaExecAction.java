@@ -260,7 +260,12 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
+        return javaExecSpec.getWorkingDirectory();
+    }
+
+    @Override
+    public File getWorkingDir() {
         return javaExecSpec.getWorkingDir();
     }
 

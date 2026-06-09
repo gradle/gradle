@@ -108,7 +108,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         }
 
         JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
-        javaForkOptions.getWorkingDir().set(daemonWorkingDir);
+        javaForkOptions.getWorkingDirectory().set(daemonWorkingDir);
         javaForkOptions.getExecutable().set(javaOptions.getExecutable());
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaOptions.getExecutable());
         javaForkOptions.jvmArgs(JpmsConfiguration.forGroovyCompilerWorker(javaVersionMajor));

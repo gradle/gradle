@@ -126,13 +126,18 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
         return workingDir;
     }
 
     @Override
+    public File getWorkingDir() {
+        return getWorkingDirectory().getAsFile().getOrNull();
+    }
+
+    @Override
     public void setWorkingDir(File dir) {
-        getWorkingDir().set(dir);
+        getWorkingDirectory().set(dir);
     }
 
     @Override
@@ -143,9 +148,9 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public ProcessForkOptions workingDir(Object dir) {
         if (dir instanceof Provider) {
-            getWorkingDir().fileProvider(((Provider<?>) dir).map(resolver::resolve));
+            getWorkingDirectory().fileProvider(((Provider<?>) dir).map(resolver::resolve));
         } else {
-            getWorkingDir().set(resolver.resolve(dir));
+            getWorkingDirectory().set(resolver.resolve(dir));
         }
         return this;
     }
@@ -182,7 +187,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
         target.getExecutable().set(getExecutable());
-        target.getWorkingDir().set(getWorkingDir());
+        target.getWorkingDirectory().set(getWorkingDirectory());
         target.getEnvironment().set(getEnvironment());
         return this;
     }

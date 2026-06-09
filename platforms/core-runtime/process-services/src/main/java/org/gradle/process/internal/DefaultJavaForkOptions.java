@@ -318,7 +318,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         copy.copyFrom(this);
         return new EffectiveJavaForkOptions(
             getExecutable().get(),
-            getWorkingDir().getAsFile().get(),
+            getWorkingDirectory().getAsFile().get(),
             getEnvironment().get(),
             copy
         );

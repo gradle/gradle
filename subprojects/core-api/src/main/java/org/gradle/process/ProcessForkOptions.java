@@ -15,9 +15,12 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.File;
@@ -62,9 +65,19 @@ public interface ProcessForkOptions {
      * Returns the working directory for the process. Defaults to the project directory.
      *
      * @return The working directory. Never returns null.
+     * @since 9.7.0
      */
-    @ReplacesEagerProperty(adapter = ProcessForkOptionsAdapters.WorkingDirAdapter.class)
-    DirectoryProperty getWorkingDir();
+    @Incubating
+    DirectoryProperty getWorkingDirectory();
+
+    /**
+     * Returns the working directory for the process. Defaults to the project directory.
+     *
+     * @return The working directory. Never returns null.
+     */
+    @ReplacedBy("workingDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
+    File getWorkingDir();
 
     /**
      * Sets the working directory for the process.

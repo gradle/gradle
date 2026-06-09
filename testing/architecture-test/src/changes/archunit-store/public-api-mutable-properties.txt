@@ -545,6 +545,7 @@ Method <org.gradle.process.ExecSpec.getCommandLine()> does not have raw return t
 Method <org.gradle.process.JavaExecSpec.getModularity()> does not have raw return type (org.gradle.api.jvm.ModularitySpec) assignable to any of [Provider] in (JavaExecSpec.java:0)
 Method <org.gradle.process.JavaForkOptions.getAllJvmArgs()> does not have raw return type (org.gradle.api.provider.Provider) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaForkOptions.java:0)
 Method <org.gradle.process.JavaForkOptions.getDebugOptions()> does not have raw return type (org.gradle.process.JavaDebugOptions) assignable to any of [Provider] in (JavaForkOptions.java:0)
+Method <org.gradle.process.ProcessForkOptions.getWorkingDir()> does not have raw return type (java.io.File) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (ProcessForkOptions.java:0)
 Method <org.gradle.testing.base.TestSuiteBinarySpec.getTestSuite()> does not have raw return type (org.gradle.testing.base.TestSuiteSpec) assignable to any of [Provider] in (TestSuiteBinarySpec.java:0)
 Method <org.gradle.testing.base.TestSuiteBinarySpec.getTestedBinary()> does not have raw return type (org.gradle.platform.base.BinarySpec) assignable to any of [Provider] in (TestSuiteBinarySpec.java:0)
 Method <org.gradle.testing.base.TestSuiteSpec.getTestedComponent()> does not have raw return type (org.gradle.platform.base.ComponentSpec) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (TestSuiteSpec.java:0)

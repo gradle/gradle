@@ -45,6 +45,7 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -223,7 +224,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @Internal
-    public DirectoryProperty getWorkingDir() {
+    public DirectoryProperty getWorkingDirectory() {
+        return forkOptions.getWorkingDirectory();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ReplacedBy("workingDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
+    public File getWorkingDir() {
         return forkOptions.getWorkingDir();
     }
 

@@ -104,7 +104,12 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
-    default DirectoryProperty getWorkingDir() {
+    default DirectoryProperty getWorkingDirectory() {
+        return getDelegate().getWorkingDirectory();
+    }
+
+    @Override
+    default File getWorkingDir() {
         return getDelegate().getWorkingDir();
     }
 

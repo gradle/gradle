@@ -63,7 +63,7 @@ public abstract class GitClone extends DefaultTask {
         if (isCorrectCheckout(destinationDir, remoteUri)) {
             getExecOperations().exec(spec -> {
                 spec.commandLine("git", "fetch", "origin");
-                spec.getWorkingDir().set(destinationDir);
+                spec.setWorkingDir(destinationDir);
             });
         } else {
             getFileSystemOperations().delete(spec -> {
@@ -76,11 +76,11 @@ public abstract class GitClone extends DefaultTask {
         }
         getExecOperations().exec(spec -> {
             spec.commandLine("git", "checkout", getCommitId().get());
-            spec.getWorkingDir().set(destinationDir);
+            spec.setWorkingDir(destinationDir);
         });
         getExecOperations().exec(spec -> {
             spec.commandLine("git", "clean", "-fdx");
-            spec.getWorkingDir().set(destinationDir);
+            spec.setWorkingDir(destinationDir);
         });
 // tag::git-clone[]
     }
@@ -95,7 +95,7 @@ public abstract class GitClone extends DefaultTask {
             spec.commandLine("git", "remote", "get-url", "origin");
             spec.getIgnoreExitValue().set(true);
             spec.getStandardOutput().set(output);
-            spec.getWorkingDir().set(directory);
+            spec.setWorkingDir(directory);
         });
         String outputString = output.toString().trim();
         return result.getExitValue() == 0 && url.equals(outputString);
