@@ -44,6 +44,14 @@ final class GradleModeTestingRules {
 
         @Override
         Statement apply(Statement base, Description description) {
+            if (!description.isSuite() && description.testClass != null && description.testClass.getAnnotation(annotationType) != null) {
+                throw new IllegalStateException(
+                    "@${annotationType.simpleName} on JUnit class ${description.testClass.name} has no effect: " +
+                        "class-level Gradle-mode gating is only supported for Spock specs. " +
+                        "Apply the annotation to each affected test method instead."
+                )
+            }
+
             A annotation = description.getAnnotation(annotationType)
             if (annotation == null) {
                 return base
