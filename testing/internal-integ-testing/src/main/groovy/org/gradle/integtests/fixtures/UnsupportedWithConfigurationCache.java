@@ -42,6 +42,12 @@ public @interface UnsupportedWithConfigurationCache {
     String because() default "";
 
     /**
+     * Link to the issue documenting why the tested feature is not supported.
+     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
+     */
+    String issue() default "";
+
+    /**
      * Declare to which bottom spec this annotation should be applied.
      * Defaults to an empty array, meaning this annotation applies to all bottom specs.
      */

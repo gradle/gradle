@@ -64,6 +64,12 @@ public @interface ToBeFixedForConfigurationCache {
     String because() default "";
 
     /**
+     * Link to the issue tracking the incompatibility addressed by this annotation.
+     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
+     */
+    String issue() default "";
+
+    /**
      * Reason for skipping a test with configuration cache.
      */
     enum Skip {
