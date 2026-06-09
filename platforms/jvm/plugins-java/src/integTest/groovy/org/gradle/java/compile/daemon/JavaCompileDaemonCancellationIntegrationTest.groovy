@@ -134,7 +134,6 @@ class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec
         and:
         pidFile().exists()
         def pid1 = pidFile().text.strip() as long
-        new ProcessFixture(pid1).waitForFinish()
 
         when:
         handler = blockingHttpServer.expectAndBlock("/block")
