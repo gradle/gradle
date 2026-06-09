@@ -27,7 +27,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 public class ProblemsImplServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.add(BoundedCallerStackCapturer.class, DefaultBoundedCallerStackCapturer.class);
+        registration.addProvider(new BuildTreeServices());
     }
 
     @Override
@@ -35,10 +35,22 @@ public class ProblemsImplServices extends AbstractGradleModuleServices {
         registration.addProvider(new BuildSessionServices());
     }
 
+    private static class BuildTreeServices implements ServiceRegistrationProvider {
+        @Provides
+        BoundedCallerStackCapturer createBoundedCallerStackCapturer(RegisteredScripts registeredScripts) {
+            return new DefaultBoundedCallerStackCapturer(registeredScripts);
+        }
+    }
+
     private static class BuildSessionServices implements ServiceRegistrationProvider {
         @Provides
-        ProblemLocationAnalyzer createProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
-            return new DefaultProblemLocationAnalyzer(listenerManager);
+        RegisteredScripts createRegisteredScripts(ClassLoaderScopeRegistryListenerManager listenerManager) {
+            return new DefaultRegisteredScripts(listenerManager);
+        }
+
+        @Provides
+        ProblemLocationAnalyzer createProblemLocationAnalyzer(RegisteredScripts registeredScripts) {
+            return new DefaultProblemLocationAnalyzer(registeredScripts);
         }
     }
 }

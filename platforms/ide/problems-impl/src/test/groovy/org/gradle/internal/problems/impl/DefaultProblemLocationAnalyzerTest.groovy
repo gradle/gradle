@@ -26,7 +26,8 @@ import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
 
 class DefaultProblemLocationAnalyzerTest extends Specification {
-    def analyzer = new DefaultProblemLocationAnalyzer(Mock(ClassLoaderScopeRegistryListenerManager))
+    def scripts = new DefaultRegisteredScripts(Mock(ClassLoaderScopeRegistryListenerManager))
+    def analyzer = new DefaultProblemLocationAnalyzer(scripts)
     def element = new StackTraceElement("class", "method", "filename", 7)
     def callerElement = new StackTraceElement("class", "method", "filename", 11)
     def otherElement = new StackTraceElement("class", "method", "otherfile", 11)
@@ -44,7 +45,7 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
         def shortDisplayName = Describables.of("<short source>")
 
         given:
-        analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script("filename", longDisplayName, shortDisplayName))
+        scripts.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script("filename", longDisplayName, shortDisplayName))
 
         when:
         def location = analyzer.locationForUsage(failure, false)
@@ -67,10 +68,11 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
             new StackTraceElement("org.gradle.api.internal.project.DefaultProject", "evaluate", "DefaultProject.java", 100),
             new StackTraceElement("org.gradle.launcher.Main", "main", "Main.java", 50)
         ] as StackTraceElement[]
-        // What the bounded walk keeps: from the top down to and including the Gradle boundary after the first user frame.
-        def boundedPrefix = (fullStack[0..3]) as StackTraceElement[]
+        // What the bounded walk keeps: the leading machinery (0, 1) is skipped, leaving the first user frame
+        // (the script) down to and including the Gradle boundary.
+        def boundedPrefix = (fullStack[2..3]) as StackTraceElement[]
 
-        analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId),
+        scripts.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId),
             new ClassLoaderScopeOrigin.Script("build.gradle", Describables.of("<long>"), Describables.of("<short>")))
 
         when:

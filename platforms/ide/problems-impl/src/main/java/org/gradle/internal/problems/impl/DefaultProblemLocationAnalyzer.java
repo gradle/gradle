@@ -16,13 +16,7 @@
 
 package org.gradle.internal.problems.impl;
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
-import org.gradle.initialization.ClassLoaderScopeRegistryListener;
-import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
@@ -30,40 +24,16 @@ import org.gradle.internal.problems.failure.StackFramePredicate;
 import org.gradle.problems.Location;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
+class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer {
 
     private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
 
-    private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new ConcurrentHashMap<>();
-    private final ClassLoaderScopeRegistryListenerManager listenerManager;
+    private final RegisteredScripts registeredScripts;
 
-    public DefaultProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
-        listenerManager.add(this);
-    }
-
-    @Override
-    public void close() throws IOException {
-        listenerManager.remove(this);
-        scripts.clear();
-    }
-
-    @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin) {
-        if (origin instanceof ClassLoaderScopeOrigin.Script) {
-            ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
-            scripts.put(scriptOrigin.getFileName(), scriptOrigin);
-        }
-    }
-
-    @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
+    public DefaultProblemLocationAnalyzer(RegisteredScripts registeredScripts) {
+        this.registeredScripts = registeredScripts;
     }
 
     @Override
@@ -128,7 +98,7 @@ class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLo
         if (fileName == null) {
             return null;
         }
-        ClassLoaderScopeOrigin.Script source = scripts.get(fileName);
+        ClassLoaderScopeOrigin.Script source = registeredScripts.scriptFor(fileName);
         if (source == null) {
             return null;
         }

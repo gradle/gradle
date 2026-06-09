@@ -21,7 +21,6 @@ plugins {
 description = "Daemon-only implementations of Problems API services"
 
 dependencies {
-    api(projects.problemsApi)
     api(projects.serviceProvider)
 
     compileOnly(libs.jspecify)
@@ -32,6 +31,7 @@ dependencies {
     implementation(projects.core)
     implementation(projects.hashing)
     implementation(projects.logging)
+    implementation(projects.problemsApi)
 }
 
 gradleModule {

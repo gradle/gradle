@@ -37,13 +37,18 @@ import java.util.stream.Stream;
  * location, so the resolved prefix is cached per site. The expensive resolution is then paid once per
  * site rather than once per problem, which is what keeps capturing locations past the cap affordable.</p>
  *
- * <p>The cache is keyed on the located frame (the first user frame with a line) because that is the
- * frame the location is taken from. Keying on the nearest user frame instead would conflate distinct
- * sites that happen to share a line-less synthetic nearest frame, attributing one to the other.</p>
+ * <p>The cache is keyed on the frame the location actually comes from: the first user frame with a
+ * line, upgraded to the first registered script at or below it (the analyser sees through non-script
+ * frames to the calling script). Keying on the nearest user frame instead would conflate distinct call
+ * sites that share a non-script helper frame, attributing one to the other.</p>
+ *
+ * <p>The cached value is reduced at both ends: leading Gradle machinery above the anchor is dropped, and
+ * collection stops at the Gradle boundary below it. It carries the location and some surrounding context,
+ * but is not a complete stack.</p>
  */
-public class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
+class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
 
-    // Walk cap when no user frame. Above measured depth-to-user (~13-37).
+    // Walk cap when no user frame. Above measured depth-to-user (~13-37 on gradle/gradle and nowinandroid).
     private static final int MAX_DEPTH = 50;
 
     // StackWalker buffer hint. Keep small: big hint fetches a whole batch up front, mostly wasted.
@@ -54,52 +59,100 @@ public class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapt
 
     private static final StackWalker WALKER = StackWalker.getInstance(EnumSet.noneOf(StackWalker.Option.class), ESTIMATE_DEPTH);
 
-    private final Cache<String, StackTraceElement[]> prefixBySite =
+    private final RegisteredScripts registeredScripts;
+
+    private final Cache<String, StackTraceElement[]> reducedStackBySite =
         CacheBuilder.newBuilder().maximumSize(MAX_CACHED_SITES).build();
+
+    DefaultBoundedCallerStackCapturer(RegisteredScripts registeredScripts) {
+        this.registeredScripts = registeredScripts;
+    }
 
     @Nullable
     @Override
     public Throwable captureCallerStack() {
-        StackTraceElement[] prefix = WALKER.walk(this::cachedBoundedPrefix);
-        return prefix == null ? null : new BoundedStackHolder(prefix);
+        StackTraceElement[] reducedStack = WALKER.walk(this::cachedReducedStack);
+        return reducedStack == null ? null : new BoundedStackHolder(reducedStack);
     }
 
     @VisibleForTesting
-    StackTraceElement @Nullable [] cachedBoundedPrefix(Stream<StackFrame> frames) {
+    StackTraceElement @Nullable [] cachedReducedStack(Stream<StackFrame> frames) {
+        BoundedWalk walk = new BoundedWalk();
         Iterator<StackFrame> iterator = frames.iterator();
-        List<StackTraceElement> prefix = null; // from first user frame
-        String site = null;                    // located-frame key (first user frame with a line)
         for (int depth = 0; depth < MAX_DEPTH && iterator.hasNext(); depth++) {
-            StackFrame frame = iterator.next();
+            StackTraceElement[] cached = walk.accept(iterator.next());
+            if (cached != null) {
+                return cached; // anchor already seen: reuse it, skip the rest of the walk
+            }
+            if (walk.reachedBoundary()) {
+                break;
+            }
+        }
+        return walk.reducedStack();
+    }
+
+    private boolean isRegisteredScript(StackTraceElement element) {
+        String fileName = element.getFileName();
+        return fileName != null && registeredScripts.scriptFor(fileName) != null;
+    }
+
+    /**
+     * A single bounded walk: collects user frames from the first one down to the Gradle boundary, tracking the
+     * anchor (the located frame, upgraded to the first registered script below it) the location and cache key come from.
+     */
+    private final class BoundedWalk {
+        @Nullable
+        private List<StackTraceElement> userFrames; // null until the first user frame
+        private int anchorIndex = -1;               // the frame the location comes from
+        private boolean anchoredOnScript;           // once true, the anchor is final
+        private boolean atBoundary;
+
+        StackTraceElement @Nullable [] accept(StackFrame frame) {
             String className = frame.getClassName();
-            if (prefix == null && InternalStackTraceClassifier.isInternal(className)) {
-                continue; // skip leading machinery, no resolve
+            if (userFrames == null && InternalStackTraceClassifier.isInternal(className)) {
+                return null; // leading machinery, before any user frame
             }
             StackTraceElement element = frame.toStackTraceElement();
-            if (prefix == null) {
-                prefix = new ArrayList<>(MAX_DEPTH);
+            if (userFrames == null) {
+                userFrames = new ArrayList<>(MAX_DEPTH);
             }
-            prefix.add(element);
-            if (site == null && element.getLineNumber() >= 0 && !InternalStackTraceClassifier.isInternal(className)) {
-                // Located frame: where the location comes from. Key on it; hit reuses its prefix.
-                site = siteKey(element);
-                StackTraceElement[] cached = prefixBySite.getIfPresent(site);
-                if (cached != null) {
-                    return cached;
-                }
+            userFrames.add(element);
+            atBoundary = InternalStackTraceClassifier.isGradleCall(className);
+            return tryAnchor(element, className);
+        }
+
+        private StackTraceElement @Nullable [] tryAnchor(StackTraceElement element, String className) {
+            if (anchoredOnScript || element.getLineNumber() < 0 || InternalStackTraceClassifier.isInternal(className)) {
+                return null; // anchor is final, or this is not a user frame with a line
             }
-            if (InternalStackTraceClassifier.isGradleCall(className)) {
-                break; // include Gradle boundary, stop
+            boolean script = isRegisteredScript(element);
+            if (anchorIndex != -1 && !script) {
+                return null; // keep the tentative anchor; only a script below it upgrades it
             }
+            StackTraceElement[] cached = reducedStackBySite.getIfPresent(siteKey(element));
+            if (cached != null) {
+                return cached;
+            }
+            anchorIndex = userFrames.size() - 1;
+            anchoredOnScript = script;
+            return null;
         }
-        if (prefix == null) {
-            return null; // no user frame
+
+        boolean reachedBoundary() {
+            return atBoundary;
         }
-        StackTraceElement[] result = prefix.toArray(new StackTraceElement[0]);
-        if (site != null) {
-            prefixBySite.put(site, result);
+
+        StackTraceElement @Nullable [] reducedStack() {
+            if (userFrames == null) {
+                return null; // no user frame
+            }
+            int start = anchorIndex == -1 ? 0 : anchorIndex;
+            StackTraceElement[] reduced = userFrames.subList(start, userFrames.size()).toArray(new StackTraceElement[0]);
+            if (anchorIndex != -1) {
+                reducedStackBySite.put(siteKey(userFrames.get(anchorIndex)), reduced);
+            }
+            return reduced;
         }
-        return result;
     }
 
     private static String siteKey(StackTraceElement element) {
@@ -108,7 +161,7 @@ public class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapt
 
     @VisibleForTesting
     long cachedSiteCount() {
-        return prefixBySite.size();
+        return reducedStackBySite.size();
     }
 
     // Holds a stack trace, skips costly native fillInStackTrace

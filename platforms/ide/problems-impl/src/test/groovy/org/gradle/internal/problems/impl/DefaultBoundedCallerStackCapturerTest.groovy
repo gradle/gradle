@@ -17,13 +17,17 @@
 package org.gradle.internal.problems.impl
 
 import acme.StackCapturerCaller
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import spock.lang.Specification
 
 import java.lang.StackWalker.StackFrame
 
 class DefaultBoundedCallerStackCapturerTest extends Specification {
 
-    def capturer = new DefaultBoundedCallerStackCapturer()
+    def scripts = Stub(RegisteredScripts) {
+        scriptFor(_) >> { String fileName -> fileName in ['build.gradle', 'other.gradle'] ? Stub(ClassLoaderScopeOrigin.Script) : null }
+    }
+    def capturer = new DefaultBoundedCallerStackCapturer(scripts)
 
     def "prefix starts at the first user-code frame"() {
         when:
@@ -63,13 +67,32 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
         def siteB = [internal, nearest, frame('acme.SiteB', 'run', 3, ste('acme.SiteB', 'run', 'SiteB.groovy', 30)), boundary]
 
         when:
-        capturer.cachedBoundedPrefix(siteA.stream())
-        def b = capturer.cachedBoundedPrefix(siteB.stream())
+        capturer.cachedReducedStack(siteA.stream())
+        def b = capturer.cachedReducedStack(siteB.stream())
 
         then:
         capturer.cachedSiteCount() == 2
         b*.fileName.contains('SiteB.groovy')
         !b*.fileName.contains('SiteA.groovy')
+    }
+
+    def "distinct call-sites sharing a non-script nearest frame resolve to their own script, not the first one cached"() {
+        given:
+        // A compiled helper (not a registered script) is the nearest user frame for both call-sites.
+        // The location must come from each call-site's own script frame below it, not from whichever was cached first.
+        def helper = frame('com.example.Checks', 'validate', 1, ste('com.example.Checks', 'validate', 'Checks.groovy', 12))
+        def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
+        def fromBuild = [helper, frame('build_gradle', 'run', 5, ste('build_gradle', 'run', 'build.gradle', 5)), boundary]
+        def fromOther = [helper, frame('other_gradle', 'run', 9, ste('other_gradle', 'run', 'other.gradle', 9)), boundary]
+
+        when:
+        capturer.cachedReducedStack(fromBuild.stream())
+        def other = capturer.cachedReducedStack(fromOther.stream())
+
+        then:
+        capturer.cachedSiteCount() == 2
+        other*.fileName.contains('other.gradle')
+        !other*.fileName.contains('build.gradle')
     }
 
     private StackFrame frame(String className, String methodName, int bci, StackTraceElement element) {
