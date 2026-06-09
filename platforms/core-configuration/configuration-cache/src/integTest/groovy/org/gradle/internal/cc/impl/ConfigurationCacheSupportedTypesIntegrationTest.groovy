@@ -131,7 +131,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "LocalDateTime"                      | "LocalDateTime.of(2024, 1, 1, 1, 1)"      | "2024-01-01T01:01"
     }
 
-    def "reports a problem and restores as a standard type a custom descendant #concreteType of supported type #baseType"() {
+    def "serializing a custom descendant #concreteType of supported type #baseType is deprecated but the cache is still stored and reused"() {
         buildFile << """
             class $concreteType extends $baseType {}
 
@@ -148,22 +148,18 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheRunLenient "ok"
+        executer.expectDocumentedDeprecationWarning(
+            "Serializing a custom $kind type '$concreteType', a subtype of '$baseType', which will be restored as a standard $kind, losing any custom behavior. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+                "For more information, please refer to https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements:custom_collection_types in the Gradle documentation."
+        )
+        configurationCacheRun "ok"
 
         then:
-        problems.assertResultHasProblems(result) {
-            totalProblemsCount = 1
-            withUniqueProblems(
-                "Task `:ok` of type `SomeTask`: cannot fully support serializing a custom $kind type '$concreteType', a subtype of '$baseType': it will be restored as a standard $kind, losing any custom behavior. This will become an error in a future Gradle version"
-            )
-            problemsWithStackTraceCount = 0
-        }
-
-        and: "the cache is stored and then loaded, so the task already runs against the restored value"
         outputContains("value type = $restoredType")
 
-        when: "the entry is reused, the value is restored as a standard type and nothing is serialized"
-        configurationCacheRunLenient "ok"
+        when:
+        configurationCacheRun "ok"
 
         then:
         outputContains("value type = $restoredType")

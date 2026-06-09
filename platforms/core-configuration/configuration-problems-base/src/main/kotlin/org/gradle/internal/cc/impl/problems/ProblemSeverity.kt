@@ -31,6 +31,14 @@ enum class ProblemSeverity {
     Deferred,
 
     /**
+     * A problem reporting a deprecated behavior.
+     *
+     * Does not prevent CC from being reused.
+     * It is additionally surfaced as a Gradle deprecation warning.
+     */
+    DeprecatedBehavior,
+
+    /**
      * Problems that interrupt the current operation immediately after being discovered and recorded.
      *
      * The exception is normally turned into a dedicated build failure.

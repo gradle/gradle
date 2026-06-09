@@ -391,11 +391,11 @@ fun IsolateContext.warnAboutCustomImplementation(actualType: Class<*>, kind: Str
         return
     }
     val baseType = supportedTypes.firstOrNull() ?: return
-    logPropertyProblem("serialize", DocumentationSection.RequirementsDisallowedTypes) {
-        text("cannot fully support serializing a custom $kind type ")
+    logPropertyProblem("serialize", DocumentationSection.RequirementsCustomCollectionTypes, logDeprecation = true) {
+        text("serializing a custom $kind type ")
         reference(actualType)
         text(", a subtype of ")
         reference(baseType)
-        text(": it will be restored as a standard $kind, losing any custom behavior. This will become an error in a future Gradle version")
+        text(", which will be restored as a standard $kind, losing any custom behavior.")
     }
 }
