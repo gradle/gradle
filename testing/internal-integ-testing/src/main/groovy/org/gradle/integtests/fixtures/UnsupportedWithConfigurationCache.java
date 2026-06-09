@@ -34,6 +34,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(GradleModeTestingExtensions.UnsupportedWithCC.class)
+@GradleModeTestingIntent(mode = GradleModeTesting.CONFIGURATION_CACHE, kind = GradleModeTestingIntent.Kind.WONT_SUPPORT)
 public @interface UnsupportedWithConfigurationCache {
 
     String because() default "";

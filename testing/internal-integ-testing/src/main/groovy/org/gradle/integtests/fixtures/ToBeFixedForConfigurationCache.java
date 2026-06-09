@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @ExtensionAnnotation(GradleModeTestingExtensions.ToBeFixedForCC.class)
+@GradleModeTestingIntent(mode = GradleModeTesting.CONFIGURATION_CACHE, kind = GradleModeTestingIntent.Kind.TO_BE_FIXED)
 public @interface ToBeFixedForConfigurationCache {
 
     /**

@@ -33,6 +33,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(GradleModeTestingExtensions.UnsupportedWithIP.class)
+@GradleModeTestingIntent(mode = GradleModeTesting.ISOLATED_PROJECTS, kind = GradleModeTestingIntent.Kind.WONT_SUPPORT)
 public @interface UnsupportedWithIsolatedProjects {
 
     String because() default "";

@@ -31,6 +31,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(GradleModeTestingExtensions.ToBeFixedForIP.class)
+@GradleModeTestingIntent(mode = GradleModeTesting.ISOLATED_PROJECTS, kind = GradleModeTestingIntent.Kind.TO_BE_FIXED)
 public @interface ToBeFixedForIsolatedProjects {
 
     /**
