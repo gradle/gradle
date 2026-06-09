@@ -44,18 +44,7 @@ class GradleModeTestingExtension<A extends Annotation> {
     }
 
     void applyAtSpec(A annotation, SpecInfo spec) {
-        // Hierarchy conflicts (two class-level intents of the same mode) surface here
-        // on the first feature visit via the cached per-class verdict. Pick any feature
-        // to trigger that lookup; per-method validation runs in applyAtFeature for features
-        // that carry their own intent annotation.
-        FeatureInfo anyFeature = spec.bottomSpec.allFeatures.find()
-        if (anyFeature != null) {
-            GradleModeTestingIntentValidator.validateFeature(
-                spec.bottomSpec.reflection,
-                anyFeature.featureMethod.reflection
-            )
-        }
-
+        GradleModeTestingIntentValidator.validateSpec(spec.bottomSpec.reflection)
         apply(annotation, spec, spec.bottomSpec.name)
     }
 

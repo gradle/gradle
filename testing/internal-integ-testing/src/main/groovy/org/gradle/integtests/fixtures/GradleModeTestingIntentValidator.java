@@ -56,14 +56,24 @@ final class GradleModeTestingIntentValidator {
     private GradleModeTestingIntentValidator() {}
 
     /**
-     * Verifies the spec/feature combination. Throws {@link IllegalStateException}
-     * with an explicit, developer-facing message when the contract is violated.
+     * Validates that at most one intent annotation per mode is reachable through
+     * the spec's class hierarchy.
      */
-    static void validateFeature(Class<?> specClass, Method featureMethod) {
+    static void validateSpec(Class<?> specClass) {
         ClassLevelVerdict verdict = PER_CLASS.get(specClass);
         if (verdict.error() != null) {
             throw new IllegalStateException(verdict.error());
         }
+    }
+
+    /**
+     * Validates that at most one intent annotation per mode is reachable for the given
+     * feature method — counting both class-level intents in its spec hierarchy and
+     * method-level intents on the method itself.
+     */
+    static void validateFeature(Class<?> specClass, Method featureMethod) {
+        validateSpec(specClass);
+        ClassLevelVerdict verdict = PER_CLASS.get(specClass);
         Map<GradleModeTesting, IntentSite> methodLevel = collectMethodLevelIntents(specClass, featureMethod);
         for (var entry : methodLevel.entrySet()) {
             IntentSite classSite = verdict.intentsByMode().get(entry.getKey());

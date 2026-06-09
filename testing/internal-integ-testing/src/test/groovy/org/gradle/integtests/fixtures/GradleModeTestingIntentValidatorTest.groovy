@@ -176,6 +176,39 @@ class GradleModeTestingIntentValidatorTest extends Specification {
         "CC variant: inherited UnsupportedCc + method ToBeFixedCc"    | ChildInheritsCcUnsupportedMethodCcToBeFixed | ["Configuration Cache", "UnsupportedWithConfigurationCache", "ToBeFixedForConfigurationCache"]
     }
 
+    def "validateSpec: #scenario"() {
+        when:
+        GradleModeTestingIntentValidator.validateSpec(specClass)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        scenario                                | specClass
+        "clean spec, no class-level intents"    | CleanChild
+        "single class-level ToBeFixedIp"        | ChildInheritingToBeFixedIp
+        "single class-level UnsupportedIp"      | ChildInheritingUnsupportedIp
+        "method-level intent does not concern"  | ChildWithMethodToBeFixedIp
+        "two intents of different modes are ok" | ChildClassCcMethodIp
+    }
+
+    def "validateSpec throws: #scenario"() {
+        when:
+        GradleModeTestingIntentValidator.validateSpec(specClass)
+
+        then:
+        IllegalStateException ex = thrown()
+        for (String expected : expectedMessageFragments) {
+            assert ex.message.contains(expected): "expected fragment '${expected}' in: ${ex.message}"
+        }
+
+        where:
+        scenario                                               | specClass                                  | expectedMessageFragments
+        "hierarchy: child UnsupportedIp over base ToBeFixedIp" | ChildClassUnsupportedIpOverToBeFixedIpBase | ["Isolated Projects", "UnsupportedWithIsolatedProjects", "ToBeFixedForIsolatedProjects"]
+        "hierarchy: child ToBeFixedIp over base UnsupportedIp" | ChildClassToBeFixedIpOverUnsupportedIpBase | ["Isolated Projects", "ToBeFixedForIsolatedProjects", "UnsupportedWithIsolatedProjects"]
+        "same annotation on base and child (hierarchy)"        | ChildClassToBeFixedIpOverToBeFixedIpBase   | ["Isolated Projects", "ToBeFixedForIsolatedProjects"]
+    }
+
     def "per-class verdict is cached and reused across feature lookups"() {
         given:
         Method m1 = findFeatureMethod(ChildInheritingToBeFixedIp)
