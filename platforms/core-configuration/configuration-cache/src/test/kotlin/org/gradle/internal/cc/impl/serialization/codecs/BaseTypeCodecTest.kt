@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.internal.configuration.inputs.AccessTrackingProperties
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -33,6 +34,19 @@ class BaseTypeCodecTest : AbstractUserTypeCodecTest() {
         configurationCacheRoundtripOf(properties).run {
             assertThat(properties, equalTo(this))
         }
+    }
+
+    @Test
+    fun `does not report a problem for AccessTrackingProperties`() {
+        val noOpListener = object : AccessTrackingProperties.Listener {
+            override fun onAccess(key: Any, value: Any?) = Unit
+            override fun onChange(key: Any, newValue: Any) = Unit
+            override fun onRemove(key: Any) = Unit
+            override fun onClear() = Unit
+        }
+        val properties = AccessTrackingProperties(Properties().apply { setProperty("prop", "value") }, noOpListener)
+
+        assertThat(serializationProblemsOf(properties), equalTo(emptyList()))
     }
 
     @Test

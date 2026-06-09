@@ -380,6 +380,15 @@ fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int,
 
 
 /**
+ * Custom descendants of supported collection/map types that are known to round-trip safely and so must not be reported.
+ */
+private
+val customImplementationExceptions = setOf(
+    "org.gradle.internal.configuration.inputs.AccessTrackingProperties"
+)
+
+
+/**
  * Reports a configuration cache problem when [actualType] is a custom descendant of one of the [supportedTypes]
  * a codec serializes specially. The codec is only reached because dispatch matched [actualType] to one of these
  * base types, so anything that is not exactly one of them is a custom descendant that will be restored as a
@@ -387,7 +396,7 @@ fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int,
  * type in the message (e.g. `HashSet` for `HashSet`/`LinkedHashSet`).
  */
 fun IsolateContext.warnAboutCustomImplementation(actualType: Class<*>, kind: String, supportedTypes: Array<out Class<*>>) {
-    if (actualType in supportedTypes) {
+    if (actualType in supportedTypes || actualType.name in customImplementationExceptions) {
         return
     }
     val baseType = supportedTypes.firstOrNull() ?: return
