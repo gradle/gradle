@@ -16,15 +16,18 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.CrossBuildModelAccess
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossBuildModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DefaultDynamicCallContextTracker
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -35,6 +38,8 @@ import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.SettingsPreparer
+import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -43,14 +48,19 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintCont
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.cc.impl.services.add
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
+import org.gradle.invocation.GradleLifecycleActionExecutor
 
 
 internal object BuildModelControllerServices : ServiceRegistrationProvider {
@@ -63,14 +73,14 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
         if (buildModelParameters.isVintage) {
             // region ALL MODES
-            add(BuildModelController::class.java, VintageBuildModelController::class.java)
+            add(BuildModelController::class.java, BuildModelControllerServices::createVintageBuildModelController)
             add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)
-            add(CrossProjectModelAccess::class.java, DefaultCrossProjectModelAccess::class.java)
+            add(CrossProjectModelAccess::class.java, BuildModelControllerServices::createDefaultCrossProjectModelAccess)
             add(DynamicLookupRoutine::class.java, DefaultDynamicLookupRoutine::class.java)
             // endregion
         } else if (buildModelParameters.isConfigurationCache) {
             // region ALL MODES
-            add(BuildModelController::class.java, ConfigurationCacheAwareBuildModelController::class.java)
+            add(BuildModelController::class.java, BuildModelControllerServices::createConfigurationCacheAwareBuildModelController)
             // endregion
 
             // region CC and IP
@@ -81,11 +91,11 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
             if (!buildModelParameters.isIsolatedProjects) {
                 add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)
-                add(CrossProjectModelAccess::class.java, DefaultCrossProjectModelAccess::class.java)
+                add(CrossProjectModelAccess::class.java, BuildModelControllerServices::createDefaultCrossProjectModelAccess)
                 add(DynamicLookupRoutine::class.java, DefaultDynamicLookupRoutine::class.java)
             } else { // IP
                 add(CrossBuildModelAccess::class.java, ProblemReportingCrossBuildModelAccess::class.java)
-                add(CrossProjectModelAccess::class.java, ProblemReportingCrossProjectModelAccess::class.java)
+                add(CrossProjectModelAccess::class.java, BuildModelControllerServices::createProblemReportingCrossProjectModelAccess)
                 add(DynamicLookupRoutine::class.java, TrackingDynamicLookupRoutine::class.java)
                 add(DynamicCallContextTracker::class.java, DefaultDynamicCallContextTracker::class.java)
             }
@@ -135,6 +145,52 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             DelayedConfigurationActions()
         )
         return LifecycleProjectEvaluator(buildOperationRunner, withActionsEvaluator, cancellationToken)
+    }
+
+    @JvmStatic
+    private fun createVintageBuildModelController(
+        gradle: GradleInternal,
+        projectsPreparer: ProjectsPreparer,
+        settingsPreparer: SettingsPreparer,
+        taskExecutionPreparer: TaskExecutionPreparer,
+        stateTransitionControllerFactory: StateTransitionControllerFactory
+    ): BuildModelController =
+        VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
+
+    @JvmStatic
+    private fun createConfigurationCacheAwareBuildModelController(
+        gradle: GradleInternal,
+        projectsPreparer: ProjectsPreparer,
+        settingsPreparer: SettingsPreparer,
+        taskExecutionPreparer: TaskExecutionPreparer,
+        stateTransitionControllerFactory: StateTransitionControllerFactory,
+        configurationCache: BuildTreeConfigurationCache
+    ): BuildModelController {
+        val delegate = createVintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
+        return ConfigurationCacheAwareBuildModelController(gradle, delegate, configurationCache)
+    }
+
+    @JvmStatic
+    private fun createDefaultCrossProjectModelAccess(
+        projectRegistry: ProjectRegistry,
+        instantiator: Instantiator,
+        gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
+    ): CrossProjectModelAccess =
+        DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
+
+    @JvmStatic
+    private fun createProblemReportingCrossProjectModelAccess(
+        problems: ProblemsListener,
+        coupledProjectsListener: CoupledProjectsListener,
+        problemFactory: ProblemFactory,
+        dynamicCallProblemReporting: DynamicCallProblemReporting,
+        buildModelParameters: BuildModelParameters,
+        instantiator: Instantiator,
+        projectRegistry: ProjectRegistry,
+        gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
+    ): CrossProjectModelAccess {
+        val delegate = createDefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
+        return ProblemReportingCrossProjectModelAccess(delegate, problems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting, buildModelParameters, instantiator)
     }
 
     // TODO:configuration-cache simplify after https://github.com/gradle/gradle/issues/37567 is addressed

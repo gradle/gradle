@@ -31,6 +31,9 @@ import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
+import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.cc.impl.services.add
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
@@ -116,7 +119,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         if (modelParameters.isVintage) {
             // region ALL MODES
             add(Environment::class.java, DefaultEnvironment::class.java)
-            add(BuildTreeWorkGraphPreparer::class.java, DefaultBuildTreeWorkGraphPreparer::class.java)
+            add(BuildTreeWorkGraphPreparer::class.java, ::createDefaultBuildTreeWorkGraphPreparer)
             add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
             add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
             add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
@@ -131,7 +134,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         } else if (modelParameters.isConfigurationCache) {
             // region ALL MODES
             add(Environment::class.java, ConfigurationCacheEnvironment::class.java)
-            add(BuildTreeWorkGraphPreparer::class.java, ConfigurationCacheAwareBuildTreeWorkGraphPreparer::class.java)
+            add(BuildTreeWorkGraphPreparer::class.java, ::createConfigurationCacheAwareBuildTreeWorkGraphPreparer)
             add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             add(ProjectScopedScriptResolution::class.java, ConfigurationCacheFingerprintController::class.java, ConfigurationCacheFingerprintController::class.java)
@@ -181,6 +184,23 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         internalOptions: InternalOptions
     ): CommonReport {
         return CommonReport(executorFactory, temporaryFileProvider, internalOptions, "configuration cache report", "configuration-cache-report")
+    }
+
+    @JvmStatic
+    private fun createDefaultBuildTreeWorkGraphPreparer(
+        buildRegistry: BuildStateRegistry,
+        buildTaskSelector: BuildTaskSelector
+    ): BuildTreeWorkGraphPreparer =
+        DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+
+    @JvmStatic
+    private fun createConfigurationCacheAwareBuildTreeWorkGraphPreparer(
+        buildRegistry: BuildStateRegistry,
+        buildTaskSelector: BuildTaskSelector,
+        cache: BuildTreeConfigurationCache
+    ): BuildTreeWorkGraphPreparer {
+        val delegate = createDefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+        return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(delegate, cache)
     }
 
     // endregion
