@@ -352,7 +352,6 @@ class CommonReport(
     }
 
     @OptIn(ExperimentalContracts::class)
-    @Suppress("WRONG_INVOCATION_KIND")
     private
     inline fun modifyState(f: State.() -> State) {
         contract {
