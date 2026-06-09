@@ -26,6 +26,8 @@ import org.spockframework.runtime.model.SpecInfo
 
 import java.lang.annotation.Annotation
 
+import static java.util.Objects.requireNonNull
+
 /**
  * Applies a {@link GradleModeTestingPolicy}'s verdict to a Spock spec or feature.
  */
@@ -42,10 +44,26 @@ class GradleModeTestingExtension<A extends Annotation> {
     }
 
     void applyAtSpec(A annotation, SpecInfo spec) {
+        // Hierarchy conflicts (two class-level intents of the same mode) surface here
+        // on the first feature visit via the cached per-class verdict. Pick any feature
+        // to trigger that lookup; per-method validation runs in applyAtFeature for features
+        // that carry their own intent annotation.
+        FeatureInfo anyFeature = spec.bottomSpec.allFeatures.find()
+        if (anyFeature != null) {
+            GradleModeTestingIntentValidator.validateFeature(
+                spec.bottomSpec.reflection,
+                anyFeature.featureMethod.reflection
+            )
+        }
+
         apply(annotation, spec, spec.bottomSpec.name)
     }
 
     void applyAtFeature(A annotation, FeatureInfo feature) {
+        GradleModeTestingIntentValidator.validateFeature(
+            feature.spec.bottomSpec.reflection,
+            feature.featureMethod.reflection
+        )
         apply(annotation, feature, feature.spec.bottomSpec.name)
     }
 
@@ -55,7 +73,8 @@ class GradleModeTestingExtension<A extends Annotation> {
                 skip(specOrFeature, policy.skipReason(annotation))
                 return
             case GradleModeTestingPolicy.Verdict.EXPECT_FAILURE:
-                expectFailureInterceptor.intercept(specOrFeature, policy.iterationMatchers(annotation))
+                requireNonNull(expectFailureInterceptor, "Policy returned EXPECT_FAILURE but no expect-failure interceptor was provided to ${this.class.simpleName}")
+                    .intercept(specOrFeature, policy.iterationMatchers(annotation))
                 return
             case GradleModeTestingPolicy.Verdict.RUN:
                 if (policy.requiresPerIterationCheck(annotation, bottomSpecName)) {
