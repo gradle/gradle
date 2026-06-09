@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.executer.IsolatedProjectsGradleExecuter;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -25,10 +24,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a test for a feature that is unsupported with Isolated Projects.
- * Do not use this for tests for features that are supported by Isolated Projects but where the test happens to be incompatible.
- *
- * <p>The annotated test will be skipped by the {@link IsolatedProjectsGradleExecuter}.
+ * Skip the test when running with Isolated Projects executor.
+ * <p>
+ * Use this annotation when the tested feature is fundamentally incompatible with Isolated Projects
+ * and there is no intention to support it. If the intention is to eventually fix either the test
+ * or the underlying feature, use {@link ToBeFixedForIsolatedProjects} instead.
+ * <p>
+ * The annotated test is skipped entirely; no assertion is made about its behavior under Isolated Projects.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -38,6 +40,10 @@ public @interface UnsupportedWithIsolatedProjects {
 
     String because() default "";
 
+    /**
+     * Declare to which bottom spec this annotation should be applied.
+     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
+     */
     String[] bottomSpecs() default {};
 
     /**

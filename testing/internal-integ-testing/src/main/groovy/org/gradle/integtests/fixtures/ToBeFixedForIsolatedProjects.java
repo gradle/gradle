@@ -24,9 +24,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Assert that this test fails when run with Isolated Projects enabled.
+ * Expect the test to fail or skip it when running with Isolated Projects executor.
  * <p>
- * In case the {@link #skip()} reason is anything but {@link Skip#DO_NOT_SKIP DO_NOT_SKIP}, the test will be skipped.
+ * Use this annotation when the intention is to fix either the test itself or the underlying feature,
+ * making it compatible with Isolated Projects. If the intention is to not support the tested feature
+ * with Isolated Projects, use {@link UnsupportedWithIsolatedProjects} instead.
+ * <p>
+ * The expectation of failure essentially flips the test result.
+ * A specific failure is not verified, and we only confirm that the test is not passing.
+ * <p>
+ * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
+ * or has other undersirable effects, such as timeouts.
+ * Set {@link #skip()} into any other value apart from {@link Skip#DO_NOT_SKIP DO_NOT_SKIP} to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
