@@ -564,6 +564,13 @@ While the configuration of all projects is ensured, violations can hide behind a
 [[sec:dangerously_ignore_problems]]
 === Temporarily ignoring violations
 
+[WARNING]
+====
+The mode described in this section is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+Because the violations are ignored rather than fixed, build outputs may be incorrect, so the results should not be used to produce artifacts.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+====
+
 To guarantee reliable build results, Gradle will fail the build when any violations of <<sec:constraints,Isolated Project constraints>> are detected.
 However, in the initial stages of the Isolated Projects adoption journey,
 it can be useful to gauge an estimate of the speed-up provided by the feature in your particular setup and workflow,
@@ -598,13 +605,6 @@ This does not guarantee that the build will succeed.
 Concurrency issues may still cause exceptions which fail the build.
 This mode can be combined with <<sec:diagnostics_mode,Diagnostics mode>> to prevent concurrency errors,
 which may be helpful for an IDE sync that would otherwise be interrupted by such a failure.
-====
-
-[WARNING]
-====
-This mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
-Because the violations are ignored rather than fixed, build outputs may be incorrect, so the results should not be used to produce artifacts.
-It will also not prevent new incompatibilities being accidentally added to your build later.
 ====
 
 [[sec:migration_path]]

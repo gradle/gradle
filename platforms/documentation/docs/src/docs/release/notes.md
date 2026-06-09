@@ -67,23 +67,34 @@ You can extract the URL from YouTube by clicking the "Share" button.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-### Configuration Cache and Isolated Projects improvements
+### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
-[Isolated Projects](userguide/isolated_projects.html) builds on this foundation to enable parallel project configuration and finer-grained caching.
 
-#### Evaluate Isolated Projects performance before fixing all violations
+### Isolated Projects improvements
+Gradle provides [Isolated Projects](userguide/isolated_projects.html), an experimental feature that enables parallel project configuration.
 
-When adopting [Isolated Projects](userguide/isolated_projects.html), it can be useful to estimate the parallel build or IDE sync speedup before addressing every violation. A new Gradle property, `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`, lets you do exactly that. When enabled alongside Isolated Projects, violations are reported but do not fail the build, and parallel configuration stays active so you can time real-world performance.
+#### Isolated Projects now offers three modes for handling constraint violations
+
+Builds adopting Isolated Projects typically contain [constraint violations](userguide/isolated_projects.html#sec:constraint_violations) that must be fixed over time.
+Isolated Projects now offers three modes, each suited to a different stage of that journey:
+
+- **Fail-fast** — the default. Project configuration runs in parallel and the build fails as soon as a violation is detected, guaranteeing reliable build results.
+- **[Diagnostics](userguide/isolated_projects.html#sec:diagnostics_mode)** (`org.gradle.unsafe.isolated-projects.diagnostics`) — project configuration runs sequentially and the build continues past
+  violations, reporting all of them deterministically. Use this to discover what needs fixing during migration.
+- **[Dangerously ignore problems](userguide/isolated_projects.html#sec:dangerously_ignore_problems)** (`org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`) — violations are reported but
+  do not fail the build, and parallel configuration stays active. Use this to estimate the parallel build or IDE sync speedup before fixing every violation. Build outputs may be incorrect while
+  violations are ignored, so never use this mode to produce artifacts.
+
+The opt-in modes can also be combined, for example to complete an IDE sync that concurrency errors would otherwise interrupt:
 
 ```properties
 # gradle.properties
 org.gradle.unsafe.isolated-projects=true
+org.gradle.unsafe.isolated-projects.diagnostics=true
 org.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true
 ```
 
-Build outputs may be incorrect while violations are ignored — use this mode only to evaluate performance, never to produce artifacts. Configuration Cache entries from these runs are kept separate, so removing the flag results in a clean cache miss.
-
-See the [Temporarily ignoring violations](userguide/isolated_projects.html#sec:dangerously_ignore_problems) section in the Gradle User Manual for more details.
+In all modes, the severity of Isolated Projects violations is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
 
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
