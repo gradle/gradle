@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.verification.model.ComponentVerificatio
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableComponentVerificationMetadata;
+import org.gradle.api.internal.artifacts.verification.model.TrustedPgpKey;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.jspecify.annotations.Nullable;
 
@@ -90,9 +91,13 @@ public class DependencyVerifierBuilder {
     }
 
     public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
+        addTrustedKey(artifact, key, null, null);
+    }
+
+    public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
-            .addTrustedKey(artifact, key);
+            .addTrustedKey(artifact, key, origin, reason);
     }
 
     public void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
@@ -147,8 +152,12 @@ public class DependencyVerifierBuilder {
     }
 
     public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        addTrustedKey(keyId, group, name, version, fileName, regex, null, null);
+    }
+
+    public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
-        trustedKeys.add(new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex));
+        trustedKeys.add(new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex, origin, reason));
     }
 
     private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
@@ -187,7 +196,11 @@ public class DependencyVerifierBuilder {
         }
 
         void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key);
+            addTrustedKey(artifact, key, null, null);
+        }
+
+        void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
+            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
         }
 
         void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
@@ -221,7 +234,7 @@ public class DependencyVerifierBuilder {
 
     protected static class ArtifactVerificationBuilder {
         private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
-        private final Set<String> pgpKeys = new LinkedHashSet<>();
+        private final Set<TrustedPgpKey> pgpKeys = new LinkedHashSet<>();
         private final Set<IgnoredKey> ignoredPgpKeys = new LinkedHashSet<>();
 
         void addChecksum(ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
@@ -244,7 +257,11 @@ public class DependencyVerifierBuilder {
         }
 
         public void addTrustedKey(String key) {
-            pgpKeys.add(key.toUpperCase(Locale.ROOT));
+            addTrustedKey(key, null, null);
+        }
+
+        public void addTrustedKey(String key, @Nullable String origin, @Nullable String reason) {
+            pgpKeys.add(new TrustedPgpKey(key, origin, reason));
         }
 
         public void addIgnoredKey(IgnoredKey key) {
@@ -264,9 +281,10 @@ public class DependencyVerifierBuilder {
          * @return a set of trusted GPG keys
          * @throws InvalidGpgKeyIdsException if keys not fitting the requirements were found
          */
-        public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIdsException {
+        public Set<TrustedPgpKey> buildTrustedPgpKeys() throws InvalidGpgKeyIdsException {
             final List<String> wrongPgpKeys = pgpKeys
                 .stream()
+                .map(TrustedPgpKey::getKeyId)
                 // The key is 160 bits long, encoded in base32 (case-insensitive characters).
                 //
                 // Base32 gives us 4 bits per character, so the whole fingerprint will be:

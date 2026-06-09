@@ -336,8 +336,29 @@ class DependencyVerificationFixture {
             )
         }
 
-        void addGloballyTrustedKey(String keyId, String group = null, String name = null, String version = null, String fileName = null, boolean regex = false) {
-            builder.addTrustedKey(keyId, group, name, version, fileName, regex)
+        void addGloballyTrustedKey(String keyId, String group = null, String name = null, String version = null, String fileName = null, boolean regex = false, String origin = null, String reason = null) {
+            builder.addTrustedKey(keyId, group, name, version, fileName, regex, origin, reason)
+        }
+
+        void addTrustedKeyWithMetadata(String id, String key, String origin, String reason, String type = "jar", String ext = "jar") {
+            def parts = id.split(":")
+            def group = parts[0]
+            def name = parts[1]
+            def version = parts.size() == 3 ? parts[2] : "1.0"
+            builder.addTrustedKey(
+                new DefaultModuleComponentArtifactIdentifier(
+                    DefaultModuleComponentIdentifier.newId(
+                        DefaultModuleIdentifier.newId(group, name),
+                        version
+                    ),
+                    name,
+                    type,
+                    ext
+                ),
+                key,
+                origin,
+                reason
+            )
         }
 
         void addIgnoredKeyByFileName(String id, String fileName, String key, String reason = "for tests") {

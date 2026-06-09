@@ -118,6 +118,8 @@ public class DependencyVerificationsXmlReader {
         private boolean inTrustedKeys;
         private boolean inTrustedKey;
         private String currentTrustedKey;
+        private String currentTrustedKeyOrigin;
+        private String currentTrustedKeyReason;
         private boolean inKeyRingFormat;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
@@ -217,7 +219,7 @@ public class DependencyVerificationsXmlReader {
                         builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
                     } else if (currentArtifact != null) {
                         if (PGP.equals(qName)) {
-                            builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
+                            builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
                         } else {
                             currentChecksum = ChecksumKind.valueOf(qName);
                             builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
@@ -260,6 +262,8 @@ public class DependencyVerificationsXmlReader {
 
         private void addTrustedKey(Attributes attributes) {
             currentTrustedKey = getAttribute(attributes, ID);
+            currentTrustedKeyOrigin = getNullableAttribute(attributes, ORIGIN);
+            currentTrustedKeyReason = getNullableAttribute(attributes, REASON);
             maybeAddTrustedKey(attributes);
         }
 
@@ -280,7 +284,9 @@ public class DependencyVerificationsXmlReader {
                     name,
                     version,
                     file,
-                    regex
+                    regex,
+                    currentTrustedKeyOrigin,
+                    currentTrustedKeyReason
                 );
             }
         }
@@ -356,6 +362,8 @@ public class DependencyVerificationsXmlReader {
                 case TRUSTED_KEY:
                     inTrustedKey = false;
                     currentTrustedKey = null;
+                    currentTrustedKeyOrigin = null;
+                    currentTrustedKeyReason = null;
                     break;
                 case KEY_SERVERS:
                     inKeyServers = false;

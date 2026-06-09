@@ -274,6 +274,9 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[0].version == null
         trustedKeys[0].fileName == "file.jar"
         trustedKeys[0].regex == true
+        // pre-1.4 files don't carry origin/reason on trusted keys
+        trustedKeys[0].origin == null
+        trustedKeys[0].reason == null
 
         trustedKeys[1].keyId == "B000000000000000000000000000000000000000"
         trustedKeys[1].group == null
@@ -302,6 +305,77 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[4].version == null
         trustedKeys[4].fileName == null
         trustedKeys[4].regex == false
+    }
+
+    def "can parse origin and reason of trusted keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/a.asc" reason="verified manually"/>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/d.asc" reason="shared key">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 3
+
+        trustedKeys[0].keyId == "A000000000000000000000000000000000000000"
+        trustedKeys[0].origin == "https://example.com/a.asc"
+        trustedKeys[0].reason == "verified manually"
+
+        trustedKeys[1].keyId == "D000000000000000000000000000000000000000"
+        trustedKeys[1].name == "m3"
+        trustedKeys[1].origin == "https://example.com/d.asc"
+        trustedKeys[1].reason == "shared key"
+
+        trustedKeys[2].keyId == "D000000000000000000000000000000000000000"
+        trustedKeys[2].name == "m4"
+        trustedKeys[2].origin == "https://example.com/d.asc"
+        trustedKeys[2].reason == "shared key"
+    }
+
+    def "can parse origin and reason of artifact specific trusted pgp keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/key.asc" reason="trusted maintainer"/>
+            <pgp value="0123456789ABCDEF0123456789ABCDEF01234567"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        then:
+        def keys = verifier.verificationMetadata[0].artifactVerifications[0].trustedPgpKeys as List
+        keys.size() == 2
+
+        def withMetadata = keys.find { it.keyId == "ABCDEF0123456789ABCDEF0123456789ABCDEF01" }
+        withMetadata.origin == "https://example.com/key.asc"
+        withMetadata.reason == "trusted maintainer"
+
+        // pre-1.4 files don't carry origin/reason on pgp keys
+        def withoutMetadata = keys.find { it.keyId == "0123456789ABCDEF0123456789ABCDEF01234567" }
+        withoutMetadata.origin == null
+        withoutMetadata.reason == null
     }
 
     def "can parse dependency verification metadata"() {

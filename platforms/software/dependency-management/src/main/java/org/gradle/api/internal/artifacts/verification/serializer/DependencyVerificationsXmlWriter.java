@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.verification.model.ArtifactVerification
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.model.TrustedPgpKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.internal.UncheckedException;
@@ -97,7 +98,7 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd");
+        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -150,10 +151,14 @@ public class DependencyVerificationsXmlWriter {
     private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys) throws IOException {
         writer.startElement(TRUSTED_KEY);
         writeAttribute(ID, keyId);
+        // origin and reason describe the key itself, so they are shared by all the grouped entries
+        DependencyVerificationConfiguration.TrustedKey representative = trustedKeys.get(0);
+        writeNullableAttribute(ORIGIN, representative.getOrigin());
+        writeNullableAttribute(REASON, representative.getReason());
         trustedKeys.stream().sorted().forEach(trustedKey -> {
             try {
                 writer.startElement(TRUSTING);
-                writeTrustCoordinates(trustedKey);
+                writeCoordinates(trustedKey);
                 writer.endElement();
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -165,7 +170,9 @@ public class DependencyVerificationsXmlWriter {
     private void writeTrustedKey(DependencyVerificationConfiguration.TrustedKey key) throws IOException {
         writer.startElement(TRUSTED_KEY);
         writeAttribute(ID, key.getKeyId());
-        writeTrustCoordinates(key);
+        writeCoordinates(key);
+        writeNullableAttribute(ORIGIN, key.getOrigin());
+        writeNullableAttribute(REASON, key.getReason());
         writer.endElement();
     }
 
@@ -212,14 +219,18 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void writeTrustCoordinates(DependencyVerificationConfiguration.TrustCoordinates trustedArtifact) throws IOException {
-        writeNullableAttribute(GROUP, trustedArtifact.getGroup());
-        writeNullableAttribute(NAME, trustedArtifact.getName());
-        writeNullableAttribute(VERSION, trustedArtifact.getVersion());
-        writeNullableAttribute(FILE, trustedArtifact.getFileName());
-        if (trustedArtifact.isRegex()) {
+        writeCoordinates(trustedArtifact);
+        writeNullableAttribute(REASON, trustedArtifact.getReason());
+    }
+
+    private void writeCoordinates(DependencyVerificationConfiguration.TrustCoordinates coordinates) throws IOException {
+        writeNullableAttribute(GROUP, coordinates.getGroup());
+        writeNullableAttribute(NAME, coordinates.getName());
+        writeNullableAttribute(VERSION, coordinates.getVersion());
+        writeNullableAttribute(FILE, coordinates.getFileName());
+        if (coordinates.isRegex()) {
             writeAttribute(REGEX, "true");
         }
-        writeNullableAttribute(REASON, trustedArtifact.getReason());
     }
 
     private void writeSignatureCheck(DependencyVerificationConfiguration configuration) throws IOException {
@@ -289,7 +300,7 @@ public class DependencyVerificationsXmlWriter {
         String artifact = verification.getArtifactName();
         writer.startElement(ARTIFACT);
         writeAttribute(NAME, artifact);
-        writeTrustedKeys(verification.getTrustedPgpKeys());
+        writeArtifactTrustedKeys(verification.getTrustedPgpKeys());
         writeIgnoredKeys(verification.getIgnoredPgpKeys());
         writeChecksums(verification.getChecksums());
         writer.endElement();
@@ -307,10 +318,12 @@ public class DependencyVerificationsXmlWriter {
         writer.endElement();
     }
 
-    private void writeTrustedKeys(Set<String> trustedPgpKeys) throws IOException {
-        for (String key : trustedPgpKeys) {
+    private void writeArtifactTrustedKeys(Set<TrustedPgpKey> trustedPgpKeys) throws IOException {
+        for (TrustedPgpKey key : trustedPgpKeys) {
             writer.startElement(PGP);
-            writeAttribute(VALUE, key);
+            writeAttribute(VALUE, key.getKeyId());
+            writeNullableAttribute(ORIGIN, key.getOrigin());
+            writeNullableAttribute(REASON, key.getReason());
             writer.endElement();
         }
     }

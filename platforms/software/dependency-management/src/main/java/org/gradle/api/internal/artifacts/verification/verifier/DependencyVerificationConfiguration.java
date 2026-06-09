@@ -237,9 +237,15 @@ public class DependencyVerificationConfiguration {
 
     public static class TrustedKey extends TrustCoordinates implements Comparable<TrustedKey> {
         private final String keyId;
+        private final String origin;
 
         TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex, null);
+            this(keyId, group, name, version, fileName, regex, null, null);
+        }
+
+        TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
+            super(group, name, version, fileName, regex, reason);
+            this.origin = origin;
 
             // The key is 160 bits long, encoded in base32 (case-insensitive characters).
             //
@@ -259,6 +265,11 @@ public class DependencyVerificationConfiguration {
             return keyId;
         }
 
+        @Nullable
+        public String getOrigin() {
+            return origin;
+        }
+
         @Override
         public boolean equals(@Nullable Object o) {
             if (this == o) {
@@ -273,13 +284,17 @@ public class DependencyVerificationConfiguration {
 
             TrustedKey that = (TrustedKey) o;
 
-            return keyId.equals(that.keyId);
+            if (!keyId.equals(that.keyId)) {
+                return false;
+            }
+            return Objects.equals(origin, that.origin);
         }
 
         @Override
         public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + keyId.hashCode();
+            result = 31 * result + (origin != null ? origin.hashCode() : 0);
             return result;
         }
 
@@ -289,7 +304,11 @@ public class DependencyVerificationConfiguration {
             if (keyIdComparison != 0) {
                 return keyIdComparison;
             }
-            return internalCompareTo(other);
+            int coordinatesComparison = internalCompareTo(other);
+            if (coordinatesComparison != 0) {
+                return coordinatesComparison;
+            }
+            return compareNullableStrings(getOrigin(), other.getOrigin());
         }
 
     }

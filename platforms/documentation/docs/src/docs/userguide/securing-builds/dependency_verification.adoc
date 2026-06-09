@@ -146,7 +146,7 @@ A minimal configuration consists of the following:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -195,7 +195,7 @@ To disable metadata verification, set the `<verify-metadata>` flag to `false`:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -257,7 +257,7 @@ To avoid this, you can configure Gradle to automatically trust all javadocs and 
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <trusted-artifacts>
          <trust file=".*-javadoc[.]jar" regex="true"/>
@@ -407,7 +407,7 @@ A snippet of the resulting `verification-metadata.xml` looks like this:
 <verification-metadata
     xmlns="https://schema.gradle.org/dependency-verification"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
 
     <components>
 
@@ -493,7 +493,7 @@ Manually added entries and header comments are preserved, making it easy to upda
 <verification-metadata
     xmlns="https://schema.gradle.org/dependency-verification"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
 
     <components>
       <component group="aopalliance" name="aopalliance" version="1.0">
@@ -552,7 +552,7 @@ You need to declare checksums for both (unless you <<sec:disabling-metadata-veri
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -663,6 +663,21 @@ To trust a key for signature verification, add a `pgp` entry to your verificatio
 
 This means you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
 
+A `pgp` entry also accepts optional `origin` and `reason` attributes to document where the key was obtained or verified and why it is trusted:
+
+[source,xml]
+----
+<component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
+   <artifact name="javaparser-core-3.6.11.jar">
+      <pgp value="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+           origin="https://keyserver.ubuntu.com"
+           reason="Verified against the maintainer's website"/>
+   </artifact>
+</component>
+----
+
+As with checksums, these attributes are informational only: Gradle preserves them across read/write cycles but doesn't use them during verification.
+
 Without trusted keys configured, the build will fail:
 
 [source,text]
@@ -699,7 +714,7 @@ You can add trusted keys to a global configuration block:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -720,6 +735,22 @@ The `trusted-key` element supports these attributes:
 * `version` - the version of the artifact to trust
 * `file` - the name of the artifact file to trust
 * `regex` - whether to interpret the other attributes as regular expressions (defaults to `false`)
+* `origin` - an optional, free-form note documenting where the key was obtained or verified (for example, the URL it was downloaded from)
+* `reason` - an optional note explaining why the key is trusted
+
+For example:
+
+[source,xml]
+----
+<trusted-keys>
+   <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+                group="com.github.javaparser"
+                origin="https://keyserver.ubuntu.com"
+                reason="Verified against the maintainer's website"/>
+</trusted-keys>
+----
+
+The `origin` and `reason` attributes are purely informational: Gradle preserves them across read/write cycles but never uses them during verification.
 
 [[security_considerations]]
 ===== Security Considerations
@@ -748,7 +779,7 @@ You can automatically trust all artifacts in a group by adding this to your conf
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <trusted-artifacts>
          <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
@@ -777,7 +808,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <trusted-artifacts>
          <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
@@ -800,7 +831,7 @@ You can configure custom key servers by adding them to your verification metadat
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -830,7 +861,7 @@ To enable this mode, disable key servers in the configuration file:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <key-servers enabled="false"/>
    </configuration>
@@ -850,7 +881,7 @@ In these cases, you can ignore the key:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -961,7 +992,7 @@ You can configure which format to use:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
