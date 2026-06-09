@@ -187,11 +187,11 @@ class DefaultSharedObjectDecoder(
             }
         } catch (t: Throwable) {
             readFailure.set(t)
+        } finally {
+            state.set(ReaderState.STOPPED)
             for (entry in values.values) {
                 if (entry is FutureValue) entry.release()
             }
-        } finally {
-            state.set(ReaderState.STOPPED)
         }
     }
 
@@ -207,7 +207,7 @@ class DefaultSharedObjectDecoder(
         throwIfReaderFailed()
         return when (val existing = values.computeIfAbsent(id) { FutureValue(id) }) {
             is FutureValue -> {
-                if (readFailure.get() != null) {
+                if (state.get() == ReaderState.STOPPED || readFailure.get() != null) {
                     existing.release()
                 }
                 existing.get()

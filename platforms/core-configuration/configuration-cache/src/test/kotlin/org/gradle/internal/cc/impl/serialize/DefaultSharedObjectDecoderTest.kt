@@ -31,13 +31,22 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 
 
 class DefaultSharedObjectDecoderTest {
@@ -93,6 +102,68 @@ class DefaultSharedObjectDecoderTest {
         assertThat(thrown.message, containsString("Failed to decode shared value"))
         assertThat(thrown.cause, instanceOf(RuntimeException::class.java))
         assertThat(thrown.cause!!.message, equalTo("delayed boom"))
+    }
+
+    @Test(timeout = 30_000)
+    fun `consumer asking for an id the reader never writes is released when the reader completes normally`() {
+        val readerMayComplete = CountDownLatch(1)
+
+        val codec: Codec<Any?> = object : Codec<Any?> {
+            override suspend fun WriteContext.encode(value: Any?) = Unit
+            override suspend fun ReadContext.decode(): Any {
+                readerMayComplete.await()
+                return "foo"
+            }
+        }
+
+        val globalContext = readContextOver(writeBytes { writeSmallInt(1); writeSmallInt(-1) }, codec).also {
+            it.push(owner, codec)
+        }
+        val decoder = DefaultSharedObjectDecoder(globalContext, valueWaitTimeout = Duration.ofSeconds(30))
+
+        val thrown = AtomicReference<Throwable?>()
+        val elapsedMs = AtomicReference(0L)
+        decoder.use {
+            val clientContext = readContextOver(
+                writeBytes { writeSmallInt(11) },
+                codec,
+                SpecialDecoders(sharedObjectDecoder = decoder)
+            ).also { it.push(owner, codec) }
+
+            val consumer = thread(name = "test-consumer") {
+                val start = System.nanoTime()
+                try {
+                    clientContext.runReadOperation {
+                        decoder.read(this) { error("not used") }
+                    }
+                } catch (t: Throwable) {
+                    thrown.set(t)
+                } finally {
+                    elapsedMs.set(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start))
+                }
+            }
+
+            awaitThreadParked(consumer)
+            readerMayComplete.countDown()
+
+            consumer.join(TimeUnit.SECONDS.toMillis(10))
+            assertTrue("consumer thread did not finish - it is likely stuck on the value wait timeout", !consumer.isAlive)
+        }
+
+        val failure = thrown.get()
+        assertThat(failure, notNullValue())
+        assertThat(failure, instanceOf(RuntimeException::class.java))
+        assertThat(failure, not(instanceOf(TimeoutException::class.java)))
+        assertTrue("consumer took ${elapsedMs.get()}ms - it waited for the value timeout", elapsedMs.get() < 5_000)
+    }
+
+    private
+    fun awaitThreadParked(t: Thread) {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
+        while (t.state != Thread.State.TIMED_WAITING && t.state != Thread.State.WAITING) {
+            if (System.nanoTime() > deadline) fail("thread ${t.name} never parked, state=${t.state}")
+            Thread.sleep(5)
+        }
     }
 
     private
