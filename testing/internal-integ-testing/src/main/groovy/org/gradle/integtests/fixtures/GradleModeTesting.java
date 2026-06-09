@@ -26,18 +26,15 @@ import java.util.function.BooleanSupplier;
  * (e.g. Configuration Cache, Isolated Projects).
  */
 @NullMarked
-public final class GradleModeTesting {
+public enum GradleModeTesting {
 
-    public static final GradleModeTesting CONFIGURATION_CACHE =
-        new GradleModeTesting("Configuration Cache", GradleContextualExecuter::isConfigCache);
-
-    public static final GradleModeTesting ISOLATED_PROJECTS =
-        new GradleModeTesting("Isolated Projects", GradleContextualExecuter::isIsolatedProjects);
+    CONFIGURATION_CACHE("Configuration Cache", GradleContextualExecuter::isConfigCache),
+    ISOLATED_PROJECTS("Isolated Projects", GradleContextualExecuter::isIsolatedProjects);
 
     private final String displayName;
     private final BooleanSupplier activeCheck;
 
-    private GradleModeTesting(String displayName, BooleanSupplier activeCheck) {
+    GradleModeTesting(String displayName, BooleanSupplier activeCheck) {
         this.displayName = displayName;
         this.activeCheck = activeCheck;
     }
