@@ -18,12 +18,9 @@ package org.gradle.api.plugins.quality;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -32,7 +29,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -108,17 +104,10 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
-        ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
-            report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
-            );
+            report.getOutputLocation().convention(reportsDir.map(dir -> dir.file(baseName + "." + report.getName())));
         }));
     }
 

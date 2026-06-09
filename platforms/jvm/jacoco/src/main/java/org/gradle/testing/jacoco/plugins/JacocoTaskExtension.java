@@ -82,7 +82,6 @@ public abstract class JacocoTaskExtension {
     private Output output = Output.FILE;
     private String address;
     private int port;
-    private final DirectoryProperty classDumpDirectory;
     private boolean jmx;
 
     /**
@@ -97,7 +96,6 @@ public abstract class JacocoTaskExtension {
         this.agent = agent;
         this.task = task;
         destinationFile = objects.fileProperty();
-        classDumpDirectory = objects.directoryProperty();
     }
 
     /**
@@ -278,9 +276,7 @@ public abstract class JacocoTaskExtension {
     @Incubating
     @Optional
     @LocalState
-    public DirectoryProperty getClassDumpDirectory() {
-        return classDumpDirectory;
-    }
+    public abstract DirectoryProperty getClassDumpDirectory();
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
