@@ -159,6 +159,7 @@ public abstract class ClassLoaderUtils {
 
         private MethodHandles.Lookup getLookupForClassLoader(ClassLoader classLoader) throws IllegalAccessException {
             try {
+                // FUTURE-STDLIB: MethodHandles.privateLookupIn is JDK 9+; only reachable via LookupClassDefiner, which is selected by the isJava9Compatible() gate when CLASS_DEFINER is initialized.
                 return MethodHandles.privateLookupIn(classLoader.getClass(), baseLookup);
             } catch (IllegalAccessException e) {
                 // Fallback to ClassLoader's lookup
@@ -197,6 +198,7 @@ public abstract class ClassLoaderUtils {
                 // Lookup.defineClass can only define a class into same classloader as the lookup object.
                 // We have to use the fallback defineClass() if they're not same, which is the case of ManagedProxyClassGenerator
                 if (decoratedClass.getClassLoader() == classLoader) {
+                    // FUTURE-STDLIB: MethodHandles.privateLookupIn and Lookup.defineClass are JDK 9+; only reachable via LookupClassDefiner, which is selected by the isJava9Compatible() gate when CLASS_DEFINER is initialized.
                     MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(decoratedClass, baseLookup);
                     return (Class) lookup.defineClass(classBytes);
                 } else {
