@@ -250,6 +250,7 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     }
 
     @Override
+    @Nullable
     public URI getUrl() {
         return urlArtifactRepository.getUrl();
     }

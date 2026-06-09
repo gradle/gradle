@@ -51,6 +51,7 @@ public class DefaultUrlArtifactRepository {
         this.displayNameSupplier = displayNameSupplier;
     }
 
+    @Nullable
     public URI getUrl() {
         if (url == null) {
             return null;

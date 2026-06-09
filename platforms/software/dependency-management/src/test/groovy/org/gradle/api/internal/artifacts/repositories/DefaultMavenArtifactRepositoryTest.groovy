@@ -61,6 +61,11 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     final DefaultMavenArtifactRepository repository = newRepo()
 
+    def "url is null by default"() {
+        expect:
+        repository.url == null
+    }
+
     def "creates local repository"() {
         given:
         def file = new File('repo')

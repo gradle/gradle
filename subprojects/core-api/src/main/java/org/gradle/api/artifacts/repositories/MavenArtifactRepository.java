@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.util.Set;
@@ -33,10 +34,11 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     /**
      * The base URL of this repository. This URL is used to find both POMs and artifact files.
      *
-     * @return The URL.
+     * @return The URL, or {@code null} if no URL has been set.
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     URI getUrl();
 
     /**
