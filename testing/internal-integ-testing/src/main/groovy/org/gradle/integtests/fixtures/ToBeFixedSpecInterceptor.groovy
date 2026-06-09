@@ -38,7 +38,9 @@ class ToBeFixedSpecInterceptor {
 
     void intercept(SpecElementInfo specElementInfo, String[] iterationMatchers) {
         if (specElementInfo instanceof SpecInfo) {
-            specElementInfo.features.forEach { interceptFeature(it, iterationMatchers) }
+            // allFeatures walks the super chain so a class-level annotation also covers
+            // features inherited from ancestor specs.
+            specElementInfo.allFeatures.forEach { interceptFeature(it, iterationMatchers) }
         } else {
             interceptFeature((FeatureInfo) specElementInfo, iterationMatchers)
         }

@@ -54,8 +54,12 @@ final class GradleModeTestingExtensions {
 
         @Override
         void visitSpecAnnotation(A annotation, SpecInfo spec) {
-            GradleModeTestingIntentValidator.validateSpec(spec.bottomSpec.reflection)
-            apply(annotation, spec, spec.bottomSpec.name)
+            // Apply to the bottom (concrete) spec so a class-level annotation on an abstract
+            // ancestor still gates every feature the concrete subclass will run, including
+            // features declared in intermediate ancestors.
+            SpecInfo bottomSpec = spec.bottomSpec
+            GradleModeTestingIntentValidator.validateSpec(bottomSpec.reflection)
+            apply(annotation, bottomSpec, bottomSpec.name)
         }
 
         @Override
@@ -99,7 +103,7 @@ final class GradleModeTestingExtensions {
 
         private static void addPerIterationInterceptor(SpecElementInfo specOrFeature, IMethodInterceptor interceptor) {
             if (specOrFeature instanceof SpecInfo) {
-                specOrFeature.features.each { it.featureMethod.interceptors.add(0, interceptor) }
+                specOrFeature.allFeatures.each { it.featureMethod.interceptors.add(0, interceptor) }
             } else {
                 ((FeatureInfo) specOrFeature).featureMethod.interceptors.add(0, interceptor)
             }
