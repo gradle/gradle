@@ -600,7 +600,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                println("Configure closure parameters: " + it)
+            """)
+        }
         buildFile << """
             project(':a') {
                 dependencies {
@@ -618,7 +622,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         expect:
         succeeds(":a:resolve")
-        outputContains("Parameters: org.gradle.api.artifacts.transform.TransformParameters\$None@")
+        outputContains("Configure closure parameters: TransformParameters.None")
+        outputContains("Parameters: TransformParameters.None")
     }
 
     @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")

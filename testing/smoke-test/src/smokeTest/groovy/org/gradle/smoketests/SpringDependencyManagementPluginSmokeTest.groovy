@@ -56,4 +56,14 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
             'io.spring.dependency-management' : Versions.of(TestedVersions.springDependencyManagement)
         ]
     }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "dependencyManagement {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('dependencyManagement')]
+    }
 }

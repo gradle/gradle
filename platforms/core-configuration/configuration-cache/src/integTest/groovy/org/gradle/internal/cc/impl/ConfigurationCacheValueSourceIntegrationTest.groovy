@@ -39,7 +39,12 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
                 }
             }
 
-            def greetValueSource = providers.of(GreetValueSource) {}
+            def greetValueSource = providers.of(GreetValueSource) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
             tasks.register("greet") {
                 doLast { println greetValueSource.get() }
             }
@@ -50,7 +55,9 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         then:
         configurationCache.assertStateStored()
-        output.contains("Parameters: org.gradle.api.provider.ValueSourceParameters\$None@")
+        output.contains("Spec parameters: ValueSourceParameters.None")
+        output.contains("Configure closure parameters: ValueSourceParameters.None")
+        output.contains("Parameters: ValueSourceParameters.None")
         output.contains("Hello!")
     }
 

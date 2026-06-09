@@ -1308,7 +1308,12 @@ Hello, subproject1
                 }
             }
 
-            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
 
             task check {
                 doFirst {
@@ -1321,7 +1326,9 @@ Hello, subproject1
         run("check")
 
         then:
-        outputContains("service: parameters = org.gradle.api.services.BuildServiceParameters\$None@")
+        outputContains("Spec parameters: BuildServiceParameters.None")
+        outputContains("Configure closure parameters: BuildServiceParameters.None")
+        outputContains("service: parameters = BuildServiceParameters.None")
     }
 
     def "service can be registered without action"() {

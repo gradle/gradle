@@ -505,6 +505,9 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register("runWork", ParameterTask) {
                 isolationMode = ${isolationMode}
+                parameters {
+                    println("Configure closure parameters: " + it)
+                }
             }
         """
 
@@ -512,7 +515,8 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         succeeds("runWork")
 
         then:
-        outputContains("parameters: org.gradle.workers.WorkParameters\$None@")
+        outputContains("Configure closure parameters: WorkParameters.None")
+        outputContains("parameters: WorkParameters.None")
 
         where:
         isolationMode << ISOLATION_MODES
