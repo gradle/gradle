@@ -34,12 +34,10 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.util.Properties
 import javax.inject.Inject
@@ -52,13 +50,13 @@ import javax.inject.Inject
  * This task assumes each component in the graph has a single variant and each variant
  * has at most one artifact.
  */
-@DisableCachingByDefault(because = "Unable to snapshot ComponentIdentifier") // Can be made cacheable after https://github.com/gradle/gradle/pull/36174
+@CacheableTask
 abstract class GenerateClasspathModuleProperties : DefaultTask() {
 
     @get:Input
     abstract val artifactNames: ListProperty<String>
 
-    @get:Internal // Can be declared input after https://github.com/gradle/gradle/pull/36174
+    @get:Input
     abstract val artifactComponentIds: ListProperty<ComponentIdentifier>
 
     @get:Nested
@@ -159,7 +157,7 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
     data class GraphNode(
         @get:Input val moduleName: String,
         @get:Nested @get:Optional val alias: ModuleAlias?,
-        @get:Internal val dependencyComponentIds: Set<ComponentIdentifier> // Can be declared input after https://github.com/gradle/gradle/pull/36174
+        @get:Input val dependencyComponentIds: Set<ComponentIdentifier>
     )
 
     @TaskAction
