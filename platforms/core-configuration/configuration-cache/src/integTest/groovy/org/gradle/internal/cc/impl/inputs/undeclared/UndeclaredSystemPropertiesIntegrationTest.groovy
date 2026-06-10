@@ -18,10 +18,11 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @Issue("https://github.com/gradle/gradle/issues/17344")
 class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def configurationCache = newConfigurationCacheFixture()
 
     static enum PropertySource {
         REAL("System.getProperties()"),
@@ -39,15 +40,15 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         }
     }
 
-    @Unroll
     def "read of existing original key on #source source is tracked as fingerprint input"() {
         given:
-        buildFile("""
+        buildFile """
             def props = ${source.groovyExpression}
-            println("foo = \${props.getProperty("foo")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+            def captured = props.getProperty("foo")
+            tasks.register("printProperty") {
+                doLast { println("foo = \${captured}") }
+            }
+        """
 
         when:
         configurationCacheRun("-Dfoo=v1", "printProperty")
@@ -57,32 +58,35 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
             withInput("Build file 'build.gradle': system property 'foo'")
             ignoringUnexpectedInputs()
         }
+        outputContains("foo = v1")
 
         when:
         configurationCacheRun("-Dfoo=v1", "printProperty")
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("foo = v1")
 
         when:
         configurationCacheRun("-Dfoo=v2", "printProperty")
 
         then:
         configurationCache.assertStateStored()
+        outputContains("foo = v2")
 
         where:
         source << PropertySource.values()
     }
 
-    @Unroll
     def "read of missing original key on #source source is tracked as fingerprint input with null value"() {
         given:
-        buildFile("""
+        buildFile """
             def props = ${source.groovyExpression}
-            println("missing = \${props.getProperty("missing.key")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+            def captured = props.getProperty("missing.key")
+            tasks.register("printProperty") {
+                doLast { println("missing = \${captured}") }
+            }
+        """
 
         when:
         configurationCacheRun("printProperty")
@@ -96,53 +100,57 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("missing = null")
 
         when:
         configurationCacheRun("-Dmissing.key=v", "printProperty")
 
         then:
         configurationCache.assertStateStored()
+        outputContains("missing = v")
 
         where:
         source << PropertySource.values()
     }
 
-    @Unroll
     def "unrelated external system property change does not invalidate cache when reading #source source"() {
         given:
-        buildFile("""
+        buildFile """
             def props = ${source.groovyExpression}
-            println("foo = \${props.getProperty("foo")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+            def captured = props.getProperty("foo")
+            tasks.register("printProperty") {
+                doLast { println("foo = \${captured}") }
+            }
+        """
 
         when:
         configurationCacheRun("-Dfoo=v1", "printProperty")
 
         then:
         configurationCache.assertStateStored()
+        outputContains("foo = v1")
 
         when:
         configurationCacheRun("-Dfoo=v1", "-Dunrelated.key=whatever", "printProperty")
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("foo = v1")
 
         where:
         source << PropertySource.values()
     }
 
-    @Unroll
     def "setProperty then getProperty on #source source (pre-existing key) — cache reused"() {
         given:
-        buildFile("""
+        buildFile """
             def props = ${source.groovyExpression}
             props.setProperty("foo", "build-value")
-            println("foo = \${props.getProperty("foo")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+            def captured = props.getProperty("foo")
+            tasks.register("printProperty") {
+                doLast { println("foo = \${captured}") }
+            }
+        """
 
         when:
         configurationCacheRun("-Dfoo=external", "printProperty")
@@ -156,21 +164,22 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("foo = build-value")
 
         where:
         source << PropertySource.values()
     }
 
-    @Unroll
-    def "remove then getProperty on #source source returns null and hits cache"() {
+    def "#mutation then getProperty on #source source returns null and hits cache"() {
         given:
-        buildFile("""
+        buildFile """
             def props = ${source.groovyExpression}
-            props.remove("foo")
-            println("foo = \${props.getProperty("foo")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+            props.${mutation}
+            def captured = props.getProperty("foo")
+            tasks.register("printProperty") {
+                doLast { println("foo = \${captured}") }
+            }
+        """
 
         when:
         configurationCacheRun("-Dfoo=external", "printProperty")
@@ -184,71 +193,53 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("foo = null")
 
         where:
         source << PropertySource.values()
-    }
 
-    def "clear then getProperty on real source returns null and hits cache"() {
-        given:
-        buildFile("""
-            def props = System.getProperties()
-            props.clear()
-            println("foo = \${props.getProperty("foo")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
-
-        when:
-        configurationCacheRun("-Dfoo=external", "printProperty")
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("foo = null")
-
-        when:
-        configurationCacheRun("-Dfoo=external", "printProperty")
-
-        then:
-        configurationCache.assertStateLoaded()
-    }
-
-    def "clear then getProperty on clone source returns null and hits cache"() {
-        given:
-        buildFile("""
-            def props = ((Properties) System.getProperties().clone())
-            props.clear()
-            println("foo = \${props.getProperty("foo")}")
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
-
-        when:
-        configurationCacheRun("-Dfoo=external", "printProperty")
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("foo = null")
-
-        when:
-        configurationCacheRun("-Dfoo=external", "printProperty")
-
-        then:
-        configurationCache.assertStateLoaded()
+        combined:
+        mutation << ['remove("foo")', 'clear()']
     }
 
     @Issue("https://github.com/gradle/gradle/pull/37526")
-    def "mutate then read same key on clone is not tracked"() {
+    def "putAll then read same key on clone is not tracked"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
-            clone.setProperty("foo", "mutated")
+            clone.putAll([foo: "mutated"])
             def captured = clone.getProperty("foo")
             tasks.register("printProperty") {
                 doLast { println("captured = \${captured}") }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
+
+        when:
+        configurationCacheRun("-Dfoo=v1", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("captured = mutated")
+
+        when:
+        configurationCacheRun("-Dfoo=different", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("captured = mutated")
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/37526")
+    def "#mutation on clone still tracks the old value because it may be returned to the caller"() {
+        given:
+        buildFile """
+            def clone = (Properties) System.getProperties().clone()
+            clone.${mutation}
+            def captured = clone.getProperty("foo")
+            tasks.register("printProperty") {
+                doLast { println("captured = \${captured}") }
+            }
+        """
 
         when:
         configurationCacheRun("-Dfoo=v1", "printProperty")
@@ -263,19 +254,35 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         then:
         configurationCache.assertStateLoaded()
         outputContains("captured = mutated")
+
+        when:
+        configurationCacheRun("-Dfoo=different", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("captured = mutated")
+
+        where:
+        mutation << [
+            'setProperty("foo", "mutated")',
+            'put("foo", "mutated")',
+            'replace("foo", "mutated")',
+            'compute("foo", { k, v -> "mutated" })',
+            'computeIfPresent("foo", { k, v -> "mutated" })',
+            'merge("foo", "mutated", { a, b -> "mutated" })',
+        ]
     }
 
     def "untouched key read on clone is still tracked after mutating another key"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             clone.setProperty("touched", "mutated")
             def captured = clone.getProperty("untouched")
             tasks.register("printProperty") {
                 doLast { println("untouched = \${captured}") }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("-Duntouched=v1", "printProperty")
@@ -300,7 +307,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "writing to cloned system properties does not modify real system properties"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             clone.setProperty("clone.only.prop", "clonevalue")
 
@@ -309,8 +316,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
                     println("clone.only.prop in task = \${System.getProperty("clone.only.prop")}")
                 }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("printProperty")
@@ -329,7 +335,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "removing from cloned system properties does not remove real system property"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             clone.remove("should.survive")
 
@@ -338,8 +344,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
                     println("should.survive in task = \${System.getProperty("should.survive")}")
                 }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("-Dshould.survive=keepme", "printProperty")
@@ -358,7 +363,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "clearing cloned system properties does not clear real system properties"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             clone.clear()
 
@@ -367,8 +372,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
                     println("user.home in task = \${System.getProperty("user.home")}")
                 }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("printProperty")
@@ -386,7 +390,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "clone keySet/entrySet mutations do not leak to real system properties"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             clone.keySet().remove("should.survive.keyset")
             clone.entrySet().removeIf { it.key == "should.survive.entryset" }
@@ -397,8 +401,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
                     println("entryset.prop = \${System.getProperty("should.survive.entryset")}")
                 }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("-Dshould.survive.keyset=a", "-Dshould.survive.entryset=b", "printProperty")
@@ -419,35 +422,39 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "modifying cloned system properties does not affect original"() {
         given:
-        buildFile("""
-            println("Hello1 = \${System.getProperty("Hello")}")
+        buildFile """
+            def beforeSet = System.getProperty("Hello")
             System.setProperty("Hello", "World")
             def copy = (Properties) System.getProperties().clone()
             copy.setProperty("Hello", "Bug")
-            println("Hello2 = \${System.getProperty("Hello")}")
-
-            tasks.register("printProperty") { doLast { println("done") } }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+            def realAfterCloneMutation = System.getProperty("Hello")
+            tasks.register("printProperty") {
+                doLast {
+                    println("beforeSet = \${beforeSet}")
+                    println("realAfterCloneMutation = \${realAfterCloneMutation}")
+                }
+            }
+        """
 
         when:
         configurationCacheRun("printProperty")
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Hello1 = null")
-        outputContains("Hello2 = World")
+        outputContains("beforeSet = null")
+        outputContains("realAfterCloneMutation = World")
 
         when:
         configurationCacheRun("printProperty")
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("realAfterCloneMutation = World")
     }
 
     def "real System.setProperty is still tracked correctly when clone is also used"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             println("clone.foo = \${clone.getProperty("foo")}")
             System.setProperty("foo", "set-by-build")
@@ -457,8 +464,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
                     println("foo in task = \${System.getProperty("foo")}")
                 }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("-Dfoo=external", "printProperty")
@@ -478,7 +484,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "clone of a clone of SystemProperties after parent mutation observes parent-mutated value and read is not tracked"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             clone.putAll([foo: 'baz'])
             def cloneOfClone = (Properties) clone.clone()
@@ -486,8 +492,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
             tasks.register("printProperty") {
                 doLast { println("captured = \${captured}") }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("-Dfoo=bar", "printProperty")
@@ -506,7 +511,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
 
     def "clone of a clone of SystemProperties before parent mutation observes original value and read is tracked independently"() {
         given:
-        buildFile("""
+        buildFile """
             def clone = (Properties) System.getProperties().clone()
             def cloneOfClone = (Properties) clone.clone()
             clone.putAll([foo: 'baz'])
@@ -514,8 +519,7 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
             tasks.register("printProperty") {
                 doLast { println("captured = \${captured}") }
             }
-        """)
-        def configurationCache = newConfigurationCacheFixture()
+        """
 
         when:
         configurationCacheRun("-Dfoo=bar", "printProperty")
