@@ -50,6 +50,7 @@ slf4j = "2.0.17!!"
 snakeyaml = "2.0!!"
 sshd = "2.15.0!!"
 tomlj = "1.0.0!!"
+xdcl = "0.1.0-SNAPSHOT!!"
 
 [libraries]
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
@@ -159,3 +160,4 @@ sshdOsgi = { group = "org.apache.sshd", name = "sshd-osgi", version.ref = "sshd"
 sshdScp = { group = "org.apache.sshd", name = "sshd-scp", version.ref = "sshd" }
 sshdSftp = { group = "org.apache.sshd", name = "sshd-sftp", version.ref = "sshd" }
 tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
+xdclProvider = { group = "org.xdcl", name = "xdcl-provider", version.ref = "xdcl" }
