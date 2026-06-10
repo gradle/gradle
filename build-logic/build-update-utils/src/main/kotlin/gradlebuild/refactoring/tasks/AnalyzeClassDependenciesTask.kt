@@ -26,6 +26,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -36,7 +37,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
-import org.gradle.work.DisableCachingByDefault
+
 import java.io.File
 import java.net.URI
 
@@ -49,7 +50,7 @@ import java.net.URI
  * to this project ([DependencyKind.PROJECT]) or to another Gradle subproject ([DependencyKind.SUBPROJECT]).
  * Third-party / external dependencies are intentionally omitted from the output.
  */
-@DisableCachingByDefault(because = "Unable to snapshot ComponentIdentifier") // Same root cause as SplitProjectTask: gradle/gradle#36174
+@CacheableTask
 abstract class AnalyzeClassDependenciesTask : DefaultTask() {
 
     /**
