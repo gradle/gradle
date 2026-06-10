@@ -56,12 +56,11 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(GradleInternal gradle, List<TaskExecutionRequest> taskRequests, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         if (selector != null) {
             selector.applyTasksTo(new EntryTaskSelectorContext(gradle), plan);
         }
-        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
-        for (TaskExecutionRequest taskParameter : taskParameters) {
+        for (TaskExecutionRequest taskParameter : taskRequests) {
             List<TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
             for (TaskSelection taskSelection : taskSelections) {
                 LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());

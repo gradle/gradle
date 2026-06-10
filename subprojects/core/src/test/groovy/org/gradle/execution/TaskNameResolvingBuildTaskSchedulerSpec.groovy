@@ -19,7 +19,6 @@ package org.gradle.execution
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.commandline.CommandLineTaskParser
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.selection.BuildTaskSelector
@@ -41,23 +40,16 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(BuildTaskSelector.BuildSpecificSelector), [], TestUtil.problemsService())
     }
 
-    def "empty task parameters are no-op action"() {
-        given:
-        def startParameters = Mock(StartParameterInternal)
-
+    def "empty task requests are no-op action"() {
         when:
-        _ * gradle.getStartParameter() >> startParameters
-        _ * startParameters.getTaskRequests() >> []
-
-        action.scheduleRequestedTasks(gradle, null, executionPlan)
+        action.scheduleRequestedTasks(gradle, [], null, executionPlan)
 
         then:
         1 * executionPlan.getContents()
         0 * executionPlan._
     }
 
-    def "expand task parameters to tasks"() {
-        def startParameters = Mock(StartParameterInternal)
+    def "expand task requests to tasks"() {
         TaskExecutionRequest request1 = Stub(TaskExecutionRequest)
         TaskExecutionRequest request2 = Stub(TaskExecutionRequest)
         def task1 = Stub(Task)
@@ -67,9 +59,6 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         def selection2 = Stub(TaskSelection)
 
         given:
-        _ * gradle.startParameter >> startParameters
-        _ * startParameters.taskRequests >> [request1, request2]
-
         def tasks1 = [task1, task2] as Set
         _ * selection1.tasks >> tasks1
 
@@ -77,7 +66,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         _ * selection2.tasks >> tasks2
 
         when:
-        action.scheduleRequestedTasks(gradle, null, executionPlan)
+        action.scheduleRequestedTasks(gradle, [request1, request2], null, executionPlan)
 
         then:
         1 * parser.parseTasks(request1) >> [selection1]
@@ -87,14 +76,8 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
     }
 
     def "invokes given selector"() {
-        given:
-        def startParameters = Mock(StartParameterInternal)
-
         when:
-        _ * gradle.getStartParameter() >> startParameters
-        _ * startParameters.getTaskRequests() >> []
-
-        action.scheduleRequestedTasks(gradle, selector, executionPlan)
+        action.scheduleRequestedTasks(gradle, [], selector, executionPlan)
 
         then:
         1 * selector.applyTasksTo(_, executionPlan)

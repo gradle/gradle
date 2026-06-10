@@ -160,5 +160,23 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
             projectsConfigured(":buildSrc", ":")
         }
     }
+    @spock.lang.Issue("https://github.com/gradle/gradle/issues/37944")
+    def "build relying on default tasks does not report StartParameter violations"() {
+        // Gradle internally resolves the default-tasks request at scheduling time; this must not
+        // mutate the StartParameter (it used to write the resolved task names back into it).
+        buildFile("""
+            defaultTasks 'ok'
+            tasks.register('ok') { doLast { println 'default task ran' } }
+        """)
+
+        when:
+        isolatedProjectsRun()
+
+        then:
+        outputContains("default task ran")
+        fixture.assertStateStored {
+            projectsConfigured(":")
+        }
+    }
 
 }

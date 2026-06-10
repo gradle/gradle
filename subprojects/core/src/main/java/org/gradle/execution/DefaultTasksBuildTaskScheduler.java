@@ -15,12 +15,13 @@
  */
 package org.gradle.execution;
 
-import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,10 +46,8 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
-        StartParameter startParameter = gradle.getStartParameter();
-
-        if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
+    public void scheduleRequestedTasks(GradleInternal gradle, List<TaskExecutionRequest> taskRequests, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+        if (taskRequests.size() == 1 && taskRequests.get(0) instanceof RunDefaultTasksExecutionRequest) {
             // Gather the default tasks from this first group project
             ProjectState defaultProjectState = gradle.getDefaultProjectState();
             // so that we don't miss out default tasks
@@ -63,9 +63,11 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
                 LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));
             }
 
-            startParameter.setTaskNames(defaultTasks);
+            // Pass the resolved tasks on to the delegate instead of writing them back into the shared
+            // StartParameter: mutating it after settings evaluation is reported as an IP violation.
+            taskRequests = Collections.singletonList(DefaultTaskExecutionRequest.of(defaultTasks));
         }
 
-        delegate.scheduleRequestedTasks(gradle, selector, plan);
+        delegate.scheduleRequestedTasks(gradle, taskRequests, selector, plan);
     }
 }

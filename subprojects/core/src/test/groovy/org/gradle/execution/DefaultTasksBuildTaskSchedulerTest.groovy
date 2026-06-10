@@ -16,8 +16,8 @@
 package org.gradle.execution
 
 
+import org.gradle.TaskExecutionRequest
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.configuration.project.BuiltInCommand
@@ -32,7 +32,6 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
     final buildInCommand = Mock(BuiltInCommand)
     final delegate = Mock(BuildTaskScheduler)
     final action = new DefaultTasksBuildTaskScheduler([buildInCommand], delegate)
-    final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
     final defaultProjectState = Mock(ProjectState)
     final gradle = Mock(GradleInternal)
@@ -40,58 +39,57 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
     final plan = Mock(ExecutionPlan)
 
     def setup() {
-        _ * gradle.startParameter >> startParameter
         _ * gradle.defaultProjectState >> defaultProjectState
         _ * defaultProjectState.fromMutableState(_) >> { Function f -> f.apply(defaultProject) }
     }
 
-    def "proceeds when task request specified in StartParameter"() {
+    def "proceeds with given task requests"() {
         given:
-        _ * startParameter.taskRequests >> [new DefaultTaskExecutionRequest(['a'])]
+        def requests = [new DefaultTaskExecutionRequest(['a'])]
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, requests, selector, plan)
 
         then:
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, requests, selector, plan)
     }
 
-    def "proceeds when no task requests specified in StartParameter"() {
+    def "proceeds when no task requests given"() {
         given:
-        _ * startParameter.taskRequests >> []
+        def requests = []
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, requests, selector, plan)
 
         then:
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, requests, selector, plan)
     }
 
-    def "sets task names to project defaults when single task requests specified in StartParameter"() {
+    def "resolves default-tasks request to project defaults"() {
         given:
-        _ * startParameter.taskRequests >> [new RunDefaultTasksExecutionRequest()]
         _ * defaultProject.defaultTasks >> ['a', 'b']
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, [new RunDefaultTasksExecutionRequest()], selector, plan)
 
         then:
         1 * defaultProjectState.ensureConfigured()
-        1 * startParameter.setTaskNames(['a', 'b'])
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, { List<TaskExecutionRequest> requests ->
+            requests.size() == 1 && requests[0].args == ['a', 'b']
+        }, selector, plan)
     }
 
-    def "uses default build-in tasks if no tasks specified in StartParameter or project"() {
+    def "resolves default-tasks request to built-in tasks if project defines no default tasks"() {
         given:
-        _ * startParameter.taskRequests >> [new RunDefaultTasksExecutionRequest()]
         _ * defaultProject.defaultTasks >> []
         _ * buildInCommand.asDefaultTask() >> ['default1', 'default2']
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, [new RunDefaultTasksExecutionRequest()], selector, plan)
 
         then:
-        1 * startParameter.setTaskNames(['default1', 'default2'])
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, { List<TaskExecutionRequest> requests ->
+            requests.size() == 1 && requests[0].args == ['default1', 'default2']
+        }, selector, plan)
     }
 }

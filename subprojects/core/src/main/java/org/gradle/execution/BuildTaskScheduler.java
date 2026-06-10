@@ -15,13 +15,22 @@
  */
 package org.gradle.execution;
 
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.jspecify.annotations.Nullable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.List;
+
 @ServiceScope(Scope.Build.class)
 public interface BuildTaskScheduler {
-    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
+    /**
+     * Schedules the given requested tasks. The task requests are passed explicitly rather than read from
+     * {@code gradle.getStartParameter()} so that implementations can refine them (e.g. resolve the
+     * default-tasks request) without mutating the StartParameter, which is reported as an Isolated Projects
+     * violation after settings evaluation.
+     */
+    void scheduleRequestedTasks(GradleInternal gradle, List<TaskExecutionRequest> taskRequests, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }
