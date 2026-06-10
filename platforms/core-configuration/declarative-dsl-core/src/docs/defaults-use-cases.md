@@ -5,6 +5,7 @@
 ### Build-scoped defaults
 
 > State: ✅ Implemented
+> Importance: High
 
 Defaults scoped to one build, provided within that build. 
 
@@ -26,6 +27,7 @@ defaults {
 ### Project-subtree-scoped defaults
 
 > State: 💭 Discussed as a possible feature in the reworked project structure
+> > Importance: Medium, might be high in complex builds
 
 With more flexibility in project structure declarations,
 defaults could be provided within the structural units 
@@ -50,6 +52,7 @@ This would solve the gradual plugin version migration problem in large builds.
 ## Named defaults
 
 > State: 💭 Discussed as a possible alternative to ad-hoc project types
+> Importance: Medium, might be high in complex builds
 
 This is another way to cover defaults that are only applied within a specific scope.
 Instead of a global set of defaults, the user would create named sets of defaults and apply them by name
@@ -80,6 +83,7 @@ javaApplication { // Uses the defaults from the client named defaults set
 ### Distributable defaults
 
 > State: 🤷 No thorough design
+> Importance: Medium
 
 Sets of defaults could be written in one build and then distributed for consumption
 in other builds. The declaring build would depend on the schemas of the plugins
@@ -94,6 +98,7 @@ Potential problems: plugin versioning.
 #### Special case: defaults attached to members
 
 > State: 💭 Discussed as a good feature to have in productized Declarative
+> Importance: High
 
 The definition owner could declare the following kinds of defaults:
 * A default value for a property, at the property declaration; this will be the effective value if not overridden anywhere in the
@@ -105,6 +110,7 @@ The definition owner could declare the following kinds of defaults:
 ### Gradle User Home defaults
 
 > State: 🤷 No thorough design
+> Importance: Medium-low
 
 Defaults could be provided for all builds on a local machine.
 This could be: authentication details, machine-specific paths.
@@ -116,6 +122,7 @@ Potential problems: plugin versioning; might need more than one set of defaults.
 ## Defaults for a project type
 
 > State: ✅ Implemented
+> Importance: High
 
 These are mixed into the configuration whenever the project type is used, unconditionally.
 
@@ -129,6 +136,7 @@ defaults {
 ## Defaults for container elements
 
 > State: ✅ Implemented
+> Importance: High
 
 > Note: this might appear anywhere else in defaults where a container is used
 
@@ -149,6 +157,7 @@ defaults {
 ## Defaults for container elements with no identity
 
 > State: ✅ Implemented
+> Importance: High
 
 When a container element has no identity key, all items from the defaults are present in the result but cannot be additionally configured. This is the case with dependencies:
 
@@ -173,6 +182,7 @@ javaLibrary {
 ## Defaults for an ad-hoc project type
 
 > State: 👍 Approved for implementation once ad-hoc project types arrive
+> Importance: High
 
 A special case is defaults for a "lightweight project type" (a new project type produced
 from an existing one).
@@ -190,6 +200,7 @@ defaults {
 ## Defaults for a set of project types, based on the definition supertype
 
 > State: 💭 Discussed with no final decision to implement
+> Importance: Low to medium, not fully known
 
 Assume there are several project types that share a definition supertype:
 
@@ -220,6 +231,7 @@ defaults {
 ## Non-forcing / conditional / optional / nested defaults
 
 > State: 💭👍 Discussed and agreed on the feature's usefulness, no final decision to implement
+> Importance: High
 
 In the cases above, the whole content of a project-type defaults block is applied to the project using that project type.
 
@@ -259,6 +271,7 @@ defaults {
 ## Defaults for all container elements
 
 > State: 💭 Discussed as a valuable extension of containers + defaults, no final design
+> Importance: Medium to high, not fully known
 
 A container with user-defined elements might have defaults for all elements
 
@@ -282,6 +295,7 @@ defaults {
 ## Defaults for project features
 
 > State: 💭 Discussed as a useful feature, still has design problems to solve
+> Importance: Medium to high
 
 It makes sense to provide defaults for a project feature, meaning that those defaults are applied wherever the feature is used.
 
@@ -302,6 +316,7 @@ Potential problems: identifying a feature; features sharing a name but having di
 ## Defaults for a family of project features sharing a definition type
 
 > State: 🤷 Discussed briefly with no design decisions made
+> Importance: Low to medium, not fully known
 
 This is similar to defaults for a family of project types with a shared definition supertype, but for features.
 
@@ -309,7 +324,8 @@ This is similar to defaults for a family of project types with a shared definiti
 
 ## Defaults for collections
 
-> State: ✅ Implemented, supported in the tooling demo 
+> State: ✅ Implemented, supported in the tooling demo
+> Importance: High
 
 A collection-typed property can have a default value with some elements in it.
 The build file can then either append to that value, adding new elements, or assign a new value to the property,
@@ -363,6 +379,7 @@ myProjectType {
 ## Defaults using project-specific services
 
 > State: ✅ Implemented for `projectLayout`
+> Importance: High
 
 It sometimes makes sense to provide a set of defaults that means different things in different projects. 
 For instance, project-specific paths could be used in defaults but get evaluated to different real paths in each project:
