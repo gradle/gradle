@@ -41,14 +41,5 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
-    maven {
-        // The XDCL language libraries are local-only for now (no published coordinates yet):
-        // run `./gradlew publishToLocalRepo` in the xdcl checkout to (re)populate this repo.
-        name = "XDCL local repository"
-        url = uri("/code/xdcl-scripting-language/build/local-repo")
-        content {
-            includeGroup("org.xdcl")
-        }
-    }
     mavenCentral()
 }
