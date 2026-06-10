@@ -81,8 +81,8 @@ class ConfigurationCacheKey(
         putBoolean(startParameter.isOffline)
         putBoolean(startParameter.isIsolatedProjects)
         putBuildScan()
-        putDevelocityUrl()
-        putDevelocityPluginVersion()
+        putStringIfNotNull(startParameter.develocityUrl)
+        putStringIfNotNull(startParameter.develocityPluginVersion)
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
         putBoolean(startParameter.isDeduplicatingStrings)
@@ -105,22 +105,6 @@ class ConfigurationCacheKey(
     }
 
     private
-    fun Hasher.putDevelocityUrl() {
-        val develocityUrl = startParameter.develocityUrl
-        if (develocityUrl != null) {
-            putString(develocityUrl)
-        }
-    }
-
-    private
-    fun Hasher.putDevelocityPluginVersion() {
-        val develocityPluginVersion = startParameter.develocityPluginVersion
-        if (develocityPluginVersion != null) {
-            putString(develocityPluginVersion)
-        }
-    }
-
-    private
     fun Hasher.appendRequestedTasks(appendedTargetProjectDirectory: Boolean) {
         val requestedTaskNames = startParameter.requestedTaskNames
         putAll(requestedTaskNames)
@@ -140,28 +124,27 @@ class ConfigurationCacheKey(
 
     private
     fun Hasher.appendTargetProjectDirectory() {
+        val buildTreeRoot = startParameter.buildTreeRootDirectory
         val projectDir = startParameter.projectDirectory
-        if (projectDir != null) {
-            relativePathOf(
-                projectDir,
-                startParameter.buildTreeRootDirectory
-            ).let { relativeProjectDir ->
-                putString(relativeProjectDir)
-            }
+        val relativeDir = if (projectDir != null) {
+            relativePathOf(projectDir, buildTreeRoot)
         } else {
-            relativeChildPathOrNull(
-                startParameter.currentDirectory,
-                startParameter.buildTreeRootDirectory
-            )?.let { relativeSubDir ->
-                putString(relativeSubDir)
-            }
+            relativeChildPathOrNull(startParameter.currentDirectory, buildTreeRoot)
         }
+        putStringIfNotNull(relativeDir)
     }
 
     private
     fun Hasher.putAll(list: Collection<String>) {
         putInt(list.size)
         list.forEach(::putString)
+    }
+
+    private
+    fun Hasher.putStringIfNotNull(value: String?) {
+        if (value != null) {
+            putString(value)
+        }
     }
 
     /**
