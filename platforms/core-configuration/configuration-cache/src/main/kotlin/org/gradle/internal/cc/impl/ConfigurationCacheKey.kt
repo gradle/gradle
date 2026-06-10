@@ -61,11 +61,7 @@ class ConfigurationCacheKey(
 
         buildActionRequirements.appendKeyTo(this)
 
-        // TODO:bamboo review with Adam
-//        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
-        if (buildActionRequirements.isRunsTasks) {
-            appendRequestedTasks()
-        }
+        var trackingTargetDirectory = false
         if (buildActionRequirements.isCreatesModel) {
             // Tooling model queries target a specific project directory
             // (via `ProjectConnection.forProjectDirectory(...)`), and different
@@ -73,6 +69,13 @@ class ConfigurationCacheKey(
             // Include the project directory in the key so that consecutive model
             // queries against different subprojects do not collide.
             appendTargetProjectDirectory()
+            trackingTargetDirectory = true
+        }
+
+        // TODO:bamboo review with Adam
+//        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
+        if (buildActionRequirements.isRunsTasks) {
+            appendRequestedTasks(trackingTargetDirectory)
         }
 
         putBoolean(startParameter.isOffline)
@@ -118,7 +121,7 @@ class ConfigurationCacheKey(
     }
 
     private
-    fun Hasher.appendRequestedTasks() {
+    fun Hasher.appendRequestedTasks(appendedTargetProjectDirectory: Boolean) {
         val requestedTaskNames = startParameter.requestedTaskNames
         putAll(requestedTaskNames)
 
@@ -127,7 +130,7 @@ class ConfigurationCacheKey(
 
         val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName) {
+        if (hasRelativeTaskName && !appendedTargetProjectDirectory) {
             // Because unqualified task names are resolved relative to the selected
             // sub-project according to either `projectDirectory` or `currentDirectory`,
             // the relative directory information must be part of the key.
