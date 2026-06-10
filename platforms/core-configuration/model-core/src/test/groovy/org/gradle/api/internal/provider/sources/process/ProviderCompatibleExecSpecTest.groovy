@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider.sources.process
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.internal.DefaultExecSpec
+import org.gradle.util.TestUtil
 
 class ProviderCompatibleExecSpecTest extends ProviderCompatibleBaseExecSpecTestBase {
     def "spec sets commandLine on parameters"() {
@@ -26,7 +27,7 @@ class ProviderCompatibleExecSpecTest extends ProviderCompatibleBaseExecSpecTestB
         def command = ["some", "command", "with", "arguments"]
 
         when:
-        specUnderTest.commandLine = command
+        specUnderTest.commandLine(command)
         specUnderTest.copyToParameters(parameters)
 
         then:
@@ -35,6 +36,9 @@ class ProviderCompatibleExecSpecTest extends ProviderCompatibleBaseExecSpecTestB
 
     @Override
     protected ProviderCompatibleExecSpec createSpecUnderTest() {
-        return new ProviderCompatibleExecSpec(new DefaultExecSpec(TestFiles.pathToFileResolver(tmpDir.testDirectory)))
+        def execSpec = TestUtil.newInstance(DefaultExecSpec, TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.pathToFileResolver(tmpDir.testDirectory))
+        return TestUtil.newInstance(ProviderCompatibleExecSpec, execSpec).tap {
+            commandLine("echo", "hello")
+        }
     }
 }

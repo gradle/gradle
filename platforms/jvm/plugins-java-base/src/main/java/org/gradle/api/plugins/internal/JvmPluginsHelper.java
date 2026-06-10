@@ -27,10 +27,10 @@ import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -73,12 +73,11 @@ public class JvmPluginsHelper {
     public static void compileAgainstJavaOutputs(AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
         ConfigurableFileCollection classpath = objectFactory.fileCollection();
         classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
-        compileTask.getConventionMapping().map("classpath", () -> classpath);
+        compileTask.getClasspath().convention(classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
-        final ConventionMapping conventionMapping = new DslObject(options).getConventionMapping();
-        conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
+        options.getAnnotationProcessorPath().setFrom((Callable<FileCollection>) sourceSet::getAnnotationProcessorPath);
         String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
@@ -100,10 +99,10 @@ public class JvmPluginsHelper {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
                 javadoc.setDescription("Generates Javadoc API documentation for the " + displayName + ".");
                 javadoc.setGroup(JvmConstants.DOCUMENTATION_GROUP);
-                javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
+                javadoc.getClasspath().setFrom(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
-                    javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());
+                    javadoc.getDestinationDir().convention(javaPluginExtension.getDocsDir().dir(javadocTaskName));
                     javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
                 }
             });

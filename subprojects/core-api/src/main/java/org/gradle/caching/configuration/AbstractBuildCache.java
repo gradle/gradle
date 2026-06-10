@@ -16,7 +16,6 @@
 
 package org.gradle.caching.configuration;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Base implementation for build cache service configuration.
@@ -24,40 +23,19 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * @since 3.5
  */
 public abstract class AbstractBuildCache implements BuildCache {
-    private boolean enabled = true;
-    private boolean push;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isEnabled() {
-        return enabled;
+    public AbstractBuildCache() {
+        getEnabled().convention(true);
+        getPush().convention(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        getEnabled().set(enabled);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isPush() {
-        return push;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setPush(boolean push) {
-        this.push = push;
+        getPush().set(push);
     }
 }

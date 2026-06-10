@@ -24,6 +24,7 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
@@ -36,6 +37,9 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(PmdPlugin)
+        project.repositories.maven { repo ->
+            repo.url = RepoScriptBlockUtil.getMavenCentralMirrorUrl()
+        }
     }
 
     def "applies reporting-base plugin"() {
@@ -80,11 +84,11 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     def "configures pmd extension"() {
         expect:
         PmdExtension extension = project.extensions.pmd
-        extension.ruleSets == ["category/java/errorprone.xml"]
+        extension.ruleSets.get() == ["category/java/errorprone.xml"]
         extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
-        extension.reportsDir == project.file("build/reports/pmd")
-        !extension.ignoreFailures
+        extension.reportsDir.asFile.get() == project.file("build/reports/pmd")
+        !extension.ignoreFailures.get()
         extension.maxFailures.get() == 0
         extension.rulesMinimumPriority.get() == 5
         extension.threads.get() == 1
@@ -110,8 +114,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         verifyAll(task) {
             description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
-            pmdClasspath == project.configurations.pmd
-            ruleSets == ["category/java/errorprone.xml"]
+            pmdClasspath.files == project.configurations.pmd.files
+            ruleSets.get() == ["category/java/errorprone.xml"]
             ruleSetConfig == null
             ruleSetFiles.empty
             reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.xml")
@@ -130,8 +134,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.empty
-        task.pmdClasspath == project.configurations.pmd
-        task.ruleSets == ["category/java/errorprone.xml"]
+        task.pmdClasspath.files == project.configurations.pmd.files
+        task.ruleSets.get() == ["category/java/errorprone.xml"]
         task.ruleSetConfig == null
         task.ruleSetFiles.empty
         task.reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/custom.xml")
@@ -189,8 +193,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         verifyAll(task) {
             description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
-            pmdClasspath == project.configurations.pmd
-            ruleSets == ["java-braces", "java-unusedcode"]
+            pmdClasspath.files == project.configurations.pmd.files
+            ruleSets.get() == ["java-braces", "java-unusedcode"]
             ruleSetConfig.asString() == "ruleset contents"
             ruleSetFiles.singleFile == project.file("my-ruleset.xml")
             reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.xml")
@@ -218,8 +222,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.empty
-        task.pmdClasspath == project.configurations.pmd
-        task.ruleSets == ["java-braces", "java-unusedcode"]
+        task.pmdClasspath.files == project.configurations.pmd.files
+        task.ruleSets.get() == ["java-braces", "java-unusedcode"]
         task.ruleSetConfig.asString() == "ruleset contents"
         task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")
         task.reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/custom.xml")

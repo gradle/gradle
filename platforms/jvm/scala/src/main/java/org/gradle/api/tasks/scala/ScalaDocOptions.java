@@ -15,171 +15,173 @@
  */
 package org.gradle.api.tasks.scala;
 
+
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.List;
+
 
 /**
  * Options for the ScalaDoc tool.
  */
 public abstract class ScalaDocOptions implements Serializable {
-    private boolean deprecation = true;
-    private boolean unchecked = true;
-    private String windowTitle;
-    private String docTitle;
-    private String header;
-    private String footer;
-    private String top;
-    private String bottom;
-    private List<String> additionalParameters;
+
+    @Inject
+    public ScalaDocOptions() {
+        getDeprecation().convention(true);
+        getUnchecked().convention(true);
+    }
 
     /**
      * Tells whether to generate deprecation information.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isDeprecation() {
-        return deprecation;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
 
     /**
      * Sets whether to generate deprecation information.
      */
     public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+        getDeprecation().set(deprecation);
+    }
+
+    @Internal
+    public Property<Boolean> getIsDeprecation() {
+        return getDeprecation();
     }
 
     /**
      * Tells whether to generate unchecked information.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isUnchecked() {
-        return unchecked;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getUnchecked();
 
     /**
      * Sets whether to generate unchecked information.
      */
     public void setUnchecked(boolean unchecked) {
-        this.unchecked = unchecked;
+        getUnchecked().set(unchecked);
+    }
+
+    @Internal
+    public Property<Boolean> getIsUnchecked() {
+        return getUnchecked();
     }
 
     /**
      * Returns the text to appear in the window title.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getWindowTitle() {
-        return windowTitle;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getWindowTitle();
 
     /**
      * Sets the text to appear in the window title.
      */
     public void setWindowTitle(@Nullable String windowTitle) {
-        this.windowTitle = windowTitle;
+        getWindowTitle().set(windowTitle);
     }
 
     /**
      * Returns the HTML text to appear in the main frame title.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getDocTitle() {
-        return docTitle;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getDocTitle();
 
     /**
      * Sets the HTML text to appear in the main frame title.
      */
     public void setDocTitle(@Nullable String docTitle) {
-        this.docTitle = docTitle;
+        getDocTitle().set(docTitle);
     }
 
     /**
      * Returns the HTML text to appear in the header for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getHeader() {
-        return header;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getHeader();
 
     /**
      * Sets the HTML text to appear in the header for each page.
      */
     public void setHeader(@Nullable String header) {
-        this.header = header;
+        getHeader().set(header);
     }
 
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getFooter() {
-        return footer;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getFooter();
 
     /**
      * Sets the HTML text to appear in the footer for each page.
      */
     public void setFooter(@Nullable String footer) {
-        this.footer = footer;
+        getFooter().set(footer);
     }
 
     /**
      * Returns the HTML text to appear in the top text for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getTop() {
-        return top;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getTop();
 
     /**
      * Sets the HTML text to appear in the top text for each page.
      */
     public void setTop(@Nullable String top) {
-        this.top = top;
+        getTop().set(top);
     }
 
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getBottom() {
-        return bottom;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getBottom();
 
     /**
      * Sets the HTML text to appear in the bottom text for each page.
      */
     public void setBottom(@Nullable String bottom) {
-        this.bottom = bottom;
+        getBottom().set(bottom);
     }
 
     /**
      * Returns the additional parameters passed to the compiler.
      * Each parameter starts with '-'.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public List<String> getAdditionalParameters() {
-        return additionalParameters;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getAdditionalParameters();
 
     /**
      * Sets the additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      */
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
+        getAdditionalParameters().set(additionalParameters);
     }
 }

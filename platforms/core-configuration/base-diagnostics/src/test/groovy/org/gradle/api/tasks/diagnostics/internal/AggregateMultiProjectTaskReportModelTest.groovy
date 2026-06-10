@@ -26,7 +26,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['p2', 'common'] as LinkedHashSet)
         _ * _.getTasksForGroup(_) >> ([taskDetails('task')] as Set)
 
-        def model = model(false, true, null, [])
+        def model = model(false, true, [])
 
         when:
         model.add(project1)
@@ -47,7 +47,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group') >> ([task2] as Set)
 
-        def model = model(false, true, null, [])
+        def model = model(false, true, [])
 
         when:
         model.add(project1)
@@ -73,7 +73,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group') >> ([task3] as Set)
 
-        def model = model(true, true, null, [])
+        def model = model(true, true, [])
 
         when:
         model.add(project1)
@@ -99,7 +99,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group2'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group2') >> ([task3] as Set)
 
-        def model = new AggregateMultiProjectTaskReportModel(true, true, group, groups)
+        def model = new AggregateMultiProjectTaskReportModel(true, true, groups)
 
         when:
         model.add(project1)
@@ -107,15 +107,13 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         model.build()
 
         then:
-        model.groups == ([group] + groups - null) as Set
+        model.groups == groups as Set
 
         where:
-        group    | groups
-        'group1' | []
-        'group2' | []
-        null     | ['group1']
-        null     | ['group1', 'group2']
-        'group1' | ['group2']
+        groups               | _
+        ['group1']           | _
+        ['group2']           | _
+        ['group1', 'group2'] | _
     }
 
     def "handles group which is not present in each project"() {
@@ -127,7 +125,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> ([] as LinkedHashSet)
         0 * project2.getTasksForGroup(_)
 
-        def model = model(false, true, null, [])
+        def model = model(false, true, [])
 
         when:
         model.add(project1)
@@ -148,7 +146,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['a'] as LinkedHashSet)
         _ * project2.getTasksForGroup('a') >> ([task2] as Set)
 
-        def model = model(false, true, null, [])
+        def model = model(false, true, [])
 
         when:
         model.add(project1)
@@ -160,7 +158,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         model.getTasksForGroup('A') == [task1, task2] as Set
     }
 
-    def model(boolean mergeTasksWithSameName, boolean detail, String group, List<String> groups) {
-        return new AggregateMultiProjectTaskReportModel(mergeTasksWithSameName, detail, group, groups)
+    def model(boolean mergeTasksWithSameName, boolean detail, List<String> groups) {
+        return new AggregateMultiProjectTaskReportModel(mergeTasksWithSameName, detail, groups)
     }
 }

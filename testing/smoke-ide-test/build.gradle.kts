@@ -69,7 +69,7 @@ tasks {
         dependsOn(shrinkGradle)
         group = "Verification"
         maxParallelForks = 1
-        systemProperties["org.gradle.integtest.executer"] = "forking"
+        systemProperty("org.gradle.integtest.executer", "forking")
         // IDEA resolves gradleJvm=#JAVA_HOME via the IDE process's JAVA_HOME env var.
         // The TC agent sets JAVA_HOME on the Gradle build, but Test forks don't always
         // propagate it. Set it explicitly so the spawned IDE inherits a valid value.

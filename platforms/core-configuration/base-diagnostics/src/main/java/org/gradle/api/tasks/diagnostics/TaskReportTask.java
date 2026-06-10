@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSetMultimap;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -25,13 +24,15 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.RuleDetails;
 import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
@@ -39,7 +40,8 @@ import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Try;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.Path;
 import org.gradle.work.DisableCachingByDefault;
@@ -64,65 +66,73 @@ import static java.util.Collections.emptyList;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class TaskReportTask extends ConventionReportTask {
-
-    private boolean detail;
-    private String group;
-    private List<String> groups;
     private final Cached<ComputedTaskReportModel> model = Cached.of(this::computeTaskReportModel);
-    private transient TaskReportRenderer renderer;
+
+    public TaskReportTask() {
+        getRenderer().convention(new TaskReportRenderer(getClientMetaData())).finalizeValueOnRead();
+        getShowDetail().convention(false);
+    }
 
     @Override
-    @ToBeReplacedByLazyProperty
-    public ReportRenderer getRenderer() {
-        if (renderer == null) {
-            renderer = new TaskReportRenderer(getClientMetaData());
-        }
-        return renderer;
-    }
+    public abstract Property<TaskReportRenderer> getRenderer();
 
     public void setRenderer(TaskReportRenderer renderer) {
-        this.renderer = renderer;
-    }
-
-    /**
-     * Sets whether to show "invisible" tasks without a group or dependent tasks.
-     *
-     * This property can be set via command-line option '--all'.
-     */
-    @Option(option = "all", description = "Show additional tasks and detail.")
-    public void setShowDetail(boolean detail) {
-        this.detail = detail;
+        getRenderer().set(renderer);
     }
 
     // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution time
-    @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isDetail() {
-        return detail;
+    /**
+     * Sets whether to show "invisible" tasks without a group or dependent tasks.
+     *
+     * @since 9.0
+     */
+    @Input
+    @Option(option = "all", description = "Show additional tasks and detail.")
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isDetail", originalType = boolean.class)
+    })
+    public abstract Property<Boolean> getShowDetail();
+
+    /**
+     * Sets whether to show "invisible" tasks without a group or dependent tasks.
+     */
+    public void setShowDetail(boolean detail) {
+        getShowDetail().set(detail);
     }
+
+    // kotlin source compatibility
+    @Internal
+    public Property<Boolean> getIsShowDetail() {
+        return getShowDetail();
+    }
+
+    /**
+     * Returns the task group to be displayed.
+     *
+     * @since 5.1
+     */
+    @Console
+    @Option(option = "group", description = "Show tasks for a specific group.")
+    @ReplacesEagerProperty
+    public abstract Property<String> getDisplayGroup();
 
     /**
      * Set a specific task group to be displayed.
      *
      * @since 5.1
      */
-    @Option(option = "group", description = "Show tasks for a specific group.")
-    public void setDisplayGroup(String group) {
-        this.group = group;
+    public void setDisplayGroup(String displayGroup) {
+        getDisplayGroup().set(displayGroup);
     }
 
     /**
-     * Returns the task group to be displayed.
+     * Returns the task groups to be displayed.
      *
-     * This property can be set via command-line option '--group'.
-     *
-     * @since 5.1
+     * @since 7.5
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public String getDisplayGroup() {
-        return group;
-    }
+    @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
+    public abstract ListProperty<String> getDisplayGroups();
 
     /**
      * Add a specific task group to be displayed.
@@ -131,32 +141,12 @@ public abstract class TaskReportTask extends ConventionReportTask {
      * @since 7.5
      */
     @Incubating
-    @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
     public void setDisplayGroups(List<String> groups) {
-        if (this.groups == null) {
-            this.groups = new ArrayList<>();
-        }
-        this.groups.addAll(groups);
-    }
-
-    /**
-     * Returns the task groups to be displayed.
-     *
-     * Task groups can be added via command-line option '--groups'.
-     *
-     * @since 7.5
-     */
-    @Incubating
-    @Console
-    @ToBeReplacedByLazyProperty
-    public List<String> getDisplayGroups() {
-        return groups == null ? new ArrayList<>() : groups;
+        getDisplayGroups().addAll(groups);
     }
 
     /**
      * Whether to show the task types next to their names in the output.
-     *
-     * This property can be set via command-line option '--types'.
      *
      * @since 7.4
      */
@@ -194,7 +184,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     private List<Try<ProjectReportModel>> computeProjectModels() {
         List<Try<ProjectReportModel>> result = new ArrayList<>();
-        for (Project project : new TreeSet<>(getProjects())) {
+        for (Project project : new TreeSet<>(getProjects().get())) {
             result.add(Try.ofFailable(() -> projectReportModelFor(project)));
         }
         return result;
@@ -228,16 +218,23 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     private ProjectReportModel projectReportModelFor(Project project) {
+        List<String> displayGroups = getDisplayGroups().getOrElse(emptyList());
+        if (getDisplayGroup().isPresent()) {
+            displayGroups = new ArrayList<>();
+            displayGroups.add(getDisplayGroup().get());
+            displayGroups.addAll(getDisplayGroups().get());
+        }
         return new ProjectReportModel(
             ProjectDetails.of(project),
             project.getDefaultTasks(),
-            taskReportModelFor(project, isDetail()),
-            (Strings.isNullOrEmpty(group) && (groups == null || groups.isEmpty())) ? ruleDetailsFor(project) : emptyList()
+            taskReportModelFor(project, getShowDetail().get(), displayGroups),
+            displayGroups.isEmpty() ? ruleDetailsFor(project) : emptyList()
         );
     }
 
     private void render(ProjectReportModel reportModel) {
-        renderer.showDetail(isDetail());
+        TaskReportRenderer renderer = getRenderer().get();
+        renderer.showDetail(getShowDetail().get());
         renderer.showTypes(getShowTypes().get());
         renderer.showProvenance(getShowProvenance().get());
         renderer.addDefaultTasks(reportModel.defaultTasks);
@@ -260,8 +257,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
         return project.getTasks().getRules().stream().map(rule -> RuleDetails.of(rule.getDescription())).collect(Collectors.toList());
     }
 
-    private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
-        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup(), getDisplayGroups());
+    private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail, List<String> displayGroups) {
+        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, displayGroups);
 
         ProjectIdentity relativeProjectIdentity = ((ProjectInternal) project).getProjectIdentity();
 

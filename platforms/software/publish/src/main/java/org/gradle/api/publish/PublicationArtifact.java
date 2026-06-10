@@ -17,8 +17,9 @@
 package org.gradle.api.publish;
 
 import org.gradle.api.Buildable;
-
-import java.io.File;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * An artifact published as part of a {@link Publication}.
@@ -29,7 +30,8 @@ public interface PublicationArtifact extends Buildable {
     /**
      * The actual file contents to publish.
      */
-    File getFile();
+    @ReplacesEagerProperty
+    Provider<RegularFile> getFile();
 
     /**
      * Registers some tasks which build this artifact.

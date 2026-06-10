@@ -8,7 +8,7 @@ val myBuildGroup = "my app build"               // Create a group name
 tasks.register<TaskReportTask>("tasksAll") {    // Register the tasksAll task
 group = myBuildGroup
 description = "Show additional tasks."
-setShowDetail(true)
+showDetail = true
 }
 
 tasks.named<TaskReportTask>("tasks") {          // Move all existing tasks to the group

@@ -16,6 +16,7 @@
 
 package gradlebuild.performance.reporter
 
+import gradlebuild.basics.Gradle10PropertyUpgradeSupport
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -66,7 +67,7 @@ class PerformanceReporter {
                 spec.args(reportDir.path, projectName)
                 spec.args(resultJsons*.path)
                 spec.systemProperties(databaseParameters)
-                spec.debug = debugReportGeneration
+                spec.debugOptions.enabled.set(debugReportGeneration)
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.systemProperty("org.gradle.performance.execution.channel.patterns", channelPatterns.join(","))
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
@@ -77,9 +78,8 @@ class PerformanceReporter {
                 spec.systemProperty("gradleBuildBranch", branchName)
                 spec.systemProperty("gradleBuildCommitId", commitId)
 
-                spec.setClasspath(classpath)
-
-                spec.ignoreExitValue = true
+                Gradle10PropertyUpgradeSupport.setProperty(spec, "setClasspath", classpath)
+                Gradle10PropertyUpgradeSupport.setProperty(spec, "setIgnoreExitValue", true)
             }
         })
 

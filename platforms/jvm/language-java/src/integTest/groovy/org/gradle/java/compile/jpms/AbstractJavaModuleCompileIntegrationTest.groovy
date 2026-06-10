@@ -39,7 +39,7 @@ abstract class AbstractJavaModuleCompileIntegrationTest extends AbstractJavaModu
                 buildFile << """
                     tasks.withType(JavaCompile) {
                         options.fork = true
-                        options.forkOptions.executable = file('$javac')
+                        options.forkOptions.executable = '$javac'
                     }
                 """
                 break

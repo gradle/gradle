@@ -29,7 +29,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.TasksFromDependentProjects;
 import org.gradle.api.internal.artifacts.configurations.TasksFromProjectDependencies;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -391,7 +390,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static void configureDiagnostics(Project project, JvmFeatureInternal mainFeature) {
         project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
-            new DslObject(task).getConventionMapping().map("configuration", mainFeature::getCompileClasspathConfiguration);
+            task.getConfiguration().convention(mainFeature.getCompileClasspathConfiguration());
         });
     }
 

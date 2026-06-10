@@ -15,8 +15,8 @@ class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
                 // Remove all repositories not pointing to the enterprise repository url
                 all { ArtifactRepository repo ->
                     if (!(repo instanceof MavenArtifactRepository) ||
-                          repo.url.toString() != ENTERPRISE_REPOSITORY_URL) {
-                        project.logger.lifecycle "Repository ${repo.url} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
+                        repo.getUrl().get().toString() != ENTERPRISE_REPOSITORY_URL) {
+                        project.logger.lifecycle "Repository ${repo.getUrl().get()} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
                         remove repo
                     }
                 }

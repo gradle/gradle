@@ -17,9 +17,10 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * Configuration for a Java application, defining how to assemble the application.
@@ -43,8 +44,8 @@ public interface JavaApplication {
     /**
      * The name of the application.
      */
-    @ToBeReplacedByLazyProperty
-    String getApplicationName();
+    @ReplacesEagerProperty
+    Property<String> getApplicationName();
 
     /**
      * The name of the application.
@@ -68,8 +69,8 @@ public interface JavaApplication {
     /**
      * Array of string arguments to pass to the JVM when running the application
      */
-    @ToBeReplacedByLazyProperty
-    Iterable<String> getApplicationDefaultJvmArgs();
+    @ReplacesEagerProperty(originalType = Iterable.class)
+    ListProperty<String> getApplicationDefaultJvmArgs();
 
     /**
      * Array of string arguments to pass to the JVM when running the application
@@ -79,8 +80,8 @@ public interface JavaApplication {
     /**
      * Directory to place executables in
      */
-    @ToBeReplacedByLazyProperty
-    String getExecutableDir();
+    @ReplacesEagerProperty
+    Property<String> getExecutableDir();
 
     /**
      * Directory to place executables in

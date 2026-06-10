@@ -16,9 +16,11 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -30,26 +32,19 @@ import java.io.File;
 public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
 
-    private String executable;
-
-    private String tempDir;
-
     private File javaHome;
 
     /**
      * Returns the compiler executable to be used.
      * <p>
-     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
+     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Not present by default.
      * <p>
      * Setting the executable disables task output caching.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getExecutable() {
-        return executable;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getExecutable();
 
     /**
      * Sets the compiler executable to be used.
@@ -59,7 +54,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * Setting the executable disables task output caching.
      */
     public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
+        getExecutable().set(executable);
     }
 
     /**
@@ -89,15 +84,12 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
 
     /**
      * Returns the directory used for temporary files that may be created to pass
-     * command line arguments to the compiler process. Defaults to {@code null},
+     * command line arguments to the compiler process. Not present by default,
      * in which case the directory will be chosen automatically.
      */
     @Internal
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public String getTempDir() {
-        return tempDir;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTempDir();
 
     /**
      * Sets the directory used for temporary files that may be created to pass
@@ -105,6 +97,6 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * in which case the directory will be chosen automatically.
      */
     public void setTempDir(@Nullable String tempDir) {
-        this.tempDir = tempDir;
+        getTempDir().set(tempDir);
     }
 }

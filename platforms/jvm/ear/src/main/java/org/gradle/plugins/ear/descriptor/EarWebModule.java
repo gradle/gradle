@@ -15,7 +15,8 @@
  */
 package org.gradle.plugins.ear.descriptor;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * A module element in a deployment descriptor like application.xml that has a web child element.
@@ -25,8 +26,8 @@ public interface EarWebModule extends EarModule {
     /**
      * The context-root element specifies the context root of a web application.
      */
-    @ToBeReplacedByLazyProperty
-    String getContextRoot();
+    @ReplacesEagerProperty
+    Property<String> getContextRoot();
 
     void setContextRoot(String contextRoot);
 }

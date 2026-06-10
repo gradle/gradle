@@ -99,8 +99,9 @@ fun DevelocityConfiguration.extractCiData() {
     if (isCiServer) {
         buildScan {
             val execOps = serviceOf<ExecOperations>()
+            val workingDir = project.layout.projectDirectory.asFile
             background {
-                setCompileAllScanSearch(execOps.execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
+                setCompileAllScanSearch(execOps.execAndGetStdoutIgnoringError(workingDir, "git", "rev-parse", "--verify", "HEAD"))
             }
             if (isEc2Agent()) {
                 tag("EC2")

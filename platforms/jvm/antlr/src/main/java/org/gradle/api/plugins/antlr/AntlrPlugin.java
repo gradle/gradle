@@ -64,7 +64,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration().extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getAntlrClasspath().convention(antlrConfiguration));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
             new Action<SourceSet>() {
@@ -88,18 +88,17 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                         task.setGroup("antlr");
                         // 3.1) point the task at the antlr source set
                         task.setSource(antlrSourceSet);
-                        // 3.2) Use convention mapping so layout.buildDirectory changes are
-                        //      picked up even if the task was realized eagerly.
-                        task.getConventionMapping().map("outputDirectory", () ->
+                        // 3.2) Set the output directory convention so layout.buildDirectory changes
+                        //      are picked up even if the task was realized eagerly.
+                        task.getOutputDirectory().convention(
                             project.getLayout().getBuildDirectory()
-                                .dir("generated-src/antlr/" + sourceSet.getName())
-                                .get().getAsFile());
+                                .dir("generated-src/antlr/" + sourceSet.getName()));
                     });
 
                     // 4) Add that task's outputs to the Java source set
                     sourceSet.getJava().srcDir(antlrTask.map(task -> {
                         String relativeOutputDirectory = project.relativePath(task.getOutputDirectory());
-                        return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments()));
+                        return project.file(deriveGeneratedSourceRootDirectory(relativeOutputDirectory, task.getArguments().get()));
                     }));
                 }
             });

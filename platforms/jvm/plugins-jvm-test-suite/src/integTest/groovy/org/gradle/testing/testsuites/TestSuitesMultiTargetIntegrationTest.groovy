@@ -71,7 +71,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
                             all {
                                 testTask.configure {
                                     doLast {
-                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                        assert testFramework.get() instanceof ${JUnitTestFramework.canonicalName}
                                         // .collect() is intentional for a better error message on failure
                                         // The 6 elements are: junit, hamcrest, test classes and resources, main classes and resources
                                         assert classpath.collect().size() == 6

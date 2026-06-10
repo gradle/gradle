@@ -39,25 +39,25 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         specUnderTest.environment("SOMEVAR", "someval")
 
         when:
-        specUnderTest.setEnvironment(OTHERVAR: "otherval")
+        specUnderTest.environment = [OTHERVAR: "otherval"]
 
         then:
-        specUnderTest.getEnvironment() == [OTHERVAR: "otherval"]
+        specUnderTest.getEnvironment().get() == [OTHERVAR: "otherval"]
     }
 
     def "adding variables after setting environment is working"() {
         given:
-        specUnderTest.setEnvironment(SOMEVAR: "someval")
+        specUnderTest.environment = [SOMEVAR: "someval"]
 
         when:
         specUnderTest.environment(OTHERVAR: "otherval")
         specUnderTest.environment("ADDEDVAR", "addedval")
 
         then:
-        specUnderTest.getEnvironment() == [OTHERVAR: "otherval", SOMEVAR: "someval", ADDEDVAR: "addedval"]
+        specUnderTest.getEnvironment().get() == [OTHERVAR: "otherval", SOMEVAR: "someval", ADDEDVAR: "addedval"]
     }
 
-    def "spec without environment doesn't set environment properties on parameters"() {
+    def "spec copies environment properties to parameters"() {
         given:
         def parameters = newParameters()
 
@@ -65,51 +65,8 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         specUnderTest.copyToParameters(parameters)
 
         then:
-        !parameters.fullEnvironment.isPresent()
-        !parameters.additionalEnvironmentVariables.isPresent()
-    }
-
-    def "spec with additional environment sets only additionalEnvironmentVariables on parameters"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.environment("FOO", "bar")
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        !parameters.fullEnvironment.isPresent()
-        parameters.additionalEnvironmentVariables.isPresent()
-        parameters.additionalEnvironmentVariables.get() == [FOO: "bar"]
-    }
-
-    def "spec with full environment sets only fullEnvironment on parameters"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.setEnvironment(FOO: "bar")
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        parameters.fullEnvironment.isPresent()
-        !parameters.additionalEnvironmentVariables.isPresent()
-        parameters.fullEnvironment.get() == [FOO: "bar"]
-    }
-
-    def "spec with full environment sets only fullEnvironment on parameters even after appends"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.setEnvironment(FOO: "bar")
-        specUnderTest.environment("OTHER", "value")
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        parameters.fullEnvironment.isPresent()
-        !parameters.additionalEnvironmentVariables.isPresent()
-        parameters.fullEnvironment.get() == [FOO: "bar", OTHER: "value"]
+        parameters.environment.isPresent()
+        specUnderTest.getEnvironment().get() == parameters.environment.get()
     }
 
     def "spec sets ignoreExitValue on parameters"(boolean ignoreExitValue) {
@@ -117,7 +74,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         def parameters = newParameters()
 
         when:
-        specUnderTest.setIgnoreExitValue(ignoreExitValue)
+        specUnderTest.ignoreExitValue.set(ignoreExitValue)
         specUnderTest.copyToParameters(parameters)
 
         then:
@@ -129,34 +86,23 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
 
     def "setting input stream is forbidden"() {
         when:
-        specUnderTest.setStandardInput(new ByteArrayInputStream())
+        specUnderTest.standardInput.set(new ByteArrayInputStream())
         then:
         thrown UnsupportedOperationException
     }
 
     def "setting output stream is forbidden"() {
         when:
-        specUnderTest.setStandardOutput(new ByteArrayOutputStream())
+        specUnderTest.standardOutput.set(new ByteArrayOutputStream())
         then:
         thrown UnsupportedOperationException
     }
 
     def "setting error stream is forbidden"() {
         when:
-        specUnderTest.setErrorOutput(new ByteArrayOutputStream())
+        specUnderTest.errorOutput.set(new ByteArrayOutputStream())
         then:
         thrown UnsupportedOperationException
-    }
-
-    def "spec without working directory doesn't set it on parameters"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        !parameters.getWorkingDirectory().isPresent()
     }
 
     def "spec with working directory sets it on parameters"(Consumer<BaseExecSpec> configureAction) {
@@ -174,7 +120,6 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         where:
         configureAction                                   | _
         configure { it.workingDir("foo/bar") }            | _
-        configure { it.workingDir = "foo/bar" }           | _
         configure { it.workingDir = new File("foo/bar") } | _
     }
 

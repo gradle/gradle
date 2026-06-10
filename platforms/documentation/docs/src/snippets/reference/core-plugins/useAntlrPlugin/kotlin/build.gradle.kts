@@ -21,6 +21,6 @@ dependencies {
 // tag::generate-grammar-settings[]
 tasks.generateGrammarSource {
     maxHeapSize = "64m"
-    arguments = arguments + listOf("-visitor", "-long-messages")
+    arguments.addAll(listOf("-visitor", "-long-messages"))
 }
 // end::generate-grammar-settings[]

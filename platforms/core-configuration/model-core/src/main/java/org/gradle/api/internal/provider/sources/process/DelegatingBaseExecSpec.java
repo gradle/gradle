@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
@@ -30,56 +34,56 @@ import java.util.Map;
  */
 interface DelegatingBaseExecSpec extends BaseExecSpec {
     @Override
+    default Property<Boolean> getIgnoreExitValue() {
+        return getDelegate().getIgnoreExitValue();
+    }
+
+    @Override
     default BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
         getDelegate().setIgnoreExitValue(ignoreExitValue);
         return this;
     }
 
     @Override
-    default boolean isIgnoreExitValue() {
-        return getDelegate().isIgnoreExitValue();
-    }
-
-    @Override
-    default BaseExecSpec setStandardInput(InputStream inputStream) {
-        getDelegate().setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    default InputStream getStandardInput() {
+    default Property<InputStream> getStandardInput() {
         return getDelegate().getStandardInput();
     }
 
     @Override
-    default BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        getDelegate().setStandardOutput(outputStream);
+    default BaseExecSpec setStandardInput(InputStream standardInput) {
+        getDelegate().setStandardInput(standardInput);
         return this;
     }
 
     @Override
-    default OutputStream getStandardOutput() {
+    default Property<OutputStream> getStandardOutput() {
         return getDelegate().getStandardOutput();
     }
 
     @Override
-    default BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        getDelegate().setErrorOutput(outputStream);
+    default BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        getDelegate().setStandardOutput(standardOutput);
         return this;
     }
 
     @Override
-    default OutputStream getErrorOutput() {
+    default Property<OutputStream> getErrorOutput() {
         return getDelegate().getErrorOutput();
     }
 
     @Override
-    default List<String> getCommandLine() {
+    default BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        getDelegate().setErrorOutput(errorOutput);
+        return this;
+    }
+
+    @Override
+    default Provider<List<String>> getCommandLine() {
         return getDelegate().getCommandLine();
     }
 
     @Override
-    default String getExecutable() {
+    default Property<String> getExecutable() {
         return getDelegate().getExecutable();
     }
 
@@ -100,7 +104,7 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
-    default File getWorkingDir() {
+    default DirectoryProperty getWorkingDir() {
         return getDelegate().getWorkingDir();
     }
 
@@ -121,13 +125,13 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
-    default Map<String, Object> getEnvironment() {
+    default MapProperty<String, Object> getEnvironment() {
         return getDelegate().getEnvironment();
     }
 
     @Override
-    default void setEnvironment(Map<String, ?> environmentVariables) {
-        getDelegate().setEnvironment(environmentVariables);
+    default void setEnvironment(Map<String, ?> environment) {
+        getDelegate().setEnvironment(environment);
     }
 
     @Override

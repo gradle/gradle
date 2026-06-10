@@ -87,7 +87,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         addJacocoConfigurations();
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, this.project.getServices().get(FileOperations.class));
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
-        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
+        extension.getToolVersion().convention(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
         extension.getReportsDirectory().convention(reportingExtension.getBaseDirectory().dir("jacoco"));
 
@@ -113,8 +113,10 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
                 suite.getTargets().configureEach(target -> {
                     jacocoResultsVariant.configure(variant -> {
+                        @SuppressWarnings("deprecation")
                         Provider<File> resultsDir = target.getTestTask().map(task ->
-                            task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()
+                            // We need to use getDestinationFileOutput() since it's an @OutputFile and carries task dependency information.
+                            task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFileOutput()
                         );
 
                         variant.getOutgoing().artifact(
@@ -168,7 +170,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
         final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
         jacocoAgentJar.setAgentConf(config);
-        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion())));
+        config.defaultDependencies(dependencies -> dependencies.addLater(
+            extension.getToolVersion().map(version -> project.getDependencies().create("org.jacoco:org.jacoco.agent:" + version))
+        ));
     }
 
     /**
@@ -179,8 +183,10 @@ public abstract class JacocoPlugin implements Plugin<Project> {
      */
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
         final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
-        project.getTasks().withType(JacocoBase.class).configureEach(task -> task.setJacocoClasspath(config));
-        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion())));
+        project.getTasks().withType(JacocoBase.class).configureEach(task -> task.getJacocoClasspath().setFrom(config));
+        config.defaultDependencies(dependencies -> dependencies.addLater(
+            extension.getToolVersion().map(version -> project.getDependencies().create("org.jacoco:org.jacoco.ant:" + version))
+        ));
     }
 
     /**

@@ -61,7 +61,7 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
         settingsFile << """
             buildCache {
                 local {
-                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                    directory = file("${TextUtil.escapeString(cacheDir.absolutePath)}")
                 }
             }
         """

@@ -29,7 +29,7 @@ public class JavaCompileExecutableUtils {
 
     @Nullable
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaCompile task, PropertyFactory propertyFactory) {
-        if (!task.getOptions().isFork()) {
+        if (!task.getOptions().getFork().getOrElse(false)) {
             return null;
         }
 
@@ -40,7 +40,7 @@ public class JavaCompileExecutableUtils {
             return SpecificInstallationToolchainSpec.fromJavaHome(propertyFactory, customJavaHome);
         }
 
-        String customExecutable = forkOptions.getExecutable();
+        String customExecutable = forkOptions.getExecutable().getOrNull();
         if (customExecutable != null) {
             return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
         }

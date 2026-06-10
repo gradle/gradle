@@ -8,6 +8,7 @@ import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.provider.SetProperty
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
@@ -219,10 +220,20 @@ tasks.named<Test>("docsTest") {
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
     testClassesDirs = sourceSets.docsTest.get().output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
-    systemProperties.clear()
+    systemProperties = emptyMap<String, Any>()
 
     filter {
-        if (!javaVersion.isJava11Compatible) {
+        // TODO: Delete after Gradle 10.0, used just to pass Gradleception tests
+        fun Provider<JavaVersion>.isCompatibleWith(version: JavaVersion) =
+            get().isCompatibleWith(version)
+
+        if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
+            // Disable tests that suffer from charset issues under JDK 18 for now
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task")
+        }
+
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_11)) {
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dsl-apis-accessors_*")
         }
@@ -280,7 +291,10 @@ tasks.named<Test>("docsTest") {
         // the user must clear.
         val testTask = this
         doFirst {
-            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns
+            // Cross-version shim for [DefaultTestFilter.getCommandLineIncludePatterns]
+            // TODO: Delete in Gradle 10
+            fun SetProperty<String>.toSet(): Set<String> = get()
+            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns.toSet()
             if (cliPatterns.isNotEmpty() && cliPatterns.all { p -> configCacheExcludedTestGroups.any { p.contains(it) } }) {
                 throw GradleException(
                     "All --tests filters target tests that are excluded from docsTest when " +

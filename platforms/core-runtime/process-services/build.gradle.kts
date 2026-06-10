@@ -19,7 +19,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.logging)
+    runtimeOnly(projects.logging)
     implementation(projects.persistentCache)
     implementation(projects.loggingApi)
     implementation(projects.messaging)

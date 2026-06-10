@@ -18,15 +18,17 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
+
 
 /**
  * Configuration options for the Checkstyle plugin.
@@ -38,14 +40,13 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     private final Project project;
 
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<>();
-    private int maxErrors;
-    private int maxWarnings = Integer.MAX_VALUE;
-    private boolean showViolations = true;
 
     public CheckstyleExtension(Project project) {
         this.project = project;
         getEnableExternalDtdLoad().convention(false);
+        getMaxErrors().convention(0);
+        getMaxWarnings().convention(Integer.MAX_VALUE);
+        getShowViolations().convention(true);
     }
 
     /**
@@ -85,16 +86,14 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getConfigProperties() {
-        return configProperties;
-    }
+    @ReplacesEagerProperty
+    public abstract MapProperty<String, Object> getConfigProperties();
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
     public void setConfigProperties(Map<String, Object> configProperties) {
-        this.configProperties = configProperties;
+        getConfigProperties().set(configProperties);
     }
 
     /**
@@ -117,10 +116,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return the maximum number of errors allowed
      * @since 3.4
      */
-    @ToBeReplacedByLazyProperty
-    public int getMaxErrors() {
-        return maxErrors;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxErrors();
 
     /**
      * Set the maximum number of errors that are tolerated before breaking the build.
@@ -129,7 +126,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 3.4
      */
     public void setMaxErrors(int maxErrors) {
-        this.maxErrors = maxErrors;
+        getMaxErrors().set(maxErrors);
     }
 
     /**
@@ -141,10 +138,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return the maximum number of warnings allowed
      * @since 3.4
      */
-    @ToBeReplacedByLazyProperty
-    public int getMaxWarnings() {
-        return maxWarnings;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxWarnings();
 
     /**
      * Set the maximum number of warnings that are tolerated before breaking the build.
@@ -153,7 +148,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 3.4
      */
     public void setMaxWarnings(int maxWarnings) {
-        this.maxWarnings = maxWarnings;
+        getMaxWarnings().set(maxWarnings);
     }
 
     /**
@@ -161,10 +156,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      *
      * Example: showViolations = false
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isShowViolations() {
-        return showViolations;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getShowViolations();
 
     /**
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
@@ -172,7 +165,11 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * Example: showViolations = false
      */
     public void setShowViolations(boolean showViolations) {
-        this.showViolations = showViolations;
+        getShowViolations().set(showViolations);
+    }
+
+    public Property<Boolean> getIsShowViolations() {
+        return getShowViolations();
     }
 
     /**

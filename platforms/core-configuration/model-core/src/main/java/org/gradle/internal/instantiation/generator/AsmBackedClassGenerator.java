@@ -935,6 +935,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
+            // If the type already declares a set<Name>(Object) (e.g. an eager-style migration setter
+            // forwarding into the lazy container, or one synthesised by @ReplacesEagerProperty when the
+            // original type erases to Object), our setFromAnyValue-backed set<Name>(Object) would be a
+            // duplicate. Skip generation in that case.
+            if (property.getOverridableSetters().stream().anyMatch(setter ->
+                setter.getParameterCount() == 1
+                    && setter.getParameterTypes()[0].equals(Object.class)
+                    && setter.getReturnType().equals(Void.TYPE))) {
+                return;
+            }
+
             // GENERATE public void set<Name>(Object p) {
             //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }

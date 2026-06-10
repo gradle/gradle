@@ -17,34 +17,42 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 
 import java.io.File;
 
 public class FileBasedMavenArtifact extends AbstractMavenArtifact {
-    private final File file;
-    private final String extension;
+    private final Provider<RegularFile> file;
 
-    public FileBasedMavenArtifact(File file, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
-        this.file = file;
-        extension = Files.getFileExtension(file.getName());
+    public FileBasedMavenArtifact(
+        File file,
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
+    ) {
+        super(taskDependencyFactory, objectFactory, providerFactory);
+        this.file = Providers.of(() -> file);
     }
 
     @Override
-    public File getFile() {
+    public Provider<RegularFile> getFile() {
         return file;
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return extension;
+    protected Provider<String> getDefaultExtension() {
+        return file.map(f -> Files.getFileExtension(f.getAsFile().getName()));
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return null;
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.notDefined();
     }
 
     @Override

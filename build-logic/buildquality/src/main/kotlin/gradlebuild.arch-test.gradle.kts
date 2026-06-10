@@ -62,6 +62,10 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        // TODO: Delete after Gradle 9.0, used just to pass Gradleception tests
+                        operator fun ConfigurableFileCollection.plusAssign(fileCollection: FileCollection) {
+                            from(fileCollection)
+                        }
                         useJUnitPlatform {
                             includeEngines("archunit")
                         }

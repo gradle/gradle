@@ -1,7 +1,7 @@
 import groovy.transform.Immutable
 
 // tag::show-repos-task[]
-repositories{
+repositories {
     mavenCentral()
 }
 
@@ -12,7 +12,7 @@ class RepositoryData {
 }
 
 tasks.register('showRepositories') {
-    def repositoryData = repositories.collect { new RepositoryData(it.name, it.url) }
+    def repositoryData = repositories.collect { new RepositoryData(it.name, it.getUrl().get()) }
     doLast {
         repositoryData.each {
             println "repository: ${it.name} ('${it.url}')"
