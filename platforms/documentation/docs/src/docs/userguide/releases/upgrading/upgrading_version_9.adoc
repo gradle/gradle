@@ -642,7 +642,10 @@ Reading the files of a `FileCollection` whose artifacts are produced by an artif
 Without the Configuration Cache, this pattern silently runs the transform inline on the calling thread.
 With the Configuration Cache, the producer project's state is not reachable from a task action that did not declare the transform as an input, and the first build fails with `project <name> not found`.
 
-To fix this, declare the artifact view as a task input — either via `inputs.files(...)` on the `FileCollection` exposed by `ArtifactView.getFiles()`, or, when consuming an `ArtifactCollection`, via `inputs.files(...)` on `ArtifactCollection.getArtifactFiles()`. Both wire the transform steps into the execution plan. You can also expose the collection through a typed `@InputFiles` property on a custom task type.
+To fix this, declare the artifact view as a task input.
+You can do this by exposing the collection through a typed `@InputFiles` property on a custom task type.
+If you must use an ad-hoc task, use  `inputs.files(...)` on the `FileCollection` exposed by `ArtifactView.getFiles()`, or, when consuming an `ArtifactCollection`, on `ArtifactCollection.getArtifactFiles()`.
+Both of these methods properly wire the transform steps into the execution plan.
 
 Declaring a transformed `FileCollection` view as a task input:
 
