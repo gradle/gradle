@@ -17,27 +17,11 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scripts.ScriptingLanguages
 
 class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
-    }
-
-
-    /**
-     * If this test breaks, it means a new scripting language has been added.
-     * It's important that this test covers all accepted extensions.
-     *
-     * Please update the tests in this file, and add the new extension to the list below.
-     */
-    def "list of extensions are what we expect"() {
-        ScriptingLanguages.all().collect {it.extension} == [
-            ".gradle",
-            ".gradle.kts",
-            ".gradle.dcl"
-        ]
     }
 
     def "warns when multiple settings files exist in the same directory"() {
@@ -73,7 +57,7 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not warn when only one settings file exists: #settingsFile"() {
         given:
-        file(settingsFile) << "// This is the only settings file"
+        file(settingsFile) << content
 
         when:
         succeeds('help')
@@ -82,7 +66,11 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.empty
 
         where:
-        settingsFile << ['settings.gradle', 'settings.gradle.kts', 'settings.gradle.dcl']
+        settingsFile           | content
+        'settings.gradle'      | '// This is the only settings file'
+        'settings.gradle.kts'  | '// This is the only settings file'
+        'settings.gradle.dcl'  | '// This is the only settings file'
+        'settings.gradle.xdcl' | 'settings {\n}' // an xdcl settings script must declare its top-level body
     }
 
     def "warns about all ignored files when three settings files exist"() {

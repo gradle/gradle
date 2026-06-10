@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -47,6 +48,14 @@ abstract class PluginsManifest : DefaultTask() {
     @Input
     val plugins = pluginsClasspath.toGradleModuleNameProvider()
 
+    /**
+     * Module-registry names of plugin modules that the classpath-derived list cannot discover —
+     * external modules (resolved by coordinates, e.g. substituted from an included build) whose
+     * jars do not follow the gradle-<name>-<version>.jar naming.
+     */
+    @get:Input
+    abstract val additionalPlugins: ListProperty<String>
+
     @get:OutputFile
     abstract val manifestFile: RegularFileProperty
 
@@ -57,7 +66,7 @@ abstract class PluginsManifest : DefaultTask() {
 
     private
     fun createProperties() = Properties().also { properties ->
-        properties["plugins"] = (plugins.get() - core.get()).joinForProperties()
+        properties["plugins"] = (plugins.get() + additionalPlugins.get() - core.get()).joinForProperties()
     }
 
     private

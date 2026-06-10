@@ -33,6 +33,15 @@ dependencies {
     pluginsRuntimeOnly(projects.antlr)
     pluginsRuntimeOnly(projects.enterprise)
     pluginsRuntimeOnly(projects.unitTestFixtures)
+
+    pluginsRuntimeOnly(libs.xdclGradlePlugin)
+}
+
+// External plugin modules don't follow the gradle-<name>.jar naming the manifest derives module
+// names from; register them explicitly so the distribution's plugins classloader picks them up
+// (which is what lets `plugins { id "xdcl-gradle-plugin" }` resolve like a builtin).
+tasks.named<gradlebuild.packaging.tasks.PluginsManifest>("implementationPluginsManifest") {
+    additionalPlugins.add("xdcl-gradle-plugin")
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future
