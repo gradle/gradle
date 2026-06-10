@@ -1634,12 +1634,14 @@ Found the following transformation chains:
             }.files
 
             task queryFiles {
+                inputs.files(configFiles)
                 doLast {
                     println "files: " + configFiles.collect { it.name }
                 }
             }
 
             task queryView {
+                inputs.files(configView)
                 doLast {
                     println "files: " + configView.collect { it.name }
                 }
@@ -1662,10 +1664,6 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar, jar2.jar]")
 
         when:
-        // queryView's doLast iterates configView without declaring inputs.files(configView),
-        // so the project-artifact transforms run inline at execution time — triggers the
-        // new undeclared-transform deprecation.
-        expectUndeclaredArtifactTransformInputDeprecation()
         succeeds "queryView"
 
         then:
@@ -1676,7 +1674,6 @@ Found the following transformation chains:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
 
         when:
-        expectUndeclaredArtifactTransformInputDeprecation()
         succeeds "queryView"
 
         then:

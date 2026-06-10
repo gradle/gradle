@@ -1328,10 +1328,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
         """
 
-        when:
-        // The view is wired via files.from(view) without inputs.files(view), so the chained
-        // transform steps are not scheduled in the plan. Reading files.files in the task action
-        // runs them inline — exactly the case the new undeclared-transform deprecation flags.
+        when: "this test relies on undeclared artifact transforms"
         expectUndeclaredArtifactTransformInputDeprecation()
         run ":consumer:resolveWithoutDependencies"
 
