@@ -69,6 +69,7 @@ dependencies {
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)
+    runtimeOnly(libs.xdclProvider)
     runtimeOnly(projects.problems)
 
     runtimeOnly(libs.commonsIo)
