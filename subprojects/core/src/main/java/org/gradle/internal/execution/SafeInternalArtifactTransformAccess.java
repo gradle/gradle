@@ -16,30 +16,22 @@
 package org.gradle.internal.execution;
 
 /**
- * Thread-local marker indicating that internal Gradle code is intentionally querying the
- * output of an artifact transform from a task action without declaring it as a task input
- * through the usual mechanism. Suppresses the "undeclared artifact transform input"
- * deprecation emitted from
- * {@code org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet} for
- * the duration of the returned {@link Scope}.
+ * Lets internal Gradle code query the output of a project-artifact transform from inside a
+ * task action without triggering the "undeclared artifact transform input" deprecation
+ * emitted by {@code TransformedProjectArtifactSet}.
  *
- * <p>Intended for narrow internal use sites such as the script classpath resolver, which
- * has its own input-tracking story and cannot route the result through a user task's
- * {@code @InputFiles} property.
- *
- * <p>Suppression is per-thread; if the artifact set's visit dispatches work to another
- * thread, the scope on the entering thread will not propagate. The known consumer
- * ({@code DefaultScriptClassPathResolver}) visits artifacts on the same thread that opens
- * the scope, so this is not a concern in practice today; revisit if new entry points are
- * added that visit on worker threads.
+ * <p>Open a {@link Scope} via {@link #safely()} around the call site whose input-tracking
+ * story is owned by Gradle itself and cannot route through a user task's
+ * {@code @InputFiles} property; the suppression is per-thread for the duration of the
+ * scope.
  */
-public final class AcceptedArtifactTransformAccess {
+public final class SafeInternalArtifactTransformAccess {
 
     private static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);
 
-    private AcceptedArtifactTransformAccess() {}
+    private SafeInternalArtifactTransformAccess() {}
 
-    public static Scope enter() {
+    public static Scope safely() {
         DEPTH.set(DEPTH.get() + 1);
         return new Scope();
     }

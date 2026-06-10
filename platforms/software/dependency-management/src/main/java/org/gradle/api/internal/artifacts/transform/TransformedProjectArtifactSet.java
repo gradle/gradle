@@ -30,7 +30,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
-import org.gradle.internal.execution.AcceptedArtifactTransformAccess;
+import org.gradle.internal.execution.SafeInternalArtifactTransformAccess;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -110,7 +110,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
 
     private void nagIfUndeclared(TransformStepNode node) {
         if (node.wasScheduledViaTaskDependency()
-            || AcceptedArtifactTransformAccess.isActive()
+            || SafeInternalArtifactTransformAccess.isActive()
             || !workExecutionTracker.isExecutingTaskOrTransformAction()) {
             return;
         }

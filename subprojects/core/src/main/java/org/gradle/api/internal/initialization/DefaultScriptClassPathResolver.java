@@ -47,7 +47,7 @@ import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.InstrumentingClassLoadTimeTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
-import org.gradle.internal.execution.AcceptedArtifactTransformAccess;
+import org.gradle.internal.execution.SafeInternalArtifactTransformAccess;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -156,25 +156,38 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
+
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            // The buildscript classpath resolver intentionally invokes these project-artifact
-            // transforms from inside the calling task action, but it has its own input-tracking
-            // story and cannot route the result through a user task's @InputFiles. Suppress the
-            // "undeclared artifact transform input" deprecation that would otherwise fire here.
-            Map<FileType, List<File>> instrumentedClasspath;
-            try (AcceptedArtifactTransformAccess.Scope ignored = AcceptedArtifactTransformAccess.enter()) {
-                instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
-                    originalDependencies.getArtifacts(),
-                    instrumentedExternalDependencies,
-                    instrumentedProjectDependencies
-                );
-            }
+            Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
             ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
             return composeWithThirdPartyAgentIfPresent(classPath, contextId, buildService, instrumentedProjectDependencies);
+        }
+    }
+
+    /**
+     * Visits the artifact collections to produce the merged instrumented classpath.
+     * <p>
+     * The visit invokes project-artifact transforms from inside the calling task action.
+     * The resolver owns input tracking for these transforms and cannot route their outputs
+     * through a user task's {@code @InputFiles} property, so this method enters a
+     * {@link SafeInternalArtifactTransformAccess} scope to suppress the
+     * "undeclared artifact transform input" deprecation that would otherwise fire.
+     */
+    private static Map<FileType, List<File>> mergeInstrumentedClasspath(
+        ArtifactView originalDependencies,
+        ArtifactCollection instrumentedExternalDependencies,
+        ArtifactCollection instrumentedProjectDependencies
+    ) {
+        try (SafeInternalArtifactTransformAccess.Scope ignored = SafeInternalArtifactTransformAccess.safely()) {
+            return InstrumentationClasspathMerger.mergeToClasspath(
+                originalDependencies.getArtifacts(),
+                instrumentedExternalDependencies,
+                instrumentedProjectDependencies
+            );
         }
     }
 
