@@ -32,7 +32,8 @@ public final class ScriptingLanguages {
             Arrays.asList(
                 scriptingLanguage(".gradle", null),
                 scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
-                scriptingLanguage(".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
+                scriptingLanguage(".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory"),
+                scriptingLanguage(".gradle.xdcl", "org.gradle.xdcl.provider.XdclScriptPluginFactory")
             )
         );
 
