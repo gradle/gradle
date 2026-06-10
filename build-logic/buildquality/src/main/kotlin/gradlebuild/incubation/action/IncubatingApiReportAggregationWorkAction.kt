@@ -68,7 +68,7 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
         generateHtmlReport(entries, timeline)
         LOGGER.lifecycle("Generated incubating html report to file://${parameters.htmlReportFile.get().asFile.absolutePath}")
 
-        generateCsvReport(entries, currentCommit)
+        generateCsvReport(entries)
         LOGGER.lifecycle("Generated incubating csv report to file://${parameters.csvReportFile.get().asFile.absolutePath}")
     }
 
@@ -132,7 +132,7 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
     }
 
     private
-    fun generateCsvReport(entries: List<Entry>, currentCommit: String) {
+    fun generateCsvReport(entries: List<Entry>) {
         val outputFile = parameters.csvReportFile.get().asFile
         outputFile.parentFile.mkdirs()
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
@@ -160,6 +160,7 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
         append("}")
     }
 
+    @Suppress("LongMethod")
     private
     fun htmlPage(
         currentCommit: String,
