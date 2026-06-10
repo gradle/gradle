@@ -229,8 +229,8 @@ The same underlying concepts apply â€” declarable, resolvable, and consumable â€
 * When you publish a KMP library, these configurations define the artifacts and metadata that Gradle and consumers use to resolve the right variant for their platform.
 
 ====
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp/kotlin",files="build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp/groovy",files="build.gradle[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp/kotlin",files="shared/build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp/groovy",files="shared/build.gradle[tags=configurations]"]
 ====
 
 There is a relationship between these configurations, similar to Java and Android, but **organized per source set and target**.

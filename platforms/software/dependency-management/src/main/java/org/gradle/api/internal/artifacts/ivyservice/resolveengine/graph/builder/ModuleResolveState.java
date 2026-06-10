@@ -341,7 +341,7 @@ public class ModuleResolveState implements CandidateModule {
 
     ImmutableAttributes getMergedConstraintAttributes() {
         if (attributeMergingError != null) {
-            throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
+            throw new IncompatibleDependencyAttributesException(this, attributeMergingError);
         }
         return mergedConstraintAttributes;
     }
