@@ -2,6 +2,7 @@
 // and make available to all Kotlin DSL users
 package gradlebuild.basics.kotlindsl
 
+import org.gradle.kotlin.dsl.assign
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
 import java.io.File

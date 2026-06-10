@@ -22,6 +22,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.assign
 import javax.inject.Inject
 
 
@@ -46,9 +47,9 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
         val execOutput = providers.exec {
             workingDir = projectDir
             isIgnoreExitValue = true
-            commandLine = listOf("git", *args)
+            commandLine(listOf("git", *args))
             if (OperatingSystem.current().isWindows) {
-                commandLine = listOf("cmd.exe", "/d", "/c") + commandLine
+                commandLine(listOf("cmd.exe", "/d", "/c", "git", *args))
             }
         }
         return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->

@@ -124,7 +124,7 @@ gradlePlugin {
         }
 
         writeFuturePluginVersions {
-            property(plugin.id, version)
+            property(plugin.id.get(), version)
         }
 
         compatibility {

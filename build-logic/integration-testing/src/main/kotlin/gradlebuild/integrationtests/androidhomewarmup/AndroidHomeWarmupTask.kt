@@ -26,6 +26,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.assign
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import java.io.File
