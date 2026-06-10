@@ -21,6 +21,7 @@ import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.buildRunningOnCi
+import gradlebuild.basics.develocityServerUrl
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
@@ -462,12 +463,13 @@ fun configureTests() {
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // GitHub actions for contributor PRs uses public build scan instance
-            // in this case we need to explicitly configure the PTS server
+            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
+            // which use a public Build Scan instance).
             // Don't move this line into the lambda as it may cause config cache problems
+            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
                 this as PredictiveTestSelectionConfigurationInternal
-                server = uri("https://ge.gradle.org")
+                server = uri(ptsServerUrl)
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
