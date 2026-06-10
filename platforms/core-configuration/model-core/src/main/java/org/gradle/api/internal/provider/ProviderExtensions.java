@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.deprecation.DeprecationLogger;
+
+import static java.lang.String.format;
 
 
 @SuppressWarnings("unused")
@@ -35,11 +38,35 @@ public class ProviderExtensions {
      * @see <a href="https://groovy-lang.org/semantics.html#the-groovy-truth">the Groovy truth</a>
      */
     public static boolean asBoolean(Provider<?> self) {
-        DeprecationLogger.deprecateBehaviour("Using a `Provider` where a `boolean` is expected causes the provider to be evaluated.")
-            .withAdvice("The proper way to explicitly coerce a `Provider` into a `boolean` value is via `getOrNull()`.")
+        return evaluateAsBoolean(self, "provider");
+    }
+
+    /**
+     * Determines the Groovy truth of a property from the Groovy truth of its value: a property with
+     * no value is falsy, otherwise the value's own Groovy truth is used.
+     *
+     * <p>Extension method to support using a property in a boolean context in Groovy.</p>
+     *
+     * @param self the {@link Provider}
+     * @return the Groovy truth of the provider's value
+     * @see <a href="https://groovy-lang.org/semantics.html#the-groovy-truth">the Groovy truth</a>
+     */
+    public static boolean asBoolean(AbstractProperty<?, ?> self) {
+        return evaluateAsBoolean(self, "property");
+    }
+
+    private static boolean evaluateAsBoolean(Provider<?> self, String type) {
+        logDeprecation(type);
+        return DefaultTypeTransformation.castToBoolean(self.getOrNull());
+    }
+
+    private static void logDeprecation(String type) {
+        String capitalizedType = StringUtils.capitalize(type);
+        DeprecationLogger.deprecateBehaviour(format("Using a `%s` where a `boolean` is expected should be avoided.", capitalizedType))
+            .withAdvice(format("If evaluating this %s is intentional, do so explicitly via `get()` or `getOrNull()`.", type))
             .startingWithGradle10("this is not recommended")
             .undocumented()
             .nagUser();
-        return DefaultTypeTransformation.castToBoolean(self.getOrNull());
     }
+
 }

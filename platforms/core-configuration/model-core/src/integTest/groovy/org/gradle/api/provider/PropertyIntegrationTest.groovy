@@ -1100,7 +1100,7 @@ assert custom.prop.get() == "value 4"
             assert (prop ? 'truthy' : 'falsy') == '${expected ? 'truthy' : 'falsy'}'
             assert prop.asBoolean() == $expected
         """
-        expectProviderTruthyDeprecation(2)
+        expectProviderTruthyDeprecation("property", 2)
 
         expect:
         succeeds()
@@ -1136,7 +1136,7 @@ assert custom.prop.get() == "value 4"
             $setup
             assert StaticTruth.coerce(prop) == $expected
         """
-        expectProviderTruthyDeprecation()
+        expectProviderTruthyDeprecation("property")
 
         expect:
         succeeds()
@@ -1152,11 +1152,27 @@ assert custom.prop.get() == "value 4"
         "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
     }
 
-    private void expectProviderTruthyDeprecation(int times = 1) {
-        def message = "Using a `Provider` where a `boolean` is expected causes the provider to be evaluated. " +
+    def "logs deprecation message when #providerOrProperty used as boolean"() {
+        given:
+        buildFile """
+            assert $expression : ${expression}.getOrNull()
+        """
+        expectProviderTruthyDeprecation(providerOrProperty)
+
+        expect:
+        succeeds()
+
+        where:
+        providerOrProperty  | expression
+        "provider"          | "providers.provider { true }"
+        "property"          | "objects.property(Boolean).value(true)"
+    }
+
+    private void expectProviderTruthyDeprecation(String providerOrProperty, int times = 1) {
+        def message = "Using a `${providerOrProperty.capitalize()}` where a `boolean` is expected should be avoided. " +
             "This behavior has been deprecated. " +
             "Starting with Gradle 10, this is not recommended. " +
-            "The proper way to explicitly coerce a `Provider` into a `boolean` value is via `getOrNull()`."
+            "If evaluating this $providerOrProperty is intentional, do so explicitly via `get()` or `getOrNull()`."
         times.times {
             executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(message))
         }
