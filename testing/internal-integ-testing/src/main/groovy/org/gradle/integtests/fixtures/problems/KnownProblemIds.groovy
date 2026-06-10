@@ -80,6 +80,7 @@ class KnownProblemIds {
         'generic': 'Generic',
         'sample-problems': 'Sample Problems',
         'scripts': 'Scripts',
+        'scripts:xdcl': 'XDCL script issues',
         'root': 'root',
     ]
 
@@ -235,5 +236,9 @@ class KnownProblemIds {
         'generic:type12': ['outer'],
         'sample-problems:prototype-project': ['Project is a prototype'],
         'scripts:multiple-scripts': ['Multiple scripts'],
+        'scripts:xdcl:xdcl-parse-error': ['XDCL parse error'],
+        'scripts:xdcl:xdcl-evaluation-error': ['XDCL evaluation error'],
+        'scripts:xdcl:xdcl-schema-error': ['XDCL schema registry error'],
+        'scripts:xdcl:xdcl-project-local-plugins': ['Project-local plugins are not supported'],
     ]
 }
