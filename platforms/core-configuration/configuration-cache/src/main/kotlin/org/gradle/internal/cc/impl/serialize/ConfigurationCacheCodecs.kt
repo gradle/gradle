@@ -81,9 +81,9 @@ import org.gradle.internal.serialize.codecs.core.IsolatedMapCodec
 import org.gradle.internal.serialize.codecs.core.IsolatedSetCodec
 import org.gradle.internal.serialize.codecs.core.ListPropertyCodec
 import org.gradle.internal.serialize.codecs.core.LoggerCodec
-import org.gradle.internal.serialize.codecs.core.ManagedValueCodec
 import org.gradle.internal.serialize.codecs.core.MapEntrySnapshotCodec
 import org.gradle.internal.serialize.codecs.core.MapPropertyCodec
+import org.gradle.internal.serialize.codecs.core.NamedCodec
 import org.gradle.internal.serialize.codecs.core.NullValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.OrdinalNodeCodec
 import org.gradle.internal.serialize.codecs.core.PathToFileResolverCodec
@@ -315,7 +315,7 @@ class DefaultConfigurationCacheCodecs(
 
             bind(RegisteredFlowActionCodec)
 
-            bind(ManagedValueCodec(managedFactoryRegistry))
+            bind(NamedCodec(managedFactoryRegistry))
         }
 
         userTypesBindings = makeUserTypeBindings {

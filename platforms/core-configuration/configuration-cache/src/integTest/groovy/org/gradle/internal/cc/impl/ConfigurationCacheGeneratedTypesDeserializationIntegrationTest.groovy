@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
-class ConfigurationCacheNamedDeserializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheGeneratedTypesDeserializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def setup() {
         executer.requireIsolatedDaemons()
@@ -122,6 +122,48 @@ class ConfigurationCacheNamedDeserializationIntegrationTest extends AbstractConf
         outputContains("prefixed = X-foo")
     }
 
+    def "can load configuration cache with newInstance Named instance after daemon restart"() {
+        given:
+        buildFile """
+            interface Foo extends Named {
+                Property<String> getValue()
+            }
+
+            abstract class ShowFoo extends DefaultTask {
+                @Internal
+                Foo foo
+
+                @TaskAction
+                void show() {
+                    println(foo.name + " = " + foo.value.orNull)
+                }
+            }
+
+            tasks.register("show", ShowFoo) {
+                foo = objects.newInstance(Foo, "myFoo")
+                foo.value = "bar"
+            }
+        """
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        when:
+        configurationCacheRun("show")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("myFoo = bar")
+
+        when:
+        stopDaemons()
+
+        and:
+        configurationCacheRun("show")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("myFoo = bar")
+    }
+
     def "can load configuration cache with decorated Managed+GeneratedSubclass instance after daemon restart"() {
         given:
         file("buildSrc/src/main/java/my/Thing.java") << """
@@ -168,6 +210,55 @@ class ConfigurationCacheNamedDeserializationIntegrationTest extends AbstractConf
         then:
         configurationCache.assertStateLoaded()
         outputContains("foo = baz")
+    }
+
+    def "can load configuration cache with hand-written non-managed Named instance after daemon restart"() {
+        given:
+        file("buildSrc/src/main/java/my/MyNamed.java") << """
+            package my;
+            import org.gradle.api.Named;
+            public class MyNamed implements Named {
+                private final String name;
+                public MyNamed(String name) { this.name = name; }
+                @Override public String getName() { return name; }
+            }
+        """
+
+        buildFile """
+            import my.MyNamed
+
+            abstract class ShowNamed extends DefaultTask {
+                @Internal
+                MyNamed value
+
+                @TaskAction
+                void show() {
+                    println("name = " + value.name)
+                }
+            }
+
+            tasks.register("show", ShowNamed) {
+                value = new MyNamed("foo")
+            }
+        """
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        when:
+        configurationCacheRun("show")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("name = foo")
+
+        when:
+        stopDaemons()
+
+        and:
+        configurationCacheRun("show")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("name = foo")
     }
 
     void stopDaemons() {

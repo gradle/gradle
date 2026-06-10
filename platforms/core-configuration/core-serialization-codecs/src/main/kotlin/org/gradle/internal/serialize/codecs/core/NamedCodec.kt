@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.api.Named
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -29,43 +30,44 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 
 
 /**
- * Codec for values that implement [Managed]. Serializes them via the Managed protocol
- * ([Managed.getFactoryId] + [Managed.publicType] + [Managed.unpackState]) so they can be
- * reconstructed by the corresponding [org.gradle.internal.state.ManagedFactory] without
- * requiring the generated implementation class to be available at decoding time.
+ * Codec for [Named] instances created by `ObjectFactory.named()`. Their implementation class is
+ * generated on demand (by `NamedObjectInstantiator`) and is not guaranteed to exist at decoding
+ * time — e.g. after a daemon restart — so they cannot be serialized as regular beans.
  *
- * Only matches types that implement [Managed] but do NOT implement
- * [GeneratedSubclass] (they are covered by DefaultClassEncoder).
+ * Instead, they are serialized via the [Managed] protocol.
+ * A custom class implementing [Named] directly is not [Managed] and is serialized as a regular bean.
  */
-class ManagedValueCodec(
+class NamedCodec(
     private val managedFactory: ManagedFactoryRegistry
 ) : Decoding, EncodingProducer {
 
     override fun encodingForType(type: Class<*>): Encoding? =
-        ManagedValueEncoding.takeIf {
-            Managed::class.java.isAssignableFrom(type) &&
+        NamedEncoding.takeIf {
+            Named::class.java.isAssignableFrom(type) &&
+                Managed::class.java.isAssignableFrom(type) &&
                 !GeneratedSubclass::class.java.isAssignableFrom(type)
         }
 
-    override suspend fun ReadContext.decode(): Managed =
+    override suspend fun ReadContext.decode(): Named =
         decodePreservingIdentity { id ->
             val factoryId = readSmallInt()
             val type = readClass()
             val state = read()
             val value = managedFactory.lookup(factoryId).fromState(type, state)
-                ?: error("Failed to recreate managed value of type $type from state $state")
-            isolate.identities.putInstance(id, value as Managed)
+                ?: error("Failed to recreate Named value of type $type from state $state")
+            isolate.identities.putInstance(id, value as Named)
             value
         }
 }
 
 private
-object ManagedValueEncoding : Encoding {
+object NamedEncoding : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
-        encodePreservingIdentityOf(value as Managed) {
-            writeSmallInt(value.factoryId)
-            writeClass(value.publicType())
-            write(value.unpackState())
+        val managed = value as Managed
+        encodePreservingIdentityOf(managed) {
+            writeSmallInt(managed.factoryId)
+            writeClass(managed.publicType())
+            write(managed.unpackState())
         }
     }
 }
