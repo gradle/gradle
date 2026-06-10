@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,24 @@
 
 package gradlebuild.incubation.action
 
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
-import org.gradle.workers.WorkParameters
 
+/**
+ * The kind of an incubating API declaration. Emitted by the per-project producer into the
+ * intermediate txt report and consumed by the aggregator to surface a "Kind" column.
+ */
+enum class IncubatingApiKind {
+    CLASS,
+    INTERFACE,
+    ENUM,
+    ANNOTATION,
+    METHOD,
+    FIELD,
+    PROPERTY,
+    PACKAGE,
+    OTHER;
 
-interface IncubatingApiReportAggregationParameter : WorkParameters {
-    val reports: ConfigurableFileCollection
-    val htmlReportFile: RegularFileProperty
-    val csvReportFile: RegularFileProperty
-    val currentCommit: Property<String>
-    val versionFile: RegularFileProperty
-    val releasedVersionsFile: RegularFileProperty
+    companion object {
+        fun fromString(value: String): IncubatingApiKind =
+            entries.firstOrNull { it.name == value } ?: OTHER
+    }
 }
