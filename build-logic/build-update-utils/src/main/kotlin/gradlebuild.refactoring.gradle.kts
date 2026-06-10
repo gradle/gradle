@@ -1,5 +1,5 @@
-import gradlebuild.refactoring.AnalyzeClassDependenciesTask
-import gradlebuild.refactoring.SplitProjectTask
+import gradlebuild.refactoring.tasks.AnalyzeClassDependenciesTask
+import gradlebuild.refactoring.tasks.SplitProjectTask
 
 plugins {
     id("java-base")

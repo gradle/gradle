@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.refactoring
+package gradlebuild.refactoring.analysis
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassReader
@@ -33,13 +33,6 @@ import java.io.File
 import java.util.zip.ZipFile
 
 /**
- * Result of the dependency analysis.
- *
- * @property projectClasses The set of classes that belong to the project and are part of the transitive dependency closure.
- * @property apiDependencyRoots The set of external JARs or directories that contain API dependencies of the [projectClasses].
- * @property implementationDependencyRoots The set of external JARs or directories that contain Implementation dependencies of the [projectClasses].
- */
-/**
  * Describes how a class was discovered during traversal.
  */
 sealed class DiscoveryReason {
@@ -49,6 +42,13 @@ sealed class DiscoveryReason {
     data class SubtypeOf(val supertype: String) : DiscoveryReason()
 }
 
+/**
+ * Result of the dependency analysis.
+ *
+ * @property projectClasses The set of classes that belong to the project and are part of the transitive dependency closure.
+ * @property apiDependencyRoots The set of external JARs or directories that contain API dependencies of the [projectClasses].
+ * @property implementationDependencyRoots The set of external JARs or directories that contain Implementation dependencies of the [projectClasses].
+ */
 data class AnalysisResult(
     val projectClasses: Set<String>,
     val apiDependencyRoots: Set<File>,

@@ -61,7 +61,6 @@ include("kotlin-dsl")
 include("packaging")
 include("performance-testing")
 include("profiling")
-include("refactoring")
 include("uber-plugins")
 
 // Components used both at build time and GBT runtime, shipped in the distribution

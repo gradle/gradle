@@ -9,6 +9,7 @@ dependencies {
     implementation("gradlebuild:module-identity")
     implementation("gradlebuild:publishing")
 
+    implementation(projects.buildUpdateUtils)
     implementation(projects.buildquality)
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
@@ -16,7 +17,6 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.packaging)
     implementation(projects.profiling)
-    implementation(projects.refactoring)
 
     implementation(buildLibs.kgp)
     implementation(buildLibs.dependencyAnalysisPlugin) {

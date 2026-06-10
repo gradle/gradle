@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package gradlebuild.refactoring
+package gradlebuild.refactoring.tasks
 
+import gradlebuild.refactoring.analysis.AnalysisResult
+import gradlebuild.refactoring.analysis.DependencyAnalyzer
+import gradlebuild.refactoring.analysis.DiscoveryReason
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.component.ComponentIdentifier
