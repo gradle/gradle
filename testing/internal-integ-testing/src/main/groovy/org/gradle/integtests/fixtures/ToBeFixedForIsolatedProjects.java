@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * A specific failure is not verified, and we only confirm that the test is not passing.
  * <p>
  * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
- * or has other undersirable effects, such as timeouts.
+ * or has other undesirable effects, such as timeouts.
  * Set {@link #skip()} into any other value apart from {@link Skip#DO_NOT_SKIP DO_NOT_SKIP} to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
