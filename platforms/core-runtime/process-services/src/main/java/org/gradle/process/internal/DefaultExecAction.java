@@ -60,7 +60,8 @@ public class DefaultExecAction implements ExecAction {
     }
 
 
-    private ExecHandle buildHandle() {
+    @Override
+    public ExecHandle buildHandle() {
         if (execSpec.getStandardInput() != null) {
             execHandleBuilder.setStandardInput(execSpec.getStandardInput());
         }

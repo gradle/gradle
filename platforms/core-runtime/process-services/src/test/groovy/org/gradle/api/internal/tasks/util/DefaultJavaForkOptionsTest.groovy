@@ -381,7 +381,9 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "can copy to target options"() {
-        JavaForkOptions target = Mock(JavaForkOptions)
+        JavaForkOptions target = Mock(JavaForkOptions) {
+            getWorkingDirectory() >> objectFactory.directoryProperty()
+        }
 
         given:
         options.executable('executable')
