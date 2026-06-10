@@ -265,4 +265,7 @@ private val licenseOverrides: Map<String, License> = mapOf(
     // All net.rubygrapefruit:native-platform-* artifacts are Apache 2.0 licensed but do not
     // include <licenses> in their POMs (https://github.com/gradle/native-platform/issues/40)
     "net.rubygrapefruit" to License.Apache2,
+    // The org.xdcl POMs do declare Apache 2.0, but when the build sources the XDCL libraries
+    // from the sibling checkout as an included build there are no POMs to read.
+    "org.xdcl" to License.Apache2,
 )
