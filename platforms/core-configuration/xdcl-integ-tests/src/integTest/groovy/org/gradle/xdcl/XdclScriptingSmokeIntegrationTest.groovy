@@ -64,6 +64,54 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "can apply settings plugin from included build"() {
+        given:
+        xdclSettingsFile '''
+            settings {
+                pluginManagement {
+                  includedBuilds ["build-logic"]
+                }
+                plugins [
+                  { id "local-settings-plugin" }
+                ]
+            }
+        '''
+        xdclFile 'build-logic/settings.gradle.xdcl', '''
+            settings {}
+        '''
+        buildFile 'build-logic/build.gradle', '''
+            plugins {
+              id "java-gradle-plugin"
+            }
+            gradlePlugin {
+              plugins {
+                localSettingsPlugin {
+                  id = "local-settings-plugin"
+                  implementationClass = "my.LocalSettingsPlugin"
+                }
+              }
+            }
+        '''
+        javaFile 'build-logic/src/main/java/my/LocalSettingsPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+
+            public class LocalSettingsPlugin implements Plugin<Settings> {
+                @Override public void apply(Settings target) {
+                    System.out.println("LocalSettingsPlugin applied!");
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("LocalSettingsPlugin applied!")
+    }
+
     TestFile xdclSettingsFile(String script) {
         file('settings.gradle.xdcl') << script
     }
