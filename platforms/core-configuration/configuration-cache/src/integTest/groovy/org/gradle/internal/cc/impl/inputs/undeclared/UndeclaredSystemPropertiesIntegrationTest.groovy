@@ -475,4 +475,67 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         configurationCache.assertStateLoaded()
         outputContains("foo in task = set-by-build")
     }
+
+    def "clone of a clone of SystemProperties after parent mutation observes parent-mutated value and read is not tracked"() {
+        given:
+        buildFile("""
+            def clone = (Properties) System.getProperties().clone()
+            clone.putAll([foo: 'baz'])
+            def cloneOfClone = (Properties) clone.clone()
+            def captured = cloneOfClone.getProperty('foo')
+            tasks.register("printProperty") {
+                doLast { println("captured = \${captured}") }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dfoo=bar", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("captured = baz")
+
+        when:
+        configurationCacheRun("-Dfoo=different", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("captured = baz")
+    }
+
+    def "clone of a clone of SystemProperties before parent mutation observes original value and read is tracked independently"() {
+        given:
+        buildFile("""
+            def clone = (Properties) System.getProperties().clone()
+            def cloneOfClone = (Properties) clone.clone()
+            clone.putAll([foo: 'baz'])
+            def captured = cloneOfClone.getProperty('foo')
+            tasks.register("printProperty") {
+                doLast { println("captured = \${captured}") }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dfoo=bar", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("captured = bar")
+
+        when: 'same -Dfoo: cache hits'
+        configurationCacheRun("-Dfoo=bar", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("captured = bar")
+
+        when:
+        configurationCacheRun("-Dfoo=different", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("captured = different")
+    }
 }

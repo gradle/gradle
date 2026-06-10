@@ -492,8 +492,10 @@ public class AccessTrackingProperties extends Properties {
         // Cloning alone doesn't mean the caller will read all properties — they may only access specific ones.
         // Mutations on the clone must NOT be reported: they only affect the clone's delegate, not the real system properties.
         // Reads of mutated properties are not reported as well.
+        // When cloning a clone, snapshot the parent's mutation state into the child so that subsequent
+        // mutations on either instance are isolated
         // See https://github.com/gradle/gradle/issues/17344
-        return new AccessTrackingProperties(clonedDelegate, new ReadUnchangedListener(listener));
+        return new AccessTrackingProperties(clonedDelegate, ReadUnchangedListener.forClone(listener));
     }
 
     @Override
@@ -675,8 +677,21 @@ public class AccessTrackingProperties extends Properties {
         private final Set<Object> mutatedKeys = ConcurrentHashMap.newKeySet();
         private volatile boolean cleared;
 
-        ReadUnchangedListener(Listener delegate) {
+        private ReadUnchangedListener(Listener delegate) {
             this.delegate = delegate;
+        }
+
+        static ReadUnchangedListener forClone(Listener parentListener) {
+            ReadUnchangedListener instance;
+            if (parentListener instanceof ReadUnchangedListener) {
+                ReadUnchangedListener parent = (ReadUnchangedListener) parentListener;
+                instance = new ReadUnchangedListener(parent.delegate);
+                instance.mutatedKeys.addAll(parent.mutatedKeys);
+                instance.cleared = parent.cleared;
+            } else {
+                instance = new ReadUnchangedListener(parentListener);
+            }
+            return instance;
         }
 
         @Override
