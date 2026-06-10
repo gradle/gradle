@@ -25,9 +25,11 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Verifies that {@link ProviderApiMigrationConventionHelper#findRenamedProperty} resolves
- * every entry in its internal {@code RENAMED_GETTERS} map, plus relevant subclasses,
- * subinterfaces, and implementation classes that walk through the class hierarchy.
+ * Verifies that {@link ProviderApiMigrationConventionHelper#findRenamedProperty} discovers
+ * every eager bridge getter annotated with {@link org.gradle.api.model.ReplacedBy} whose
+ * replacement is a lazy property, including via subclasses that walk through the class
+ * hierarchy. Generic behavior of the helper is covered by
+ * {@code ProviderApiMigrationConventionHelperTest} in {@code :model-core}.
  *
  * <p>The renamed classes span multiple platform modules. This test lives in
  * {@code :architecture-test} because that module already pulls in
@@ -50,7 +52,7 @@ class ProviderApiMigrationRenamedPropertiesTest {
 
     private static Stream<Arguments> renamedProperties() {
         return Stream.of(
-            // Direct entries — one row per key in RENAMED_GETTERS
+            // One row per @ReplacedBy bridge getter introduced by the provider-api migration
             entry("CodeQualityExtension.reportsDir",          "org.gradle.api.plugins.quality.CodeQualityExtension",     "reportsDir",           "reportsDirectory"),
             entry("GenerateIvyDescriptor.destination",        "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",  "destination",          "destinationFile"),
             entry("GenerateMavenPom.destination",             "org.gradle.api.publish.maven.tasks.GenerateMavenPom",     "destination",          "destinationFile"),

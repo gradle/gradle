@@ -71,7 +71,6 @@ public class ConventionAwareHelper implements ConventionMapping {
         Class<? extends IConventionAware> sourceType = _source.getClass();
 
         // Route ConventionMapping("oldName") to the renamed lazy property's `.convention()` API
-        // for properties whose lazy version has been renamed during the provider-api migration
         // (e.g. CreateStartScripts: getOutputDir File -> getOutputDirectory DirectoryProperty).
         // The eager getter is kept as a backward-compat bridge but external plugins still register conventions with the old name.
         String renamedProperty = ProviderApiMigrationConventionHelper.findRenamedProperty(sourceType, propertyName);
