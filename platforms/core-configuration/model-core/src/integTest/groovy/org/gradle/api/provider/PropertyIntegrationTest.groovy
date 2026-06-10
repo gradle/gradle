@@ -1171,7 +1171,7 @@ assert custom.prop.get() == "value 4"
     private void expectProviderTruthyDeprecation(String providerOrProperty, int times = 1) {
         def message = "Using a `${providerOrProperty.capitalize()}` where a `boolean` is expected should be avoided. " +
             "This behavior has been deprecated. " +
-            "Starting with Gradle 10, this is not recommended. " +
+            "This will fail with an error in Gradle 11. " +
             "If evaluating this $providerOrProperty is intentional, do so explicitly via `get()` or `getOrNull()`."
         times.times {
             executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(message))

@@ -64,7 +64,7 @@ public class ProviderExtensions {
         String capitalizedType = StringUtils.capitalize(type);
         DeprecationLogger.deprecateBehaviour(format("Using a `%s` where a `boolean` is expected should be avoided.", capitalizedType))
             .withAdvice(format("If evaluating this %s is intentional, do so explicitly via `get()` or `getOrNull()`.", type))
-            .startingWithGradle10("this is not recommended")
+            .willBecomeAnErrorInGradle11()
             .undocumented()
             .nagUser();
     }
