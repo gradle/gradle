@@ -17,6 +17,7 @@
 package gradlebuild.basics.util
 
 
+import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironmentMode
@@ -65,6 +66,8 @@ class KotlinSourceParser {
 
     private
     fun Disposable.parseKotlinFiles(sourceRoots: List<File>): List<KtFile> {
+        val applicationEnvironment = SharedKotlinApplicationEnvironment.acquire()
+        Disposer.register(this, SharedKotlinApplicationEnvironment.newReleaseDisposable())
         val psiManager = PsiManager.getInstance(KotlinCoreProjectEnvironment(this, applicationEnvironment).project)
         val localFileSystem = applicationEnvironment.localFileSystem
         return sourceRoots.asSequence()
@@ -80,22 +83,61 @@ class KotlinSourceParser {
 
 
 /**
- * A single, process-wide Kotlin compiler application environment shared by all parsers.
+ * The Kotlin compiler application environment shared by all live [KotlinCoreProjectEnvironment]s.
  *
- * Creating one is expensive (it registers all the IntelliJ core services and the Kotlin parser) and it
- * installs a global [org.jetbrains.kotlin.com.intellij.openapi.application.Application], so we create it once
- * and reuse it for every parse, handing each parse its own short-lived [KotlinCoreProjectEnvironment]. It is
- * intentionally never disposed: it lives for as long as the (short-lived) build/worker process.
+ * It is expensive to create and installs a process-global [org.jetbrains.kotlin.com.intellij.openapi.application.Application].
+ * A single parsing spans multiple source roots, each kept open in its own project environment until the parsing
+ * is done, so they share one reference-counted application environment: created with the first project environment,
+ * disposed once the last is closed. Disposal resets the global `ApplicationManager`, keeping it out of the
+ * long-lived Gradle daemon between runs.
  */
-private
-val applicationEnvironment: KotlinCoreApplicationEnvironment by lazy {
-    setIdeaIoUseFallback()
-    setupIdeaStandaloneExecution()
-    val disposable = Disposer.newDisposable("Disposable for the application environment of KotlinSourceParser")
-    KotlinCoreApplicationEnvironment.create(disposable, KotlinCoreApplicationEnvironmentMode.Production).apply {
-        registerFileType(KotlinFileType.INSTANCE, KotlinFileType.EXTENSION)
-        registerFileType(KotlinFileType.INSTANCE, KotlinFileType.SCRIPT_EXTENSION)
-        registerParserDefinition(KotlinParserDefinition())
+internal
+object SharedKotlinApplicationEnvironment {
+
+    @get:VisibleForTesting
+    var environment: KotlinCoreApplicationEnvironment? = null
+        private set
+
+    private
+    var openProjectEnvironments = 0
+
+    @Synchronized
+    fun acquire(): KotlinCoreApplicationEnvironment {
+        val environment = environment ?: create().also { environment = it }
+        openProjectEnvironments++
+        return environment
+    }
+
+    @Synchronized
+    private
+    fun release() {
+        if (--openProjectEnvironments <= 0) {
+            openProjectEnvironments = 0
+            environment?.let { Disposer.dispose(it.parentDisposable) }
+            environment = null
+        }
+    }
+
+    /**
+     * Returns a fresh [Disposable] that releases the shared environment when disposed; each parse registers one for cleanup.
+     *
+     * It must be a new instance per parse: [Disposer] disposes any given [Disposable] only once, so sharing one across
+     * parses would release only once (hence a non-capturing lambda won't do).
+     */
+    fun newReleaseDisposable(): Disposable = object : Disposable {
+        override fun dispose() = release()
+    }
+
+    private
+    fun create(): KotlinCoreApplicationEnvironment {
+        setIdeaIoUseFallback()
+        setupIdeaStandaloneExecution()
+        val disposable = Disposer.newDisposable("Disposable for the application environment of KotlinSourceParser")
+        return KotlinCoreApplicationEnvironment.create(disposable, KotlinCoreApplicationEnvironmentMode.Production).apply {
+            registerFileType(KotlinFileType.INSTANCE, KotlinFileType.EXTENSION)
+            registerFileType(KotlinFileType.INSTANCE, KotlinFileType.SCRIPT_EXTENSION)
+            registerParserDefinition(KotlinParserDefinition())
+        }
     }
 }
 
