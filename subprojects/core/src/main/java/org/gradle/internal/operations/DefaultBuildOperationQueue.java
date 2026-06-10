@@ -174,8 +174,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             lock.unlock();
         }
 
-        // Need to wait for work to complete, so release worker lease while waiting
-        // We purposefully only drop the project lock if the work might need it (allowAccessToProjectState)
+        // Need to wait for work to complete, so release worker lease while waiting.
+        // Keep the project lock while waiting unless this queue's operations are allowed to
+        // change project locks themselves; lending it out otherwise risks deadlock (see
+        // withProjectLockChangePolicy).
         withProjectLockChangePolicy(Factories.toFactory(() -> workerLeases.blocking(() -> {
             lock.lock();
             try {

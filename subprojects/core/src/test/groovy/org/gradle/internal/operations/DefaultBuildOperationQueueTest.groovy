@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations
 
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorPolicy
@@ -486,17 +487,21 @@ class DefaultBuildOperationQueueTest extends Specification {
     @Timeout(value = 60, unit = TimeUnit.SECONDS)
     def "runAll does not lend project lock while waiting, avoiding deadlock against a resource held across the queue"() {
         given:
-        // Mirrors the CI hang: the waiter owns some resource (there, cache ownership) plus a
-        // project lock; the other thread takes the project lock and then wants the resource
+        // The waiter owns some resource plus a project lock; the other thread takes the project lock
+        // and then wants the resource, so lending the project lock while waiting would deadlock.
         def resource = new ReentrantLock()
         def blockingStarted = new CountDownLatch(1)
         def releaseOperation = new CountDownLatch(1)
         def failure = new AtomicReference<Throwable>()
 
-        setupLockLendingQueue(false, blockingStarted)
+        def executor = setupLockLendingExecutor(blockingStarted)
         def projectLock = workerRegistry.getProjectLock(Path.path(":build"), Path.path(":build:project"))
 
-        def waiter = lockLendingWaiterThread(projectLock, resource, releaseOperation, failure)
+        def waiter = lockLendingWaiterThread(projectLock, resource, failure) {
+            executor.runAll({ queue ->
+                queue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
+            } as Action, BuildOperationConstraint.UNCONSTRAINED)
+        }
         def other = lockLendingOtherThread(projectLock, resource, new CountDownLatch(1), failure)
 
         when:
@@ -532,10 +537,14 @@ class DefaultBuildOperationQueueTest extends Specification {
         def otherHasProjectLock = new CountDownLatch(1)
         def failure = new AtomicReference<Throwable>()
 
-        setupLockLendingQueue(true, blockingStarted)
+        def executor = setupLockLendingExecutor(blockingStarted)
         def projectLock = workerRegistry.getProjectLock(Path.path(":build"), Path.path(":build:project"))
 
-        def waiter = lockLendingWaiterThread(projectLock, resource, releaseOperation, failure)
+        def waiter = lockLendingWaiterThread(projectLock, resource, failure) {
+            executor.runAllWithAccessToProjectState({ queue ->
+                queue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
+            } as Action, BuildOperationConstraint.UNCONSTRAINED)
+        }
         def other = lockLendingOtherThread(projectLock, resource, otherHasProjectLock, failure)
 
         when:
@@ -564,7 +573,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         other.join(10_000)
     }
 
-    private void setupLockLendingQueue(boolean allowAccessToProjectState, CountDownLatch blockingStarted) {
+    private BuildOperationExecutor setupLockLendingExecutor(CountDownLatch blockingStarted) {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
             @Override
@@ -577,27 +586,27 @@ class DefaultBuildOperationQueueTest extends Specification {
             }
         }
         workerRegistry.startProjectExecution(true)
-        // requiresWorkerLease=false so the waiter skips the self-drain and goes straight to the blocking wait
-        def executionContext = new BuildOperationExecutionContext(
-            new ManagedExecutorImpl(Executors.newFixedThreadPool(2), new ExecutorPolicy.CatchAndRecordFailures()),
-            2,
-            false
-        )
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, executionContext, new SimpleWorker(), null)
+        return BuildOperationExecutorSupport.builder(2)
+            .withWorkerLeaseService(workerRegistry)
+            .build()
     }
 
-    private Thread lockLendingWaiterThread(projectLock, ReentrantLock resource, CountDownLatch releaseOperation, AtomicReference<Throwable> failure) {
+    private Thread lockLendingWaiterThread(projectLock, ReentrantLock resource, AtomicReference<Throwable> failure, Closure<?> scheduleAndWait) {
         def waiter = new Thread({
             try {
-                workerRegistry.withLocks([projectLock]) {
-                    resource.lock()
-                    try {
-                        operationQueue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
-                        operationQueue.waitForCompletion()
-                    } finally {
-                        resource.unlock()
+                // runAll() is always invoked from a thread that already holds a worker lease. The work is
+                // scheduled as UNCONSTRAINED so the wait does not require a lease and skips the self-drain,
+                // going straight to the blocking wait this exercises.
+                workerRegistry.runAsWorkerThread({
+                    workerRegistry.withLocks([projectLock]) {
+                        resource.lock()
+                        try {
+                            scheduleAndWait.call()
+                        } finally {
+                            resource.unlock()
+                        }
                     }
-                }
+                } as Runnable)
             } catch (Throwable t) {
                 failure.set(t)
             }
