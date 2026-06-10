@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.graph
 
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -184,6 +185,11 @@ suspend fun WriteContext.writeCollection(value: Collection<*>) {
     writeCollection(value) { write(it) }
 }
 
+suspend fun WriteContext.writeCollection(value: Collection<*>, vararg supportedTypes: Class<*>) {
+    warnAboutCustomImplementation(value.javaClass, "collection", supportedTypes)
+    writeCollection(value)
+}
+
 
 suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
     readCollectionInto(factory) { read() }
@@ -196,6 +202,11 @@ suspend fun WriteContext.writeMap(value: Map<*, *>) {
     if (size != totalWritten) {
         reportCollectionWriteFailure("map", size, totalWritten, value.size)
     }
+}
+
+suspend fun WriteContext.writeMap(value: Map<*, *>, vararg supportedTypes: Class<*>) {
+    warnAboutCustomImplementation(value.javaClass, "map", supportedTypes)
+    writeMap(value)
 }
 
 
@@ -364,5 +375,36 @@ fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int,
         } else {
             text("The $collectionKind is likely broken or corrupted because of a data race.")
         }
+    }
+}
+
+
+/**
+ * Custom descendants of supported collection/map types that are known to round-trip safely and so must not be reported.
+ */
+private
+val customImplementationExceptions = setOf(
+    "org.gradle.internal.configuration.inputs.AccessTrackingProperties"
+)
+
+
+/**
+ * Reports a configuration cache problem when [actualType] is a custom descendant of one of the [supportedTypes]
+ * a codec serializes specially. The codec is only reached because dispatch matched [actualType] to one of these
+ * base types, so anything that is not exactly one of them is a custom descendant that will be restored as a
+ * standard [kind] (collection/map) — losing its custom behavior. The first supported type is used as the base
+ * type in the message (e.g. `HashSet` for `HashSet`/`LinkedHashSet`).
+ */
+fun IsolateContext.warnAboutCustomImplementation(actualType: Class<*>, kind: String, supportedTypes: Array<out Class<*>>) {
+    if (actualType in supportedTypes || actualType.name in customImplementationExceptions) {
+        return
+    }
+    val baseType = supportedTypes.firstOrNull() ?: return
+    logPropertyProblem("serialize", DocumentationSection.RequirementsCustomCollectionTypes, logDeprecation = true) {
+        text("serializing a custom $kind type ")
+        reference(actualType)
+        text(", a subtype of ")
+        reference(baseType)
+        text(", which will be restored as a standard $kind, losing any custom behavior.")
     }
 }

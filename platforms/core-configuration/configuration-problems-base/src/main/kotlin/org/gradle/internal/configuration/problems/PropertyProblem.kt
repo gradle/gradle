@@ -39,7 +39,11 @@ data class PropertyProblem(
      * The failure may be synthetic when the cause of the problem was not an exception.
      */
     val stackTracingFailure: Failure? = null,
-    val documentationSection: DocumentationSection? = null
+    val documentationSection: DocumentationSection? = null,
+    /**
+     * Marks a problem reporting a behavior that is deprecated
+     */
+    val deprecation: Boolean = false
 )
 
 
@@ -59,6 +63,7 @@ enum class DocumentationSection(val page: String, val anchor: String) {
     RequirementsSysPropEnvVarRead("configuration_cache_requirements","config_cache:requirements:reading_sys_props_and_env_vars"),
     RequirementsUseProjectDuringExecution("configuration_cache_requirements","config_cache:requirements:use_project_during_execution"),
     RequirementsGradleModelTypes("configuration_cache_requirements","config_cache:requirements:gradle_model_types"),
+    RequirementsCustomCollectionTypes("configuration_cache_requirements", "config_cache:requirements:custom_collection_types"),
 }
 
 

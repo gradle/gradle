@@ -63,9 +63,10 @@ fun IsolateContext.logUnsupportedBaseType(
 fun IsolateContext.logPropertyProblem(
     action: String,
     documentationSection: DocumentationSection? = null,
-    message: StructuredMessageBuilder
+    logDeprecation: Boolean = false,
+    message: StructuredMessageBuilder,
 ) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), documentationSection = documentationSection))
+    logPropertyProblem(action, PropertyProblem(trace, build(message), documentationSection = documentationSection, deprecation = logDeprecation))
 }
 
 

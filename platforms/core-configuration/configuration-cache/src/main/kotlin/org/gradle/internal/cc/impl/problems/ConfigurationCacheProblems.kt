@@ -53,9 +53,11 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.DeprecationMessageBuilder
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
@@ -268,13 +270,17 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        onProblem(problem, ProblemSeverity.Deferred)
+        onProblem(problem, if (problem.deprecation) ProblemSeverity.DeprecatedBehavior else ProblemSeverity.Deferred)
     }
 
     private
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         if (summarizer.onProblem(problem, severity)) {
-            problemsService.onProblem(problem, severity)
+            if (severity == ProblemSeverity.DeprecatedBehavior) {
+                nagAboutDeprecatedBehavior(problem)
+            } else {
+                problemsService.onProblem(problem, severity)
+            }
             report.onProblem(problem)
         }
 
@@ -282,6 +288,17 @@ class ConfigurationCacheProblems(
             val exception = problem.exception ?: error("Interrupting problems must have an associated exception. Got: $problem")
             throw exception
         }
+    }
+
+    private
+    fun nagAboutDeprecatedBehavior(problem: PropertyProblem) {
+        val deprecation = DeprecationLogger
+            .deprecateBehaviour(problem.message.render().capitalized())
+            .willBecomeAnErrorInGradle10()
+        val documented = problem.documentationSection
+            ?.let { deprecation.withUserManual(it.page, it.anchor) }
+            ?: deprecation.undocumented()
+        documented.nagUser()
     }
 
     private

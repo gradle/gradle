@@ -129,6 +129,24 @@ Sometimes, a disallowed type is indirectly referenced through another type.
 For example, a task may reference an allowed type that, in turn, references a disallowed type.
 The hierarchical view in the HTML problem report can help you trace such issues and identify the offending reference.
 
+[[config_cache:requirements:custom_collection_types]]
+== Custom Collection and Map Types
+
+The Configuration Cache serializes a fixed set of standard collection, set, map, and queue implementations directly:
+
+* `List`: `ArrayList`, `LinkedList`, `CopyOnWriteArrayList`
+* `Set`: `HashSet`, `LinkedHashSet`, `TreeSet`, `CopyOnWriteArraySet`
+* `Map`: `HashMap`, `LinkedHashMap`, `TreeMap`, `ConcurrentHashMap`, `Properties`, `Hashtable`
+* `Queue`: `ArrayDeque`
+
+These types, and Guava's immutable collections (`ImmutableList`, `ImmutableSet`, `ImmutableMap`), are stored and restored faithfully.
+
+A _custom_ subtype of one of the standard types above (for example, `class MyList extends ArrayList<String> {}`) cannot be restored as its own type: it is restored as the nearest standard type instead.
+Any state or behavior added by the custom type — extra fields, overridden methods — is lost.
+
+Referencing a custom collection or map subtype from task fields or task actions is deprecated and will become an error in Gradle 10.
+Use a standard collection type (for example, a plain `ArrayList` or `LinkedHashMap`) and hold any extra data in separate, explicitly serialized fields.
+
 [[config_cache:requirements:use_project_during_execution]]
 == Using the `Project` Object at Execution Time
 

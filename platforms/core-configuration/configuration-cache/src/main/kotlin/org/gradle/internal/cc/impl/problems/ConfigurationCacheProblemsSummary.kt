@@ -80,6 +80,13 @@ class ConfigurationCacheProblemsSummary(
     var suppressedProblemCount: Int = 0
 
     /**
+     * Problems reporting a deprecated behavior. Surfaced as deprecation warnings, excluded from the console
+     * problem count so they neither fail the build nor cause the cache entry to be discarded.
+     */
+    private
+    var deprecatedBehaviorProblemCount: Int = 0
+
+    /**
      * Problems reported under graceful degradation.
      */
     private
@@ -123,7 +130,7 @@ class ConfigurationCacheProblemsSummary(
             totalProblemCount = totalProblemCount,
             reportUniqueProblemCount = problemCauses.size,
             deferredProblemCount = deferredProblemCount,
-            consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount,
+            consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount - deprecatedBehaviorProblemCount,
             overflownProblemCount = overflownProblemCount,
             consoleProblemCauses = problemCausesForConsole(),
             originalProblemExceptions = ImmutableList.copyOf(originalProblemExceptions),
@@ -142,8 +149,9 @@ class ConfigurationCacheProblemsSummary(
     private
     fun problemCausesForConsole(): ImmutableMap<ProblemCause, ProblemSeverity> =
         ImmutableMap.copyOf(
-            // silently-suppressed problems (i.e. under graceful degradation) are not relevant to the console
-            problemCauses.filterValues { it != ProblemSeverity.SuppressedSilently }
+            // silently-suppressed problems (graceful degradation) and deprecated-behavior problems are not relevant to the console
+            problemCauses
+                .filterValues { it != ProblemSeverity.SuppressedSilently && it != ProblemSeverity.DeprecatedBehavior }
                 .mapKeys { (k, _) -> k.asShallow() }
         )
 
@@ -157,6 +165,7 @@ class ConfigurationCacheProblemsSummary(
             totalProblemCount += 1
             when (severity) {
                 ProblemSeverity.Deferred -> deferredProblemCount += 1
+                ProblemSeverity.DeprecatedBehavior -> deprecatedBehaviorProblemCount += 1
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
                 ProblemSeverity.SuppressedSilently -> suppressedSilentlyProblemCount += 1
                 ProblemSeverity.Interrupting -> {}
@@ -398,8 +407,9 @@ fun consoleComparatorForSeverity(): Comparator<ProblemSeverity> =
     Comparator.comparingInt { it: ProblemSeverity ->
         when (it) {
             ProblemSeverity.Deferred -> 1
-            ProblemSeverity.Suppressed -> 2
-            ProblemSeverity.Interrupting -> 3
+            ProblemSeverity.DeprecatedBehavior -> 2
+            ProblemSeverity.Suppressed -> 3
+            ProblemSeverity.Interrupting -> 4
             ProblemSeverity.SuppressedSilently -> Int.MAX_VALUE
         }
     }
