@@ -37,6 +37,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collections;
 
 import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 
@@ -95,6 +96,12 @@ public class BuildStateFactory {
             publicBuildPath,
             true
         );
+        // The tasks of the buildSrc build are scheduled by BuildSrcBuildListenerFactory.Listener; clear the
+        // default-tasks request so that the default tasks do not also run. This must happen before the buildSrc
+        // build's settings are evaluated: after that, StartParameter mutation is reported as an IP violation.
+        // It must also happen on the BuildDefinition's own StartParameter: fromStartParameterForBuild() copies
+        // the parameter passed to it via newBuild(), which resets the task requests to the default-tasks request.
+        buildDefinition.getStartParameter().setTaskRequests(Collections.emptyList());
         return buildDefinition;
     }
 

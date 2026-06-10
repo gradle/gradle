@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import spock.lang.Issue
+
 class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "mutating StartParameter method from root project build script is a violation"() {
@@ -136,6 +138,27 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
 
         where:
         mode << ALL_MODES
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37944")
+    def "build with buildSrc does not report StartParameter violations"() {
+        // Gradle internally configures the buildSrc build's task requests; this must not be
+        // reported as a StartParameter mutation (it used to mutate them after settings evaluation).
+        file("buildSrc/build.gradle") << """
+            plugins { id 'java' }
+        """
+        file("buildSrc/src/main/java/Dummy.java") << "public class Dummy {}"
+        buildFile("""
+            tasks.register("ok")
+        """)
+
+        when:
+        isolatedProjectsRun("ok")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+        }
     }
 
 }

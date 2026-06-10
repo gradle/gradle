@@ -31,7 +31,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collections;
 
 import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
@@ -67,9 +66,11 @@ public class BuildSrcBuildListenerFactory {
 
         @Override
         public void projectsLoaded(Gradle gradle) {
+            // The task requests of the buildSrc build are cleared when its StartParameter is created,
+            // in BuildStateFactory.buildSrcStartParameterFor(), so that only the tasks scheduled by
+            // this selector run and not the default tasks. Mutating them here would be too late:
+            // after settings evaluation, StartParameter mutation is reported as an IP violation.
             GradleInternal gradleInternal = (GradleInternal) gradle;
-            // Run only those tasks scheduled by this selector and not the default tasks
-            gradleInternal.getStartParameter().setTaskRequests(Collections.emptyList());
             rootProjectState = gradleInternal.getOwner().getRootProject();
             rootProjectState.applyToMutableState(rootProjectConfiguration::execute);
         }
