@@ -118,37 +118,11 @@ class CrossProjectConfigurationReportingGradle(
         }
     }
 
-    override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {
-        val result = CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess)
-        delegate.addProjectEvaluationListener(result)
-        return result
-    }
-
-    override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
-        delegate.removeProjectEvaluationListener(CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess))
-    }
-
     override fun projectsEvaluated(closure: Closure<*>) =
         delegate.projectsEvaluated(closure.withCrossProjectModelAccessChecks())
 
     override fun projectsEvaluated(action: Action<in Gradle>) =
         delegate.projectsEvaluated(action.withCrossProjectModelGradleAccessCheck())
-
-    override fun beforeProject(closure: Closure<*>) {
-        delegate.beforeProject(closure.withCrossProjectModelAccessChecks())
-    }
-
-    override fun beforeProject(action: Action<in Project>) {
-        delegate.beforeProject(action.withCrossProjectModelAccessCheck())
-    }
-
-    override fun afterProject(closure: Closure<*>) {
-        delegate.afterProject(closure.withCrossProjectModelAccessChecks())
-    }
-
-    override fun afterProject(action: Action<in Project>) {
-        delegate.afterProject(action.withCrossProjectModelAccessCheck())
-    }
 
     override fun getDefaultProjectState(): InternalProjectState =
         delegate.defaultProjectState
@@ -236,6 +210,37 @@ class CrossProjectConfigurationReportingGradle(
         override fun hashCode(): Int = Objects.hash(delegate, referrerProject)
 
         override fun toString(): String = "CrossProjectModelAccessProjectEvaluationListener($delegate)"
+
+    }
+
+    override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {
+        onMutableStateAccess("addProjectEvaluationListener")
+        return delegate.addProjectEvaluationListener(listener)
+    }
+
+    override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
+        onMutableStateAccess("removeProjectEvaluationListener")
+        delegate.removeProjectEvaluationListener(listener)
+    }
+
+    override fun beforeProject(closure: Closure<*>) {
+        onMutableStateAccess("beforeProject")
+        delegate.beforeProject(closure)
+    }
+
+    override fun beforeProject(action: Action<in Project>) {
+        onMutableStateAccess("beforeProject")
+        delegate.beforeProject(action)
+    }
+
+    override fun afterProject(closure: Closure<*>) {
+        onMutableStateAccess("afterProject")
+        delegate.afterProject(closure)
+    }
+
+    override fun afterProject(action: Action<in Project>) {
+        onMutableStateAccess("afterProject")
+        delegate.afterProject(action)
     }
 
     override fun getPlugins(): PluginContainer {
