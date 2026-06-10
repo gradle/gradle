@@ -17,6 +17,7 @@
 package org.gradle.xdcl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 /**
  * Smoke coverage for the {@code .gradle.xdcl} scripting language: proves the distribution under
@@ -28,10 +29,11 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
     def "routes settings.gradle.xdcl and binds include"() {
         given:
         file("app").createDir()
-        file("settings.gradle.xdcl") << '''settings {
-            |  include ["app"]
-            |}
-            |'''.stripMargin()
+        xdclSettingsFile '''
+            settings {
+              include ["app"]
+            }
+        '''
 
         when:
         succeeds("projects")
@@ -43,21 +45,30 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
     def "an evaluation error fails the build as a located problem"() {
         given:
         enableProblemsApiCheck()
-        file("settings.gradle.xdcl") << '''settings {
-            |  includ ["app"]
-            |}
-            |'''.stripMargin()
+        xdclSettingsFile '''
+            settings {
+              includ ["app"]
+            }
+        '''
 
         when:
         fails("help")
 
         then:
-        failure.assertHasDescription("${testDirectory.file('settings.gradle.xdcl')}:2:3")
+        failure.assertHasDescription("${file('settings.gradle.xdcl')}:3:15")
 
         and:
         verifyAll(receivedProblem) {
             definition.id.fqid == 'scripts:xdcl:xdcl-evaluation-error'
             contextualLabel.contains("includ")
         }
+    }
+
+    TestFile xdclSettingsFile(String script) {
+        file('settings.gradle.xdcl') << script
+    }
+
+    TestFile xdclFile(String path, String script) {
+        file(path) << script
     }
 }
