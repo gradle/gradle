@@ -124,7 +124,7 @@ final class GradleModeTestingExtensions {
     static class ToBeFixedForCC extends BaseExtension<ToBeFixedForConfigurationCache> {
         ToBeFixedForCC() {
             super(
-                new GradleModeTestingPolicy.ToBeFixedForCC(),
+                GradleModeTestingPolicy.TO_BE_FIXED_FOR_CC,
                 new ToBeFixedSpecInterceptor(GradleModeTesting.CONFIGURATION_CACHE.displayName())
             )
         }
@@ -133,7 +133,7 @@ final class GradleModeTestingExtensions {
     static class ToBeFixedForIP extends BaseExtension<ToBeFixedForIsolatedProjects> {
         ToBeFixedForIP() {
             super(
-                new GradleModeTestingPolicy.ToBeFixedForIP(),
+                GradleModeTestingPolicy.TO_BE_FIXED_FOR_IP,
                 new ToBeFixedSpecInterceptor(GradleModeTesting.ISOLATED_PROJECTS.displayName())
             )
         }
@@ -141,13 +141,13 @@ final class GradleModeTestingExtensions {
 
     static class UnsupportedWithCC extends BaseExtension<UnsupportedWithConfigurationCache> {
         UnsupportedWithCC() {
-            super(new GradleModeTestingPolicy.UnsupportedWithCC(), null)
+            super(GradleModeTestingPolicy.UNSUPPORTED_WITH_CC, null)
         }
     }
 
     static class UnsupportedWithIP extends BaseExtension<UnsupportedWithIsolatedProjects> {
         UnsupportedWithIP() {
-            super(new GradleModeTestingPolicy.UnsupportedWithIP(), null)
+            super(GradleModeTestingPolicy.UNSUPPORTED_WITH_IP, null)
         }
     }
 }

@@ -35,6 +35,7 @@ import org.gradle.test.precondition.PreconditionVerifier;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TestRule;
 
 import java.io.File;
 import java.util.List;
@@ -50,16 +51,16 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 
     @Rule
-    public final GradleModeTestingRules.UnsupportedWithCC unsupportedWithConfigurationCache = new GradleModeTestingRules.UnsupportedWithCC();
+    public final TestRule unsupportedWithConfigurationCache = GradleModeTestingRules.unsupportedWithCC();
 
     @Rule
-    public final GradleModeTestingRules.ToBeFixedForCC toBeFixedForConfigurationCache = new GradleModeTestingRules.ToBeFixedForCC();
+    public final TestRule toBeFixedForConfigurationCache = GradleModeTestingRules.toBeFixedForCC();
 
     @Rule
-    public final GradleModeTestingRules.UnsupportedWithIP unsupportedWithIsolatedProjects = new GradleModeTestingRules.UnsupportedWithIP();
+    public final TestRule unsupportedWithIsolatedProjects = GradleModeTestingRules.unsupportedWithIP();
 
     @Rule
-    public final GradleModeTestingRules.ToBeFixedForIP toBeFixedForIsolatedProjects = new GradleModeTestingRules.ToBeFixedForIP();
+    public final TestRule toBeFixedForIsolatedProjects = GradleModeTestingRules.toBeFixedForIP();
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();

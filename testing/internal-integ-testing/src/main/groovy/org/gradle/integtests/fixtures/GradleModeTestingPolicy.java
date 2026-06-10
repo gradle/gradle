@@ -20,6 +20,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
+import java.util.function.Function;
 
 /**
  * Decides whether a test should run, be skipped, or expect a failure under the active
@@ -28,7 +29,7 @@ import java.lang.annotation.Annotation;
  * @param <A> the annotation type this policy decides for
  */
 @NullMarked
-public abstract class GradleModeTestingPolicy<A extends Annotation> {
+public final class GradleModeTestingPolicy<A extends Annotation> {
 
     public enum Verdict {
         RUN,
@@ -36,28 +37,73 @@ public abstract class GradleModeTestingPolicy<A extends Annotation> {
         EXPECT_FAILURE
     }
 
+    public static final GradleModeTestingPolicy<ToBeFixedForConfigurationCache> TO_BE_FIXED_FOR_CC = new GradleModeTestingPolicy<>(
+        GradleModeTesting.CONFIGURATION_CACHE,
+        ToBeFixedForConfigurationCache::bottomSpecs,
+        ToBeFixedForConfigurationCache::iterationMatchers,
+        ann -> ann.skip() == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP ? Verdict.EXPECT_FAILURE : Verdict.SKIP,
+        ann -> ann.because().isEmpty() ? ann.skip().name() : ann.because()
+    );
+
+    public static final GradleModeTestingPolicy<ToBeFixedForIsolatedProjects> TO_BE_FIXED_FOR_IP = new GradleModeTestingPolicy<>(
+        GradleModeTesting.ISOLATED_PROJECTS,
+        ToBeFixedForIsolatedProjects::bottomSpecs,
+        ToBeFixedForIsolatedProjects::iterationMatchers,
+        ann -> ann.skip() == ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP ? Verdict.EXPECT_FAILURE : Verdict.SKIP,
+        ann -> ann.because().isEmpty() ? ann.skip().getReason() : ann.because()
+    );
+
+    public static final GradleModeTestingPolicy<UnsupportedWithConfigurationCache> UNSUPPORTED_WITH_CC = new GradleModeTestingPolicy<>(
+        GradleModeTesting.CONFIGURATION_CACHE,
+        UnsupportedWithConfigurationCache::bottomSpecs,
+        UnsupportedWithConfigurationCache::iterationMatchers,
+        ann -> Verdict.SKIP,
+        UnsupportedWithConfigurationCache::because
+    );
+
+    public static final GradleModeTestingPolicy<UnsupportedWithIsolatedProjects> UNSUPPORTED_WITH_IP = new GradleModeTestingPolicy<>(
+        GradleModeTesting.ISOLATED_PROJECTS,
+        UnsupportedWithIsolatedProjects::bottomSpecs,
+        UnsupportedWithIsolatedProjects::iterationMatchers,
+        ann -> Verdict.SKIP,
+        UnsupportedWithIsolatedProjects::because
+    );
+
     private final GradleModeTesting mode;
+    private final Function<A, String[]> bottomSpecs;
+    private final Function<A, String[]> iterationMatchers;
+    private final Function<A, Verdict> verdictWhenMatched;
+    private final Function<A, String> skipReason;
 
-    protected GradleModeTestingPolicy(GradleModeTesting mode) {
+    private GradleModeTestingPolicy(
+        GradleModeTesting mode,
+        Function<A, String[]> bottomSpecs,
+        Function<A, String[]> iterationMatchers,
+        Function<A, Verdict> verdictWhenMatched,
+        Function<A, String> skipReason
+    ) {
         this.mode = mode;
+        this.bottomSpecs = bottomSpecs;
+        this.iterationMatchers = iterationMatchers;
+        this.verdictWhenMatched = verdictWhenMatched;
+        this.skipReason = skipReason;
     }
-
-    /**
-     * Bottom-spec names declared on the annotation. Empty means "all".
-     */
-    protected abstract String[] bottomSpecs(A annotation);
 
     /**
      * Iteration matchers declared on the annotation. Empty means "all iterations".
      */
-    public abstract String[] iterationMatchers(A annotation);
+    public String[] iterationMatchers(A annotation) {
+        return iterationMatchers.apply(annotation);
+    }
 
     /**
      * Reason for a {@link Verdict#SKIP} decision. Empty when no reason is associated.
      * <p>
      * Callers must only invoke this after {@link #decide} returned {@link Verdict#SKIP}.
      */
-    public abstract String skipReason(A annotation);
+    public String skipReason(A annotation) {
+        return skipReason.apply(annotation);
+    }
 
     /**
      * What verdict to produce when the gated Gradle mode is active and the annotation
@@ -65,7 +111,9 @@ public abstract class GradleModeTestingPolicy<A extends Annotation> {
      * for {@code @ToBeFixedFor*} when {@code skip} is set) or {@link Verdict#EXPECT_FAILURE}
      * (for {@code @ToBeFixedFor*} otherwise).
      */
-    protected abstract Verdict verdictWhenMatched(A annotation);
+    public Verdict verdictWhenMatched(A annotation) {
+        return verdictWhenMatched.apply(annotation);
+    }
 
     /**
      * Decide what should happen given the {@code annotation}, the {@code bottomSpecName}
@@ -73,31 +121,31 @@ public abstract class GradleModeTestingPolicy<A extends Annotation> {
      * {@code iterationName} (may be {@code null} at spec-level visits, before any
      * iteration is known).
      */
-    public final Verdict decide(A annotation, String bottomSpecName, @Nullable String iterationName) {
+    public Verdict decide(A annotation, String bottomSpecName, @Nullable String iterationName) {
         if (!mode.isActive()) {
             return Verdict.RUN;
         }
-        if (!matchesAll(bottomSpecs(annotation), iterationMatchers(annotation), bottomSpecName, iterationName)) {
+        if (!matchesAll(bottomSpecs.apply(annotation), iterationMatchers.apply(annotation), bottomSpecName, iterationName)) {
             return Verdict.RUN;
         }
-        return verdictWhenMatched(annotation);
+        return verdictWhenMatched.apply(annotation);
     }
 
     /**
      * Whether a spec-level {@link Verdict#RUN} verdict could still flip per iteration —
      * i.e. the mode is active, the bottom spec matches, and {@code iterationMatchers} is non-empty.
      */
-    public final boolean requiresPerIterationCheck(A annotation, String bottomSpecName) {
+    public boolean requiresPerIterationCheck(A annotation, String bottomSpecName) {
         return mode.isActive()
-            && matchesBottomSpec(bottomSpecs(annotation), bottomSpecName)
-            && !isAllIterations(iterationMatchers(annotation));
+            && matchesBottomSpec(bottomSpecs.apply(annotation), bottomSpecName)
+            && !isAllIterations(iterationMatchers.apply(annotation));
     }
 
     /**
      * Display name of the gated Gradle mode, e.g. {@code "Configuration Cache"}.
      * Surfaced in skip messages and expected-failure logs.
      */
-    public final String gradleMode() {
+    public String gradleMode() {
         return mode.displayName();
     }
 
@@ -155,135 +203,4 @@ public abstract class GradleModeTestingPolicy<A extends Annotation> {
         return iterationMatches(iterationMatchers, iterationName);
     }
 
-    // --- Concrete policies ---
-
-    /**
-     * Policy for {@link ToBeFixedForConfigurationCache @ToBeFixedForConfigurationCache}.
-     */
-    public static final class ToBeFixedForCC extends GradleModeTestingPolicy<ToBeFixedForConfigurationCache> {
-
-        public ToBeFixedForCC() {
-            super(GradleModeTesting.CONFIGURATION_CACHE);
-        }
-
-        @Override
-        protected String[] bottomSpecs(ToBeFixedForConfigurationCache ann) {
-            return ann.bottomSpecs();
-        }
-
-        @Override
-        public String[] iterationMatchers(ToBeFixedForConfigurationCache ann) {
-            return ann.iterationMatchers();
-        }
-
-        @Override
-        protected Verdict verdictWhenMatched(ToBeFixedForConfigurationCache ann) {
-            return ann.skip() == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP
-                ? Verdict.EXPECT_FAILURE
-                : Verdict.SKIP;
-        }
-
-        @Override
-        public String skipReason(ToBeFixedForConfigurationCache ann) {
-            if (ann.skip() == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP) {
-                throw new IllegalStateException("skipReason called for a non-skipping annotation");
-            }
-            return ann.because().isEmpty() ? ann.skip().name() : ann.because();
-        }
-    }
-
-    /**
-     * Policy for {@link ToBeFixedForIsolatedProjects @ToBeFixedForIsolatedProjects}.
-     */
-    public static final class ToBeFixedForIP extends GradleModeTestingPolicy<ToBeFixedForIsolatedProjects> {
-
-        public ToBeFixedForIP() {
-            super(GradleModeTesting.ISOLATED_PROJECTS);
-        }
-
-        @Override
-        protected String[] bottomSpecs(ToBeFixedForIsolatedProjects ann) {
-            return ann.bottomSpecs();
-        }
-
-        @Override
-        public String[] iterationMatchers(ToBeFixedForIsolatedProjects ann) {
-            return ann.iterationMatchers();
-        }
-
-        @Override
-        protected Verdict verdictWhenMatched(ToBeFixedForIsolatedProjects ann) {
-            return ann.skip() == ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP
-                ? Verdict.EXPECT_FAILURE
-                : Verdict.SKIP;
-        }
-
-        @Override
-        public String skipReason(ToBeFixedForIsolatedProjects ann) {
-            if (ann.skip() == ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP) {
-                throw new IllegalStateException("skipReason called for a non-skipping annotation");
-            }
-            return ann.because().isEmpty() ? ann.skip().getReason() : ann.because();
-        }
-    }
-
-    /**
-     * Policy for {@link UnsupportedWithConfigurationCache @UnsupportedWithConfigurationCache}.
-     */
-    public static final class UnsupportedWithCC extends GradleModeTestingPolicy<UnsupportedWithConfigurationCache> {
-
-        public UnsupportedWithCC() {
-            super(GradleModeTesting.CONFIGURATION_CACHE);
-        }
-
-        @Override
-        protected String[] bottomSpecs(UnsupportedWithConfigurationCache ann) {
-            return ann.bottomSpecs();
-        }
-
-        @Override
-        public String[] iterationMatchers(UnsupportedWithConfigurationCache ann) {
-            return ann.iterationMatchers();
-        }
-
-        @Override
-        protected Verdict verdictWhenMatched(UnsupportedWithConfigurationCache ann) {
-            return Verdict.SKIP;
-        }
-
-        @Override
-        public String skipReason(UnsupportedWithConfigurationCache ann) {
-            return ann.because();
-        }
-    }
-
-    /**
-     * Policy for {@link UnsupportedWithIsolatedProjects @UnsupportedWithIsolatedProjects}.
-     */
-    public static final class UnsupportedWithIP extends GradleModeTestingPolicy<UnsupportedWithIsolatedProjects> {
-
-        public UnsupportedWithIP() {
-            super(GradleModeTesting.ISOLATED_PROJECTS);
-        }
-
-        @Override
-        protected String[] bottomSpecs(UnsupportedWithIsolatedProjects ann) {
-            return ann.bottomSpecs();
-        }
-
-        @Override
-        public String[] iterationMatchers(UnsupportedWithIsolatedProjects ann) {
-            return ann.iterationMatchers();
-        }
-
-        @Override
-        protected Verdict verdictWhenMatched(UnsupportedWithIsolatedProjects ann) {
-            return Verdict.SKIP;
-        }
-
-        @Override
-        public String skipReason(UnsupportedWithIsolatedProjects ann) {
-            return ann.because();
-        }
-    }
 }

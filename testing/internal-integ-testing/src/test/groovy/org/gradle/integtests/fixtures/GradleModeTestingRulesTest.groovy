@@ -30,7 +30,7 @@ class GradleModeTestingRulesTest extends Specification {
 
     def "rule throws when its annotation is declared on the JUnit class"() {
         given:
-        def rule = new GradleModeTestingRules.ToBeFixedForIP()
+        def rule = GradleModeTestingRules.toBeFixedForIP()
         def description = Description.createTestDescription(ClassLevelToBeFixedIp, "someTest")
         Statement base = new Statement() {
             @Override

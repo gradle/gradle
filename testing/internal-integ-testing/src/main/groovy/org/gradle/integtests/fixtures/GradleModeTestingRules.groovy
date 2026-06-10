@@ -32,12 +32,28 @@ final class GradleModeTestingRules {
 
     private GradleModeTestingRules() {}
 
-    private static abstract class BaseRule<A extends Annotation> implements TestRule {
+    static BaseRule<ToBeFixedForConfigurationCache> toBeFixedForCC() {
+        return new BaseRule<>(GradleModeTestingPolicy.TO_BE_FIXED_FOR_CC, ToBeFixedForConfigurationCache.class)
+    }
+
+    static BaseRule<ToBeFixedForIsolatedProjects> toBeFixedForIP() {
+        return new BaseRule<>(GradleModeTestingPolicy.TO_BE_FIXED_FOR_IP, ToBeFixedForIsolatedProjects.class)
+    }
+
+    static BaseRule<UnsupportedWithConfigurationCache> unsupportedWithCC() {
+        return new BaseRule<>(GradleModeTestingPolicy.UNSUPPORTED_WITH_CC, UnsupportedWithConfigurationCache.class)
+    }
+
+    static BaseRule<UnsupportedWithIsolatedProjects> unsupportedWithIP() {
+        return new BaseRule<>(GradleModeTestingPolicy.UNSUPPORTED_WITH_IP, UnsupportedWithIsolatedProjects.class)
+    }
+
+    private static class BaseRule<A extends Annotation> implements TestRule {
 
         private final GradleModeTestingPolicy<A> policy
         private final Class<A> annotationType
 
-        protected BaseRule(GradleModeTestingPolicy<A> policy, Class<A> annotationType) {
+        BaseRule(GradleModeTestingPolicy<A> policy, Class<A> annotationType) {
             this.policy = policy
             this.annotationType = annotationType
         }
@@ -66,30 +82,6 @@ final class GradleModeTestingRules {
                     return base
             }
             throw new IllegalStateException("Unhandled verdict: $verdict")
-        }
-    }
-
-    static class ToBeFixedForCC extends BaseRule<ToBeFixedForConfigurationCache> {
-        ToBeFixedForCC() {
-            super(new GradleModeTestingPolicy.ToBeFixedForCC(), ToBeFixedForConfigurationCache.class)
-        }
-    }
-
-    static class ToBeFixedForIP extends BaseRule<ToBeFixedForIsolatedProjects> {
-        ToBeFixedForIP() {
-            super(new GradleModeTestingPolicy.ToBeFixedForIP(), ToBeFixedForIsolatedProjects.class)
-        }
-    }
-
-    static class UnsupportedWithCC extends BaseRule<UnsupportedWithConfigurationCache> {
-        UnsupportedWithCC() {
-            super(new GradleModeTestingPolicy.UnsupportedWithCC(), UnsupportedWithConfigurationCache.class)
-        }
-    }
-
-    static class UnsupportedWithIP extends BaseRule<UnsupportedWithIsolatedProjects> {
-        UnsupportedWithIP() {
-            super(new GradleModeTestingPolicy.UnsupportedWithIP(), UnsupportedWithIsolatedProjects.class)
         }
     }
 }
