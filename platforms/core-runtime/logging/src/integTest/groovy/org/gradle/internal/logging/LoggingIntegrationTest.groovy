@@ -21,14 +21,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-class LoggingIntegrationTest extends AbstractIntegrationSpec implements UndeclaredArtifactTransformInputDeprecation {
+class LoggingIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule public final Sample sampleResources = new Sample(testDirectoryProvider)
@@ -182,11 +181,6 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec implements Undeclar
         List<String> allArgs = logLevel.args + ['-I', initScript]
 
         when:
-        // The nestedBuildLog GradleBuild task triggers the undeclared-transform deprecation
-        // at lifecycle level; not visible at quiet level
-        if (level != 'quiet') {
-            expectUndeclaredArtifactTransformInputDeprecation()
-        }
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
         run "log"
         then:
@@ -209,11 +203,6 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec implements Undeclar
         List<String> allArgs = logLevel.args + ['-I', initScript] + ['-I', customLoggerInitScript]
 
         when:
-        // The nestedBuildLog GradleBuild task triggers the undeclared-transform deprecation
-        // at lifecycle level; not visible at quiet level
-        if (level != 'quiet') {
-            expectUndeclaredArtifactTransformInputDeprecation()
-        }
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
         run "log"
         then:

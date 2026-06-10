@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -24,7 +23,7 @@ import spock.lang.Issue
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
-class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest implements UndeclaredArtifactTransformInputDeprecation {
+class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
@@ -390,7 +389,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         buildB.file("buildSrc/build.gradle").touch()
 
         then:
-        expectUndeclaredArtifactTransformInputDeprecation()
         execute(buildA, ":buildC:dependencies")
     }
 
@@ -451,7 +449,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         """)
 
         then:
-        expectUndeclaredArtifactTransformInputDeprecation()
         execute(buildA, ":buildC:dependencies")
     }
 
