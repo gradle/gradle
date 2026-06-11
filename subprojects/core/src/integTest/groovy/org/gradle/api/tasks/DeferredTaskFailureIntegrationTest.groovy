@@ -182,6 +182,10 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         2        | "tasks.register('myTask', CustomTask, 'abc', null)"
     }
 
+    @Requires(
+        value = TestExecutionPreconditions.NotIsolatedProjects,
+        reason = "before/afterProject is prohibited under IP. Replace with @UnsupportedWithIsolatedProjects with iteration matcher"
+    )
     def "cannot execute #description during lazy task creation action execution"() {
         createDirs("nested")
         settingsFile << "include 'nested'"
@@ -200,6 +204,10 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
+    @Requires(
+        value = TestExecutionPreconditions.NotIsolatedProjects,
+        reason = "before/afterProject is prohibited under IP. Replace with @UnsupportedWithIsolatedProjects with iteration matcher"
+    )
     def "cannot execute #description during lazy task configuration action execution"() {
         createDirs("nested")
         settingsFile << "include 'nested'"

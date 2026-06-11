@@ -22,7 +22,6 @@ import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
-import org.gradle.api.ProjectState
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
@@ -132,14 +131,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun getLifecycle(): GradleLifecycle =
         delegate.lifecycle
 
-    override fun addListener(listener: Any) {
-        delegate.addListener(maybeWrapListener(listener))
-    }
-
-    override fun removeListener(listener: Any) {
-        delegate.removeListener(maybeWrapListener(listener))
-    }
-
     override fun getTaskGraph(): TaskExecutionGraphInternal =
         crossProjectModelAccess.taskGraphForProject(referrerProject, delegate.taskGraph)
 
@@ -155,13 +146,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun resetState() {
         // Should not be called
         throw UnsupportedOperationException()
-    }
-
-    private
-    fun maybeWrapListener(listener: Any): Any = when (listener) {
-        is ProjectEvaluationListener -> CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess)
-        // all the supported listener types other than ProjectEvaluationListener are already reported as configuration cache problems in non-buildSrc builds
-        else -> listener
     }
 
     private
@@ -188,29 +172,15 @@ class CrossProjectConfigurationReportingGradle(
         }
     }
 
-    private
-    class CrossProjectModelAccessProjectEvaluationListener(
-        private val delegate: ProjectEvaluationListener,
-        private val referrerProject: ProjectIdentity,
-        private val crossProjectModelAccess: CrossProjectModelAccess
-    ) : ProjectEvaluationListener {
-        override fun beforeEvaluate(project: Project) {
-            delegate.beforeEvaluate(crossProjectModelAccess.access(referrerProject, project as ProjectInternal))
-        }
 
-        override fun afterEvaluate(project: Project, state: ProjectState) {
-            delegate.afterEvaluate(crossProjectModelAccess.access(referrerProject, project as ProjectInternal), state)
-        }
+    override fun addListener(listener: Any) {
+        onMutableStateAccess("addListener")
+        delegate.addListener(listener)
+    }
 
-        override fun equals(other: Any?): Boolean =
-            javaClass == (other as? CrossProjectModelAccessProjectEvaluationListener)?.javaClass &&
-                other.delegate == delegate &&
-                other.referrerProject == referrerProject
-
-        override fun hashCode(): Int = Objects.hash(delegate, referrerProject)
-
-        override fun toString(): String = "CrossProjectModelAccessProjectEvaluationListener($delegate)"
-
+    override fun removeListener(listener: Any) {
+        onMutableStateAccess("removeListener")
+        delegate.removeListener(listener)
     }
 
     override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {

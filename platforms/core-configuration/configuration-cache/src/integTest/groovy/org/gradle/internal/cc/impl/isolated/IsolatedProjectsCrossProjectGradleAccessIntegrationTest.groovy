@@ -93,14 +93,25 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         }
 
         where:
-        invocation            | problemAccess
-        "getPlugins()"        | "getPlugins"
-        "apply([:])"          | "apply"
-        "apply({})"           | "apply"
-        "apply({} as Action)" | "apply"
-        "getPluginManager()"  | "getPluginManager"
+        invocation                                                        | problemAccess
+        "getPlugins()"                                                    | "getPlugins"
+        "apply([:])"                                                      | "apply"
+        "apply({})"                                                       | "apply"
+        "apply({} as Action)"                                             | "apply"
+        "getPluginManager()"                                              | "getPluginManager"
+
+        "beforeProject({})"                                               | "beforeProject"
+        "beforeProject({} as Action)"                                     | "beforeProject"
+        "afterProject({})"                                                | "afterProject"
+        "afterProject({} as Action)"                                      | "afterProject"
+        "addProjectEvaluationListener(${projectEvaluationListener()})"    | "addProjectEvaluationListener"
+        "removeProjectEvaluationListener(${projectEvaluationListener()})" | "removeProjectEvaluationListener"
 
         combined:
         mode << ALL_MODES
+    }
+
+    private static String projectEvaluationListener() {
+        """new org.gradle.api.ProjectEvaluationListener() { void beforeEvaluate(org.gradle.api.Project p) {}; void afterEvaluate(org.gradle.api.Project p, org.gradle.api.ProjectState s) {} }"""
     }
 }
