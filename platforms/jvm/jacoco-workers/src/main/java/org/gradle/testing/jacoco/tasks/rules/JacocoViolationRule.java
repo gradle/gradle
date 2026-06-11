@@ -42,6 +42,8 @@ public interface JacocoViolationRule {
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getEnabled();
 
+    void setEnabled(boolean enabled);
+
     @Internal
     @Deprecated
     default Property<Boolean> getIsEnabled() {
@@ -59,6 +61,13 @@ public interface JacocoViolationRule {
     Property<String> getElement();
 
     /**
+     * Sets element for the rule.
+     *
+     * @param element Element
+     */
+    void setElement(String element);
+
+    /**
      * List of elements that should be included in check. Names can use wildcards (* and ?).
      * If left empty, all elements will be included. Defaults to [*].
      */
@@ -67,12 +76,26 @@ public interface JacocoViolationRule {
     ListProperty<String> getIncludes();
 
     /**
+     * Sets list of elements that should be included in check.
+     *
+     * @param includes Inclusions
+     */
+    void setIncludes(List<String> includes);
+
+    /**
      * List of elements that should be excluded from check. Names can use wildcards (* and ?).
      * If left empty, no elements will be excluded. Defaults to an empty list.
      */
     @Input
     @ReplacesEagerProperty
     ListProperty<String> getExcludes();
+
+    /**
+     * Sets list of elements that should be excluded from check.
+     *
+     * @param excludes Exclusions
+     */
+    void setExcludes(List<String> excludes);
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.

@@ -41,6 +41,13 @@ public interface JacocoViolationRulesContainer {
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getFailOnViolation();
 
+    /**
+     * Indicates whether build should fail in case of rule violation.
+     *
+     * @param ignore Only render violation but do not fail build
+     */
+    void setFailOnViolation(boolean ignore);
+
     @Internal
     @Deprecated
     default Property<Boolean> getIsFailOnViolation() {
