@@ -19,6 +19,9 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
+import spock.lang.Issue
+
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
 
@@ -81,5 +84,56 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         and:
         // 3 distinct sites, 3 distinct lines.
         ['Site A', 'Site B', 'Site C'].collect { lineOf(it) }.findAll { it != null }.unique().size() == 3
+    }
+
+    def "same-named Groovy build files in different projects each resolve to their own file"() {
+        given:
+        settingsFile "rootProject.name = 'root'\ninclude 'a', 'b'"
+        // Each project loops the same deprecation from the same line; combined they pass the cap, so both go
+        // through the bounded, deduplicated capture. The build files share a name, so the per-project location
+        // must survive: the cache key must distinguish same-named scripts (it is keyed on the path-unique class name).
+        def flood = '(1..60).each { org.gradle.internal.deprecation.DeprecationLogger.deprecate("Shared").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser() }'
+        file('a/build.gradle') << flood
+        file('b/build.gradle') << flood
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds 'help'
+
+        then:
+        def stacks = operations.records
+            .collectMany { it.progress ?: [] }
+            .findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) && it.details['deprecation'].summary.contains('Shared') }
+            .collect { normaliseFileSeparators(it.details['deprecation'].stackTrace as String) }
+        stacks.size() == 120
+
+        and:
+        // Each project's deprecations resolve to its own build file; a conflating cache would collapse them to one.
+        stacks.count { it.contains('a/build.gradle') } == 60
+        stacks.count { it.contains('b/build.gradle') } == 60
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11952")
+    def "Kotlin DSL deprecations past the cap resolve to the build script"() {
+        given:
+        // Kotlin stack frames carry only the simple file name (gradle/gradle#11952), so distinguishing
+        // same-named scripts across projects is not possible (that is the Groovy case above). Here we just
+        // verify the location resolves to the script (build.gradle.kts:line) past the cap.
+        settingsFile "rootProject.name = 'root'"
+        file('build.gradle.kts') << '(1..120).forEach { org.gradle.internal.deprecation.DeprecationLogger.deprecate("Looped " + it).willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser() }'
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds 'help'
+
+        then:
+        def stacks = operations.records
+            .collectMany { it.progress ?: [] }
+            .findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) && it.details['deprecation'].summary.contains('Looped') }
+            .collect { it.details['deprecation'].stackTrace as String }
+        stacks.size() == 120
+
+        and:
+        stacks.every { it =~ /build\.gradle\.kts:\d+/ }
     }
 }

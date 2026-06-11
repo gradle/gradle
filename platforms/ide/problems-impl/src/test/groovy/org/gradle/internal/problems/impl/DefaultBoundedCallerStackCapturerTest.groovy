@@ -113,6 +113,33 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
         script*.fileName.contains('build.gradle')
     }
 
+    def "nested scripts resolve to the innermost script"() {
+        given:
+        // foo.gradle is applied from build.gradle and fires the problem; the location is the innermost script.
+        def inner = frame('foo_gradle', 'run', 10, ste('foo_gradle', 'run', 'foo.gradle', 10))
+        def outer = frame('build_gradle', 'run', 3, ste('build_gradle', 'run', 'build.gradle', 3))
+        def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
+
+        when:
+        def reduced = capturer.cachedReducedStack([inner, outer, boundary].stream())
+
+        then:
+        reduced[0].fileName == 'foo.gradle'         // anchored on the innermost script
+        reduced*.fileName.contains('build.gradle')  // the outer script is kept below the anchor
+        capturer.cachedSiteCount() == 1
+    }
+
+    def "a stack with no user frame yields no capture"() {
+        given:
+        def allInternal = [
+            frame('org.gradle.internal.deprecation.DeprecationLogger', 'nag', 1, ste('org.gradle.internal.deprecation.DeprecationLogger', 'nag', 'DeprecationLogger.java', 50)),
+            frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
+        ]
+
+        expect:
+        capturer.cachedReducedStack(allInternal.stream()) == null
+    }
+
     private StackFrame frame(String className, String methodName, int bci, StackTraceElement element) {
         Stub(StackFrame) {
             getClassName() >> className
