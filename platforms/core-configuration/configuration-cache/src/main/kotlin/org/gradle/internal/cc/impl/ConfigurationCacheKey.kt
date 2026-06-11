@@ -61,21 +61,27 @@ class ConfigurationCacheKey(
 
         buildActionRequirements.appendKeyTo(this)
 
-        var trackingTargetDirectory = false
-        if (buildActionRequirements.isCreatesModel) {
+        val hasRelativeTaskNames = sequenceOf(startParameter.requestedTaskNames, startParameter.excludedTaskNames).flatten()
+            .any { !it.startsWith(':') }
+        if (buildActionRequirements.isCreatesModel || (buildActionRequirements.isRunsTasks && hasRelativeTaskNames)) {
+            // (1)
             // Tooling model queries target a specific project directory
             // (via `ProjectConnection.forProjectDirectory(...)`), and different
             // subprojects of the same root build can produce different models.
             // Include the project directory in the key so that consecutive model
             // queries against different subprojects do not collide.
+            // (2)
+            // Because unqualified task names are resolved relative to the selected
+            // sub-project according to either `projectDirectory` or `currentDirectory`,
+            // the relative directory information must be part of the key.
             appendTargetProjectDirectory()
-            trackingTargetDirectory = true
         }
 
         // TODO:bamboo review with Adam
 //        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
         if (buildActionRequirements.isRunsTasks) {
-            appendRequestedTasks(trackingTargetDirectory)
+            putAll(startParameter.requestedTaskNames)
+            putAll(startParameter.excludedTaskNames)
         }
 
         putBoolean(startParameter.isOffline)
@@ -102,24 +108,6 @@ class ConfigurationCacheKey(
                 }
             }
         )
-    }
-
-    private
-    fun Hasher.appendRequestedTasks(appendedTargetProjectDirectory: Boolean) {
-        val requestedTaskNames = startParameter.requestedTaskNames
-        putAll(requestedTaskNames)
-
-        val excludedTaskNames = startParameter.excludedTaskNames
-        putAll(excludedTaskNames)
-
-        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
-        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName && !appendedTargetProjectDirectory) {
-            // Because unqualified task names are resolved relative to the selected
-            // sub-project according to either `projectDirectory` or `currentDirectory`,
-            // the relative directory information must be part of the key.
-            appendTargetProjectDirectory()
-        }
     }
 
     private
