@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project
 
 import org.apache.tools.ant.Project
-import org.apache.tools.ant.taskdefs.ConditionTask
 import org.gradle.api.GradleException
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
@@ -65,37 +64,9 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
-    void executesNestedClosures() {
-        String propertyValue = null
-        Object task = null
-        builder.execute {
-            property(name: 'message', value: 'a message')
-            task = condition(property: 'prop', value: 'a message') {
-                isset(property: 'message')
-            }
-            task = task.proxy
-            propertyValue = project.properties.prop
-        }
-
-        assertThat(propertyValue, equalTo('a message'))
-        assertThat(task.class.name, equalTo(ConditionTask.class.name))
-    }
-
-    @Test
-    void canAccessAntBuilderFromWithinClosures() {
-        builder.execute {
-            assertThat(ant, sameInstance(delegate))
-
-            ant.property(name: 'prop', value: 'a message')
-            assertThat(project.properties.prop, equalTo('a message'))
-        }
-    }
-
-    @Test
     void attachesLogger() {
         builder.execute {
-            property(name: 'message', value: 'a message')
-            echo('${message}')
+            it.createNode('echo', [message: 'a message'])
         }
 
         assertThat(outputEventListener.toString(), equalTo('[[WARN] [org.gradle.api.internal.project.ant.AntLoggingAdapter] [ant:echo] a message]'))
@@ -106,8 +77,8 @@ class DefaultIsolatedAntBuilderTest {
         def classpath = ClasspathUtil.getClasspathForClass(TestAntTask)
 
         builder.withClasspath([classpath]).execute {
-            it.taskdef(name: 'loggingTask', classname: TestAntTask.name)
-            it.loggingTask()
+            it.taskdef('loggingTask', TestAntTask.name)
+            it.createNode('loggingTask', Collections.emptyMap())
         }
 
         assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] a jcl log message]'))
@@ -164,14 +135,13 @@ class DefaultIsolatedAntBuilderTest {
     void setsContextClassLoader() {
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         ClassLoader contextLoader = null
-        Object antProject = null
 
         builder.execute {
-            antProject = delegate.antProject
             contextLoader = Thread.currentThread().contextClassLoader
         }
 
-        assertThat(contextLoader.loadClass(Project.name), sameInstance(antProject.class))
+        assertThat(contextLoader, not(sameInstance(originalLoader)))
+        assertThat(contextLoader.loadClass(Project.name), not(sameInstance(Project)))
         assertThat(Thread.currentThread().contextClassLoader, sameInstance(originalLoader))
     }
 
@@ -179,7 +149,7 @@ class DefaultIsolatedAntBuilderTest {
     void gradleClassesAreNotVisibleToAnt() {
         ClassLoader loader = null
         builder.execute {
-            loader = antProject.getClass().classLoader
+            loader = Thread.currentThread().contextClassLoader
         }
 
         try {

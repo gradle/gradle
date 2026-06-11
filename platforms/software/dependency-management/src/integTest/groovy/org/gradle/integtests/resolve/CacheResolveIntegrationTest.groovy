@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.hash.Hashing
@@ -71,6 +72,7 @@ task deleteCacheFiles(type: Delete) {
         succeeds('listJars')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Needs further investigation on IP incompatibility: https://github.com/gradle/gradle/issues/38006")
     void "cache entries are segregated between different repositories"() {
         given:
         def repo1 = ivyHttpRepo('ivy-repo-a')

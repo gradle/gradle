@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
@@ -39,6 +40,7 @@ import org.junit.Rule
 
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
+@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)

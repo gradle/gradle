@@ -107,48 +107,44 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         def resolve = new ResolveTestFixture(testDirectory)
 
         given:
-        createDirs("a", "b")
         file('settings.gradle') << """
             rootProject.name='test'
             include 'a', 'b'
         """
 
-        buildFile << """
+        file("a/build.gradle") << """
             $typeDefs
+            configurations {
+                compile
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+                _compileFreeDebug.extendsFrom compile
+                _compileFreeRelease.extendsFrom compile
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                doLast {
+                    assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                }
+            }
+            task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                doLast {
+                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                }
+            }
 
-            project(':a') {
-                configurations {
-                    compile
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
-                    _compileFreeDebug.extendsFrom compile
-                    _compileFreeRelease.extendsFrom compile
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
-                    }
-                }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) {
-                    doLast {
-                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo.attributes { $freeDebug }
-                    bar.attributes { $freeRelease }
-                }
-                ${fooAndBarJars()}
-            }
+            ${resolve.configureProject("_compileFreeRelease", "_compileFreeDebug")}
         """
 
-        file("a/build.gradle") << """
-            ${resolve.configureProject("_compileFreeRelease", "_compileFreeDebug")}
+        file("b/build.gradle") << """
+            $typeDefs
+            configurations {
+                foo.attributes { $freeDebug }
+                bar.attributes { $freeRelease }
+            }
+            ${fooAndBarJars()}
         """
 
         when:

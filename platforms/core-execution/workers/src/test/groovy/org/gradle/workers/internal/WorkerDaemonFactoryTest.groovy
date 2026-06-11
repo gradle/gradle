@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.operations.BuildOperationRunner
@@ -29,8 +30,9 @@ class WorkerDaemonFactoryTest extends Specification {
     def buildOperationRunner = Mock(BuildOperationRunner)
     def buildOperation = Mock(BuildOperationRef)
     def workerDaemonClientCancellationHandler = Mock(WorkerDaemonClientCancellationHandler)
+    def problems = Mock(ProblemsInternal)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationRunner, workerDaemonClientCancellationHandler)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationRunner, workerDaemonClientCancellationHandler, problems)
 
     def workingDir = new File("some-dir")
     def projectCacheDir = new File("some-cache-dir")
@@ -119,5 +121,40 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         thrown(RuntimeException)
+    }
+
+    def "problems service is bound to client and cleared after execution"() {
+        when:
+        factory.getWorker(requirement).execute(spec)
+
+        then:
+        1 * clientsManager.reserveIdleClient(options) >> client
+
+        then:
+        1 * client.bindProblemsService(problems)
+        1 * buildOperationRunner.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
+        1 * client.execute(spec) >> new DefaultWorkResult(true, null)
+
+        then:
+        1 * client.clearProblemsService()
+        1 * clientsManager.release(client)
+    }
+
+    def "problems service is cleared even if worker execution fails"() {
+        when:
+        factory.getWorker(requirement).execute(spec)
+
+        then:
+        1 * clientsManager.reserveIdleClient(options) >> client
+
+        then:
+        1 * client.bindProblemsService(problems)
+        1 * buildOperationRunner.call(_) >> { args -> args[0].call() }
+        1 * client.execute(spec) >> { throw new RuntimeException("worker execution failed") }
+
+        then:
+        thrown(RuntimeException)
+        1 * client.clearProblemsService()
+        1 * clientsManager.release(client)
     }
 }

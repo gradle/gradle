@@ -17,6 +17,8 @@ package org.gradle.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
@@ -33,12 +35,10 @@ import java.util.List;
  */
 public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildTaskScheduler.class);
-    private final ProjectConfigurer projectConfigurer;
     private final List<BuiltInCommand> builtInCommands;
     private final BuildTaskScheduler delegate;
 
-    public DefaultTasksBuildTaskScheduler(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
-        this.projectConfigurer = projectConfigurer;
+    public DefaultTasksBuildTaskScheduler(List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
         this.builtInCommands = builtInCommands;
         this.delegate = delegate;
     }
@@ -49,11 +49,10 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
 
         if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
             // Gather the default tasks from this first group project
-            List<String> defaultTasks = gradle.getDefaultProjectState().fromMutableState(project -> {
-                //so that we don't miss out default tasks
-                projectConfigurer.configure(project);
-                return project.getDefaultTasks();
-            });
+            ProjectState defaultProjectState = gradle.getDefaultProjectState();
+            // so that we don't miss out default tasks
+            defaultProjectState.ensureConfigured();
+            List<String> defaultTasks = defaultProjectState.fromMutableState(ProjectInternal::getDefaultTasks);
             if (defaultTasks.isEmpty()) {
                 defaultTasks = new ArrayList<>();
                 for (BuiltInCommand command : builtInCommands) {

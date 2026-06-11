@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
@@ -95,6 +96,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         outputContains("processing [b.jar]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can query incremental changes"() {
         createDirs("a", "b")
         settingsFile << """

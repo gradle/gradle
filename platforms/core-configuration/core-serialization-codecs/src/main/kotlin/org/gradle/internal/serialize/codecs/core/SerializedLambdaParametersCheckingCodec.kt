@@ -17,17 +17,18 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes
-import org.gradle.internal.serialize.graph.encodeBean
-import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.logUnsupported
+import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.objectweb.asm.Type
 import org.objectweb.asm.Type.getArgumentTypes
 import java.lang.invoke.SerializedLambda
+import java.lang.reflect.Field
 import kotlin.reflect.KClass
 
 
@@ -42,12 +43,58 @@ import kotlin.reflect.KClass
  */
 object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     override suspend fun ReadContext.decode(): SerializedLambda {
-        return decodeBean() as SerializedLambda
+        val capturingClass = readClass()
+        val functionalInterfaceClass = readString()
+        val functionalInterfaceMethodName = readString()
+        val functionalInterfaceMethodSignature = readString()
+        val implMethodKind = readSmallInt()
+        val implClass = readString()
+        val implMethodName = readString()
+        val implMethodSignature = readString()
+        val instantiatedMethodType = readString()
+        val capturedArgCount = readSmallInt()
+        val capturedArgs = Array<Any?>(capturedArgCount) { read() }
+        return SerializedLambda(
+            capturingClass,
+            functionalInterfaceClass,
+            functionalInterfaceMethodName,
+            functionalInterfaceMethodSignature,
+            implMethodKind,
+            implClass,
+            implMethodName,
+            implMethodSignature,
+            instantiatedMethodType,
+            capturedArgs
+        )
     }
 
     override suspend fun WriteContext.encode(value: SerializedLambda) {
         checkLambdaCapturedArgTypesAreSupported(value)
-        encodeBean(value)
+        val lambdaTrace = PropertyTrace.SerializedLambda(
+            implClass = value.implClass.replace('/', '.'),
+            implMethodName = value.implMethodName,
+            functionalInterfaceClass = value.functionalInterfaceClass.replace('/', '.'),
+            instantiatedReturnType = Type.getReturnType(value.instantiatedMethodType).className,
+            trace = trace
+        )
+        withPropertyTrace(lambdaTrace) {
+            writeClass(capturingClassField.get(value) as Class<*>)
+            writeString(value.functionalInterfaceClass)
+            writeString(value.functionalInterfaceMethodName)
+            writeString(value.functionalInterfaceMethodSignature)
+            writeSmallInt(value.implMethodKind)
+            writeString(value.implClass)
+            writeString(value.implMethodName)
+            writeString(value.implMethodSignature)
+            writeString(value.instantiatedMethodType)
+            withPropertyTrace(lambdaTrace.toCapturedArguments()) {
+                val capturedArgCount = value.capturedArgCount
+                writeSmallInt(capturedArgCount)
+                for (i in 0 until capturedArgCount) {
+                    write(value.getCapturedArg(i))
+                }
+            }
+        }
     }
 
     private
@@ -81,4 +128,37 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     private
     val unsupportedTypes: Map<Type, KClass<*>> =
         unsupportedFieldDeclaredTypes.associateBy { Type.getType(it.java) }
+
+    private
+    val capturingClassField: Field by lazy {
+        SerializedLambda::class.java.getDeclaredField("capturingClass").apply { isAccessible = true }
+    }
+
+    /**
+     * Javac names the synthetic method backing a lambda body `lambda$<enclosingMethod>$<n>` —
+     * e.g. a lambda defined in `Foo.bar()` becomes `lambda$bar$0` (verified for Java 8 through 25).
+     * This regex extracts the enclosing method name back from that synthetic name.
+     */
+    private
+    val syntheticLambdaMethodName = Regex("""lambda\$(.+)\$\d+""")
+
+    private
+    fun PropertyTrace.SerializedLambda.toCapturedArguments(): PropertyTrace.CapturedLambdaArguments {
+        val synthetic = syntheticLambdaMethodName.matchEntire(implMethodName)
+        return if (synthetic != null) {
+            PropertyTrace.CapturedLambdaArguments(
+                subkind = PropertyTrace.CapturedLambdaArguments.Subkind.LambdaBody,
+                owningClass = implClass,
+                owningMethod = synthetic.groupValues[1],
+                trace = this
+            )
+        } else {
+            PropertyTrace.CapturedLambdaArguments(
+                subkind = PropertyTrace.CapturedLambdaArguments.Subkind.BoundReceiver,
+                owningClass = implClass,
+                owningMethod = implMethodName,
+                trace = this
+            )
+        }
+    }
 }

@@ -13,15 +13,17 @@
     --navbar-background-color: #2a3f4d;
     --navbar-text-color: #ffffff;
     --subnav-background-color: #2d333b;
+    --subnav-link-color: #8ab4f8;
 
     /* Selected states - using a slightly muted orange for dark mode */
     --selected-background-color: #c97a16;
     --selected-text-color: #121212;
     --selected-link-color: #8ab4f8;
 
-    /* Table row stripes */
+    /* Table row stripes and headers */
     --even-row-color: #181818;
     --odd-row-color: #242424;
+    --table-header-color: #2d333b;
 
     /* Link colors - brighter blues/golds for visibility on dark backgrounds */
     --link-color: #8ab4f8;
@@ -31,20 +33,28 @@
     --snippet-background-color: #2d2d2d;
     --snippet-text-color: var(--block-text-color);
     --snippet-highlight-color: #5e462b;
+    --code-background-color: #2d2d2d;
+    --mark-background-color: #3a3a1a;
+    --detail-block-color: #1e1e1e;
+
+    /* Table of contents sidebar */
+    --toc-background-color: #1a1a1a;
+    --toc-hover-color: #2a2a2a;
 
     /* Borders and Tables */
     --border-color: #333333;
     --table-border-color: #444444;
+
+    /* Buttons - invert brightness adjustments for dark mode */
+    --button-border-color: #555555;
+    --button-active-filter: brightness(120%);
+    --button-focus-filter: brightness(110%);
 
     /* Search input adjustments */
     --search-input-background-color: #252526;
     --search-input-text-color: #ffffff;
     --search-input-placeholder-color: #888888;
     --search-tag-highlight-color: #4d4d00;
-
-    /* Clipboard and UI elements */
-    --copy-icon-brightness: 150%;
-    --copy-button-background-color-active: rgba(255, 255, 255, 0.1);
 
     /* Invalid tags - darker red background */
     --invalid-tag-background-color: #4d0000;

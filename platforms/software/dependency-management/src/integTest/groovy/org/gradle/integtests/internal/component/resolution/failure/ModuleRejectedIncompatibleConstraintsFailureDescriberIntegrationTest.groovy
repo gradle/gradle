@@ -321,13 +321,13 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
                     inputs.files.files.forEach { println(it) }
                 }
             }
-
-            subprojects {
-                apply plugin: "java-library"
-            }
         """
 
         groovyFile("a/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 api(project(":a:a1"))
                 api(project(":a:a2"))
@@ -335,6 +335,10 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         """)
 
         groovyFile("b/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 api(project(":b:b1"))
                 api(project(":b:b2"))
@@ -342,17 +346,22 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         """)
 
         groovyFile("c/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 api(project(":c:c1"))
                 api(project(":c:c2"))
             }
         """)
 
-        file("a/a1/build.gradle").touch()
-        file("a/a2/build.gradle").touch()
-        file("b/b1/build.gradle").touch()
-        file("b/b2/build.gradle").touch()
-        file("c/c1/build.gradle").touch()
-        file("c/c2/build.gradle").touch()
+        ["a/a1", "a/a2", "b/b1", "b/b2", "c/c1", "c/c2"].each {
+            file("$it/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
+        }
     }
 }

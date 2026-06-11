@@ -77,7 +77,7 @@ class KotlinSourceParser {
     private
     fun Disposable.parseKotlinFiles(sourceRoots: List<File>, compilationClasspath: List<File>): List<KtFile> {
         configureKotlinCompilerIoForWindowsSupport()
-        val configuration = CompilerConfiguration().apply {
+        val configuration = newCompilerConfiguration().apply {
 
             put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
             put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
@@ -96,6 +96,23 @@ class KotlinSourceParser {
     private
     fun configureKotlinCompilerIoForWindowsSupport() =
         org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
+
+    // Prefer `CompilerConfiguration.Companion.create()` (Kotlin 2.4+ exposes it as an extension in `org.jetbrains.kotlin.cli`)
+    // and fall back to the no-arg constructor on older versions, where the constructor is still part of the public API.
+    // TODO: remove this once the wrapper is based on Kotlin 2.4.0-RC or later, just call the create() method directly
+    private val newCompilerConfiguration: () -> CompilerConfiguration = run {
+        val viaCreate = runCatching {
+            val createKt = Class.forName("org.jetbrains.kotlin.cli.CreateKt")
+            val companion = CompilerConfiguration::class.java.getField("Companion").get(null)
+            val createMethod = createKt.getMethod("create", companion.javaClass)
+            return@runCatching { createMethod.invoke(null, companion) as CompilerConfiguration }
+        }.getOrNull()
+        viaCreate ?: run {
+            val ctor = CompilerConfiguration::class.java.getDeclaredConstructor()
+            val factory: () -> CompilerConfiguration = { ctor.newInstance() }
+            factory
+        }
+    }
 }
 
 

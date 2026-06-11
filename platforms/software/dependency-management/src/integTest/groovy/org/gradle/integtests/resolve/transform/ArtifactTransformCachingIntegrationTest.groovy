@@ -21,6 +21,7 @@ import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -44,6 +45,7 @@ import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
+@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
 
@@ -1634,15 +1636,8 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        if (GradleContextualExecuter.configCache) {
-            // Under CC, the broken artifact download happens during configuration cache entry writing,
-            // so the error is reported as a cache serialization failure
-            failure.assertHasDescription("Configuration cache state could not be cached: field `artifacts` of task `:app:resolve` of type `Resolve`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
-            failure.assertHasCause("Could not download test-1.3.jar (test:test:1.3)")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
-            failure.assertResolutionFailure(":app:compile")
-        }
+        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
+        failure.assertResolutionFailure(":app:compile")
         failure.hasErrorOutput("Received status code 500 from server: broken")
 
         where:

@@ -979,10 +979,10 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
   - Configuration ':lib:compile' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
           - Provides buildType 'n/a' but the consumer didn't ask for it
-  - Configuration ':lib:compile' variant debug declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' variant 'debug' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
           - Provides buildType 'debug' but the consumer didn't ask for it
-  - Configuration ':lib:compile' variant release declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' variant 'release' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
           - Provides buildType 'release' but the consumer didn't ask for it""")
     }
@@ -1116,9 +1116,9 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         failure.assertHasCause("""No variants of project ':lib' match the consumer attributes:
   - Configuration ':lib:compile' declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
-  - Configuration ':lib:compile' variant debug declares attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' variant 'debug' declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
-  - Configuration ':lib:compile' variant release declares attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' variant 'release' declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:

@@ -16,7 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -45,7 +45,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
             return;
         }
 
-        ProjectInternal rootProject = gradle.getOwner().getRootProject().getMutableModel();
+        ProjectState rootProject = gradle.getOwner().getRootProject();
         if (buildModelParameters.isParallelProjectConfiguration()) {
             projectConfigurer.configureHierarchyInParallel(rootProject);
         } else {

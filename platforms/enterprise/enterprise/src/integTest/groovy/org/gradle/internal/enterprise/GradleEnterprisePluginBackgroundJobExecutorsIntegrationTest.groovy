@@ -251,7 +251,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         outputContains("backgroundJobExecutor.isInBackground = false")
     }
 
-    static String getExecutors() {
-        return """(gradle.extensions.serviceRef.get()._requiredServices.backgroundJobExecutors)"""
+    String getExecutors() {
+        return """(${plugin.serviceOfGradleEnterprisePluginServiceRef()}.get()._requiredServices.backgroundJobExecutors)"""
     }
 }

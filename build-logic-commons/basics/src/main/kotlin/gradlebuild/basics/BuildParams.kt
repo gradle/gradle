@@ -35,6 +35,7 @@ import gradlebuild.basics.BuildParams.DEBUG_DAEMON
 import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
 import gradlebuild.basics.BuildParams.DEFAULT_RFN_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.DEFAULT_RFR_PERFORMANCE_BASELINES
+import gradlebuild.basics.BuildParams.DEVELOCITY_SERVER_URL_ENV
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
@@ -49,7 +50,6 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_URL
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_USERNAME
-import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
@@ -122,10 +122,10 @@ object BuildParams {
     const val PERFORMANCE_CHANNEL_ENV = "PERFORMANCE_CHANNEL"
     const val PERFORMANCE_DB_URL = "org.gradle.performance.db.url"
     const val PERFORMANCE_DB_USERNAME = "org.gradle.performance.db.username"
-    const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val PERFORMANCE_STAGE_ENV = "PERFORMANCE_STAGE"
     const val RERUN_ALL_TESTS = "rerunAllTests"
+    const val DEVELOCITY_SERVER_URL_ENV = "DEVELOCITY_SERVER_URL"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
@@ -297,10 +297,6 @@ val Project.flakyTestStrategy: FlakyTestStrategy
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
     get() = gradleProperty(BUILD_IGNORE_INCOMING_BUILD_RECEIPT).presence()
 
-val Project.performanceDependencyBuildIds: Provider<String>
-    get() = gradleProperty(PERFORMANCE_DEPENDENCY_BUILD_IDS).orElse("")
-
-
 val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
 
@@ -385,6 +381,10 @@ val Project.testSplitExcludeTestClasses: String
 
 val Project.testSplitOnlyTestGradleVersion: String
     get() = project.stringPropertyOrEmpty(TEST_SPLIT_ONLY_TEST_GRADLE_VERSION)
+
+
+val Project.develocityServerUrl: Provider<String>
+    get() = environmentVariable(DEVELOCITY_SERVER_URL_ENV)
 
 
 val Project.predictiveTestSelectionEnabled: Provider<Boolean>

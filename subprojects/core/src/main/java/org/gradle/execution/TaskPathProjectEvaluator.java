@@ -18,8 +18,6 @@ package org.gradle.execution;
 
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
@@ -66,11 +64,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     @Override
-    public void configure(ProjectInternal project) {
-        project.getOwner().ensureConfigured();
-    }
-
-    @Override
     public void configureFully(ProjectState projectState) {
         projectState.ensureConfigured();
         if (cancellationToken.isCancellationRequested()) {
@@ -80,35 +73,35 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     @Override
-    public void configureHierarchy(ProjectInternal project) {
-        configure(project);
-        for (Project sub : project.getSubprojects()) {
-            configure((ProjectInternal) sub);
+    public void configureHierarchy(ProjectState projectState) {
+        for (ProjectState project : projectState.getAllProjects()) {
+            project.ensureConfigured();
         }
     }
 
     @Override
-    public void configureHierarchyInParallel(ProjectInternal project) {
-        assert project.getParent() == null : "Parallel configuration must start from root!";
+    public void configureHierarchyInParallel(ProjectState projectState) {
+        if (!projectState.isRootProject()) {
+            throw new IllegalArgumentException("Parallel configuration must start from root!");
+        }
 
         if (maxWorkerCount() < 2) {
             // We need at least two workers to configure in parallel
-            configureHierarchy(project);
+            configureHierarchy(projectState);
             return;
         }
 
-        final ProjectState root = project.getOwner();
-        if (!root.hasChildren()) {
+        if (!projectState.hasChildren()) {
             // No hierarchy to configure
-            root.ensureConfigured();
+            projectState.ensureConfigured();
             return;
         }
 
         String strategy = schedulingStrategy();
         if (strategy.equals("jit")) {
-            scheduleProjectsJustInTime(root);
+            scheduleProjectsJustInTime(projectState);
         } else {
-            scheduleProjectsAheadOfTime(project);
+            scheduleProjectsAheadOfTime(projectState);
         }
     }
 
@@ -116,9 +109,9 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         return internalOptions.getValue(PARALLEL_CONFIGURATION_SCHEDULER);
     }
 
-    private void scheduleProjectsAheadOfTime(ProjectInternal root) {
+    private void scheduleProjectsAheadOfTime(ProjectState root) {
         runAllWithAccessToProjectState(queue -> {
-            for (Project p : root.getAllprojects()) {
+            for (ProjectState p : root.getOwner().getProjects().getAllProjects()) {
                 queue.add(configureOperationFor(p));
             }
         });
@@ -183,16 +176,16 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         }
     }
 
-    private RunnableBuildOperation configureOperationFor(Project p) {
+    private static RunnableBuildOperation configureOperationFor(ProjectState projectState) {
         return new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                configure((ProjectInternal) p);
+                projectState.ensureConfigured();
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Configure project " + p.getName());
+                return BuildOperationDescriptor.displayName("Configure project " + projectState.getName());
             }
         };
     }

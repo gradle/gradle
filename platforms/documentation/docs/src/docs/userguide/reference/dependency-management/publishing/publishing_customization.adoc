@@ -103,7 +103,7 @@ In general, there are two options:
 - Create a publication only with artifacts
 - Add artifacts to a publication based on a component with metadata (not recommended, instead <<sec:adding-variants-to-existing-components,adjust a component>> or use a <<#sec:publishing-custom-components,adhoc component publication>> which will both also produce metadata fitting your artifacts)
 
-To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle <<glossary.adoc#sub:terminology_configuration,configuration>> of your choice.
+To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle configuration of your choice.
 The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `conf` configuration:
 
 ====

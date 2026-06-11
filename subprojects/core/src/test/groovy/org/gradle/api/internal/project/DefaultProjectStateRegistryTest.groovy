@@ -182,6 +182,40 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         instant.thread2 > instant.thread1
     }
 
+    def "lifecycle transitions are mutually exclusive with project mutable state access"() {
+        given:
+        def build = build()
+        def rootProject = project(":")
+        def rootState = registry.stateFor(projectId(":"))
+        createProject(rootState, rootProject)
+        def projectLock = workerLeaseService.getProjectLock(build.getIdentityPath(), rootProject.getIdentityPath())
+
+        rootProject.evaluateUnchecked() >> {
+            assert workerLeaseService.getCurrentProjectLocks().contains(projectLock)
+            assert workerLeaseService.getCurrentProjectLocks().size() == 1
+            null
+        }
+
+        when:
+        async {
+            workerThread {
+                rootState.applyToMutableState {
+                    instant.start
+                    thread.block()
+                    instant.thread1
+                }
+            }
+            workerThread {
+                thread.blockUntil.start
+                rootState.ensureSelfConfigured()
+                instant.thread2
+            }
+        }
+
+        then:
+        instant.thread2 > instant.thread1
+    }
+
     def "a given thread can only access the state of one project at a time"() {
         given:
         def build = build("p1", "p2")

@@ -116,7 +116,7 @@ project.logger.debug("debug logging");
         def err = result.error
         def commandLineOutput = removeStartupWarnings(commandLineResult.output)
         normaliseOutput(out) == normaliseOutput(commandLineOutput)
-        err == commandLineResult.error
+        err == removeJvmWarnings(commandLineResult.error)
 
         and:
         def errLogging
@@ -147,6 +147,10 @@ project.logger.debug("debug logging");
             output = output.substring(output.indexOf('\n') + 1)
         }
         output
+    }
+
+    private static removeJvmWarnings(String output) {
+        return output.replaceAll(/(?m)^WARNING:.*\r?\n/, '')
     }
 
     private ExecutionResult runUsingCommandLine() {

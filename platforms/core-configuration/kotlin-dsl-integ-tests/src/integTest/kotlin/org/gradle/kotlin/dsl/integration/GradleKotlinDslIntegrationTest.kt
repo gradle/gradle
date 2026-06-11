@@ -176,7 +176,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             class DeepThoughtPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
                     project.run {
-                        task("compute") {
+                        tasks.register("compute") {
                             doLast {
                                 DeepThought().compute { answer ->
                                     println("*" + answer + "*")

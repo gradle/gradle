@@ -20,7 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          persist-credentials: false
           fetch-depth: 0
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -39,31 +38,37 @@ jobs:
           java-version: 17
       - name: Update AGP versions
         run: ./gradlew updateAgpVersions
-      - name: Create Pull Request
-        id: create-pull-request
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ env.BOT_GRADLE_GITHUB_TOKEN }}
-          signoff: true
-          sign-commits: true
-          commit-message: "Update AGP versions"
-          add-paths: |
-            gradle/dependency-management/agp-versions.properties
-            platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc
-          title: "Update tested AGP versions"
-          body: "Update tested AGP versions"
-          delete-branch: true
-          branch: "tide/update-agp"
-          team-reviewers: bt-tide
-          labels: |
-            a:chore
-            in:performance-test
-            in:smoke-test
-            re:android
-      - name: Trigger test and merge
-        if: ${{ steps.create-pull-request.outputs.pull-request-number }}
-        uses: peter-evans/create-or-update-comment@v5
-        with:
-          token: ${{ env.BOT_GRADLE_GITHUB_TOKEN }}
-          issue-number: ${{ steps.create-pull-request.outputs.pull-request-number }}
-          body: '@bot-gradle test and merge'
+      - name: Commit, push, and open PR
+        env:
+          GITHUB_TOKEN: ${{ env.BOT_GRADLE_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes."
+            exit 0
+          fi
+
+          # Don't touch the branch if a PR is already open: someone may
+          # be working on it manually. Close the existing PR first.
+          if [ -n "$(gh pr list --state open --head tide/update-agp --json number --jq '.[].number')" ]; then
+            echo "An open PR for tide/update-agp already exists; skipping."
+            exit 0
+          fi
+
+          git config user.name  "bot-gradle"
+          git config user.email "bot-gradle@gradle.com"
+          git checkout -B tide/update-agp
+          git add -A
+          git commit -s -m "Update AGP versions"
+
+          # Replace any stale branch left behind by a previously-closed PR.
+          git push origin --delete tide/update-agp 2>/dev/null || true
+          git push origin tide/update-agp
+
+          gh pr create \
+            --base master \
+            --title "Update tested AGP versions" \
+            --body "Update tested AGP versions" \
+            --reviewer "gradle/bt-tide" \
+            --label "a:chore,in:performance-test,in:smoke-test,re:android"
+          gh pr comment tide/update-agp --body '@bot-gradle test and merge'

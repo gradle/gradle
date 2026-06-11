@@ -18,8 +18,10 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.ToBeImplemented
 
+@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest implements ArtifactTransformTestFixture, ProjectDirectoryCreator {
 
     def setup() {

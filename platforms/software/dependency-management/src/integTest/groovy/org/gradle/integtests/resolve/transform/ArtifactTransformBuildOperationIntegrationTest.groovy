@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -46,6 +47,7 @@ import java.util.function.Predicate
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
+@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     @EqualsAndHashCode
@@ -661,9 +663,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
 
         taskTypeWithMultipleOutputFileProperties()
-        setupBuildWithColorVariants()
 
         buildFile << """
+            ${colorVariants()}
             allprojects {
                 task producer(type: OutputFilesTask) {
                     out1.convention(layout.buildDirectory.file("\${project.name}.out1.jar"))
@@ -682,6 +684,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     files.from(view)
                 }
             }
+            ${showFileCollectionTask()}
         """
 
         buildFile << """

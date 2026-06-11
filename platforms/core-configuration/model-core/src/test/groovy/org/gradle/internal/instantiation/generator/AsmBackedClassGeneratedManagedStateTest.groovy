@@ -159,7 +159,6 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         expect:
         bean.prop.toString() == "property 'prop'"
-        bean.prop.empty
         bean.prop.from("a", "b")
         bean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
     }
@@ -178,10 +177,11 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     def canConstructInstanceOfInterfaceWithNamedDomainObjectCollectionGetter() {
         def bean = create(InterfaceContainerPropertyBean)
 
-        expect:
-        bean.prop.toString() == "NamedBean container"
-        bean.prop.empty
+        when:
         bean.prop.register("one")
+
+        then:
+        bean.prop.toString() == "NamedBean container"
         bean.prop.names == ["one"] as Set
     }
 
@@ -190,7 +190,6 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         expect:
         bean.prop.toString() == "NamedBean collection"
-        bean.prop.empty
         bean.prop.add(Stub(NamedBean))
         bean.prop.size() == 1
     }
@@ -203,7 +202,6 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         beanWithDisplayName.toString() == "<display-name>"
 
-        bean.filesBean.prop.empty
         bean.filesBean.prop.from("a", "b")
         bean.filesBean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
 

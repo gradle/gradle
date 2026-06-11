@@ -866,3 +866,40 @@ This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined 
 include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
 include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====
+
+[[plugin-dependency-conflicts]]
+== Avoiding plugin dependency conflicts
+
+When developing a plugin that relies on the API of another plugin (e.g., the Android Gradle Plugin or the Kotlin Plugin), declaring that API dependency using the standard `implementation` configuration can cause serious classpath conflicts for the end user.
+
+When applying your plugin to a project, the dependency you used may spill into the build script classpath of the project's subprojects, potentially overriding a newer version of the dependency required there.
+
+To prevent buildscript classpath leakage and maintain version flexibility for your users, use the `compileOnly` configuration for any dependency that represents an underlying plugin's API.
+
+[source,text]
+----
+dependencies {
+    // BAD: Can spill onto subproject classpaths, potentially overriding their version
+    // implementation("com.android.tools.build:gradle-api:8.0.0")
+
+    // GOOD: Only available during compilation; user's project dictates the runtime version
+    compileOnly("com.android.tools.build:gradle-api:8.0.0")
+}
+----
+
+If you need to *enforce* a specific version (e.g., for internal <<implementing_gradle_plugins_convention.adoc#implementing_convention_plugins,Convention Plugins>>), the `implementation` approach may be acceptable, but this should be done with clear awareness of the potential user conflicts.
+
+Because `compileOnly` dependencies are not available at runtime, plugin authors should:
+
+1. **Document** that the plugin requires the other plugin to be explicitly applied by the user.
+2. **Implement the plugin defensively** to avoid throwing `NoClassDefFoundError` when the dependency is missing.
+Use link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin-java.lang.String-org.gradle.api.Action-[`PluginManager.withPlugin(String, Action)`] to guard code that references classes from the `compileOnly` dependency:
++
+[source,kotlin]
+----
+project.pluginManager.withPlugin("com.android.application") {
+    // Safe to reference Android plugin classes here
+}
+----
+
+WARNING: Using the `compileOnly` configuration will cause the standard plugin testing method, `GradleRunner.withPluginClasspath()`, to fail. See <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Automatic classpath injection with the Plugin Development Plugin>> to learn more.

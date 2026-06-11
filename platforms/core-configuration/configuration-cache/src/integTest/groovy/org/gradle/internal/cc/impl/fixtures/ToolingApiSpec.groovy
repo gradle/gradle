@@ -341,7 +341,9 @@ trait ToolingApiSpec {
                     .setStandardError(new TeeOutputStream(error, System.err))
                     .run()
                 throw new IllegalStateException("Expected build action to fail but it did not.")
-            } catch (BuildActionFailureException t) {
+            } catch (BuildActionFailureException | BuildException t) {
+                // BuildActionFailureException: the action threw, e.g. a fail-fast IP violation during a model query.
+                // BuildException: the build failed around the action, e.g. deferred IP problems reported at the end in diagnostics mode.
                 failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
             }
             failure

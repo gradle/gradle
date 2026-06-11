@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.internal.ant;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.internal.jvm.Jvm;
@@ -35,13 +34,14 @@ public abstract class AntWorkAction<T extends AntWorkParameters> implements Work
 
         getIsolatedAntBuilder()
             .withClasspath(getParameters().getAntLibraryClasspath())
-            .execute(getAntAction());
+            .execute(this::execute);
     }
 
     protected abstract String getActionName();
 
-    protected abstract Action<AntBuilderDelegate> getAntAction();
+    protected abstract void execute(AntBuilderDelegate antBuilder);
 
     @Inject
     protected abstract IsolatedAntBuilder getIsolatedAntBuilder();
+
 }

@@ -245,13 +245,13 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         ex.message == null
     }
 
-    void "constant initial value for #type is #expected"() {
+    void "field #modifiers initial value for #type is #expected"() {
         given:
         def api = toApi 'com.acme.A': """
             package com.acme;
 
             public abstract class A {
-                public static $type CONSTANT = $value;
+                public $modifiers $type CONSTANT = $value;
             }
         """
 
@@ -263,12 +263,17 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         extractedValue == expected
 
         where:
-        type      | value          | expected
-        'String'  | '"foo"'        | null
-        'String'  | 'null'         | null
-        'int'     | 123            | 0
-        'Class'   | 'String.class' | null
-        'boolean' | 'true'         | false
+        type      | modifiers      | value          | expected
+        'String'  | 'static'       | '"foo"'        | null
+        'String'  | 'static'       | 'null'         | null
+        'int'     | 'static'       | 123            | 0
+        'Class'   | 'static'       | 'String.class' | null
+        'boolean' | 'static'       | 'true'         | false
+        'String'  | 'static final' | '"foo"'        | "foo"
+        'String'  | 'static final' | 'null'         | null
+        'int'     | 'static final' | 123            | 123
+        'Class'   | 'static final' | 'String.class' | null
+        'boolean' | 'static final' | 'true'         | true
     }
 
     void "target binary compatibility is maintained for Java version #target"() {

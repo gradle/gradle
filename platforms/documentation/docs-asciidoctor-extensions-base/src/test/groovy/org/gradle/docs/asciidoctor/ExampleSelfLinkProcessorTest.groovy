@@ -16,6 +16,7 @@
 package org.gradle.docs.asciidoctor
 
 import org.asciidoctor.Asciidoctor
+import org.asciidoctor.Options
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -41,7 +42,7 @@ some text
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains("""<div id="ex-example-title-with-code" class="exampleblock">
@@ -63,7 +64,7 @@ some text
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains("""<div class="exampleblock">

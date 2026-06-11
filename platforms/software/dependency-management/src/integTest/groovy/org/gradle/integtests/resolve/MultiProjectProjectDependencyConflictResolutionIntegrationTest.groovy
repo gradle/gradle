@@ -52,9 +52,7 @@ class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends Abs
 
     @Override
     void moduleDefinition(String name, String definition) {
-        buildFile << "project(':$name') {"
-        buildFile << definition
-        buildFile << "}"
+        file("$name/build.gradle") << definition
     }
 
     @Override
@@ -62,11 +60,4 @@ class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends Abs
         false
     }
 
-    @Override
-    String parentMethodLookupDeprecationFor(String methodName) {
-        // Modules are configured via project(':...') {} blocks in the root build script,
-        // so projectId()/moduleId() (declared by checkHelper() in the same build script)
-        // are looked up by walking up from :ProjectA to root project 'root'.
-        formatParentMethodLookupDeprecation(methodName, ':ProjectA', "root project 'root'")
-    }
 }

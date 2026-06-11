@@ -37,13 +37,15 @@ val resolveManifestClasspath = configurations.resolvable("resolveManifestClasspa
 }
 
 tasks.jar.configure {
-    val classpath = resolveManifestClasspath.flatMap { configuration ->
-        configuration.elements.map { classpathDependency ->
-            classpathDependency.joinToString(" ") { it.asFile.name }
-        }
+    val runtimeFiles = configurations.runtimeClasspath.flatMap { it.elements }
+    val manifestFiles = resolveManifestClasspath.flatMap { it.elements }
+    // By default, the full runtime classpath is written to the manifest. If a curated
+    // manifestClasspath is provided, it is used instead. Preferring the automatic runtime
+    // classpath is less error-prone than a hand-written list that must be manually kept in sync.
+    val classpath = manifestFiles.zip(runtimeFiles) { manifest, runtime ->
+        manifest.ifEmpty { runtime }.joinToString(" ") { it.asFile.name }
     }
     dependsOn(classpath)
-    manifest.attributes("Class-Path-Source" to "manifestClasspath")
     manifest.attributes("Class-Path" to classpath)
     if (app.mainClassName.isPresent) {
         manifest.attributes("Main-Class" to app.mainClassName)

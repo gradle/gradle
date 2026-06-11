@@ -75,7 +75,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
     private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme = new IsolationScheme<>(
-        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class, BuildServiceParameters.None.INSTANCE);
+        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
     private final BuildServiceProvider.Listener listener;
@@ -218,7 +218,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
         Supplier<BuildServiceSpec<?>> buildServiceSpecSupplier = () -> {
             DefaultServiceSpec<?> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
             spec.getMaxParallelUsages().set(maxUsages);
@@ -260,16 +260,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return locks.build();
     }
 
-    @Nullable
     private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
-        Class<P> parameterType = isolationScheme.parameterTypeForOrNull(implementationType);
-        return parameterType != null
-            ? paramsInstantiator.newInstance(parameterType)
-            : null;
+        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
+        return isolationScheme.instantiateParameters(parameterType, paramsInstantiator::newInstance);
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
         return withRegistrations(registrations -> {
             DefaultServiceRegistration<?, ?> registration = Cast.uncheckedCast(registrations.findByName(name));
             if (registration != null) {
@@ -295,7 +292,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
-        @Nullable P parameters,
+        P parameters,
         @Nullable Integer maxParallelUsages,
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
