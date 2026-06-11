@@ -144,10 +144,12 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "service has no max parallel usages by default"() {
-        expect:
+        given:
         registerService("service", ServiceImpl) {
             assert !it.maxParallelUsages.present
         }
+
+        expect:
         def registration = registry.registrations.getByName("service")
         !registration.maxParallelUsages.present
     }
