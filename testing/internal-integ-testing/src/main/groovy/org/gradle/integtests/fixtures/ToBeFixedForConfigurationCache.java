@@ -48,6 +48,14 @@ public @interface ToBeFixedForConfigurationCache {
      */
     Skip skip() default Skip.DO_NOT_SKIP;
 
+    String because() default "";
+
+    /**
+     * Link to the issue tracking the incompatibility addressed by this annotation.
+     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
+     */
+    String issue() default "";
+
     /**
      * Declare to which bottom spec this annotation should be applied.
      * Defaults to an empty array, meaning this annotation applies to all bottom specs.
@@ -59,14 +67,6 @@ public @interface ToBeFixedForConfigurationCache {
      * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
      */
     String[] iterationMatchers() default {};
-
-    String because() default "";
-
-    /**
-     * Link to the issue tracking the incompatibility addressed by this annotation.
-     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
-     */
-    String issue() default "";
 
     /**
      * Reason for skipping a test with configuration cache.
