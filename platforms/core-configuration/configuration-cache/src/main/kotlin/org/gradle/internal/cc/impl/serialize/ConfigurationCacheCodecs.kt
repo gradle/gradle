@@ -109,6 +109,7 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
+import org.gradle.internal.reflection.access.ModuleOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
@@ -204,7 +205,8 @@ class DefaultConfigurationCacheCodecs(
     moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: ProblemsInternal
+    problems: ProblemsInternal,
+    private val moduleOpener: ModuleOpener
 ) : ConfigurationCacheCodecs {
 
     private
@@ -223,7 +225,7 @@ class DefaultConfigurationCacheCodecs(
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
 
-            baseTypes()
+            baseTypes(moduleOpener)
 
             bind(HASHCODE_SERIALIZER)
 
@@ -337,7 +339,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, moduleOpener))
         bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
@@ -353,7 +355,7 @@ class DefaultConfigurationCacheCodecs(
 
     private
     val internalTypesBindings = Bindings.of {
-        baseTypes()
+        baseTypes(moduleOpener)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)

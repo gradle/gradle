@@ -53,4 +53,9 @@ public class Agent {
         }
         return false;
     }
+
+    @SuppressWarnings("unused")  // Used reflectively.
+    public static @Nullable Instrumentation getInstrumentation() {
+        return instrumentation;
+    }
 }

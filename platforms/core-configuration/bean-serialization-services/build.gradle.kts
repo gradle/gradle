@@ -23,6 +23,7 @@ description = "Configuration Cache services supporting bean serialization"
 
 dependencies {
     api(projects.graphSerialization)
+    api(projects.reflectionServices)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.persistentCache)

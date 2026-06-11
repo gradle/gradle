@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.beans.services
 
+import org.gradle.internal.reflection.access.ModuleOpener
 import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.service.scopes.Scope
@@ -24,10 +25,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
-class DefaultBeanStateWriterLookup : BeanStateWriterLookup {
+class DefaultBeanStateWriterLookup(
+    private val moduleOpener: ModuleOpener
+) : BeanStateWriterLookup {
     private
     val beanPropertyWriters = ConcurrentHashMap<Class<*>, BeanStateWriter>()
 
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
-        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
+        beanPropertyWriters.computeIfAbsent(beanType) { type -> BeanPropertyWriter(type, moduleOpener) }
 }
