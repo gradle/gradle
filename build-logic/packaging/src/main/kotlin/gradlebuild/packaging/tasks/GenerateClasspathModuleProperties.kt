@@ -293,8 +293,21 @@ internal fun ComponentIdentifier.distributionModuleNameOrNull(): String? =
         else -> null
     }
 
+/**
+ * Whether this project component is first-party to the Gradle build — i.e. ships in the
+ * distribution as a `gradle-` module — as opposed to a component substituted from a third-party
+ * included build, which keeps its external module identity.
+ *
+ * The `:build-logic` arm exists for `kotlin-dsl-shared-runtime`: it is a project of the
+ * build-logic included build that the main build consumes by coordinates
+ * (`org.gradle:kotlin-dsl-shared-runtime`) and packages as `gradle-kotlin-dsl-shared-runtime`.
+ * Treating it as external would rename its module-properties file away from its jar and make the
+ * license gate demand POM license metadata it cannot have. The other build-logic builds
+ * (`:build-logic-commons`, `:build-logic-settings`) only contribute build plugins and never
+ * appear in the distribution's resolved graphs, so the exact match is sufficient.
+ */
 internal val ProjectComponentIdentifier.isGradleBuildProject: Boolean
-    get() = build.buildPath == ":" || build.buildPath.startsWith(":build-logic")
+    get() = build.buildPath == ":" || build.buildPath == ":build-logic"
 
 
 fun generateProperties(
