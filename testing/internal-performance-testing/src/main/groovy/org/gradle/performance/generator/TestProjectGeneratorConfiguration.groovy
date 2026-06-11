@@ -56,6 +56,15 @@ class TestProjectGeneratorConfiguration {
     int testForkEvery
     boolean useTestNG
     Map<String, String> fileToChangeByScenario
+
+    /**
+     * When true, each subproject's build script declares a uniquely-named
+     * configuration. This makes every project's accessor schema distinct,
+     * so {@code GenerateProjectAccessors} fires once per subproject instead
+     * of being deduped down to a handful of schemas by {@code IdentityCacheStep}.
+     * Used by the {@code accessorHeavyJavaMultiProjectKotlinDsl} testbed.
+     */
+    boolean accessorHeavy
 }
 
 @Builder(prefix = "with",
@@ -151,6 +160,7 @@ class TestProjectGeneratorConfigurationBuilder {
         config.testForkEvery = 1000
         config.useTestNG = this.useTestNG
         config.fileToChangeByScenario = this.fileToChangeByScenario
+        config.accessorHeavy = this.accessorHeavy
         return config
     }
 }

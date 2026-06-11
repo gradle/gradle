@@ -71,6 +71,7 @@ abstract class FileContentGenerator {
         return """
         plugins {
             ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
+            ${config.accessorHeavy ? pluginBlockApply("accessor-variant") : ""}
         }
 
         group = "org.gradle.test.performance"

@@ -94,6 +94,17 @@ enum JavaTestProjectGenerator {
         .withDsl(KOTLIN)
         .create()),
 
+    LARGE_ACCESSOR_HEAVY_JAVA_MULTI_PROJECT_KOTLIN_DSL(new TestProjectGeneratorConfigurationBuilder("largeAccessorHeavyJavaMultiProjectKotlinDsl", "largeJavaMultiProject")
+        .withSourceFiles(100)
+        .withSubProjects(500)
+        .withDaemonMemory('1536m')
+        .withCompilerMemory('256m')
+        .assembleChangeFile()
+        .testChangeFile(450, 2250, 45000)
+        .withDsl(KOTLIN)
+        .withAccessorHeavy(true)
+        .create()),
+
     LARGE_EMPTY_MULTI_PROJECT_DECLARATIVE_DSL(new TestProjectGeneratorConfigurationBuilder("largeEmptyMultiProjectDeclarativeDsl", "largeEmptyMultiProject")
         .withSubProjects(500)
         .withDsl(DECLARATIVE)

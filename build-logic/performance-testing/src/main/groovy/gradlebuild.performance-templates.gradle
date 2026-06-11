@@ -56,9 +56,24 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
 
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
- 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
- 'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
+[
+    'smallJavaMultiProject',
+    'smallJavaMultiProjectManyExternalDependencies',
+    'smallJavaMultiProjectNoBuildSrc',
+    'mediumJavaCompositeBuild',
+    'mediumJavaMultiProject',
+    'mediumJavaMultiProjectWithTestNG',
+    'mediumJavaPredefinedCompositeBuild',
+    'mediumMonolithicJavaProject',
+    'largeAccessorHeavyJavaMultiProjectKotlinDsl',
+    'largeGroovyMultiProject',
+    'largeJavaMultiProject',
+    'largeJavaMultiProjectHierarchy',
+    'largeJavaMultiProjectKotlinDsl',
+    'largeJavaMultiProjectNoBuildSrc',
+    'largeMonolithicGroovyProject',
+    'largeMonolithicJavaProject'
+].each { template ->
     performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {
         outputs.dir new File(buildDir, template)
         outputs.cacheIf { true }

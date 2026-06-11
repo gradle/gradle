@@ -103,10 +103,32 @@ class TestProjectGenerator extends AbstractTestProjectGenerator {
 
     /**
      * This is just to ensure we test the overhead of having a buildSrc project, e.g. snapshotting the Gradle API.
+     *
+     * For the accessor-heavy testbed, the buildSrc is upgraded to a Kotlin DSL project
+     * containing a precompiled script plugin that registers a uniquely-named extension
+     * based on {@code project.name} at apply time. Each subproject's TypedProjectSchema
+     * then differs, so {@code GenerateProjectAccessors} fires once per subproject
+     * instead of being deduped by {@code IdentityCacheStep}.
      */
     private addDummyBuildSrcProject(File projectDir) {
-        file projectDir, "buildSrc/src/main/${config.language.name}/Thing.${config.language.name}", "public class Thing {}"
-        file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
+        if (config.accessorHeavy) {
+            file projectDir, "buildSrc/settings.gradle.kts", ""
+            file projectDir, "buildSrc/build.gradle.kts", """
+                plugins { `kotlin-dsl` }
+                repositories { mavenCentral() }
+            """.stripIndent()
+            file projectDir, "buildSrc/src/main/kotlin/AccessorVariantExtension.kt", """
+                abstract class AccessorVariantExtension {
+                    var value: String = ""
+                }
+            """.stripIndent()
+            file projectDir, "buildSrc/src/main/kotlin/accessor-variant.gradle.kts", """
+                extensions.create<AccessorVariantExtension>("ext_\${project.name.replace('-', '_')}")
+            """.stripIndent()
+        } else {
+            file projectDir, "buildSrc/src/main/${config.language.name}/Thing.${config.language.name}", "public class Thing {}"
+            file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
+        }
     }
 
     static void main(String[] args) {
