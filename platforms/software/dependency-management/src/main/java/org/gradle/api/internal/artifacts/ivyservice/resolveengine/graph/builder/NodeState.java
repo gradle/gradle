@@ -172,6 +172,14 @@ public class NodeState implements DependencyGraphNode {
         this.dependenciesMayChange = component.getModule().isVirtualPlatform();
     }
 
+    NodeState maybeResolveReplacement() {
+        NodeState node = this;
+        while (node.getReplacement() != null) {
+            node = node.getReplacement();
+        }
+        return node;
+    }
+
     // the enqueue and dequeue methods are used for performance reasons
     // in order to avoid tracking the set of enqueued nodes
     boolean enqueue() {
@@ -1234,23 +1242,29 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Called on losing nodes after conflict resolution to retarget their existing incoming
-     * edges to the winning node. This method must be called after any relevant state is updated
-     * so that retargeting chooses the correct new target node.
+     * Retarget all incoming edges of this node. Called in two contexts:
+     * <ul>
+     *     <li>On losing nodes of capability conflicts, to move their edges to the winner.</li>
+     *     <li>On nodes (and their replacements) of components losing version or module conflicts
+     *         in {@link ModuleResolveState#changeSelection}, to retarget edges to the new selection.</li>
+     * </ul>
+     * In the second case, the node may be a capability conflict replacement that has its own
+     * legitimate incoming edges from other modules. Those edges re-attach to this node after
+     * retargeting, so the node may still have incoming edges when this method returns.
      */
     void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
             singleEdge.retarget();
-        } else if (incomingEdges.size() > 1){
+            // The edge should have retargeted away from this node, unless it targets
+            // this node's own module and re-attached (replacement during version change).
+            assert !singleEdge.getTargetNodes().contains(this) || singleEdge.getSelector().getTargetModule() == getComponent().getModule();
+        } else if (incomingEdges.size() > 1) {
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
                 edge.retarget();
+                assert !edge.getTargetNodes().contains(this) || edge.getSelector().getTargetModule() == getComponent().getModule();
             }
         }
-
-        // This method is called on a node that fails conflict resolution. If, after retargeting,
-        // we still have incoming edges, something went wrong.
-        assert incomingEdges.isEmpty();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {

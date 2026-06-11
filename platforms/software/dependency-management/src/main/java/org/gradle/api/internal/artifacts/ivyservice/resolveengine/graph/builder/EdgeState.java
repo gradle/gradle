@@ -259,9 +259,7 @@ class EdgeState implements DependencyGraphEdge {
 
             // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
-                while (node.getReplacement() != null) {
-                    node = node.getReplacement();
-                }
+                node = node.maybeResolveReplacement();
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
                 }
@@ -298,11 +296,9 @@ class EdgeState implements DependencyGraphEdge {
         }
 
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
-            NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
-            while (targetNodeState.getReplacement() != null) {
-                targetNodeState = targetNodeState.getReplacement();
-            }
-            this.targetNodes.add(targetNodeState);
+            NodeState requestedNode = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
+            NodeState resolvedNode = requestedNode.maybeResolveReplacement();
+            this.targetNodes.add(resolvedNode);
         }
     }
 

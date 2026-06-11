@@ -359,18 +359,25 @@ public class DependencyGraphBuilder {
         }
 
         for (ModuleResolveState module : resolveState.getModules()) {
+            // TODO: This condition currently fails, but should pass!
+//            if (!module.getUnattachedEdges().isEmpty()) {
+//                throw new IllegalStateException(String.format(
+//                    "Module %s has unattached edges: [%s]",
+//                    module,
+//                    module.getUnattachedEdges().stream().map(EdgeState::toString).collect(Collectors.joining(", "))
+//                ));
+//            }
             for (ComponentState component : module.getVersions()) {
                 for (NodeState node : component.getNodes()) {
                     for (EdgeState incomingEdge : node.getIncomingEdges()) {
                         NodeState from = incomingEdge.getFrom();
-                        // TODO: This condition currently fails, but should pass!
-//                        if (!from.getOutgoingEdges().contains(incomingEdge)) {
-//                            throw new IllegalStateException(String.format(
-//                                "Node %s has incoming edge from %s, but source node does not declare outgoing edge.",
-//                                node.getDisplayName(),
-//                                from.getDisplayName()
-//                            ));
-//                        }
+                        if (!from.getOutgoingEdges().contains(incomingEdge)) {
+                            throw new IllegalStateException(String.format(
+                                "Node %s has incoming edge from %s, but source node does not declare outgoing edge.",
+                                node.getDisplayName(),
+                                from.getDisplayName()
+                            ));
+                        }
                         if (!from.isSelected()) {
                             throw new IllegalStateException(String.format(
                                 "Node %s has an incoming edge from %s, but source node is not part of the graph.",
@@ -379,18 +386,17 @@ public class DependencyGraphBuilder {
                             ));
                         }
                     }
-//                    for (EdgeState outgoingEdge : node.getOutgoingEdges()) {
-//                        for (NodeState target : outgoingEdge.getTargetNodes()) {
-//                            // TODO: This condition currently fails, but should pass!
-//                            if (!target.getIncomingEdges().contains(outgoingEdge)) {
-//                                throw new IllegalStateException(String.format(
-//                                    "Node %s has an outgoing edge to node %s, but target node does not declare incoming edge.",
-//                                    node.getDisplayName(),
-//                                    target.getDisplayName()
-//                                ));
-//                            }
-//                        }
-//                    }
+                    for (EdgeState outgoingEdge : node.getOutgoingEdges()) {
+                        for (NodeState target : outgoingEdge.getTargetNodes()) {
+                            if (!target.getIncomingEdges().contains(outgoingEdge)) {
+                                throw new IllegalStateException(String.format(
+                                    "Node %s has an outgoing edge to node %s, but target node does not declare incoming edge.",
+                                    node.getDisplayName(),
+                                    target.getDisplayName()
+                                ));
+                            }
+                        }
+                    }
                 }
             }
         }
