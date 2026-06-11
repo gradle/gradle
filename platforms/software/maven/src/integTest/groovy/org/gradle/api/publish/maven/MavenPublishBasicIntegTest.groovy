@@ -538,4 +538,94 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         expect:
         succeeds("publish")
     }
+
+    def "GenerateMavenPom is cacheable"() {
+        mavenRepo.module("org", "foo", "1.1").publish()
+
+        settingsFile << """
+            rootProject.name = "bar"
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1+")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                        }
+                        pom {
+                            description = "custom-description"
+                        }
+                    }
+                }
+            }
+        """
+
+        def expected = """
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId></groupId>
+  <artifactId>bar</artifactId>
+  <version>unspecified</version>
+  <description>custom-description</description>
+  <dependencies>
+    <dependency>
+      <groupId>org</groupId>
+      <artifactId>foo</artifactId>
+      <version>1.1</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
+""".trim()
+
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath")
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        file("build/publications/maven/pom-default.xml").text.trim() == expected
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        result.assertAllTasksSkipped()
+
+        when:
+        buildFile << """
+            publishing.publications.maven.pom {
+                description = "another-description"
+            }
+        """
+
+        and:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        file("build/publications/maven/pom-default.xml").text.trim() == expected.replace("<description>custom-description</description>", "<description>another-description</description>")
+    }
 }
