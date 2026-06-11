@@ -161,3 +161,4 @@ sshdScp = { group = "org.apache.sshd", name = "sshd-scp", version.ref = "sshd" }
 sshdSftp = { group = "org.apache.sshd", name = "sshd-sftp", version.ref = "sshd" }
 tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
 xdclProvider = { group = "org.xdcl", name = "xdcl-provider", version.ref = "xdcl" }
+xdclGradlePlugin = { group = "org.xdcl", name = "xdcl-gradle-plugin", version.ref = "xdcl" }
