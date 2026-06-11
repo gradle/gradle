@@ -120,7 +120,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                   includedBuilds ["build-logic"]
                 }
                 plugins [
-                  { id "reactions-plugin" }
+                  { id "settings-message" }
                 ]
                 message { // extension
                   text "Yes!"
@@ -137,9 +137,9 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             }
             gradlePlugin {
               plugins {
-                reactionsPlugin {
-                  id = "reactions-plugin"
-                  implementationClass = "my.ReactionsPlugin"
+                messagePlugin {
+                  id = "settings-message"
+                  implementationClass = "my.SettingsMessagePlugin"
                 }
                 unusedPlugin {
                   id = "unused-plugin"
@@ -159,7 +159,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
               }
             }
         '''
-        javaFile 'build-logic/src/main/java/my/ReactionsPlugin.java', """
+        javaFile 'build-logic/src/main/java/my/SettingsMessagePlugin.java', """
             package my;
 
             import org.gradle.api.Plugin;
@@ -167,16 +167,16 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.xdcl.*; // xdcl API is visible as part of the Gradle API
             import my.dsl.*; // generated facades dir is automatically wired in as a generated source-set
 
-            @BindReaction(ReactionsPlugin.MessageReaction.class)
-            public class ReactionsPlugin implements Plugin<Settings> {
-                @Override public void apply(Settings target) {
-                    System.out.println("ReactionsPlugin applied!");
-                }
-
+            @BindReaction(SettingsMessagePlugin.MessageReaction.class)
+            public class SettingsMessagePlugin implements Plugin<Settings> {
                 static class MessageReaction implements Reaction<Message, Settings> {
                     @Override public void on(Message data, Settings context, ReactionScope scope) {
                         System.out.println("on: " + data.text().get());
                     }
+                }
+
+                @Override public void apply(Settings target) {
+                    System.out.println("SettingsMessagePlugin applied!");
                 }
             }
         """
@@ -190,14 +190,15 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
 
             @BindReaction(UnusedPlugin.UnusedReaction.class)
             public class UnusedPlugin implements Plugin<Settings> {
-                @Override public void apply(Settings target) {
-                    System.out.println("UnusedPlugin applied!");
-                }
 
                 static class UnusedReaction implements Reaction<Message, Settings> {
                     @Override public void on(Message data, Settings context, ReactionScope scope) {
                         System.out.println("ERROR: unused: " + data.text().get());
                     }
+                }
+
+                @Override public void apply(Settings target) {
+                    System.out.println("UnusedPlugin applied!");
                 }
             }
         """
@@ -206,7 +207,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
 
         then: 'ReactionsPlugin is applied'
-        outputContains("ReactionsPlugin applied!")
+        outputContains("SettingsMessagePlugin applied!")
 
         and: 'its reactions are fired'
         outputContains("on: Yes!")
