@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import com.gradleup.gr8.EmbeddedJarTask
-import com.gradleup.gr8.Gr8Task
+import com.gradleup.gr8.FilterTransform
 import gradlebuild.basics.launcherDebuggingIsEnabled
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.jar.Attributes
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("com.gradleup.gr8") version "0.10"
+    alias(buildLibs.plugins.gr8)
     id("gradlebuild.cross-version-tests")
 }
 
@@ -81,30 +81,26 @@ val executableJar = tasks.register<Jar>("executableJar") {
     }
     from(layout.projectDirectory.dir("src/executable/resources"))
     from(sourceSets.main.get().output)
-    // Exclude properties files from this project as they are not needed for the executable JAR
-    exclude("gradle-*-classpath.properties")
 }
 
 // Using Gr8 plugin with ProGuard to minify the wrapper JAR.
 // This minified JAR is added to the project root when the wrapper task is used.
 // It is embedded in the main JAR as a resource called `/gradle-wrapper.jar.`
-gr8 {
-    create("gr8") {
-        // TODO This should work by passing `executableJar` directly to th Gr8 plugin
-        programJar(executableJar.flatMap { it.archiveFile })
-        archiveName("gradle-wrapper.jar")
-        configuration("runtimeClasspath")
-        proguardFile("src/main/proguard/wrapper.pro")
-        // Exclude META-INF resources from Guava etc. added via transitive dependencies
-        exclude("META-INF/.*")
-        // Exclude properties files from dependency subprojects
-        exclude("gradle-.*-classpath.properties")
-    }
-}
+gr8.registerFilterTransform(listOf("META-INF/.*"))
 
-// TODO This dependency should be configured by the Gr8 plugin
-tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
-    dependsOn(executableJar)
+val filteredRuntimeClasspath = configurations.runtimeClasspath.get().incoming.artifactView {
+    attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, FilterTransform.artifactType)
+}.files
+
+val shadowedWrapperJar = gr8.create("gr") {
+    addProgramJarsFrom(executableJar.flatMap { it.archiveFile })
+    addProgramJarsFrom(filteredRuntimeClasspath)
+    proguardFile("src/main/proguard/wrapper.pro")
+    systemClassesToolchain {
+        languageVersion = jvmCompile.compilations.named("main")
+            .flatMap { it.targetJvmVersion }
+            .map { JavaLanguageVersion.of(it) }
+    }
 }
 
 // https://github.com/gradle/gradle/issues/26658
@@ -114,7 +110,7 @@ tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
 val copyGr8OutputJarAsGradleWrapperJar = tasks.register("copyGr8OutputJarAsGradleWrapperJar") {
     // Declare file inputs and outputs
     // We use a custom task to not have Copy "own" its output directory when copying a single file
-    val source = tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() }
+    val source = shadowedWrapperJar
     val target = layout.buildDirectory.dir("libs").map { it.file("gradle-wrapper.jar") }
 
     inputs.file(source)
@@ -141,7 +137,9 @@ tasks.jar {
     if (launcherDebuggingIsEnabled) { // shadowing and minification prevents debugging
         from(debuggableJar)
     } else {
-        from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+        from(shadowedWrapperJar) {
+            rename { "gradle-wrapper.jar" }
+        }
         dependsOn(copyGr8OutputJarAsGradleWrapperJar)
     }
 }

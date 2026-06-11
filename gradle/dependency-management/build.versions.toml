@@ -77,3 +77,4 @@ xslthl = { module = "net.sf.xslthl:xslthl", version = "2.0.1" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "9.2.0" }
+gr8 = { id = "com.gradleup.gr8", version = "0.11.2" }
