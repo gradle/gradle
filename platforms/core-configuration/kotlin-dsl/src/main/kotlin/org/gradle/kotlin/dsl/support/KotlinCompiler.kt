@@ -113,6 +113,10 @@ private const val KEEPALIVE_FLAG = true
 private const val ISOLATED_CLASSLOADER = DAEMON_MODE || false // can't use non-isolated classloader in Daemon mode
 private const val REUSE_BUILD_SESSION = true
 
+// Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
+// KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
+private const val INCREMENTAL_COMPILATION_ENABLED = true
+
 private val systemProperties: Map<String, String> = mapOf(
     KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property to KEEPALIVE_FLAG.toString(),
 )
@@ -569,7 +573,9 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
             operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
 
-            operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, incrementalCompilationCache)
+            if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
+                operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, incrementalCompilationCache)
+            }
 
             val executionPolicy = createExecutionPolicy()
 
