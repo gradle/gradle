@@ -22,6 +22,11 @@ import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.internal.tasks.options.OptionDescriptor
+import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValidationException
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.ModelStoreResult
@@ -65,6 +70,7 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.core.get
+import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -108,7 +114,8 @@ class DefaultConfigurationCache internal constructor(
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    private val executionTimeOnlyOptionsManifestService: ExecutionTimeOnlyOptionsManifestService
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -246,6 +253,8 @@ class DefaultConfigurationCache internal constructor(
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return when (cacheAction) {
             is Load -> {
+                // [ExecutionTimeOnlyOptionsValidationException] thrown from within is itself a
+                // GradleException with ResolutionProvider suggestions; we let it propagate.
                 val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -273,7 +282,10 @@ class DefaultConfigurationCache internal constructor(
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
                     val rootBuild = buildStateRegistry.rootBuild
-                    degradeGracefullyOr { saveWorkGraph(rootBuild) }
+                    degradeGracefullyOr {
+                        saveWorkGraph(rootBuild)
+                        writeExecutionTimeOnlyOptionsManifest(rootBuild)
+                    }
                     crossConfigurationTimeBarrier()
                     BuildTreeConfigurationCache.WorkGraphResult(
                         finalizedGraph,
@@ -682,6 +694,47 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
+    fun writeExecutionTimeOnlyOptionsManifest(rootBuild: BuildState) {
+        val rootTasks = rootBuild.mutableModel.taskGraph.allTasks
+        val optionReader = rootBuild.mutableModel.serviceOf<OptionReader>()
+        val names = collectExecutionTimeOnlyOptionNames(rootTasks, optionReader)
+        try {
+            executionTimeOnlyOptionsManifestService.write(names)
+        } catch (e: java.io.IOException) {
+            // The work graph entry was already persisted by saveWorkGraph(). If we leave the
+            // manifest stale or absent, a subsequent load would consult outdated option names
+            // and could produce wrong build results. Discard the just-stored entry instead.
+            logger.error(
+                "Failed to write execution-time-only options manifest at {}; discarding the just-stored configuration cache entry.",
+                executionTimeOnlyOptionsManifestService.manifestFile,
+                e
+            )
+            problems.onStoreSerializationError()
+        }
+    }
+
+    /**
+     * Walks [tasks] and returns the set of CLI option names declared
+     * `@Option(executionTimeOnly = true)`. A task whose `@Option` / `@OptionValues`
+     * metadata is malformed contributes nothing; the validation error still surfaces
+     * via the normal CLI option-parsing path when the user invokes that task's options.
+     */
+    private
+    fun collectExecutionTimeOnlyOptionNames(tasks: Iterable<Task>, optionReader: OptionReader): Set<String> =
+        tasks.asSequence()
+            .flatMap { task -> descriptorsOf(task, optionReader) }
+            .filter { it.isExecutionTimeOnly }
+            .mapTo(LinkedHashSet()) { it.name }
+
+    private
+    fun descriptorsOf(task: Task, optionReader: OptionReader): Sequence<OptionDescriptor> =
+        try {
+            TaskOptionsGenerator.generate(task, optionReader).all.asSequence()
+        } catch (_: OptionValidationException) {
+            emptySequence()
+        }
+
+    private
     fun saveWorkGraph(rootBuild: BuildState) {
         cacheEntryRequiresCommit = true
 
@@ -741,15 +794,15 @@ class DefaultConfigurationCache internal constructor(
         loadAfterStore: Boolean
     ): BuildTreeWorkGraph.FinalizedGraph = runAtConfigurationTime {
 
-        // No need to record the `ClassLoaderScope` tree
-        // when loading the task graph.
-        scopeRegistryListener.dispose()
-
         buildOperationRunner.withWorkGraphLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
                 LoadResultMetadata(buildInvocationId) to workGraph
             }
+            // Dispose only after a successful load+validation completes without throwing,
+            // so the listener stays attached if [ExecutionTimeOnlyOptionsValidationException]
+            // propagates and the caller renders the loud failure.
+            scopeRegistryListener.dispose()
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
             WorkGraphLoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }

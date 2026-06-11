@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -32,6 +36,22 @@ public class DefaultTestFilter implements TestFilter {
     private final Set<String> excludeTestNames = new HashSet<String>();
     private final Set<String> commandLineIncludeTestNames = new HashSet<String>();
     private boolean failOnNoMatching = true;
+    private final @Nullable ConfigurationTimeBarrier configurationTimeBarrier;
+
+    /**
+     * Constructor for non-managed instantiation in tests.
+     * Production code uses {@code ObjectFactory.newInstance(DefaultTestFilter.class)} so the
+     * configuration-time read guard is active.
+     */
+    @VisibleForTesting
+    DefaultTestFilter() {
+        this(null);
+    }
+
+    @Inject
+    public DefaultTestFilter(@Nullable ConfigurationTimeBarrier configurationTimeBarrier) {
+        this.configurationTimeBarrier = configurationTimeBarrier;
+    }
 
     private void validateName(String name) {
         if (name == null || name.length() == 0) {
@@ -115,6 +135,11 @@ public class DefaultTestFilter implements TestFilter {
 
     @Input
     public Set<String> getCommandLineIncludePatterns() {
+        if (configurationTimeBarrier != null && configurationTimeBarrier.isAtConfigurationTime()) {
+            throw new IllegalStateException(
+                "Cannot read 'commandLineIncludePatterns' at configuration time. " +
+                    "This filter is populated from the '--tests' CLI option and is only available during task execution.");
+        }
         return commandLineIncludeTestNames;
     }
 

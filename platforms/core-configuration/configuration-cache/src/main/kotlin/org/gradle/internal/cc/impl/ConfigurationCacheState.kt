@@ -31,12 +31,19 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal.EntryRetention
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.internal.tasks.options.OptionDescriptor
+import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValidationException
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.caching.configuration.BuildCache
+import org.gradle.execution.commandline.CommandLineTaskConfigurer
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
@@ -59,6 +66,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ProjectRefResolver
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
@@ -190,17 +198,44 @@ class ConfigurationCacheState(
         }
     }
 
+    /**
+     * Tracks whether the current read sequence is a reload that immediately follows a
+     * fresh store. In that case the execution-time-only options manifest was just written
+     * based on the same graph being reloaded, so validation against the manifest is
+     * redundant.
+     */
+    private
+    var isLoadAfterStore: Boolean = false
+
+    /**
+     * Captures any execution-time-only options validation failure discovered during
+     * deserialization. Validation cannot throw directly from within the deserialization
+     * context because the codec catches such exceptions and converts them into reported
+     * "problems" instead of propagating them. Storing the failure here lets
+     * [readRootBuildState] re-throw it after deserialization completes, where it can be
+     * surfaced by [DefaultConfigurationCache.loadOrScheduleRequestedTasks] as a loud
+     * `GradleException` that aborts the build with an actionable error message.
+     */
+    var pendingValidationFailure: ExecutionTimeOnlyOptionsValidationException? = null
+        private set
+
     suspend fun MutableReadContext.readRootBuildState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
 
+        isLoadAfterStore = loadAfterStore
         val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
+        // Surface any deferred execution-time-only options validation failure BEFORE
+        // we transition the build state via [calculateRootTaskGraph]. The exception is
+        // itself a `GradleException` with `ResolutionProvider` suggestions, so it propagates
+        // through the orchestrator unchanged.
+        pendingValidationFailure?.let { throw it }
         if (!loadAfterStore) {
             for (build in builds) {
                 identifyBuild(build)
@@ -551,6 +586,10 @@ class ConfigurationCacheState(
             readFlowScopeOf(gradle)
             readBuildOutputCleanupRegistrations(gradle)
 
+            if (workGraph != null && !isLoadAfterStore) {
+                validateAndApplyExecutionTimeOnlyOptions(gradle, workGraph)
+            }
+
             return if (workGraph == null) {
                 BuildWithNoWork(build.state.identityPath, build.state.rootProject.name, projects)
             } else {
@@ -560,6 +599,84 @@ class ConfigurationCacheState(
             return BuildWithNoProjects(build.state.identityPath)
         }
     }
+
+    /**
+     * Validates and re-applies the current invocation's execution-time-only CLI options
+     * to the deserialized tasks.
+     *
+     * For each [LocalTaskNode] whose recognized option set intersects the manifest's
+     * candidate names, every matching option must declare
+     * `OptionDescriptor.isExecutionTimeOnly == true`. The first task that fails this check
+     * records an [ExecutionTimeOnlyOptionsValidationException] in [pendingValidationFailure];
+     * the deferred throw at the end of [readRootBuildState] then propagates it through the
+     * orchestrator. The exception is already a `GradleException` with `ResolutionProvider`
+     * suggestions — Gradle's error renderer surfaces it directly.
+     *
+     * Cross-build tasks ([org.gradle.execution.plan.TaskInAnotherBuild]) are skipped here
+     * because dereferencing them during deserialization would crash with "task was never
+     * scheduled". This is the v1 root-build-only scope: included-build option collisions
+     * are not detected by this validator.
+     */
+    private
+    fun validateAndApplyExecutionTimeOnlyOptions(gradle: GradleInternal, workGraph: ScheduledWork) {
+        val manifestService = gradle.serviceOf<ExecutionTimeOnlyOptionsManifestService>()
+        val candidateNames = manifestService.taskOptionNames()
+        if (candidateNames.isEmpty()) return
+
+        val ccStartParameter = gradle.serviceOf<ConfigurationCacheStartParameter>()
+        val currentArgs = ExecutionTimeOnlyOptionsManifestService.extractFrom(ccStartParameter.requestedTaskNames, candidateNames)
+        if (currentArgs.isEmpty()) return
+
+        val optionReader = gradle.serviceOf<OptionReader>()
+        val configurer = CommandLineTaskConfigurer(optionReader)
+
+        val localTasks = workGraph.scheduledNodes
+            .asSequence()
+            .filterIsInstance<LocalTaskNode>()
+            .map { it.task }
+        for (task in localTasks) {
+            val descriptors = descriptorsOrNull(task, optionReader) ?: continue
+            var anyMatched = false
+            for (descriptor in descriptors) {
+                if (descriptor.name in candidateNames) {
+                    anyMatched = true
+                    if (!descriptor.isExecutionTimeOnly) {
+                        // Defer throwing until after deserialization completes so the
+                        // codec doesn't swallow the exception as a reported "problem".
+                        // See [pendingValidationFailure].
+                        val contributor = ExecutionTimeOnlyOptionsManifestService.findExecutionTimeOnlyContributor(
+                            workGraph, optionReader, descriptor.name, task.path
+                        )
+                        pendingValidationFailure = ExecutionTimeOnlyOptionsValidationException(
+                            executionTimeOnlyTaskPath = contributor,
+                            configTimeTaskPath = task.path,
+                            optionName = descriptor.name
+                        )
+                        return
+                    }
+                }
+            }
+            if (anyMatched) {
+                configurer.configureTasks(listOf(task), currentArgs)
+            }
+        }
+    }
+
+    /**
+     * Returns the option descriptors for [task], or `null` if the task's `@Option` /
+     * `@OptionValues` metadata is malformed. Matches the manifest writer's
+     * tolerance — a task that couldn't contribute to the manifest can't be checked against
+     * it either. The underlying validation error still surfaces via the normal CLI option
+     * parsing path when the user invokes that task's options.
+     */
+    private
+    fun descriptorsOrNull(task: Task, optionReader: OptionReader): List<OptionDescriptor>? =
+        try {
+            TaskOptionsGenerator.generate(task, optionReader).all
+        } catch (_: OptionValidationException) {
+            null
+        }
+
 
     private
     fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {

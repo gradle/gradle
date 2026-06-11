@@ -942,6 +942,41 @@ class OptionReaderTest extends Specification {
     enum TestEnum {
         ABC, DEF
     }
+
+    def "boolean option opposite form inherits executionTimeOnly"() {
+        when:
+        List<OptionDescriptor> options = TaskOptionsGenerator.generate(new BooleanExecutionTimeTask(), reader).getAll()
+
+        then:
+        def positive = options.find { it.name == "etBool" } as InstanceOptionDescriptor
+        def opposite = options.find { it.name == "no-etBool" } as InstanceOptionDescriptor
+        positive != null
+        opposite != null
+        positive.optionElement.executionTimeOnly
+        opposite.optionElement.executionTimeOnly
+    }
+
+    public static class BooleanExecutionTimeTask {
+        @Option(option = "etBool", description = "ExecTime boolean", executionTimeOnly = true)
+        public void setEtBool(boolean value) {}
+    }
+
+    def "reads executionTimeOnly flag from @Option annotation"() {
+        when:
+        List<OptionDescriptor> options = TaskOptionsGenerator.generate(new TestTaskWithExecutionTimeOption(), reader).getAll()
+
+        then:
+        options.find { it.name == "etOption" }.executionTimeOnly
+        !options.find { it.name == "configOption" }.executionTimeOnly
+    }
+
+    public static class TestTaskWithExecutionTimeOption {
+        @Option(option = "etOption", description = "Execution-time only", executionTimeOnly = true)
+        public void setEt(String value) {}
+
+        @Option(option = "configOption", description = "Config-time default")
+        public void setConfig(String value) {}
+    }
 }
 
 

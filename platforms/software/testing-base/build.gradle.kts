@@ -21,6 +21,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
     api(projects.messaging)
+    api(projects.modelCore)
     api(projects.native)
     api(projects.problemsApi)
     api(projects.reportRendering)
@@ -41,7 +42,6 @@ dependencies {
     implementation(projects.processServicesApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
-    implementation(projects.modelCore)
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

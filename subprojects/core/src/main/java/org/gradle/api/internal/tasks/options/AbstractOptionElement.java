@@ -29,15 +29,26 @@ abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
+    private final boolean executionTimeOnly;
 
     public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass) {
-        this(readDescription(option, optionName, declaringClass), optionName, optionType);
+        this(readDescription(option, optionName, declaringClass), optionName, optionType, option.executionTimeOnly());
     }
 
     protected AbstractOptionElement(String description, String optionName, Class<?> optionType) {
+        this(description, optionName, optionType, false);
+    }
+
+    protected AbstractOptionElement(String description, String optionName, Class<?> optionType, boolean executionTimeOnly) {
         this.description = description;
         this.optionName = optionName;
         this.optionType = optionType;
+        this.executionTimeOnly = executionTimeOnly;
+    }
+
+    @Override
+    public boolean isExecutionTimeOnly() {
+        return executionTimeOnly;
     }
 
     @Override

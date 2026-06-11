@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.options;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -81,4 +83,19 @@ public @interface Option {
      * @return The description.
      */
     String description();
+
+    /**
+     * Whether this option's value is intended to be applied at task execution time rather than configuration time.
+     * <p>
+     * When {@code true}, the annotated property must not be read during task configuration. Tooling (such as the
+     * configuration cache) may rely on this declaration to treat the option's value as separable from the rest of
+     * the task's configured state.
+     * <p>
+     * Defaults to {@code false}.
+     *
+     * @return Whether this option's value is execution-time-only.
+     * @since 9.7.0
+     */
+    @Incubating
+    boolean executionTimeOnly() default false;
 }

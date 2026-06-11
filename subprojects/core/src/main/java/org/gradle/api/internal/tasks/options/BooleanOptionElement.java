@@ -46,17 +46,18 @@ public class BooleanOptionElement extends AbstractOptionElement {
         this.newOptionValue = true;
     }
 
-    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
-        super(optionDescription, optionName, Void.TYPE);
+    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue, boolean executionTimeOnly) {
+        super(optionDescription, optionName, Void.TYPE, executionTimeOnly);
         this.setter = setter;
         this.newOptionValue = newOptionValue;
     }
 
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
+        boolean executionTimeOnly = optionElement.isExecutionTimeOnly();
         return optionElement.isDisableOption()
-            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName + ".", optionElement.setter, false)
-            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName + ".", optionElement.setter, false);
+            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName + ".", optionElement.setter, false, executionTimeOnly)
+            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName + ".", optionElement.setter, false, executionTimeOnly);
     }
 
     /**

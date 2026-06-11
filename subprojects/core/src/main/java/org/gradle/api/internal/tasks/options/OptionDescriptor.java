@@ -38,6 +38,14 @@ public interface OptionDescriptor extends Comparable<OptionDescriptor> {
     boolean isClashing();
 
     /**
+     * @return whether this option's value is execution-time-only
+     *         (see {@link org.gradle.api.tasks.options.Option#executionTimeOnly()}).
+     */
+    default boolean isExecutionTimeOnly() {
+        return false;
+    }
+
+    /**
      * @throws TypeConversionException On failure to convert the given values to the required types.
      */
     void apply(Object object, List<String> values) throws TypeConversionException;

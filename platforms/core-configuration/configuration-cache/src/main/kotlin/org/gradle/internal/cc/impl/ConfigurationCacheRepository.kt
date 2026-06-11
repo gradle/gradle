@@ -64,6 +64,16 @@ class ConfigurationCacheRepository(
         return StoreImpl(dirForEntry(cacheKey))
     }
 
+    /**
+     * Root directory of the configuration-cache repository on disk. Directly contains
+     * both per-cache-key subdirectories (one per [forKey] entry) and shared metadata
+     * files like `gc.properties`, `configuration-cache.lock`, and the
+     * execution-time-only options manifest.
+     */
+    internal
+    val cacheDir: File
+        get() = cache.baseDir
+
     interface CleanupContext {
         val eligibleFilesFinder: FilesFinder
         fun dirForEntry(entry: String): File
@@ -307,6 +317,19 @@ class ConfigurationCacheRepository(
     private
     fun chmod(file: File, mode: Int) {
         fileSystem.chmod(file, mode)
+    }
+
+    /**
+     * Sets the permissions of [file] to the same 0600 policy that this repository enforces
+     * on per-entry state files. Intended for shared-metadata files (e.g. the
+     * execution-time-only options manifest) that live alongside per-entry directories
+     * and are written outside the entry-store path.
+     *
+     * No-op on Windows.
+     */
+    internal
+    fun applyEntryPermissions(file: File) {
+        chmod(file, 384) // octal 0600
     }
 
     private
