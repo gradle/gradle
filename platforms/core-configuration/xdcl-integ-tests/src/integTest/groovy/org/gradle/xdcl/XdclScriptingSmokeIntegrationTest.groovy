@@ -219,6 +219,93 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("ERROR: unused")
     }
 
+    def "can register project template and associated reactions via settings plugin from included build"() {
+        given:
+        xdclSettingsFile '''
+            settings {
+                pluginManagement {
+                  includedBuilds ["build-logic"]
+                }
+                plugins [
+                  { id "project-templates" }
+                ]
+                include [
+                  "app",
+                  "lib",
+                ]
+            }
+        '''
+        xdclFile 'app/build.gradle.xdcl', '''
+            application {}
+        '''
+        xdclFile 'lib/build.gradle.xdcl', '''
+            library {}
+        '''
+        xdclFile 'build-logic/settings.gradle.xdcl', '''
+            settings {}
+        '''
+        buildFile 'build-logic/build.gradle', '''
+            plugins {
+              id "java-gradle-plugin"
+              id "xdcl-gradle-plugin"
+            }
+            gradlePlugin {
+              plugins {
+                projectTemplatesPlugin {
+                  id = "project-templates"
+                  implementationClass = "my.ProjectTemplatesPlugin"
+                }
+              }
+            }
+        '''
+        xdslFile 'build-logic/src/main/xdcl/my.xdsl', '''
+            package my.dsl
+
+            template MyApplication {
+              application {}
+            }
+
+            template MyLibrary {
+              library {}
+            }
+        '''
+        javaFile 'build-logic/src/main/java/my/ProjectTemplatesPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.*; // xdcl API is visible as part of the Gradle API
+            import my.dsl.*; // generated facades dir is automatically wired in as a generated source-set
+
+            @BindReaction(ProjectTemplatesPlugin.ApplicationReaction.class)
+            @BindReaction(ProjectTemplatesPlugin.LibraryReaction.class)
+            public class ProjectTemplatesPlugin implements Plugin<Settings> {
+
+                static class ApplicationReaction implements Reaction<MyApplication, Project> {
+                    @Override public void on(MyApplication data, Project context, ReactionScope scope) {
+                        System.out.println("application: " + context.getName());
+                    }
+                }
+
+                static class LibraryReaction implements Reaction<MyLibrary, Project> {
+                    @Override public void on(MyLibrary data, Project context, ReactionScope scope) {
+                        System.out.println("library: " + context.getName());
+                    }
+                }
+
+                @Override public void apply(Settings target) {}
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("application: app")
+        outputContains("library: lib")
+    }
+
     TestFile xdclSettingsFile(String script) {
         file('settings.gradle.xdcl') << script
     }
