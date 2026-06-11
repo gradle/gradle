@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.GeneratedSubclasses;
@@ -25,7 +26,6 @@ import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactReposi
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
@@ -95,7 +95,16 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         MavenNormalizedPublication publication = spec.publication;
         MavenArtifactRepository repository = spec.repository.get(getServices());
         getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
-        doPublish(publication, repository);
+
+        MavenPublisher mavenPublisher = new ValidatingMavenPublisher(getMavenPublishers().getRemotePublisher(getTemporaryDirFactory()));
+        try {
+            mavenPublisher.publish(publication, repository);
+        } catch (Exception e) {
+            throw new PublishException(
+                "Failed to publish publication '" + publication.getName() + "' to repository '" + repository.getName() + "'",
+                e
+            );
+        }
     }
 
     private PublishSpec computeSpec() {
@@ -112,21 +121,6 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         return new PublishSpec(
             RepositorySpec.of(repository),
             normalizedPublication
-        );
-    }
-
-    private void doPublish(final MavenNormalizedPublication normalizedPublication, final MavenArtifactRepository repository) {
-        new PublishOperation(normalizedPublication.getName(), repository.getName()) {
-            @Override
-            protected void publish() {
-                validatingMavenPublisher().publish(normalizedPublication, repository);
-            }
-        }.run();
-    }
-
-    private MavenPublisher validatingMavenPublisher() {
-        return new ValidatingMavenPublisher(
-            getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
         );
     }
 

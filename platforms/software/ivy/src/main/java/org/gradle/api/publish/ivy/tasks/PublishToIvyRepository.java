@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryL
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDuplicatePublicationTracker;
@@ -157,7 +157,16 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         IvyNormalizedPublication publication = spec.publication;
         IvyArtifactRepository repository = spec.repository.get(getServices());
         getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
-        doPublish(publication, repository);
+
+        IvyPublisher publisher = getIvyPublisher();
+        try {
+            publisher.publish(publication, repository);
+        } catch (Exception e) {
+            throw new PublishException(
+                "Failed to publish publication '" + publication.getName() + "' to repository '" + repository.getName() + "'",
+                e
+            );
+        }
     }
 
     private PublishSpec computeSpec() {
@@ -179,16 +188,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
     @Inject
     protected abstract IvyPublisher getIvyPublisher();
-
-    private void doPublish(final IvyNormalizedPublication normalizedPublication, final IvyArtifactRepository repository) {
-        new PublishOperation(normalizedPublication.getName(), repository.getName()) {
-            @Override
-            protected void publish() {
-                IvyPublisher publisher = getIvyPublisher();
-                publisher.publish(normalizedPublication, repository);
-            }
-        }.run();
-    }
 
     static class PublishSpec {
 
