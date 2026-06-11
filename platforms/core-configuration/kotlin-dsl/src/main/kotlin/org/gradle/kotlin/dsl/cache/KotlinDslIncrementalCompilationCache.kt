@@ -93,7 +93,25 @@ class KotlinDslIncrementalCompilationCache(
      * stable script-source files live under a sibling directory; see [scriptSourceFile].
      */
     fun scriptCacheDirectory(scriptIdentity: String): Path =
-        scriptsCacheDirectory.resolve(Hashing.hashString(scriptIdentity).toString()).also { it.createDirectories() }
+        scriptsCacheDirectory.resolve(dirNameFor(scriptIdentity)).also { it.createDirectories() }
+
+    /**
+     * Whether incremental compilation is worth configuring for [scriptIdentity]. IC only pays off
+     * once a prior compile has left state to build on, so successive compiles of a script progress
+     * through three passes:
+     *  1. cold — nothing cached yet → skip IC; full compile.
+     *  2. bootstrap — prior outputs only → run IC; full compile that records IC state.
+     *  3. incremental — IC working state exists → run IC; recompile only what changed.
+     *
+     * Only the cold pass skips IC: it would rebuild everything anyway, so attaching IC there just
+     * pays for snapshotting and bookkeeping that buys nothing.
+     */
+    fun shouldConfigureIncrementalCompilation(scriptIdentity: String): Boolean {
+        val dirNameFor = dirNameFor(scriptIdentity)
+        val hasIncrementalState = hasPriorState(scriptsCacheDirectory.resolve(dirNameFor))   // pass 3: incremental
+        val hasPriorOutputs = hasPriorState(scriptOutputsCacheDirectory.resolve(dirNameFor)) // pass 2: bootstrap
+        return hasIncrementalState || hasPriorOutputs                                        // neither → pass 1: cold (skip IC)
+    }
 
     /**
      * Returns the stable per-[scriptIdentity] directory into which the Kotlin compiler writes class
@@ -103,7 +121,7 @@ class KotlinDslIncrementalCompilationCache(
      * compile completes; see `BTACompiler.compile`.
      */
     fun scriptOutputsDirectory(scriptIdentity: String): Path =
-        scriptOutputsCacheDirectory.resolve(Hashing.hashString(scriptIdentity).toString()).also { it.createDirectories() }
+        scriptOutputsCacheDirectory.resolve(dirNameFor(scriptIdentity)).also { it.createDirectories() }
 
     /**
      * Returns a stable per-(scriptIdentity, fileName) path at which the kotlin-dsl machinery can
@@ -122,7 +140,7 @@ class KotlinDslIncrementalCompilationCache(
      * BTA's IC root, because BTA wipes its IC root on rebuild fallback.
      */
     fun scriptSourceFile(scriptIdentity: String, fileName: String): Path =
-        scriptSourcesCacheDirectory.resolve(Hashing.hashString(scriptIdentity).toString()).also { it.createDirectories() }.resolve(fileName)
+        scriptSourcesCacheDirectory.resolve(dirNameFor(scriptIdentity)).also { it.createDirectories() }.resolve(fileName)
 
     /**
      * Returns the content-addressed snapshot file path and the ABI-rollup hash for the classpath
@@ -151,6 +169,12 @@ class KotlinDslIncrementalCompilationCache(
         }
         return SnapshotAndAbiHash(snapshotFile, abiHash)
     }
+
+    private fun dirNameFor(scriptIdentity: String): String =
+        Hashing.hashString(scriptIdentity).toString()
+
+    private fun hasPriorState(dir: Path): Boolean =
+        Files.isDirectory(dir) && Files.newDirectoryStream(dir).use { it.iterator().hasNext() }
 
     class SnapshotAndAbiHash(val snapshotFile: Path, val abiHash: HashCode)
 }
