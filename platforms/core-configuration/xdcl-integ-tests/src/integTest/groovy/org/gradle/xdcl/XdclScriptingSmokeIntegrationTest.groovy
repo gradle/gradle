@@ -112,11 +112,121 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("LocalSettingsPlugin applied!")
     }
 
+    def "can register reactions via settings plugin from included build"() {
+        given:
+        xdclSettingsFile '''
+            settings {
+                pluginManagement {
+                  includedBuilds ["build-logic"]
+                }
+                plugins [
+                  { id "reactions-plugin" }
+                ]
+                message { // extension
+                  text "Yes!"
+                }
+            }
+        '''
+        xdclFile 'build-logic/settings.gradle.xdcl', '''
+            settings {}
+        '''
+        buildFile 'build-logic/build.gradle', '''
+            plugins {
+              id "java-gradle-plugin"
+              id "xdcl-gradle-plugin" // xdcl facades generator plugin is available in the Gradle plugins classpath just like any other builtin plugin
+            }
+            gradlePlugin {
+              plugins {
+                reactionsPlugin {
+                  id = "reactions-plugin"
+                  implementationClass = "my.ReactionsPlugin"
+                }
+                unusedPlugin {
+                  id = "unused-plugin"
+                  implementationClass = "my.UnusedPlugin"
+                }
+              }
+            }
+        '''
+        xdslFile 'build-logic/src/main/xdcl/my.xsdl', '''
+            package my.dsl
+
+            import xdcl.gradle.bootstrap // Settings
+
+            extension Message for Settings {
+              message {
+                text: String
+              }
+            }
+        '''
+        javaFile 'build-logic/src/main/java/my/ReactionsPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.*; // xdcl API is visible as part of the Gradle API
+            import my.dsl.*; // generated facades dir is automatically wired in as a generated source-set
+
+            @BindReaction(ReactionsPlugin.MessageReaction.class)
+            public class ReactionsPlugin implements Plugin<Settings> {
+                @Override public void apply(Settings target) {
+                    System.out.println("ReactionsPlugin applied!");
+                }
+
+                static class MessageReaction implements Reaction<Message, Settings> {
+                    @Override void on(Message data, Settings context, ReactionScope scope) {
+                        System.out.println(String.format("on: %1", data.text()));
+                    }
+                }
+            }
+        """
+        javaFile 'build-logic/src/main/java/my/UnusedPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.*;
+            import my.dsl.*;
+
+            @BindReaction(ReactionsPlugin.UnusedReaction.class)
+            public class UnusedPlugin implements Plugin<Settings> {
+                @Override public void apply(Settings target) {
+                    System.out.println("UnusedPlugin applied!");
+                }
+
+                static class UnusedReaction implements Reaction<Message, Settings> {
+                    @Override void on(Message data, Settings context, ReactionScope scope) {
+                        System.out.println(String.format("ERROR: unused: %1", data.text()));
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then: 'ReactionsPlugin is applied'
+        outputContains("ReactionsPlugin applied!")
+
+        and: 'its reactions are fired'
+        outputContains("on: Yes!")
+
+        and: 'UnusedPlugin is NOT applied'
+        outputDoesNotContain("UnusedPlugin applied!")
+
+        and: 'since it has not been applied, its reactions are NOT fired'
+        outputDoesNotContain("Error: unused")
+    }
+
     TestFile xdclSettingsFile(String script) {
         file('settings.gradle.xdcl') << script
     }
 
     TestFile xdclFile(String path, String script) {
+        file(path) << script
+    }
+
+    TestFile xdslFile(String path, String script) {
         file(path) << script
     }
 }
