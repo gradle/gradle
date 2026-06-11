@@ -323,6 +323,182 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Root project 'root'")
     }
 
+    def "xdcl build logic can share schemas"() {
+        given: 'a build definition'
+        xdclSettingsFile '''
+            settings {
+                pluginManagement {
+                  includedBuilds ["build-logic"]
+                }
+                plugins [
+                  { id "project-templates" }
+                ]
+                include [
+                  "app",
+                  "lib",
+                ]
+            }
+        '''
+        xdclFile 'app/build.gradle.xdcl', '''
+            application {
+              description "My application."
+            }
+        '''
+        xdclFile 'lib/build.gradle.xdcl', '''
+            library {
+              // Accept defaults
+            }
+        '''
+
+        and: 'with build-logic split in 4 projects'
+        xdclFile 'build-logic/settings.gradle.xdcl', '''
+            settings {
+              include [
+                "base",
+                "app",
+                "lib",
+                "plugin",
+              ]
+            }
+        '''
+
+        buildFile 'build-logic/base/build.gradle', '''
+            plugins {
+                id "java-library"
+                id "xdcl-gradle-plugin"
+            }
+        '''
+        xdslFile 'build-logic/base/src/main/xdcl/base.xdsl', '''
+            package my.base.dsl
+
+            trait MyComponent {
+              description: String = "My component."
+            }
+        '''
+
+        buildFile 'build-logic/app/build.gradle', '''
+            plugins {
+                id "java-library"
+                id "xdcl-gradle-plugin"
+            }
+
+            dependencies {
+                api(project(":base"))
+            }
+        '''
+        xdslFile 'build-logic/app/src/main/xdcl/app.xdsl', '''
+            package my.app.dsl
+
+            import my.base.dsl
+
+            template MyApplication with MyComponent  {
+              application {}
+            }
+        '''
+
+        buildFile 'build-logic/lib/build.gradle', '''
+            plugins {
+                id "java-library"
+                id "xdcl-gradle-plugin"
+            }
+
+            dependencies {
+                api(project(":base"))
+            }
+        '''
+        xdslFile 'build-logic/lib/src/main/xdcl/lib.xdsl', '''
+            package my.lib.dsl
+
+            import my.base.dsl
+
+            template MyLibrary with MyComponent  {
+              library {}
+            }
+        '''
+
+        buildFile 'build-logic/plugin/build.gradle', '''
+            plugins {
+              id "java-gradle-plugin"
+            }
+            gradlePlugin {
+              plugins {
+                projectTemplatesPlugin {
+                  id = "project-templates"
+                  implementationClass = "my.ProjectTemplatesPlugin"
+                }
+              }
+            }
+            dependencies {
+                api(project(":lib"))
+                api(project(":app"))
+                api(project(":base"))
+            }
+        '''
+        javaFile 'build-logic/plugin/src/main/java/my/ProjectTemplatesPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.*; // xdcl API is visible as part of the Gradle API
+            import my.base.dsl.*;
+            import my.app.dsl.*;
+            import my.lib.dsl.*;
+
+            @BindReaction(ProjectTemplatesPlugin.ComponentReaction.class)
+            @BindReaction(ProjectTemplatesPlugin.ApplicationReaction.class)
+            @BindReaction(ProjectTemplatesPlugin.LibraryReaction.class)
+            public class ProjectTemplatesPlugin implements Plugin<Settings> {
+
+                static class ComponentReaction implements Reaction<MyComponent, Project> {
+                    @Override public void on(MyComponent data, Project context, ReactionScope scope) {
+                        System.out.println("component " + data.description().get() + " in " + context.getName());
+                    }
+                }
+
+                static class ApplicationReaction implements Reaction<MyApplication, Project> {
+                    @Override public void on(MyApplication data, Project context, ReactionScope scope) {
+                        System.out.println("application: " + context.getName());
+                    }
+                }
+
+                static class LibraryReaction implements Reaction<MyLibrary, Project> {
+                    @Override public void on(MyLibrary data, Project context, ReactionScope scope) {
+                        System.out.println("library: " + context.getName());
+                    }
+                }
+
+                @Override public void apply(Settings target) {}
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("component 'My application.' in app")
+        outputContains("application: app")
+        outputContains("component 'My component.' in lib")
+        outputContains("library: lib")
+    }
+
+    def "can configure project root name"() {
+        given:
+        xdclSettingsFile '''
+            settings {
+              rootProject {
+                name "root"
+              }
+            }
+        '''
+
+        when:
+        succeeds("projects")
+
+        then:
+        outputContains("Root project 'root'")
+    }
+
     TestFile xdclSettingsFile(String script) {
         file('settings.gradle.xdcl') << script
     }
