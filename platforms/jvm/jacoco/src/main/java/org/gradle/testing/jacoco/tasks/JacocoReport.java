@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
-import org.gradle.internal.jacoco.JacocoReportAction;
+import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -85,7 +85,7 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
     public void generate() {
         WorkQueue queue = getWorkerExecutor().classLoaderIsolation();
 
-        queue.submit(JacocoReportAction.class, parameters -> {
+        queue.submit(AntJacocoReport.class, parameters -> {
             parameters.getAntLibraryClasspath().convention(getJacocoClasspath());
             parameters.getProjectName().convention(getReportProjectName());
             parameters.getEncoding().convention(getSourceEncoding());

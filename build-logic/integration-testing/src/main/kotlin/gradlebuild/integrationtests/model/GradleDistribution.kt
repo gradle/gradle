@@ -75,6 +75,12 @@ abstract class GradleDistribution {
             include("lib/plugins/*.jar")
         }
 
+    @get:Classpath
+    val apiJars: FileCollection
+        get() = homeDir.asFileTree.matching {
+            include("lib/api/*.jar")
+        }
+
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val moduleProperties: FileCollection
@@ -82,6 +88,7 @@ abstract class GradleDistribution {
             include("lib/*.properties")
             include("lib/agents/*.properties")
             include("lib/plugins/*.properties")
+            include("lib/api/*.properties")
         }
 
 }

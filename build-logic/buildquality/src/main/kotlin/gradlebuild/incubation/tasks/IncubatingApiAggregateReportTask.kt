@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -44,6 +45,14 @@ abstract class IncubatingApiAggregateReportTask : DefaultTask() {
     @get:Input
     abstract val currentCommit: Property<String>
 
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val versionFile: RegularFileProperty
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val releasedVersionsFile: RegularFileProperty
+
     @get:OutputFile
     abstract val htmlReportFile: RegularFileProperty
 
@@ -59,5 +68,7 @@ abstract class IncubatingApiAggregateReportTask : DefaultTask() {
         htmlReportFile = this@IncubatingApiAggregateReportTask.htmlReportFile
         csvReportFile = this@IncubatingApiAggregateReportTask.csvReportFile
         currentCommit = this@IncubatingApiAggregateReportTask.currentCommit
+        versionFile = this@IncubatingApiAggregateReportTask.versionFile
+        releasedVersionsFile = this@IncubatingApiAggregateReportTask.releasedVersionsFile
     }
 }

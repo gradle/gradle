@@ -100,9 +100,6 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
         """
-        if (supported) {
-            plugin.expectParentPropertyLookupDeprecation(executer, pluginVersion)
-        }
 
         when:
         succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
@@ -114,13 +111,14 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         if (supported) {
             assert output.contains("develocityPlugin.checkIn.supported")
         } else {
-            assert output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin 3.13.1 has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
+            assert output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin ${pluginVersion} has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 4.0 or newer to restore functionality.")
         }
 
         where:
         pluginVersion                    | supported
         MINIMUM_SUPPORTED_PLUGIN_VERSION | false
-        '3.15'                           | true
+        '3.15'                           | false
+        '4.0'                            | true
     }
 
     def "emits deprecation when Develocity plugin version #pluginVersion relies on parent-property lookup"() {

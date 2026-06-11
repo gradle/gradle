@@ -26,6 +26,19 @@ The Configuration Cache improves build performance by caching the result of the 
 
 image::configuration-cache-4.png[]
 
+[IMPORTANT]
+====
+This feature _will be enabled by default in Gradle 10_.
+Currently, it has the following limitations:
+
+- Some <<configuration_cache_status.adoc#config_cache:plugins:core, Core Gradle Plugins>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented, features>> have partial or pending support.
+- Your build and its plugins may require modifications to meet the <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache requirements>>.
+- <<config_cache:ide,IDE imports and syncs>> do not yet use the Configuration Cache.
+- Continuous Integration (CI) support is actively evolving.
+
+Since Gradle 9.0.0, the Configuration Cache is the link:https://blog.gradle.org/road-to-configuration-cache#preferred-mode-of-execution[preferred mode of execution].
+====
+
 [[config_cache:intro]]
 == Configuration Cache Basics
 
@@ -35,7 +48,7 @@ The <<build_lifecycle_intermediate.adoc#build_lifecycle, Gradle Build Lifecycle>
 2. The **configuration** phase evaluates what work needs to be done.
 3. The **execution** phase performs that work.
 
-Gradle’s **Build Cache** has long optimized the execution phase by reusing previously built outputs and parallelizing as much work as possible.
+Gradle’s <<build_cache.adoc#build_cache,**Build Cache**>> has long optimized the execution phase by reusing previously built outputs and parallelizing as much work as possible.
 
 The **Configuration Cache** builds on this idea of _work avoidance_ and _parallelization_.
 When enabled, the Configuration Cache allows Gradle to skip the configuration phase entirely if nothing that affects the build configuration (such as build scripts) has changed.
@@ -45,53 +58,71 @@ To do this, Gradle does the following:
 
 [cols="~,~,~,~,~"]
 |===
-| Phase | Cache | Cache Key | Work Avoidance | Parallelism and Performance
+| Cache | What It Caches | Cache Key | Work Avoidance | Parallelism
 
-| *Configuration* | Configuration Cache | Build logic and environment | Skip project configuration | Runs tasks in parallel within the same project, optimizes memory, and more
-| *Execution* | Build Cache | Task inputs | Skip task execution | Runs independent tasks in different projects in parallel with `--parallel`
+| *Build Cache*
+| Task outputs and artifact transform outputs
+| Each task's declared inputs (sources, classpath, action implementation)
+| Skips task execution by reusing previous outputs
+| Composes with `--parallel` for cross-project parallel execution
+
+| *Configuration Cache*
+| The result of the configuration phase: the task graph, each task's configured state, and dependency information
+| Build logic and environment (build scripts, init scripts, environment variables and properties read at configuration time, and more)
+| Skips the configuration phase entirely on a cache hit
+| Enables parallel task execution within the same project
 
 |===
 
-The Configuration Cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:
+The Configuration Cache and the Build Cache store different types of data:
 
 - *Build Cache*: Stores outputs and intermediate files of the build (e.g., task outputs, artifact transform outputs).
 - *Configuration Cache*: Stores the build configuration for a particular set of tasks, capturing the output of the configuration phase.
 
 image::configuration-cache-2.png[]
 
-[IMPORTANT]
-====
-This feature is _not enabled by default_ and has the following limitations:
-
-- It does not yet support all <<configuration_cache_status.adoc#config_cache:plugins:core, Core Gradle Plugins>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented, features>>. Full support is in progress.
-- Your build and its plugins may require modifications to meet the <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache requirements>>.
-- <<config_cache:ide,IDE imports and syncs>> do not yet use the Configuration Cache.
-- Continuous Integration (CI) support is actively evolving.
-
-Since Gradle 9.0.0 the Configuration Cache is the link:https://blog.gradle.org/road-to-configuration-cache#preferred-mode-of-execution[preferred mode of execution].
-====
-
 [[config_cache:intro:how_does_it_work]]
-== Work Avoidance
+== How It Works
 
-When the Configuration Cache is enabled and you run Gradle for a specific set of tasks, such as `./gradlew check`, Gradle looks for a *Configuration Cache entry*.
-If a matching entry is found, Gradle reuses it and skips the configuration phase entirely.
-A cache hit is essential for avoiding configuration work.
+When the Configuration Cache is enabled, and you run Gradle for a set of tasks (for example, `./gradlew check`) that you have already run once, Gradle will avoid re-configuring the build if no relevant inputs to configuration have changed.
 
-=== Configuration Cache Entries
+[[config_cache:intro:lifecycle]]
+=== The Build Lifecycle
 
-A cache entry contains:
+Enabling the Configuration Cache changes how Gradle moves through the <<build_lifecycle_intermediate.adoc#build_lifecycle, three build phases>>.
+The phases themselves are unchanged: initialization, configuration, and execution.
+But **whether they run, and when they do, depends on a cache hit or miss**.
 
-- The set of tasks to run
-- Their configuration details
-- Dependency information
+[cols="~,~,~"]
+|===
+| Phase | Without the Configuration Cache | With the Configuration Cache
 
-=== First-Time Execution
+| *Initialization*
+| Runs every build. Detects the settings file, creates the `Settings` and `Project` instances, and determines the structure of the build.
+| Runs every build. Locates the cache entry, verifies if it is up-to-date and deserializes the task graph, or falls back to full initialization if there is no valid entry.
+
+| *Configuration*
+| Runs every build. Evaluates init scripts, the settings script, `buildSrc`, and every project's build script; applies plugins; computes the task graph.
+| **Runs only on a cache miss.** On a hit, the entire configuration phase is skipped — init scripts, the settings script, build scripts, and plugins are not re-evaluated. Gradle restores the task graph directly from the cache.
+
+| *Execution*
+| Runs the scheduled tasks against the just-computed task graph.
+| Runs the scheduled tasks against the deserialized task graph. Tasks are isolated from each other through serialization (see <<config_cache:intro:serialization, Serialization>>), which enables intra-project parallel execution.
+|===
+
+image::configuration-cache-6.png[]
+
+=== The Hit-or-Miss Decision
+
+At the start of every invocation, Gradle uses the requested tasks, their arguments, and some other environmental information as a *cache key*, then checks whether there is a stored entry matching the key.
+If a candidate entry exists, Gradle compares the build's current <<config_cache:intro:build_configuration_inputs, configuration inputs>> against the entry's recorded fingerprint (the set of build inputs discovered when preparing the entry and the values they had at that time).
+A **hit** means every recorded input still matches; a **miss** means at least one input has changed (or no entry exists for this key yet).
+
+=== Cache Miss
 
 image::configuration-cache-1.png[]
 
-The first time you run a set of tasks, there is no cache entry.
-Gradle performs the configuration phase as usual:
+On a cache miss (the first build with the Configuration Cache enabled, or any build whose configuration inputs have changed), Gradle runs the configuration phase as it would without the cache:
 
 1. Run init scripts.
 2. Run the settings script, applying any requested settings plugins.
@@ -99,24 +130,41 @@ Gradle performs the configuration phase as usual:
 4. Run build scripts, applying any requested project plugins. If plugins come from included builds, Gradle builds them first.
 5. Calculate the task graph, executing deferred configuration actions.
 
-Gradle then stores a snapshot of the task graph in the Configuration Cache for future use.
-After this, Gradle loads the task graph from the cache and proceeds with task execution.
+Gradle then **serializes the resulting task graph and writes it to the cache** before execution begins.
 
-NOTE: When it is enabled, Gradle always loads from the configuration cache - even on a cache miss - to ensure that hits and misses are handled consistently.
+Even on a miss, Gradle then **loads the task graph back from the cache it just wrote** and executes against the loaded copy.
+This always-load behavior is intentional: it guarantees that hits and misses execute through the same code path, so any serialization-related issue surfaces on the first run rather than later.
+It also means that parallel task execution within the same project is available even on a cache miss.
+
+[NOTE]
+====
+For plugin authors, the always-load semantic has a practical consequence: a task that works during the configuration phase but breaks after a round-trip through serialization will fail on the *first* build with the Configuration Cache enabled, not on a later run.
+This is why we recommend testing your plugin with `--configuration-cache` from the start of development.
+====
 
 [[subsequent_runs]]
-=== Subsequent Runs
+=== Cache Hit
 
 image::configuration-cache-3.png[]
 
-On subsequent executions of the same tasks (e.g., `./gradlew check` again), Gradle:
+On a cache hit (a subsequent invocation of the same tasks where no configuration inputs have changed), Gradle skips the configuration phase entirely.
+Instead, Gradle restores the task graph by deserializing the cache entry, then proceeds straight to execution.
 
-- Skips the configuration phase entirely.
-- Loads the task graph from the Configuration Cache instead.
+Because the configuration phase is skipped on a hit, any logic registered through configuration-phase callbacks, such as `BuildListener`, `Gradle.beforeProject`, `Gradle.afterProject`, or `Gradle.taskGraph.whenReady`, will not re-execute.
+Build logic that needs to react to task execution should use a <<build_services#operation_listener, Build Service>> registered as an `OperationCompletionListener` instead.
+See <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, Using Build Listeners>> for the full list of affected APIs and their replacements.
 
-To match a saved entry in the cache, Gradle verifies that no build configuration inputs have changed.
-If any input has changed, Gradle reruns the configuration phase and stores a new entry in the cache.
+=== Configuration Cache Entries
 
+A Configuration Cache entry stores:
+
+- The set of tasks to run
+- Their configuration details
+- Task dependency information (the relationships between tasks that determine execution order)
+
+For the precise contents and how they're written to disk, see <<config_cache:intro:serialization, Serialization>>.
+
+[[config_cache:intro:build_configuration_inputs]]
 === Build Configuration Inputs
 
 The following elements determine whether a Configuration Cache entry is valid:
@@ -125,7 +173,7 @@ The following elements determine whether a Configuration Cache entry is valid:
 ** `GRADLE_USER_HOME`
 ** Gradle Daemon JVM
 2. Init scripts
-3. `buildSrc` and included build logic build contents (build scripts, sources, and intermediate build outputs)
+3. Contents of `buildSrc` and included build logic builds (build scripts, sources, and intermediate build outputs)
 4. Build and Settings scripts, including included scripts (`apply from: foo.gradle`)
 5. Gradle configuration files (Version Catalogs, dependency verification files, dependency lock files, `gradle.properties` files)
 6. Contents of files read at configuration time
@@ -134,24 +182,174 @@ The following elements determine whether a Configuration Cache entry is valid:
 9. System properties used during the configuration phase
 10. Environment variables used during the configuration phase
 
+[[config_cache:intro:serialization]]
 === Serialization
 
-Gradle uses an optimized serialization mechanism to store Configuration Cache entries.
-It automatically serializes object graphs containing simple state or supported types.
+Serialization is the mechanism that makes the Configuration Cache possible.
+When Gradle stores a cache entry, it walks the configured task graph and writes a binary snapshot of every task and the state reachable from it.
+When Gradle loads a cache entry, it reverses the process to reconstruct the task graph for execution.
 
-While Configuration Cache serialization doesn't rely on Java Serialization, it understands <<configuration_cache_status.adoc#config_cache:not_yet_implemented:java_serialization, some of its features>>.
-This can be used to customize serialization behavior, but incurs a performance penalty and should be avoided.
+==== What gets serialized
+
+A Configuration Cache entry contains:
+
+- The set of tasks scheduled to run, in dependency order.
+- Each task instance's complete state: every instance field is serialized, including private fields and fields that are not annotated as `@Input`, `@OutputFile`, or `@Internal`.
+- The graph of objects reachable through those fields (file collections, providers, nested beans, dependency results, build service references).
+
+Anything *not* reachable from a scheduled task is excluded.
+Some types that are tied to the Gradle build model cannot be serialized by the Configuration Cache (`Project`, `Gradle`, `Settings`, `ClassLoader`, `Thread`, and others enumerated in <<configuration_cache_requirements.adoc#config_cache:requirements, the requirements>>).
+References to these types are rejected with a Configuration Cache problem at store time, before they can cause a runtime failure on a later load.
+
+Because every reachable field is captured, sensitive values held in task state (such as credentials, tokens, and API keys) also land in the cache entry.
+Gradle encrypts cache entries on disk to mitigate the risk of accidental exposure.
+See <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Credentials and Secrets>> for details.
+
+The serialized task graph is stored alongside a separate **fingerprint**: the recorded list of configuration inputs the build observed (see <<config_cache:intro:build_configuration_inputs, Build Configuration Inputs>>).
+The two are distinct: the entry holds the *result* of configuration, the fingerprint holds the *evidence* that the result is still valid.
+Loading an entry on a hit uses both: Gradle replays the fingerprint to confirm validity, then deserializes the entry to reconstruct the task graph.
+
+image::configuration-cache-7.png[]
+
+==== How Gradle serializes task state
+
+Gradle serializes all scheduled task instances and the object graph reachable from them.
+By default, serialization walks each task's fields using reflection and recursively serializes each one.
+Most plugin-defined task and extension types are handled this way without any extra work from the author.
+
+Some types are subject to more specific handling:
+
+- **Providers and Properties** — the Configuration Cache attempts to pre-compute and simplify provider chains it discovers while walking the task graph.
+Some providers have their value computed at store time and the computed value replayed at load time, so those providers do not re-evaluate their original sources during execution.
+See the link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider javadocs] for more details on the provider model.
+- **Configurations** — `Configuration` instances are resolved at store time and the result is serialized as a file collection.
+This is why dependency resolution is <<config_cache:intro:behavior_differences, eager under the Configuration Cache>>: every declared configuration must be resolved at store time so its files can be captured into the cache entry.
+At load time, the restored object is a `FileCollection`, not the original `Configuration`.
+Task authors who only need files (for classpath or other processing) should <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, declare their task fields as `FileCollection`>> rather than `Configuration`.
+
+Gradle handles many standard Java and Gradle-specific types (collections, files, file collections, dependency results, build services, lambdas, and more) in a customized fashion.
+See <<configuration_cache_requirements.adoc#config_cache:requirements:shared_objects, Sharing Mutable Objects>> for details on how this affects object identity.
+Types that cannot be safely serialized (`ClassLoader`, `Thread`, and others) are rejected at store time rather than producing a failure on later load.
+
+Gradle does not use Java Serialization, but it understands <<configuration_cache_status.adoc#config_cache:not_yet_implemented:java_serialization, a subset of its features>> for classes that opt in via `Externalizable` or `writeObject` / `readObject`.
+Using those features is supported but incurs a performance penalty and should be avoided in new code.
+
+==== Task isolation through serialization
+
+Serialization gives each task its **own** deserialized copy of the state it references.
+Two tasks that, before serialization, both held a reference to the same `ArrayList` will end up holding independent (but equal) lists after the cache is loaded.
+This isolation is what makes intra-project parallel task execution safe: tasks cannot leak mutable state to each other through a shared reference.
+
+image::configuration-cache-8.png[]
+
+Reference equality *is* preserved for instances of user-defined classes, but *is not* preserved for `String`, `File`, or many `java.util.Collection` types.
+<<configuration_cache_requirements.adoc#config_cache:requirements:shared_objects, Sharing Mutable Objects>> walks through the implications with a runnable example.
+
+[IMPORTANT]
+====
+After deserialization, each task operates on its own isolated copy of the object graph.
+If two tasks shared the same `ArrayList` at configuration time, they each get an independent copy at execution time.
+When task A adds an element to its list during execution, task B will *not* see the change — its copy is a separate object.
+
+This is a common source of subtle bugs: code that worked without the Configuration Cache (where both tasks referenced the same in-memory list) silently breaks when the cache isolates them.
+To share mutable state across tasks, use a <<build_services#build_services, Build Service>>.
+====
+
+==== Detecting configuration inputs
+
+Throughout the configuration phase, Gradle records the build's <<config_cache:intro:build_configuration_inputs, configuration inputs>>: every environment variable, system property, file read, and file-system check the build performs during configuration.
+To capture those reads without requiring plugins to declare them, Gradle uses a Java agent and rewrites the bytecode of build-script and plugin classes at load time.
+<<configuration_cache_requirements.adoc#config_cache:requirements:bytecode_modifications_and_isolation, Bytecode Modifications and Java Agent>> describes the implications and the Worker API escape hatch for libraries that can't tolerate rewriting.
 
 [[config_cache:intro:performance_improvements]]
 == Performance Improvements
 
-Beyond skipping the configuration phase, the Configuration Cache enhances performance in the following ways:
-
-- *Parallel Task Execution*: When parallel execution is enabled, even tasks within the same project can be run in parallel, subject to dependency constraints.
-- *Cached Dependency Resolution*: Dependency resolution results are stored and reused.
+Beyond skipping the configuration phase on a cache hit, the Configuration Cache enables two performance optimizations that are not available without it.
 
 [[config_cache:in_action]]
 image::configuration-cache/running-help.gif[]
+
+=== Parallel Task Execution
+
+When the Configuration Cache is enabled, tasks *within the same project* can run in parallel, subject to their declared input/output dependencies.
+Without the Configuration Cache, intra-project parallelism is constrained because tasks within a project share access to the `Project` instance and contend on project-level locks.
+The Configuration Cache eliminates this contention by giving each task an isolated, deserialized copy of its state (see <<config_cache:intro:serialization, Serialization>>), so tasks no longer need to acquire project-level locks at execution time.
+
+This complements Gradle's existing `--parallel` flag, which executes tasks across *different* projects in parallel.
+With the Configuration Cache, parallelism applies *within* a single project as well.
+
+IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially should properly wire task inputs and outputs to enforce task order or use <<build_services.adoc#sec:accessing_the_build_service_concurrently, shared build services>> to coordinate access to shared resources.
+
+=== Cached Dependency Resolution
+
+Dependency resolution is one of the more expensive parts of a build's configuration phase.
+Gradle walks the dependency graph, resolves versions, and computes the resulting classpaths.
+
+When the Configuration Cache is enabled, the *resolved* dependency state becomes part of the cache entry: the resolved configurations, their files, and the artifact metadata are all serialized and replayed on a cache hit.
+On a hit, dependency resolution does not re-run; tasks see the same resolved classpaths that the previous build computed.
+On a miss, resolution runs as part of the configuration phase, and the result is stored alongside the rest of the entry.
+
+Resolution under the Configuration Cache covers every resolvable configuration used as a task input, regardless of whether the tasks needing it run.
+See <<config_cache:intro:behavior_differences, Behavioral Differences>> for the implications.
+
+[[config_cache:intro:behavior_differences]]
+== Behavioral Differences
+
+Enabling the Configuration Cache changes how every build executes — task isolation, eager dependency resolution, and the skipped configuration phase affect every build, whether it hits or misses the cache.
+For well-structured builds these differences are invisible, but builds that rely on patterns the cache doesn't support will see new failures.
+The sections below describe the most important differences to be aware of.
+
+=== Dependency resolution is eager
+
+Without the Configuration Cache, dependency resolution is lazy: a configuration is resolved only when a task that needs its files actually runs.
+A build containing a configuration that cannot be resolved due to an invalid dependency or a misconfigured repository may still succeed if no scheduled task ever resolves that configuration.
+
+With the Configuration Cache enabled, the resolved state of every declared configuration must be captured before execution begins so that it can be serialized into the cache entry.
+Resolution happens during serialization, at the end of the configuration phase, regardless of whether the tasks that need a given configuration are scheduled to run.
+
+This includes tasks that would otherwise be skipped at execution time.
+For example, the Java plugin's compile task is skipped when its source set is empty; without the Configuration Cache the task's compile classpath is never resolved (so a configuration with an invalid dependency may go undetected).
+With the Configuration Cache enabled, resolution still happens at store time because the resolved state must be captured into the cache entry.
+
+WARNING: Builds with latent dependency-declaration errors (such as an invalid coordinate or a misconfigured repository in an otherwise-unused configuration) may pass without the Configuration Cache and fail with it enabled.
+
+Although dependency resolution by the Configuration Cache happens at what is considered configuration time, this doesn't mean build logic should stop following the general rule of resolving configurations only at execution time.
+Gradle can apply optimizations to dependency resolution performed by the Configuration Cache that aren't possible for general build logic, so a well-formed build is still likely to perform better.
+
+=== Configuration-time problems surface earlier
+
+More generally, the Configuration Cache promotes a number of latent configuration-time problems from "silent" to "failure."
+Build scripts that rely on patterns the Configuration Cache rejects (such as referencing the `Project` object at execution time, capturing live JVM state in a task field, registering build listeners, and others) will fail at store time, even if the offending code path is rarely exercised at runtime.
+The full set of rules build logic must follow under the Configuration Cache is enumerated in <<configuration_cache_requirements.adoc#config_cache:requirements, the requirements>>.
+
+[[config_cache:security]]
+== Security Considerations
+
+The Configuration Cache serializes the configured state of every scheduled task into a cache entry stored under `.gradle/configuration-cache` in the project directory.
+This includes any values reachable from task fields — which may contain credentials, tokens, API keys, or other sensitive data if they are held in task state.
+
+Gradle encrypts all Configuration Cache data on disk, both the serialized task graph and the fingerprint, using a machine-specific key stored in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
+However, anything with access to both the cache directory and the encryption key can read the entries.
+
+System properties and environment variables referenced during the configuration phase are recorded in the fingerprint.
+If credentials are passed through these mechanisms, their values become part of the stored data.
+Use lazy wiring, like link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[`providers.environmentVariable()`], to feed sensitive data to tasks and only obtain the values at execution time.
+
+To reduce the risk of exposing sensitive values through the Configuration Cache:
+
+- **Store credentials in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties`.**
+The content of this file is *not* serialized into the cache entry — only the file's fingerprint is recorded.
+This is the recommended approach for repository credentials and other secrets.
+- **Use the Gradle credentials API for repository authentication.**
+Declaring credential types via the link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[repository credentials API] lets Gradle look up values from Gradle properties at build time, keeping them out of your build scripts.
+See <<supported_repository_protocols.adoc#sec:handling-credentials, Handling credentials>> for details.
+- **Mark non-essential fields as `transient`.**
+Java's `transient` keyword excludes a field from Configuration Cache serialization.
+Use this for fields that hold runtime state not needed after deserialization.
+- **Restrict access to the `.gradle/configuration-cache` directory** and the encryption key in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, especially in shared or CI environments.
+- **Use the `GRADLE_ENCRYPTION_KEY` environment variable** in environments where the default keystore location is undesirable, such as when `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` is shared across machines.
+
+For a full discussion of encryption key management, see <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Credentials and Secrets>>.
 
 [[config_cache:ide]]
 == IDE Support
@@ -166,15 +364,15 @@ If you prefer to enable it only for your local environment, you can configure it
 NOTE: Syncing a project in an IDE does not benefit from the Configuration Cache. Only running tasks through the IDE will leverage the cache.
 
 [[config_cache:ide:intellij]]
-=== IntelliJ based IDEs
+=== IntelliJ-based IDEs
 
-In IntelliJ IDEA or Android Studio this can be done in two ways, either globally or per run configuration.
+In IntelliJ IDEA or Android Studio, this can be done in two ways, either globally or per run configuration.
 
 To enable it for the whole build, go to `Run > Edit configurations...`.
 This will open the IntelliJ IDEA or Android Studio dialog to configure Run/Debug configurations.
 Select `Templates > Gradle` and add the necessary system properties to the `VM options` field.
 
-For example to enable the Configuration Cache, turning problems into warnings, add the following:
+For example, to enable the Configuration Cache, turning problems into warnings, add the following:
 
 [source,text]
 ----
@@ -194,7 +392,7 @@ This is a good way to enable the Configuration Cache only for the IDE.
 ====
 
 [[config_cache:ide:eclipse]]
-=== Eclipse based IDEs
+=== Eclipse-based IDEs
 
 In Eclipse-based IDEs, you can enable the Configuration Cache through Buildship, either globally or per run configuration.
 

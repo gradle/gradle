@@ -18,7 +18,6 @@ package org.gradle.internal.flow.services
 
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.flow.FlowParameters
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -63,7 +62,7 @@ class FlowScheduler(
         scheduled.forEach { flowAction ->
             instantiator
                 .newInstance(flowAction.type)
-                .execute(flowAction.parameters ?: FlowParameters.None.INSTANCE)
+                .execute(flowAction.parameters)
         }
     }
 

@@ -206,6 +206,10 @@ abstract class AbstractIntegrationSpec extends Specification implements CommonTe
         getSettingsFile(KOTLIN)
     }
 
+    TestFile settingsKotlinFile(@Language(value = "kotlin") String script) {
+        settingsKotlinFile << script
+    }
+
     protected TestFile getSettingsFile(GradleDsl dsl) {
         testDirectory.file(dsl.fileNameFor("settings"))
     }

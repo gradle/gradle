@@ -91,6 +91,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheFineGrainedPropertyTracking(),
         new IsolatedProjectsOption(),
         new IsolatedProjectsDiagnosticsOption(),
+        new IsolatedProjectsDangerouslyIgnoreProblemsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption(),
@@ -701,6 +702,19 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setIsolatedProjectsDiagnostics(value);
+        }
+    }
+
+    public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems";
+
+        public IsolatedProjectsDangerouslyIgnoreProblemsOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjectsDangerouslyIgnoreProblems(value);
         }
     }
 

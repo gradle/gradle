@@ -21,8 +21,8 @@ import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.Matcher
 
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.Matchers.greaterThanOrEqualTo
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.greaterThanOrEqualTo
 import static org.junit.Assert.assertTrue
 
 /**
@@ -201,6 +201,12 @@ abstract class ConfigurationCacheReportFixture {
                 case "SystemProperty" -> trace['name']
                 case "Task" -> trace['path']
                 case "Bean" -> trace['type']
+                case "CapturedArguments" -> switch (trace['subkind']) {
+                    case "lambdaBody" -> "captured state from method ${trace['class']}.${trace['method']}"
+                    case "boundReceiver" -> "bound receiver of method ${trace['class']}.${trace['method']}"
+                    default -> throw new IllegalArgumentException("Unexpected CapturedArguments subkind '${trace['subkind']}'")
+                }
+                case "SerializedLambda" -> "lambda of type ${trace['type']} returning ${trace['returns']}"
                 case "Project" -> "Project '${trace['path']}'"
                 case "BuildLogic" -> trace['location'].toString().capitalize() // Build file 'build.gradle'
                 case "BuildLogicClass" -> trace['type']

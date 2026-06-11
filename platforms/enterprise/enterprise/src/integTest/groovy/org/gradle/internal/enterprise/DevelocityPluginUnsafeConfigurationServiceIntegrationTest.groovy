@@ -20,7 +20,7 @@ class DevelocityPluginUnsafeConfigurationServiceIntegrationTest extends Abstract
     @Override
     String runIgnoringInputs(String code) {
         """
-            def unsafeService = (gradle.extensions.serviceRef.get()._requiredServices.unsafeConfigurationService)
+            def unsafeService = (${plugin.serviceOfGradleEnterprisePluginServiceRef()}.get()._requiredServices.unsafeConfigurationService)
             unsafeService.withConfigurationInputTrackingDisabled {
                 $code
             }

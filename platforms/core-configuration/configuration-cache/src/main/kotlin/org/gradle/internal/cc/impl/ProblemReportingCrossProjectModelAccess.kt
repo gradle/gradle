@@ -109,9 +109,8 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun accessFromState(referrer: ProjectIdentity, projectState: ProjectState): ProjectInternal {
-        return projectState.fromMutableState { project ->
-            access(referrer, project)
-        }
+        // This is safe without checking the lock as the mutable model is immediately wrapped in a thread-safe wrapper.
+        return access(referrer, projectState.mutableModel)
     }
 
     override fun getChildProjects(referrer: ProjectIdentity, target: ProjectState): MutableMap<String, Project> {
@@ -133,7 +132,7 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun gradleInstanceForProject(referrer: ProjectIdentity, gradle: GradleInternal): GradleInternal {
-        return CrossProjectConfigurationReportingGradle(gradle, referrer)
+        return CrossProjectConfigurationReportingGradle(gradle, referrer, ipProblems)
     }
 
     override fun taskDependencyUsageTracker(referrer: ProjectIdentity): TaskDependencyUsageTracker {

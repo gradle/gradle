@@ -22,7 +22,11 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
-@TargetGradleVersion(">=4.3")
+// 8.8 is excluded: it shipped the new client-side prompt protocol (PromptOutputEvent/UserResponse) but
+// still had the daemon greedily consume the client's stdin, so the forwarded answer is swallowed as raw
+// stdin before the prompt response is read and askYesNoQuestion returns null. The greedy consumption was
+// removed in 8.9 (commit 66832d04eff), and 8.7 and earlier use the older protocol that is unaffected.
+@TargetGradleVersion(">=4.3 !8.8")
 @Timeout(120)
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
 

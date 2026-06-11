@@ -17,12 +17,14 @@
 package org.gradle.api.internal.file;
 
 
+import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -48,6 +50,11 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
      * <p>The implementation should call the most specific methods on {@link FileCollectionStructureVisitor} that it is able to.</p>
      */
     void visitStructure(FileCollectionStructureVisitor visitor);
+
+    /**
+     * Returns this collection as a set of {@link DirectoryTree} instance. These are used to map to Ant types.
+     */
+    Collection<DirectoryTree> getAsDirectoryTrees();
 
     /**
      * Returns the display name of this file collection. Used in log and error messages.

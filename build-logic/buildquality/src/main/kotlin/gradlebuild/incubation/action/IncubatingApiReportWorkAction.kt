@@ -39,9 +39,15 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import gradlebuild.basics.util.KotlinSourceParser
 import org.gradle.workers.WorkAction
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import java.io.File
@@ -125,29 +131,15 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
             versionToIncubating.toSortedMap().forEach { (version, incubatingDescriptions) ->
                 val releaseDate = versions[version] ?: "unreleased"
                 incubatingDescriptions.sortedBy { it.name }.forEach { incubating ->
-                    writer.println("$version;$releaseDate;${incubating.name};${incubating.sourceRelativePath};${incubating.lineNumber}")
+                    writer.println("$version;$releaseDate;${incubating.kind};${incubating.name};${incubating.sourceRelativePath};${incubating.lineNumber}")
                 }
             }
         }
     }
 
     private
-    fun versionsDates(): Map<Version, String> {
-        val versions = mutableMapOf<Version, String>()
-        var version: String? = null
-        parameters.releasedVersionsFile.get().asFile.forEachLine(Charsets.UTF_8) {
-            val line = it.trim()
-            if (line.startsWith("\"version\"")) {
-                version = line.substring(line.indexOf("\"", 11) + 1, line.lastIndexOf("\""))
-            }
-            if (line.startsWith("\"buildTime\"")) {
-                var date = line.substring(line.indexOf("\"", 12) + 1, line.lastIndexOf("\""))
-                date = date.substring(0, 4) + "-" + date.substring(4, 6) + "-" + date.substring(6, 8)
-                versions[version!!] = date
-            }
-        }
-        return versions
-    }
+    fun versionsDates(): Map<Version, String> =
+        ReleasedVersions.versionDates(parameters.releasedVersionsFile.get().asFile)
 
 
     private
@@ -160,7 +152,7 @@ typealias Version = String
 
 
 private
-data class IncubatingDescription(val name: String, val sourceRelativePath: Path, val lineNumber: Int)
+data class IncubatingDescription(val name: String, val kind: IncubatingApiKind, val sourceRelativePath: Path, val lineNumber: Int)
 
 
 private
@@ -239,9 +231,21 @@ class JavaVersionsToIncubatingCollector(srcDir: File, val repositoryRoot: Path) 
         val nodeName = nodeName(node, unit, file)
         return IncubatingDescription(
             name = nodeName,
+            kind = kindOf(node),
             sourceRelativePath = repositoryRoot.relativize(file.toPath()),
             lineNumber = node.begin.map { it.line }.orElse(-1)
         )
+    }
+
+    private
+    fun kindOf(node: Node): IncubatingApiKind = when (node) {
+        is EnumDeclaration -> IncubatingApiKind.ENUM
+        is AnnotationDeclaration -> IncubatingApiKind.ANNOTATION
+        is ClassOrInterfaceDeclaration -> if (node.isInterface) IncubatingApiKind.INTERFACE else IncubatingApiKind.CLASS
+        is MethodDeclaration -> IncubatingApiKind.METHOD
+        is FieldDeclaration -> IncubatingApiKind.FIELD
+        is PackageDeclaration -> IncubatingApiKind.PACKAGE
+        else -> IncubatingApiKind.OTHER
     }
 
     private
@@ -312,9 +316,24 @@ class KotlinVersionsToIncubatingCollector(val repositoryRoot: Path) : VersionsTo
         }
         return IncubatingDescription(
             name = incubating.replace(NEWLINE_REGEX, " "),
+            kind = kindOf(declaration),
             sourceRelativePath = repositoryRoot.relativize(sourceFile.toPath()),
             lineNumber = getLineNumber(declaration, ktFile)
         )
+    }
+
+    private
+    fun kindOf(declaration: KtNamedDeclaration): IncubatingApiKind = when {
+        declaration is KtClass && declaration.isInterface() -> IncubatingApiKind.INTERFACE
+        declaration is KtClass && declaration.isEnum() -> IncubatingApiKind.ENUM
+        declaration is KtClass && declaration.isAnnotation() -> IncubatingApiKind.ANNOTATION
+        declaration is KtClass -> IncubatingApiKind.CLASS
+        declaration is KtObjectDeclaration -> IncubatingApiKind.CLASS
+        declaration is KtConstructor<*> -> IncubatingApiKind.METHOD
+        declaration is KtNamedFunction -> IncubatingApiKind.METHOD
+        declaration is KtProperty -> IncubatingApiKind.PROPERTY
+        declaration is KtParameter -> IncubatingApiKind.PROPERTY
+        else -> IncubatingApiKind.OTHER
     }
 
     private

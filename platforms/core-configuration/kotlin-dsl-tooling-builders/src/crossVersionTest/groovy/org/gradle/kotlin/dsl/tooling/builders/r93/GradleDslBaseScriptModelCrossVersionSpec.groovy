@@ -87,8 +87,14 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         kotlinModel.compileClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
         kotlinModel.compileClassPath.find { it.name.contains("kotlin-stdlib-") && it.name.endsWith(".jar") }
         kotlinModel.compileClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
-        // This spec uses :distributions-jvm which does not embed the public-API ABI jar
-        kotlinModel.compileClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
+
+        and: "from 9.7 it compiles against the embedded ABI jar, before against the generated API jar"
+        if (targetEmbedsPublicApiAbiJar()) {
+            assert kotlinModel.compileClassPath.find { it.name.contains("gradle-public-api-legacy-") && it.name.endsWith(".jar") }
+            assert !kotlinModel.compileClassPath.find { it.name ==~ /gradle-api-\d.*\.jar/ }
+        } else {
+            assert kotlinModel.compileClassPath.find { it.name ==~ /gradle-api-\d.*\.jar/ }
+        }
 
         and: "Kotlin DSL script implicit imports"
         kotlinModel.implicitImports.find {it.equals("org.gradle.api.Action")}
@@ -235,5 +241,9 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
     private assumeApiSupportedOnVersion(ApiType apiType) {
         assumeTrue("Fetch requires Tooling API >= 9.3.0", apiType == ApiType.GET_MODEL
             || apiType == ApiType.FETCH && toolingApi.toolingApiVersion >= GradleVersion.version("9.3.0"))
+    }
+
+    private boolean targetEmbedsPublicApiAbiJar() {
+        GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("9.7")
     }
 }

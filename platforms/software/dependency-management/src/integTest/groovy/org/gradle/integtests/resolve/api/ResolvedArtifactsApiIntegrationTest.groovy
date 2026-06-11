@@ -549,12 +549,12 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var1' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant var2 declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var2' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
@@ -1095,10 +1095,10 @@ Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:default' variant v1:
+  - Configuration ':a:default' variant 'v1':
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
-  - Configuration ':a:default' variant v2:
+  - Configuration ':a:default' variant 'v2':
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')""")
     }

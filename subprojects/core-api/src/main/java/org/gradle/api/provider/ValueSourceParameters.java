@@ -16,7 +16,7 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.parameters.NoneParameters;
 
 /**
  * Marker interface for parameter objects to {@link ValueSource}s.
@@ -38,15 +38,7 @@ public interface ValueSourceParameters {
      *
      * @since 6.1
      */
-    final class None implements ValueSourceParameters {
-        /**
-         * Singleton instance of {@link None}.
-         *
-         * @since 9.6.0
-         */
-        @Incubating
-        public static final None INSTANCE = new None();
-
+    final class None extends NoneParameters implements ValueSourceParameters {
         private None() {
         }
     }

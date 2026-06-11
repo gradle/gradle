@@ -320,9 +320,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         }
 
         private <T extends JvmTestToolchainParameters> JvmTestToolchain<T> create(Class<? extends JvmTestToolchain<T>> type) {
-            IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class, JvmTestToolchainParameters.None.INSTANCE);
-            Class<T> parametersType = isolationScheme.parameterTypeForOrNull(type);
-            T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
+            IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class);
+            Class<T> parametersType = isolationScheme.parameterTypeFor(type);
+            T parameters = isolationScheme.instantiateParameters(parametersType, objectFactory::newInstance);
             ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.singleton(DependencyFactory.class));
             return new FrameworkCachingJvmTestToolchain<>(instantiatorFactory.decorate(lookup).newInstance(type));
         }
