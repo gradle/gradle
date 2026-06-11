@@ -144,6 +144,16 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
 
     private fun getIdentity(component: ResolvedComponentResult): Pair<String, ModuleAlias?> {
         val id = component.id
+        // A project substituted from a third-party included build is an external module as far as
+        // the distribution is concerned: substitution preserves the requested module coordinates
+        // on the component, so name + alias come from them, exactly as if the jar had been
+        // resolved from a repository. (Projects of this build and of build-logic — e.g.
+        // kotlin-dsl-shared-runtime — are gradle modules and keep the gradle- naming.)
+        if (id is ProjectComponentIdentifier && !id.isGradleBuildProject) {
+            val coords = component.moduleVersion
+                ?: throw AssertionError("No module coordinates for substituted project $id")
+            return coords.name to ModuleAlias(coords.group, coords.name, coords.version)
+        }
         val moduleName = id.distributionModuleNameOrNull()
             ?: throw AssertionError("Unknown component type $id")
         val alias = (id as? ModuleComponentIdentifier)?.let { ModuleAlias(it.group, it.module, it.version) }
@@ -275,9 +285,29 @@ abstract class GenerateSingleModuleProperties : DefaultTask() {
 internal fun ComponentIdentifier.distributionModuleNameOrNull(): String? =
     when (this) {
         is ModuleComponentIdentifier -> module
-        is ProjectComponentIdentifier -> "gradle-$projectName"
+        // Projects of this build (and of build-logic) are gradle modules; a project substituted
+        // from a third-party included build is an external module whose project name matches its
+        // module name (substitution preserves the full coordinates only on the resolved
+        // component, not on the bare identifier).
+        is ProjectComponentIdentifier -> if (isGradleBuildProject) "gradle-$projectName" else projectName
         else -> null
     }
+
+/**
+ * Whether this project component is first-party to the Gradle build — i.e. ships in the
+ * distribution as a `gradle-` module — as opposed to a component substituted from a third-party
+ * included build, which keeps its external module identity.
+ *
+ * The `:build-logic` arm exists for `kotlin-dsl-shared-runtime`: it is a project of the
+ * build-logic included build that the main build consumes by coordinates
+ * (`org.gradle:kotlin-dsl-shared-runtime`) and packages as `gradle-kotlin-dsl-shared-runtime`.
+ * Treating it as external would rename its module-properties file away from its jar and make the
+ * license gate demand POM license metadata it cannot have. The other build-logic builds
+ * (`:build-logic-commons`, `:build-logic-settings`) only contribute build plugins and never
+ * appear in the distribution's resolved graphs, so the exact match is sufficient.
+ */
+internal val ProjectComponentIdentifier.isGradleBuildProject: Boolean
+    get() = build.buildPath == ":" || build.buildPath == ":build-logic"
 
 
 fun generateProperties(

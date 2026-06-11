@@ -23,6 +23,12 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
+// Local-only (shadow mode): source the org.xdcl libraries straight from the sibling checkout —
+// no publish round-trip, no SNAPSHOT staleness. Substitution matches the
+// distribution.versions.toml coordinates by group:name and is the ONLY source of org.xdcl
+// artifacts, so a substitution gap fails resolution loudly instead of picking up stale jars.
+includeBuild("../xdcl-scripting-language")
+
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
@@ -137,6 +143,7 @@ val core = platform("core") {
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
+        subproject("xdcl-integ-tests")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
