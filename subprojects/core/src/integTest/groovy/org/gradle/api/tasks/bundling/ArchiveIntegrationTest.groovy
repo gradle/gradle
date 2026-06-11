@@ -19,8 +19,8 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture

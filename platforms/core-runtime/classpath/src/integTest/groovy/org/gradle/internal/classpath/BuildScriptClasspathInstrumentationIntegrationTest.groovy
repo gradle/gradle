@@ -22,8 +22,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestFile

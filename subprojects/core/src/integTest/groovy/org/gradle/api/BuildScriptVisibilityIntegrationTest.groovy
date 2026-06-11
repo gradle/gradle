@@ -17,8 +17,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
