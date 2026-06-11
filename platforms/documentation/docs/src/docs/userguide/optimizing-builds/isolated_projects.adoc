@@ -713,22 +713,25 @@ Applying a convention plugin from a build registered via `pluginManagement.inclu
 [[sec:lifecycle_callbacks_with_included_plugin_builds]]
 ===== Applying convention plugins from an included build
 
-There is a current asymmetry to be aware of when build logic is provided by a build registered via `pluginManagement.includeBuild(...)`:
+Plugins from a build registered via `pluginManagement.includeBuild(...)` are resolved lazily so they are built only when explicitly requested in a `plugins {}` block.
+When Gradle sees `plugins { id("my.convention") }`, it builds `my.convention` from the included build and exports the resulting classpath into the surrounding script's classloader scope.
 
-* A convention plugin from such a build *is* usable from a `plugins {}` block in `settings.gradle(.kts)` or in any project script.
-* The same plugin id *is not* usable directly from inside a `gradle.lifecycle.beforeProject` (or `afterProject`) callback registered in the settings script.
-The callback fails with `Plugin with id '...' not found.`
+There is a limitation however:
 
-The reason is that plugins from `pluginManagement.includeBuild` are resolved lazily: only a `plugins {}` block triggers resolution and exports the resulting classpath into the surrounding script's classloader scope.
-A `gradle.lifecycle.beforeProject { apply(plugin = "...") }` callback does not trigger resolution, so the plugin is invisible to it.
-By contrast, `buildSrc/` is built eagerly and its classpath is automatically exported to all projects, so this limitation does not apply there.
+- Using a `plugins {}` block in `settings.gradle(.kts)` or any project script *works*, because the block itself triggers the build of the plugin.
+- Using the plugin from inside a `gradle.lifecycle.beforeProject` (or `afterProject`) callback registered in the settings script *does not work*.
+The callback only registers an action; it doesn't request anything.
+By the time the callback runs at project configuration, nothing has asked Gradle to build the plugin, so `apply(plugin = "...")` fails with `Plugin with id '...' not found`.
 
-There are two patterns that make this work today.
+By contrast, `buildSrc/` is built eagerly and its classpath is automatically exported to all projects.
+The limitation above does not apply there.
+
+Two workarounds are available.
 
 [[sec:lifecycle_via_settings_convention_plugin]]
 ====== Recommended: register `beforeProject` from a settings convention plugin
 
-Move the `gradle.lifecycle.beforeProject` registration into a *settings* convention plugin published from your included build, then apply that settings plugin from `settings.gradle(.kts)`.
+Move the `gradle.lifecycle.beforeProject` registration into a <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins,settings convention plugin>> published from your included build, then apply that settings plugin from `settings.gradle(.kts)`.
 Inside the settings plugin, the included build's classpath is naturally available, and the project plugin it applies is visible to all projects via the standard plugin-resolution flow.
 
 [source,kotlin]

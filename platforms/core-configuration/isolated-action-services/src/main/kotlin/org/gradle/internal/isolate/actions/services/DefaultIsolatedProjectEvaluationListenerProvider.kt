@@ -250,8 +250,9 @@ fun extractMissingPluginId(message: String): String? =
 private
 fun lifecyclePluginHint(pluginId: String): String = "\n" +
     "If this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
-    "declare it in the settings `plugins {}` block (e.g. `plugins { id(\"$pluginId\") apply false }`) " +
-    "to make it available to `gradle.lifecycle` callbacks."
+    "either move the `gradle.lifecycle.beforeProject` registration into a settings convention plugin " +
+    "published from that build (recommended), or declare the plugin in the settings `plugins {}` block " +
+    "(e.g. `plugins { id(\"$pluginId\") apply false }`) to make it available to `gradle.lifecycle` callbacks."
 
 
 private

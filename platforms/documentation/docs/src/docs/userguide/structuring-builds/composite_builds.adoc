@@ -459,7 +459,7 @@ include::sample[dir="snippets/structuring-builds/composite-builds-basic/kotlin",
 include::sample[dir="snippets/structuring-builds/composite-builds-basic/groovy",files="my-app/app/build.gradle[tags=plugin_dependencies]"]
 ====
 
-[[including_settings_plugin_builds]]
+i did[[including_settings_plugin_builds]]
 === Plugins for Settings Files
 
 A special case of included builds are builds that define plugins that need to be applied in the *settings file itself*.
