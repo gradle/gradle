@@ -1,5 +1,7 @@
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
+import gradlebuild.basics.releasedVersionsFile
+import gradlebuild.basics.repoRoot
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
 plugins {
@@ -18,6 +20,8 @@ val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("all
     htmlReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.html")
     csvReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.csv")
     currentCommit = project.buildCommitId
+    versionFile = repoRoot().file("version.txt")
+    releasedVersionsFile = releasedVersionsFile()
 }
 
 tasks.register<Zip>("allIncubationReportsZip") {
