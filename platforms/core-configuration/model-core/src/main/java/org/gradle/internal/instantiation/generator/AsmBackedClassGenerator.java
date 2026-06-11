@@ -16,6 +16,7 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.primitives.Primitives;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
@@ -455,6 +457,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type SERVICE_LOOKUP_TYPE = getType(ServiceLookup.class);
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
+        private static final Type PROVIDER_TYPE = getType(Provider.class);
+        private static final String PROVIDER_GET_OR_ELSE_DESCRIPTOR = "(Ljava/lang/Object;)Ljava/lang/Object;";
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
         private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
 
@@ -1312,6 +1316,47 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
+        public void applyEagerShimGetter(PropertyMetadata property, Method getter) {
+            // GENERATE public <legacyType> <getter>() { return this.<getter>AsProvider().getOrElse(<zero>); }
+            // The eager (pre-upgrade) accessor cannot read the Provider-typed backing field directly, so it delegates
+            // to the upgraded Provider getter (which lazily attaches the field) and unwraps via getOrElse. The default
+            // value is only used when the property has neither an explicit value nor a convention.
+            Class<?> legacyClass = getter.getReturnType();
+            Type returnType = getType(legacyClass);
+            String providerGetterDescriptor = getMethodDescriptor(getType(property.getType()));
+            addGetter(getter.getName(), returnType, getMethodDescriptor(returnType), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                // this.<getter>() -> Provider (the upgraded getter, which lazily attaches the backing field)
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, getter.getName(), providerGetterDescriptor);
+                // push the boxed default value
+                if (legacyClass.isPrimitive()) {
+                    if (legacyClass == long.class) {
+                        _LDC(0L);
+                    } else if (legacyClass == float.class) {
+                        _LDC(0.0f);
+                    } else if (legacyClass == double.class) {
+                        _LDC(0.0d);
+                    } else {
+                        _ICONST_0(); // int, short, byte, char, boolean
+                    }
+                    _AUTOBOX(legacyClass, returnType);
+                } else {
+                    _ACONST_NULL();
+                }
+                // Provider.getOrElse(Object) : Object
+                _INVOKEINTERFACE(PROVIDER_TYPE, "getOrElse", PROVIDER_GET_OR_ELSE_DESCRIPTOR);
+                if (legacyClass.isPrimitive()) {
+                    _CHECKCAST(getType(Primitives.wrap(legacyClass)));
+                    _UNBOX(returnType);
+                    _IRETURN_OF(returnType);
+                } else {
+                    _CHECKCAST(returnType);
+                    _ARETURN();
+                }
+            }});
+        }
+
+        @Override
         public void applyManagedStateToSetter(PropertyMetadata property, Method setter) {
             addSetterForProperty(property, setter);
         }
@@ -2004,6 +2049,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole) {
+        }
+
+        @Override
+        public void applyEagerShimGetter(PropertyMetadata property, Method getter) {
         }
 
         @Override

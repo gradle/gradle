@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
+import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
@@ -74,6 +75,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -455,6 +457,35 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return ConfigurableFileCollection.class.isAssignableFrom(type);
     }
 
+    /**
+     * Recognises a pre-upgrade eager accessor that coexists with an upgraded scalar {@code Property<E>} getter of the
+     * same name, where the eager accessor's return type is {@code E} (or its primitive). Such a getter cannot read the
+     * Provider-typed backing field directly; it must adapt via {@link Provider#getOrElse}.
+     */
+    private static boolean isEagerShimGetter(PropertyMetadata property, MethodMetadata getter) {
+        if (!Property.class.isAssignableFrom(property.getType())) {
+            return false;
+        }
+        Class<?> elementType = scalarPropertyElementType(property.getGenericType());
+        return elementType != null && matchesWithBoxing(getter.getReturnType(), elementType);
+    }
+
+    @Nullable
+    private static Class<?> scalarPropertyElementType(Type genericType) {
+        if (genericType instanceof ParameterizedType) {
+            Type[] args = ((ParameterizedType) genericType).getActualTypeArguments();
+            if (args.length == 1 && args[0] instanceof Class) {
+                return (Class<?>) args[0];
+            }
+        }
+        return null;
+    }
+
+    private static boolean matchesWithBoxing(Class<?> candidate, Class<?> elementType) {
+        return candidate.equals(elementType)
+            || (candidate.isPrimitive() && Primitives.wrap(candidate).equals(elementType));
+    }
+
     private boolean isRoleType(PropertyMetadata property) {
         for (Class<? extends Annotation> roleAnnotation : roleHandler.getAnnotationTypes()) {
             if (property.hasAnnotation(roleAnnotation)) {
@@ -749,6 +780,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 mainGetter = metadata;
             } else if (mainGetter.getReturnType().isAssignableFrom(metadata.getReturnType())) {
                 // Prefer the most specialized type
+                mainGetter = metadata;
+            } else if (isPropertyType(metadata.getReturnType()) && !isPropertyType(mainGetter.getReturnType())) {
+                // Prefer the upgraded Provider/Property accessor over a pre-upgrade eager shim getter of an
+                // unrelated type (e.g. `int getMaxErrors()` coexisting with `Property<Integer> getMaxErrors()`).
+                // This keeps the managed backing field typed as the Provider; the eager shim is generated as an
+                // adapter in ManagedPropertiesHandler. See https://github.com/gradle/gradle/issues/24251
                 mainGetter = metadata;
             }
         }
@@ -1189,7 +1226,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.applyManagedStateToProperty(property);
                 boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
-                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
+                    if (!getter.getReturnType().isAssignableFrom(property.getType()) && isEagerShimGetter(property, getter)) {
+                        // A pre-upgrade eager accessor (e.g. `int getMaxErrors()`) whose type is incompatible with the
+                        // upgraded Provider-typed backing field. It cannot read the field directly, so generate it as an
+                        // adapter that delegates to the Provider getter via getOrElse.
+                        visitor.applyEagerShimGetter(property, getter.method);
+                    } else {
+                        visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
+                    }
                 }
             }
             if (!hasFields) {
@@ -1556,6 +1600,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyManagedStateToSetter(PropertyMetadata property, Method setter);
 
         void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
+
+        void applyEagerShimGetter(PropertyMetadata property, Method getter);
 
         void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties);
 
