@@ -25,7 +25,18 @@ import java.lang.annotation.Target;
 
 
 /**
- * Assert that this test fails when run with configuration cache enabled.
+ * Expect the test to fail or skip it when running with Configuration Cache executor.
+ * <p>
+ * Use this annotation when the intention is to fix either the test itself or the underlying feature,
+ * making it compatible with Configuration Cache. If the intention is to not support the tested feature
+ * with Configuration Cache, use {@link UnsupportedWithConfigurationCache} instead.
+ * <p>
+ * The expectation of failure essentially flips the test result.
+ * A specific failure is not verified, and we only confirm that the test is not passing.
+ * <p>
+ * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
+ * or has other undesirable effects, such as timeouts.
+ * Set {@link #skip()} into any other value apart from {@link Skip#DO_NOT_SKIP DO_NOT_SKIP} to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -36,6 +47,14 @@ public @interface ToBeFixedForConfigurationCache {
      * Set to some {@link Skip} to skip the annotated test.
      */
     Skip skip() default Skip.DO_NOT_SKIP;
+
+    String because() default "";
+
+    /**
+     * Link to the issue tracking the incompatibility addressed by this annotation.
+     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
+     */
+    String issue() default "";
 
     /**
      * Declare to which bottom spec this annotation should be applied.
@@ -48,8 +67,6 @@ public @interface ToBeFixedForConfigurationCache {
      * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
      */
     String[] iterationMatchers() default {};
-
-    String because() default "";
 
     /**
      * Reason for skipping a test with configuration cache.

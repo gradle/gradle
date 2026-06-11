@@ -14,25 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures;
 
-import org.spockframework.runtime.extension.ExtensionAnnotation
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
+/**
+ * Assert that this test fails when run with Isolated Projects enabled.
+ * <p>
+ * In case the {@link #skip()} reason is anything but {@link Skip#DO_NOT_SKIP DO_NOT_SKIP}, the test will be skipped.
+ */
 @Retention(RetentionPolicy.RUNTIME)
-@Target([ElementType.METHOD, ElementType.TYPE])
+@Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(ToBeFixedForIsolatedProjectsExtension.class)
-@interface ToBeFixedForIsolatedProjects {
+public @interface ToBeFixedForIsolatedProjects {
+
     /**
      * Set to some {@link Skip} to skip the annotated test.
      */
     Skip skip() default Skip.DO_NOT_SKIP;
 
     String because() default "";
+
+    /**
+     * Link to the issue tracking the incompatibility addressed by this annotation.
+     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
+     */
+    String issue() default "";
 
     /**
      * Reason for skipping a test with isolated projects.
@@ -43,16 +55,22 @@ import java.lang.annotation.Target
          * Do not skip this test, this is the default.
          */
         DO_NOT_SKIP {
-            @Override String getReason() { throw new UnsupportedOperationException("Must not be skipped") }
+            @Override
+            public String getReason() {
+                throw new UnsupportedOperationException("Must not be skipped");
+            }
         },
 
         /**
          * Use this reason on tests that intermittently fail with isolated projects.
          */
         FLAKY {
-            @Override String getReason() { "flaky" }
+            @Override
+            public String getReason() {
+                return "flaky";
+            }
         };
 
-        abstract String getReason();
+        public abstract String getReason();
     }
 }

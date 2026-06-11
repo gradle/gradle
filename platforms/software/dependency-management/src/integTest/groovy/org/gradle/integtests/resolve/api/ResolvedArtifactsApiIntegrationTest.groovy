@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -955,8 +954,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24640")
-    @UnsupportedWithConfigurationCache(because = "Multiple failures are currently not all reported by the configuration cache, only the first is")
+    @UnsupportedWithConfigurationCache(
+        because = "Multiple failures are currently not all reported by the configuration cache, only the first is",
+        issue = "https://github.com/gradle/gradle/issues/24640"
+    )
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
         settingsFile << """
             include 'a'
@@ -1014,8 +1015,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24640")
-    @UnsupportedWithConfigurationCache(because = "Multiple failures are currently not all reported by the configuration cache, only the first is")
+    @UnsupportedWithConfigurationCache(
+        because = "Multiple failures are currently not all reported by the configuration cache, only the first is",
+        issue = "https://github.com/gradle/gradle/issues/24640"
+    )
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << """
             include 'a'

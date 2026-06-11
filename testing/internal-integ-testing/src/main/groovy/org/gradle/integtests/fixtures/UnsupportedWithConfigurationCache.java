@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -26,10 +25,13 @@ import java.lang.annotation.Target;
 
 
 /**
- * Denotes a test for a feature that is unsupported with configuration cache.
- * Do not use this for tests for features that are supported by configuration cache but where the test happens to be incompatible.
- *
- * <p>The annotated test will be skipped by the {@link ConfigurationCacheGradleExecuter}.
+ * Skip the test when running with Configuration Cache executor.
+ * <p>
+ * Use this annotation when the tested feature is fundamentally incompatible with Configuration Cache
+ * and there is no intention to support it. If the intention is to eventually fix either the test
+ * or the underlying feature, use {@link ToBeFixedForConfigurationCache} instead.
+ * <p>
+ * The annotated test is skipped entirely; no assertion is made about its behavior under Configuration Cache.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -38,6 +40,16 @@ public @interface UnsupportedWithConfigurationCache {
 
     String because() default "";
 
+    /**
+     * Link to the issue documenting why the tested feature is not supported.
+     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
+     */
+    String issue() default "";
+
+    /**
+     * Declare to which bottom spec this annotation should be applied.
+     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
+     */
     String[] bottomSpecs() default {};
 
     /**

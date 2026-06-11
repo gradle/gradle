@@ -89,8 +89,10 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasLineNumber(2)
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29159")
-    @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible")
+    @ToBeFixedForIsolatedProjects(
+        because = "evaluationDependsOn is not IP compatible",
+        issue = "https://github.com/gradle/gradle/issues/29159"
+    )
     def "produces reasonable error message when nested buildFile evaluation fails"() {
         createDirs("child")
         settingsFile << """
