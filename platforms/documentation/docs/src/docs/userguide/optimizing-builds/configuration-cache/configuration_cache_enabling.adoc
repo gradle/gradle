@@ -47,8 +47,8 @@ $ ./gradlew --no-configuration-cache
 === Ignoring Configuration Cache Problems
 
 By default, Gradle fails the build if Configuration Cache problems occur.
-However, when working on adopting the Configuration Cache in the build, it can be useful to temporarily turn problems into warnings by enabling _warning mode_.
-For example, if you want to see execution time problems without fixing the whole configuration phase.
+You _can_ turn problems into warnings by enabling _warning mode_, but this is generally not recommended — see the warning below for the supported alternative.
+The flag exists primarily for short-lived troubleshooting, for example to surface execution-time problems without fixing the entire configuration phase first.
 
 To change this behavior at build time, use the following flag:
 
@@ -266,3 +266,19 @@ org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=
 Use these opt-out options sparingly and only when they do not impact task execution results.
 These options are intended as temporary workarounds and will be removed in future Gradle releases.
 
+[[config_cache:reacting]]
+== Detecting the Configuration Cache from Build Logic
+
+Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
+
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+
+This information can be used to:
+
+- Configure plugin features differently when the Configuration Cache is enabled.
+- Disable an optional feature that is not yet compatible with the Configuration Cache.
+- Provide additional guidance to users, such as informing them of temporary limitations or suggesting adjustments to their setup.
+
+Use this sparingly.
+The goal of adoption is uniform behavior, not a different code path depending on cache state.

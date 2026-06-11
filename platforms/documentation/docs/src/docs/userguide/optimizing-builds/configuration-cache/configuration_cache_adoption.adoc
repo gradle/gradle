@@ -61,32 +61,41 @@ Pick one well-isolated subproject, get it to a CC hit, then expand.
 ====
 
 [[config_cache:adoption_guide:step1]]
-== Step 1: Update Gradle and Plugins
+== Step 1: Update Gradle
 
 CC quality improves substantially with each minor Gradle release, and the major plugin ecosystems have done most of their CC work in their latest versions.
 Before enabling CC, update the build to a recent Gradle version with current plugins.
 
-=== Update the Gradle wrapper
+=== Update the Gradle Wrapper
 
 Gradle 9.0.0 or later is strongly recommended.
 If you are not on Gradle 9.0.0 yet, update first using the <<upgrading_major_version_9.adoc#upgrading_major_version_9, upgrade guide>>, typically by bumping `gradle/wrapper/gradle-wrapper.properties` to a 9.x.y release.
 
-[NOTE]
-====
-**Wrapper bumps can cascade:** Updating the Gradle wrapper to a newer version can force matching bumps in adjacent build tooling:
+Update in small increments.
+Going from 9.2.0 to 9.3.0 is straightforward; jumping from 8.7 to 9.3.0 in a single step is not.
+You will hit deprecations and incompatibilities all at once and lose the ability to attribute each failure to a specific bump.
 
-* Your project's pinned Kotlin compiler version, if it is older than the Kotlin runtime the new Gradle ships with. (For example, Gradle 9.5.1 ships Kotlin 2.3.20 internally; a project pinned to `kotlin = "2.0.21"` will fail to compile against it until that pin is raised.)
-* Your test framework variant if it is Groovy-major-locked. (For example, Gradle 9.0.0 ships Groovy 4; the Groovy-3-variant Spock release will refuse to load and the test compilation will fail with a clear `IncompatibleGroovyVersionException`.)
-* On Gradle 9+, JUnit Platform Launcher must be declared explicitly as a `testRuntimeOnly` dependency. Older Gradle versions auto-added it; the new behavior surfaces as a cryptic `Failed to load JUnit Platform` error on the first run of the test suite.
+=== Plan for Cascading Bumps
 
-None of these are blockers, but they will surface in sequence, each as a separate build failure, so budget for them as part of this step rather than as part of CC adoption itself.
-====
+A Gradle wrapper bump can force matching bumps in adjacent build tooling.
+None of the items below are blockers, but they tend to surface in sequence — each as a separate build failure — so budget for them as part of this step rather than as part of CC adoption itself:
 
-=== Update your plugins
+* **Kotlin tooling** — a Gradle bump can cascade into three places:
+** Build logic: Gradle compiles `.gradle.kts` files at a specific Kotlin _language version_ (currently `2.2` for Gradle 9.7.0). That pin advances across Gradle releases, and when it does, deprecated syntax in your build scripts may need touch-ups.
+** link:https://kotlinlang.org/docs/gradle-configure-project.html[Kotlin Gradle Plugin] (KGP): KGP is coupled to specific Gradle versions, so a Gradle bump often requires bumping KGP to stay compatible. See the <<compatibility.adoc#kotlin, Kotlin compatibility matrix>>.
+*** Kotlin source: bumping KGP brings a newer Kotlin compiler, which can surface deprecations or compilation errors in your application code.
+* **link:https://developer.android.com/build/releases/gradle-plugin#updating-gradle[Android Gradle Plugin (AGP)]** — Android builds have their own multi-axis cascade:
+** AGP-Gradle coupling: each AGP major declares a minimum Gradle version, so a Gradle bump may require an AGP bump.
+** AGP-KGP coupling: an AGP bump typically expects a newer KGP version for Kotlin modules, which then cascades into the Kotlin chain above.
+** AGP DSL changes: major AGP releases deprecate or remove DSL APIs that your Android `build.gradle(.kts)` files may rely on.
+** Minimum JDK: AGP majors also raise the JDK floor required to run the build.
+* **Test framework variants** — if your test framework is Groovy-major-locked, a Gradle major bump can break it. For example, Gradle 9.0.0 ships Groovy 4; the Groovy-3-variant Spock release will refuse to load and the test compilation will fail with a clear `IncompatibleGroovyVersionException`.
+* **JUnit Platform Launcher** — on Gradle 9+, the launcher must be declared explicitly as a `testRuntimeOnly` dependency. Older Gradle versions auto-added it; the new behavior surfaces as a cryptic `Failed to load JUnit Platform` error on the first run of the test suite.
 
-Android Gradle Plugin (AGP), Kotlin Gradle Plugin (KGP), Spring Boot, and most major plugins now support CC.
-Bring them to current versions before you start.
-Check the <<configuration_cache_status.adoc#config_cache:plugins, plugin status page>> for known limitations on any plugin you depend on, and update accordingly.
+=== Update your Plugins
+
+Spring Boot, Spotless, Kotlin Multiplatform (KMP), and most major plugins now support CC.
+Bring them to current versions before enabling CC, and check the <<configuration_cache_status.adoc#config_cache:plugins, plugin status page>> for known limitations on any plugin you depend on.
 
 [[config_cache:adoption_guide:step2]]
 == Step 2: Enable the Configuration Cache and Run `help`
@@ -579,7 +588,7 @@ See <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Cr
 
 Yes.
 Inject the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service and read its `configurationCache.active` property.
-See <<configuration_cache.adoc#config_cache:reacting, Detecting the Configuration Cache from Build Logic>> for the canonical pattern.
+See <<configuration_cache_enabling.adoc#config_cache:reacting, Detecting the Configuration Cache from Build Logic>> for the canonical pattern.
 
 Use this sparingly.
 The goal of CC adoption is uniform behavior, not a different code path depending on CC state.
