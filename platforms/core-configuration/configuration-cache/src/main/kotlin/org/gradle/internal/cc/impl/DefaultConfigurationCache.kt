@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -409,7 +410,84 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
+        if (needToWriteSecondaryEntry()) {
+            writeDefaultTaskAlias()
+        }
     }
+
+    /**
+     * True when the invocation's effective tasks match the project's resolved
+     * default tasks, so an alias index would make the just-committed entry
+     * reachable via the "other form" of the invocation (e.g. `gradle` vs
+     * `gradle <defaultTaskName>`) on a future build.
+     */
+    private
+    fun needToWriteSecondaryEntry(): Boolean {
+        if (!buildActionModelRequirements.isRunsTasks) return false
+        val aliasTaskNames = computeAliasTaskNames() ?: return false
+        return cacheKey.stringForRequestedTaskNames(aliasTaskNames) != cacheKey.string
+    }
+
+    /**
+     * Writes a `candidates.bin` pointer under the alias key so the just-committed
+     * entry is also reachable via the "other form" invocation (e.g. `gradle` vs
+     * `gradle <defaultTaskName>`).
+     *
+     * A write failure is non-fatal: the primary entry was already committed, so
+     * the cache stays correct (only less effective).
+     *
+     * @implSpec Caller must have confirmed [needToWriteSecondaryEntry] first.
+     */
+    private
+    fun writeDefaultTaskAlias() {
+        val aliasTaskNames = checkNotNull(computeAliasTaskNames())
+        val aliasKey = cacheKey.stringForRequestedTaskNames(aliasTaskNames)
+        try {
+            cacheRepository.forKey(aliasKey).useForStore {
+                applyCandidateEntriesUpdate {
+                    withMostRecentEntry(
+                        CandidateEntry(entryId),
+                        startParameter.entriesPerKey
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to write default-task configuration cache alias", e)
+        }
+    }
+
+    /**
+     * Returns the task-names list to use for the alias key, or null if no alias
+     * should be written. The list is the "opposite" view of this invocation:
+     * empty when invocation was explicit-default; the resolved defaults when
+     * invocation was no-args.
+     */
+    private
+    fun computeAliasTaskNames(): List<String>? {
+        val resolvedDefaults = resolvedDefaultTasks()
+        if (resolvedDefaults.isEmpty()) return null
+        val primaryTaskNames = if (startParameter.wasDefaultTaskRequest) {
+            emptyList()
+        } else {
+            startParameter.requestedTaskNames
+        }
+        return when {
+            primaryTaskNames.isEmpty() -> resolvedDefaults
+            primaryTaskNames == resolvedDefaults -> emptyList()
+            else -> null
+        }
+    }
+
+    /**
+     * Resolved default tasks for the build's default project (possibly empty).
+     *
+     * Safe to call from [commitCacheEntry] because the default project must be
+     * attached for configuration to have succeeded.
+     */
+    private
+    fun resolvedDefaultTasks(): List<String> =
+        deferredRootBuildGradle.gradle.defaultProjectState
+            .fromMutableState(ProjectInternal::getDefaultTasks)
 
     private
     fun determineCacheAction(): DescribedAction {
@@ -575,6 +653,18 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = store.useForStore {
+        applyCandidateEntriesUpdate(update)
+    }
+
+    /**
+     * Shared read/update/write/schedule-eviction body for candidate-entry index updates.
+     * Reads the current index, applies [update], and if the result differs writes the
+     * new index and schedules now-evicted entries for collection.
+     */
+    private
+    fun ConfigurationCacheRepository.Layout.applyCandidateEntriesUpdate(
+        update: List<CandidateEntry>.() -> List<CandidateEntry>
+    ) {
         val existingEntries = readCandidateEntries()
         val newEntries = update(existingEntries)
         if (existingEntries != newEntries) {

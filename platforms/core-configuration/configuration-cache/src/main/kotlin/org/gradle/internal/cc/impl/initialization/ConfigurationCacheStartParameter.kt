@@ -19,7 +19,10 @@ package org.gradle.internal.cc.impl.initialization
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.execution.DefaultTasksBuildTaskScheduler
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
+import org.gradle.internal.DefaultTaskExecutionRequest
+import org.gradle.internal.RunDefaultTasksExecutionRequest
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.Workarounds
@@ -146,6 +149,16 @@ class ConfigurationCacheStartParameter internal constructor(
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
+
+    /**
+     * Whether this build was invoked without explicit task names (i.e. with [RunDefaultTasksExecutionRequest]).
+     *
+     * Captured eagerly at construction time because [DefaultTasksBuildTaskScheduler] replaces
+     * [StartParameter.taskRequests] with a [DefaultTaskExecutionRequest] once it resolves the
+     * default tasks, after which the original signal is unrecoverable.
+     */
+    val wasDefaultTaskRequest: Boolean =
+        startParameter.taskRequests.singleOrNull() is RunDefaultTasksExecutionRequest
 
     val excludedTaskNames: Set<String>
         get() = startParameter.excludedTaskNames

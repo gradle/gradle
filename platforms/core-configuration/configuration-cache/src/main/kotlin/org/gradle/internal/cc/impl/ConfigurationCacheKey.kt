@@ -38,10 +38,23 @@ class ConfigurationCacheKey(
 ) {
 
     val string: String by unsafeLazy {
-        Hashing.md5().newHasher().apply {
-            putCacheKeyComponents()
-        }.hash().toCompactString()
+        computeKeyString(startParameter.requestedTaskNames)
     }
+
+    /**
+     * Computes the key as if [taskNames] had been requested instead of
+     * [ConfigurationCacheStartParameter.requestedTaskNames]. Used when storing
+     * an alias index entry so that `gradle` and `gradle <defaultTaskName>`
+     * resolve to the same cache entry.
+     */
+    fun stringForRequestedTaskNames(taskNames: List<String>): String =
+        computeKeyString(taskNames)
+
+    private
+    fun computeKeyString(requestedTaskNames: List<String>): String =
+        Hashing.md5().newHasher().apply {
+            putCacheKeyComponents(requestedTaskNames)
+        }.hash().toCompactString()
 
     override fun toString() = string
 
@@ -50,7 +63,7 @@ class ConfigurationCacheKey(
     override fun equals(other: Any?): Boolean = (other as? ConfigurationCacheKey)?.string == string
 
     private
-    fun Hasher.putCacheKeyComponents() {
+    fun Hasher.putCacheKeyComponents(requestedTaskNames: List<String>) {
         putString(GradleVersion.current().version)
 
         putAll(
@@ -61,10 +74,8 @@ class ConfigurationCacheKey(
 
         buildActionRequirements.appendKeyTo(this)
 
-        // TODO:bamboo review with Adam
-//        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
         if (buildActionRequirements.isRunsTasks) {
-            appendRequestedTasks()
+            appendRequestedTasks(requestedTaskNames)
         }
 
         putBoolean(startParameter.isOffline)
@@ -113,8 +124,7 @@ class ConfigurationCacheKey(
     }
 
     private
-    fun Hasher.appendRequestedTasks() {
-        val requestedTaskNames = startParameter.requestedTaskNames
+    fun Hasher.appendRequestedTasks(requestedTaskNames: List<String>) {
         putAll(requestedTaskNames)
 
         val excludedTaskNames = startParameter.excludedTaskNames
