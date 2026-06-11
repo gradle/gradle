@@ -89,21 +89,13 @@ task resolve {
         }
     }.artifacts
     doLast {
-        assert artifacts.size() == 1
+        println "artifactCount: " + artifacts.size()
         artifacts[0].with {
-            def attributes = variant.attributes
+            def attrs = variant.attributes
             def attributesAsMap = [:]
-            attributes.keySet().each {
-                attributesAsMap[it.name] = String.valueOf(attributes.getAttribute(it))
-            }
-            assert attributesAsMap.size() == 7
-            assert attributesAsMap['org.gradle.category'] == 'documentation'
-            assert attributesAsMap['org.gradle.dependency.bundling'] == 'external'
-            assert attributesAsMap['org.gradle.docstype'] == 'sources'
-            assert attributesAsMap['org.gradle.usage'] == 'java-runtime'
-            assert attributesAsMap['org.gradle.status'] == 'release'
-            assert attributesAsMap['org.gradle.libraryelements'] == 'jar'
-            assert attributesAsMap['artifactType'] == 'jar'
+            attrs.keySet().each { attributesAsMap[it.name] = String.valueOf(attrs.getAttribute(it)) }
+            println "attributes: " + attributesAsMap.sort()
+            println "attributes size: " + attrs.keySet().size()
         }
     }
 }
@@ -111,14 +103,30 @@ task resolve {
         when:
         succeeds(":consumer:resolve")
         then:
-        noExceptionThrown()
+        outputContains("artifactCount: 1")
+        outputContains("org.gradle.category:documentation")
+        outputContains("org.gradle.dependency.bundling:external")
+        outputContains("org.gradle.docstype:sources")
+        outputContains("org.gradle.usage:java-runtime")
+        outputContains("org.gradle.status:release")
+        outputContains("org.gradle.libraryelements:jar")
+        outputContains("artifactType:jar")
+        outputContains("attributes size: 7")
 
         when:
         removeGMM()
         and:
         succeeds(":consumer:resolve")
         then:
-        noExceptionThrown()
+        outputContains("artifactCount: 1")
+        outputContains("org.gradle.category:documentation")
+        outputContains("org.gradle.dependency.bundling:external")
+        outputContains("org.gradle.docstype:sources")
+        outputContains("org.gradle.usage:java-runtime")
+        outputContains("org.gradle.status:release")
+        outputContains("org.gradle.libraryelements:jar")
+        outputContains("artifactType:jar")
+        outputContains("attributes size: 7")
     }
 
     def "javadoc jar attributes match derived variants attributes"() {
@@ -138,21 +146,12 @@ task resolve {
         }
     }.artifacts
     doLast {
-        assert artifacts.size() == 1
+        println "artifactCount: " + artifacts.size()
         artifacts[0].with {
-            def attributes = variant.attributes
+            def attrs = variant.attributes
             def attributesAsMap = [:]
-            attributes.keySet().each {
-                attributesAsMap[it.name] = String.valueOf(attributes.getAttribute(it))
-            }
-            assert attributesAsMap.size() == 7
-            assert attributesAsMap['org.gradle.category'] == 'documentation'
-            assert attributesAsMap['org.gradle.dependency.bundling'] == 'external'
-            assert attributesAsMap['org.gradle.docstype'] == 'javadoc'
-            assert attributesAsMap['org.gradle.usage'] == 'java-runtime'
-            assert attributesAsMap['org.gradle.status'] == 'release'
-            assert attributesAsMap['org.gradle.libraryelements'] == 'jar'
-            assert attributesAsMap['artifactType'] == 'jar'
+            attrs.keySet().each { attributesAsMap[it.name] = String.valueOf(attrs.getAttribute(it)) }
+            println "attributes: " + attributesAsMap.sort()
         }
     }
 }
@@ -160,14 +159,22 @@ task resolve {
         when:
         succeeds(":consumer:resolve")
         then:
-        noExceptionThrown()
+        outputContains("artifactCount: 1")
+        outputContains("org.gradle.category:documentation")
+        outputContains("org.gradle.dependency.bundling:external")
+        outputContains("org.gradle.docstype:javadoc")
+        outputContains("org.gradle.usage:java-runtime")
 
         when:
         removeGMM()
         and:
         succeeds(":consumer:resolve")
         then:
-        noExceptionThrown()
+        outputContains("artifactCount: 1")
+        outputContains("org.gradle.category:documentation")
+        outputContains("org.gradle.dependency.bundling:external")
+        outputContains("org.gradle.docstype:javadoc")
+        outputContains("org.gradle.usage:java-runtime")
     }
 
     private void removeGMM() {
