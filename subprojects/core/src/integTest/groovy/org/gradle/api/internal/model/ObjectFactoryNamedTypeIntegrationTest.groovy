@@ -17,9 +17,9 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
+import static org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache.Skip.FLAKY
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith

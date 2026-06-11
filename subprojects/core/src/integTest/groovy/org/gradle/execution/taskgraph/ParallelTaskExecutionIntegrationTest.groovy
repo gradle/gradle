@@ -18,8 +18,8 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer

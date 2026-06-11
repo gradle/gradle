@@ -21,7 +21,7 @@ import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType

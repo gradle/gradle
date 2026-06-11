@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 
 @UnsupportedWithConfigurationCache(because = "Tests build script classloader caching during configuration phase, which CC skips on cache hit")

@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggi
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires

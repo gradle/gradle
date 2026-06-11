@@ -17,8 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -27,7 +27,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
+import static org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache.Skip.FLAKY
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 

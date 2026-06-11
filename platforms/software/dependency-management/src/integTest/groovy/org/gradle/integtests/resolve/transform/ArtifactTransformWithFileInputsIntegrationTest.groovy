@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**

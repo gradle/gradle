@@ -18,7 +18,7 @@ package org.gradle.scala.compile.daemon
 
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
 import org.gradle.integtests.fixtures.ScalaCoverage
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
 import org.gradle.test.fixtures.file.TestFile

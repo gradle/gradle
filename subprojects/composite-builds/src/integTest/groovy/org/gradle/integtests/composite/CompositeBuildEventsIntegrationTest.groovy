@@ -19,7 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.Severity
 import org.gradle.execution.MultipleBuildFailures
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 import org.gradle.internal.exceptions.LocationAwareException

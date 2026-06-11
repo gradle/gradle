@@ -17,7 +17,7 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 
 class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec implements FlowActionsFixture {

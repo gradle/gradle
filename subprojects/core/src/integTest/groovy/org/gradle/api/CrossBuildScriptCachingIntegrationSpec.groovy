@@ -19,7 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationTreeQueries
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter

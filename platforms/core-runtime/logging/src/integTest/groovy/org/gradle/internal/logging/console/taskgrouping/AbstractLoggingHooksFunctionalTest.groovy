@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
 

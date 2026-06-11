@@ -17,7 +17,7 @@
 package org.gradle.api
 
 import org.gradle.api.internal.artifacts.transform.UnzipTransform
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import spock.lang.Issue
 

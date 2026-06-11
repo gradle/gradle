@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent

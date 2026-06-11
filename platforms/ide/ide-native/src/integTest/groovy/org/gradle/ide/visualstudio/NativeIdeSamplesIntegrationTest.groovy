@@ -17,7 +17,7 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires

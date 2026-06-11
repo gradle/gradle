@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue

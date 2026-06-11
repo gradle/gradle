@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.features.internal.builders.TypeShape
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture

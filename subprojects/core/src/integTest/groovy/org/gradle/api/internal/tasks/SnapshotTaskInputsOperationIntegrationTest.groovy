@@ -32,7 +32,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.validation.ValidationMessageChecker

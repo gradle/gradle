@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -33,7 +33,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
-import static org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects.Skip.FLAKY
+import static org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects.Skip.FLAKY
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.core.AllOf.allOf

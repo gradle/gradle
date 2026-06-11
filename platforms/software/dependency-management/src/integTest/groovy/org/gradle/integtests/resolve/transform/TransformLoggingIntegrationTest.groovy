@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 

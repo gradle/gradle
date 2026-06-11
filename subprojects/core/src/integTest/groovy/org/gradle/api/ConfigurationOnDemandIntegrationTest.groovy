@@ -18,9 +18,9 @@ package org.gradle.api
 
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest

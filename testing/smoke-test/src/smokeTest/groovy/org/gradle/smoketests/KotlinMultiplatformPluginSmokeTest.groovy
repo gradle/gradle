@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.GradleVersion

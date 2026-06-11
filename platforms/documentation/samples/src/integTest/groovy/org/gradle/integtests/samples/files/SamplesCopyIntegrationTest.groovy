@@ -18,7 +18,7 @@ package org.gradle.integtests.samples.files
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions

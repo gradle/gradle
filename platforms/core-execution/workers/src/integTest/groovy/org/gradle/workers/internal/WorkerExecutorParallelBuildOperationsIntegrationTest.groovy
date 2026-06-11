@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires

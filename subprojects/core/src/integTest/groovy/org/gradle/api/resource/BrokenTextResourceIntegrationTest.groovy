@@ -17,7 +17,7 @@
 package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 

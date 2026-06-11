@@ -15,7 +15,7 @@
  */
 package org.gradle.language.base.plugins
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 @UnsupportedWithConfigurationCache(because = "software model")

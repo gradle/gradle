@@ -18,7 +18,7 @@ package org.gradle.testing
 
 import com.google.common.base.Utf8
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.SafeFileLocationUtils
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.test.fixtures.file.TestFile

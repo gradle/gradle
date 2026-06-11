@@ -16,7 +16,7 @@
 
 package org.gradle.api
 
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")

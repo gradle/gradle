@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.plugins
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec {

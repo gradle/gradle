@@ -18,7 +18,7 @@ package org.gradle.api
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
