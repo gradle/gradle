@@ -101,7 +101,7 @@ class TestEnvironmentPreconditions {
         private static boolean isInstalled() {
             if (OperatingSystem.current().isMacOsX()) {
                 // XCTest is bundled with XCode, so the test cannot be run if XCode is not installed
-                def result = ["xcrun", "--show-sdk-platform-path"].execute().waitFor()
+                def result = ["xcrun", "--sdk", "macosx", "--show-sdk-platform-path"].execute().waitFor()
                 // If it fails, assume XCode is not installed
                 return result == 0
             } else {

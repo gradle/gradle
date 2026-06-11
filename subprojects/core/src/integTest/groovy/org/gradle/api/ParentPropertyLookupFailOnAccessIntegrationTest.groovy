@@ -82,17 +82,17 @@ class ParentPropertyLookupFailOnAccessIntegrationTest extends AbstractIntegratio
             println fooMethod()
         """)
         5.times {
-            executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
+            executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
                 "This will fail with an error in Gradle 10. " +
                 "Property 'foo' was not declared in project ':child' and was resolved from root project 'root'. " +
                 "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
         }
-        executer.expectDocumentedDeprecationWarning("Implicitly resolving methods in the project hierarchy has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method 'fooMethod' was not declared in project ':child' and was resolved from root project 'root'. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
         expect:
         succeeds "help"

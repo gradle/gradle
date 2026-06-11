@@ -125,7 +125,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         variants.size() == 1
 
         def child = variants.first()
-        child.displayName.displayName == '<config> variant child'
+        child.displayName.displayName == "<config> variant 'child'"
         child.attributes == AttributeTestUtil.attributes(["thing": "value"])
         child.artifacts == variantDef.artifacts
     }
@@ -151,7 +151,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         implicit.artifacts == allArtifacts
 
         def explicit = (variants as List)[1]
-        explicit.displayName.displayName == '<config> variant child'
+        explicit.displayName.displayName == "<config> variant 'child'"
         explicit.attributes == AttributeTestUtil.attributes(["thing": "value2"])
         explicit.artifacts == variantDef.artifacts
     }
@@ -177,7 +177,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
         implicit.artifacts == allArtifacts
 
         def explicit = (variants as List)[1]
-        explicit.displayName.displayName == '<config> variant child'
+        explicit.displayName.displayName == "<config> variant 'child'"
         explicit.attributes == AttributeTestUtil.attributes(["thing": "value2"])
         explicit.artifacts == variantDef.artifacts
     }

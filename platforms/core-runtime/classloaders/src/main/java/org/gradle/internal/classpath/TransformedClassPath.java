@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -100,11 +101,33 @@ public class TransformedClassPath implements ClassPath {
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
     private final ImmutableMap<File, File> transforms;
+    @Nullable
+    private final ClassLoadTimeTransform classLoadTimeTransform;
 
-    private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms) {
+    private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms, @Nullable ClassLoadTimeTransform classLoadTimeTransform) {
         assert !(originalClassPath instanceof TransformedClassPath);
         this.originalClassPath = originalClassPath;
         this.transforms = ImmutableMap.copyOf(transforms);
+        this.classLoadTimeTransform = classLoadTimeTransform;
+    }
+
+    /**
+     * Returns the class-load-time transform associated with this classpath, or {@code null} if classes loaded from
+     * this classpath should be substituted with the cached pre-rewritten "doubles" instead.
+     */
+    @Nullable
+    public ClassLoadTimeTransform getClassLoadTimeTransform() {
+        return classLoadTimeTransform;
+    }
+
+    /**
+     * Returns a copy of this classpath that carries the given class-load-time transform.
+     * Classes loaded from this classpath will be transformed at class load by composing
+     * with any third-party {@link java.lang.instrument.ClassFileTransformer} registered before
+     * Gradle's transformer.
+     */
+    public TransformedClassPath withClassLoadTimeTransform(ClassLoadTimeTransform classLoadTimeTransform) {
+        return new TransformedClassPath(originalClassPath, transforms, classLoadTimeTransform);
     }
 
     @Override
@@ -182,7 +205,7 @@ public class TransformedClassPath implements ClassPath {
         // Existing transforms for these entries have to be discarded.
         // We can think of the prepended classpath as the TransformedClassPath without actual transforms,
         // and then just append this classpath to it to achieve the desired behavior.
-        return new TransformedClassPath(classPath, ImmutableMap.<File, File>of()).plusWithTransforms(this);
+        return new TransformedClassPath(classPath, ImmutableMap.of(), null).plusWithTransforms(this);
     }
 
     private TransformedClassPath plusWithTransforms(TransformedClassPath classPath) {
@@ -199,8 +222,11 @@ public class TransformedClassPath implements ClassPath {
             }
         }
 
+        // Receiver's class-load-time transform if it has one, otherwise the argument's.
+        ClassLoadTimeTransform mergedClassLoadTimeTransform = classLoadTimeTransform != null ? classLoadTimeTransform : classPath.classLoadTimeTransform;
+
         // In the end, at most one instance of a transformed entry should be recorded for any given file.
-        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow());
+        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow(), mergedClassLoadTimeTransform);
     }
 
     /**
@@ -210,7 +236,7 @@ public class TransformedClassPath implements ClassPath {
      */
     @Override
     public TransformedClassPath plus(Collection<File> classPath) {
-        return new TransformedClassPath(originalClassPath.plus(classPath), transforms);
+        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, classLoadTimeTransform);
     }
 
     /**
@@ -223,7 +249,7 @@ public class TransformedClassPath implements ClassPath {
         if (classPath instanceof TransformedClassPath) {
             return plusWithTransforms((TransformedClassPath) classPath);
         }
-        return new TransformedClassPath(originalClassPath.plus(classPath), transforms);
+        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, classLoadTimeTransform);
     }
 
     /**
@@ -241,7 +267,7 @@ public class TransformedClassPath implements ClassPath {
                 remainingTransforms.put(remainingEntry);
             }
         }
-        return new TransformedClassPath(filteredClassPath, remainingTransforms.build());
+        return new TransformedClassPath(filteredClassPath, remainingTransforms.build(), classLoadTimeTransform);
     }
 
     /**
@@ -257,7 +283,7 @@ public class TransformedClassPath implements ClassPath {
 
     @Override
     public int hashCode() {
-        return originalClassPath.hashCode() + transforms.hashCode();
+        return originalClassPath.hashCode() + transforms.hashCode() + (classLoadTimeTransform == null ? 0 : classLoadTimeTransform.hashCode());
     }
 
     @Override
@@ -269,7 +295,9 @@ public class TransformedClassPath implements ClassPath {
             return false;
         }
         TransformedClassPath other = (TransformedClassPath) obj;
-        return originalClassPath.equals(other.originalClassPath) && transforms.equals(other.transforms);
+        return originalClassPath.equals(other.originalClassPath)
+            && transforms.equals(other.transforms)
+            && Objects.equals(classLoadTimeTransform, other.classLoadTimeTransform);
     }
 
     @Override
@@ -434,7 +462,7 @@ public class TransformedClassPath implements ClassPath {
          */
         public TransformedClassPath build() {
             Map<File, File> transformedMap = transforms.build();
-            return new TransformedClassPath(originals.build(), transformedMap);
+            return new TransformedClassPath(originals.build(), transformedMap, null);
         }
     }
 }

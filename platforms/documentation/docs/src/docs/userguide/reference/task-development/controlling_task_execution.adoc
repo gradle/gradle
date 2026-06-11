@@ -267,7 +267,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/reference/task-development/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
+include::{snippetsPath}/reference/task-development/finalizersWithFailure/tests/taskFinalizersWithFailure.out[]
 ----
 
 [[sec:skipping_tasks]]

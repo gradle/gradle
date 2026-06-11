@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Describable
-import org.gradle.api.GradleException
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
@@ -133,17 +132,18 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         provider.get() == 42
     }
 
-    def "parameterless value source parameters cannot be configured"() {
-
+    def "parameterless value source parameters can be configured"() {
         when:
-        createProviderOf(NoParameters) {
-            it.parameters {}
+        def ran = false
+        def provider = createProviderOf(NoParameters) {
+            it.parameters {
+                ran = true
+            }
         }
 
         then:
-        def e = thrown(GradleException)
-        e.message == 'Could not create provider for value source DefaultValueSourceProviderFactoryTest.NoParameters.'
-        e.cause.message == 'Value is null'
+        provider.get() == 42
+        ran == true
     }
 
     def "value source can get ExecOperations injected"() {

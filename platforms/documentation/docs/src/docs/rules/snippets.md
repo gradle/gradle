@@ -11,7 +11,6 @@ Rules and patterns for creating tested code snippets in the Gradle documentation
 - Blocks using `.xml`, `.toml`, `.text`, `.bash`, `.json`, `.properties`, and similar non-DSL languages **typically do not need to be snippetized** — these are usually configuration samples, command output, directory trees, or illustrative text that cannot be meaningfully tested.
 - **`upgrading_*.adoc` files are exempt** from snippet requirements. Upgrading guides frequently show deprecated patterns, removed APIs, and "before" code that intentionally won't compile — snippetizing them is impractical and would produce failing tests.
 - **All `dsl-apis/*.adoc` files are exempt** from snippet requirements (for example, `kotlin_dsl.adoc` and `public_apis.adoc`). These are language-specific files that explain the different DSLs — snippetizing them is impractical and would produce failing tests.
-- **`glossary*.adoc` file is exempt** from snippet requirements. This is a generic glossary — snippetizing this is impractical and would produce failing tests.
 - Every `.sample.conf` should have a `.out` file — a test without output verification only proves the build doesn't crash.
 - The `dir` path in `include::sample[]` is relative to `src/snippets/`.
 - Before renaming or restructuring a snippet, search for `@UsesSample` and `new Sample` references in integration tests.
@@ -425,7 +424,7 @@ Gradle automatically imports `gradle/libs.versions.toml` as the `libs` catalog. 
 
 ### Unresolved version references in TOML
 
-If a TOML file uses `version.ref = "kotlin"` but the version is injected programmatically via `version("kotlin", "2.3.20")` in settings, the `[versions]` block must **not** define `kotlin`. Gradle validates TOML files independently — missing refs cause errors during auto-import but work correctly when loaded via `from(files(...))`.
+If a TOML file uses `version.ref = "kotlin"` but the version is injected programmatically via `version("kotlin", "2.4.0")` in settings, the `[versions]` block must **not** define `kotlin`. Gradle validates TOML files independently — missing refs cause errors during auto-import but work correctly when loaded via `from(files(...))`.
 
 This is another reason to avoid auto-import with non-standard filenames.
 

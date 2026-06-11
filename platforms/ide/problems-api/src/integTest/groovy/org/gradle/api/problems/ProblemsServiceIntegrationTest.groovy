@@ -64,6 +64,29 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38091")
+    def "problem from an included build task has a build-tree-qualified path"() {
+        given:
+        settingsFile """
+            includeBuild("included-lib")
+        """
+        file("included-lib/settings.gradle") << "rootProject.name = 'included-lib'"
+        file("included-lib/build.gradle") << getProblemReportingScript("""
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {}
+        """)
+
+        when:
+        run(":included-lib:reportProblem")
+
+        then:
+        verifyAll(receivedProblem) {
+            with(oneLocation(TaskLocation)) {
+                buildTreePath == ':included-lib:reportProblem'
+            }
+        }
+    }
+
     // This test will fail when the deprecated space-assignment syntax is removed.
     // Once this happens we need to find another test to validate the behavior.
     @Issue("https://github.com/gradle/gradle/issues/31980")

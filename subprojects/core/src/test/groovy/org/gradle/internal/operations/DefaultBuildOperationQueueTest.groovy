@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations
 
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorPolicy
@@ -28,14 +29,19 @@ import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.util.Path
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Timeout
 
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
 
 class DefaultBuildOperationQueueTest extends Specification {
 
@@ -373,6 +379,257 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         then:
         terminated
+    }
+
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    def "waiting for completion #policyDesc project lock changes when allowAccessToProjectState is #allowAccessToProjectState"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def disallowDepth = ThreadLocal.withInitial { 0 }
+        def lockChangesDisallowedDuringWait = new AtomicBoolean()
+        def blockingCalled = new CountDownLatch(1)
+        def releaseLatch = new CountDownLatch(1)
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
+            @Override
+            <T> T whileDisallowingProjectLockChanges(Factory<T> action) {
+                disallowDepth.set(disallowDepth.get() + 1)
+                try {
+                    return super.whileDisallowingProjectLockChanges(action)
+                } finally {
+                    disallowDepth.set(disallowDepth.get() - 1)
+                }
+            }
+
+            @Override
+            void blocking(Runnable action) {
+                if (Thread.currentThread() === mainThread) {
+                    lockChangesDisallowedDuringWait.set(disallowDepth.get() > 0)
+                    blockingCalled.countDown()
+                    // Unblock the in-flight operation only once the main thread has reached the wait,
+                    // guaranteeing pendingOperations > 0 when waitForWorkToComplete() checks it
+                    releaseLatch.countDown()
+                }
+                super.blocking(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        // requiresWorkerLease=false so the main thread skips the self-drain and goes straight to the blocking wait
+        def executionContext = new BuildOperationExecutionContext(
+            new ManagedExecutorImpl(Executors.newFixedThreadPool(2), new ExecutorPolicy.CatchAndRecordFailures()),
+            2,
+            false
+        )
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, executionContext, new SimpleWorker(), null)
+
+        when:
+        operationQueue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseLatch))
+        operationQueue.waitForCompletion()
+
+        then:
+        blockingCalled.await(10, TimeUnit.SECONDS)
+        lockChangesDisallowedDuringWait.get() == lockChangesDisallowed
+
+        where:
+        allowAccessToProjectState | lockChangesDisallowed
+        false                     | true
+        true                      | false
+        policyDesc = lockChangesDisallowed ? "disallows" : "allows"
+    }
+
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    def "executing work #policyDesc project lock changes when allowAccessToProjectState is #allowAccessToProjectState"() {
+        given:
+        def disallowDepth = ThreadLocal.withInitial { 0 }
+        def lockChangesDisallowedDuringWork = new CopyOnWriteArrayList<Boolean>()
+        def recordingWorker = { TestBuildOperation op ->
+            lockChangesDisallowedDuringWork.add(disallowDepth.get() > 0)
+            op.run(null)
+        } as BuildOperationQueue.QueueWorker<TestBuildOperation>
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
+            @Override
+            <T> T whileDisallowingProjectLockChanges(Factory<T> action) {
+                disallowDepth.set(disallowDepth.get() + 1)
+                try {
+                    return super.whileDisallowingProjectLockChanges(action)
+                } finally {
+                    disallowDepth.set(disallowDepth.get() - 1)
+                }
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        def executionContext = new BuildOperationExecutionContext(
+            new ManagedExecutorImpl(Executors.newFixedThreadPool(1), new ExecutorPolicy.CatchAndRecordFailures()),
+            1,
+            true
+        )
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, executionContext, recordingWorker, null)
+
+        when:
+        operationQueue.add(new Success())
+        operationQueue.waitForCompletion()
+
+        then:
+        lockChangesDisallowedDuringWork == [lockChangesDisallowed]
+
+        where:
+        allowAccessToProjectState | lockChangesDisallowed
+        false                     | true
+        true                      | false
+        policyDesc = lockChangesDisallowed ? "disallows" : "allows"
+    }
+
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    def "runAll does not lend project lock while waiting, avoiding deadlock against a resource held across the queue"() {
+        given:
+        // The waiter owns some resource plus a project lock; the other thread takes the project lock
+        // and then wants the resource, so lending the project lock while waiting would deadlock.
+        def resource = new ReentrantLock()
+        def blockingStarted = new CountDownLatch(1)
+        def releaseOperation = new CountDownLatch(1)
+        def failure = new AtomicReference<Throwable>()
+
+        def executor = setupLockLendingExecutor(blockingStarted)
+        def projectLock = workerRegistry.getProjectLock(Path.path(":build"), Path.path(":build:project"))
+
+        def waiter = lockLendingWaiterThread(projectLock, resource, failure) {
+            executor.runAll({ queue ->
+                queue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
+            } as Action, BuildOperationConstraint.UNCONSTRAINED)
+        }
+        def other = lockLendingOtherThread(projectLock, resource, new CountDownLatch(1), failure)
+
+        when:
+        waiter.start()
+        assert blockingStarted.await(10, TimeUnit.SECONDS)
+        boolean lockHeldDuringWait = false
+        coordinationService.withStateLock({ lockHeldDuringWait = projectLock.locked } as Runnable)
+        other.start()
+        releaseOperation.countDown()
+        waiter.join(10_000)
+        other.join(10_000)
+
+        then:
+        // The wait kept the project lock, so the other thread could never interleave into it
+        lockHeldDuringWait
+        !waiter.alive
+        !other.alive
+        failure.get() == null
+
+        cleanup:
+        releaseOperation.countDown()
+        other.interrupt()
+        waiter.join(10_000)
+        other.join(10_000)
+    }
+
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    def "runAllWithAccessToProjectState lends project lock while waiting, deadlocking against a resource held across the queue"() {
+        given:
+        def resource = new ReentrantLock()
+        def blockingStarted = new CountDownLatch(1)
+        def releaseOperation = new CountDownLatch(1)
+        def otherHasProjectLock = new CountDownLatch(1)
+        def failure = new AtomicReference<Throwable>()
+
+        def executor = setupLockLendingExecutor(blockingStarted)
+        def projectLock = workerRegistry.getProjectLock(Path.path(":build"), Path.path(":build:project"))
+
+        def waiter = lockLendingWaiterThread(projectLock, resource, failure) {
+            executor.runAllWithAccessToProjectState({ queue ->
+                queue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
+            } as Action, BuildOperationConstraint.UNCONSTRAINED)
+        }
+        def other = lockLendingOtherThread(projectLock, resource, otherHasProjectLock, failure)
+
+        when:
+        waiter.start()
+        assert blockingStarted.await(10, TimeUnit.SECONDS)
+        boolean lockHeldDuringWait = true
+        coordinationService.withStateLock({ lockHeldDuringWait = projectLock.locked } as Runnable)
+        other.start()
+        // Only possible because the wait lent out the project lock
+        assert otherHasProjectLock.await(10, TimeUnit.SECONDS)
+        releaseOperation.countDown()
+        waiter.join(2_000)
+
+        then:
+        // The queue's work is done, but the waiter cannot take its project lock back from the
+        // other thread, which in turn cannot acquire the resource the waiter still holds
+        !lockHeldDuringWait
+        waiter.alive
+        other.alive
+        failure.get() == null
+
+        cleanup:
+        // Break the deadlock so the registry can shut down cleanly
+        other.interrupt()
+        waiter.join(10_000)
+        other.join(10_000)
+    }
+
+    private BuildOperationExecutor setupLockLendingExecutor(CountDownLatch blockingStarted) {
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
+            @Override
+            void blocking(Runnable action) {
+                // Count down inside the action so the lend/keep decision has already been made
+                super.blocking({
+                    blockingStarted.countDown()
+                    action.run()
+                } as Runnable)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        return BuildOperationExecutorSupport.builder(2)
+            .withWorkerLeaseService(workerRegistry)
+            .build()
+    }
+
+    private Thread lockLendingWaiterThread(projectLock, ReentrantLock resource, AtomicReference<Throwable> failure, Closure<?> scheduleAndWait) {
+        def waiter = new Thread({
+            try {
+                // runAll() is always invoked from a thread that already holds a worker lease. The work is
+                // scheduled as UNCONSTRAINED so the wait does not require a lease and skips the self-drain,
+                // going straight to the blocking wait this exercises.
+                workerRegistry.runAsWorkerThread({
+                    workerRegistry.withLocks([projectLock]) {
+                        resource.lock()
+                        try {
+                            scheduleAndWait.call()
+                        } finally {
+                            resource.unlock()
+                        }
+                    }
+                } as Runnable)
+            } catch (Throwable t) {
+                failure.set(t)
+            }
+        })
+        waiter.daemon = true
+        return waiter
+    }
+
+    private Thread lockLendingOtherThread(projectLock, ReentrantLock resource, CountDownLatch hasProjectLock, AtomicReference<Throwable> failure) {
+        def other = new Thread({
+            try {
+                workerRegistry.withLocks([projectLock]) {
+                    hasProjectLock.countDown()
+                    resource.lockInterruptibly()
+                    resource.unlock()
+                }
+            } catch (InterruptedException ignored) {
+            } catch (Throwable t) {
+                failure.set(t)
+            }
+        })
+        other.daemon = true
+        return other
     }
 
     static class SynchronizedBuildOperation extends TestBuildOperation {

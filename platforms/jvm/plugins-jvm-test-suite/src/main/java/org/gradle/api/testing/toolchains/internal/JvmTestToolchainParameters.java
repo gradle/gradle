@@ -16,6 +16,8 @@
 
 package org.gradle.api.testing.toolchains.internal;
 
+import org.gradle.api.internal.parameters.NoneParameters;
+
 /**
  * Marker interface for parameters of {@link JvmTestToolchain}s.  Implementations of {@link JvmTestToolchain} be parameterized with
  * an implementation of this type or {@link JvmTestToolchainParameters.None}.
@@ -24,11 +26,10 @@ package org.gradle.api.testing.toolchains.internal;
  */
 public interface JvmTestToolchainParameters {
     /**
-     * Marker interface for {@link JvmTestToolchain} implementations that do not require any configuration.
+     * Used for {@link JvmTestToolchain implementations} without parameters.
      */
-    final class None implements JvmTestToolchainParameters {
-        public static final None INSTANCE = new None();
-
-        private None() {}
+    final class None extends NoneParameters implements JvmTestToolchainParameters {
+        private None() {
+        }
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.InPlaceClasspathBuilder
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
@@ -42,7 +43,7 @@ import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.file.TreeType.DIRECTORY
+import org.gradle.internal.file.TreeType.FILE
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -55,9 +56,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.provider.KotlinDslInternalOptions
-import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
-import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
@@ -92,7 +91,6 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory,
     internalOptions: InternalOptions,
 ) {
 
@@ -128,7 +126,6 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                     fileCollectionFactory,
                     inputFingerprinter,
                     workspaceProvider,
-                    asyncIO,
                     isDclEnabledForScriptTarget(scriptTarget),
                     cachingDisabled,
                 )
@@ -176,7 +173,6 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory,
     private val isDclEnabled: Boolean,
     private val cachingDisabled: Boolean,
 ) : ImmutableUnitOfWork {
@@ -202,14 +198,12 @@ class GenerateProjectAccessors(
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {
         val workspace = executionContext.workspace
-        asyncIO.runBlocking {
-            buildAccessorsFor(
-                scriptTargetSchema,
-                classPath,
-                srcDir = getSourcesOutputDir(workspace),
-                binDir = getClassesOutputDir(workspace)
-            )
-        }
+        buildAccessorsToJars(
+            scriptTargetSchema,
+            classPath,
+            classesJar = getClassesOutputFile(workspace),
+            sourcesJar = getSourcesOutputFile(workspace)
+        )
         return object : WorkOutput {
             override fun getDidWork() = WorkOutput.WorkResult.DID_WORK
 
@@ -218,8 +212,8 @@ class GenerateProjectAccessors(
     }
 
     override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
-        DefaultClassPath.of(getClassesOutputDir(workspace)),
-        DefaultClassPath.of(getSourcesOutputDir(workspace))
+        DefaultClassPath.of(getClassesOutputFile(workspace)),
+        DefaultClassPath.of(getSourcesOutputFile(workspace))
     )
 
     override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
@@ -253,20 +247,20 @@ class GenerateProjectAccessors(
     }
 
     override fun visitOutputs(workspace: File, visitor: OutputVisitor) {
-        val sourcesOutputDir = getSourcesOutputDir(workspace)
-        val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
+        val sourcesOutputFile = getSourcesOutputFile(workspace)
+        val classesOutputFile = getClassesOutputFile(workspace)
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, FILE, OutputFileValueSupplier.fromStatic(sourcesOutputFile, fileCollectionFactory.fixed(sourcesOutputFile)))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, FILE, OutputFileValueSupplier.fromStatic(classesOutputFile, fileCollectionFactory.fixed(classesOutputFile)))
     }
 }
 
 
 private
-fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+fun getClassesOutputFile(workspace: File) = File(workspace, "classes.jar")
 
 
 private
-fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
+fun getSourcesOutputFile(workspace: File) = File(workspace, "sources.jar")
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
@@ -296,6 +290,30 @@ fun IO.buildAccessorsFor(
         OutputPackage(packageName),
         format
     )
+}
+
+
+internal fun buildAccessorsToJars(
+    projectSchema: TypedProjectSchema,
+    classPath: ClassPath,
+    classesJar: File,
+    sourcesJar: File,
+    packageName: String = KOTLIN_DSL_PACKAGE_NAME,
+    format: AccessorFormat = AccessorFormats.default
+) {
+    val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
+    val classpathBuilder = InPlaceClasspathBuilder()
+    classpathBuilder.jar(classesJar) { classesOut ->
+        classpathBuilder.jar(sourcesJar) { sourcesOut ->
+            emitAccessorsToJars(
+                availableSchema,
+                classesOut,
+                sourcesOut,
+                OutputPackage(packageName),
+                format
+            )
+        }
+    }
 }
 
 
@@ -738,17 +756,25 @@ fun IO.writeAccessorsTo(
     packageName: String = KOTLIN_DSL_PACKAGE_NAME
 ) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
-        if (imports.isNotEmpty()) {
-            imports.forEach {
-                appendReproducibleNewLine("import $it")
-            }
-            appendReproducibleNewLine()
+        appendImportsAndAccessors(packageName, imports, accessors)
+    }
+}
+
+internal fun Appendable.appendImportsAndAccessors(
+    packageName: String,
+    imports: List<String>,
+    accessors: Iterable<String>
+) {
+    appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
+    if (imports.isNotEmpty()) {
+        imports.forEach {
+            appendReproducibleNewLine("import $it")
         }
-        accessors.forEach {
-            appendReproducibleNewLine(it)
-            appendReproducibleNewLine()
-        }
+        appendReproducibleNewLine()
+    }
+    accessors.forEach {
+        appendReproducibleNewLine(it)
+        appendReproducibleNewLine()
     }
 }
 

@@ -22,16 +22,20 @@ import org.gradle.api.initialization.SharedModelDefaults;
 public interface SharedModelDefaultsInternal extends SharedModelDefaults {
 
     /**
-     * Specifies the current project when interpreting defaults configuration
-     * blocks during project evaluation time.
+     * Runs {@code action} with {@code projectLayout} bound as the current project layout for any
+     * {@link org.gradle.api.initialization.SharedModelDefaults#getLayout()} calls made on the same
+     * thread during execution. Restores the previously bound layout (which may be absent) on
+     * completion, including when {@code action} throws.
+     *
+     * <p>Nested calls preserve the outer binding for code that runs after the nested action
+     * returns, so that recursive defaults application (e.g. when a defaults action triggers
+     * application of another project feature whose own defaults are applied) does not strip the
+     * outer scope of its layout binding.</p>
+     *
+     * @param projectLayout the layout to bind for the duration of {@code action}
+     * @param action the action to run while {@code projectLayout} is bound
      */
-    void setProjectLayout(ProjectLayout projectLayout);
-
-    /**
-     * Clears the current project when the interpretation of defaults configuration
-     * blocks is finished during project evaluation time.
-     */
-    void clearProjectLayout();
+    void withProjectLayout(ProjectLayout projectLayout, Runnable action);
 
     /**
      * Processes all registered defaults.  This should be called after all settings evaluated hooks have been applied

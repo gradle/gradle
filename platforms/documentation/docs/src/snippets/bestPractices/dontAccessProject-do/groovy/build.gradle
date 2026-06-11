@@ -1,0 +1,19 @@
+// tag::do-this[]
+abstract class VersionTask extends DefaultTask {
+    @Input
+    abstract Property<String> getVersion() // <1>
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction
+    void run() {
+        outputDirectory.file("build_version.txt").get().asFile.text = version.get()
+    }
+}
+
+tasks.register("generateVersionFile", VersionTask) {
+    version = project.version // <2>
+    outputDirectory = project.layout.buildDirectory.dir("build-info") // <3>
+}
+// end::do-this[]

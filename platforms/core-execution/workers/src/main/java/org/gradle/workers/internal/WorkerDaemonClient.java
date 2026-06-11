@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.Describable;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
@@ -42,6 +43,14 @@ class WorkerDaemonClient implements Stoppable, Describable {
         this.workerProcess = workerProcess;
         this.logLevel = logLevel;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+    }
+
+    void bindProblemsService(ProblemsInternal problems) {
+        workerClient.bindProblemsService(problems);
+    }
+
+    void clearProblemsService() {
+        workerClient.clearProblemsService();
     }
 
     public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {

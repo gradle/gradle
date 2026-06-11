@@ -792,8 +792,11 @@ def scriptMethod(Closure closure) {
         when:
         project.ext.somename = 'somevalue'
         then:
-        child1.inheritedScope.hasProperty('somename')
-        child1.inheritedScope.getProperty('somename') == 'somevalue'
+        // The inherited scope exposes only the project's own inheritable members;
+        // ancestors are reached by walking getParent() one level at a time.
+        !child1.inheritedScope.hasProperty('somename')
+        child1.inheritedScope.parent.hasProperty('somename')
+        child1.inheritedScope.parent.getProperty('somename') == 'somevalue'
     }
 
     def getProjectProperty() {

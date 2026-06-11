@@ -238,6 +238,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             blockingServer.expectConcurrent(":bPing", ":cFailingPing")
             fails ":aPing"
             notExecuted(":aPing")
+            failureDescriptionStartsWith("Execution failed for task ':cFailingPing'")
         }
     }
 

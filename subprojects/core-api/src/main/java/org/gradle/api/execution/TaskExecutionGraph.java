@@ -71,6 +71,11 @@ public interface TaskExecutionGraph {
      * <p>Adds a closure to be called when this graph has been populated. This graph is passed to the closure as a
      * parameter.</p>
      *
+     * <p>When the configuration cache is enabled, this callback only
+     * fires during the configuration phase (a cache miss). On a cache hit,
+     * the task graph is loaded from the cache and this callback is not
+     * invoked.
+     *
      * @param closure The closure to execute when this graph has been populated.
      */
     void whenReady(Closure closure);
@@ -78,6 +83,11 @@ public interface TaskExecutionGraph {
     /**
      * <p>Adds an action to be called when this graph has been populated. This graph is passed to the action as a
      * parameter.</p>
+     *
+     * <p>When the configuration cache is enabled, this callback only
+     * fires during the configuration phase (a cache miss). On a cache hit,
+     * the task graph is loaded from the cache and this callback is not
+     * invoked.
      *
      * @param action The action to execute when this graph has been populated.
      *

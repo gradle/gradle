@@ -47,4 +47,18 @@ class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
             "io.micronaut.application": Versions.of(TestedVersions.micronaut),
         ]
     }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "micronaut {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [
+            parentMethodInvocationDeprecation('micronaut'),
+            "Using a Project object as a dependency notation has been deprecated. This will fail with an error in Gradle 10. Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead. Consult the upgrading guide for further information: ${DOCS.getDocumentationFor("upgrading_version_9", "dependency_project_notation")}".toString(),
+            "Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.file). This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: ${DOCS.getDocumentationFor("upgrading_version_9", "ide_task_deprecation")}".toString()
+        ]
+    }
 }

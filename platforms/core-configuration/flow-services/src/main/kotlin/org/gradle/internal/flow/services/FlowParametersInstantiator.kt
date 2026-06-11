@@ -18,6 +18,7 @@ package org.gradle.internal.flow.services
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.flow.FlowParameters
+import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
@@ -46,11 +47,16 @@ class FlowParametersInstantiator(
     services: ServiceRegistry
 ) {
     fun <P : FlowParameters> newInstance(parametersType: Class<P>, configure: (P) -> Unit): P {
-        return instantiator.newInstance(parametersType).also {
-            configure(it)
-            // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
-            validate(parametersType, it)
+        val parameters: P = if (parametersType == FlowParameters.None::class.java) {
+            @Suppress("UNCHECKED_CAST")
+            NoneParameters.singletonOf(FlowParameters.None::class.java) as P
+        } else {
+            instantiator.newInstance(parametersType)
         }
+        configure(parameters)
+        // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
+        validate(parametersType, parameters)
+        return parameters
     }
 
     private

@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
+
+    compileOnly(libs.jspecify)
 }
 
 gradleModule {

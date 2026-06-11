@@ -66,7 +66,7 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
         Map<SourceVariantData, List<TransformationChainData>> transformationPaths = failure.getPotentialVariants().stream()
             .collect(Collectors.groupingBy(
                 TransformationChainData::getInitialVariant,
-                () -> new TreeMap<>(Comparator.comparing(SourceVariantData::getVariantName)),
+                () -> new TreeMap<>(Comparator.comparing(SourceVariantData::getVariantDisplayName)),
                 Collectors.collectingAndThen(Collectors.toList(), list -> list.stream().sorted(variantDataComparator).collect(Collectors.toList()))));
 
         formatter.startChildren();
@@ -98,7 +98,7 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
     }
 
     private void formatSourceVariant(SourceVariantData sourceVariantData, TreeFormatter formatter) {
-        formatter.node("From " + sourceVariantData.getFormattedVariantName());
+        formatter.node("From " + sourceVariantData.getVariantDisplayName());
         formatter.startChildren();
         formatter.node("With source attributes");
         formatSortedAttributes(formatter, sourceVariantData.getAttributes());

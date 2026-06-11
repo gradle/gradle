@@ -54,10 +54,8 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public ProjectInternal accessFromState(ProjectIdentity referrer, ProjectState projectState) {
-        return projectState.fromMutableState(project ->
-            // We purposefully leak mutable state here, as we're not in IP so it's safe.
-            access(referrer, project)
-        );
+        // This is safe without checking the lock as the mutable model is immediately wrapped in a thread-safe wrapper.
+        return access(referrer, projectState.getMutableModel());
     }
 
     @Override

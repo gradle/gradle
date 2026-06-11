@@ -567,8 +567,10 @@ The value of this property is derived from: <source>""")
         property.addAll(["jkl"])
         property.addAll(Providers.of(["mno"]))
 
-        expect:
+        when:
         property.empty()
+
+        then:
         assertValueIs([])
     }
 
@@ -593,37 +595,47 @@ The value of this property is derived from: <source>""")
     }
 
     def "ignores convention after element added"() {
-        expect:
+        when:
         property.add("a")
         property.convention(["other"])
+
+        then:
         assertValueIs(["a"])
     }
 
     def "ignores convention after element added using provider"() {
-        expect:
+        when:
         property.add(Providers.of("a"))
         property.convention(["other"])
+
+        then:
         assertValueIs(["a"])
     }
 
     def "ignores convention after elements added"() {
-        expect:
+        when:
         property.addAll(["a", "b"])
         property.convention(["other"])
+
+        then:
         assertValueIs(["a", "b"])
     }
 
     def "ignores convention after elements added using provider"() {
-        expect:
+        when:
         property.addAll(Providers.of(["a", "b"]))
         property.convention(["other"])
+
+        then:
         assertValueIs(["a", "b"])
     }
 
     def "ignores convention after collection made empty"() {
-        expect:
+        when:
         property.empty()
         property.convention(["other"])
+
+        then:
         assertValueIs([])
     }
 

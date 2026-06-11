@@ -119,7 +119,7 @@ public class DefaultTransform implements Transform {
 
     public DefaultTransform(
         Class<? extends TransformAction<?>> implementationClass,
-        @Nullable TransformParameters parameterObject,
+        TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
         ImmutableAttributes toAttributes,
         FileNormalizer inputArtifactNormalizer,
@@ -403,7 +403,7 @@ public class DefaultTransform implements Transform {
 
     private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
-        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class, TransformParameters.None.INSTANCE).servicesForImplementation(parameters, internalServices, Collections.emptySet());
+        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
         services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
     }
@@ -569,7 +569,7 @@ public class DefaultTransform implements Transform {
         private final DocumentationRegistry documentationRegistry;
 
         public IsolateTransformParameters(
-            @Nullable TransformParameters parameterObject,
+            TransformParameters parameterObject,
             Class<?> implementationClass,
             boolean cacheable,
             DomainObjectContext owner,
@@ -594,7 +594,6 @@ public class DefaultTransform implements Transform {
             this.documentationRegistry = documentationRegistry;
         }
 
-        @Nullable
         public TransformParameters getParameterObject() {
             return parameterObject;
         }
@@ -620,23 +619,21 @@ public class DefaultTransform implements Transform {
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            if (parameterObject != null) {
-                parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor() {
-                    @Override
-                    public void visitInputFileProperty(
-                        String propertyName,
-                        boolean optional,
-                        InputBehavior behavior,
-                        DirectorySensitivity directorySensitivity,
-                        LineEndingSensitivity lineEndingSensitivity,
-                        @Nullable FileNormalizer fileNormalizer,
-                        PropertyValue value,
-                        InputFilePropertyType filePropertyType
-                    ) {
-                        context.add(value.getTaskDependencies());
-                    }
-                });
-            }
+            parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor() {
+                @Override
+                public void visitInputFileProperty(
+                    String propertyName,
+                    boolean optional,
+                    InputBehavior behavior,
+                    DirectorySensitivity directorySensitivity,
+                    LineEndingSensitivity lineEndingSensitivity,
+                    @Nullable FileNormalizer fileNormalizer,
+                    PropertyValue value,
+                    InputFilePropertyType filePropertyType
+                ) {
+                    context.add(value.getTaskDependencies());
+                }
+            });
         }
 
         @Override
@@ -686,32 +683,30 @@ public class DefaultTransform implements Transform {
             hasher.putString(implementationClass.getName());
             hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementationClass.getClassLoader()));
 
-            if (parameterObject != null) {
-                TransformParameters isolatedTransformParameters = isolatedParameterObject.isolate();
-                buildOperationRunner.run(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-                        fingerprintParameters(
-                            inputFingerprinter,
-                            fileCollectionFactory,
-                            parameterPropertyWalker,
-                            hasher,
-                            isolatedTransformParameters,
-                            cacheable,
-                            problems
-                        );
-                        context.setResult(FingerprintTransformInputsOperation.Result.INSTANCE);
-                    }
+            TransformParameters isolatedTransformParameters = isolatedParameterObject.isolate();
+            buildOperationRunner.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
+                    fingerprintParameters(
+                        inputFingerprinter,
+                        fileCollectionFactory,
+                        parameterPropertyWalker,
+                        hasher,
+                        isolatedTransformParameters,
+                        cacheable,
+                        problems
+                    );
+                    context.setResult(FingerprintTransformInputsOperation.Result.INSTANCE);
+                }
 
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor
-                            .displayName("Fingerprint transform inputs")
-                            .details(FingerprintTransformInputsOperation.Details.INSTANCE);
-                    }
-                });
-            }
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor
+                        .displayName("Fingerprint transform inputs")
+                        .details(FingerprintTransformInputsOperation.Details.INSTANCE);
+                }
+            });
             HashCode secondaryInputsHash = hasher.hash();
             return new IsolatedParameters(isolatedParameterObject, secondaryInputsHash);
         }

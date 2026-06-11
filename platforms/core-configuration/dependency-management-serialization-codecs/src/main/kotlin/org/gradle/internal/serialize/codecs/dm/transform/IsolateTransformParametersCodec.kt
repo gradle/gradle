@@ -48,7 +48,7 @@ class IsolateTransformParametersCodec(
     }
 
     override suspend fun ReadContext.decode(): IsolateTransformParameters? {
-        val parameterObject: TransformParameters? = read()?.uncheckedCast()
+        val parameterObject: TransformParameters = read()!!.uncheckedCast()
         val implementationClass = readClass()
         val cacheable = readBoolean()
 

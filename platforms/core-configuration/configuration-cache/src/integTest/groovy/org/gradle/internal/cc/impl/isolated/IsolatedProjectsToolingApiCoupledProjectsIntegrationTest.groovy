@@ -40,68 +40,26 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             plugins.apply(my.MyPlugin)
         """
 
-        when:
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model = runBuildAction(new FetchCustomModelForEachProject())
+        when: "the coupling violation fails the build"
+        withIsolatedProjectsUsing(mode)
+        runBuildActionFails(new FetchCustomModelForEachProject())
 
         then:
-        model.size() == 3
-        model[0].message == "project a"
-        model[1].message == "project b"
-        model[2].message == "It works from project :c"
-
-        and:
-        fixture.assertModelStoredWithProblems {
-            projectConfigured(":buildSrc")
-            projectsConfigured(":")
-            buildModelCreated()
-            modelsCreated(":a", ":b", ":c")
-            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on another project ':a'")
-            problem("Build file 'build.gradle': line 6: Project ':' cannot access 'Project.plugins' functionality on another project ':b'")
-        }
-
-        when:
-        withIsolatedProjects()
-        def model2 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model2.size() == 3
-        model2[0].message == "project a"
-        model2[1].message == "project b"
-        model2[2].message == "It works from project :c"
-
-        and:
-        fixture.assertModelLoaded()
-
-        when:
-        file("build.gradle") << """
-            project(":a") {
-                afterEvaluate {
-                    myExtension.message = "new project a"
-                }
+        if (mode == IsolatedProjectsMode.DIAGNOSTICS) {
+            fixture.assertModelStoredAndDiscarded {
+                projectConfigured(":buildSrc")
+                projectsConfigured(":")
+                buildModelCreated()
+                modelsCreated(":a", ":b", ":c")
+                problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on another project ':a'")
+                problem("Build file 'build.gradle': line 6: Project ':' cannot access 'Project.plugins' functionality on another project ':b'")
             }
-        """
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model3 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model3.size() == 3
-        model3[0].message == "new project a"
-        model3[1].message == "project b"
-        model3[2].message == "It works from project :c"
-
-        and:
-        fixture.assertModelUpdatedWithProblems {
-            fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":a", ":b")
-            modelsQueriedAndNotPresent(":")
-            modelsReused(":c", ":buildSrc")
-            problem("Build file 'build.gradle': line 10: Project ':' cannot access 'Project.afterEvaluate' functionality on another project ':a'")
-            problem("Build file 'build.gradle': line 11: Project ':' cannot access 'myExtension' extension on another project ':a'")
-            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on another project ':a'")
-            problem("Build file 'build.gradle': line 6: Project ':' cannot access 'Project.plugins' functionality on another project ':b'")
+        } else {
+            failureCauseContains("Project ':' cannot access 'Project.plugins' functionality on another project ':a'")
         }
+
+        where:
+        mode << ALL_MODES
     }
 
     def "projects are treated as coupled when child mutates parent project"() {
@@ -116,57 +74,26 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             plugins.apply(my.MyPlugin)
         """
 
-        when:
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model = runBuildAction(new FetchCustomModelForEachProject())
+        when: "the coupling violation fails the build"
+        withIsolatedProjectsUsing(mode)
+        runBuildActionFails(new FetchCustomModelForEachProject())
 
         then:
-        // TODO - should include model from root
-        model.size() == 1
-        model[0].message == "It works from project :b"
-
-        and:
-        fixture.assertModelStoredWithProblems {
-            projectConfigured(":buildSrc")
-            projectsConfigured(":", ":a")
-            buildModelCreated()
-            // TODO - should create model for root
-            modelsCreated(":b")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access 'Project.plugins' functionality on another project ':'")
-            problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access 'myExtension' extension on another project ':'")
+        if (mode == IsolatedProjectsMode.DIAGNOSTICS) {
+            fixture.assertModelStoredAndDiscarded {
+                projectConfigured(":buildSrc")
+                projectsConfigured(":", ":a")
+                buildModelCreated()
+                modelsCreated(":", ":b")
+                problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access 'Project.plugins' functionality on another project ':'")
+                problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access 'myExtension' extension on another project ':'")
+            }
+        } else {
+            failureCauseContains("Project ':a' cannot access 'Project.plugins' functionality on another project ':'")
         }
 
-        when:
-        withIsolatedProjects()
-        def model2 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model2.size() == 1
-        model2[0].message == "It works from project :b"
-
-        and:
-        fixture.assertModelLoaded()
-
-        when:
-        file("a/build.gradle") << """
-            // Some change
-        """
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model3 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model3.size() == 1
-        model3[0].message == "It works from project :b"
-
-        and:
-        fixture.assertModelUpdatedWithProblems {
-            fileChanged("a/build.gradle")
-            projectConfigured(":buildSrc")
-            modelsQueriedAndNotPresent(":", ":a")
-            modelsReused(":b", ":buildSrc")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access 'Project.plugins' functionality on another project ':'")
-            problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access 'myExtension' extension on another project ':'")
-        }
+        where:
+        mode << ALL_MODES
     }
 
     def "projects are treated as coupled when project queries a sibling project"() {
@@ -183,93 +110,32 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             myExtension.message = otherProject.myExtension.message
         """
 
-        when:
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model = runBuildAction(new FetchCustomModelForEachProject())
+        when: "the coupling violation fails the build"
+        withIsolatedProjectsUsing(mode)
+        runBuildActionFails(new FetchCustomModelForEachProject())
 
         then:
-        model.size() == 2
-        model[0].message == "the message"
-        model[1].message == "the message"
-
-        and:
-        fixture.assertModelStoredWithProblems {
-            projectConfigured(":buildSrc")
-            projectsConfigured(":", ":c")
-            buildModelCreated()
-            modelsCreated(":a", ":b")
-            problem("Build file 'b/build.gradle': line 4: Project ':b' cannot access 'myExtension' extension on another project ':a'")
+        if (mode == IsolatedProjectsMode.DIAGNOSTICS) {
+            fixture.assertModelStoredAndDiscarded {
+                projectConfigured(":buildSrc")
+                projectsConfigured(":", ":c")
+                buildModelCreated()
+                modelsCreated(":a", ":b")
+                problem("Build file 'b/build.gradle': line 4: Project ':b' cannot access 'myExtension' extension on another project ':a'")
+            }
+        } else {
+            failureCauseContains("Project ':b' cannot access 'myExtension' extension on another project ':a'")
         }
 
-        when:
-        withIsolatedProjects()
-        def model2 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model2.size() == 2
-        model2[0].message == "the message"
-        model2[1].message == "the message"
-
-        and:
-        fixture.assertModelLoaded()
-
-        when:
-        file("b/build.gradle") << """
-            // some change
-        """
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model3 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model3.size() == 2
-        model3[0].message == "the message"
-        model3[1].message == "the message"
-
-        and:
-        fixture.assertModelUpdatedWithProblems {
-            fileChanged("b/build.gradle")
-            projectConfigured(":buildSrc")
-            projectConfigured(":")
-            modelsCreated(":a", ":b")
-            modelsReused(":", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Project ':b' cannot access 'myExtension' extension on another project ':a'")
-        }
-
-        when:
-        withIsolatedProjects()
-        def model4 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model4.size() == 2
-        model4[0].message == "the message"
-        model4[1].message == "the message"
-
-        and:
-        fixture.assertModelLoaded()
-
-        file("a/build.gradle") << """
-            myExtension.message = "new message"
-        """
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model5 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model5.size() == 2
-        model5[0].message == "new message"
-        model5[1].message == "new message"
-
-        and:
-        fixture.assertModelUpdatedWithProblems {
-            fileChanged("a/build.gradle")
-            projectConfigured(":buildSrc")
-            projectConfigured(":")
-            modelsCreated(":a", ":b")
-            modelsReused(":", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Project ':b' cannot access 'myExtension' extension on another project ':a'")
-        }
+        where:
+        mode << ALL_MODES
     }
 
-    def "can ignore project couplings using internal system property"() {
+    def "coupling violation fails the build fast even with invalidate-coupled-projects disabled"() {
+        // The internal `invalidate-coupled-projects=false` escape hatch only governs reuse-run invalidation
+        // of coupled projects; it does not suppress the IP violation, which fails fast in default mode.
+        // The prior coverage of the property's reuse-run behaviour required a reusable entry stored despite
+        // the violation (under the old warn-mode deferral), which no longer exists.
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         includeProjects("a", "b", "c")
@@ -285,55 +151,10 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         """
 
         when:
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
-        def model = runBuildAction(new FetchCustomModelForEachProject())
+        withIsolatedProjects("-Dorg.gradle.internal.invalidate-coupled-projects=false")
+        runBuildActionFails(new FetchCustomModelForEachProject())
 
         then:
-        model.size() == 2
-        model[0].message == "the message"
-        model[1].message == "the message"
-
-        and:
-        fixture.assertModelStoredWithProblems {
-            projectConfigured(":buildSrc")
-            projectsConfigured(":", ":c")
-            buildModelCreated()
-            modelsCreated(":a", ":b")
-            problem("Build file 'b/build.gradle': line 4: Project ':b' cannot access 'myExtension' extension on another project ':a'")
-        }
-
-        when:
-        withIsolatedProjects()
-        def model2 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model2.size() == 2
-        model2[0].message == "the message"
-        model2[1].message == "the message"
-
-        and:
-        fixture.assertModelLoaded()
-
-        when:
-        file("b/build.gradle") << """
-            // some change
-        """
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
-        def model3 = runBuildAction (new FetchCustomModelForEachProject())
-
-        then:
-        model3.size() == 2
-        model3[0].message == "the message"
-        model3[1].message == "default message"
-
-        and:
-        fixture.assertModelUpdatedWithProblems {
-            fileChanged("b/build.gradle")
-            projectConfigured(":buildSrc")
-            projectsConfigured(":", ":b")
-            modelsCreated(":b")
-            modelsReused(":", ":a", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Project ':b' cannot access 'myExtension' extension on another project ':a'. Setting 'org.gradle.internal.invalidate-coupled-projects=false' is preventing configuration of another project ':a'")
-        }
+        failureCauseContains("Project ':b' cannot access 'myExtension' extension on another project ':a'")
     }
 }

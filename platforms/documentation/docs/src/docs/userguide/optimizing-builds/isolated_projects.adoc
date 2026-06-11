@@ -46,6 +46,10 @@ The feature will enter incubation once Gradle's core has stronger support for th
 
 While the feature is experimental, notable changes are documented here rather than in release notes:
 
+* Gradle 9.7.0
+** The new <<sec:dangerously_ignore_problems,dangerously-ignore-problems>> mode lets you ignore Isolated Projects violations to evaluate parallel build and sync performance without fixing violations first.
+** Isolated Projects violation severity is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
+
 * Gradle 9.6.0
 ** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
 `getRegistrations` now only permits the `findByName(String)` method. All other methods emit Isolated Projects violations.
@@ -54,6 +58,7 @@ While the feature is experimental, notable changes are documented here rather th
 ** The `Project.getProperties()` API is now treated as incompatible, while being <<upgrading_version_9.adoc#deprecated_get_properties,generally deprecated>>.
 ** The new <<sec:diagnostics_mode,Diagnostics mode>> runs without parallelism and deterministically reports constraint violations.
 ** Editor support for Kotlin build scripts and precompiled plugins in IDEA-based IDEs has been fixed.
+** The minimum supported version of the link:https://scans.gradle.com/plugin/[Develocity plugin] is 4.0.
 
 * Gradle 9.4.0
 ** Isolated Projects violations are now deduplicated, making the Configuration Cache HTML reports significantly smaller.
@@ -425,7 +430,7 @@ The Isolated Projects <<#sec:constraints,constraints>> validate the usages of AP
 
 Under Isolated Project, the implicit resolution of properties and methods from parent projects does not happen.
 In Gradle 9.6.0, this behavior is deprecated when running without Isolated Projects.
-The corresponding <<upgrading_version_9.adoc#deprecated_implicit_project_hierarchy_lookup,upgrade guide entry>> details the cases when it is applicable.
+The corresponding <<upgrading_version_9.adoc#deprecated_implicit_lookup_in_parent_projects,upgrade guide entry>> details the cases when it is applicable.
 
 [WARNING]
 ====
@@ -444,6 +449,17 @@ It is recommended to enable this flag in builds that are migrating to or already
 // settings.gradle.kts
 enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
 ----
+
+[[sec:properties_report_no_inherited]]
+=== Properties report does not include properties inherited from parent projects
+
+Under Isolated Projects, the <<command_line_interface.adoc#sec:listing_properties,properties report>>
+of a child project lists only the properties defined on that project itself.
+Properties inherited from parent projects are not present in the report.
+This is a consequence of the <<sec:no_implicit_parents_lookup,no implicit parent lookup>> behavior.
+
+Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties--[`Project.getProperties()`]
+continue to be reported as an Isolated Projects violation, as that API is being phased out.
 
 [[sec:migration]]
 == Migration
@@ -545,43 +561,50 @@ A build that is clean under Isolated Projects is also clean under _Diagnostics_ 
 Also, if a diagnostic run is free of violation, it doesn't mean that the entire build is guaranteed to be fully compatible with Isolated Projects.
 While the configuration of all projects is ensured, violations can hide behind additional layers of laziness, such as lazy configuration of tasks.
 
-[[sec:ignore_violations]]
+[[sec:dangerously_ignore_problems]]
 === Temporarily ignoring violations
+
+[WARNING]
+====
+The mode described in this section is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+Because the violations are ignored rather than fixed, build outputs may be incorrect, so the results should not be used to produce artifacts.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+====
 
 To guarantee reliable build results, Gradle will fail the build when any violations of <<sec:constraints,Isolated Project constraints>> are detected.
 However, in the initial stages of the Isolated Projects adoption journey,
-it can be useful to gauge an estimate of the speed-up provided by the feature in your particular setup and workflow.
+it can be useful to gauge an estimate of the speed-up provided by the feature in your particular setup and workflow,
+before all the violations have been fixed.
+It is especially relevant for the IDE sync scenarios, where the violations otherwise prevent a sync from completing.
 
-This can be achieved by temporarily ignoring the violations and not failing the build on the basis of their presence.
-It is especially relevant for the IDE sync scenarios, where the violations are preventing a sync from completion.
-
-Since Isolated Projects violations are reported via the same mechanism as <<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems,Configuration Cache problems>>,
-enabling Configuration Cache _warning mode_ achieves the desired result.
+For this purpose, Isolated Projects offers a _dangerously ignore problems_ mode that still reports violations but does not fail the build on the basis of their presence.
+Enable it by setting `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true` in `gradle.properties`, alongside enabling Isolated Projects:
 
 [source,properties]
 .gradle.properties
 ----
+org.gradle.unsafe.isolated-projects=true
 # ⚠️ Temporary measure of ignoring Isolated Projects violations. Do not enable permanently!
-org.gradle.configuration-cache.problems=warn
+org.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true
 ----
+
+Alternatively, the flag can be passed on the command line:
+
+[source,bash]
+----
+$ ./gradlew help \
+    -Dorg.gradle.unsafe.isolated-projects=true \
+    -Dorg.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true
+----
+
+When the mode is active, Gradle prints a banner at the start and end of the build to remind you that violations are being ignored.
 
 [NOTE]
 ====
 This does not guarantee that the build will succeed.
 Concurrency issues may still cause exceptions which fail the build.
-====
-
-Alternatively, a flag can be used on the command line:
-
-[source,bash]
-----
-$ ./gradlew --configuration-cache-problems=warn
-----
-
-[WARNING]
-====
-Warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
-It will also not prevent new incompatibilities being accidentally added to your build later.
+This mode can be combined with <<sec:diagnostics_mode,Diagnostics mode>> to prevent concurrency errors,
+which may be helpful for an IDE sync that would otherwise be interrupted by such a failure.
 ====
 
 [[sec:migration_path]]

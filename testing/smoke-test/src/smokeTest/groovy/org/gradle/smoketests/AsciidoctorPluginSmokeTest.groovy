@@ -76,6 +76,27 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         }
     }
 
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        testedPluginId.startsWith("org.asciidoctor.jvm.") ? "asciidoctorj {}" : null
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        if (!testedPluginId.startsWith("org.asciidoctor.jvm.")) {
+            return []
+        }
+        def versionNumber = VersionNumber.parse(version)
+        def deprecations = [parentMethodInvocationDeprecation('asciidoctorj')]
+        if (versionNumber.major >= 4) {
+            deprecations << ("The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
+                "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested").toString()
+        }
+        return deprecations
+    }
+
     static class AsciidocDeprecations extends BaseDeprecations {
         AsciidocDeprecations(SmokeTestGradleRunner runner) {
             super(runner)

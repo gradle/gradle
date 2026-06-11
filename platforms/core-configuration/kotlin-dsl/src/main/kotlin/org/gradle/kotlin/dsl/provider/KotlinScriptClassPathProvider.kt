@@ -78,19 +78,14 @@ class KotlinScriptClassPathProvider(
 
     private
     val gradleAbiClasspath: ClassPath by lazy {
-        // Matches gradlebuild.basics.PublicApiVariants.LEGACY_MODULE_NAME in build-logic,
-        moduleRegistry.findModule("gradle-public-api-legacy")
-            ?.let { moduleRegistry.getRuntimeClasspath(listOf(it)) }
-            ?.let { cp ->
-                when (gradleProperties.isDclEnabled) {
-                    // Declarative Gradle is not part of the public api yet, only add it to the compilation classpath if enabled
-                    // TODO:declarative drop once `org.gradle.features.*` graduates to PublicApi.include
-                    true -> cp + moduleRegistry.getRuntimeClasspath("gradle-project-features")
-                    false -> cp
-                }
-            }
-        // Support integ-tests on non-full distros (no ABI jar), fallback to the generated API jar
-            ?: gradleApiClasspath
+        // Matches gradlebuild.basics.PublicApiVariants.LEGACY_MODULE_NAME in build-logic.
+        val abiClasspath = moduleRegistry.getRuntimeClasspath("gradle-public-api-legacy")
+        when (gradleProperties.isDclEnabled) {
+            // Declarative Gradle is not part of the public api yet, only add it to the compilation classpath if enabled
+            // TODO:declarative drop once `org.gradle.features.*` graduates to PublicApi.include
+            true -> abiClasspath + moduleRegistry.getRuntimeClasspath("gradle-project-features")
+            false -> abiClasspath
+        }
     }
 
     private

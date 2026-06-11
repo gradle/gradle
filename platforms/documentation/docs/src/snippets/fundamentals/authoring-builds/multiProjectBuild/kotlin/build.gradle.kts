@@ -27,7 +27,9 @@ project(":infra") {
 }
 
 project(":http") {
+    // tag::use-plugin-legacy[]
     apply(plugin = "java")
+    // end::use-plugin-legacy[]
     apply(plugin = "io.ratpack.ratpack-java")
     repositories { mavenCentral() }
     val ratpack = the<RatpackExtension>()

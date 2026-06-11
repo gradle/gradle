@@ -28,9 +28,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,7 +95,7 @@ public class TransformReplacer implements Closeable {
     }
 
     private Loader createLoaderForDomain(ProtectionDomain domain) {
-        File originalPath = getOriginalFile(domain);
+        File originalPath = ProtectionDomains.codeSourceFileOf(domain);
         File transformedPath = originalPath != null ? classPath.findTransformedEntryFor(originalPath) : null;
         if (transformedPath == null) {
             return SKIP_INSTRUMENTATION;
@@ -135,22 +132,6 @@ public class TransformReplacer implements Closeable {
     private void ensureOpened() {
         if (closed) {
             throw new IllegalStateException("Cannot load the transformed class, the replacer is closed");
-        }
-    }
-
-    @Nullable
-    private static File getOriginalFile(ProtectionDomain protectionDomain) {
-        // CodeSource is null for dynamically defined classes, or if the ClassLoader doesn't set them properly.
-        CodeSource cs = protectionDomain.getCodeSource();
-        URL originalUrl = cs != null ? cs.getLocation() : null;
-        if (originalUrl == null || !"file".equals(originalUrl.getProtocol())) {
-            // Cannot transform classes from anything but files
-            return null;
-        }
-        try {
-            return new File(originalUrl.toURI());
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Cannot parse file URL " + originalUrl, e);
         }
     }
 

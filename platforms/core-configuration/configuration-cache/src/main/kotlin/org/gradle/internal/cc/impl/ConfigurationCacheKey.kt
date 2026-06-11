@@ -61,17 +61,37 @@ class ConfigurationCacheKey(
 
         buildActionRequirements.appendKeyTo(this)
 
+        val hasRelativeTaskNames = sequenceOf(startParameter.requestedTaskNames, startParameter.excludedTaskNames).flatten()
+            .any { !it.startsWith(':') }
+        if (buildActionRequirements.isCreatesModel || (buildActionRequirements.isRunsTasks && hasRelativeTaskNames)) {
+            // (1)
+            // Tooling model queries target a specific project directory
+            // (via `ProjectConnection.forProjectDirectory(...)`), and different
+            // subprojects of the same root build can produce different models.
+            // Include the project directory in the key so that consecutive model
+            // queries against different subprojects do not collide.
+            // (2)
+            // Because unqualified task names are resolved relative to the selected
+            // sub-project according to either `projectDirectory` or `currentDirectory`,
+            // the relative directory information must be part of the key.
+            appendTargetProjectDirectory()
+        }
+
         // TODO:bamboo review with Adam
 //        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
         if (buildActionRequirements.isRunsTasks) {
-            appendRequestedTasks()
+            putAll(startParameter.requestedTaskNames)
+            putAll(startParameter.excludedTaskNames)
         }
 
         putBoolean(startParameter.isOffline)
         putBoolean(startParameter.isIsolatedProjects)
+        // Keep entries from runs that ignore IP problems separate from normal entries, so removing
+        // the flag is a clean cache miss and a normal build never reuses a possibly-incorrect entry.
+        putBoolean(startParameter.isIsolatedProjectsDangerouslyIgnoreProblems)
         putBuildScan()
-        putDevelocityUrl()
-        putDevelocityPluginVersion()
+        putStringIfNotNull(startParameter.develocityUrl)
+        putStringIfNotNull(startParameter.develocityPluginVersion)
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
         putBoolean(startParameter.isDeduplicatingStrings)
@@ -94,58 +114,28 @@ class ConfigurationCacheKey(
     }
 
     private
-    fun Hasher.putDevelocityUrl() {
-        val develocityUrl = startParameter.develocityUrl
-        if (develocityUrl != null) {
-            putString(develocityUrl)
+    fun Hasher.appendTargetProjectDirectory() {
+        val buildTreeRoot = startParameter.buildTreeRootDirectory
+        val projectDir = startParameter.projectDirectory
+        val relativeDir = if (projectDir != null) {
+            relativePathOf(projectDir, buildTreeRoot)
+        } else {
+            relativeChildPathOrNull(startParameter.currentDirectory, buildTreeRoot)
         }
-    }
-
-    private
-    fun Hasher.putDevelocityPluginVersion() {
-        val develocityPluginVersion = startParameter.develocityPluginVersion
-        if (develocityPluginVersion != null) {
-            putString(develocityPluginVersion)
-        }
-    }
-
-    private
-    fun Hasher.appendRequestedTasks() {
-        val requestedTaskNames = startParameter.requestedTaskNames
-        putAll(requestedTaskNames)
-
-        val excludedTaskNames = startParameter.excludedTaskNames
-        putAll(excludedTaskNames)
-
-        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
-        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the selected
-            // sub-project according to either `projectDirectory` or `currentDirectory`,
-            // the relative directory information must be part of the key.
-            val projectDir = startParameter.projectDirectory
-            if (projectDir != null) {
-                relativePathOf(
-                    projectDir,
-                    startParameter.buildTreeRootDirectory
-                ).let { relativeProjectDir ->
-                    putString(relativeProjectDir)
-                }
-            } else {
-                relativeChildPathOrNull(
-                    startParameter.currentDirectory,
-                    startParameter.buildTreeRootDirectory
-                )?.let { relativeSubDir ->
-                    putString(relativeSubDir)
-                }
-            }
-        }
+        putStringIfNotNull(relativeDir)
     }
 
     private
     fun Hasher.putAll(list: Collection<String>) {
         putInt(list.size)
         list.forEach(::putString)
+    }
+
+    private
+    fun Hasher.putStringIfNotNull(value: String?) {
+        if (value != null) {
+            putString(value)
+        }
     }
 
     /**

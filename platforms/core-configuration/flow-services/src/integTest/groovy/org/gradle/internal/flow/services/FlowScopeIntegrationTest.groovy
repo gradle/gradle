@@ -248,6 +248,60 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         simpleServiceTypeName = serviceType.simpleName
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30182")
+    def 'configure parameters closure runs for flow action with None parameters'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+
+            class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                @Inject FlowActionPlugin(FlowScope flowScope) {
+                    this.flowScope = flowScope
+                }
+                void apply(Project target) {
+                    flowScope.always(NoneAction) { spec ->
+                        println("Spec parameters: " + spec.parameters)
+                        spec.parameters {
+                            println("Configure closure parameters: " + it)
+                        }
+                    }
+                }
+            }
+
+            class NoneAction implements FlowAction<FlowParameters.None> {
+                void execute(FlowParameters.None parameters) {
+                    println("Execute parameters: " + parameters)
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains 'Spec parameters: FlowParameters.None'
+        outputContains 'Configure closure parameters: FlowParameters.None'
+        outputContains 'Execute parameters: FlowParameters.None'
+    }
+
+    def 'FlowParameters.None cannot be extended'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+
+            class CustomNone extends FlowParameters.None {}
+        '''
+
+        when:
+        fails 'help'
+
+        then:
+        failureCauseContains("You are not allowed to extend the final class 'org.gradle.api.flow.FlowParameters\$None'")
+    }
+
     def "value source with build work result provider cannot be obtained at configuration time"() {
         given:
         buildFile '''

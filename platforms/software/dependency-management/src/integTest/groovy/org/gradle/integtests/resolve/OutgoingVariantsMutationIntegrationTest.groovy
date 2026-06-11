@@ -79,7 +79,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("resolve")
 
         then:
-        failure.assertHasCause "Cannot change attributes of configuration ':elements' variant classes after it has been locked for mutation"
+        failure.assertHasCause "Cannot change attributes of configuration ':elements' variant 'classes' after it has been locked for mutation"
     }
 
     def "cannot declare capabilities after configuration is observed"() {

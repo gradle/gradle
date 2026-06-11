@@ -49,8 +49,8 @@ They apply whenever that dependency is encountered during resolution.
 The `constraints {}` block is used within the `dependencies {}` block to declare these constraints:
 
 ====
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin,constraints]"]
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/quickstart/groovy",files="build.gradle[tags=use-plugin,constraints]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kotlin",files="build.gradle.kts[tags=use-plugin,constraints]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=use-plugin,constraints]"]
 ====
 
 1. `api("commons-httpclient:commons-httpclient:3.1")`: ensures ≥ 3.1 for `api`.

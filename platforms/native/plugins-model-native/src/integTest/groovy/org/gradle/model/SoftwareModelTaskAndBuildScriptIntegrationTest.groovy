@@ -79,10 +79,10 @@ println "child: " + doSomething(11)
     }
 
     private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
-        executer.expectDocumentedDeprecationWarning("Implicitly resolving methods in the project hierarchy has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }
 }

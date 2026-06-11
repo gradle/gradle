@@ -45,7 +45,7 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         def provider = providerFactory.provider({ value })
 
         then:
-        provider
+        provider != null
         provider.get() == value
 
         where:

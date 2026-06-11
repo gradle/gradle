@@ -16,6 +16,7 @@
 package org.gradle.docs.asciidoctor
 
 import org.asciidoctor.Asciidoctor
+import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -44,7 +45,7 @@ include::sample[]
 """
 
         when:
-        asciidoctor.convert(asciidocContent, [:])
+        asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         thrown IllegalStateException
@@ -68,7 +69,7 @@ include::sample[dir="src/samples",files="build.gradle[]"]
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains('println "hello world"')
@@ -125,7 +126,7 @@ include::sample[dir="src/samples",files="build.gradle[];init.gradle[tags=before-
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         content.contains('task compile')
@@ -155,7 +156,7 @@ include::sample[dir="src/samples",files="build.gradle[tags=foo,bar]"]
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         !content.contains('println "hello world"')
@@ -187,7 +188,7 @@ include::sample[dir="src/samples",files="build.gradle[${tag}]"]
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         def expectedContent = '''task hello {
@@ -222,7 +223,7 @@ include::sample[dir="src/samples",files="foo.xml[tag=bar]"]
 """
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         then:
         !content.contains('hello>')
@@ -246,7 +247,7 @@ include::sample[dir="src/samples",files="foo.xml[tag=bar]"]
         """.trim().stripMargin()
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         def expectedContent = '''
             |// Comment
@@ -281,7 +282,7 @@ include::sample[dir="src/samples",files="foo.xml[tag=bar]"]
         """.trim().stripMargin()
 
         when:
-        String content = asciidoctor.convert(asciidocContent, [:])
+        String content = asciidoctor.convert(asciidocContent, Options.builder().build())
 
         def expectedContent = """
             |// Comment

@@ -20,6 +20,7 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
+import gradlebuild.basics.develocityServerUrl
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
@@ -275,7 +276,7 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
  * environment variable. This allows build scans to be published for integration tests.
  */
 fun Test.inheritedEnvVars(): List<String> = when {
-    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "CI")
+    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "DEVELOCITY_SERVER_URL", "DEVELOCITY_EDGE_DISCOVERY", "CI")
     else -> emptyList()
 }
 
@@ -364,12 +365,13 @@ fun configureTests() {
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // GitHub actions for contributor PRs use a public Build Scan instance
-            // in this case we need to explicitly configure the PTS server
+            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
+            // which use a public Build Scan instance).
             // Don't move this line into the lambda as it may cause config cache problems
+            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
                 this as PredictiveTestSelectionConfigurationInternal
-                server = uri("https://ge.gradle.org")
+                server = uri(ptsServerUrl)
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }

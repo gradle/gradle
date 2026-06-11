@@ -25,7 +25,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 
 
 internal
@@ -57,7 +56,6 @@ object BuildScopeServices : ServiceRegistrationProvider {
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
         workspaceProvider: KotlinDslWorkspaceProvider,
-        asyncIO: AsyncIOScopeFactory,
         internalOptions: InternalOptions,
     ) = ProjectAccessorsClassPathGenerator(
         fileCollectionFactory,
@@ -65,7 +63,6 @@ object BuildScopeServices : ServiceRegistrationProvider {
         executionEngine,
         inputFingerprinter,
         workspaceProvider,
-        asyncIO,
         internalOptions,
     )
 }

@@ -37,6 +37,11 @@ class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolated
     }
 
     @Override
+    void withIsolatedProjectsDangerouslyIgnoreProblems(String... moreExecuterArgs) {
+        executer.withArguments(ENABLE_CLI, ENABLE_DANGEROUSLY_IGNORE_PROBLEMS, CONFIGURE_ON_DEMAND_FOR_TOOLING, CACHING_FOR_TOOLING, *moreExecuterArgs)
+    }
+
+    @Override
     GradleExecuter createExecuter() {
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
     }

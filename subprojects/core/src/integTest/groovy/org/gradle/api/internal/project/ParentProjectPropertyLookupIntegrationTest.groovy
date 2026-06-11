@@ -24,17 +24,25 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Under Isolated Projects, parent-project lookup is disabled entirely (see IsolatedProjectsAccessFromGroovyDslIntegrationTest); no deprecation fires")
 class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String PROPERTY_DEPRECATION = "Implicitly resolving properties in the project hierarchy has been deprecated. " +
-        "This will fail with an error in Gradle 10. " +
-        "Property 'foo' was not declared in project ':a' and was resolved from root project 'root'. " +
-        "Consult the upgrading guide for further information: " +
-        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
+    private static final String DEPRECATION_DOC_URL = "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects"
 
-    private static final String METHOD_DEPRECATION = "Implicitly resolving methods in the project hierarchy has been deprecated. " +
-        "This will fail with an error in Gradle 10. " +
-        "Method 'someMethod' was not declared in project ':a' and was resolved from root project 'root'. " +
-        "Consult the upgrading guide for further information: " +
-        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
+    private static final String PROPERTY_DEPRECATION = propertyDeprecation("foo", "project ':a'", "root project 'root'")
+
+    private static final String METHOD_DEPRECATION = methodDeprecation("someMethod", "project ':a'", "root project 'root'")
+
+    private static String propertyDeprecation(String name, String lookupProject, String declaringProject) {
+        "Implicit lookup of properties in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Property '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
+            "Consult the upgrading guide for further information: $DEPRECATION_DOC_URL"
+    }
+
+    private static String methodDeprecation(String name, String lookupProject, String declaringProject) {
+        "Implicit lookup of methods in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Method '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
+            "Consult the upgrading guide for further information: $DEPRECATION_DOC_URL"
+    }
 
     def setup() {
         settingsFile << """
@@ -143,6 +151,71 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         then:
         succeeds("help")
         outputContains("result: hello")
+    }
+
+    def "deprecation names the ancestor project that actually declares the property"() {
+        given:
+        settingsFile << """
+            include("a:b")
+        """
+        buildFile << """
+            ext.foo = "from-root"
+        """
+        file("a/build.gradle") << ""
+        file("a/b/build.gradle") << """
+            println("foo: " + foo)
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(propertyDeprecation("foo", "project ':a:b'", "root project 'root'"))
+
+        then:
+        succeeds("help")
+        outputContains("foo: from-root")
+    }
+
+    def "deprecation names the closest ancestor when several ancestors declare the property"() {
+        given:
+        settingsFile << """
+            include("a:b")
+        """
+        buildFile << """
+            ext.foo = "from-root"
+        """
+        file("a/build.gradle") << """
+            ext.foo = "from-middle"
+        """
+        file("a/b/build.gradle") << """
+            println("foo: " + foo)
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(propertyDeprecation("foo", "project ':a:b'", "project ':a'"))
+
+        then:
+        succeeds("help")
+        outputContains("foo: from-middle")
+    }
+
+    def "deprecation names the ancestor project that actually declares the method"() {
+        given:
+        settingsFile << """
+            include("a:b")
+        """
+        buildFile << """
+            def someMethod() { "from-root" }
+        """
+        file("a/build.gradle") << ""
+        file("a/b/build.gradle") << """
+            println("result: " + someMethod())
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(methodDeprecation("someMethod", "project ':a:b'", "root project 'root'"))
+
+        then:
+        succeeds("help")
+        outputContains("result: from-root")
     }
 
     def "no deprecation when the property is defined locally in the child project"() {

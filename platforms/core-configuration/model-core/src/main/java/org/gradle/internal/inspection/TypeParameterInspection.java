@@ -16,8 +16,6 @@
 
 package org.gradle.internal.inspection;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * An inspection object for a given interface type that can inspect implementations for the parameters of that type.
  *
@@ -27,30 +25,14 @@ public interface TypeParameterInspection<INTERFACE, PARAMS> {
     /**
      * Determines the parameters type for the given implementation.
      *
-     * @return The parameters type, or {@code null} when the implementation takes no parameters.
-     */
-    @Nullable
-    <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType);
-
-    /**
-     * Determines the parameters type found at the given type argument index for the given implementation.
-     *
-     * @return The parameters type, or {@code null} when the implementation takes no parameters.
-     */
-    @Nullable
-    <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType, int typeArgumentIndex);
-
-    /**
-     * Determines the parameters type for the given implementation.
-     *
-     * @return The parameters type
+     * @return The parameters type. Returns the no-parameters type when the implementation takes no parameters.
      */
     <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType);
 
     /**
      * Determines the parameters type found at the given type argument index for the given implementation.
      *
-     * @return The parameters type
+     * @return The parameters type. Returns the no-parameters type when the implementation takes no parameters.
      */
     <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex);
 }

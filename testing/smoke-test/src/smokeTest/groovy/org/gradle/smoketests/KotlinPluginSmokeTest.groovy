@@ -238,4 +238,23 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         }
         return [:]
     }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        testedPluginId == 'org.jetbrains.kotlin.native.cocoapods' ? null : "kotlin {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        if (testedPluginId == 'org.jetbrains.kotlin.native.cocoapods') {
+            return []
+        }
+        def kotlinVersionNumber = VersionNumber.parse(version)
+        def deprecations = [parentMethodInvocationDeprecation('kotlin')]
+        if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_20) {
+            deprecations << "Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-api-jars'. Declare a Usage attribute with value 'java-api' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_legacy_usage_values".toString()
+            deprecations << "Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-runtime-jars'. Declare a Usage attribute with value 'java-runtime' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_legacy_usage_values".toString()
+        }
+        return deprecations
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
@@ -75,12 +76,16 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             // see https://github.com/gradle/gradle-org-conventions-plugin/blob/185ed5cd4923c061a1c70d77c27758df4c80c6d9/src/main/java/io/github/gradle/conventions/customvalueprovider/GitInformationCustomValueProvider.java#L24
             "--no-scan",
             // avoid hitting Develocity features that require further configuration
-            "--no-build-cache"
+            "--no-build-cache",
+            // The full build has known cross-project access violations. Diagnostics mode configures projects
+            // sequentially and collects every violation as a deferred problem instead of failing fast, so all
+            // tasks can be scheduled; the build then fails at the end with those violations reported.
+            "-D${StartParameterBuildOptions.IsolatedProjectsDiagnosticsOption.PROPERTY_NAME}=true".toString(),
         ] + requiredGradleProperties
 
         when:
         maxIsolatedProjectProblems = 200000
-        run(isolatedProjectsRunner(tasks, 1).withEnvironment(requiredEnvironmentVars))
+        fails(isolatedProjectsRunner(tasks, 1).withEnvironment(requiredEnvironmentVars))
 
         then:
         fixture.htmlReport(result.output).assertContents {
@@ -91,6 +96,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             // checking total problem count is too brittle, as that number changes whenever projects are added or removed
             enforceTotalProblemCount = false
         }
+        // Diagnostics mode fails the build on the deferred violations before the cache is written, so no entry is stored.
         result.assertNoConfigurationCache()
     }
 }

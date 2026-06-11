@@ -21,8 +21,10 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.initialization.Settings
+import org.gradle.internal.classpath.ClasspathBuilder
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
@@ -86,6 +88,91 @@ fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File?, packagePath: String) 
 
 
 internal
+fun emitAccessorsToJars(
+    projectSchema: ProjectSchema<TypeAccessibility>,
+    classesBuilder: ClasspathBuilder.EntryBuilder,
+    sourcesBuilder: ClasspathBuilder.EntryBuilder,
+    outputPackage: OutputPackage,
+    format: AccessorFormat
+): List<InternalName> {
+
+    val useLowPriorityOverloadResolution = projectSchema.scriptTarget is Settings
+    val moduleName = "classes"
+    val classNamesFromTypeStrings = ClassNamesFromTypeStrings()
+    val emittedClassNames =
+        accessorsFor(projectSchema).map { accessor ->
+            emitClassToJars(
+                accessor,
+                classesBuilder,
+                sourcesBuilder,
+                outputPackage,
+                format,
+                moduleName,
+                useLowPriorityOverloadResolution,
+                importsRequiredBy(accessor, classNamesFromTypeStrings)
+            )
+        }.toList()
+
+    classesBuilder.put(
+        "META-INF/$moduleName.kotlin_module",
+        moduleMetadataBytesFor(emittedClassNames)
+    )
+
+    return emittedClassNames
+}
+
+
+private
+fun emitClassToJars(
+    accessor: Accessor,
+    classesBuilder: ClasspathBuilder.EntryBuilder,
+    sourcesBuilder: ClasspathBuilder.EntryBuilder,
+    outputPackage: OutputPackage,
+    format: AccessorFormat,
+    moduleName: String,
+    useLowPriorityOverloadResolution: Boolean,
+    requiredImports: List<String>
+): InternalName {
+
+    val (simpleClassName, fragments) = fragmentsFor(accessor)
+    val className = InternalName("${outputPackage.path}/$simpleClassName")
+    val sourceCode = mutableListOf<String>()
+
+    fun collectSourceFragment(source: String) {
+        sourceCode.add(format(source))
+    }
+
+    val classBytes = generateAccessorBytecode(
+        className,
+        fragments,
+        ::collectSourceFragment,
+        moduleName,
+        useLowPriorityOverloadResolution
+    )
+    classesBuilder.put("$className.class", classBytes)
+
+    sourcesBuilder.put(
+        "${className.value.removeSuffix("Kt")}.kt",
+        accessorSourceContent(sourceCode, requiredImports, outputPackage.name)
+    )
+
+    return className
+}
+
+
+internal
+fun accessorSourceContent(
+    accessors: Iterable<String>,
+    imports: List<String> = emptyList(),
+    packageName: String = KOTLIN_DSL_PACKAGE_NAME
+): ByteArray {
+    val sb = StringBuilder()
+    sb.appendImportsAndAccessors(packageName, imports, accessors)
+    return sb.toString().toByteArray(Charsets.UTF_8)
+}
+
+
+internal
 data class OutputPackage(val name: String) {
 
     val path by lazy {
@@ -145,15 +232,14 @@ fun sourceFileFor(className: InternalName, srcDir: File) =
     srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
 
 
-private
-fun IO.writeAccessorsBytecodeTo(
-    binDir: File,
+internal
+fun generateAccessorBytecode(
     className: InternalName,
     fragments: Sequence<AccessorFragment>,
     collectSourceFragment: (String) -> Unit,
     moduleName: String,
     useLowPriorityOverloadResolution: Boolean
-) {
+): ByteArray {
 
     val metadataWriter = beginFileFacadeClassHeader()
     val classWriter = beginPublicClass(className)
@@ -165,7 +251,20 @@ fun IO.writeAccessorsBytecodeTo(
     }
 
     val metadata = metadataWriter.closeHeader(moduleName)
-    val classBytes = classWriter.endKotlinClass(metadata)
+    return classWriter.endKotlinClass(metadata)
+}
+
+
+private
+fun IO.writeAccessorsBytecodeTo(
+    binDir: File,
+    className: InternalName,
+    fragments: Sequence<AccessorFragment>,
+    collectSourceFragment: (String) -> Unit,
+    moduleName: String,
+    useLowPriorityOverloadResolution: Boolean
+) {
+    val classBytes = generateAccessorBytecode(className, fragments, collectSourceFragment, moduleName, useLowPriorityOverloadResolution)
     val classFile = binDir.resolve("$className.class")
     writeFile(classFile, classBytes)
 }

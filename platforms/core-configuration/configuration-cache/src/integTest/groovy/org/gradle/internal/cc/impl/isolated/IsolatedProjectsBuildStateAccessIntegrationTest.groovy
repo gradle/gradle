@@ -27,10 +27,10 @@ class IsolatedProjectsBuildStateAccessIntegrationTest extends AbstractIsolatedPr
         """
 
         when:
-        isolatedProjectsFails "help", "-Dorg.gradle.internal.isolated-projects.report-cross-build-access=true"
+        isolatedProjectsFailsUsing mode, "help", "-Dorg.gradle.internal.isolated-projects.report-cross-build-access=true"
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":build-logic")
             problemMessages.each {
                 problem("Settings file 'build-logic/settings.gradle': line 2: $it")
@@ -75,6 +75,9 @@ class IsolatedProjectsBuildStateAccessIntegrationTest extends AbstractIsolatedPr
         "getBuildListenerBroadcaster()"                                         | ["Build ':build-logic' cannot access Gradle.getBuildListenerBroadcaster on build ':'"]
         "getServices()"                                                         | ["Build ':build-logic' cannot access Gradle.getServices on build ':'"]
         "getProjectRegistry()"                                                  | ["Build ':build-logic' cannot access Gradle.getProjectRegistry on build ':'"]
+
+        combined:
+        mode << ALL_MODES
     }
 
     private static String projectEvaluationListenerDefinition =

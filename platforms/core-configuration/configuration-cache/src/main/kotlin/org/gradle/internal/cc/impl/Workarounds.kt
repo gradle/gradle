@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.reflect.TypeOf
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 
@@ -66,6 +67,14 @@ object Workarounds {
                 isBuildScanPlugin(className)
             }
         }
+
+    object IsolatedProjects {
+
+        fun canAccessGradleExtensionFromProjectScope(extensionType: TypeOf<*>) =
+            withWorkaroundsFor("isolated-projects") {
+                extensionType.fullyQualifiedName.startsWith("com.gradle.develocity.agent.gradle.internal.StateAccess")
+            }
+    }
 
     private
     inline fun callStackHasElement(stackElementMatcher: StackTraceElement.() -> Boolean) = Thread.currentThread().stackTrace.any(stackElementMatcher)

@@ -31,12 +31,18 @@ public interface ValueSourceSpec<P extends ValueSourceParameters> {
     /**
      * The parameters for the value source.
      *
+     * <p>When the value source declares {@link ValueSourceParameters.None} as its parameters type,
+     * this returns the {@link ValueSourceParameters.None} singleton.</p>
+     *
      * @see org.gradle.api.provider.ProviderFactory#of(Class, Action)
      */
     P getParameters();
 
     /**
      * Configure the parameters for the value source.
+     *
+     * <p>The action is invoked even when the value source declares {@link ValueSourceParameters.None} as its
+     * parameters type; in that case it receives the {@link ValueSourceParameters.None} singleton.</p>
      *
      * @see org.gradle.api.provider.ProviderFactory#of(Class, Action)
      */

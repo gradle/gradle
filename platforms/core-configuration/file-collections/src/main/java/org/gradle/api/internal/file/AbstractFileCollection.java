@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
@@ -249,21 +248,19 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     protected void addAsMatchingTask(Object builder, String nodeName) {
-        new AntFileCollectionMatchingTaskBuilder(getAsFileTrees()).addToAntBuilder(builder, nodeName);
+        new AntFileCollectionMatchingTaskBuilder(getAsDirectoryTrees()).addToAntBuilder(builder, nodeName);
     }
 
     protected void addAsFileSet(Object builder, String nodeName) {
-        new AntFileSetBuilder(getAsFileTrees()).addToAntBuilder(builder, nodeName);
+        new AntFileSetBuilder(getAsDirectoryTrees()).addToAntBuilder(builder, nodeName);
     }
 
     protected void addAsResourceCollection(Object builder, String nodeName) {
         new AntFileCollectionBuilder(this).addToAntBuilder(builder, nodeName);
     }
 
-    /**
-     * Returns this collection as a set of {@link DirectoryFileTree} instance. These are used to map to Ant types.
-     */
-    protected Collection<DirectoryTree> getAsFileTrees() {
+    @Override
+    public Collection<DirectoryTree> getAsDirectoryTrees() {
         List<DirectoryTree> fileTrees = new ArrayList<>();
         visitStructure(new FileCollectionStructureVisitor() {
             @Override

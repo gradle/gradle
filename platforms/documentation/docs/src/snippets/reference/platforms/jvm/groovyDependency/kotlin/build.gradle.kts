@@ -12,6 +12,12 @@ dependencies {
 }
 // end::groovy-test-dependency[]
 
+// tag::groovy-dependency[]
+dependencies {
+    implementation("org.codehaus.groovy:groovy-all:2.4.15")
+}
+// end::groovy-dependency[]
+
 // tag::bundled-groovy-dependency[]
 dependencies {
     implementation(localGroovy())

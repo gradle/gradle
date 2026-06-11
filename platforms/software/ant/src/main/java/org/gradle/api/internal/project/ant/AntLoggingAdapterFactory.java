@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project.ant;
 
-import org.gradle.internal.Factory;
-
-public interface AntLoggingAdapterFactory extends Factory<AntLoggingAdapter> {
+public interface AntLoggingAdapterFactory {
+    AntLoggingAdapter create();
 }

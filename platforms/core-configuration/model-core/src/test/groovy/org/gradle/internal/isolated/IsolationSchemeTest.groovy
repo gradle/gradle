@@ -17,6 +17,7 @@
 package org.gradle.internal.isolated
 
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.reflect.Instantiator
@@ -26,24 +27,32 @@ import org.gradle.process.ExecOperations
 import spock.lang.Specification
 
 class IsolationSchemeTest extends Specification {
-    def scheme = new IsolationScheme(SomeAction, SomeParams, Nothing, Nothing.INSTANCE)
+    def scheme = new IsolationScheme(SomeAction, SomeParams, Nothing)
 
     def "can extract parameters type"() {
         expect:
-        scheme.parameterTypeForOrNull(DirectUsage) == CustomParams
-        scheme.parameterTypeForOrNull(IndirectUsage) == CustomParams
-        scheme.parameterTypeForOrNull(ParameterizedType) == CustomParams
-        scheme.parameterTypeForOrNull(ComplexParameterizedType) == CustomParamsWithType
-        scheme.parameterTypeForOrNull(InheritedParameterizedType) == ExtendedCustomParams
-        scheme.parameterTypeForOrNull(FirstLevelInheritedParameterizedType) == ExtendedCustomParams
+        scheme.parameterTypeFor(DirectUsage) == CustomParams
+        scheme.parameterTypeFor(IndirectUsage) == CustomParams
+        scheme.parameterTypeFor(ParameterizedType) == CustomParams
+        scheme.parameterTypeFor(ComplexParameterizedType) == CustomParamsWithType
+        scheme.parameterTypeFor(InheritedParameterizedType) == ExtendedCustomParams
+        scheme.parameterTypeFor(FirstLevelInheritedParameterizedType) == ExtendedCustomParams
 
-        scheme.parameterTypeForOrNull(NoParams) == null
-        scheme.parameterTypeForOrNull(SomeAction) == null
+        scheme.parameterTypeFor(NoParams) == Nothing
+    }
+
+    def "fails when raw interface type is used as implementation"() {
+        when:
+        scheme.parameterTypeFor(SomeAction)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Could not create the parameters for SomeAction: an implementation type is required, but SomeAction is the SomeAction interface itself."
     }
 
     def "fails when base parameters type is used"() {
         when:
-        scheme.parameterTypeForOrNull(BaseParams)
+        scheme.parameterTypeFor(BaseParams)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -52,11 +61,29 @@ class IsolationSchemeTest extends Specification {
 
     def "fails when parameters type has not been declared"() {
         when:
-        scheme.parameterTypeForOrNull(RawActionType)
+        scheme.parameterTypeFor(RawActionType)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Could not create the parameters for RawActionType: must use a sub-type of SomeParams as the parameters type. Use Nothing as the parameters type for implementations that do not take parameters."
+    }
+
+    def "instantiates parameters via instantiator for non-no-params types"() {
+        def custom = Stub(CustomParams)
+
+        when:
+        def result = scheme.instantiateParameters(CustomParams) { type -> custom }
+
+        then:
+        result.is(custom)
+    }
+
+    def "returns no-parameters singleton for the registered no-parameters type"() {
+        when:
+        def result = scheme.instantiateParameters(Nothing) { type -> throw new AssertionError("should not call instantiator") }
+
+        then:
+        result.is(NoneParameters.singletonOf(Nothing))
     }
 
     def "exposes authorized service"() {
@@ -146,22 +173,22 @@ class IsolationSchemeTest extends Specification {
         result2.is(params)
     }
 
-    def "returns None instance when parameters are null"() {
+    def "exposes None singleton as parameters service"() {
         def allServices = Mock(ServiceLookup)
 
-        def injectedServices = scheme.servicesForImplementation(null, allServices, [])
+        def injectedServices = scheme.servicesForImplementation(NoneParameters.singletonOf(Nothing), allServices, [])
 
         when:
         def result = injectedServices.find(SomeParams)
 
         then:
-        result.is(Nothing.INSTANCE)
+        result.is(NoneParameters.singletonOf(Nothing))
 
         when:
         def result2 = injectedServices.get(SomeParams)
 
         then:
-        result2.is(Nothing.INSTANCE)
+        result2.is(NoneParameters.singletonOf(Nothing))
         result2.is(result)
     }
 }
@@ -169,8 +196,8 @@ class IsolationSchemeTest extends Specification {
 interface SomeParams {
 }
 
-interface Nothing extends SomeParams {
-    Nothing INSTANCE = new Nothing() {}
+final class Nothing extends NoneParameters implements SomeParams {
+    private Nothing() {}
 }
 
 interface SomeAction<P extends SomeParams> {

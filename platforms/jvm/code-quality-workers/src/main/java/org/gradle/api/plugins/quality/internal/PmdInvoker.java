@@ -18,11 +18,12 @@ package org.gradle.api.plugins.quality.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -35,14 +36,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-class PmdInvoker implements Action<AntBuilderDelegate> {
+public abstract class PmdInvoker extends AntWorkAction<PmdActionParameters> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PmdInvoker.class);
 
@@ -50,14 +50,14 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
     private static final List<String> JAVA_BASIC = ImmutableList.of("java-basic");
     private static final List<String> ERROR_PRONE = ImmutableList.of("category/java/errorprone.xml");
 
-    private final PmdActionParameters parameters;
-
-    PmdInvoker(PmdActionParameters parameters) {
-        this.parameters = parameters;
+    @Override
+    protected String getActionName() {
+        return "pmd";
     }
 
     @Override
     public void execute(AntBuilderDelegate ant) {
+        PmdActionParameters parameters = getParameters();
         FileCollection pmdClasspath = parameters.getPmdClasspath().filter(new FileExistFilter());
 
         // PMD uses java.class.path to determine it's implementation classpath for incremental analysis
@@ -139,15 +139,15 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         String finalHtmlFormat = htmlFormat;
         List<String> finalRuleSets = ruleSets;
         List<PmdActionParameters.EnabledReport> reports = parameters.getEnabledReports().get();
-        ant.taskdef(ImmutableMap.of("name", "pmd", "classname", "net.sourceforge.pmd.ant.PMDTask"));
-        ant.invokeMethod("pmd", antPmdArgs, () -> {
-            parameters.getSource().addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
-            finalRuleSets.forEach(rule -> ant.invokeMethod("ruleset", rule));
-            parameters.getRuleSetConfigFiles().forEach(ruleSetConfig -> ant.invokeMethod("ruleset", ruleSetConfig));
+        ant.taskdef("pmd", "net.sourceforge.pmd.ant.PMDTask");
+        ant.createNode("pmd", antPmdArgs, () -> {
+            ant.addDirectoryTrees("fileset", ((FileCollectionInternal) parameters.getSource()).getAsDirectoryTrees());
+            finalRuleSets.forEach(rule -> ant.createNode("ruleset", rule));
+            parameters.getRuleSetConfigFiles().forEach(ruleSetConfig -> ant.createNode("ruleset", ruleSetConfig.getAbsolutePath()));
 
             FileCollection auxClasspath = parameters.getAuxClasspath().filter(new FileExistFilter());
             if (!auxClasspath.isEmpty()) {
-                auxClasspath.addToAntBuilder(ant, "auxclasspath", FileCollection.AntType.ResourceCollection);
+                ant.addFiles("auxclasspath", auxClasspath);
             }
 
             reports.forEach(report -> {
@@ -166,7 +166,7 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                         type = name;
                         break;
                 }
-                ant.invokeMethod("formatter", ImmutableMap.of("type", type, "toFile", file));
+                ant.createNode("formatter", ImmutableMap.of("type", type, "toFile", file));
             });
 
             if (parameters.getConsoleOutput().get()) {
@@ -174,8 +174,8 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                 if (parameters.getStdOutIsAttachedToTerminal().get()) {
                     consoleOutputType = "textcolor";
                 }
-                disableSaveStreams(ant);
-                ant.invokeMethod("formatter", ImmutableMap.of("type", consoleOutputType, "toConsole", true));
+                ant.setSaveStreams(false);
+                ant.createNode("formatter", ImmutableMap.of("type", consoleOutputType, "toConsole", true));
             }
         });
         String failureCount = (String) ant.getProjectProperties().get("pmdFailureCount");
@@ -191,14 +191,6 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
             } else {
                 throw new MarkedVerificationException(message);
             }
-        }
-    }
-
-    private static void disableSaveStreams(AntBuilderDelegate ant) {
-        try {
-            ant.getBuilder().getClass().getMethod("setSaveStreams", boolean.class).invoke(ant.getBuilder(), false);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
         }
     }
 

@@ -20,15 +20,11 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
 import org.gradle.util.internal.JarUtil;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,13 +103,8 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
      * @throws IOException if reading or writing entry fails
      */
     protected void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry classEntry) throws IOException {
-        byte[] content = classEntry.getContent();
-        ClassReader reader = new ClassReader(content);
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, content));
-        reader.accept(chain.right, 0);
-        byte[] bytes = classWriter.toByteArray();
-        builder.put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());
+        Pair<RelativePath, byte[]> result = ClassTransforms.apply(transform, classEntry);
+        builder.put(result.left.getPathString(), result.right, classEntry.getCompressionMethod());
     }
 
     /**

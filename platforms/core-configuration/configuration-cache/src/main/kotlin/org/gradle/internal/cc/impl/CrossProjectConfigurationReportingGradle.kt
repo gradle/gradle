@@ -29,13 +29,13 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -49,21 +49,24 @@ import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
 import java.util.function.Supplier
+import org.gradle.api.internal.project.ProjectState as InternalProjectState
 
 
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
+    private val ipProblems: IsolatedProjectsProblemsReporter
 ) : GradleInternal {
 
-    private
-    val delegate: GradleInternal = when (gradle) {
+    private val delegate: GradleInternal = when (gradle) {
         // 'unwrapping' ensures that there are no chains of delegation
         is CrossProjectConfigurationReportingGradle -> gradle.delegate
         is CrossBuildConfigurationReportingGradle -> gradle.delegate
@@ -74,13 +77,25 @@ class CrossProjectConfigurationReportingGradle(
 
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
+    private fun onMutableStateAccess(what: String) {
+        ipProblems.report {
+            problem {
+                text("Project ")
+                reference(referrerProject.buildTreePath)
+                text(" cannot access Gradle.$what")
+            }
+                .exception { message -> message.capitalized() }
+                .build()
+        }
+    }
+
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject) }
+        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossProjectConfigurationReportingGradle(root, referrerProject)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems)
         }
 
     override fun getRootProject(): ProjectInternal =
@@ -223,25 +238,39 @@ class CrossProjectConfigurationReportingGradle(
         override fun toString(): String = "CrossProjectModelAccessProjectEvaluationListener($delegate)"
     }
 
-    // region delegated members
-    override fun getPlugins(): PluginContainer =
-        delegate.plugins
+    override fun getPlugins(): PluginContainer {
+        onMutableStateAccess("getPlugins")
+        return delegate.plugins
+    }
 
-    override fun apply(closure: Closure<*>) =
+    override fun apply(closure: Closure<*>) {
+        onMutableStateAccess("apply")
         delegate.apply(closure)
+    }
 
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
+    override fun apply(action: Action<in ObjectConfigurationAction>) {
+        onMutableStateAccess("apply")
         delegate.apply(action)
+    }
 
-    override fun apply(options: MutableMap<String, *>) =
+    override fun apply(options: MutableMap<String, *>) {
+        onMutableStateAccess("apply")
         delegate.apply(options)
+    }
 
-    override fun getPluginManager(): PluginManagerInternal =
-        delegate.pluginManager
+    override fun getPluginManager(): PluginManagerInternal {
+        onMutableStateAccess("getPluginManager")
+        return delegate.pluginManager
+    }
 
     override fun getExtensions(): ExtensionContainer =
-        delegate.extensions
+        CrossProjectConfigurationReportingGradleExtensionsContainer(
+            delegate.extensions as ExtensionContainerInternal,
+            referrerProject,
+            ipProblems
+        )
 
+    // region delegated members
     override fun getGradleVersion(): String =
         delegate.gradleVersion
 

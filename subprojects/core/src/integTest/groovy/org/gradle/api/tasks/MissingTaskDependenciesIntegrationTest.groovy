@@ -570,9 +570,14 @@ The following types/formats are supported:
         when:
         fails "broken"
         then:
-        executedAndNotSkipped ":broken"
-        failureDescriptionContains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
-        failureCauseContains(cause)
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache state could not be cached")
+            failureCauseContains(cause)
+        } else {
+            executedAndNotSkipped ":broken"
+            failureDescriptionContains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+            failureCauseContains(cause)
+        }
     }
 
     def "detects missing dependency when executed in #firstTask -> #secondTask order"() {

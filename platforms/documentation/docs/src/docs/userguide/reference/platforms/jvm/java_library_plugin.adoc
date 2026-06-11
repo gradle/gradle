@@ -106,8 +106,8 @@ On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` lib
 Therefore, we can deduce that `httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/javaLibrary/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 [[sec:java_library_configurations_graph]]

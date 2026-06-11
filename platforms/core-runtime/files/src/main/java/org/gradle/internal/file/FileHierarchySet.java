@@ -212,7 +212,9 @@ public abstract class FileHierarchySet {
                             StringBuilder builder = new StringBuilder();
                             for (String prefix : prefixStack) {
                                 builder.append(prefix);
-                                builder.append(File.separatorChar);
+                                if (!prefix.isEmpty()) {
+                                    builder.append(File.separatorChar);
+                                }
                             }
                             builder.append(node.prefix);
                             root = builder.toString();

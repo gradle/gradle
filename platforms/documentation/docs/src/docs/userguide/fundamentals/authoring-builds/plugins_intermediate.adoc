@@ -485,8 +485,8 @@ It is documented here in case a build author cannot use the plugin DSL due to re
 [[sec:applying_binary_plugins]]
 
 ====
-include::sample[dir="snippets/fundamentals/authoring-builds/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin-legacy]"]
-include::sample[dir="snippets/fundamentals/authoring-builds/quickstart/groovy", files="build.gradle[tags=use-plugin-legacy]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/multiProjectBuild/kotlin", files="build.gradle.kts[tags=use-plugin-legacy]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/multiProjectBuild/groovy", files="build.gradle[tags=use-plugin-legacy]"]
 ====
 
 Plugins can be applied using a _plugin id_.

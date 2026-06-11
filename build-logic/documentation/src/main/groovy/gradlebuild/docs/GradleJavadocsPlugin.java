@@ -120,10 +120,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                     "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js\"></script>" +
                     "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js\"></script>" +
                     "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js\"></script>" +
-                    "<script>if (typeof hljs !== 'undefined') { hljs.highlightAll(); }</script>" +
-                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
-                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
-                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
+                    "<script>if (typeof hljs !== 'undefined') { hljs.highlightAll(); }</script>"
             );
 
             // TODO: This would be better to model as separate options

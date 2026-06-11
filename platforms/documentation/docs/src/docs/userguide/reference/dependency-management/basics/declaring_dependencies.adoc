@@ -93,7 +93,7 @@ include::sample[dir="snippets/reference/dependency-management/basics/declaringDe
 In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
 Instead, you might host these dependencies on a shared drive or to check them into version control alongside the project source code.
 
-These are known as file dependencies because they represent files without any <<glossary.adoc#sub:terminology_module_metadata,metadata>> (such as information about transitive dependencies, origin, or author) attached to them.
+These are known as file dependencies because they represent files without any metadata (such as information about transitive dependencies, origin, or author) attached to them.
 
 image::dependency-management-file-dependencies.png[]
 

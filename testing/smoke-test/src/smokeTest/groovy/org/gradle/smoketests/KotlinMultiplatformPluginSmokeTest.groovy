@@ -213,6 +213,21 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         ]
     }
 
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "kotlin {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        def kotlinVersionNumber = VersionNumber.parse(version)
+        def deprecations = [parentMethodInvocationDeprecation('kotlin')]
+        if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21) {
+            deprecations << "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration".toString()
+        }
+        return deprecations
+    }
+
     private void replaceCssSupportBlocksInBuildFile() {
         Map<String, String> replacementMap = [:]
         replacementMap['enableCssSupportNew'] = """

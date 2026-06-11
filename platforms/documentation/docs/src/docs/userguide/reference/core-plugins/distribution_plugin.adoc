@@ -126,13 +126,13 @@ A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, 
 To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, add one or both of its archive tasks to an link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
 
 ====
-include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
-include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution-ivy-publish/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution-ivy-publish/groovy",files="build.gradle[tags=publishing]"]
 ====
 
 Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
 
 ====
-include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
-include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution-maven-publish/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution-maven-publish/groovy",files="build.gradle[tags=publishing]"]
 ====

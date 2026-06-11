@@ -28,7 +28,7 @@ import org.junit.Test
  */
 class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest() {
 
-    private val oldestKotlinLanguageVersion = "1.9"
+    private val oldestKotlinLanguageVersion = "2.0"
 
     @Test
     @Requires(
@@ -70,11 +70,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
 
         withDefaultSettings().appendText("""includeBuild("producer")""")
         withBuildScript("""plugins { id("some") }""")
-
-        repeat(2) {
-            executer.expectExternalDeprecatedMessage("w: Language version $oldestKotlinLanguageVersion is deprecated in JVM and its support will be removed in a future version of Kotlin. Update the version to 2.1.")
-        }
-
+        executer.expectExternalDeprecatedMessage("    Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
         build("help").apply {
             assertThat(output, containsString("some!"))
         }

@@ -28,4 +28,14 @@ class FlywayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.flywaydb.flyway': TestedVersions.flyway
         ]
     }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "flyway {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('flyway')]
+    }
 }

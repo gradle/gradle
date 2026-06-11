@@ -232,6 +232,20 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Object getLifecycleActionsState();
 
     /**
+     * Returns the project's properties without firing the deprecation of {@link Project#getProperties()}
+     * or the Isolated Projects violation it triggers.
+     *
+     * <p>Intended for internal callers (e.g., diagnostic tasks) that have a legitimate need to enumerate
+     * the project's properties and accept responsibility for the call.
+     *
+     * @apiNote <p><b>Deliberately named {@code collect..}</b>, a {@code get*} name would make
+     * this a Groovy bean property on {@code Project}. {@code BeanDynamicObject.getProperties()}
+     * enumerates bean properties by invoking each getter — which would recurse straight back into
+     * this method via {@code extensibleDynamicObject.getProperties()}.
+     */
+    Map<String, ? extends @Nullable Object> collectPropertiesInternal();
+
+    /**
      * Two {@link ProjectInternal} instances are considered equal if their {@link #getProjectIdentity() identity} is equal.
      *
      * @param obj the object to compare with this project

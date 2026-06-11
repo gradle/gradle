@@ -16,7 +16,7 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.parameters.NoneParameters;
 
 /**
  * Marker interface for parameter objects to {@link WorkAction}s.
@@ -38,19 +38,12 @@ public interface WorkParameters {
     /**
      * Used for work actions without parameters.
      *
-     * <p>When {@link None} is used as parameters, calling {@link WorkAction#getParameters()} returns the {@link #INSTANCE singleton}.</p>
+     * <p>When {@link None} is used as parameters, calling {@link WorkAction#getParameters()} returns the {@link #None singleton}.</p>
      *
      * @since 5.6
      */
-    final class None implements WorkParameters {
-        /**
-         * Singleton instance of {@link None}.
-         *
-         * @since 9.6.0
-         */
-        @Incubating
-        public static final None INSTANCE = new None();
-
-        private None() {}
+    final class None extends NoneParameters implements WorkParameters {
+        private None() {
+        }
     }
 }

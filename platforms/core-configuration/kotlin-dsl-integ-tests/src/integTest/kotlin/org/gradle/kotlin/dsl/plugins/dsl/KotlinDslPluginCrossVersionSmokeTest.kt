@@ -46,7 +46,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     override val forceLocallyBuiltKotlinDslPlugins = false
 
-    private val oldestSupportedKotlinDslPluginVersion = "6.0.0"
+    private val oldestSupportedKotlinDslPluginVersion = "6.2.0"
 
     @Before
     fun setup() {
@@ -110,7 +110,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     @Test
     @Requires(NotEmbeddedExecutor::class, reason = "Kotlin version leaks on the classpath when running embedded")
     fun `can build plugin for previous unsupported Kotlin language version`() {
-        val previousKotlinLanguageVersion = "1.6"
+        val previousKotlinLanguageVersion = "1.8"
 
         withDefaultSettingsIn("producer")
         val buildScript = withBuildScriptIn(

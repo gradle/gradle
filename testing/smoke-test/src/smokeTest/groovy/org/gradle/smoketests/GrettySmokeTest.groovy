@@ -85,6 +85,16 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
         ]
     }
 
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "gretty {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('gretty')]
+    }
+
     static def grettyConfigForCurrentJavaVersion() {
         TestedVersions.gretty.findAll {
             JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) &&

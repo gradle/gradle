@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.packaging")
+    id("gradlebuild.public-api-jar")
 }
 
 description = "The collector project for the 'publishing' portion of the Gradle distribution"

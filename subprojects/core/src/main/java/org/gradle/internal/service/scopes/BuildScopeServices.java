@@ -236,6 +236,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -746,10 +747,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        ToolingModelProjectDependencyListener projectDependencyListener
+        ToolingModelProjectDependencyListener projectDependencyListener,
+        FailureFactory failureFactory
     ) {
         IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
-        return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener);
+        return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener, failureFactory);
     }
 
     @Provides

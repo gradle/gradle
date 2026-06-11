@@ -16,10 +16,10 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.problems.Severity
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.properties.bean.PropertyWalker
@@ -80,10 +80,22 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         expect:
         fails "test"
+        if (GradleContextualExecuter.configCache) {
+            failure.assertThatDescription(containsString("Task `:test` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.DefaultTask', " +
+                "a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."))
+        }
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
 
         and:
-        verifyAll(receivedProblem) {
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(0)) {
+                severity == Severity.ERROR
+                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
+                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+                originLocations == []
+            }
+        }
+        verifyAll(receivedProblem(GradleContextualExecuter.configCache ? 1 : 0)) {
             severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-notation'
             definition.id.displayName == 'Property has unsupported value'

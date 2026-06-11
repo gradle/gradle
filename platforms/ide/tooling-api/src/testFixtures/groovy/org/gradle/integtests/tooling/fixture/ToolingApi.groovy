@@ -350,24 +350,23 @@ class ToolingApi implements TestRule {
     def cleanUpIsolatedDaemonsAndServices() {
         close()
 
-        if (requireIsolatedDaemons) {
+        // When the user home directory is not the default for int tests, the
+        // Gradle instance used during the test still holds services open in
+        // that user home (by design), so we need to release them before the
+        // user home can be deleted. Either shut down embedded services, or
+        // kill the daemons we used. Either way, this is expensive.
+        boolean userHomeOverridden = gradleUserHomeDir != context.gradleUserHomeDir
+        boolean shouldKillDaemons = requireIsolatedDaemons || (userHomeOverridden && !embedded)
+
+        if (shouldKillDaemons) {
             try {
                 getDaemons().killAll()
             } catch (RuntimeException ex) {
                 //TODO once we figured out why pid from logfile can be null we should remove this again
                 LOGGER.warn("Unable to kill daemon(s)", ex)
             }
-        }
-        if (gradleUserHomeDir != context.gradleUserHomeDir) {
-            // When the user home directory is not the default for int tests, then the Gradle instance that was used during the test will still be holding some services open in the user home dir (this is by design), so kill off the Gradle instance that was used.
-            // If we ran in embedded mode, shutdown the embedded services
-            // If we used the daemons, kill the daemons
-            // Either way, this is expensive
-            if (embedded) {
-                ConnectorServices.reset()
-            } else {
-                getDaemons().killAll()
-            }
+        } else if (userHomeOverridden && embedded) {
+            ConnectorServices.reset()
         }
     }
 

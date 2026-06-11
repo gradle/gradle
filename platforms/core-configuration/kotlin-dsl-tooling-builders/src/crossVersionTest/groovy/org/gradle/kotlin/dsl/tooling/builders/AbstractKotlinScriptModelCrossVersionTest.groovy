@@ -139,7 +139,8 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
             classPath.collect { it.name } as List<String>,
             hasItems(
                 matching("gradle-kotlin-dsl-$version\\.jar"),
-                matching("gradle-api-$version\\.jar"),
+                // The public API jar is the generated gradle-api jar before 9.7, the embedded ABI jar from 9.7 on
+                matching("(gradle-api|gradle-public-api-legacy)-$version\\.jar"),
                 matching("gradle-kotlin-dsl-extensions-$version\\.jar")
             )
         )

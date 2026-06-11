@@ -147,7 +147,7 @@ class CompositeFileCollectionTest extends Specification {
         def collection = new TestCompositeFileCollection(source1, source2)
 
         when:
-        def trees = collection.getAsFileTrees()
+        def trees = collection.getAsDirectoryTrees()
 
         then:
         trees.size() == 2

@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -1089,5 +1090,91 @@ assert custom.prop.get() == "value 4"
 
         then:
         failureCauseContains("Circular evaluation detected")
+    }
+
+    def "property follows Groovy truth when used as a boolean (#description)"() {
+        given:
+        buildFile """
+            def prop = $factory
+            $setup
+            assert (prop ? 'truthy' : 'falsy') == '${expected ? 'truthy' : 'falsy'}'
+            assert prop.asBoolean() == $expected
+        """
+        expectProviderTruthyDeprecation("property", 2)
+
+        expect:
+        succeeds()
+
+        where:
+        description        | factory                                | setup              | expected
+        "no value"         | "objects.property(Boolean)"            | ""                 | false
+        "Boolean true"     | "objects.property(Boolean)"            | "prop.set(true)"   | true
+        "Boolean false"    | "objects.property(Boolean)"            | "prop.set(false)"  | false
+        "empty String"     | "objects.property(String)"             | "prop.set('')"     | false
+        "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
+        "zero Integer"     | "objects.property(Integer)"            | "prop.set(0)"      | false
+        "non-zero Integer" | "objects.property(Integer)"            | "prop.set(1)"      | true
+        "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
+        "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+        "empty Map"        | "objects.mapProperty(String, Integer)" | "prop.set([:])"    | false
+        "non-empty Map"    | "objects.mapProperty(String, Integer)" | "prop.set([a: 1])" | true
+    }
+
+    def "property follows custom Groovy truth even from a @CompileStatic caller (#description)"() {
+        given:
+        buildFile """
+            import groovy.transform.CompileStatic
+
+            @CompileStatic
+            class StaticTruth {
+                static boolean coerce(Provider<?> prop) {
+                    return prop ? true : false
+                }
+            }
+
+            def prop = $factory
+            $setup
+            assert StaticTruth.coerce(prop) == $expected
+        """
+        expectProviderTruthyDeprecation("property")
+
+        expect:
+        succeeds()
+
+        where:
+        description        | factory                                | setup              | expected
+        "no value"         | "objects.property(Boolean)"            | ""                 | false
+        "Boolean true"     | "objects.property(Boolean)"            | "prop.set(true)"   | true
+        "Boolean false"    | "objects.property(Boolean)"            | "prop.set(false)"  | false
+        "empty String"     | "objects.property(String)"             | "prop.set('')"     | false
+        "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
+        "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
+        "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+    }
+
+    def "logs deprecation message when #providerOrProperty used as boolean"() {
+        given:
+        buildFile """
+            assert $expression : ${expression}.getOrNull()
+        """
+        expectProviderTruthyDeprecation(providerOrProperty)
+
+        expect:
+        succeeds()
+
+        where:
+        providerOrProperty  | expression
+        "provider"          | "providers.provider { true }"
+        "property"          | "objects.property(Boolean).value(true)"
+    }
+
+    private void expectProviderTruthyDeprecation(String providerOrProperty, int times = 1) {
+        def message = "Using a `${providerOrProperty.capitalize()}` where a `boolean` is expected should be avoided. " +
+            "This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 11. " +
+            "If evaluating this $providerOrProperty is intentional, do so explicitly via `get()` or `getOrNull()`."
+        times.times {
+            executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(message))
+        }
     }
 }
