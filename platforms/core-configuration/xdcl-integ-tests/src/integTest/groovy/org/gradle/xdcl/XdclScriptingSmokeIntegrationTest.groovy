@@ -215,7 +215,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("UnusedPlugin applied!")
 
         and: 'since it has not been applied, its reactions are NOT fired'
-        outputDoesNotContain("Error: unused")
+        outputDoesNotContain("ERROR: unused")
     }
 
     TestFile xdclSettingsFile(String script) {
