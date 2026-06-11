@@ -259,7 +259,7 @@ public class ModuleResolveState implements CandidateModule {
 
         if (oldSelected != null && oldSelected != newSelection) {
             for (NodeState node : oldSelected.getNodes()) {
-                node.restartIncomingEdges();
+                node.maybeResolveReplacement().restartIncomingEdges();
             }
         }
         for (SelectorState selector : selectors) {
@@ -341,7 +341,7 @@ public class ModuleResolveState implements CandidateModule {
 
     ImmutableAttributes getMergedConstraintAttributes() {
         if (attributeMergingError != null) {
-            throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
+            throw new IncompatibleDependencyAttributesException(this, attributeMergingError);
         }
         return mergedConstraintAttributes;
     }

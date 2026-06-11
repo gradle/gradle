@@ -25,7 +25,6 @@ import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -36,7 +35,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
     private final ProblemsInternal problems;
 
     public ProblemRecordingTypeValidationContext(
-        @Nullable Class<?> rootType,
+        Class<?> rootType,
         Supplier<Optional<PluginId>> pluginId,
         ProblemsInternal problems
     ) {

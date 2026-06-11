@@ -67,13 +67,13 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         withPrecompiledScriptPluginInBuildSrc(
             pluginId,
             """
+                @file:Suppress("deprecation")
+                
                 import com.example.DeprecatedJavaExt
                 import com.example.DeprecatedJavaTask
 
-                @Suppress("deprecation")
                 extensions.add("myExtension", DeprecatedJavaExt())
 
-                @Suppress("deprecation")
                 tasks.register("myTask", DeprecatedJavaTask::class)
             """
         )

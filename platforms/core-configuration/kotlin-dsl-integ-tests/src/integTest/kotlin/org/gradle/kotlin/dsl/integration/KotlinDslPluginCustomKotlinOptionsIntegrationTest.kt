@@ -48,8 +48,9 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
             """.trimIndent()
         )
         withBuildScript("println(MyDataObject.other)")
+        executer.expectExternalDeprecatedMessage("    Language version 2.1 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
         buildAndFail("help").apply {
-            assertHasErrorOutput("""The feature "multi dollar interpolation" is only available since language version 2.2""")
+            assertOutputContainsPattern("""The feature "multi dollar interpolation" is only available since language version 2.2\s+Location: .*?MyDataObject.kt line 3""")
         }
 
         buildSrcBuildScript.appendText("""

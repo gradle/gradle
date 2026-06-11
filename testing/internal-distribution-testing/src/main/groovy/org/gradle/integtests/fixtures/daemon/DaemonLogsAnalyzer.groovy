@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices
@@ -58,6 +59,20 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     void killAll() {
         allDaemons*.kill()
+
+        // kill() returns before the OS has released file handles (especially
+        // on Windows with taskkill). Block until each process is gone so that
+        // callers can safely delete the daemon's working directory.
+        allDaemons.each { daemon ->
+            def pid = daemon.context.pid
+            if (pid != null) {
+                try {
+                    new ProcessFixture(pid).waitForFinish()
+                } catch (Throwable t) {
+                    println "Can't confirm cleanup of daemon with pid $pid: ${t.message}"
+                }
+            }
+        }
     }
 
 

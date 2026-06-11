@@ -245,7 +245,8 @@ sealed class PropertyTrace {
     data class SerializedLambda(
         val implClass: String,
         val implMethodName: String,
-        val implMethodSignature: String,
+        val functionalInterfaceClass: String,
+        val instantiatedReturnType: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCodeMessage: StructuredMessage
@@ -255,10 +256,34 @@ sealed class PropertyTrace {
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {
                 text("lambda of type ")
-                reference("java.lang.invoke.SerializedLambda")
-                text(" (method: ")
-                reference("$implClass.$implMethodName$implMethodSignature")
-                text(") found in ")
+                reference(functionalInterfaceClass)
+                text(" returning ")
+                reference(instantiatedReturnType)
+                text(" found in ")
+            }
+        }
+    }
+
+    data class CapturedLambdaArguments(
+        val subkind: Subkind,
+        val owningClass: String,
+        val owningMethod: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        enum class Subkind { LambdaBody, BoundReceiver }
+
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
+
+        override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                when (subkind) {
+                    Subkind.LambdaBody -> text("captured state from method ")
+                    Subkind.BoundReceiver -> text("bound receiver of method ")
+                }
+                reference("$owningClass.$owningMethod")
+                text(" of ")
             }
         }
     }
@@ -387,6 +412,7 @@ sealed class PropertyTrace {
         get() = when (this) {
             is Bean -> trace
             is SerializedLambda -> trace
+            is CapturedLambdaArguments -> trace
             is Property -> trace
             is VirtualProperty -> owner
             is SystemProperty -> trace

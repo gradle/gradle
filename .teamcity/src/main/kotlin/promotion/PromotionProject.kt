@@ -62,6 +62,13 @@ class PromotionProject(
             param("env.ORG_GRADLE_PROJECT_sdkmanKey", "8ed1a771bc236c287ad93c699bfdd2d7")
             param("env.PGP_SIGNING_KEY", "%pgpSigningKey%")
             param("env.PGP_SIGNING_KEY_PASSPHRASE", "%pgpSigningPassphrase%")
+            param("env.DEVELOCITY_SERVER_URL", "%gbt.internal.develocity.server.url%")
+            // https://github.com/gradle/gradle-private/issues/5256
+            param("env.PROMOTED_GBT_BUILD_DEVELOCITY_SERVER_URL", "%gbt.public.develocity.server.url%")
+            param(
+                "env.DEVELOCITY_ACCESS_KEY",
+                "%usw2-edge.gradle.org.access.key%;%eun-edge.gradle.org.access.key%;%develocity.grdev.net.access.key%;%develocity-ext-hetzner.grdev.net.access.key%;%gbt-td.grdev.net.access.key%",
+            )
         }
 
         buildTypesOrder =

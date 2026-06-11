@@ -52,7 +52,9 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.core)
     implementation(projects.internalIntegTesting)
+    implementation(projects.languageNative)
     implementation(projects.projectFeaturesApi)
+    implementation(testFixtures(projects.platformNative))
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
