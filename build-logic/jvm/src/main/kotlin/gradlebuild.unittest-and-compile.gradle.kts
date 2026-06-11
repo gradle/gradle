@@ -276,7 +276,7 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
  * environment variable. This allows build scans to be published for integration tests.
  */
 fun Test.inheritedEnvVars(): List<String> = when {
-    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "CI")
+    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "DEVELOCITY_SERVER_URL", "DEVELOCITY_EDGE_DISCOVERY", "CI")
     else -> emptyList()
 }
 
