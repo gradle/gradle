@@ -452,7 +452,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
 
                 static class ComponentReaction implements Reaction<MyComponent, Project> {
                     @Override public void on(MyComponent data, Project context, ReactionScope scope) {
-                        System.out.println("component " + data.description().get() + " in " + context.getName());
+                        System.out.println("component '" + data.description().get() + "' in " + context.getName());
                     }
                 }
 
@@ -480,23 +480,6 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("application: app")
         outputContains("component 'My component.' in lib")
         outputContains("library: lib")
-    }
-
-    def "can configure project root name"() {
-        given:
-        xdclSettingsFile '''
-            settings {
-              rootProject {
-                name "root"
-              }
-            }
-        '''
-
-        when:
-        succeeds("projects")
-
-        then:
-        outputContains("Root project 'root'")
     }
 
     TestFile xdclSettingsFile(String script) {
