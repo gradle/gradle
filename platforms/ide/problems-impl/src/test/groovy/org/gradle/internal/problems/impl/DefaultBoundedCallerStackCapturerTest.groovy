@@ -24,8 +24,9 @@ import java.lang.StackWalker.StackFrame
 
 class DefaultBoundedCallerStackCapturerTest extends Specification {
 
+    // Checks.groovy and Helper.groovy stand in for compiled helpers (not registered scripts); everything else is a script.
     def scripts = Stub(RegisteredScripts) {
-        scriptFor(_) >> { String fileName -> fileName in ['build.gradle', 'other.gradle'] ? Stub(ClassLoaderScopeOrigin.Script) : null }
+        scriptFor(_) >> { String fileName -> fileName in ['Checks.groovy', 'Helper.groovy'] ? null : Stub(ClassLoaderScopeOrigin.Script) }
     }
     def capturer = new DefaultBoundedCallerStackCapturer(scripts)
 
@@ -93,6 +94,23 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
         capturer.cachedSiteCount() == 2
         other*.fileName.contains('other.gradle')
         !other*.fileName.contains('build.gradle')
+    }
+
+    def "a call-site with no script below it does not shadow a later call-site that resolves to a script"() {
+        given:
+        // The same compiled helper first fires with no script frame below it (e.g. from a plugin's apply),
+        // and later from a build script. The first, scriptless capture must not shadow the second one.
+        def helper = frame('com.example.Checks', 'validate', 1, ste('com.example.Checks', 'validate', 'Checks.groovy', 12))
+        def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
+        def fromPlugin = [helper, boundary]
+        def fromScript = [helper, frame('build_gradle', 'run', 5, ste('build_gradle', 'run', 'build.gradle', 5)), boundary]
+
+        when:
+        capturer.cachedReducedStack(fromPlugin.stream())
+        def script = capturer.cachedReducedStack(fromScript.stream())
+
+        then:
+        script*.fileName.contains('build.gradle')
     }
 
     private StackFrame frame(String className, String methodName, int bci, StackTraceElement element) {

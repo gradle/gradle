@@ -37,10 +37,11 @@ import java.util.stream.Stream;
  * location, so the resolved prefix is cached per site. The expensive resolution is then paid once per
  * site rather than once per problem, which is what keeps capturing locations past the cap affordable.</p>
  *
- * <p>The cache is keyed on the frame the location actually comes from: the first user frame with a
- * line, upgraded to the first registered script at or below it (the analyser sees through non-script
- * frames to the calling script). Keying on the nearest user frame instead would conflate distinct call
- * sites that share a non-script helper frame, attributing one to the other.</p>
+ * <p>The cache is keyed on the registered script the location resolves to: the first script at or below
+ * the located frame (the analyser sees through non-script frames to the calling script). Captures that
+ * reach no script are not cached, because a non-script frame's location depends on the frames below it,
+ * so the same frame can resolve to different scripts, or to none, in different stacks. That is what keeps
+ * distinct call sites sharing a non-script helper frame from being conflated.</p>
  *
  * <p>The cached value is reduced at both ends: leading Gradle machinery above the anchor is dropped, and
  * collection stops at the Gradle boundary below it. It carries the location and some surrounding context,
@@ -125,16 +126,18 @@ class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
             if (anchoredOnScript || element.getLineNumber() < 0 || InternalStackTraceClassifier.isInternal(className)) {
                 return null; // anchor is final, or this is not a user frame with a line
             }
-            boolean script = isRegisteredScript(element);
-            if (anchorIndex != -1 && !script) {
-                return null; // keep the tentative anchor; only a script below it upgrades it
+            if (anchorIndex == -1) {
+                anchorIndex = userFrames.size() - 1; // tentative anchor: the located frame, used to trim the stack
+            }
+            if (!isRegisteredScript(element)) {
+                return null; // a non-script frame resolves via the frames below it, so never cache or reuse on it
             }
             StackTraceElement[] cached = reducedStackBySite.getIfPresent(siteKey(element));
             if (cached != null) {
                 return cached;
             }
-            anchorIndex = userFrames.size() - 1;
-            anchoredOnScript = script;
+            anchorIndex = userFrames.size() - 1; // definitive anchor: the script the location resolves to
+            anchoredOnScript = true;
             return null;
         }
 
@@ -148,8 +151,8 @@ class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
             }
             int start = anchorIndex == -1 ? 0 : anchorIndex;
             StackTraceElement[] reduced = userFrames.subList(start, userFrames.size()).toArray(new StackTraceElement[0]);
-            if (anchorIndex != -1) {
-                reducedStackBySite.put(siteKey(userFrames.get(anchorIndex)), reduced);
+            if (anchoredOnScript) {
+                reducedStackBySite.put(siteKey(userFrames.get(anchorIndex)), reduced); // only script anchors are safe to cache
             }
             return reduced;
         }
