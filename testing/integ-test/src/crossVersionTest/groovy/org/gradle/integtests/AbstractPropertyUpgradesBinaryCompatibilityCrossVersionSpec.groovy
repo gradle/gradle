@@ -67,7 +67,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         return defaultGradleImports.get() + DEFAULT_JAVA_IMPORTS
     }
 
-    protected void prepareGroovyPluginTest(String pluginApplyBody) {
+    protected void prepareGroovyPluginTest(String pluginApplyBody, String additionalClasses = "") {
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
@@ -85,6 +85,8 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
                     $pluginApplyBody
                 }
             }
+
+            $additionalClasses
             """
 
         buildFile << """
@@ -96,7 +98,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         """
     }
 
-    protected void prepareJavaPluginTest(String pluginApplyBody) {
+    protected void prepareJavaPluginTest(String pluginApplyBody, String additionalClasses = "") {
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
@@ -114,6 +116,8 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
                     $pluginApplyBody
                 }
             }
+
+            $additionalClasses
             """
 
         buildFile << """
@@ -125,7 +129,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         """
     }
 
-    protected void prepareKotlinPluginTest(String pluginApplyBody) {
+    protected void prepareKotlinPluginTest(String pluginApplyBody, String additionalClasses = "") {
         file("producer/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
@@ -145,6 +149,8 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
                     $pluginApplyBody
                 }
             }
+
+            $additionalClasses
             """
 
         buildFile << """
