@@ -122,9 +122,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * Whether this task should be skipped with NO-SOURCE when its source files are empty.
      * {@link Sync} overrides this to always run, since deleting stale outputs is part of its contract.
      *
-     * @since 9.7.0
+     * <p>This is intentionally package-private and not part of the public API: the behavior is a fixed
+     * contract of each task type rather than something builds are meant to reconfigure.
      */
-    protected boolean skipWhenSourceIsEmpty() {
+    boolean skipWhenSourceIsEmpty() {
         return true;
     }
 
