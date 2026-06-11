@@ -199,6 +199,9 @@ object BuildModelParametersProvider {
         validateIsolatedProjectsCachingOption(options)
 
         val diagnostics = startParameter.isIsolatedProjectsDiagnostics
+        // Only governs whether IP violations are fatal; deliberately does not touch parallelism,
+        // since the point of this mode is to keep parallel configuration on while estimating speedup.
+        val dangerouslyIgnoreProblems = startParameter.isIsolatedProjectsDangerouslyIgnoreProblems
         // In Diagnostics mode, configure all projects to surface all possible violations.
         val configureOnDemand = !diagnostics && isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
         // In Diagnostics mode, run sequentially so all violations can be collected deterministically.
@@ -210,6 +213,7 @@ object BuildModelParametersProvider {
             GradleIsolatedProjectsMode(
                 modelBuilding = true,
                 isolatedProjectsDiagnostics = diagnostics,
+                isolatedProjectsDangerouslyIgnoreProblems = dangerouslyIgnoreProblems,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
@@ -224,6 +228,7 @@ object BuildModelParametersProvider {
             GradleIsolatedProjectsMode(
                 modelBuilding = false,
                 isolatedProjectsDiagnostics = diagnostics,
+                isolatedProjectsDangerouslyIgnoreProblems = dangerouslyIgnoreProblems,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,

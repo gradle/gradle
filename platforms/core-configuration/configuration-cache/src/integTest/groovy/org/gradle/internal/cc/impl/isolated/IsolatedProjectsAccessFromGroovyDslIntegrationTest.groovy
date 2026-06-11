@@ -928,11 +928,11 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             String foo(){ 'configured' }
         """
 
-        when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        when: "the cross-project access fails the build fast"
+        isolatedProjectsFails 'help'
 
         then:
-        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':a:sub' of type org.gradle.api.Project")
+        failure.assertHasCause("Project ':a' cannot access 'foo' extension on another project ':a:sub'")
         problems.assertResultHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':a:sub'")
         }
@@ -962,11 +962,11 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             myExtension.foo.set('configured')
         """
 
-        when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        when: "the cross-project access fails the build fast"
+        isolatedProjectsFails 'help'
 
         then:
-        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':a:sub' of type org.gradle.api.Project")
+        failure.assertHasCause("Project ':a' cannot access 'myExtension' extension on another project ':a:sub'")
         problems.assertResultHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':a:sub'")
         }
