@@ -148,7 +148,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
               }
             }
         '''
-        xdslFile 'build-logic/src/main/xdcl/my.xsdl', '''
+        xdslFile 'build-logic/src/main/xdcl/my.xdsl', '''
             package my.dsl
 
             import xdcl.gradle.bootstrap // Settings
@@ -174,8 +174,8 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 static class MessageReaction implements Reaction<Message, Settings> {
-                    @Override void on(Message data, Settings context, ReactionScope scope) {
-                        System.out.println(String.format("on: %1", data.text()));
+                    @Override public void on(Message data, Settings context, ReactionScope scope) {
+                        System.out.println("on: " + data.text().get());
                     }
                 }
             }
@@ -188,15 +188,15 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.xdcl.*;
             import my.dsl.*;
 
-            @BindReaction(ReactionsPlugin.UnusedReaction.class)
+            @BindReaction(UnusedPlugin.UnusedReaction.class)
             public class UnusedPlugin implements Plugin<Settings> {
                 @Override public void apply(Settings target) {
                     System.out.println("UnusedPlugin applied!");
                 }
 
                 static class UnusedReaction implements Reaction<Message, Settings> {
-                    @Override void on(Message data, Settings context, ReactionScope scope) {
-                        System.out.println(String.format("ERROR: unused: %1", data.text()));
+                    @Override public void on(Message data, Settings context, ReactionScope scope) {
+                        System.out.println("ERROR: unused: " + data.text().get());
                     }
                 }
             }
