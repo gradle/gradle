@@ -33,6 +33,8 @@ dependencies {
     pluginsRuntimeOnly(projects.antlr)
     pluginsRuntimeOnly(projects.enterprise)
     pluginsRuntimeOnly(projects.unitTestFixtures)
+
+    pluginsRuntimeOnly(libs.xdclGradlePlugin)
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future
