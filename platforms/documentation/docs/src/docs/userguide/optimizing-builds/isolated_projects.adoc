@@ -491,7 +491,7 @@ By using the latest versions you reduce the risks of dealing with problems that 
 The IDE support for Isolated Projects is already in a good state for 2025.3 and later releases.
 However, newer IDE versions can bring better performance as well as a better user experience when adopting Isolated Projects.
 
-* Make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>>
+* Make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>>
 +
 The Isolated Projects feature builds on top of the Configuration Cache feature.
 
@@ -750,7 +750,7 @@ When executed, the configuration phase runs sequentially, configuring one projec
 Isolated Projects relies on the Configuration Cache infrastructure, and it also extends the set of constraints imposed by Configuration Cache.
 
 Configuration Cache is enabled automatically when Isolated Projects is enabled.
-You should make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
+You should make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
 
 [IMPORTANT]
 ====
