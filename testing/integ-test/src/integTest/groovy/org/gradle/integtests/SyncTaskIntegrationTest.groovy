@@ -55,6 +55,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         executedAndNotSkipped ':sync'
         !file('dest/foo.txt').exists()
         file('dest').directory
+
+        when:
+        run 'sync'
+
+        then:
+        skipped ':sync'
+        !file('dest/foo.txt').exists()
+        file('dest').directory
     }
 
     def 'copies files and removes extra files from destDir'() {
