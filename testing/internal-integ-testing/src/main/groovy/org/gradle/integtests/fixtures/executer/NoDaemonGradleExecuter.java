@@ -184,7 +184,12 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 builder.environment("JAVA_HOME", "");
                 builder.environment("GRADLE_OPTS", "");
                 builder.environment("JAVA_OPTS", "");
-                builder.environment(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, "");
+                // Propagate the ambient read-only dependency cache (seeded on CI agents from the global
+                // Gradle user home) so that forked builds resolve from it instead of downloading, matching
+                // what embedded executions see via System.getenv(). Tests that need a specific value or no
+                // cache at all override this via withReadOnlyCacheDir().
+                String ambientRoDepCache = System.getenv(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR);
+                builder.environment(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, ambientRoDepCache == null ? "" : ambientRoDepCache);
 
                 GradleInvocation invocation = buildInvocation();
 
