@@ -1241,7 +1241,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                 }
             }
         }
-        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", "2.2.20")
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", KotlinGradlePluginVersions.KOTLIN_2_3_21.toString())
         pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
 

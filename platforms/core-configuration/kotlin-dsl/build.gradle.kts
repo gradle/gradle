@@ -77,6 +77,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)
+    implementation(libs.kotlinBuildToolsApi)
     implementation(libs.kotlinReflect)
     implementation(libs.slf4jApi)
 

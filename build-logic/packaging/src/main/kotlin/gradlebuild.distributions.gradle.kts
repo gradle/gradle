@@ -288,9 +288,8 @@ val generateLicenseFile = tasks.register<GenerateLicenseFile>("generateLicenseFi
 }
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
-    configureKotlinCompilerForGradleBuild()
+    configureKotlinCompilerForGradleBuild("gradle-kotlin-dsl-extensions")
     multiPlatformEnabled = false
-    compilerOptions.moduleName = "gradle-kotlin-dsl-extensions"
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")

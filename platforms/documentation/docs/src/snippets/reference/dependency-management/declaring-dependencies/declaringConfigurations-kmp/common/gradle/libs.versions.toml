@@ -6,7 +6,7 @@ android-targetSdk = "36"
 androidx-activity = "1.11.0"
 androidx-lifecycle = "2.9.4"
 composeMultiplatform = "1.9.3"
-kotlin = "2.2.20"
+kotlin = "2.4.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

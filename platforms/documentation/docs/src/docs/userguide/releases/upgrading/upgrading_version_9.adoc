@@ -41,6 +41,20 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 2.4.0
+
+The embedded Kotlin has been upgraded from 2.3.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0[Kotlin 2.4.0].
+
+Starting with Kotlin `2.4.0`, the compiler no longer supports `-language-version=1.9`, which means the K1 compiler is gone entirely.
+`2.0` is the new minimum compile target (and is itself deprecated, pointing at `2.2`).
+
+From the `2.4.0` release notes:
+
+- KGP requires a minimum Gradle version of `7.6.3`, fully tested through `9.5.0`.
+- Support for Java `26` has been added.
+
+Oldest supported `kotlin-dsl` plugin version is now `6.2.0`, which can be used to build precompiled-script plugins targeting a language level as old as `1.8`. Oldest supported KGP version is `1.9.22` which can be used to write Kotlin plugins targeting language levels as old as `1.4` and be used in Gradle versions as old as `7.2`.
+
 [[kotlin_dsl_impldep_compilation]]
 ==== Kotlin DSL scripts can no longer reference relocated internal dependencies
 
