@@ -17,6 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -33,21 +35,29 @@ public interface MavenPomRelocation {
     /**
      * The new group ID of the artifact.
      */
+    @Input
+    @Optional
     Property<String> getGroupId();
 
     /**
      * The new artifact ID of the artifact.
      */
+    @Input
+    @Optional
     Property<String> getArtifactId();
 
     /**
      * The new version of the artifact.
      */
+    @Input
+    @Optional
     Property<String> getVersion();
 
     /**
      * The message to show the user for this relocation.
      */
+    @Input
+    @Optional
     Property<String> getMessage();
 
 }

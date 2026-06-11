@@ -17,6 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * A license of a Maven publication.
@@ -30,21 +32,29 @@ public interface MavenPomLicense {
     /**
      * The name of this license.
      */
+    @Input
+    @Optional
     Property<String> getName();
 
     /**
      * The URL of this license.
      */
+    @Input
+    @Optional
     Property<String> getUrl();
 
     /**
      * The distribution of this license.
      */
+    @Input
+    @Optional
     Property<String> getDistribution();
 
     /**
      * The comments of this license.
      */
+    @Input
+    @Optional
     Property<String> getComments();
 
 }

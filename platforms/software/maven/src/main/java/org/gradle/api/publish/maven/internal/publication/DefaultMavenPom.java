@@ -63,7 +63,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     }
 
     @Override
-    public Action<XmlProvider> getXmlAction() {
+    public MutableActionSet<XmlProvider> getXmlAction() {
         return xmlAction;
     }
 

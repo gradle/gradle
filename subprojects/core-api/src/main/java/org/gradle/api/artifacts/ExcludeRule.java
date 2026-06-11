@@ -15,6 +15,9 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+
 /**
  * An {@code ExcludeRule} is used to describe transitive dependencies that should be excluded when resolving
  * dependencies.
@@ -26,10 +29,14 @@ public interface ExcludeRule {
     /**
      * The exact name of the organization or group that should be excluded.
       */
+    @Input
+    @Optional
     String getGroup();
 
     /**
      * The exact name of the module that should be excluded.
      */
+    @Input
+    @Optional
     String getModule();
 }

@@ -17,6 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * The issue management system of a Maven publication.
@@ -29,11 +31,15 @@ public interface MavenPomIssueManagement {
     /**
      * The name of this issue management system.
      */
+    @Input
+    @Optional
     Property<String> getSystem();
 
     /**
      * The URL of this issue management system.
      */
+    @Input
+    @Optional
     Property<String> getUrl();
 
 }

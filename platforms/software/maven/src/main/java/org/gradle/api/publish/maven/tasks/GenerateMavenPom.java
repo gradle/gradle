@@ -22,18 +22,13 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.serialization.Cached;
-import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
 import java.io.File;
-
-import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * Generates a Maven module descriptor (POM) file.
@@ -41,14 +36,17 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @SuppressWarnings("this-escape")
-@UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public abstract class GenerateMavenPom extends DefaultTask {
 
-    private final Transient.Var<MavenPom> pom = varOf();
+    private MavenPom pom;
     private Object destination;
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
-        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
-    );
+
+    public GenerateMavenPom() {
+        this.doNotTrackStateIf(
+            "withXml actions cannot be snapshotted",
+            task -> !((MavenPomInternal) ((GenerateMavenPom) task).getPom()).getXmlAction().isEmpty()
+        );
+    }
 
     @Inject
     protected abstract FileResolver getFileResolver();
@@ -58,14 +56,13 @@ public abstract class GenerateMavenPom extends DefaultTask {
      *
      * @return The Maven POM.
      */
-    @Internal
-    @ToBeReplacedByLazyProperty
+    @Nested
     public MavenPom getPom() {
-        return pom.get();
+        return pom;
     }
 
     public void setPom(MavenPom pom) {
-        this.pom.set(pom);
+        this.pom = pom;
     }
 
     /**
@@ -102,7 +99,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec.get().writeTo(getDestination());
+        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom()).writeTo(getDestination());
     }
 
 }

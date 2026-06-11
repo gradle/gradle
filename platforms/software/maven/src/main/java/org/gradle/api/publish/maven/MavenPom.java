@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
@@ -42,6 +44,7 @@ public interface MavenPom {
     /**
      * Returns the packaging (for example: jar, war) for the publication represented by this POM.
      */
+    @Input
     @ToBeReplacedByLazyProperty
     String getPackaging();
 
@@ -55,6 +58,8 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getName();
 
     /**
@@ -62,6 +67,8 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getDescription();
 
     /**
@@ -69,6 +76,8 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getUrl();
 
     /**
@@ -76,6 +85,8 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getInceptionYear();
 
     /**
@@ -146,6 +157,7 @@ public interface MavenPom {
      *
      * @since 5.3
      */
+    @Input
     MapProperty<String, String> getProperties();
 
     /**

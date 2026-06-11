@@ -16,6 +16,9 @@
 package org.gradle.api.publish.maven.internal.dependencies;
 
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -29,44 +32,56 @@ public interface MavenDependency {
     /**
      * The group ID of this dependency.
      */
+    @Input
     String getGroupId();
 
     /**
      * The artifact ID of this dependency.
      */
+    @Input
     String getArtifactId();
 
     /**
      * The version of this dependency.
      */
+    @Input
+    @Optional
     @Nullable
     String getVersion();
 
     /**
      * The type of this dependency.
      */
+    @Input
+    @Optional
     @Nullable
     String getType();
 
     /**
      * The classifier of this dependency.
      */
+    @Input
+    @Optional
     @Nullable
     String getClassifier();
 
     /**
      * The scope of this dependency.
      */
+    @Input
+    @Optional
     @Nullable
     String getScope();
 
     /**
      * The exclude rules of this dependency.
      */
+    @Nested
     Set<ExcludeRule> getExcludeRules();
 
     /**
      * If this dependency is marked optional.
      */
+    @Input
     boolean isOptional();
 }

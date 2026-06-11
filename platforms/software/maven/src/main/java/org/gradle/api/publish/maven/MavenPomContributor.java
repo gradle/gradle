@@ -19,6 +19,8 @@ package org.gradle.api.publish.maven;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * A contributor of a Maven publication.
@@ -32,41 +34,56 @@ public interface MavenPomContributor {
     /**
      * The name of this contributor.
      */
+    @Input
+    @Optional
     Property<String> getName();
 
     /**
      * The email
      */
+    @Input
+    @Optional
     Property<String> getEmail();
 
     /**
      * The URL of this contributor.
      */
+    @Input
+    @Optional
     Property<String> getUrl();
 
     /**
      * The organization name of this contributor.
      */
+    @Input
+    @Optional
     Property<String> getOrganization();
 
     /**
      * The organization's URL of this contributor.
      */
+    @Input
+    @Optional
     Property<String> getOrganizationUrl();
 
     /**
      * The roles of this contributor.
      */
+    @Input
+    @Optional
     SetProperty<String> getRoles();
 
     /**
      * The timezone of this contributor.
      */
+    @Input
+    @Optional
     Property<String> getTimezone();
 
     /**
      * The properties of this contributor.
      */
+    @Input
     MapProperty<String, String> getProperties();
 
 }

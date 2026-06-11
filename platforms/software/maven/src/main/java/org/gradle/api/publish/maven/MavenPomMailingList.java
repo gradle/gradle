@@ -18,6 +18,8 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * A mailing list of a Maven publication.
@@ -31,31 +33,42 @@ public interface MavenPomMailingList {
     /**
      * The name of this mailing list.
      */
+    @Input
+    @Optional
     Property<String> getName();
 
     /**
      * The email address or link that can be used to subscribe to this mailing list.
      */
+    @Input
+    @Optional
     Property<String> getSubscribe();
 
     /**
      * The email address or link that can be used to subscribe to this mailing list.
      */
+    @Input
+    @Optional
     Property<String> getUnsubscribe();
 
     /**
      * The email address or link that can be used to post to this mailing list.
      */
+    @Input
+    @Optional
     Property<String> getPost();
 
     /**
      * The URL where you can browse the archive of this mailing list.
      */
+    @Input
+    @Optional
     Property<String> getArchive();
 
     /**
      * The alternate URLs where you can browse the archive of this mailing list.
      */
+    @Input
     SetProperty<String> getOtherArchives();
 
 }
