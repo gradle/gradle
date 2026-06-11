@@ -306,6 +306,23 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("library: lib")
     }
 
+    def "can configure project root name"() {
+        given:
+        xdclSettingsFile '''
+            settings {
+              rootProject {
+                name "root"
+              }
+            }
+        '''
+
+        when:
+        succeeds("projects")
+
+        then:
+        outputContains("Root project 'root'")
+    }
+
     TestFile xdclSettingsFile(String script) {
         file('settings.gradle.xdcl') << script
     }
