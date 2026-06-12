@@ -43,7 +43,7 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         outputContains("isolatedProjects.active=false")
 
         when:
-        run "something", "-Dorg.gradle.unsafe.isolated-projects=false"
+        run "something", "-Dorg.gradle.isolated-projects=false"
         then:
         fixture.assertNoConfigurationCache()
         outputContains("configurationCache.requested=null")
