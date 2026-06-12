@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "build feature indicates requested and active status"() {
+    def "build feature reports configuration cache as implied by Isolated Projects"() {
         buildFile """
             import org.gradle.api.configuration.BuildFeatures
 
@@ -27,29 +27,9 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
                 doLast {
                     println "configurationCache.requested=" + buildFeatures.configurationCache.requested.getOrNull()
                     println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
-                    println "isolatedProjects.requested=" + buildFeatures.isolatedProjects.requested.getOrNull()
-                    println "isolatedProjects.active=" + buildFeatures.isolatedProjects.active.get()
                 }
             }
         """
-
-        when:
-        run "something"
-        then:
-        fixture.assertNoConfigurationCache()
-        outputContains("configurationCache.requested=null")
-        outputContains("configurationCache.active=false")
-        outputContains("isolatedProjects.requested=null")
-        outputContains("isolatedProjects.active=false")
-
-        when:
-        run "something", "-Dorg.gradle.isolated-projects=false"
-        then:
-        fixture.assertNoConfigurationCache()
-        outputContains("configurationCache.requested=null")
-        outputContains("configurationCache.active=false")
-        outputContains("isolatedProjects.requested=false")
-        outputContains("isolatedProjects.active=false")
 
         when:
         isolatedProjectsRun "something"
@@ -59,8 +39,6 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         }
         outputContains("configurationCache.requested=null")
         outputContains("configurationCache.active=true")
-        outputContains("isolatedProjects.requested=true")
-        outputContains("isolatedProjects.active=true")
 
         when:
         isolatedProjectsRun "something"
@@ -68,11 +46,9 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         fixture.assertStateLoaded()
         outputContains("configurationCache.requested=null")
         outputContains("configurationCache.active=true")
-        outputContains("isolatedProjects.requested=true")
-        outputContains("isolatedProjects.active=true")
     }
 
-    def "not active even if requested due to --export-keys flag"() {
+    def "not active due to --export-keys flag, even explicitly if requested"() {
         buildFile """
             import org.gradle.api.configuration.BuildFeatures
 
