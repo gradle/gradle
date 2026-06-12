@@ -18,7 +18,7 @@ package org.gradle.execution.taskgraph
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any

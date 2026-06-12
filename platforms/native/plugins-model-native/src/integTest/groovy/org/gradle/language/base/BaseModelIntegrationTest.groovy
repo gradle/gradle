@@ -18,7 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec

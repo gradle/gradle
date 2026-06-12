@@ -694,7 +694,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     /**
-     * Called by {@link ToBeFixedSpecInterceptor} when a test fails as expected so no further checks are applied.
+     * Called by {@link org.gradle.integtests.fixtures.modes.ToBeFixedSpecInterceptor} when a test fails as expected so no further checks are applied.
      */
     void ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true

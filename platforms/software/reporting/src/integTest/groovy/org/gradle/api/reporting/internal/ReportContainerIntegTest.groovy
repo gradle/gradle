@@ -20,7 +20,7 @@ import org.gradle.api.Describable
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.reporting.Report
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.Describables
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions

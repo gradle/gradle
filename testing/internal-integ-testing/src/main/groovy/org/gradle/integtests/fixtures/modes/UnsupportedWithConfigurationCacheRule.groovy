@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.modes
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
+import static ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
 import static ToBeFixedSpecInterceptor.iterationMatches
 import static org.junit.Assume.assumeTrue
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.modes
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
@@ -22,7 +22,7 @@ import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import static org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP
+import static org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP
 
 class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtension<ToBeFixedForIsolatedProjects> {
 

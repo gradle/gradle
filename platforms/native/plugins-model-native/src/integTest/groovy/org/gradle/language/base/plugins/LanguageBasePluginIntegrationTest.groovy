@@ -15,8 +15,8 @@
  */
 package org.gradle.language.base.plugins
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class LanguageBasePluginIntegrationTest extends WellBehavedPluginTest {

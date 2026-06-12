@@ -19,7 +19,7 @@ package org.gradle.api.events
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
