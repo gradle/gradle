@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -199,7 +198,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
     }
 
     @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-    @ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
     def "initializes Kotlin application with JUnit Jupiter test framework with --split-project"() {
         when:
         run('init', '--type', 'kotlin-application', '--test-framework', 'junit-jupiter', "--split-project", '--java-version', JavaVersion.current().majorVersion)

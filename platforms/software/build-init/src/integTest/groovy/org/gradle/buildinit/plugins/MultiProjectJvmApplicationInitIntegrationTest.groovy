@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -307,7 +306,6 @@ class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
 }
 
 @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-@ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
@@ -315,7 +313,6 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
 }
 
 @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-@ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
@@ -323,7 +320,6 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends Abstrac
 }
 
 @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-@ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
@@ -388,7 +384,6 @@ class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
 }
 
 @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-@ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
@@ -396,7 +391,6 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
 }
 
 @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-@ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
@@ -404,7 +398,6 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends Abstrac
 }
 
 @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
-@ToBeFixedForIsolatedProjects(because = "KGP modifies service parameter properties concurrently", skipBecause = "flaky")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
