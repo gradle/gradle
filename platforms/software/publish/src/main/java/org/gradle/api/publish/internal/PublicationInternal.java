@@ -27,6 +27,7 @@ import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInte
 import java.io.File;
 
 public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectComponentPublication {
+
     ModuleVersionIdentifier getCoordinates();
 
     ImmutableAttributes getAttributes();
@@ -38,8 +39,12 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      */
     PublicationArtifactSet<T> getPublishableArtifacts();
 
+    // Used by sigstore plugin:
+    // https://github.com/sigstore/sigstore-java/blob/671f1b59b33754367b4d126d1c4a185bba7fac4d/sigstore-gradle/sigstore-gradle-sign-base-plugin/src/main/kotlin/dev/sigstore/sign/SigstoreSignExtension.kt#L92
     void allPublishableArtifacts(Action<? super T> action);
 
+    // Used by sigstore plugin:
+    // https://github.com/sigstore/sigstore-java/blob/671f1b59b33754367b4d126d1c4a185bba7fac4d/sigstore-gradle/sigstore-gradle-sign-base-plugin/src/main/kotlin/dev/sigstore/sign/SigstoreSignExtension.kt#L127
     void whenPublishableArtifactRemoved(Action<? super T> action);
 
     /**
@@ -55,8 +60,12 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * @param file The file to be used for publishing the derived artifact.
      * @return The newly created derived artifact.
      */
+    // Used by sigstore plugin
+    // https://github.com/sigstore/sigstore-java/blob/671f1b59b33754367b4d126d1c4a185bba7fac4d/sigstore-gradle/sigstore-gradle-sign-base-plugin/src/main/kotlin/dev/sigstore/sign/SigstoreSignExtension.kt#L102
     T addDerivedArtifact(T originalArtifact, DerivedArtifact file);
 
+    // Used by sigstore plugin
+    // https://github.com/sigstore/sigstore-java/blob/671f1b59b33754367b4d126d1c4a185bba7fac4d/sigstore-gradle/sigstore-gradle-sign-base-plugin/src/main/kotlin/dev/sigstore/sign/SigstoreSignExtension.kt#L141
     void removeDerivedArtifact(T artifact);
 
     /**
@@ -78,8 +87,11 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
         String getUri();
     }
 
+    // Used by sigstore plugin:
+    // https://github.com/sigstore/sigstore-java/blob/671f1b59b33754367b4d126d1c4a185bba7fac4d/sigstore-gradle/sigstore-gradle-sign-base-plugin/src/main/kotlin/dev/sigstore/sign/DefaultDerivedArtifactFile.kt#L32
     interface DerivedArtifact {
         boolean shouldBePublished();
         File create();
     }
+
 }
