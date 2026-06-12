@@ -228,7 +228,9 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @TaskAction
     public void generate() {
         if (getSignatory() == null) {
-            throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
+            throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory. "
+                + "A signatory holds the PGP key used to sign artifacts and must be configured in the \'signing {}\' block. "
+                + "See https://docs.gradle.org/current/userguide/signing_plugin.html for details.");
         }
 
         for (Signature.Generator signature : sanitizedGenerators().values()) {
