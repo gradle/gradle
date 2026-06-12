@@ -479,7 +479,7 @@ _Default is the value of `org.gradle.parallel`._
 
 `org.gradle.isolated-projects=(true,false)` since-gradle-label:9.7.0[]::
 
-Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
+Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, which configures projects in parallel and implies enabling the Configuration Cache.
 +
 _Default is `false`._
 

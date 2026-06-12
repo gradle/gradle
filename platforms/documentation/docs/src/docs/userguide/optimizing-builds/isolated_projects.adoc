@@ -18,7 +18,7 @@
 = Isolated Projects
 :keywords: ip
 
-Isolated Projects is an experimental feature aimed at improving Gradle scalability and performance, especially for large builds and IDE sync (Android Studio / IntelliJ IDEA).
+Isolated Projects is an incubating feature aimed at improving Gradle scalability and performance, especially for large builds and IDE sync (Android Studio / IntelliJ IDEA).
 
 When the Isolated Projects feature is enabled, the projects in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>> are "isolated" from each other.
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of other projects.
@@ -36,19 +36,16 @@ Follow the <<sec:migration_path,recommended migration steps>> to make your build
 
 [WARNING]
 ====
-Isolated Projects is an experimental feature that has not yet reached <<feature_lifecycle.adoc#sec:incubating_state,incubating>> state.
-APIs and behavior may change at any time without notice.
-The feature will enter incubation once Gradle's core has stronger support for this mode and more common use cases are covered.
+Isolated Projects is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> feature.
+APIs and behavior may still change in future Gradle versions while it remains incubating.
+Such changes are highlighted in the release notes for each release.
 ====
 
 [[sec:changelog]]
 == Recent changes
 
-While the feature is experimental, notable changes are documented here rather than in release notes:
-
-* Gradle 9.7.0
-** The new <<sec:dangerously_ignore_problems,dangerously-ignore-problems>> mode lets you ignore Isolated Projects violations to evaluate parallel build and sync performance without fixing violations first.
-** Isolated Projects violation severity is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
+Changes from Gradle 9.7.0 onward are highlighted in the release notes for each release.
+Earlier changes, from while the feature was experimental, are listed here:
 
 * Gradle 9.6.0
 ** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
@@ -468,7 +465,7 @@ This section covers how to migrate your build to be compatible with Isolated Pro
 
 [WARNING]
 ====
-Isolated Projects is an experimental feature, and it is actively changing.
+Isolated Projects is an incubating feature, and it is actively changing.
 Make sure to use the latest available version of Gradle and that you are reading the documentation for that version.
 ====
 
@@ -479,7 +476,7 @@ Before addressing constraint violations, make sure your build setup is up to dat
 
 * Upgrade the build to the latest version of Gradle
 +
-If available, consider a pre-release version such as a milestone or a nightly to get the best experience while Isolated Projects is experimental.
+If available, consider a pre-release version such as a milestone or a nightly to get the best experience while Isolated Projects is incubating.
 
 * Update third-party plugins to their latest versions
 +

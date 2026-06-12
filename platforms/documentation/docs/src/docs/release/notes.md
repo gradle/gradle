@@ -71,7 +71,21 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
 ### Isolated Projects improvements
-Gradle provides [Isolated Projects](userguide/isolated_projects.html), an experimental feature that enables parallel project configuration.
+Gradle provides [Isolated Projects](userguide/isolated_projects.html), an incubating feature that enables parallel project configuration.
+
+#### Isolated Projects is now incubating
+
+Isolated Projects has graduated from experimental to incubating.
+It can now be enabled with the stable `org.gradle.isolated-projects` property and the new `--isolated-projects` CLI option, dropping the `.unsafe.` segment from the previous names.
+
+```properties
+# gradle.properties
+org.gradle.isolated-projects=true
+```
+
+The legacy `org.gradle.unsafe.isolated-projects` property names are now deprecated and will be removed in a future release.
+They continue to work as aliases for now.
+See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_unsafe_isolated_projects_properties) for the full list of renamed properties.
 
 #### Isolated Projects now offers three modes for handling constraint violations
 
