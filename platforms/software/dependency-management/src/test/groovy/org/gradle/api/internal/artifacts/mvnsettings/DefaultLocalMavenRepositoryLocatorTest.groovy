@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.mvnsettings
 
 import org.apache.maven.settings.io.SettingsParseException
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -34,7 +33,6 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def system = Mock(DefaultLocalMavenRepositoryLocator.SystemPropertyAccess)
     def mavenFileLocations = Mock(MavenFileLocations)
-    def fileResolver = Mock(FileResolver)
 
     File repo1 = tmpDir.file("repo1")
     File repo2 = tmpDir.file("repo2")
@@ -43,7 +41,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def setup() {
         locations = new SimpleMavenFileLocations()
-        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), mavenFileLocations, fileResolver, system)
+        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), mavenFileLocations, system)
     }
 
     def "returns default location if no settings file exists"() {
@@ -63,29 +61,25 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     def "returns value of system property if it is specified"() {
         when:
         1 * system.getProperty("maven.repo.local") >> repo1.absolutePath
-        1 * fileResolver.resolve(repo1.absolutePath) >> repo1
         then:
         locator.localMavenRepository == repo1
 
         // Ensure that modified system property is honoured
         when:
         1 * system.getProperty("maven.repo.local") >> repo2.absolutePath
-        1 * fileResolver.resolve(repo2.absolutePath) >> repo2
         then:
         locator.localMavenRepository == repo2
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37492")
-    def "resolves relative system property value via the build-scoped file resolver"() {
-        given:
-        File resolved = tmpDir.file("project-root/repo")
-
+    def "throws exception when system property value is a relative path"() {
         when:
         1 * system.getProperty("maven.repo.local") >> "repo"
-        1 * fileResolver.resolve("repo") >> resolved
+        locator.localMavenRepository
 
         then:
-        locator.localMavenRepository == resolved
+        def ex = thrown(CannotLocateLocalMavenRepositoryException)
+        ex.message == "The value of the 'maven.repo.local' system property must be an absolute path, but was a relative path: 'repo'. Specify an absolute path, or configure a custom Maven repository in your build instead."
     }
 
     def "throws exception on broken global settings file with decent error message"() {

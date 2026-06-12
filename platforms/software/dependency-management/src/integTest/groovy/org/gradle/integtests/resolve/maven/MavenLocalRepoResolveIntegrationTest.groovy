@@ -104,52 +104,16 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37492")
-    def "relative system-property local repository resolves against the root project directory"() {
+    def "fails with a clear error when maven.repo.local is a relative path"() {
         given:
-        def relativeName = "relativeRepo"
-        def artifactRepo = mavenLocal(relativeName)
-        def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
+        m2.mavenRepo().module('group', 'projectA', '1.2').publish()
 
         when:
-        executer.withArgument("-Dmaven.repo.local=${relativeName}")
-        runRetrieveTask()
+        executer.withArgument("-Dmaven.repo.local=relativeRepo")
+        runAndFail 'retrieve'
 
         then:
-        hasArtifact(moduleA)
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37492")
-    def "relative system-property local repository resolves against the root project directory in a multi-project build"() {
-        given:
-        def relativeName = "relativeRepo"
-        def artifactRepo = mavenLocal(relativeName)
-        def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
-        def moduleB = artifactRepo.module('group', 'projectB', '1.2').publish()
-
-        settingsFile << "include 'a', 'b'"
-        createDirs("a", "b")
-        buildFile.text = ""
-        file("a/build.gradle") << """
-            repositories { mavenLocal() }
-            configurations { compile }
-            dependencies { compile 'group:projectA:1.2' }
-            task retrieve(type: Sync) { from configurations.compile; into 'build' }
-        """
-        file("b/build.gradle") << """
-            repositories { mavenLocal() }
-            configurations { compile }
-            dependencies { compile 'group:projectB:1.2' }
-            task retrieve(type: Sync) { from configurations.compile; into 'build' }
-        """
-
-        when:
-        executer.withArgument("-Dmaven.repo.local=${relativeName}")
-        executer.withArgument("--no-problems-report")
-        run ':a:retrieve', ':b:retrieve'
-
-        then:
-        file("a/build/${moduleA.artifactFile.name}").assertExists()
-        file("b/build/${moduleB.artifactFile.name}").assertExists()
+        failure.assertHasCause("The value of the 'maven.repo.local' system property must be an absolute path, but was a relative path: 'relativeRepo'. Specify an absolute path, or configure a custom Maven repository in your build instead.")
     }
 
     def "local repository in user settings take precedence over the local repository global settings"() {

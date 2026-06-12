@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.settings.building.SettingsBuildingException;
-import org.gradle.api.internal.file.FileResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,17 +30,15 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     private final MavenSettingsProvider settingsProvider;
     private final SystemPropertyAccess system;
     private final MavenFileLocations mavenFileLocations;
-    private final FileResolver fileResolver;
     private String localRepoPathFromMavenSettings;
 
-    public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, FileResolver fileResolver) {
-        this(settingsProvider, new DefaultMavenFileLocations(), fileResolver, new CurrentSystemPropertyAccess());
+    public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider) {
+        this(settingsProvider, new DefaultMavenFileLocations(), new CurrentSystemPropertyAccess());
     }
 
-    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations, FileResolver fileResolver, SystemPropertyAccess system) {
+    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations, SystemPropertyAccess system) {
         this.settingsProvider = settingsProvider;
         this.mavenFileLocations = mavenFileLocations;
-        this.fileResolver = fileResolver;
         this.system = system;
     }
 
@@ -49,7 +46,13 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
         String localOverride = system.getProperty("maven.repo.local");
         if (localOverride != null) {
-            return fileResolver.resolve(localOverride);
+            File localOverrideRepo = new File(localOverride);
+            if (!localOverrideRepo.isAbsolute()) {
+                throw new CannotLocateLocalMavenRepositoryException(String.format(
+                    "The value of the 'maven.repo.local' system property must be an absolute path, but was a relative path: '%s'. "
+                        + "Specify an absolute path, or configure a custom Maven repository in your build instead.", localOverride));
+            }
+            return localOverrideRepo;
         }
         try {
             String repoPath = parseLocalRepoPathFromMavenSettings();
