@@ -77,6 +77,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
+    // May be replaced or mutated by tooling model builders (e.g. during IDE sync) while parallel
+    // configuration is reading it concurrently: volatile makes the wholesale replacement by the
+    // setters safe to read, copy-on-write makes iterating the list safe during element mutation.
     private volatile List<TaskExecutionRequest> taskRequests = new CopyOnWriteArrayList<>();
     private Set<String> excludedTaskNames = new LinkedHashSet<>();
     private boolean buildProjectDependencies = true;
