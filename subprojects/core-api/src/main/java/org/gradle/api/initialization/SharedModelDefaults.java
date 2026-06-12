@@ -31,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.10
  */
 @Incubating
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface SharedModelDefaults {
 
     /**
