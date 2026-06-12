@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.graphSerialization)
     implementation(projects.graphIsolation)
+    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
