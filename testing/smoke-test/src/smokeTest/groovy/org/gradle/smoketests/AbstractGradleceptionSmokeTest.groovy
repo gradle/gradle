@@ -36,7 +36,7 @@ import java.text.SimpleDateFormat
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
-    private static final String DISABLE_IP = "-Dorg.gradle.unsafe.isolated-projects=false"
+    private static final String DISABLE_IP = "-Dorg.gradle.isolated-projects=false"
     private static final List<String> GRADLE_BUILD_TEST_ARGS = [DISABLE_IP, TEST_BUILD_TIMESTAMP]
 
     private SmokeTestGradleRunner.SmokeTestBuildResult result

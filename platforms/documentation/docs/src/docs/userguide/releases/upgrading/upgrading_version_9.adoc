@@ -101,6 +101,32 @@ Null-checks against the result are no longer required.
 No source change is needed in typical builds.
 If you have custom code that branched on `getParameters() == null` to detect a parameterless action, replace it with `getParameters() instanceof WorkParameters.None` (or the equivalent `None` type).
 
+=== Deprecations
+
+[[deprecated_unsafe_isolated_projects_properties]]
+==== Deprecation of `org.gradle.unsafe.isolated-projects*` property names
+
+The Isolated Projects feature can now be enabled with stable property names that drop the `.unsafe.` segment, alongside a new incubating CLI option `--isolated-projects` / `--no-isolated-projects`:
+
+|===
+| Legacy name | New name
+
+| `org.gradle.unsafe.isolated-projects`
+| `org.gradle.isolated-projects`
+
+| `org.gradle.unsafe.isolated-projects.diagnostics`
+| `org.gradle.isolated-projects.diagnostics`
+
+| `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`
+| `org.gradle.isolated-projects.dangerously-ignore-problems`
+|===
+
+The legacy `org.gradle.unsafe.*` names are now deprecated and will be removed in a future release.
+They continue to be accepted as aliases for now and currently emit no warning.
+Update your `gradle.properties` and command-line invocations to the new names.
+
+See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
