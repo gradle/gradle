@@ -24,7 +24,6 @@ import groovy.transform.Canonical
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
@@ -38,7 +37,7 @@ import java.util.regex.Pattern
 
 @Requires(TestExecutionPreconditions.NotParallelExecutor)
 @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
-class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
+class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def setup() {
         createDirs("common", "lib", "app")

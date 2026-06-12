@@ -23,7 +23,6 @@ import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
@@ -47,7 +46,7 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
-class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture, UndeclaredArtifactTransformInputDeprecation {
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
 
     @Rule

@@ -1593,10 +1593,6 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForConfigurationCache(
-        issue = "https://github.com/gradle/gradle/issues/24273",
-        because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references"
-    )
     def "transforms are created as required and a new instance created for each file"() {
         given:
         buildFile << """
