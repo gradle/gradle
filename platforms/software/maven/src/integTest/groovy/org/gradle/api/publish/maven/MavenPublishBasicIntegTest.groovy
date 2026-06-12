@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -607,7 +608,7 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         succeeds("generatePomFileForMavenPublication")
 
         then:
-        file("build/publications/maven/pom-default.xml").text.trim() == expected
+        TextUtil.convertLineSeparatorsToUnix(file("build/publications/maven/pom-default.xml").text.trim()) == expected
 
         when:
         succeeds("generatePomFileForMavenPublication")
@@ -626,6 +627,6 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         succeeds("generatePomFileForMavenPublication")
 
         then:
-        file("build/publications/maven/pom-default.xml").text.trim() == expected.replace("<description>custom-description</description>", "<description>another-description</description>")
+        TextUtil.convertLineSeparatorsToUnix(file("build/publications/maven/pom-default.xml").text.trim()) == expected.replace("<description>custom-description</description>", "<description>another-description</description>")
     }
 }
