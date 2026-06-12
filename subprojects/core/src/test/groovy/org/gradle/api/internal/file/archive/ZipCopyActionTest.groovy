@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit
@@ -142,6 +143,56 @@ class ZipCopyActionTest extends Specification {
         def e = thrown(Exception)
         e.message == String.format("Could not add $brokenFile to ZIP '%s'.", zipFile)
         e.cause.is(failure)
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/37790")
+    def "zip with reproducibleFileTimestamp just after a DST transition is independent of the default time zone"() {
+        given:
+        // 2009-03-29T01:30:00Z is 30 minutes after the Europe/Paris DST transition at 2009-03-29T01:00:00Z,
+        // so the zone offset at the timestamp (+02:00) differs from the offset at the instant stored in the zip
+        def timestamp = java.time.Instant.ofEpochSecond(1238290200).toEpochMilli()
+        def utcZip = tmpDir.testDirectory.file("utc.zip")
+        def parisZip = tmpDir.testDirectory.file("paris.zip")
+
+        when:
+        zipInTimeZone(utcZip, timestamp, "UTC")
+        zipInTimeZone(parisZip, timestamp, "Europe/Paris")
+
+        then:
+        entryLastModified(utcZip) == entryLastModified(parisZip)
+        utcZip.md5Hash == parisZip.md5Hash
+    }
+
+    private FileCopyDetailsInternal plainFile(final String path) {
+        // a Spock mock would also work here, but a plain coercion keeps the test runnable
+        // in environments where the Mockito mock maker cannot self-attach its Java agent
+        return [
+            getRelativePath: { RelativePath.parse(false, path) },
+            getLastModified: { 1000L },
+            isDirectory: { false },
+            getPermissions: { new DefaultFilePermissions(1) },
+            copyTo: { OutputStream out -> out << "contents of $path" }
+        ] as FileCopyDetailsInternal
+    }
+
+    private static long entryLastModified(TestFile zipFile) {
+        def zip = new java.util.zip.ZipFile(zipFile)
+        try {
+            return zip.entries().nextElement().time
+        } finally {
+            zip.close()
+        }
+    }
+
+    private void zipInTimeZone(TestFile zipFile, long timestamp, String timeZoneId) {
+        def originalTimeZone = TimeZone.getDefault()
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone(timeZoneId))
+            visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false, Providers.of(timestamp))
+            zip(plainFile("file"))
+        } finally {
+            TimeZone.setDefault(originalTimeZone)
+        }
     }
 
     private void zip(final FileCopyDetailsInternal... files) {

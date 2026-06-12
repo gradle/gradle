@@ -134,14 +134,14 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         expectedHash = taskName == 'tar' ? 'df5074300ec3fe8403071e64cfe3cb1a' : '477313f3ced595c7c75dffde90c54aba'
     }
 
-    def "reproducible #taskName with reproducibleFileTimestamp is independent of the build timezone"() {
+    def "reproducible #taskName with reproducibleFileTimestamp is independent of the build timezone - #otherTimeZone"() {
         given:
         files.each {
             file("src/${it}").text = it
         }
         buildFile << """
             task ${taskName}(type: ${taskType}) {
-                reproducibleFileTimestamp = java.time.Instant.ofEpochSecond(1248072216).toEpochMilli()
+                reproducibleFileTimestamp = java.time.Instant.ofEpochSecond(${timestampEpochSeconds}).toEpochMilli()
                 from 'src'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
@@ -157,15 +157,21 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
         when: "the archive is built on machines in different timezones"
         def utc = runArchiveInTimeZone(taskName, fileExtension, "UTC")
-        def kolkata = runArchiveInTimeZone(taskName, fileExtension, "Asia/Kolkata")
+        def other = runArchiveInTimeZone(taskName, fileExtension, otherTimeZone)
 
         then: "the timezone actually changed in the build JVM and the produced archives are identical"
-        kolkata.tz == "Asia/Kolkata"
+        other.tz == otherTimeZone
         utc.tz == "UTC"
-        utc.hash == kolkata.hash
+        utc.hash == other.hash
 
         where:
-        taskName << ['zip', 'tar']
+        taskName | timestampEpochSeconds | otherTimeZone
+        'zip'    | 1248072216            | 'Asia/Kolkata'
+        'tar'    | 1248072216            | 'Asia/Kolkata'
+        // 2009-03-29T01:30:00Z is 30 minutes after the Europe/Paris DST transition at 2009-03-29T01:00:00Z,
+        // so the zone offset at the timestamp (+02:00) differs from the offset at the instant stored in the zip
+        'zip'    | 1238290200            | 'Europe/Paris'
+
         taskType = taskName.capitalize() as String
         fileExtension = taskName as String
         files = ['DIR1/FILE11.txt', 'dir2/file22.txt', 'DIR3/file33.txt']
