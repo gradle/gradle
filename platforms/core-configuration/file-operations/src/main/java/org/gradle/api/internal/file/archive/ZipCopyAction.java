@@ -35,7 +35,9 @@ import org.gradle.internal.IoActions;
 
 import java.io.File;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.OptionalLong;
 
 public class ZipCopyAction implements CopyAction {
@@ -51,10 +53,23 @@ public class ZipCopyAction implements CopyAction {
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
         this.encoding = encoding;
-        this.fileTimestampMillis = CopyActionUtil.computeReproducibleTimestamp(preserveFileTimestamps, reproducibleFileTimestamp.map(ms -> {
-            final Instant utcTime = Instant.ofEpochMilli(ms);
-            return utcTime.minusSeconds(ZoneId.systemDefault().getRules().getOffset(utcTime).getTotalSeconds()).toEpochMilli();
-        }), ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES);
+        this.fileTimestampMillis = CopyActionUtil.computeReproducibleTimestamp(
+            preserveFileTimestamps,
+            reproducibleFileTimestamp.map(ZipCopyAction::normalizeTimestamp),
+            ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES
+        );
+    }
+
+    /**
+     * Zip stores entry times as MS-DOS date/time rendered in the default time zone (see ZipUtil.toDosTime),
+     * so shift the timestamp to make the stored fields equal its UTC wall clock, independent of the zone.
+     */
+    private static long normalizeTimestamp(long timestampMillis) {
+        Instant utcTime = Instant.ofEpochMilli(timestampMillis);
+        return LocalDateTime.ofInstant(utcTime, ZoneOffset.UTC)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli();
     }
 
     @Override
