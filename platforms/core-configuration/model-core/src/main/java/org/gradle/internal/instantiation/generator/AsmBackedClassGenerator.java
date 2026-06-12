@@ -16,7 +16,6 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.primitives.Primitives;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
@@ -149,6 +148,57 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     public static ManagedObjectFactory getFactoryForNext() {
         ObjectCreationDetails details = getDetails();
         return new ManagedObjectFactory(details.services, details.instantiator, details.roleHandler);
+    }
+
+    // Used by generated eager-shim getters, see applyEagerShimGetter.
+    // Unwraps the value backing an upgraded Provider getter for a pre-upgrade eager accessor.
+    // For reference types the absent value is null (equivalent to getOrElse(null)); for primitives
+    // the absent value is the JVM zero, and the unboxing return reproduces the previous _AUTOBOX/_UNBOX
+    // behaviour while avoiding the NPE that a plain getOrNull() would cause on an absent primitive provider.
+    @SuppressWarnings("unused")
+    @Nullable
+    public static <T> T unpackEagerShim(Provider<? extends T> provider) {
+        return provider.getOrNull();
+    }
+
+    @SuppressWarnings("unused")
+    public static boolean unpackEagerShimBoolean(Provider<Boolean> provider) {
+        return provider.getOrElse(false);
+    }
+
+    @SuppressWarnings("unused")
+    public static byte unpackEagerShimByte(Provider<Byte> provider) {
+        return provider.getOrElse((byte) 0);
+    }
+
+    @SuppressWarnings("unused")
+    public static char unpackEagerShimChar(Provider<Character> provider) {
+        return provider.getOrElse((char) 0);
+    }
+
+    @SuppressWarnings("unused")
+    public static short unpackEagerShimShort(Provider<Short> provider) {
+        return provider.getOrElse((short) 0);
+    }
+
+    @SuppressWarnings("unused")
+    public static int unpackEagerShimInt(Provider<Integer> provider) {
+        return provider.getOrElse(0);
+    }
+
+    @SuppressWarnings("unused")
+    public static long unpackEagerShimLong(Provider<Long> provider) {
+        return provider.getOrElse(0L);
+    }
+
+    @SuppressWarnings("unused")
+    public static float unpackEagerShimFloat(Provider<Float> provider) {
+        return provider.getOrElse(0.0f);
+    }
+
+    @SuppressWarnings("unused")
+    public static double unpackEagerShimDouble(Provider<Double> provider) {
+        return provider.getOrElse(0.0d);
     }
 
     @NonNull
@@ -458,7 +508,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type PROVIDER_TYPE = getType(Provider.class);
-        private static final String PROVIDER_GET_OR_ELSE_DESCRIPTOR = "(Ljava/lang/Object;)Ljava/lang/Object;";
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
         private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
 
@@ -516,6 +565,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_LOOKUP_TYPE, STRING_TYPE);
         private static final String RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME = getMethodDescriptor(VOID_TYPE, MODEL_OBJECT_TYPE, DISPLAY_NAME_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
+        private static final String RETURN_OBJECT_FROM_PROVIDER = getMethodDescriptor(OBJECT_TYPE, PROVIDER_TYPE);
         private static final String RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
@@ -1317,10 +1367,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyEagerShimGetter(PropertyMetadata property, Method getter) {
-            // GENERATE public <legacyType> <getter>() { return this.<getter>AsProvider().getOrElse(<zero>); }
+            // GENERATE public <legacyType> <getter>() { return AsmBackedClassGenerator.unpackEagerShim*(this.<getter>AsProvider()); }
             // The eager (pre-upgrade) accessor cannot read the Provider-typed backing field directly, so it delegates
-            // to the upgraded Provider getter (which lazily attaches the field) and unwraps via getOrElse. The default
-            // value is only used when the property has neither an explicit value nor a convention.
+            // to the upgraded Provider getter (which lazily attaches the field) and unwraps it via the static
+            // unpackEagerShim* helpers below, which carry the default-value selection and unboxing in plain Java source.
             Class<?> legacyClass = getter.getReturnType();
             Type returnType = getType(legacyClass);
             String providerGetterDescriptor = getMethodDescriptor(getType(property.getType()));
@@ -1328,32 +1378,38 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 // this.<getter>() -> Provider (the upgraded getter, which lazily attaches the backing field)
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), providerGetterDescriptor);
-                // push the boxed default value
                 if (legacyClass.isPrimitive()) {
-                    if (legacyClass == long.class) {
-                        _LDC(0L);
-                    } else if (legacyClass == float.class) {
-                        _LDC(0.0f);
-                    } else if (legacyClass == double.class) {
-                        _LDC(0.0d);
-                    } else {
-                        _ICONST_0(); // int, short, byte, char, boolean
-                    }
-                    _AUTOBOX(legacyClass, returnType);
-                } else {
-                    _ACONST_NULL();
-                }
-                // Provider.getOrElse(Object) : Object
-                _INVOKEINTERFACE(PROVIDER_TYPE, "getOrElse", PROVIDER_GET_OR_ELSE_DESCRIPTOR);
-                if (legacyClass.isPrimitive()) {
-                    _CHECKCAST(getType(Primitives.wrap(legacyClass)));
-                    _UNBOX(returnType);
+                    // AsmBackedClassGenerator.unpackEagerShim<Primitive>(provider) -> <primitive>
+                    _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, unpackEagerShimHelperFor(legacyClass), getMethodDescriptor(returnType, PROVIDER_TYPE));
                     _IRETURN_OF(returnType);
                 } else {
+                    // AsmBackedClassGenerator.unpackEagerShim(provider) -> Object, then cast to the declared type
+                    _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, "unpackEagerShim", RETURN_OBJECT_FROM_PROVIDER);
                     _CHECKCAST(returnType);
                     _ARETURN();
                 }
             }});
+        }
+
+        private static String unpackEagerShimHelperFor(Class<?> primitiveClass) {
+            if (primitiveClass == boolean.class) {
+                return "unpackEagerShimBoolean";
+            } else if (primitiveClass == byte.class) {
+                return "unpackEagerShimByte";
+            } else if (primitiveClass == char.class) {
+                return "unpackEagerShimChar";
+            } else if (primitiveClass == short.class) {
+                return "unpackEagerShimShort";
+            } else if (primitiveClass == int.class) {
+                return "unpackEagerShimInt";
+            } else if (primitiveClass == long.class) {
+                return "unpackEagerShimLong";
+            } else if (primitiveClass == float.class) {
+                return "unpackEagerShimFloat";
+            } else if (primitiveClass == double.class) {
+                return "unpackEagerShimDouble";
+            }
+            throw new IllegalArgumentException("Not a primitive type: " + primitiveClass);
         }
 
         @Override
