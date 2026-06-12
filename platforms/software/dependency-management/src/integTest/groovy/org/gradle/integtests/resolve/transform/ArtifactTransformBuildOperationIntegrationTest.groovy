@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -48,7 +49,7 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
 @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
-class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
+class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture, UndeclaredArtifactTransformInputDeprecation {
 
     @EqualsAndHashCode
     static class TypedNodeId {
@@ -1327,7 +1328,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
         """
 
-        when:
+        when: "this test relies on undeclared artifact transforms - the files property is annotated with @Internal, not @InputFiles"
+        expectUndeclaredArtifactTransformInputDeprecation()
         run ":consumer:resolveWithoutDependencies"
 
         then:
@@ -1343,6 +1345,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(0).empty
     }
+
 
     def "planned transform steps from script plugin buildscript block are not captured"() {
         setupProjectTransformInBuildScriptBlock(true)

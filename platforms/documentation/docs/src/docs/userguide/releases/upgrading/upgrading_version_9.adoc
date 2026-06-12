@@ -686,6 +686,86 @@ tasks.register("okay") {
 }
 ----
 
+[[undeclared_artifact_transform_input]]
+==== Deprecation of undeclared Artifact Transform execution by tasks
+Invoking an Artifact Transform from a task that does not declare the resolution as a task input is now deprecated and will become an error in Gradle 10.
+
+With the Configuration Cache, if an Artifact Transform is not properly declared as an input, and requires a producer project that no other scheduled task requires, the producer may not be scheduled and may be unreachable.
+This can manifest as `project <name> not found` errors.
+
+Now, a deprecation is emitted for each task that executes an Artifact Transform that is not declared as an input.
+This provides an early warning for build scenarios that were only working "by accident".
+
+To fix this warning, declare the resolution triggering the Artifact Transform as a task input.
+You can do this by exposing a configurations' `files` collection through a typed `@InputFiles` property on a custom task type.
+If you must use an ad-hoc task, supply `myCustomConfiguration.files` to  `inputs.files(...)`, or, when consuming an `ArtifactCollection`, supply `ArtifactCollection.getArtifactFiles()`.
+In the common case, both of these methods wire the transform steps into the execution plan so the task is recognized as a declarer of the transform.
+
+Declaring a transformed `FileCollection` view as a task input:
+
+[source,kotlin]
+----
+val view = configurations["implementation"].incoming.artifactView {
+    attributes.attribute(color, "green")
+}.files
+
+// Deprecated: the doLast reads view.files without declaring view as a task input.
+tasks.register("consume") {
+    doLast {
+        println("result = ${view.files.map { it.name }}")
+    }
+}
+
+// Recommended: expose the FileCollection through a typed @InputFiles property on a custom task type.
+abstract class Consume : DefaultTask() {
+    @get:InputFiles
+    abstract val colored: ConfigurableFileCollection
+
+    @TaskAction
+    fun run() {
+        println("result = ${colored.files.map { it.name }}")
+    }
+}
+
+tasks.register<Consume>("consume") {
+    colored.from(view)
+}
+----
+
+Declaring a transformed `ArtifactCollection` view as a task input — note that declaring the raw `Configuration` (`inputs.files(configurations["compile"])`) is NOT enough, because it only schedules the source artifacts, not the transforms:
+
+[source,kotlin]
+----
+val artifacts = configurations["compile"].incoming.artifactView {
+    attributes { attribute(usage, "transformed") }
+}.artifacts
+
+// Deprecated: declaring the raw configuration doesn't wire the transform.
+tasks.register("show") {
+    inputs.files(configurations["compile"])
+    doLast {
+        println("files: ${artifacts.map { it.file.name }}")
+    }
+}
+
+// Recommended: declare the transformed artifact view's artifactFiles as the input.
+tasks.register("show") {
+    inputs.files(artifacts.artifactFiles)
+    doLast {
+        println("files: ${artifacts.map { it.file.name }}")
+    }
+}
+----
+
+[NOTE]
+====
+**How declaration is detected**
+
+Gradle determines whether a task has declared a transform output as an input by walking the task's transitive dependency subgraph in the execution plan after the work graph is fully built. Any transform step reachable from the task through dependency edges, without crossing into another task, is considered declared by that task. This covers chained transforms, `@InputArtifactDependencies` feeds across components, and `componentFilter`-restricted artifact views uniformly.
+
+If you write `inputs.files(view)`, `inputs.files(artifacts.artifactFiles)`, or expose the collection through a typed `@InputFiles` property, Gradle's input wiring places the corresponding transform nodes into the task's dependency successors, and the post-graph walk will recognise the task as a declarer. Declaring through `dependsOn(taskA)` on another task that itself declares the input does NOT count: only direct declaration by the task that performs the query counts.
+====
+
 [[dependency_project_notation]]
 ==== Deprecation of using Project objects as dependency notation
 

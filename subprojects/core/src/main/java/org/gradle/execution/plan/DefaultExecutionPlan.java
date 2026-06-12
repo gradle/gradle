@@ -25,8 +25,10 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.AbstractCollection;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -223,6 +225,55 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 finalizers
             ).run();
             finalizers.clear();
+            propagateTaskDeclarationsToTransitiveSuccessors();
+        }
+    }
+
+    /**
+     * Walks dependency successors transitively from every {@link LocalTaskNode} in the plan and
+     * notifies each reachable {@link TaskDeclarationAware} node which task declared it.
+     * <p>
+     * The per-node {@link DependencyResolver} chain only attributes direct {@code DefaultTransformNodeDependency}
+     * wrappers it encounters, so it misses cross-set relationships such as a chained or
+     * {@code @InputArtifactDependencies}-fed transform that isn't surfaced through the resolver path.
+     * This post-graph BFS captures the full transitive set after the work graph is fully constructed,
+     * which is the only point at which all dependency edges are known.
+     */
+    private void propagateTaskDeclarationsToTransitiveSuccessors() {
+        for (Node node : nodeMapping) {
+            if (node instanceof LocalTaskNode) {
+                LocalTaskNode taskNode = (LocalTaskNode) node;
+                Task task = taskNode.getTask();
+                // Mark every TaskDeclarationAware node reachable from this task's direct dependency
+                // successors without crossing into another LocalTaskNode. Stopping at task boundaries
+                // preserves per-task declaration semantics: when B dependsOn A, A's declarations
+                // should not be transitively attributed to B.
+                Set<Node> visited = new HashSet<>();
+                visited.add(taskNode);
+                Deque<Node> queue = new ArrayDeque<>();
+                for (Node successor : taskNode.getDependencySuccessors()) {
+                    queue.add(successor);
+                }
+                while (!queue.isEmpty()) {
+                    Node current = queue.poll();
+                    if (!visited.add(current)) {
+                        continue;
+                    }
+                    if (current instanceof LocalTaskNode) {
+                        // Crossing into another task's subgraph would falsely attribute that
+                        // task's declarations to the starting task. Skip without enqueuing.
+                        continue;
+                    }
+                    if (current instanceof TaskDeclarationAware) {
+                        ((TaskDeclarationAware) current).markDeclaredBy(task);
+                    }
+                    for (Node successor : current.getDependencySuccessors()) {
+                        if (!visited.contains(successor)) {
+                            queue.add(successor);
+                        }
+                    }
+                }
+            }
         }
     }
 

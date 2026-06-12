@@ -30,13 +30,18 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class TransformStepNodeDependencyResolver implements DependencyResolver {
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
-        if (node instanceof DefaultTransformNodeDependency) {
-            DefaultTransformNodeDependency transformNodeDependency = (DefaultTransformNodeDependency) node;
+        if (node instanceof DefaultTransformNodeDependency transformNodeDependency) {
             for (TransformStepNode transformStepNode : transformNodeDependency.getNodes()) {
                 resolveAction.execute(transformStepNode);
+                // ActionNode and TransformStepNode's self-resolution call into the resolver chain
+                // with task == null. Only attribute the declaration to a real task.
+                if (task != null) {
+                    transformStepNode.markDeclaredBy(task);
+                }
             }
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 }

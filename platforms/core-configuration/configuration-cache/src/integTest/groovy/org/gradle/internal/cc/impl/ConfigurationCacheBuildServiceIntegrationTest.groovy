@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.OperationFinishEvent
@@ -51,7 +52,7 @@ import spock.lang.Issue
 import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
-class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements UndeclaredArtifactTransformInputDeprecation {
 
     @Issue('https://github.com/gradle/gradle/issues/31039')
     def "build service with transformer-dependent parameter"() {
@@ -127,6 +128,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         """
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         configurationCacheRun 'ok'
 
         then:
@@ -134,6 +136,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains "value: file.txt"
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         configurationCacheRun 'ok'
 
         then:
