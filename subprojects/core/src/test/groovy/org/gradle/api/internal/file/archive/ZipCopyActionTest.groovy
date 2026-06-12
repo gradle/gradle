@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.archive
 
 import org.apache.commons.compress.archivers.zip.Zip64RequiredException
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
@@ -161,6 +162,21 @@ class ZipCopyActionTest extends Specification {
         then:
         entryLastModified(utcZip) == entryLastModified(parisZip)
         utcZip.md5Hash == parisZip.md5Hash
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/37790")
+    def "zip with reproducibleFileTimestamp above the zip maximum fails"() {
+        given:
+        // above MAXIMUM_TIME_FOR_ZIP_ENTRIES; commons-compress would add an NTFS extra field with
+        // a timezone-dependent value instead of storing the timestamp as MS-DOS date/time
+        def timestamp = java.time.Instant.parse("2100-01-01T00:00:00Z").toEpochMilli()
+
+        when:
+        new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false, Providers.of(timestamp))
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum timestamp 2097-11-01T00:00:00Z supported for ZIP archives."
     }
 
     private FileCopyDetailsInternal plainFile(final String path) {

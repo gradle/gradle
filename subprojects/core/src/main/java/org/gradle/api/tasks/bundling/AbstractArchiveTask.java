@@ -250,6 +250,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * <p>
      * Each archive format has a minimum supported timestamp, and smaller values are raised to that minimum:
      * 1980-02-01 00:00 for ZIP archives and 1970-01-02T00:00:00Z for TAR archives.
+     * ZIP archives also have a maximum supported timestamp of 2097-11-01T00:00:00Z, and the task fails for larger values.
      *
      * @return the reproducible file timestamp used for each entry in the archive in milliseconds from the epoch of 1970-01-01T00:00:00Z
      * @since 9.7.0

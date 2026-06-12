@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.archive;
 
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -37,6 +38,17 @@ public class ZipEntryConstants {
      * The date is 1980 February 1st CET.
      */
     public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
+
+    /**
+     * The maximum timestamp that can be stored in a zip entry.
+     * <p>
+     * Commons-compress can store timestamps only up to 128 * 365 days from the Unix epoch (2097-11-30T00:00:00Z)
+     * as MS-DOS date/time, and silently adds an NTFS extra field for anything larger. The NTFS field stores an
+     * absolute instant, so the archive bytes would depend on the time zone of the machine that built the archive.
+     * The maximum is chosen with enough margin so that the timestamp stays storable as MS-DOS date/time after
+     * being adjusted to the default time zone.
+     */
+    public static final long MAXIMUM_TIME_FOR_ZIP_ENTRIES = Instant.parse("2097-11-01T00:00:00Z").toEpochMilli();
 
     private ZipEntryConstants() {}
 

@@ -134,7 +134,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         expectedHash = taskName == 'tar' ? 'df5074300ec3fe8403071e64cfe3cb1a' : '477313f3ced595c7c75dffde90c54aba'
     }
 
-    def "reproducible #taskName with reproducibleFileTimestamp is independent of the build timezone - #otherTimeZone"() {
+    def "reproducible #taskName with reproducibleFileTimestamp #timestampEpochSeconds is independent of the build timezone - #otherTimeZone"() {
         given:
         files.each {
             file("src/${it}").text = it
@@ -182,6 +182,25 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-DarchiveBuildTimeZone=${timeZoneId}")
         succeeds(taskName, "--rerun")
         return [hash: file("build/test.${fileExtension}").md5Hash, tz: file("build/effective-tz.txt").text.trim()]
+    }
+
+    def "reproducible zip fails when reproducibleFileTimestamp is greater than the maximum supported timestamp"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task zip(type: Zip) {
+                reproducibleFileTimestamp = java.time.Instant.parse("2100-01-01T00:00:00Z").toEpochMilli()
+                from 'dir1'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
+            }
+            """
+
+        when:
+        fails 'zip'
+
+        then:
+        failure.assertHasCause("The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum timestamp 2097-11-01T00:00:00Z supported for ZIP archives.")
     }
 
     def "reproducible #taskName fails when preserveFileTimestamps = true and reproducibleFileTimestamp is specified"() {

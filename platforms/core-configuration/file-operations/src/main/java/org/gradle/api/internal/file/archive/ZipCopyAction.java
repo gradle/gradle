@@ -20,6 +20,7 @@ import org.apache.commons.compress.archivers.zip.Zip64RequiredException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
@@ -55,7 +56,14 @@ public class ZipCopyAction implements CopyAction {
         this.encoding = encoding;
         this.fileTimestampMillis = CopyActionUtil.computeReproducibleTimestamp(
             preserveFileTimestamps,
-            reproducibleFileTimestamp.map(ZipCopyAction::normalizeTimestamp),
+            reproducibleFileTimestamp.map(ms -> {
+                if (ms > ZipEntryConstants.MAXIMUM_TIME_FOR_ZIP_ENTRIES) {
+                    throw new InvalidUserDataException(String.format(
+                        "The reproducible file timestamp %s is greater than the maximum timestamp %s supported for ZIP archives.",
+                        Instant.ofEpochMilli(ms), Instant.ofEpochMilli(ZipEntryConstants.MAXIMUM_TIME_FOR_ZIP_ENTRIES)));
+                }
+                return normalizeTimestamp(ms);
+            }),
             ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES
         );
     }

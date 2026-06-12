@@ -1113,6 +1113,7 @@ Timestamp resolution and range vary by archive format.
 The exact value stored in the archive file may have lower resolution than the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileTimestamp[`reproducibleFileTimestamp`] property.
 Each format also has a minimum supported timestamp: 1980-02-01 00:00 for ZIP archives and 1970-01-02T00:00:00Z for TAR archives.
 Smaller values are raised to the minimum.
+ZIP archives also have a maximum supported timestamp of 2097-11-01T00:00:00Z; the build fails for larger values.
 ====
 
 [[sec:unpacking_archives_example]]
