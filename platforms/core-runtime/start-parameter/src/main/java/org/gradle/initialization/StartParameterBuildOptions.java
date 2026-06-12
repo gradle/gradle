@@ -680,23 +680,39 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
+        public static final String PROPERTY_NAME = "org.gradle.isolated-projects";
+        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
+        public static final String LONG_OPTION = "isolated-projects";
 
         public IsolatedProjectsOption() {
-            super(PROPERTY_NAME);
+            super(
+                PROPERTY_NAME,
+                DEPRECATED_PROPERTY_NAME,
+                BooleanCommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Enables Isolated Projects. Project are configured in parallel and their configuration might be reused from previous builds.",
+                    "Disables Isolated Projects."
+                ).incubating()
+            );
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setIsolatedProjects(Option.Value.value(value));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
     }
 
     public static class IsolatedProjectsDiagnosticsOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.diagnostics";
+        public static final String PROPERTY_NAME = "org.gradle.isolated-projects.diagnostics";
+        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.diagnostics";
 
         public IsolatedProjectsDiagnosticsOption() {
-            super(PROPERTY_NAME);
+            super(PROPERTY_NAME, DEPRECATED_PROPERTY_NAME);
         }
 
         @Override
@@ -706,10 +722,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems";
+        public static final String PROPERTY_NAME = "org.gradle.isolated-projects.dangerously-ignore-problems";
+        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems";
 
         public IsolatedProjectsDangerouslyIgnoreProblemsOption() {
-            super(PROPERTY_NAME);
+            super(PROPERTY_NAME, DEPRECATED_PROPERTY_NAME);
         }
 
         @Override

@@ -24,12 +24,12 @@ When the Isolated Projects feature is enabled, the projects in a <<multi_project
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of other projects.
 This constraint unlocks two things: parallel project configuration and finer-grained caching of configuration results.
 
-You can enable the feature by setting the `org.gradle.unsafe.isolated-projects` to `true` in `gradle.properties`,
-or passing a flag on the command line:
+You can enable the feature by setting `org.gradle.isolated-projects` to `true` in `gradle.properties`,
+or passing the `--isolated-projects` flag on the command line:
 
 [source,bash]
 ----
-$ ./gradlew build -Dorg.gradle.unsafe.isolated-projects=true
+$ ./gradlew build --isolated-projects
 ----
 
 Follow the <<sec:migration_path,recommended migration steps>> to make your build logic compatible with <<sec:constraints,Isolated Projects constraints>>.
@@ -302,7 +302,7 @@ def commonVersion = rootProject.version
 
 [source,bash]
 ----
-$ ./gradlew -Dorg.gradle.unsafe.isolated-projects=true
+$ ./gradlew --isolated-projects
 ...
 - Build file 'app/build.gradle.kts': Project ':app' cannot access 'Project.version' functionality on another project ':'
 ...
@@ -502,13 +502,13 @@ Follow the guidance for each behavior change to ensure expected build results wh
 [[sec:enable]]
 === Enabling Isolated Projects
 
-Isolated Projects can be enabled by setting the `org.gradle.unsafe.isolated-projects` Gradle option to `true`.
+Isolated Projects can be enabled by setting the `org.gradle.isolated-projects` Gradle option to `true`.
 
 You can pass it as an argument when running tasks from the command line:
 
 [source,bash]
 ----
-$ ./gradlew help -Dorg.gradle.unsafe.isolated-projects=true
+$ ./gradlew help --isolated-projects
 ----
 
 To make use of the feature in IDE sync scenarios, it has to be enabled in the `gradle.properties` file:
@@ -516,8 +516,14 @@ To make use of the feature in IDE sync scenarios, it has to be enabled in the `g
 [source,properties]
 .gradle.properties
 ----
-org.gradle.unsafe.isolated-projects=true
+org.gradle.isolated-projects=true
 ----
+
+[NOTE]
+====
+The legacy property name `org.gradle.unsafe.isolated-projects` is still accepted, but the new `org.gradle.isolated-projects` name is preferred.
+The same applies to `org.gradle.unsafe.isolated-projects.diagnostics` and `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`.
+====
 
 If you have never enabled the feature in the build before, it's likely that the build is not compatible and contains Isolated Projects <<sec:constraint_violations,constraint violations>>.
 In that case the build will fail, and one or more violations will be shown in the error message.
@@ -528,13 +534,13 @@ In that case the build will fail, and one or more violations will be shown in th
 _Diagnostics_ mode is an *opt-in* mode that helps you discover Isolated Projects <<sec:constraint_violations,constraint violations>> more efficiently during migration.
 It runs configuration of projects *sequentially*, which allows the build to safely continue even after an IP violation is detected.
 
-Enable _Diagnostics_ mode by setting `org.gradle.unsafe.isolated-projects.diagnostics=true` in `gradle.properties`, or by passing it on the command line alongside `-Dorg.gradle.unsafe.isolated-projects=true`:
+Enable _Diagnostics_ mode by setting `org.gradle.isolated-projects.diagnostics=true` in `gradle.properties`, or by passing it on the command line alongside `--isolated-projects`:
 
 [source,bash]
 ----
 $ ./gradlew help \
-    -Dorg.gradle.unsafe.isolated-projects=true \
-    -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
+    --isolated-projects \
+    -Dorg.gradle.isolated-projects.diagnostics=true
 ----
 
 Compared to default Isolated Projects behavior, _Diagnostics_ mode disables several optimizations to maximize the completeness and consistency of the violation reporting:
@@ -578,14 +584,14 @@ before all the violations have been fixed.
 It is especially relevant for the IDE sync scenarios, where the violations otherwise prevent a sync from completing.
 
 For this purpose, Isolated Projects offers a _dangerously ignore problems_ mode that still reports violations but does not fail the build on the basis of their presence.
-Enable it by setting `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true` in `gradle.properties`, alongside enabling Isolated Projects:
+Enable it by setting `org.gradle.isolated-projects.dangerously-ignore-problems=true` in `gradle.properties`, alongside enabling Isolated Projects:
 
 [source,properties]
 .gradle.properties
 ----
-org.gradle.unsafe.isolated-projects=true
+org.gradle.isolated-projects=true
 # ⚠️ Temporary measure of ignoring Isolated Projects violations. Do not enable permanently!
-org.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true
+org.gradle.isolated-projects.dangerously-ignore-problems=true
 ----
 
 Alternatively, the flag can be passed on the command line:
@@ -593,8 +599,8 @@ Alternatively, the flag can be passed on the command line:
 [source,bash]
 ----
 $ ./gradlew help \
-    -Dorg.gradle.unsafe.isolated-projects=true \
-    -Dorg.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true
+    --isolated-projects \
+    -Dorg.gradle.isolated-projects.dangerously-ignore-problems=true
 ----
 
 When the mode is active, Gradle prints a banner at the start and end of the build to remind you that violations are being ignored.
@@ -619,8 +625,8 @@ Run the `help` task with Isolated Projects in the <<sec:diagnostics_mode,Diagnos
 [source,bash]
 ----
 $ ./gradlew help \
-    -Dorg.gradle.unsafe.isolated-projects=true \
-    -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
+    --isolated-projects \
+    -Dorg.gradle.isolated-projects.diagnostics=true
 ----
 +
 This way Gradle can detect Isolated Projects violations that are present in virtually any workflow and should be addressed first.
@@ -644,8 +650,8 @@ For IDE sync, the feature flag and <<sec:diagnostics_mode,Diagnostics mode>> mus
 +
 [source,properties]
 ----
-org.gradle.unsafe.isolated-projects=true
-org.gradle.unsafe.isolated-projects.diagnostics=true
+org.gradle.isolated-projects=true
+org.gradle.isolated-projects.diagnostics=true
 ----
 +
 The IDE sync might exercise other code paths in the build logic or plugins, surfacing new violations that need to be addressed.
