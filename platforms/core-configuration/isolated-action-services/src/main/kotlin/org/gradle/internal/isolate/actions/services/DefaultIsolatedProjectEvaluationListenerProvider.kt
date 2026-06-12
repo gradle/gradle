@@ -20,6 +20,7 @@ import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
@@ -215,17 +216,18 @@ fun rethrowWithLifecyclePluginHintIfApplicable(t: Throwable, gradle: Gradle): No
 
 private
 fun lifecyclePluginHintFor(t: Throwable, gradle: Gradle): Throwable? {
-    if (!hasIncludedPluginBuilds(gradle)) return null
+    val gradleInternal = gradle as? GradleInternal ?: return null
+    if (!hasIncludedPluginBuilds(gradleInternal)) return null
     val unknown = findUnknownPluginInCauseChain(t) ?: return null
     val pluginId = unknown.message?.let(::extractMissingPluginId) ?: return null
-    return UnknownPluginException(unknown.message + lifecyclePluginHint(pluginId)).also { it.initCause(t) }
+    val documentationRegistry = gradleInternal.services.get(DocumentationRegistry::class.java)
+    return UnknownPluginException(unknown.message + lifecyclePluginHint(pluginId, documentationRegistry)).also { it.initCause(t) }
 }
 
 
 private
-fun hasIncludedPluginBuilds(gradle: Gradle): Boolean {
-    val gradleInternal = gradle as? GradleInternal ?: return false
-    val buildIncluder = gradleInternal.services.find(BuildIncluder::class.java) as? BuildIncluder ?: return false
+fun hasIncludedPluginBuilds(gradle: GradleInternal): Boolean {
+    val buildIncluder = gradle.services.find(BuildIncluder::class.java) as? BuildIncluder ?: return false
     return buildIncluder.registeredPluginBuilds.isNotEmpty()
 }
 
@@ -248,11 +250,12 @@ fun extractMissingPluginId(message: String): String? =
 
 
 private
-fun lifecyclePluginHint(pluginId: String): String = "\n" +
+fun lifecyclePluginHint(pluginId: String, documentationRegistry: DocumentationRegistry): String = "\n" +
     "If this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
     "either move the `gradle.lifecycle.beforeProject` registration into a settings convention plugin " +
     "published from that build (recommended), or declare the plugin in the settings `plugins {}` block " +
-    "(e.g. `plugins { id(\"$pluginId\") apply false }`) to make it available to `gradle.lifecycle` callbacks."
+    "(e.g. `plugins { id(\"$pluginId\") apply false }`) to make it available to `gradle.lifecycle` callbacks.\n" +
+    documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:lifecycle_callbacks_with_included_plugin_builds")
 
 
 private

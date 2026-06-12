@@ -71,7 +71,7 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         failureCauseContains("If this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`")
         failureCauseContains("settings convention plugin")
         failureCauseContains("plugins { id(\"${CONVENTION_PLUGIN_ID}\") apply false }")
-        failureCauseContains("https://docs.gradle.org/current/userguide/isolated_projects.html#sec:lifecycle_callbacks_with_included_plugin_builds")
+        failureCauseContains("userguide/isolated_projects.html#sec:lifecycle_callbacks_with_included_plugin_builds")
     }
 
     def "applying included-build plugin via beforeProject works when declared in settings plugins {} block"() {
