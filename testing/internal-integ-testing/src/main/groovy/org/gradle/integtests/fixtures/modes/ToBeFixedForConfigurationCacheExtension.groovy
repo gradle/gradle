@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.modes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.model.SpecInfo
 
 import java.util.function.Predicate
 
@@ -27,13 +28,30 @@ class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtens
     private final ToBeFixedSpecInterceptor toBeFixedSpecInterceptor = new ToBeFixedSpecInterceptor("Configuration Cache")
 
     @Override
-    void visitFeatureAnnotation(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
-
+    void visitSpecAnnotation(ToBeFixedForConfigurationCache annotation, SpecInfo spec) {
         if (GradleContextualExecuter.isNotConfigCache()) {
             return
         }
 
-        if (!isEnabledSpec(annotation, feature)) {
+        if (!isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
+            return
+        }
+
+        if (!annotation.skipBecause().isEmpty()) {
+            spec.skipped = true
+            return
+        }
+
+        toBeFixedSpecInterceptor.intercept(spec, annotation.iterationMatchers())
+    }
+
+    @Override
+    void visitFeatureAnnotation(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
+        if (GradleContextualExecuter.isNotConfigCache()) {
+            return
+        }
+
+        if (!isEnabledBottomSpec(annotation.bottomSpecs(), { feature.spec.bottomSpec.name == it })) {
             return
         }
 
@@ -43,10 +61,6 @@ class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtens
         }
 
         toBeFixedSpecInterceptor.intercept(feature, annotation.iterationMatchers())
-    }
-
-    private static boolean isEnabledSpec(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
-        isEnabledBottomSpec(annotation.bottomSpecs(), { it == feature.spec.bottomSpec.name })
     }
 
     static boolean isEnabledBottomSpec(String[] bottomSpecs, Predicate<String> specNamePredicate) {

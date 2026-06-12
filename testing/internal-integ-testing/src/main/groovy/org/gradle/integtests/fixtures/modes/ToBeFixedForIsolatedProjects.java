@@ -23,10 +23,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 /**
- * Assert that this test fails when run with Isolated Projects enabled.
+ * Expect the test to fail or skip it when running with Isolated Projects enabled.
  * <p>
- * Set {@link #skipBecause()} to a non-empty reason to skip the test instead of expecting it to fail.
+ * Use this annotation when the intention is to fix either the test itself or the underlying feature,
+ * making it compatible with Isolated Projects. If the intention is to not support the tested feature
+ * with Isolated Projects, use {@link UnsupportedWithIsolatedProjects} instead.
+ * <p>
+ * The expectation of failure essentially flips the test result.
+ * A specific failure is not verified, and we only confirm that the test is not passing.
+ * <p>
+ * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
+ * or has other undesirable effects, such as timeouts.
+ * Set {@link #skipBecause()} to a non-empty reason to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
@@ -46,4 +56,16 @@ public @interface ToBeFixedForIsolatedProjects {
      * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
      */
     String issue() default "";
+
+    /**
+     * Declare to which bottom spec this annotation should be applied.
+     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
+     */
+    String[] bottomSpecs() default {};
+
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
 }
