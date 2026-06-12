@@ -27,7 +27,6 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache.Skip.FLAKY
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -305,8 +304,9 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @ToBeFixedForConfigurationCache(
-        skip = FLAKY,
-        because = "Due to extra parallelism with cc missing dependencies detection can be flaky. See https://github.com/gradle/gradle/issues/27576"
+        because = "Due to extra parallelism with cc missing dependencies detection can be flaky",
+        issue = "https://github.com/gradle/gradle/issues/27576",
+        skipBecause = "flaky"
     )
     def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()

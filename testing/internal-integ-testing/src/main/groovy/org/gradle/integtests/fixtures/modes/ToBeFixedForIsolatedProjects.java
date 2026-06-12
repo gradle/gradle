@@ -26,51 +26,24 @@ import java.lang.annotation.Target;
 /**
  * Assert that this test fails when run with Isolated Projects enabled.
  * <p>
- * In case the {@link #skip()} reason is anything but {@link Skip#DO_NOT_SKIP DO_NOT_SKIP}, the test will be skipped.
+ * Set {@link #skipBecause()} to a non-empty reason to skip the test instead of expecting it to fail.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(ToBeFixedForIsolatedProjectsExtension.class)
 public @interface ToBeFixedForIsolatedProjects {
 
-    /**
-     * Set to some {@link Skip} to skip the annotated test.
-     */
-    Skip skip() default Skip.DO_NOT_SKIP;
-
     String because() default "";
+
+    /**
+     * Reason for skipping the annotated test instead of expecting it to fail.
+     * Empty (the default) means expect-failure; any non-empty value skips the test with that reason.
+     */
+    String skipBecause() default "";
 
     /**
      * Link to the issue tracking the incompatibility addressed by this annotation.
      * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
      */
     String issue() default "";
-
-    /**
-     * Reason for skipping a test with isolated projects.
-     */
-    enum Skip {
-
-        /**
-         * Do not skip this test, this is the default.
-         */
-        DO_NOT_SKIP {
-            @Override
-            public String getReason() {
-                throw new UnsupportedOperationException("Must not be skipped");
-            }
-        },
-
-        /**
-         * Use this reason on tests that intermittently fail with isolated projects.
-         */
-        FLAKY {
-            @Override
-            public String getReason() {
-                return "flaky";
-            }
-        };
-
-        public abstract String getReason();
-    }
 }

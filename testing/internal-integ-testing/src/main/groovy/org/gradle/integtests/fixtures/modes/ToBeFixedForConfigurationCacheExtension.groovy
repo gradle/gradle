@@ -22,8 +22,6 @@ import org.spockframework.runtime.model.FeatureInfo
 
 import java.util.function.Predicate
 
-import static org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP
-
 class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtension<ToBeFixedForConfigurationCache> {
 
     private final ToBeFixedSpecInterceptor toBeFixedSpecInterceptor = new ToBeFixedSpecInterceptor("Configuration Cache")
@@ -39,7 +37,7 @@ class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtens
             return
         }
 
-        if (annotation.skip() != DO_NOT_SKIP) {
+        if (!annotation.skipBecause().isEmpty()) {
             feature.skipped = true
             return
         }

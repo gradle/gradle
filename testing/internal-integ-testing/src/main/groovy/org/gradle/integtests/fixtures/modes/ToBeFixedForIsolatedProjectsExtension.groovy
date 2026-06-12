@@ -22,8 +22,6 @@ import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import static org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP
-
 class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtension<ToBeFixedForIsolatedProjects> {
 
     private final ToBeFixedSpecInterceptor toBeFixedSpecInterceptor = new ToBeFixedSpecInterceptor("Isolated Projects")
@@ -43,8 +41,8 @@ class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtensio
             return
         }
 
-        if (annotation.skip() != DO_NOT_SKIP) {
-            specElementInfo.skip(annotation.skip().reason)
+        if (!annotation.skipBecause().isEmpty()) {
+            specElementInfo.skip(annotation.skipBecause())
             return
         }
 

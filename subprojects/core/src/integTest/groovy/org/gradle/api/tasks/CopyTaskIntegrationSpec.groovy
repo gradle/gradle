@@ -31,7 +31,6 @@ import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache.Skip.FLAKY
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -2250,7 +2249,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(
         because = "eachFile, expand, filter and rename",
-        skip = FLAKY
+        skipBecause = "flaky"
     )
     def "task output caching is disabled when #description is used"() {
         file("src.txt").createFile()
