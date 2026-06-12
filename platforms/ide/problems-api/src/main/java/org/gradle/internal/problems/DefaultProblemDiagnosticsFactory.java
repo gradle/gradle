@@ -58,10 +58,15 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     private static final int MAX_STACKTRACE_COUNT = 50;
     private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
 
+    // Budget for bounded location captures past the cap: capping the count keeps the stack walk cost
+    // bounded and negligible at scale. Builds with more distinct call sites lose locations past it.
+    private static final int MAX_BOUNDED_CAPTURES = 2000;
+
     private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
+    private final int maxBoundedCaptures;
     private final BoundedCallerStackCapturer boundedCallerStackCapturer;
 
     @Inject
@@ -72,7 +77,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         BuildModelParameters buildModelParameters,
         BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
-        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters), boundedCallerStackCapturer);
+        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters), MAX_BOUNDED_CAPTURES, boundedCallerStackCapturer);
     }
 
     private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
@@ -85,12 +90,14 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
         int maxStackTraces,
+        int maxBoundedCaptures,
         BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
         this.failureFactory = failureFactory;
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
+        this.maxBoundedCaptures = maxBoundedCaptures;
         this.boundedCallerStackCapturer = boundedCallerStackCapturer;
     }
 
@@ -134,9 +141,11 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     @NullMarked
     private class DefaultProblemStream implements ProblemStream {
         private final AtomicInteger remainingStackTraces = new AtomicInteger();
+        private final AtomicInteger remainingBoundedCaptures = new AtomicInteger();
 
         public DefaultProblemStream() {
             remainingStackTraces.set(maxStackTraces);
+            remainingBoundedCaptures.set(maxBoundedCaptures);
         }
 
         @Override
@@ -164,16 +173,20 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         /**
-         * Within the limit, captures the full caller stack as before. Past the limit, captures a cheap
-         * bounded prefix for location inference (when a capturer is available) instead of nothing, so
-         * locations remain available for an unbounded number of problems.
+         * Within the limit, captures the full caller stack as before. Past it, captures a cheap bounded
+         * prefix for location inference, up to a further budget, then stops: the bounded walk is cheap per
+         * problem but not free, and a build firing tens of thousands of them (an IDE sync) would otherwise
+         * pay it on every one, while ordinary builds stay well within the budget and keep all locations.
          */
         @Nullable
         private Throwable getImplicitCallerThrowable() {
             if (remainingStackTraces.getAndDecrement() > 0) {
                 return EXCEPTION_FACTORY.get();
             }
-            return boundedCallerStackCapturer.captureCallerStack();
+            if (remainingBoundedCaptures.getAndDecrement() > 0) {
+                return boundedCallerStackCapturer.captureCallerStack();
+            }
+            return null;
         }
 
         @Nullable
