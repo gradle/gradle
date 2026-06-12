@@ -38,11 +38,9 @@ publishing {
 
 // tag::task-config[]
 tasks.withType(PublishToMavenRepository) {
-    def predicate = provider {
-        (repository == publishing.repositories.external &&
-            publication == publishing.publications.binary) ||
-        (repository == publishing.repositories.internal &&
-            publication == publishing.publications.binaryAndSources)
+    def predicate = repositoryName.map { repoName ->
+        (repoName == "external" && publication == publishing.publications.binary) ||
+        (repoName == "internal" && publication == publishing.publications.binaryAndSources)
     }
     onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
         predicate.get()
@@ -63,7 +61,7 @@ tasks.register('publishToExternalRepository') {
     group = 'publishing'
     description = 'Publishes all Maven publications to the external Maven repository.'
     dependsOn tasks.withType(PublishToMavenRepository).matching {
-        it.repository == publishing.repositories.external
+        it.repositoryName.get() == "external"
     }
 }
 // end::shorthand-tasks[]
@@ -71,7 +69,7 @@ tasks.register('publishForDevelopment') {
     group = 'publishing'
     description = 'Publishes all Maven publications to the internal Maven repository and the local Maven repository.'
     dependsOn tasks.withType(PublishToMavenRepository).matching {
-        it.repository == publishing.repositories.internal
+        it.repositoryName.get() == "internal"
     }
     dependsOn tasks.withType(PublishToMavenLocal)
 }

@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -333,8 +332,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        // graceful degradation causes early evaluation of credential providers (and build failure at configuration time)
-        failure.assertHasDescription("Identity may contain only letters and digits, received: incompatible_repo_name")
+        failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
     }
 
     def "can publish to authenticated repository using inlined credentials"() {
@@ -354,9 +352,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         module.assertPublishedAsJavaModule()
-        if (GradleContextualExecuter.isConfigCache()) {
-            postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
-        }
     }
 
     def "can publish to authenticated repository with name not valid as identity as long as one uses inlined credentials "() {
@@ -379,27 +374,30 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         module.assertPublishedAsJavaModule()
-        if (GradleContextualExecuter.isConfigCache()) {
-            postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
-        }
     }
 
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         buildFile << publicationBuildWithCredentialsProvider(version, group, mavenRemoteRepo.uri)
 
-        when:
+        expect:
         succeeds 'jar'
 
-        and:
-        succeeds 'tasks'
+        when:
+        fails 'tasks'
 
-        and:
+        then:
+        failure.assertHasCause("Failed to query the value of property 'configuredCredentials'.")
+        failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
+        failure.assertHasErrorOutput("- mavenUsername")
+        failure.assertHasErrorOutput("- mavenPassword")
+
+        when:
         fails 'publish'
 
         then:
         notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("Failed to query the value of property 'configuredCredentials'.")
         failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
         failure.assertHasErrorOutput("- mavenUsername")
         failure.assertHasErrorOutput("- mavenPassword")

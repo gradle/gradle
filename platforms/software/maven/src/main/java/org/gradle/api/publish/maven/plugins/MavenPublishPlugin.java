@@ -26,10 +26,8 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -45,7 +43,6 @@ import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -54,7 +51,6 @@ import javax.inject.Inject;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.
@@ -135,23 +131,14 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
             tasks.register(publishTaskName, PublishToMavenRepository.class, publishTask -> {
                 publishTask.setPublication(publication);
-                publishTask.setRepository(repository);
+                publishTask.configureFromRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
             });
-            tasks.withType(PublishToMavenRepository.class).configureEach(
-                task -> requireDegradation(task, usingExplicitCredentials(task))
-            );
 
             publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
             tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
         });
-    }
-
-    private Provider<String> usingExplicitCredentials(PublishToMavenRepository task) {
-        return new DefaultProvider<>(() -> (AuthenticationSupportedInternal) task.getRepository())
-                .flatMap(AuthenticationSupportedInternal::isUsingCredentialsProvider)
-                .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }
 
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {

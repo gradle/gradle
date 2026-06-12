@@ -179,7 +179,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22618")
-    def "using unsafe credentials provider with configuration cache falls back into vintage"() {
+    def "can use unsafe credentials provider with configuration cache"() {
         def username = "someuser"
         def password = "somepassword"
         def repositoryName = "testMavenRepo"
@@ -191,8 +191,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         server.resetExpectations()
 
         then:
-        configurationCache.assertNoConfigurationCache()
-        output.contains("Configuration cache disabled because incompatible task was found.")
+        configurationCache.assertStateStored()
     }
 
     /*
@@ -204,7 +203,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
      However, for inlined/unsafe credentials, since providers are not used, we should not impose such limitations.
      */
     @Issue("https://github.com/gradle/gradle/issues/22618")
-    def "can use identity-incompatible repository name credentials provider as that falls back to vintage"() {
+    def "can use identity-incompatible repository name credentials provider"() {
         def username = "someuser"
         def password = "somepassword"
         def repositoryName = "repo-with-invalid-identity-name"
@@ -216,8 +215,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         server.resetExpectations()
 
         then:
-        configurationCache.assertNoConfigurationCache()
-        output.contains("Configuration cache disabled because incompatible task was found.")
+        configurationCache.assertStateStored()
     }
 
     def "can publish maven publication metadata to local repository"() {

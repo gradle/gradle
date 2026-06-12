@@ -11,6 +11,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
@@ -30,7 +31,6 @@ dependencies {
         because("We use the metadata model classes to create repository metadata files")
     }
 
-    implementation(projects.credentialsApi)
     implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)

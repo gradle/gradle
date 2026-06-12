@@ -16,37 +16,33 @@
 
 package org.gradle.api.publish.maven.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.Serializable;
 import java.net.URI;
-import java.util.Collection;
 
 import static org.gradle.internal.serialization.Transient.varOf;
 
@@ -58,42 +54,130 @@ import static org.gradle.internal.serialization.Transient.varOf;
 @SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
+
+    @Deprecated
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
-    private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
+
+    private final Cached<MavenNormalizedPublication> cachedNormalizedPublication = Cached.of(this::computeNormalizedPublication);
+
+    /**
+     * The name of the repository to publish to.
+     *
+     * @since 9.7.0
+     */
+    @Input
+    @Incubating
+    public abstract Property<String> getRepositoryName();
+
+    /**
+     * The URI of the repository to publish to.
+     *
+     * @since 9.7.0
+     */
+    @Input
+    @Incubating
+    public abstract Property<URI> getRepositoryUri();
+
+    /**
+     * Whether to allow insecure protocols when publishing to the repository.
+     *
+     * @since 9.7.0
+     */
+    @Input
+    @Incubating
+    public abstract Property<Boolean> getAllowInsecureProtocol();
+
+    /**
+     * The authentication schemes to use when publishing to the repository.
+     *
+     * @since 9.7.0
+     */
+    @Nested
+    @Incubating
+    public abstract SetProperty<Authentication> getAuthenticationSchemes();
+
+    /**
+     * The credentials to use when publishing to the repository.
+     *
+     * @since 9.7.0
+     */
+    @Nested
+    @Optional
+    @Incubating
+    public abstract Property<Credentials> getCredentials();
 
     /**
      * The repository to publish to.
      *
      * @return The repository to publish to
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public MavenArtifactRepository getRepository() {
+        DeprecationLogger.deprecateMethod(PublishToMavenRepository.class, "getRepository")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "publishing_deprecations")
+            .nagUser();
+
         return repository.get();
     }
 
-    @Nested
-    @Optional
-    abstract Property<Credentials> getCredentials();
+    /**
+     * Get the listener manager.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
+    protected ListenerManager getListenerManager() {
+        DeprecationLogger.deprecateMethod(PublishToMavenRepository.class, "getListenerManager")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "publishing_deprecations")
+            .nagUser();
 
-    @Inject
-    protected abstract ListenerManager getListenerManager();
+        return getServices().get(ListenerManager.class);
+    }
 
     /**
      * Sets the repository to publish to.
      *
      * @param repository The repository to publish to
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #configureFromRepository(MavenArtifactRepository)} instead.
      */
+    @Deprecated
     public void setRepository(MavenArtifactRepository repository) {
+        DeprecationLogger.deprecateMethod(PublishToMavenRepository.class, "setRepository")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "publishing_deprecations")
+            .nagUser();
+
+        configureFromRepository(repository);
+    }
+
+    /**
+     * Configure this task to publish to the given repository.
+     *
+     * @param repository The repository to publish to.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    public void configureFromRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
+
+        this.getRepositoryName().set(repository.getName());
+        this.getRepositoryUri().set(repository.getUrl());
+        this.getAllowInsecureProtocol().set(repository.isAllowInsecureProtocol());
         this.getCredentials().set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
+        this.getAuthenticationSchemes().set(((DefaultMavenArtifactRepository) repository).getConfiguredAuthentication());
     }
 
     @TaskAction
     public void publish() {
-        PublishSpec spec = this.spec.get();
-        MavenNormalizedPublication publication = spec.publication;
-        MavenArtifactRepository repository = spec.repository.get(getServices());
+        MavenNormalizedPublication publication = cachedNormalizedPublication.get();
+        DefaultMavenArtifactRepository repository = createRepository();
         getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
 
         MavenPublisher mavenPublisher = new ValidatingMavenPublisher(getMavenPublishers().getRemotePublisher(getTemporaryDirFactory()));
@@ -107,114 +191,25 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         }
     }
 
-    private PublishSpec computeSpec() {
+    private MavenNormalizedPublication computeNormalizedPublication() {
         MavenPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
-
-        DefaultMavenArtifactRepository repository = this.repository.get();
-        if (repository == null) {
-            throw new InvalidUserDataException("The 'repository' property is required");
-        }
-        MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
-        return new PublishSpec(
-            RepositorySpec.of(repository),
-            normalizedPublication
-        );
+        return publicationInternal.asNormalisedPublication();
     }
 
-    static class PublishSpec {
-
-        private final RepositorySpec repository;
-        private final MavenNormalizedPublication publication;
-
-        public PublishSpec(
-            RepositorySpec repository,
-            MavenNormalizedPublication publication
-        ) {
-            this.repository = repository;
-            this.publication = publication;
+    private DefaultMavenArtifactRepository createRepository() {
+        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) getServices().get(BaseRepositoryFactory.class).createMavenRepository();
+        repository.setName(getRepositoryName().get());
+        repository.setUrl(getRepositoryUri().get());
+        repository.setAllowInsecureProtocol(getAllowInsecureProtocol().get());
+        Credentials credentials = getCredentials().getOrNull();
+        if (credentials != null) {
+            repository.setConfiguredCredentials(credentials);
         }
+        repository.authentication(container -> container.addAll(getAuthenticationSchemes().get()));
+        return repository;
     }
 
-    static abstract class RepositorySpec {
-
-        static RepositorySpec of(DefaultMavenArtifactRepository repository) {
-            return new Configured(repository);
-        }
-
-        abstract MavenArtifactRepository get(ServiceRegistry services);
-
-        static class Configured extends RepositorySpec implements Serializable {
-            final DefaultMavenArtifactRepository repository;
-
-            public Configured(DefaultMavenArtifactRepository repository) {
-                this.repository = repository;
-            }
-
-            @Override
-            MavenArtifactRepository get(ServiceRegistry services) {
-                return repository;
-            }
-
-            private Object writeReplace() {
-                CredentialsSpec credentialsSpec = repository.getConfiguredCredentials().map(it -> CredentialsSpec.of(repository.getName(), it)).getOrNull();
-                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec, repository.getConfiguredAuthentication());
-            }
-        }
-
-        static class DefaultRepositorySpec extends RepositorySpec {
-            private final URI repositoryUrl;
-            private final CredentialsSpec credentials;
-            private final boolean allowInsecureProtocol;
-            private final String name;
-            private final Collection<Authentication> authentications;
-
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, Collection<Authentication> authentications) {
-                this.name = name;
-                this.repositoryUrl = repositoryUrl;
-                this.allowInsecureProtocol = allowInsecureProtocol;
-                this.credentials = credentials;
-                this.authentications = authentications;
-            }
-
-            @Override
-            MavenArtifactRepository get(ServiceRegistry services) {
-                DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) services.get(BaseRepositoryFactory.class).createMavenRepository();
-                repository.setName(name);
-                repository.setUrl(repositoryUrl);
-                repository.setAllowInsecureProtocol(allowInsecureProtocol);
-                if (credentials != null) {
-                    Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
-                    repository.setConfiguredCredentials(provider.get());
-                }
-                repository.authentication(container -> container.addAll(authentications));
-                return repository;
-            }
-        }
-
-        static class CredentialsSpec {
-            private final String identity;
-            private final Class<? extends Credentials> type;
-
-            private CredentialsSpec(String identity, Class<? extends Credentials> type) {
-                this.identity = identity;
-                this.type = type;
-            }
-
-            @SuppressWarnings("unchecked")
-            public static CredentialsSpec of(String identity, Credentials credentials) {
-                return new CredentialsSpec(identity, (Class<? extends Credentials>) GeneratedSubclasses.unpackType(credentials));
-            }
-
-            public Class<? extends Credentials> getType() {
-                return type;
-            }
-
-            public String getIdentity() {
-                return identity;
-            }
-        }
-    }
 }
