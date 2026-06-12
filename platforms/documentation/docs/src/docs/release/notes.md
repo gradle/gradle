@@ -79,9 +79,9 @@ Builds adopting Isolated Projects typically contain [constraint violations](user
 Isolated Projects now offers three modes, each suited to a different stage of that journey:
 
 - **Fail-fast** — the default. Project configuration runs in parallel and the build fails as soon as a violation is detected, guaranteeing reliable build results.
-- **[Diagnostics](userguide/isolated_projects.html#sec:diagnostics_mode)** (`org.gradle.unsafe.isolated-projects.diagnostics`) — project configuration runs sequentially and the build continues past
+- **[Diagnostics](userguide/isolated_projects.html#sec:diagnostics_mode)** (`org.gradle.isolated-projects.diagnostics`) — project configuration runs sequentially and the build continues past
   violations, reporting all of them deterministically. Use this to discover what needs fixing during migration.
-- **[Dangerously ignore problems](userguide/isolated_projects.html#sec:dangerously_ignore_problems)** (`org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`) — violations are reported but
+- **[Dangerously ignore problems](userguide/isolated_projects.html#sec:dangerously_ignore_problems)** (`org.gradle.isolated-projects.dangerously-ignore-problems`) — violations are reported but
   do not fail the build, and parallel configuration stays active. Use this to estimate the parallel build or IDE sync speedup before fixing every violation. Build outputs may be incorrect while
   violations are ignored, so never use this mode to produce artifacts.
 
@@ -89,9 +89,9 @@ The opt-in modes can also be combined, for example to complete an IDE sync that 
 
 ```properties
 # gradle.properties
-org.gradle.unsafe.isolated-projects=true
-org.gradle.unsafe.isolated-projects.diagnostics=true
-org.gradle.unsafe.isolated-projects.dangerously-ignore-problems=true
+org.gradle.isolated-projects=true
+org.gradle.isolated-projects.diagnostics=true
+org.gradle.isolated-projects.dangerously-ignore-problems=true
 ```
 
 In all modes, the severity of Isolated Projects violations is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
