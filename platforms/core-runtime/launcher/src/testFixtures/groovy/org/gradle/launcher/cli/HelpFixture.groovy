@@ -74,7 +74,7 @@ Performance:
   --no-configuration-cache           Disables the configuration cache.
   --configure-on-demand              Configures necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
   --no-configure-on-demand           Disables the use of configuration on demand. [incubating]
-  --isolated-projects                Enables Isolated Projects. Project are configured in parallel and their configuration might be reused from previous builds. [incubating]
+  --isolated-projects                Enables Isolated Projects. Projects are configured in parallel. Implies `--configuration-cache`. [incubating]
   --no-isolated-projects             Disables Isolated Projects. [incubating]
   --max-workers                      Configures the maximum number of concurrent workers Gradle is allowed to use.
   --parallel                         Builds projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.

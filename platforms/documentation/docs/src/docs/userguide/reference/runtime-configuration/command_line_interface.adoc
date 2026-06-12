@@ -629,7 +629,7 @@ Set to `fail` to report problems and fail the build if there are any problems.
 Toggles configure-on-demand. Only relevant projects are configured in this build run. _Default is off_.
 
 `--isolated-projects`, `--no-isolated-projects` incubating-label:[]::
-Toggles <<isolated_projects.adoc#isolated_projects,Isolated Projects>>. Projects are configured in parallel and their configuration might be reused from previous builds. _Default is off_.
+Toggles <<isolated_projects.adoc#isolated_projects,Isolated Projects>>. Projects are configured in parallel. Implies `--configuration-cache`. _Default is off_.
 
 `--max-workers`::
 Sets the maximum number of workers that Gradle may use. _Default is number of processors_.

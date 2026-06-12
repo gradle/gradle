@@ -690,7 +690,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 DEPRECATED_PROPERTY_NAME,
                 BooleanCommandLineOptionConfiguration.create(
                     LONG_OPTION,
-                    "Enables Isolated Projects. Project are configured in parallel and their configuration might be reused from previous builds.",
+                    "Enables Isolated Projects. Projects are configured in parallel. Implies `--configuration-cache`.",
                     "Disables Isolated Projects."
                 ).incubating()
             );

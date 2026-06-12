@@ -502,9 +502,7 @@ Follow the guidance for each behavior change to ensure expected build results wh
 [[sec:enable]]
 === Enabling Isolated Projects
 
-Isolated Projects can be enabled by setting the `org.gradle.isolated-projects` Gradle option to `true`.
-
-You can pass it as an argument when running tasks from the command line:
+Isolated Projects can be enabled by setting the `org.gradle.isolated-projects` Gradle option to `true`, or by passing the `--isolated-projects` flag on the command line:
 
 [source,bash]
 ----
