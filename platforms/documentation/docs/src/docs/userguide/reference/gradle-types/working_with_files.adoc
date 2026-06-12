@@ -1095,7 +1095,7 @@ For such configuration see <<#sec:setting_file_permissions,Setting file permissi
 == Timestamp for files inside archives incubating-label:[]
 
 The link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileTimestamp[`reproducibleFileTimestamp`] property allows you to set a custom timestamp for every entry in the archive.
-Note that the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:preserveFileTimestamps[`isPreserveFileTimestamps`] property must be `false` (which is the default value) to use a custom timestamp.
+Note that the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:preserveFileTimestamps[`isPreserveFileTimestamps`] property must be `false` (which is the default value) to use a custom timestamp, otherwise the build fails.
 
 The timestamp is specified in milliseconds since the Unix epoch.
 It can be used to complement reproducibility by using a meaningful, verifiable timestamp rather than the default.
@@ -1109,8 +1109,10 @@ include::sample[dir="snippets/reference/gradle-types/archives/groovy",files="bui
 
 [NOTE]
 ====
-Timestamp resolution varies by archive format.
+Timestamp resolution and range vary by archive format.
 The exact value stored in the archive file may have lower resolution than the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileTimestamp[`reproducibleFileTimestamp`] property.
+Each format also has a minimum supported timestamp: 1980-02-01 00:00 for ZIP archives and 1970-01-02T00:00:00Z for TAR archives.
+Smaller values are raised to the minimum.
 ====
 
 [[sec:unpacking_archives_example]]
