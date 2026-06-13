@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -43,8 +44,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
@@ -118,7 +121,8 @@ public class DependencyVerifier {
                         DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
                         verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()), result);
                         if (result.hasError()) {
-                            VerificationFailure error = result.asError(publicKeyService);
+                            String group = foundArtifact.getComponentIdentifier().getGroup();
+                            VerificationFailure error = result.asError(publicKeyService, group, trustedKeyIdsForGroup(group));
                             builder.failWith(error);
                             if (error.isFatal()) {
                                 return;
@@ -141,7 +145,8 @@ public class DependencyVerifier {
             DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
             verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()), allIgnoredKeys(Collections.emptySet()), result);
             if (result.hasError()) {
-                VerificationFailure error = result.asError(publicKeyService);
+                String group = foundArtifact.getComponentIdentifier().getGroup();
+                VerificationFailure error = result.asError(publicKeyService, group, trustedKeyIdsForGroup(group));
                 builder.failWith(error);
                 if (error.isFatal()) {
                     return;
@@ -155,6 +160,34 @@ public class DependencyVerifier {
 
     private String toStringKey(ModuleComponentIdentifier moduleComponentIdentifier) {
         return moduleComponentIdentifier.getGroup() + ":" + moduleComponentIdentifier.getModule() + ":" + moduleComponentIdentifier.getVersion();
+    }
+
+    Set<String> trustedKeyIdsForGroup(@Nullable String group) {
+        if (group == null || config.getTrustedKeys().isEmpty()) {
+            return ImmutableSet.of();
+        }
+        Set<String> result = new LinkedHashSet<>();
+        for (DependencyVerificationConfiguration.TrustedKey tk : config.getTrustedKeys()) {
+            if (trustedKeyAppliesToGroup(tk, group)) {
+                result.add(tk.getKeyId());
+            }
+        }
+        return ImmutableSet.copyOf(result);
+    }
+
+    private static boolean trustedKeyAppliesToGroup(DependencyVerificationConfiguration.TrustedKey tk, String group) {
+        String tkGroup = tk.getGroup();
+        if (tkGroup == null) {
+            return true;
+        }
+        if (!tk.isRegex()) {
+            return tkGroup.equals(group);
+        }
+        try {
+            return group.matches(tkGroup);
+        } catch (PatternSyntaxException ignored) {
+            return false;
+        }
     }
 
     private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<String> artifactSpecificKeys) {
@@ -334,7 +367,7 @@ public class DependencyVerifier {
                 && failedKeys == null;
         }
 
-        public VerificationFailure asError(PublicKeyService publicKeyService) {
+        public VerificationFailure asError(PublicKeyService publicKeyService, @Nullable String moduleGroup, Set<String> trustedKeyIdsForGroup) {
             if (corruptionError != null) {
                 return new InvalidSignatureFile(file, signatureFile, corruptionError);
             }
@@ -365,7 +398,32 @@ public class DependencyVerifier {
                     errors.put(ignoredKey, error(null, SignatureVerificationFailure.FailureKind.IGNORED_KEY));
                 }
             }
-            return new SignatureVerificationFailure(file, signatureFile, ImmutableMap.copyOf(errors), publicKeyService);
+            Set<String> otherTrustedKeyIdsForGroup = otherTrustedKeyIds(errors.keySet(), trustedKeyIdsForGroup);
+            return new SignatureVerificationFailure(file, signatureFile, ImmutableMap.copyOf(errors), publicKeyService, moduleGroup, otherTrustedKeyIdsForGroup);
+        }
+
+        private static Set<String> otherTrustedKeyIds(Set<String> failingKeyIds, Set<String> trustedKeyIdsForGroup) {
+            if (trustedKeyIdsForGroup.isEmpty()) {
+                return ImmutableSet.of();
+            }
+            Set<String> failingUpper = new HashSet<>(failingKeyIds.size());
+            for (String f : failingKeyIds) {
+                failingUpper.add(f.toUpperCase(Locale.ROOT));
+            }
+            Set<String> result = new LinkedHashSet<>(trustedKeyIdsForGroup.size());
+            for (String keyId : trustedKeyIdsForGroup) {
+                boolean sameAsFailing = false;
+                for (String failing : failingUpper) {
+                    if (keyId.endsWith(failing)) {
+                        sameAsFailing = true;
+                        break;
+                    }
+                }
+                if (!sameAsFailing) {
+                    result.add(keyId);
+                }
+            }
+            return ImmutableSet.copyOf(result);
         }
 
         public boolean hasError() {

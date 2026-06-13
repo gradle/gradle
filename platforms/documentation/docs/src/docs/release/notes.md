@@ -23,6 +23,8 @@ Include only their name, impactful features should be called out separately belo
 THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 
+[sk-reddy17](https://github.com/sk-reddy17)
+
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
@@ -127,6 +129,18 @@ Gradle provides a comprehensive plugin system, including built-in [Core Plugins]
 
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
+
+#### Dependency verification reports other trusted keys for the same group
+
+When [dependency verification](userguide/dependency_verification.html) fails because an artifact was signed with a key that could not be found on any key server, it can be hard to tell whether you are pulling a brand-new dependency for the first time or whether a previously trusted dependency has had its signing key rotated.
+
+Gradle now appends the number of other keys you already trust for the same module group to the failure message:
+
+```
+> On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (3 other keys are already trusted for group 'org')
+```
+
+A non-zero count is a strong signal that the group's signing key has changed rather than that you are trusting the group for the first time, making it easier to react appropriately.
 
 ### Tooling and IDE integration
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.

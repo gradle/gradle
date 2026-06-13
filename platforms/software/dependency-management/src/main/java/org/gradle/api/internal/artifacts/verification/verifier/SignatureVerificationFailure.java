@@ -32,12 +32,31 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
     private final Map<String, SignatureError> errors;
     private final PublicKeyService keyService;
     private final File signatureFile;
+    private final @Nullable String moduleGroup;
+    private final Set<String> otherTrustedKeyIdsForGroup;
 
     public SignatureVerificationFailure(File affectedFile, File signatureFile, Map<String, SignatureError> errors, PublicKeyService keyService) {
+        this(affectedFile, signatureFile, errors, keyService, null, Set.of());
+    }
+
+    /**
+     * Creates a failure that can also report how many other keys are already trusted for the artifact's
+     * module group, enriching {@code MISSING_KEY} messages so users can tell a rotated signing key apart
+     * from a group being trusted for the first time.
+     *
+     * @param moduleGroup the group of the artifact that failed verification, or {@code null} if unknown
+     * @param otherTrustedKeyIdsForGroup the IDs of other keys already trusted for {@code moduleGroup},
+     *            excluding the key that triggered this failure
+     * @see <a href="https://github.com/gradle/gradle/issues/20100">gradle/gradle#20100</a>
+     */
+    public SignatureVerificationFailure(File affectedFile, File signatureFile, Map<String, SignatureError> errors, PublicKeyService keyService,
+                                        @Nullable String moduleGroup, Set<String> otherTrustedKeyIdsForGroup) {
         super(affectedFile);
         this.errors = errors;
         this.keyService = keyService;
         this.signatureFile = signatureFile;
+        this.moduleGroup = moduleGroup;
+        this.otherTrustedKeyIdsForGroup = otherTrustedKeyIdsForGroup;
     }
 
     @Override
@@ -85,10 +104,25 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
                 break;
             case MISSING_KEY:
                 sb.append("but it wasn't found in any key server so it couldn't be verified");
+                appendOtherTrustedKeysNote(sb);
                 break;
             default:
                 break;
         }
+    }
+
+    private void appendOtherTrustedKeysNote(StringBuilder sb) {
+        if (moduleGroup == null || otherTrustedKeyIdsForGroup.isEmpty()) {
+            return;
+        }
+        int count = otherTrustedKeyIdsForGroup.size();
+        sb.append(" (");
+        if (count == 1) {
+            sb.append("1 other key is");
+        } else {
+            sb.append(count).append(" other keys are");
+        }
+        sb.append(" already trusted for group '").append(moduleGroup).append("')");
     }
 
     public enum FailureKind {
