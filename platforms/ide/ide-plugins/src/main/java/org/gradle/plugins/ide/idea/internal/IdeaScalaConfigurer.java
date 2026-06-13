@@ -66,10 +66,12 @@ public class IdeaScalaConfigurer {
     public static final String DEFAULT_SCALA_PLATFORM_VERSION = "2.10.7";
     private final Project rootProject;
     private final Consumer<Collection<Project>> onScalaProjects;
+    private final boolean isolatedProjects;
 
-    public IdeaScalaConfigurer(Project rootProject, Consumer<Collection<Project>> onScalaProjects) {
+    public IdeaScalaConfigurer(Project rootProject, Consumer<Collection<Project>> onScalaProjects, boolean isolatedProjects) {
         this.rootProject = rootProject;
         this.onScalaProjects = onScalaProjects;
+        this.isolatedProjects = isolatedProjects;
     }
 
     @SuppressWarnings("deprecation")
@@ -77,11 +79,16 @@ public class IdeaScalaConfigurer {
         rootProject.getGradle().projectsEvaluated(new Action<Gradle>() {
             @Override
             public void execute(Gradle gradle) {
+                final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
+                onScalaProjects.accept(scalaProjects);
+                if (isolatedProjects) {
+                    // Cross-project Scala compiler setup is incompatible with Isolated Projects;
+                    // the violation has been reported via onScalaProjects when applicable.
+                    return;
+                }
+
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
-                final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
-
-                onScalaProjects.accept(scalaProjects);
 
                 final Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
                 rootProject.getTasks().named("ideaProject", new Action<Task>() {
@@ -226,8 +233,8 @@ public class IdeaScalaConfigurer {
         return Collections2.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
-                final boolean hasIdeaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, IdeaPlugin.class);
-                final boolean hasScalaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, ScalaBasePlugin.class);
+                final boolean hasIdeaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, IdeaPlugin.class, isolatedProjects);
+                final boolean hasScalaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, ScalaBasePlugin.class, isolatedProjects);
                 return hasIdeaPlugin && hasScalaPlugin;
             }
         });
