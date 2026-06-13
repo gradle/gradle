@@ -78,8 +78,10 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 
 #### Source locations for more problems
 
-To keep stack trace capture affordable, Gradle used to stop attaching a source location to problems past a low limit, so builds that report many problems (deprecations especially) left most of them without a file and line.
-It now infers a location for problems past that limit too, so the console, the [problems report](userguide/reporting_problems.html#sec:generated_html_report), and the Tooling API carry a source location for many more of them.
+To keep stack trace capture affordable, Gradle attached a source location to only the first 50 problems per build, so builds that report many problems (deprecations especially) left most of them without a file and line.
+It now captures those locations far more cheaply and raises that limit from 50 to 2000, so the console, the [problems report](userguide/reporting_problems.html#sec:generated_html_report), and the Tooling API show a source location for many more problems than before.
+
+As before, running with `--warning-mode=all` removes the limit and tries to capture a source location for all problems.
 
 ![Problems report listing many problems with their source locations](release-notes-assets/problems-locations.png)
 
