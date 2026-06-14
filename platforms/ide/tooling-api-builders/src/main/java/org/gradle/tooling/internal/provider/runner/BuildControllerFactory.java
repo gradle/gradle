@@ -32,19 +32,22 @@ public class BuildControllerFactory {
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
+    private final FetchFailureConverter failureConverter;
 
     public BuildControllerFactory(
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken buildCancellationToken,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        FetchFailureConverter failureConverter
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
+        this.failureConverter = failureConverter;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
@@ -53,7 +56,8 @@ public class BuildControllerFactory {
             buildCancellationToken,
             buildEventConsumer,
             sideEffectExecutor,
-            payloadSerializer
+            payloadSerializer,
+            failureConverter
         );
     }
 }

@@ -112,28 +112,42 @@ public class DefaultFailure implements Serializable, InternalFailure {
     }
 
     public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
+        return fromFailure(buildFailure, mapper, FailureCache.NONE);
+    }
+
+    public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+        // Reuse the conversion of a throwable already seen, e.g. a configuration failure shared across per-project fetches.
+        InternalFailure cached = cache.get(buildFailure.getOriginal());
+        if (cached != null) {
+            return cached;
+        }
         // Build the failure tree in a single pass: each node carries only its own description. The full description (the
-        // whole cause subtree) is reconstructed lazily from these on demand, so no node prints its subtree here.
+        // whole cause subtree) is reconstructed lazily from these on demand, so no node prints its subtree here. Children
+        // are interned before the parent, so the cache is never re-entered while a single mapping is being computed.
         String ownDescription = FailurePrinter.printNodeToString(buildFailure);
-        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper);
+        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper, cache);
         List<InternalBasicProblemDetailsVersion3> problemDetails = buildFailure.getProblems().stream()
             .map(mapper)
             .collect(toList());
 
-        return new DefaultFailure(buildFailure.getMessage(), null, ownDescription, causeFailures, problemDetails);
+        DefaultFailure converted = new DefaultFailure(buildFailure.getMessage(), null, ownDescription, causeFailures, problemDetails);
+        return cache.intern(buildFailure.getOriginal(), converted);
     }
 
     private static List<InternalFailure> convertCausesToFailures(
         List<Failure> causes,
-        Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper
+        Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper,
+        FailureCache cache
     ) {
         return causes.stream()
-            // Skip multi cause exceptions - no idea why
-            // For example TaskExecutionException is a MultiCauseException and skipped, so the task that failed is not added as a context here.
+            // Multi cause exceptions are dropped from the cause structure (the reason predates this code); for example
+            // TaskExecutionException is a MultiCauseException, so the failed task is not surfaced as context here.
+            // getDescription reconstructs over this same structure, so it omits the dropped node too, unlike a direct
+            // FailurePrinter.printToString of the source.
             .flatMap(cause -> cause.getOriginal() instanceof MultiCauseException
                 ? cause.getCauses().stream()
                 : Stream.of(cause))
-            .map(cause -> fromFailure(cause, mapper))
+            .map(cause -> fromFailure(cause, mapper, cache))
             .collect(toList());
     }
 
