@@ -32,6 +32,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
@@ -165,6 +166,7 @@ internal interface KotlinCompiler {
         classPath: List<File>,
         logger: Logger,
         fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String,
         pathTranslation: (String) -> String
@@ -188,6 +190,7 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
         classPath: List<File>,
         logger: Logger,
         fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String,
         pathTranslation: (String) -> String
@@ -201,6 +204,7 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
             classPath,
             messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation),
             fileSystemAccess,
+            classpathSnapshotCache,
             incrementalCompilationCache,
             scriptIdentity
         )
@@ -231,6 +235,7 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
         classPath: List<File>,
         messageRenderer: LoggingMessageRenderer,
         fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String
     ) {
@@ -244,6 +249,7 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
                 implicitImports,
                 messageRenderer,
                 fileSystemAccess,
+                classpathSnapshotCache,
                 incrementalCompilationCache,
                 scriptIdentity
             )
@@ -549,6 +555,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         implicitImports: List<String>,
         messageRenderer: LoggingMessageRenderer,
         fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String
     ) {
@@ -574,7 +581,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
 
             if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
-                operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, incrementalCompilationCache)
+                operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
             }
 
             val executionPolicy = createExecutionPolicy()
@@ -655,10 +662,11 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         scriptIdentity: String,
         classPath: List<File>,
         fileSystemAccess: FileSystemAccess,
-        cache: KotlinDslIncrementalCompilationCache,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
     ) {
-        val icWorkingDirectory = scriptIcRootFor(scriptIdentity, cache)
-        val dependencySnapshots = classPath.map { snapshotClasspathEntry(it.toPath(), fileSystemAccess, cache) }
+        val icWorkingDirectory = scriptIcRootFor(scriptIdentity, incrementalCompilationCache)
+        val dependencySnapshots = classPath.map { snapshotClasspathEntry(it.toPath(), fileSystemAccess, classpathSnapshotCache) }
 
         val icConfig = snapshotBasedIcConfigurationBuilder(
             workingDirectory = icWorkingDirectory,
@@ -692,11 +700,11 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         this[INCREMENTAL_COMPILATION] = icConfig
     }
 
-    private fun snapshotClasspathEntry(entry: Path, fileSystemAccess: FileSystemAccess, cache: KotlinDslIncrementalCompilationCache): Path {
+    private fun snapshotClasspathEntry(entry: Path, fileSystemAccess: FileSystemAccess, snapshotCache: KotlinDslClasspathEntrySnapshotCache): Path {
         // Key by the entry's content hash (covers both jar files and class directories), so identical
         // bytes share one snapshot file and in-place rewrites invalidate the cached snapshot correctly.
         val contentHash = fileSystemAccess.read(entry.toAbsolutePath().toString()).hash
-        return cache.snapshotAndAbiHashFor(contentHash) { path ->
+        return snapshotCache.snapshotAndAbiHashFor(contentHash) { path ->
             val operation = toolchains.jvm.classpathSnapshottingOperationBuilder(entry).apply {
                 this[GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
                 // Track inline-emitted classes so an ABI change inside an inline body invalidates

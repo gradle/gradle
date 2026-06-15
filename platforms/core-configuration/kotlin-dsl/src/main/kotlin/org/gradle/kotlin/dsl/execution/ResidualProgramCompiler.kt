@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
@@ -97,6 +98,7 @@ class ResidualProgramCompiler(
     private val classLoaderFactory: ClassLoaderFactory,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
     private val fileSystemAccess: FileSystemAccess,
+    private val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
     private val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
@@ -735,6 +737,7 @@ class ResidualProgramCompiler(
                         compileClassPath.asFiles,
                         logger,
                         fileSystemAccess,
+                        classpathEntrySnapshotCache,
                         incrementalCompilationCache,
                         scriptIdentity
                     ) { path ->
