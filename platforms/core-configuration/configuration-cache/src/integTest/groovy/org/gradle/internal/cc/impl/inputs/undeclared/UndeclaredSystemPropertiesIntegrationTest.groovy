@@ -196,10 +196,21 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         outputContains("foo = null")
 
         where:
-        source << PropertySource.values()
-
-        combined:
-        mutation << ['remove("foo")', 'clear()']
+        // Clearing the REAL System.getProperties() is deliberately excluded.
+        // Config-time system-property mutations are replayed onto the live System.getProperties()
+        // while the fingerprint is verified on a cache hit and, unlike on a cache miss, they are NOT
+        // rolled back afterwards (see ConfigurationCacheFingerprintChecker and
+        // DefaultConfigurationCache.checkFingerprint). Replaying a full clear() therefore wipes
+        // JVM-essential properties (java.specification.version, file.encoding, ...) and breaks the
+        // runtime mid-load — e.g. Groovy's VMPluginFactory fails to initialize — which makes this case
+        // fail under --no-daemon with parallel configuration cache (seen on Linux JDK 17 and Windows
+        // JDK 25). Surgical removal of a single real key is safe to replay
+        // (covered by remove("foo")), and clearing a clone never touches the real properties (covered
+        // by the dedicated clone tests below). Tests that genuinely clear the real properties restore
+        // them immediately and run on the daemon executor only — see UndeclaredBuildInputsIntegrationTest.
+        [source, mutation] << [(PropertySource.values() as List), ['remove("foo")', 'clear()']]
+            .combinations()
+            .findAll { src, mut -> !(src == PropertySource.REAL && mut == 'clear()') }
     }
 
     @Issue("https://github.com/gradle/gradle/pull/37526")
