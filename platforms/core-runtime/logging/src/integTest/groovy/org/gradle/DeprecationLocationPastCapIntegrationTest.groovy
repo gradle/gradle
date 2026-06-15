@@ -16,6 +16,7 @@
 
 package org.gradle
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
@@ -23,6 +24,11 @@ import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
+/**
+ * Locations for deprecations past the stack-capture cap come from the cheap bounded caller-stack capture.
+ * These tests run in a capping warning mode ({@code summary}) so the cap actually applies and the bounded
+ * path is exercised, {@code --warning-mode=all} would lift the cap and capture full stacks instead.
+ */
 class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
@@ -41,7 +47,7 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        executer.noDeprecationChecks()
+        executer.noDeprecationChecks().withWarningMode(WarningMode.Summary)
         succeeds 'help'
 
         then:
@@ -57,7 +63,7 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
     def "distinct call sites fired past the cap each resolve to their own line"() {
         given:
         settingsFile "rootProject.name = 'root'"
-        // Flood one site past the cap, then 3 distinct lines. Flood must not starve them.
+        // Flood one site well past the cap, then 3 distinct lines; the later sites must still each resolve to their own line.
         buildFile """
             (1..80).each { n ->
                 org.gradle.internal.deprecation.DeprecationLogger.deprecate("Flooded site " + n)
@@ -69,7 +75,7 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        executer.noDeprecationChecks()
+        executer.noDeprecationChecks().withWarningMode(WarningMode.Summary)
         succeeds 'help'
 
         then:
@@ -90,14 +96,14 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         given:
         settingsFile "rootProject.name = 'root'\ninclude 'a', 'b'"
         // Each project loops the same deprecation from the same line; combined they pass the cap, so both go
-        // through the bounded, deduplicated capture. The build files share a name, so the per-project location
-        // must survive: the cache key must distinguish same-named scripts (it is keyed on the path-unique class name).
+        // through the bounded capture. The build files share a name, so the per-project location must survive:
+        // each capture resolves independently to its own script frame.
         def flood = '(1..60).each { org.gradle.internal.deprecation.DeprecationLogger.deprecate("Shared").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser() }'
         file('a/build.gradle') << flood
         file('b/build.gradle') << flood
 
         when:
-        executer.noDeprecationChecks()
+        executer.noDeprecationChecks().withWarningMode(WarningMode.Summary)
         succeeds 'help'
 
         then:
@@ -108,7 +114,7 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         stacks.size() == 120
 
         and:
-        // Each project's deprecations resolve to its own build file; a conflating cache would collapse them to one.
+        // Each project's deprecations resolve to its own build file.
         stacks.count { it.contains('a/build.gradle') } == 60
         stacks.count { it.contains('b/build.gradle') } == 60
     }
@@ -123,7 +129,7 @@ class DeprecationLocationPastCapIntegrationTest extends AbstractIntegrationSpec 
         file('build.gradle.kts') << '(1..120).forEach { org.gradle.internal.deprecation.DeprecationLogger.deprecate("Looped " + it).willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser() }'
 
         when:
-        executer.noDeprecationChecks()
+        executer.noDeprecationChecks().withWarningMode(WarningMode.Summary)
         succeeds 'help'
 
         then:

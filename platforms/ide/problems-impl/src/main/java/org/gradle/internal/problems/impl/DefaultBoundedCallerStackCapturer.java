@@ -17,8 +17,6 @@
 package org.gradle.internal.problems.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.gradle.internal.problems.BoundedCallerStackCapturer;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.jspecify.annotations.Nullable;
@@ -31,39 +29,32 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * {@link StackWalker}-based capture that resolves each distinct call site once and reuses the result.
+ * {@link StackWalker}-based capture of a reduced caller stack, used to infer a location past the stack
+ * capture cap more cheaply than materialising a full stack trace.
  *
- * <p>Resolving stack frames is the dominant cost, and the same call site always yields the same
- * location, so the resolved prefix is cached per site. The expensive resolution is then paid once per
- * site rather than once per problem, which is what keeps capturing locations past the cap affordable.</p>
+ * <p>The reduced stack keeps every frame from the top of the walk down to the <em>anchor</em> and drops
+ * everything below it. The anchor is the frame the location resolves to: the first registered script the
+ * walk reaches (the analyser sees through non-script frames to the calling script), or, when no script is
+ * reached, the nearest user frame with a line. Keeping the frames above the anchor preserves the calling
+ * context, the build-logic helper and the reporting entry point, without classifying which internal frames
+ * matter, since there are several internal reporting paths. The frames below the anchor are pure Gradle
+ * runtime and are dropped, which is also why the walk stops at the anchor.</p>
  *
- * <p>The cache is keyed on the registered script the location resolves to: the first script at or below
- * the located frame (the analyser sees through non-script frames to the calling script). Captures that
- * reach no script are not cached, because a non-script frame's location depends on the frames below it,
- * so the same frame can resolve to different scripts, or to none, in different stacks. That is what keeps
- * distinct call sites sharing a non-script helper frame from being conflated.</p>
- *
- * <p>The cached value is reduced at both ends: leading Gradle machinery above the anchor is dropped, and
- * collection stops at the Gradle boundary below it. It carries the location and some surrounding context,
- * but is not a complete stack.</p>
+ * <p>Each capture is resolved independently from its own live stack; nothing is cached or reused across
+ * call sites, so a stack cannot be misattributed to another site's location. The {@link #MAX_DEPTH} cap and
+ * the per-build budget on the number of captures are what keep the cost bounded.</p>
  */
 class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
 
-    // Walk cap when no user frame. Above measured depth-to-user (~13-37 on gradle/gradle and nowinandroid).
+    // Walk cap when no anchor is reached. Above measured depth-to-script (~13-37 on gradle/gradle and nowinandroid).
     private static final int MAX_DEPTH = 50;
 
     // StackWalker buffer hint. Keep small: big hint fetches a whole batch up front, mostly wasted.
     private static final int ESTIMATE_DEPTH = 8;
 
-    // Runaway cap. Evicted site just re-captures, still correct.
-    private static final int MAX_CACHED_SITES = 10_000;
-
     private static final StackWalker WALKER = StackWalker.getInstance(EnumSet.noneOf(StackWalker.Option.class), ESTIMATE_DEPTH);
 
     private final RegisteredScripts registeredScripts;
-
-    private final Cache<String, StackTraceElement[]> reducedStackBySite =
-        CacheBuilder.newBuilder().maximumSize(MAX_CACHED_SITES).build();
 
     DefaultBoundedCallerStackCapturer(RegisteredScripts registeredScripts) {
         this.registeredScripts = registeredScripts;
@@ -72,21 +63,17 @@ class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
     @Nullable
     @Override
     public Throwable captureCallerStack() {
-        StackTraceElement[] reducedStack = WALKER.walk(this::cachedReducedStack);
+        StackTraceElement[] reducedStack = WALKER.walk(this::reduceStack);
         return reducedStack == null ? null : new BoundedStackHolder(reducedStack);
     }
 
     @VisibleForTesting
-    StackTraceElement @Nullable [] cachedReducedStack(Stream<StackFrame> frames) {
+    StackTraceElement @Nullable [] reduceStack(Stream<StackFrame> frames) {
         BoundedWalk walk = new BoundedWalk();
         Iterator<StackFrame> iterator = frames.iterator();
         for (int depth = 0; depth < MAX_DEPTH && iterator.hasNext(); depth++) {
-            StackTraceElement[] cached = walk.accept(iterator.next());
-            if (cached != null) {
-                return cached; // anchor already seen: reuse it, skip the rest of the walk
-            }
-            if (walk.reachedBoundary()) {
-                break;
+            if (walk.accept(iterator.next())) {
+                break; // reached the anchor or the Gradle boundary below the user frames
             }
         }
         return walk.reducedStack();
@@ -98,73 +85,49 @@ class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
     }
 
     /**
-     * A single bounded walk: collects user frames from the first one down to the Gradle boundary, tracking the
-     * anchor (the located frame, upgraded to the first registered script below it) the location and cache key come from.
+     * A single bounded walk: collects frames from the top down to the anchor, tracking the anchor the
+     * location resolves to (the first registered script, else the nearest user frame with a line).
      */
     private final class BoundedWalk {
-        @Nullable
-        private List<StackTraceElement> userFrames; // null until the first user frame
-        private int anchorIndex = -1;               // the frame the location comes from
-        private boolean anchoredOnScript;           // once true, the anchor is final
-        private boolean atBoundary;
+        private final List<StackTraceElement> frames = new ArrayList<>(MAX_DEPTH);
+        private int locatedIndex = -1; // nearest user frame with a line: the fallback anchor
+        private int scriptIndex = -1;  // first registered script: the anchor the location resolves to
+        private boolean sawUserFrame;
 
-        StackTraceElement @Nullable [] accept(StackFrame frame) {
+        /**
+         * @return true once the cut point is known and the walk can stop
+         */
+        boolean accept(StackFrame frame) {
             String className = frame.getClassName();
-            if (userFrames == null && InternalStackTraceClassifier.isInternal(className)) {
-                return null; // leading machinery, before any user frame
+            if (sawUserFrame && InternalStackTraceClassifier.isGradleCall(className)) {
+                return true; // Gradle boundary below the user frames: no script will follow, drop it and the rest
             }
             StackTraceElement element = frame.toStackTraceElement();
-            if (userFrames == null) {
-                userFrames = new ArrayList<>(MAX_DEPTH);
+            frames.add(element);
+            if (InternalStackTraceClassifier.isInternal(className)) {
+                return false; // reporting and dispatch machinery above the user code: kept for context, never an anchor
             }
-            userFrames.add(element);
-            atBoundary = InternalStackTraceClassifier.isGradleCall(className);
-            return tryAnchor(element, className);
-        }
-
-        private StackTraceElement @Nullable [] tryAnchor(StackTraceElement element, String className) {
-            if (anchoredOnScript || element.getLineNumber() < 0 || InternalStackTraceClassifier.isInternal(className)) {
-                return null; // anchor is final, or this is not a user frame with a line
+            sawUserFrame = true;
+            if (element.getLineNumber() < 0) {
+                return false; // synthetic user frame without a line cannot be a location
             }
-            if (anchorIndex == -1) {
-                anchorIndex = userFrames.size() - 1; // tentative anchor: the located frame, used to trim the stack
+            if (locatedIndex == -1) {
+                locatedIndex = frames.size() - 1;
             }
-            if (!isRegisteredScript(element)) {
-                return null; // a non-script frame resolves via the frames below it, so never cache or reuse on it
+            if (isRegisteredScript(element)) {
+                scriptIndex = frames.size() - 1;
+                return true; // anchor: stop here, the location resolves to this script
             }
-            StackTraceElement[] cached = reducedStackBySite.getIfPresent(siteKey(element));
-            if (cached != null) {
-                return cached;
-            }
-            anchorIndex = userFrames.size() - 1; // definitive anchor: the script the location resolves to
-            anchoredOnScript = true;
-            return null;
-        }
-
-        boolean reachedBoundary() {
-            return atBoundary;
+            return false;
         }
 
         StackTraceElement @Nullable [] reducedStack() {
-            if (userFrames == null) {
-                return null; // no user frame
+            int anchor = scriptIndex != -1 ? scriptIndex : locatedIndex;
+            if (anchor == -1) {
+                return null; // no user frame with a location
             }
-            int start = anchorIndex == -1 ? 0 : anchorIndex;
-            StackTraceElement[] reduced = userFrames.subList(start, userFrames.size()).toArray(new StackTraceElement[0]);
-            if (anchoredOnScript) {
-                reducedStackBySite.put(siteKey(userFrames.get(anchorIndex)), reduced); // only script anchors are safe to cache
-            }
-            return reduced;
+            return frames.subList(0, anchor + 1).toArray(new StackTraceElement[0]);
         }
-    }
-
-    private static String siteKey(StackTraceElement element) {
-        return element.getClassName() + '#' + element.getMethodName() + '@' + element.getLineNumber();
-    }
-
-    @VisibleForTesting
-    long cachedSiteCount() {
-        return reducedStackBySite.size();
     }
 
     // Holds a stack trace, skips costly native fillInStackTrace

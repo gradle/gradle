@@ -325,8 +325,10 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         events.size() == 51
+        // Within the cap, the full stack is captured.
         events[0].details['deprecation'].stackTrace.length() > 0
-        events[50].details['deprecation'].stackTrace.length() == 0
+        // Past the cap, a cheaper reduced stack is captured that still resolves to the build script.
+        events[50].details['deprecation'].stackTrace.contains('build.gradle')
 
         and:
         THRESHOLD_DEFAULT_VALUE.times {

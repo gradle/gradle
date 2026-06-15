@@ -30,90 +30,106 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
     }
     def capturer = new DefaultBoundedCallerStackCapturer(scripts)
 
-    def "prefix starts at the first user-code frame"() {
+    def "reduced stack is cut at the call site and keeps the frames above it"() {
         when:
-        def throwable = StackCapturerCaller.siteA(capturer)
+        def stack = StackCapturerCaller.siteA(capturer).stackTrace
 
         then:
-        throwable.stackTrace[0].className == 'acme.StackCapturerCaller'
-        throwable.stackTrace[0].methodName == 'siteA'
+        // The anchor is the call site; everything below it is dropped, so it is the last kept frame.
+        stack[-1].className == 'acme.StackCapturerCaller'
+        stack[-1].methodName == 'siteA'
     }
 
-    def "repeat captures from the same site reuse one cached prefix"() {
+    def "each call site resolves to its own frame, captures are independent"() {
         when:
-        def captures = (1..2).collect { StackCapturerCaller.siteA(capturer) }
+        def a = StackCapturerCaller.siteA(capturer).stackTrace
+        def b = StackCapturerCaller.siteB(capturer).stackTrace
 
         then:
-        capturer.cachedSiteCount() == 1
-        captures[0].stackTrace*.toString() == captures[1].stackTrace*.toString()
+        a[-1].methodName == 'siteA'
+        b[-1].methodName == 'siteB'
     }
 
-    def "distinct sites are each captured, regardless of how many times another site fires first"() {
-        when:
-        10.times { StackCapturerCaller.siteA(capturer) }
-        def late = StackCapturerCaller.siteB(capturer)
-
-        then:
-        capturer.cachedSiteCount() == 2
-        late.stackTrace[0].methodName == 'siteB'
-    }
-
-    def "distinct sites sharing a line-less nearest user frame are not conflated"() {
+    def "keeps every frame above the script and drops everything below it"() {
         given:
-        // Nearest user frame has no line (synthetic); location comes from the deeper, differing frame.
-        def nearest = frame('acme.Helper', 'doCall', 7, ste('acme.Helper', 'doCall', 'Helper.groovy', -1))
-        def boundary = frame('org.gradle.Apply', 'apply', 1, ste('org.gradle.Apply', 'apply', 'Apply.java', 100))
-        def internal = frame('org.gradle.Machinery', 'nag', 1, ste('org.gradle.Machinery', 'nag', 'Machinery.java', 5))
-        def siteA = [internal, nearest, frame('acme.SiteA', 'run', 3, ste('acme.SiteA', 'run', 'SiteA.groovy', 20)), boundary]
-        def siteB = [internal, nearest, frame('acme.SiteB', 'run', 3, ste('acme.SiteB', 'run', 'SiteB.groovy', 30)), boundary]
+        // top -> bottom: reporting machinery, build-logic helper, the script, then the Gradle boundary and below.
+        def reporting = frame('org.gradle.api.problems.internal.DefaultProblemReporter', 'report', 1, ste('org.gradle.api.problems.internal.DefaultProblemReporter', 'report', 'DefaultProblemReporter.java', 58))
+        def helper = frame('com.example.Checks', 'validate', 1, ste('com.example.Checks', 'validate', 'Checks.groovy', 12))
+        def script = frame('build_gradle', 'run', 5, ste('build_gradle', 'run', 'build.gradle', 5))
+        def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
+        def belowBoundary = frame('org.gradle.launcher.Main', 'main', 1, ste('org.gradle.launcher.Main', 'main', 'Main.java', 50))
 
         when:
-        capturer.cachedReducedStack(siteA.stream())
-        def b = capturer.cachedReducedStack(siteB.stream())
+        def reduced = capturer.reduceStack([reporting, helper, script, boundary, belowBoundary].stream())
 
         then:
-        capturer.cachedSiteCount() == 2
-        b*.fileName.contains('SiteB.groovy')
-        !b*.fileName.contains('SiteA.groovy')
+        // Reporting entry point and build-logic helper kept above the script; nothing from the boundary down.
+        reduced*.fileName == ['DefaultProblemReporter.java', 'Checks.groovy', 'build.gradle']
     }
 
-    def "distinct call-sites sharing a non-script nearest frame resolve to their own script, not the first one cached"() {
+    def "sees through a non-script helper to the script below it, keeping the helper as context"() {
+        given:
+        def helper = frame('com.example.Checks', 'validate', 1, ste('com.example.Checks', 'validate', 'Checks.groovy', 12))
+        def script = frame('build_gradle', 'run', 5, ste('build_gradle', 'run', 'build.gradle', 5))
+        def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
+
+        when:
+        def reduced = capturer.reduceStack([helper, script, boundary].stream())
+
+        then:
+        reduced[-1].fileName == 'build.gradle'             // anchored on (cut at) the script
+        reduced*.fileName.contains('Checks.groovy')        // helper kept above it
+    }
+
+    def "distinct call-sites sharing a non-script helper each resolve to their own script"() {
         given:
         // A compiled helper (not a registered script) is the nearest user frame for both call-sites.
-        // The location must come from each call-site's own script frame below it, not from whichever was cached first.
+        // Each capture is computed from its own stack, so neither can be attributed to the other's script.
         def helper = frame('com.example.Checks', 'validate', 1, ste('com.example.Checks', 'validate', 'Checks.groovy', 12))
         def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
         def fromBuild = [helper, frame('build_gradle', 'run', 5, ste('build_gradle', 'run', 'build.gradle', 5)), boundary]
         def fromOther = [helper, frame('other_gradle', 'run', 9, ste('other_gradle', 'run', 'other.gradle', 9)), boundary]
 
         when:
-        capturer.cachedReducedStack(fromBuild.stream())
-        def other = capturer.cachedReducedStack(fromOther.stream())
+        def build = capturer.reduceStack(fromBuild.stream())
+        def other = capturer.reduceStack(fromOther.stream())
 
         then:
-        capturer.cachedSiteCount() == 2
+        build*.fileName.contains('build.gradle')
+        !build*.fileName.contains('other.gradle')
         other*.fileName.contains('other.gradle')
         !other*.fileName.contains('build.gradle')
     }
 
-    def "a call-site with no script below it does not shadow a later call-site that resolves to a script"() {
+    def "with no script, resolves to the nearest user frame and drops the boundary"() {
         given:
-        // The same compiled helper first fires with no script frame below it (e.g. from a plugin's apply),
-        // and later from a build script. The first, scriptless capture must not shadow the second one.
         def helper = frame('com.example.Checks', 'validate', 1, ste('com.example.Checks', 'validate', 'Checks.groovy', 12))
         def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
-        def fromPlugin = [helper, boundary]
-        def fromScript = [helper, frame('build_gradle', 'run', 5, ste('build_gradle', 'run', 'build.gradle', 5)), boundary]
 
         when:
-        capturer.cachedReducedStack(fromPlugin.stream())
-        def script = capturer.cachedReducedStack(fromScript.stream())
+        def reduced = capturer.reduceStack([helper, boundary].stream())
 
         then:
-        script*.fileName.contains('build.gradle')
+        reduced[-1].fileName == 'Checks.groovy'              // nearest user frame, no script below it
+        !reduced*.fileName.contains('DefaultProject.java')   // boundary dropped
     }
 
-    def "nested scripts resolve to the innermost script"() {
+    def "a line-less user frame is not the anchor, the script below it is"() {
+        given:
+        // Nearest user frame has no line (synthetic); the location comes from the deeper script frame.
+        def lineless = frame('acme.Helper', 'doCall', 7, ste('acme.Helper', 'doCall', 'Helper.groovy', -1))
+        def script = frame('acme.SiteA', 'run', 3, ste('acme.SiteA', 'run', 'SiteA.groovy', 20))
+        def boundary = frame('org.gradle.Apply', 'apply', 1, ste('org.gradle.Apply', 'apply', 'Apply.java', 100))
+
+        when:
+        def reduced = capturer.reduceStack([lineless, script, boundary].stream())
+
+        then:
+        reduced[-1].fileName == 'SiteA.groovy'
+        reduced*.fileName.contains('Helper.groovy')   // the line-less frame is kept above the anchor
+    }
+
+    def "nested scripts resolve to the innermost script and drop the outer one below it"() {
         given:
         // foo.gradle is applied from build.gradle and fires the problem; the location is the innermost script.
         def inner = frame('foo_gradle', 'run', 10, ste('foo_gradle', 'run', 'foo.gradle', 10))
@@ -121,12 +137,11 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
         def boundary = frame('org.gradle.api.internal.project.DefaultProject', 'evaluate', 1, ste('org.gradle.api.internal.project.DefaultProject', 'evaluate', 'DefaultProject.java', 100))
 
         when:
-        def reduced = capturer.cachedReducedStack([inner, outer, boundary].stream())
+        def reduced = capturer.reduceStack([inner, outer, boundary].stream())
 
         then:
-        reduced[0].fileName == 'foo.gradle'         // anchored on the innermost script
-        reduced*.fileName.contains('build.gradle')  // the outer script is kept below the anchor
-        capturer.cachedSiteCount() == 1
+        reduced[-1].fileName == 'foo.gradle'            // cut at the innermost script
+        !reduced*.fileName.contains('build.gradle')     // the outer script below the anchor is dropped
     }
 
     def "a stack with no user frame yields no capture"() {
@@ -137,7 +152,7 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
         ]
 
         expect:
-        capturer.cachedReducedStack(allInternal.stream()) == null
+        capturer.reduceStack(allInternal.stream()) == null
     }
 
     private StackFrame frame(String className, String methodName, int bci, StackTraceElement element) {

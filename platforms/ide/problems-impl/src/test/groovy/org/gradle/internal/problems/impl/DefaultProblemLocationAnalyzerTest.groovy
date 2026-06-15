@@ -68,9 +68,9 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
             new StackTraceElement("org.gradle.api.internal.project.DefaultProject", "evaluate", "DefaultProject.java", 100),
             new StackTraceElement("org.gradle.launcher.Main", "main", "Main.java", 50)
         ] as StackTraceElement[]
-        // What the bounded walk keeps: the leading machinery (0, 1) is skipped, leaving the first user frame
-        // (the script) down to and including the Gradle boundary.
-        def boundedPrefix = (fullStack[2..3]) as StackTraceElement[]
+        // What the bounded walk keeps: every frame above the script (the capture/reporting machinery) down to
+        // and including the script anchor; everything below it (the Gradle boundary and beyond) is dropped.
+        def boundedPrefix = (fullStack[0..2]) as StackTraceElement[]
 
         scripts.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId),
             new ClassLoaderScopeOrigin.Script("build.gradle", Describables.of("<long>"), Describables.of("<short>")))
