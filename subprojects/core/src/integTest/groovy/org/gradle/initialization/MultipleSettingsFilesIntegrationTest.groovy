@@ -33,11 +33,12 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
      * Please update the tests in this file, and add the new extension to the list below.
      */
     def "list of extensions are what we expect"() {
+        expect:
         ScriptingLanguages.all().collect {it.extension} == [
+            ".gradle.xdcl",
             ".gradle",
             ".gradle.kts",
-            ".gradle.dcl",
-            ".gradle.xdcl"
+            ".gradle.dcl"
         ]
     }
 
