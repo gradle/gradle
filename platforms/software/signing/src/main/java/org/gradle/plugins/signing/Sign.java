@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
@@ -100,6 +101,9 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
     }
+
+    @Inject
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     /**
      * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks).
@@ -230,7 +234,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
         if (getSignatory() == null) {
             throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory. "
                 + "A signatory holds the PGP key used to sign artifacts and must be configured in the \'signing {}\' block. "
-                + "See https://docs.gradle.org/current/userguide/signing_plugin.html for details.");
+                + getDocumentationRegistry().getDocumentationRecommendationFor("information on configuring signing", "signing_plugin"));
         }
 
         for (Signature.Generator signature : sanitizedGenerators().values()) {

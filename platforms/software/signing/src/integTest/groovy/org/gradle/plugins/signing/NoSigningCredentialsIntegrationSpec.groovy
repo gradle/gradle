@@ -34,6 +34,8 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         fails ":signJar"
 
         and:
-        failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
+        failure.assertHasDocumentedCause("Cannot perform signing task ':signJar' because it has no configured signatory. " +
+            "A signatory holds the PGP key used to sign artifacts and must be configured in the 'signing {}' block. " +
+            "For more information on configuring signing, please refer to https://docs.gradle.org/current/userguide/signing_plugin.html in the Gradle documentation.")
     }
 }
