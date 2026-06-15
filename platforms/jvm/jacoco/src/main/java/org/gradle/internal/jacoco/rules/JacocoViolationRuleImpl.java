@@ -35,6 +35,7 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
     private final ListProperty<JacocoLimit> limits;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public JacocoViolationRuleImpl(ObjectFactory objectFactory) {
         getEnabled().convention(true);
         getElement().convention("BUNDLE");
@@ -47,13 +48,33 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
     public abstract Property<Boolean> getEnabled();
 
     @Override
+    public void setEnabled(boolean enabled) {
+        getEnabled().set(enabled);
+    }
+
+    @Override
     public abstract Property<String> getElement();
+
+    @Override
+    public void setElement(String element) {
+        getElement().set(element);
+    }
 
     @Override
     public abstract ListProperty<String> getIncludes();
 
     @Override
+    public void setIncludes(List<String> includes) {
+        getIncludes().set(includes);
+    }
+
+    @Override
     public abstract ListProperty<String> getExcludes();
+
+    @Override
+    public void setExcludes(List<String> excludes) {
+        getExcludes().set(excludes);
+    }
 
     @Override
     public Provider<List<JacocoLimit>> getLimits() {

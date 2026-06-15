@@ -34,6 +34,7 @@ public abstract class JacocoViolationRulesContainerImpl implements JacocoViolati
     private final ListProperty<JacocoViolationRule> rules;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public JacocoViolationRulesContainerImpl(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
         this.rules = objectFactory.listProperty(JacocoViolationRule.class);
@@ -42,6 +43,11 @@ public abstract class JacocoViolationRulesContainerImpl implements JacocoViolati
 
     @Override
     public abstract Property<Boolean> getFailOnViolation();
+
+    @Override
+    public void setFailOnViolation(boolean ignore) {
+        getFailOnViolation().set(ignore);
+    }
 
     @Override
     public Provider<List<JacocoViolationRule>> getRules() {
