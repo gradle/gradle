@@ -44,4 +44,35 @@ class TestNGInitFailureConsoleLoggingIntegrationTest extends AbstractIntegration
         // filtering and surface the failing exception in the console output.
         outputContains("NullPointerException")
     }
+
+    def "framework initialization failure is logged under explicit non-default granularity"() {
+        TestNGCoverage.enableTestNG(buildFile, '6.3.1')
+        // Explicit testLogging that would normally filter composite (class/suite) descriptors:
+        // minGranularity=3 (methods+) and the TestNG framework-startup failure lands on the
+        // class-level descriptor (level 2), so without the bypass the failure would be filtered.
+        buildFile << """
+            test {
+                testLogging {
+                    minGranularity = 3
+                    maxGranularity = -1
+                    showExceptions = true
+                }
+            }
+        """
+        file("src/test/java/FooTest.java") << """
+            import org.testng.annotations.*;
+
+            public class FooTest {
+                public FooTest() { throw new NullPointerException("boom from ctor"); }
+                @Test public void foo() {}
+            }
+        """
+
+        expect:
+        fails("test")
+
+        // The bypass should make framework-startup failures visible even when the
+        // configured granularity would otherwise filter the composite class-level event.
+        outputContains("NullPointerException")
+    }
 }

@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
-import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -89,7 +89,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
             }
 
             if (started) {
-                listener.testExecutionFailure(testDefinition, TestFailure.fromTestFrameworkFailure(throwable));
+                listener.testExecutionFailure(testDefinition, DefaultTestFailure.fromTestFrameworkStartupFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
                 throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
