@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.modes
 
-
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -24,27 +23,35 @@ import org.junit.runners.model.Statement
 
 import static ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
 import static ToBeFixedSpecInterceptor.iterationMatches
+import static org.junit.Assume.assumeTrue
 
-/**
- * JUnit Rule supporting the {@link ToBeFixedForIsolatedProjects} annotation.
- */
-class ToBeFixedForIsolatedProjectsRule implements TestRule {
+class UnsupportedWithIsolatedProjectsRule implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {
-        def annotation = description.getAnnotation(ToBeFixedForIsolatedProjects.class)
+        def annotation = description.getAnnotation(UnsupportedWithIsolatedProjects.class)
         if (GradleContextualExecuter.isNotIsolatedProjects() || annotation == null) {
             return base
         }
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
         def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
         if (enabledBottomSpec && enabledIteration) {
-            if (annotation.skipBecause().isEmpty()) {
-                return new ExpectingFailureRuleStatement(base, "Isolated Projects")
-            } else {
-                return new UnsupportedWithIsolatedProjectsRule.SkippingRuleStatement(base)
-            }
+            return new SkippingRuleStatement(annotation.because())
         }
         return base
+    }
+
+    static class SkippingRuleStatement extends Statement {
+
+        private final String reason
+
+        SkippingRuleStatement(String reason) {
+            this.reason = reason
+        }
+
+        @Override
+        void evaluate() throws Throwable {
+            assumeTrue("Test does not support isolated projects: $reason", false)
+        }
     }
 }

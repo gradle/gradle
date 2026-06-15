@@ -25,34 +25,23 @@ import java.lang.annotation.Target;
 
 
 /**
- * Expect the test to fail or skip it when running with Configuration Cache executor.
+ * Skip the test when running with Isolated Projects enabled.
  * <p>
- * Use this annotation when the intention is to fix either the test itself or the underlying feature,
- * making it compatible with Configuration Cache. If the intention is to not support the tested feature
- * with Configuration Cache, use {@link UnsupportedWithConfigurationCache} instead.
+ * Use this annotation when the tested feature is fundamentally incompatible with Isolated Projects
+ * and there is no intention to support it. If the intention is to eventually fix either the test
+ * or the underlying feature, use {@link ToBeFixedForIsolatedProjects} instead.
  * <p>
- * The expectation of failure essentially flips the test result.
- * A specific failure is not verified, and we only confirm that the test is not passing.
- * <p>
- * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
- * or has other undesirable effects, such as timeouts.
- * Set {@link #skipBecause()} to a non-empty reason to skip the test.
+ * The annotated test is skipped entirely; no assertion is made about its behavior under Isolated Projects.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-@ExtensionAnnotation(ToBeFixedForConfigurationCacheExtension.class)
-public @interface ToBeFixedForConfigurationCache {
+@Target({ElementType.TYPE, ElementType.METHOD})
+@ExtensionAnnotation(UnsupportedWithIsolatedProjectsExtension.class)
+public @interface UnsupportedWithIsolatedProjects {
 
     String because() default "";
 
     /**
-     * Reason for skipping the annotated test instead of expecting it to fail.
-     * Empty (the default) means expect-failure; any non-empty value skips the test with that reason.
-     */
-    String skipBecause() default "";
-
-    /**
-     * Link to the issue tracking the incompatibility addressed by this annotation.
+     * Link to the issue documenting why the tested feature is not supported.
      * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
      */
     String issue() default "";

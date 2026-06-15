@@ -39,8 +39,7 @@ class ToBeFixedForConfigurationCacheRule implements TestRule {
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
         def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
         if (enabledBottomSpec && enabledIteration) {
-            ToBeFixedForConfigurationCache.Skip skip = annotation.skip()
-            if (skip == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP) {
+            if (annotation.skipBecause().isEmpty()) {
                 return new ExpectingFailureRuleStatement(base, "Configuration Cache")
             } else {
                 return new UnsupportedWithConfigurationCacheRule.SkippingRuleStatement(base)
