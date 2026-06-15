@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
+import org.gradle.api.internal.tasks.testing.FrameworkStartupFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
@@ -316,6 +317,9 @@ public class TestEventSerializer {
                 decoder.readBytes(actualContent);
             }
 
+            // framework startup failure
+            boolean isFrameworkStartupFailure = decoder.readBoolean();
+
             // Order is important here because a file comparison is _also_ an assertion failure
             final TestFailureDetails details;
             if (isFileComparisonFailure) {
@@ -324,6 +328,8 @@ public class TestEventSerializer {
                 details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
                 details = new AssumptionFailureDetails(message, className, stacktrace);
+            } else if (isFrameworkStartupFailure) {
+                details = new FrameworkStartupFailureDetails(message, className, stacktrace);
             } else if (rawFailure instanceof TestFailureSerializationException) {
                 details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
             } else {
@@ -392,6 +398,9 @@ public class TestEventSerializer {
                 encoder.writeInt(actualContent.length);
                 encoder.writeBytes(actualContent);
             }
+
+            // framework startup failure
+            encoder.writeBoolean(details.isFrameworkStartupFailure());
         }
 
         /**

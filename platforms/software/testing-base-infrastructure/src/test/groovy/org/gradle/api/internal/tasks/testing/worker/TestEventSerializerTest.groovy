@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.testing.worker
 import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
+import org.gradle.api.internal.tasks.testing.FrameworkStartupFailureDetails
+import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
@@ -196,6 +199,34 @@ class TestEventSerializerTest extends SerializerSpec {
         result.details.expected == 'expectedValue'
         result.details.actual == 'actualValue'
         result.details.stacktrace.contains('java.lang.RuntimeException: cause')
+    }
+
+    def "serializes framework-startup TestFailure preserving subtype"() {
+        TestFailure failure = DefaultTestFailure.fromTestFrameworkStartupFailure(new RuntimeException("boom"))
+
+        when:
+        TestFailure result = serialize(failure, TestFailure)
+
+        then:
+        result.details instanceof FrameworkStartupFailureDetails
+        result.details.frameworkStartupFailure == true
+        !result.details.assertionFailure
+        !result.details.assumptionFailure
+        !result.details.fileComparisonFailure
+        result.details.message == 'boom'
+        result.details.stacktrace.contains('java.lang.RuntimeException: boom')
+    }
+
+    def "serializes framework TestFailure (non-startup) as plain details"() {
+        TestFailure failure = DefaultTestFailure.fromTestFrameworkFailure(new RuntimeException("boom"), null)
+
+        when:
+        TestFailure result = serialize(failure, TestFailure)
+
+        then:
+        !(result.details instanceof FrameworkStartupFailureDetails)
+        result.details instanceof DefaultTestFailureDetails
+        !result.details.frameworkStartupFailure
     }
 
     Object serialize(Object source, Class type = source.getClass()) {
