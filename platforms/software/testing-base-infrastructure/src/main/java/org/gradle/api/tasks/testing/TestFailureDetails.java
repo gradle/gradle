@@ -115,4 +115,20 @@ public interface TestFailureDetails {
      */
     boolean isAssumptionFailure();
 
+    /**
+     * Is this a test-framework startup (initialization) failure?
+     * <p>
+     * Framework startup failures arise when the test framework cannot start a suite or worker —
+     * for example, a TestNG test class whose constructor throws, or a JUnit framework that fails
+     * to initialise before any test methods can run. Such failures are attached to a composite
+     * test descriptor (the worker root suite, the test class, etc.) rather than a leaf test.
+     * <p>
+     * These failures are surfaced to the user even under the default test logging granularity,
+     * which would otherwise filter out failure events on composite descriptors.
+     *
+     * @since 9.7.0
+     * @return true if this is a test-framework startup failure
+     */
+    boolean isFrameworkStartupFailure();
+
 }

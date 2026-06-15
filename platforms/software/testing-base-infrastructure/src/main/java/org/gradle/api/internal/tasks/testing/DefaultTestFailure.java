@@ -85,7 +85,7 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     public static TestFailure fromTestFrameworkStartupFailure(Throwable failure) {
-        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details = new FrameworkStartupFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 

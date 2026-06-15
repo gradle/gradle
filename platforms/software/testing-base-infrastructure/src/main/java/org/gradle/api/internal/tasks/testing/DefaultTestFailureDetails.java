@@ -65,6 +65,11 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
     }
 
     @Override
+    public boolean isFrameworkStartupFailure() {
+        return false;
+    }
+
+    @Override
     @Nullable
     public String getExpected() {
         return null;
