@@ -42,6 +42,34 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Project ':app'")
     }
 
+    def "prefers settings.gradle.xdcl over a Groovy settings file in the same directory"() {
+        given:
+        enableProblemsApiCheck()
+        xdclSettingsFile '''
+            settings {
+              rootProject {
+                name "from-xdcl"
+              }
+            }
+        '''
+        file("settings.gradle") << '''
+            rootProject.name = "from-groovy"
+        '''
+
+        when:
+        succeeds("projects")
+
+        then: 'the xdcl settings script is the one evaluated, not the shadowed Groovy file'
+        outputContains("Root project 'from-xdcl'")
+
+        and: 'the ignored Groovy settings file is reported through the Problems API'
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'scripts:multiple-scripts'
+            details.contains("Selected 'settings.gradle.xdcl'")
+            details.contains("ignoring 'settings.gradle'")
+        }
+    }
+
     def "an evaluation error fails the build as a located problem"() {
         given:
         enableProblemsApiCheck()
