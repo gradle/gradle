@@ -63,6 +63,16 @@ The isolation also applies to objects used in `synchronized` blocks, so they can
 
 To share or coordinate state between tasks, use <<build_services.adoc#build_services, shared build services>>.
 
+[[config_cache:requirements:user_defined_modules]]
+=== Classes from User-defined Modules
+
+Types loaded into a user-defined `ModuleLayer` (for example, one created at runtime via `ModuleLayer.defineModulesWith*Loader(...)`) must not be referenced by task state.
+The Configuration Cache ignores module information when saving and cannot restore such types properly, so they're rejected at store time.
+This restriction only applies to build logic (including plugins and dependencies of plugins). Code built with Gradle isn't affected.
+
+Standard JDK types are unaffected: every module shipped with the JVM lives in the boot `ModuleLayer` and is fully supported, including types from non-`java.base` modules such as `java.desktop` (`java.awt.Color`, `javax.swing.*`) or `java.xml`.
+In environments where the agent is available, Gradle automatically opens any JDK packages that need deep reflective access during serialization, so user code does not need to add `--add-opens` for them.
+
 [[config_cache:requirements:gradle_model_types]]
 === Gradle Model Types
 
