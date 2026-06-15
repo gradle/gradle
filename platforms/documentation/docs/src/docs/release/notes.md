@@ -64,7 +64,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
 #### Improved hit rates for project properties set via system properties and environment variables
-
 [Project properties](userguide/build_environment.html#sec:project_properties) can be supplied not only on the command line with `-P` or in `gradle.properties` files, but also through `org.gradle.project.<name>` system properties and `ORG_GRADLE_PROJECT_<name>` environment variables.
 
 Previously, changing any such system property or environment variable invalidated the [Configuration Cache](userguide/configuration_cache.html), even if the affected project property was never used during the configuration phase.
@@ -182,7 +181,6 @@ This behavior will be removed in Gradle 10.
 See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects) for migration paths, including `gradle.properties`, convention plugins, and explicit references.
 
 ##### Opt into Gradle 10 behavior by disabling implicit lookup in parent projects
-
 Once you have addressed all related deprecations, you can enable the new `NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS` feature preview to adopt the Gradle 10 behavior early.
 
 This prevents new accidental implicit lookups from parent projects:
@@ -262,6 +260,18 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 The following are the features that have been promoted in this Gradle release.
 
 * [`getNetworkTimeout()`](javadoc/org/gradle/api/tasks/wrapper/Wrapper.html#getNetworkTimeout()) in `Wrapper`
+
+## Documentation and training
+
+### User Manual
+The User Manual gained two significant additions in this release:
+
+The [Gradle on CI](userguide/gradle_on_ci.html) section returns with refreshed guidance for running Gradle in continuous integration environments, including dedicated pages for [GitHub Actions](userguide/github-actions.html), [Jenkins](userguide/jenkins.html), [TeamCity](userguide/teamcity.html), [GitLab CI](userguide/gitlab-ci.html), [CircleCI](userguide/circleci.html), [Travis CI](userguide/travis-ci.html), and [Docker](userguide/docker.html).
+
+The [Best Practices](userguide/best_practices.html) catalog grew with two new entries:
+
+- [Avoid `afterEvaluate`](userguide/best_practices_general.html) — explains why the callback creates ordering problems and what to use instead.
+- [Validate the Gradle Wrapper](userguide/best_practices_security.html) — updated guidance on verifying the integrity of the wrapper.
 
 ## Fixed issues
 
