@@ -17,8 +17,7 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.reflection.access.ModuleOpener
-import org.gradle.internal.serialize.beans.services.makeAccessibleVia
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.unsupportedFieldTypeFor
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -35,11 +34,11 @@ import java.lang.reflect.Modifier.isStatic
 
 
 class JavaRecordCodec(
-    private val moduleOpener: ModuleOpener
+    private val objectOpener: ObjectOpener
 ) : EncodingProducer, Decoding {
 
     private
-    val encoding = JavaRecordEncoding(moduleOpener)
+    val encoding = JavaRecordEncoding(objectOpener)
 
     override fun encodingForType(type: Class<*>): Encoding? =
         // need to check by name because it's only present in Java 14+
@@ -53,7 +52,7 @@ class JavaRecordCodec(
         val args = readFields(fields)
         val types = fields.map { it.type }.toTypedArray()
         return try {
-            recordType.getDeclaredConstructor(*types).apply { makeAccessibleVia(moduleOpener) }.newInstance(*args.toTypedArray())
+            recordType.getDeclaredConstructor(*types).apply { objectOpener.makeAccessible(this) }.newInstance(*args.toTypedArray())
         } catch (ex: Exception) {
             throw IllegalStateException("Failed to create instance of ${recordType.name} with args $args", ex)
         }
@@ -88,13 +87,13 @@ class JavaRecordCodec(
 
 private
 class JavaRecordEncoding(
-    private val moduleOpener: ModuleOpener
+    private val objectOpener: ObjectOpener
 ) : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
         val recordType = value::class.java
         writeClass(recordType)
         for (field in recordType.relevantFields) {
-            field.makeAccessibleVia(moduleOpener)
+            objectOpener.makeAccessible(field)
             val fieldName = field.name
             val fieldValue = field.get(value)
             unsupportedFieldTypeFor(field)?.let {

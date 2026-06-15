@@ -31,11 +31,11 @@ public class ReflectionAccessServices extends AbstractGradleModuleServices {
 
     private static class ReflectionAccessGlobalServices implements ServiceRegistrationProvider {
         @Provides
-        ModuleOpener createModuleOpener(AgentStatus agentStatus) {
+        ObjectOpener createObjectOpener(AgentStatus agentStatus) {
             if (!agentStatus.isAgentInstrumentationEnabled()) {
-                return new NoOpModuleOpener();
+                return ObjectOpener.agentless();
             }
-            return new DefaultModuleOpener(agentStatus.getInstrumentation());
+            return new DefaultObjectOpener(agentStatus.getInstrumentation());
         }
     }
 }

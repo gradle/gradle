@@ -16,8 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core.jos
 
-import org.gradle.internal.reflection.access.ModuleOpener
-import org.gradle.internal.serialize.beans.services.makeAccessibleVia
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.SerializedLambdaParametersCheckingCodec
 import org.gradle.internal.serialize.graph.BeanStateReader
 import org.gradle.internal.serialize.graph.Codec
@@ -71,11 +70,11 @@ import java.lang.reflect.Modifier.isPrivate
  */
 class JavaObjectSerializationCodec(
     private val lookup: JavaSerializationEncodingLookup,
-    private val moduleOpener: ModuleOpener
+    private val objectOpener: ObjectOpener
 ) : EncodingProducer, Decoding {
 
     private
-    val readResolveMethod = ReadResolveCache(moduleOpener)
+    val readResolveMethod = ReadResolveCache(objectOpener)
 
     private
     val readObjectHierarchy = HashMap<Class<*>, List<MethodHandle>>()
@@ -233,18 +232,18 @@ class JavaObjectSerializationCodec(
     private
     fun readObjectMethodHierarchyForDecoding(type: Class<*>): List<MethodHandle> =
         readObjectHierarchy.computeIfAbsent(type) {
-            readObjectMethodHierarchyFrom(it.allMethods(), moduleOpener)
+            readObjectMethodHierarchyFrom(it.allMethods(), objectOpener)
         }
 }
 
 
 internal
-fun readObjectMethodHierarchyFrom(candidates: List<Method>, moduleOpener: ModuleOpener): List<MethodHandle> = candidates
-    .serializationMethodHierarchy("readObject", ObjectInputStream::class.java, moduleOpener)
+fun readObjectMethodHierarchyFrom(candidates: List<Method>, objectOpener: ObjectOpener): List<MethodHandle> = candidates
+    .serializationMethodHierarchy("readObject", ObjectInputStream::class.java, objectOpener)
 
 
 internal
-fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>, moduleOpener: ModuleOpener): List<MethodHandle> = asSequence()
+fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>, objectOpener: ObjectOpener): List<MethodHandle> = asSequence()
     .filter { method ->
         method.run {
             isPrivate(modifiers)
@@ -254,7 +253,7 @@ fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterT
                 && parameterTypes[0].isAssignableFrom(parameterType)
         }
     }.onEach { serializationMethod ->
-        serializationMethod.makeAccessibleVia(moduleOpener)
+        objectOpener.makeAccessible(serializationMethod)
     }.map {
         MethodHandles.lookup()
             .unreflect(it)

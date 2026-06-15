@@ -24,30 +24,31 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.containsString
 
 @Issue("https://github.com/gradle/gradle/issues/20089")
-class ModuleOpenerIntegrationTest extends AbstractIntegrationSpec {
+class ObjectOpenerIntegrationTest extends AbstractIntegrationSpec {
 
     @LeaksFileHandles("Module JAR is held by the module classloader")
-    def "rejects opening a package for a class loaded into a custom non-boot module layer"() {
+    def "rejects making an AccessibleObject accessible for a class loaded into a custom non-boot module layer"() {
         def jarFile = file('libs/custom.jar')
         jarFile.parentFile.mkdirs()
         jarFile.bytes = ModuleJarFixture.moduleJar('custom')
 
-        buildFile << """
+        buildFile """
             import java.lang.module.ModuleFinder
             import org.gradle.api.internal.project.ProjectInternal
-            import org.gradle.internal.reflection.access.ModuleOpener
+            import org.gradle.internal.reflection.access.ObjectOpener
 
             def jarPath = file('libs/custom.jar').toPath()
             def finder = ModuleFinder.of(jarPath)
             def parent = ModuleLayer.boot()
-            def config = parent.configuration().resolve(finder, ModuleFinder.of(), java.util.Set.of('custom'))
+            def config = parent.configuration().resolve(finder, ModuleFinder.of(), ['custom'])
             def layer = parent.defineModulesWithOneLoader(config, getClass().classLoader)
             def moduleCls = layer.findLoader('custom').loadClass('custom.CustomClass')
-            def opener = ((ProjectInternal) project).services.get(ModuleOpener)
+            def ctor = moduleCls.getDeclaredConstructor()
+            def opener = ((ProjectInternal) project).services.get(ObjectOpener)
 
             task ok {
                 doFirst {
-                    opener.openPackageOf(moduleCls)
+                    opener.makeAccessible(ctor)
                 }
             }
         """

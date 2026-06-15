@@ -109,7 +109,7 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
-import org.gradle.internal.reflection.access.ModuleOpener
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
@@ -206,7 +206,7 @@ class DefaultConfigurationCacheCodecs(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
     problems: ProblemsInternal,
-    private val moduleOpener: ModuleOpener
+    private val objectOpener: ObjectOpener
 ) : ConfigurationCacheCodecs {
 
     private
@@ -225,7 +225,7 @@ class DefaultConfigurationCacheCodecs(
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
 
-            baseTypes(moduleOpener)
+            baseTypes(objectOpener)
 
             bind(HASHCODE_SERIALIZER)
 
@@ -339,7 +339,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, moduleOpener))
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
         bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
@@ -355,7 +355,7 @@ class DefaultConfigurationCacheCodecs(
 
     private
     val internalTypesBindings = Bindings.of {
-        baseTypes(moduleOpener)
+        baseTypes(objectOpener)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)

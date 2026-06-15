@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core.jos
 
-import org.gradle.internal.reflection.access.ModuleOpener
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.graph.codecs.Encoding
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @ServiceScope(Scope.BuildTree::class)
 class JavaSerializationEncodingLookup(
-    private val moduleOpener: ModuleOpener
+    private val objectOpener: ObjectOpener
 ) {
     private
     val encodings = ConcurrentHashMap<Class<*>, EncodingDetails>()
@@ -72,13 +72,13 @@ class JavaSerializationEncodingLookup(
 
     private
     fun readObjectEncodingFor(candidates: List<Method>): Encoding? =
-        readObjectMethodHierarchyFrom(candidates, moduleOpener)
+        readObjectMethodHierarchyFrom(candidates, objectOpener)
             .takeIf { it.isNotEmpty() }
             ?.let { JavaObjectSerializationCodec.ReadObjectEncoding }
 
     private
     fun writeReplaceMethodFrom(candidates: List<Method>) =
-        candidates.firstAccessibleMatchingMethodOrNull(moduleOpener) {
+        candidates.firstAccessibleMatchingMethodOrNull(objectOpener) {
             !Modifier.isStatic(modifiers)
                 && parameterCount == 0
                 && returnType == Any::class.java
@@ -87,7 +87,7 @@ class JavaSerializationEncodingLookup(
 
     private
     fun writeObjectMethodHierarchyFrom(candidates: List<Method>) = candidates
-        .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java, moduleOpener)
+        .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java, objectOpener)
 
     private
     fun readResolveMethodFrom(candidates: List<Method>) =

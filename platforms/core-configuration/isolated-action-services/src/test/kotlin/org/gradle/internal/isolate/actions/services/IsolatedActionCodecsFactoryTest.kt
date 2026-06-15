@@ -28,7 +28,7 @@ import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
 import org.gradle.internal.isolate.graph.IsolatedActionSerializer
 import org.gradle.internal.isolate.graph.SerializedIsolatedActionGraph
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
-import org.gradle.internal.reflection.access.ModuleOpener
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
@@ -175,7 +175,7 @@ class IsolatedActionCodecsFactoryTest {
 
     private
     fun <T> serialize(action: TestableIsolatedAction<T>) =
-        IsolatedActionSerializer(ownerGradle(), DefaultBeanStateWriterLookup(ModuleOpener.noOp()), isolatedActionCodecsFactory())
+        IsolatedActionSerializer(ownerGradle(), DefaultBeanStateWriterLookup(ObjectOpener.agentless()), isolatedActionCodecsFactory())
             .serialize(action)
 
     private
@@ -197,10 +197,10 @@ class IsolatedActionCodecsFactoryTest {
     private
     fun isolatedActionCodecsFactory(): IsolatedActionCodecsFactory =
         IsolatedActionCodecsFactory(
-            javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ModuleOpener.noOp()),
+            javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
             propertyFactory = propertyFactory(),
             fileFactory = TestFiles.fileFactory(),
             filePropertyFactory = TestFiles.filePropertyFactory(),
-            moduleOpener = ModuleOpener.noOp()
+            objectOpener = ObjectOpener.agentless()
         )
 }
