@@ -47,7 +47,10 @@ public class CheckAiAttribution {
         Pattern.compile("Co-Authored-By:.*Claude", Pattern.CASE_INSENSITIVE),
         Pattern.compile("Co-Authored-By:.*noreply@anthropic\\.com", Pattern.CASE_INSENSITIVE),
         Pattern.compile("Generated with .*Claude Code", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("🤖 Generated with", Pattern.CASE_INSENSITIVE)
+        Pattern.compile("🤖 Generated with", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("Co-Authored-By:.*Cursor", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("Co-Authored-By:.*cursoragent@cursor\\.com", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("Ma(de|ke) with .*Cursor", Pattern.CASE_INSENSITIVE)
     );
 
     public static void main(String[] args) throws Exception {
