@@ -126,7 +126,7 @@ public interface TestFailureDetails {
      * These failures are surfaced to the user even under the default test logging granularity,
      * which would otherwise filter out failure events on composite descriptors.
      *
-     * @since 9.7
+     * @since 9.7.0
      * @return true if this is a test-framework startup failure
      */
     boolean isFrameworkStartupFailure();
