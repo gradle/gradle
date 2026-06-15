@@ -33,7 +33,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
-import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
@@ -47,7 +47,7 @@ import java.nio.file.Path
 
 internal
 class KotlinCompileClasspathFingerprinter(
-    private val cache: KotlinDslIncrementalCompilationCache
+    private val cache: KotlinDslClasspathEntrySnapshotCache
 ) : FileCollectionFingerprinter {
 
     private val snapshotter by lazy { Snapshotter() }

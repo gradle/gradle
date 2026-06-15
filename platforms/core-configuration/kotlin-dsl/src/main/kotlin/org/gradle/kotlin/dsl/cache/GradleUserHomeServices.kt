@@ -39,19 +39,33 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @PrivateService
     fun createKotlinDslIncrementalCompilationStore(
         cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
-        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     ): KotlinDslIncrementalCompilationStore =
-        KotlinDslIncrementalCompilationStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
+        KotlinDslIncrementalCompilationStore(cacheBuilderFactory)
 
     @Provides
     fun createKotlinDslIncrementalCompilationCache(
         store: KotlinDslIncrementalCompilationStore,
-    ): KotlinDslIncrementalCompilationCache {
-        val maxEntriesToKeep = 10_000
-        return KotlinDslIncrementalCompilationCache(
+    ): KotlinDslIncrementalCompilationCache =
+        KotlinDslIncrementalCompilationCache(
             store.scriptsCacheDirectory,
             store.scriptSourcesCacheDirectory,
             store.scriptOutputsCacheDirectory,
+        )
+
+    @Provides
+    @PrivateService
+    fun createKotlinDslClasspathEntrySnapshotStore(
+        cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
+    ): KotlinDslClasspathEntrySnapshotStore =
+        KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
+
+    @Provides
+    fun createKotlinDslClasspathEntrySnapshotCache(
+        store: KotlinDslClasspathEntrySnapshotStore,
+    ): KotlinDslClasspathEntrySnapshotCache {
+        val maxEntriesToKeep = 10_000
+        return KotlinDslClasspathEntrySnapshotCache(
             store.snapshotsCacheDirectory,
             store.createIndexedCache(
                 IndexedCacheParameters.of("kotlinDslClasspathSnapshotIndex", HashCode::class.java, HashCodeSerializer()),

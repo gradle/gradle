@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
@@ -43,6 +42,8 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotStore
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationStore
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -127,6 +128,7 @@ class SimplifiedKotlinScriptEvaluator(
             TestModuleRegistry(),
             DefaultClassLoaderFactory(),
             TestFiles.fileSystemAccess(),
+            sharedTestClasspathSnapshotCache,
             sharedTestIncrementalCompilationCache
         ).eval(
             target,
@@ -279,25 +281,29 @@ val testRuntimeClassPath: ClassPath by lazy {
 
 
 /**
- * A test-only [KotlinDslIncrementalCompilationCache] paired with the [Closeable] store that owns
- * its underlying [org.gradle.cache.PersistentCache]. Tests **must** [close] this once they are
- * done with the cache, or the file lock and on-disk state will leak for the duration of the test
- * JVM.
+ * A test-only [KotlinDslIncrementalCompilationCache] and [KotlinDslClasspathEntrySnapshotCache] paired
+ * with the [Closeable] stores that own their underlying [org.gradle.cache.PersistentCache]s. Tests
+ * must [close] this once they are done, or the file locks and on-disk state will leak for the
+ * duration of the test JVM.
  */
 class TestIncrementalCompilationCache internal constructor(
-    val cache: KotlinDslIncrementalCompilationCache,
-    private val store: KotlinDslIncrementalCompilationStore,
+    val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+    private val incrementalCompilationStore: KotlinDslIncrementalCompilationStore,
+    val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+    private val classpathEntrySnapshotStore: KotlinDslClasspathEntrySnapshotStore,
 ) : AutoCloseable {
     override fun close() {
-        store.close()
+        incrementalCompilationStore.close()
+        classpathEntrySnapshotStore.close()
     }
 }
 
 
 /**
- * Builds a real [KotlinDslIncrementalCompilationCache] for tests, rooted at [rootDir].
- * Wires the same primitives Gradle uses in production but with in-memory test fakes for the
- * cache factories, so each test gets an isolated cache without touching the real user-home cache.
+ * Builds a real [KotlinDslIncrementalCompilationCache] and [KotlinDslClasspathEntrySnapshotCache] for
+ * tests, rooted at [rootDir]. Wires the same primitives Gradle uses in production but with in-memory
+ * test fakes for the cache factories, so each test gets isolated caches without touching the real
+ * user-home cache.
  *
  * Returns an [AutoCloseable] wrapper — the caller is responsible for closing it (typically in
  * `@After` / `@AfterClass`, or via `close()` on whatever owns the cache).
@@ -306,26 +312,30 @@ fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCa
     rootDir.mkdirs()
     val cacheBuilderFactory = DefaultGlobalScopedCacheBuilderFactory(rootDir, DefaultUnscopedCacheBuilderFactory(TestInMemoryCacheFactory()))
     val inMemoryCacheDecoratorFactory = DefaultInMemoryCacheDecoratorFactory(false, TestCrossBuildInMemoryCacheFactory())
-    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
+    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory)
     val cache = KotlinDslIncrementalCompilationCache(
         store.scriptsCacheDirectory,
         store.scriptSourcesCacheDirectory,
         store.scriptOutputsCacheDirectory,
-        store.snapshotsCacheDirectory,
-        store.createIndexedCache(
+    )
+    val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
+    val snapshotCache = KotlinDslClasspathEntrySnapshotCache(
+        snapshotStore.snapshotsCacheDirectory,
+        snapshotStore.createIndexedCache(
             IndexedCacheParameters.of("kotlinDslClasspathSnapshotIndex", HashCode::class.java, HashCodeSerializer()),
             10_000,
             true
         )
     )
-    return TestIncrementalCompilationCache(cache, store)
+    return TestIncrementalCompilationCache(cache, store, snapshotCache, snapshotStore)
 }
 
 
 /**
- * A per-JVM [KotlinDslIncrementalCompilationCache] for unit tests. The classpath snapshotting that
- * `configureIncrementalCompilation` does is ~5 s for the kotlin-dsl test runtime classpath; the
- * lazy here amortises it across every test in the same JVM fork.
+ * A per-JVM [KotlinDslIncrementalCompilationCache] and [KotlinDslClasspathEntrySnapshotCache] for unit
+ * tests. The classpath snapshotting that `configureIncrementalCompilation` does is ~5 s for the
+ * kotlin-dsl test runtime classpath; the lazy here amortises it across every test in the same JVM
+ * fork.
  *
  * Rooted at a unique per-JVM directory under `java.io.tmpdir` (PID-suffixed) so concurrent Gradle
  * test forks don't contend on the same on-disk cache lock — without per-fork isolation,
@@ -335,7 +345,7 @@ fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCa
  * Tests that need cache isolation (e.g. asserting on cache-state side effects) should use
  * [testIncrementalCompilationCache] with their own directory instead.
  */
-val sharedTestIncrementalCompilationCache: KotlinDslIncrementalCompilationCache by lazy {
+private val sharedTestCaches: TestIncrementalCompilationCache by lazy {
     val pid = ProcessHandle.current().pid()
     val dir = File(System.getProperty("java.io.tmpdir"), "kotlin-dsl-ic-test-$pid").also { it.mkdirs() }
     val testCache = testIncrementalCompilationCache(dir)
@@ -349,5 +359,13 @@ val sharedTestIncrementalCompilationCache: KotlinDslIncrementalCompilationCache 
         } catch (_: Throwable) {
         }
     })
-    testCache.cache
+    testCache
 }
+
+
+val sharedTestIncrementalCompilationCache: KotlinDslIncrementalCompilationCache
+    get() = sharedTestCaches.incrementalCompilationCache
+
+
+val sharedTestClasspathSnapshotCache: KotlinDslClasspathEntrySnapshotCache
+    get() = sharedTestCaches.classpathEntrySnapshotCache

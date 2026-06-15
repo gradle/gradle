@@ -44,6 +44,7 @@ import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
@@ -123,6 +124,7 @@ object BuildServices : ServiceRegistrationProvider {
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
         fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache
     ): KotlinScriptEvaluator =
 
@@ -154,6 +156,7 @@ object BuildServices : ServiceRegistrationProvider {
             gradleCoreTypeRegistry,
             propertyUpgradeReportConfig,
             fileSystemAccess,
+            classpathSnapshotCache,
             incrementalCompilationCache
         )
 
@@ -166,7 +169,7 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createCompileClasspathHasher(
-        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         fileCollectionSnapshotter: FileCollectionSnapshotter,
         fileCollectionFactory: FileCollectionFactory,
         classpathFingerprinter: ClasspathFingerprinter
@@ -174,7 +177,7 @@ object BuildServices : ServiceRegistrationProvider {
         DefaultClasspathHasher(
             fileCollectionSnapshotter,
             if (isKotlinScriptCompilationAvoidanceEnabled) {
-                KotlinCompileClasspathFingerprinter(incrementalCompilationCache)
+                KotlinCompileClasspathFingerprinter(classpathSnapshotCache)
             } else {
                 classpathFingerprinter
             },
