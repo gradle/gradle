@@ -20,6 +20,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 
@@ -40,6 +41,13 @@ public interface JacocoLimit {
     Property<String> getCounter();
 
     /**
+     * Sets the counter that applies to the limit.
+     *
+     * @param counter Counter
+     */
+    void setCounter(String counter);
+
+    /**
      * The value that applies to the limit as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICounter.CounterValue.html">org.jacoco.core.analysis.ICounter.CounterValue</a>.
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
@@ -47,6 +55,13 @@ public interface JacocoLimit {
     @Input
     @ReplacesEagerProperty
     Property<String> getValue();
+
+    /**
+     * Sets the value that applies to the limit.
+     *
+     * @param value Value
+     */
+    void setValue(String value);
 
     /**
      * Gets the minimum expected value for limit. Default to null.
@@ -57,10 +72,24 @@ public interface JacocoLimit {
     Property<BigDecimal> getMinimum();
 
     /**
+     * Sets the minimum expected value for limit.
+     *
+     * @param minimum Minimum
+     */
+    void setMinimum(@Nullable BigDecimal minimum);
+
+    /**
      * Gets the maximum expected value for limit. Default to null.
      */
     @Optional
     @Input
     @ReplacesEagerProperty
     Property<BigDecimal> getMaximum();
+
+    /**
+     * Sets the maximum expected value for limit.
+     *
+     * @param maximum Maximum
+     */
+    void setMaximum(@Nullable BigDecimal maximum);
 }
