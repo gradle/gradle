@@ -17,10 +17,14 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,16 +32,34 @@ import java.util.List;
  *
  * @since 3.4
  */
-public interface JacocoViolationRule extends Serializable {
-
-    void setEnabled(boolean enabled);
+public interface JacocoViolationRule {
 
     /**
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isEnabled();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getEnabled();
+
+    void setEnabled(boolean enabled);
+
+    /**
+     * Used for Kotlin source compatibility after migration to the Provider API.
+     * @see #getEnabled()
+     */
+    @Internal
+    default Property<Boolean> getIsEnabled() {
+        return getEnabled();
+    }
+
+    /**
+     * Gets the element for the rule as defined by
+     * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.ElementType.html">org.jacoco.core.analysis.ICoverageNode.ElementType</a>.
+     * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
+     */
+    @Input
+    @ReplacesEagerProperty
+    Property<String> getElement();
 
     /**
      * Sets element for the rule.
@@ -47,13 +69,12 @@ public interface JacocoViolationRule extends Serializable {
     void setElement(String element);
 
     /**
-     * Gets the element for the rule as defined by
-     * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.ElementType.html">org.jacoco.core.analysis.ICoverageNode.ElementType</a>.
-     * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
+     * List of elements that should be included in check. Names can use wildcards (* and ?).
+     * If left empty, all elements will be included. Defaults to [*].
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getElement();
+    @ReplacesEagerProperty
+    ListProperty<String> getIncludes();
 
     /**
      * Sets list of elements that should be included in check.
@@ -63,12 +84,12 @@ public interface JacocoViolationRule extends Serializable {
     void setIncludes(List<String> includes);
 
     /**
-     * List of elements that should be included in check. Names can use wildcards (* and ?).
-     * If left empty, all elements will be included. Defaults to [*].
+     * List of elements that should be excluded from check. Names can use wildcards (* and ?).
+     * If left empty, no elements will be excluded. Defaults to an empty list.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<String> getIncludes();
+    @ReplacesEagerProperty
+    ListProperty<String> getExcludes();
 
     /**
      * Sets list of elements that should be excluded from check.
@@ -78,19 +99,11 @@ public interface JacocoViolationRule extends Serializable {
     void setExcludes(List<String> excludes);
 
     /**
-     * List of elements that should be excluded from check. Names can use wildcards (* and ?).
-     * If left empty, no elements will be excluded. Defaults to an empty list.
-     */
-    @Input
-    @ToBeReplacedByLazyProperty
-    List<String> getExcludes();
-
-    /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
-    @Input
-    @ToBeReplacedByLazyProperty
-    List<JacocoLimit> getLimits();
+    @Nested
+    @ReplacesEagerProperty
+    Provider<List<JacocoLimit>> getLimits();
 
     /**
      * Adds a limit for this rule. Any number of limits can be added.

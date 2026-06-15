@@ -18,108 +18,74 @@ package org.gradle.internal.jacoco.rules;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import javax.inject.Inject;
 import java.util.List;
 
-public class JacocoViolationRuleImpl implements JacocoViolationRule {
+public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
 
-    private boolean enabled = true;
-    private String scope = "BUNDLE";
-    private List<String> includes = ImmutableList.of("*");
-    private List<String> excludes = ImmutableList.of();
-    private final List<JacocoLimit> limits = new ArrayList<JacocoLimit>();
+    private final ObjectFactory objectFactory;
+    private final ListProperty<JacocoLimit> limits;
+
+    @Inject
+    public JacocoViolationRuleImpl(ObjectFactory objectFactory) {
+        getEnabled().convention(true);
+        getElement().convention("BUNDLE");
+        getIncludes().convention(ImmutableList.of("*"));
+        this.objectFactory = objectFactory;
+        this.limits = objectFactory.listProperty(JacocoLimit.class);
+    }
 
     @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public abstract Property<Boolean> getEnabled();
 
     @Override
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        getEnabled().set(enabled);
     }
+
+    @Override
+    public abstract Property<String> getElement();
 
     @Override
     public void setElement(String element) {
-        this.scope = element;
+        getElement().set(element);
     }
 
     @Override
-    public String getElement() {
-        return scope;
-    }
+    public abstract ListProperty<String> getIncludes();
 
     @Override
     public void setIncludes(List<String> includes) {
-        this.includes = includes;
+        getIncludes().set(includes);
     }
 
     @Override
-    public List<String> getIncludes() {
-        return Collections.unmodifiableList(includes);
-    }
+    public abstract ListProperty<String> getExcludes();
 
     @Override
     public void setExcludes(List<String> excludes) {
-        this.excludes = excludes;
+        getExcludes().set(excludes);
     }
 
     @Override
-    public List<String> getExcludes() {
-        return Collections.unmodifiableList(excludes);
-    }
-
-    @Override
-    public List<JacocoLimit> getLimits() {
-        return Collections.unmodifiableList(limits);
+    public Provider<List<JacocoLimit>> getLimits() {
+        // Make it read-only
+        return limits.map(SerializableLambdas.transformer(__ -> __));
     }
 
     @Override
     public JacocoLimit limit(Action<? super JacocoLimit> configureAction) {
-        JacocoLimit limit = new JacocoLimitImpl();
+        JacocoLimit limit = objectFactory.newInstance(JacocoLimitImpl.class);
         configureAction.execute(limit);
         limits.add(limit);
         return limit;
-    }
-
-    @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JacocoViolationRuleImpl that = (JacocoViolationRuleImpl) o;
-
-        if (enabled != that.enabled) {
-            return false;
-        }
-        if (scope != that.scope) {
-            return false;
-        }
-        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
-            return false;
-        }
-        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
-            return false;
-        }
-        return limits != null ? limits.equals(that.limits) : that.limits == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = enabled ? 1 : 0;
-        result = 31 * result + (scope != null ? scope.hashCode() : 0);
-        result = 31 * result + (includes != null ? includes.hashCode() : 0);
-        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (limits != null ? limits.hashCode() : 0);
-        return result;
     }
 }
