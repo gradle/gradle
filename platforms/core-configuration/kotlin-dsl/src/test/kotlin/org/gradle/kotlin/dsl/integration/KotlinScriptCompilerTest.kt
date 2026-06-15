@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.sharedTestClasspathSnapshotCache
 import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
@@ -113,6 +114,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
             testRuntimeClassPath.asFiles,
             mock(),
             TestFiles.fileSystemAccess(),
+            sharedTestClasspathSnapshotCache,
             sharedTestIncrementalCompilationCache,
             scriptIdentity = "script.kts"
         ) { it }
