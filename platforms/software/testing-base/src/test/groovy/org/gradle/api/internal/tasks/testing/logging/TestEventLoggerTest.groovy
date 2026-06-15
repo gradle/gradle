@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.TestResult
@@ -121,5 +122,51 @@ class TestEventLoggerTest extends Specification {
     def "allows empty event set"() {
         expect:
         testLogging.setEvents(Collections.emptySet())
+    }
+
+    def "framework startup failure on composite descriptor bypasses default granularity"() {
+        // Default granularity: minGranularity = -1 (leaves only)
+        // outerSuiteDescriptor is composite, so under default granularity it would be filtered.
+        def cause = new RuntimeException("init boom")
+        testLogging.events(TestLogEvent.FAILED)
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = [DefaultTestFailure.fromTestFrameworkStartupFailure(cause)]
+        result.exceptions = [cause]
+        exceptionFormatter.format(*_) >> "formatted startup exception"
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 1
+        textOutputFactory.output.contains("formatted startup exception")
+    }
+
+    def "regular framework failure on composite descriptor is still filtered by default granularity"() {
+        // Regression: only framework-startup failures bypass, not generic framework failures.
+        testLogging.events(TestLogEvent.FAILED)
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = [DefaultTestFailure.fromTestFrameworkFailure(new RuntimeException("regular failure"), null)]
+        exceptionFormatter.format(*_) >> "formatted regular exception"
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 0
+    }
+
+    def "framework startup failure does not bypass events-set filter"() {
+        // The granularity bypass must NOT also override the events-set predicate.
+        // If FAILED is not in the events set, the user has explicitly silenced it.
+        testLogging.setEvents(Collections.emptySet())
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = [DefaultTestFailure.fromTestFrameworkStartupFailure(new RuntimeException("init boom"))]
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 0
     }
 }

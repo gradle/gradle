@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
 import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
@@ -106,10 +107,19 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     private void after(TestDescriptor descriptor, TestResult result) {
         TestLogEvent event = getEvent(result);
 
-        if (shouldLogEvent(descriptor, event)) {
+        if (shouldLogEvent(descriptor, event, hasFrameworkStartupFailure(result))) {
             String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
             logEvent(descriptor, event, details);
         }
+    }
+
+    private boolean hasFrameworkStartupFailure(TestResult result) {
+        for (TestFailure failure : result.getFailures()) {
+            if (failure.getDetails().isFrameworkStartupFailure()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private TestLogEvent getEvent(TestResult result) {
@@ -122,7 +132,11 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     }
 
     private boolean shouldLogEvent(TestDescriptor descriptor, TestLogEvent event) {
-        return isLoggedGranularity(descriptor) && isLoggedEventType(event);
+        return shouldLogEvent(descriptor, event, false);
+    }
+
+    private boolean shouldLogEvent(TestDescriptor descriptor, TestLogEvent event, boolean bypassGranularity) {
+        return (bypassGranularity || isLoggedGranularity(descriptor)) && isLoggedEventType(event);
     }
 
     private boolean shouldLogExceptions(TestResult result) {
