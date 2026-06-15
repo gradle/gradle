@@ -90,8 +90,7 @@ class BinaryCompatibilityHelper {
                     addSetupRule(AcceptedRegressionsRuleSetup, [acceptedApiChanges: acceptedChanges])
                     addSetupRule(SinceAnnotationRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
                     addSetupRule(BinaryCompatibilityRepositorySetupRule, [
-                        (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
-                        (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set
+                        (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set
                     ])
                     addSetupRule(UpgradePropertiesRuleSetup, [
                         currentUpgradedProperties: currentUpgradedPropertiesFile.absolutePath,
