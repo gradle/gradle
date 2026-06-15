@@ -37,17 +37,17 @@ class ObjectOpenerIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.project.ProjectInternal
             import org.gradle.internal.reflection.access.ObjectOpener
 
-            def jarPath = file('libs/custom.jar').toPath()
-            def finder = ModuleFinder.of(jarPath)
-            def parent = ModuleLayer.boot()
-            def config = parent.configuration().resolve(finder, ModuleFinder.of(), ['custom'])
-            def layer = parent.defineModulesWithOneLoader(config, getClass().classLoader)
-            def moduleCls = layer.findLoader('custom').loadClass('custom.CustomClass')
-            def ctor = moduleCls.getDeclaredConstructor()
-            def opener = ((ProjectInternal) project).services.get(ObjectOpener)
-
             task ok {
+                def jarPath = file('libs/custom.jar').toPath()
+                def opener = ((ProjectInternal) project).services.get(ObjectOpener)
+
                 doFirst {
+                    def finder = ModuleFinder.of(jarPath)
+                    def parent = ModuleLayer.boot()
+                    def config = parent.configuration().resolve(finder, ModuleFinder.of(), ['custom'])
+                    def layer = parent.defineModulesWithOneLoader(config, getClass().classLoader)
+                    def moduleCls = layer.findLoader('custom').loadClass('custom.CustomClass')
+                    def ctor = moduleCls.getDeclaredConstructor()
                     opener.makeAccessible(ctor)
                 }
             }
