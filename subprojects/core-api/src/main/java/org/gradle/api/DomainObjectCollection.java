@@ -57,8 +57,19 @@ public interface DomainObjectCollection<T> extends Collection<T> {
     /**
      * Return a provider containing all elements added to this collection.
      * <p>
-     * The returned provider retains all build dependencies of all providers
+     * The returned provider retains the build dependencies of providers
      * added by {@link #addLater(Provider)} or {@link #addAllLater(Provider)}.
+     * <p>
+     * The value produced by a provider with build dependencies, by definition,
+     * is not valid until those build dependencies are executed. For example, if a task
+     * produces an output file, the value of a provider returning that file is not valid
+     * until the task executes.
+     * <p>
+     * Querying the contents of this provider before the build dependencies of providers
+     * added by {@link #addLater(Provider)} and {@link #addAllLater(Provider)} will result
+     * in undefined behavior. In general, the returned provider should only be used to
+     * wire values between tasks. Avoid directly calling {@link Provider#get()} or any other
+     * method that realizes the value of the returned provier.
      *
      * @since 9.7.0
      */

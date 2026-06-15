@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
@@ -36,7 +37,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
@@ -248,7 +248,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public ProviderInternal<SortedSet<T>> getElements() {
+    public ProviderInternal<Set<T>> getElements() {
         return new BuildableBackedProvider<>(
             context -> {
                 // TODO: As this is implemented, the returned provider will "lose" build
@@ -258,10 +258,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                     context.add(collector.getProducer());
                 }
             },
-            Cast.uncheckedCast(SortedSet.class),
+            Cast.uncheckedCast(Set.class),
             () -> {
                 realizePending();
-                return values;
+                return ImmutableSet.copyOf(values);
             }
         );
     }
