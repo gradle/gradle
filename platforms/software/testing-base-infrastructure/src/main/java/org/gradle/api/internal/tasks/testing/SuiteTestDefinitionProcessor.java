@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.redirector.JULRedirector;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.time.Clock;
 
 public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
@@ -42,7 +43,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException("Could not start " + suiteDescriptor + ".", t);
-            resultProcessor.failure(suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
 
@@ -52,7 +53,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
             processor.processTestDefinition(testDefinition);
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException("Could not execute " + testDefinition.getDisplayName() + ".", t);
-            resultProcessor.failure(suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
 
@@ -62,7 +63,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
             processor.stop();
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException("Could not complete execution for " + suiteDescriptor + ".", t);
-            resultProcessor.failure(suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         } finally {
             resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }

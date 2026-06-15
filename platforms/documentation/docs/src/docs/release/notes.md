@@ -113,11 +113,13 @@ In all modes, the severity of Isolated Projects violations is now independent of
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
-#### Framework initialization failures are always logged to the console
+#### Test framework initialization failures for TestNG and JUnit 4 frameworks are always logged to the console
 
-Previously, when the test framework failed to initialize (for example, a TestNG test class whose constructor threw, or a JUnit framework that could not start a suite), the failure was attached to a composite test descriptor and was silently filtered out by the default test logging granularity (`-1`, leaves only). Users would see only `> There were failing tests` and had to read the XML report to find the underlying cause.
+Previously, when these test frameworks failed to initialize (for example, when a TestNG test class threw an exception from the constructor, or JUnit 4 could not start a suite), the failure was silently filtered out by the default test logging granularity.
+Users would see only `> There were failing tests` and had to read the XML report to find the underlying cause.
 
-These framework-startup failures now bypass the granularity filter and are always written to the console under the default configuration. The events-set predicate (`testLogging.events`) still applies — explicitly silencing `FAILED` events is honored.
+These test framework-startup failures now bypass the granularity filter and are always written to the console by default.
+The `testLogging.events` predicate still applies — explicitly silencing `FAILED` events is honored.
 
 The new `TestFailureDetails.isFrameworkStartupFailure()` predicate exposes this distinction to Tooling-API and Build-Scan consumers, who may render framework-startup failures differently from ordinary test failures.
 

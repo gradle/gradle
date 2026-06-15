@@ -255,6 +255,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (testIdentifier.isTest()) {
                 reportTestFailure(testIdentifier, failure);
             } else {
+                // Container-level failure (e.g. @BeforeAll threw, class init blew up, no test method
+                // ever got to run) — classify as a framework failure so the granularity bypass in
+                // TestEventLogger surfaces it even under non-default testLogging configurations
+                // that would otherwise filter the synthesized leaf. Symmetric with how
+                // JUnitTestExecutor.accept emits the analogous JUnit 4 failure.
                 TestDescriptorInternal syntheticTestDescriptor = createSyntheticTestDescriptorForContainer(testIdentifier);
                 resultProcessor.started(syntheticTestDescriptor, startEvent(getId(testIdentifier)));
                 resultProcessor.failure(syntheticTestDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));

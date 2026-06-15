@@ -19,14 +19,14 @@ package org.gradle.api.internal.tasks.testing
 import spock.lang.Specification
 
 class DefaultTestFailureTest extends Specification {
-    def "fromTestFrameworkStartupFailure produces details whose isFrameworkStartupFailure() returns true"() {
+    def "fromTestFrameworkFailure produces details whose isFrameworkFailure() returns true"() {
         def cause = new RuntimeException("boom")
 
         when:
-        def failure = DefaultTestFailure.fromTestFrameworkStartupFailure(cause)
+        def failure = DefaultTestFailure.fromTestFrameworkFailure(cause)
 
         then:
-        failure.details.frameworkStartupFailure
+        failure.details.frameworkFailure
         !failure.details.assertionFailure
         !failure.details.assumptionFailure
         !failure.details.fileComparisonFailure
@@ -34,27 +34,14 @@ class DefaultTestFailureTest extends Specification {
         failure.details.message == 'boom'
     }
 
-    def "fromTestFrameworkFailure produces details whose isFrameworkStartupFailure() returns false"() {
-        def cause = new RuntimeException("boom")
-
-        when:
-        def failure = DefaultTestFailure.fromTestFrameworkFailure(cause, null)
-
-        then:
-        !failure.details.frameworkStartupFailure
-        !failure.details.assertionFailure
-        !failure.details.assumptionFailure
-        !failure.details.fileComparisonFailure
-    }
-
-    def "fromTestAssertionFailure produces details whose isFrameworkStartupFailure() returns false"() {
+    def "fromTestAssertionFailure produces details whose isFrameworkFailure() returns false"() {
         def cause = new AssertionError("nope")
 
         when:
         def failure = DefaultTestFailure.fromTestAssertionFailure(cause, 'expected', 'actual', null)
 
         then:
-        !failure.details.frameworkStartupFailure
+        !failure.details.frameworkFailure
         failure.details.assertionFailure
     }
 }

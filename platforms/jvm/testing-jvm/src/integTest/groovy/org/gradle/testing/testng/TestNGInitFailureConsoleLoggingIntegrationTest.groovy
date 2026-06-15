@@ -48,7 +48,7 @@ class TestNGInitFailureConsoleLoggingIntegrationTest extends AbstractIntegration
     def "framework initialization failure is logged under explicit non-default granularity"() {
         TestNGCoverage.enableTestNG(buildFile, '6.3.1')
         // Explicit testLogging that would normally filter composite (class/suite) descriptors:
-        // minGranularity=3 (methods+) and the TestNG framework-startup failure lands on the
+        // minGranularity=3 (methods+) and the TestNG framework-failure failure lands on the
         // class-level descriptor (level 2), so without the bypass the failure would be filtered.
         buildFile << """
             test {
@@ -71,7 +71,7 @@ class TestNGInitFailureConsoleLoggingIntegrationTest extends AbstractIntegration
         expect:
         fails("test")
 
-        // The bypass should make framework-startup failures visible even when the
+        // The bypass should make framework-failure failures visible even when the
         // configured granularity would otherwise filter the composite class-level event.
         outputContains("NullPointerException")
     }

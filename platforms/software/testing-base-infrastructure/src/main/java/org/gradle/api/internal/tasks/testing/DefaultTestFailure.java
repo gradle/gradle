@@ -80,17 +80,12 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
-        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        TestFailureDetails details = new TestFrameworkFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
-    public static TestFailure fromTestFrameworkStartupFailure(Throwable failure) {
-        TestFailureDetails details = new FrameworkStartupFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
-        return new DefaultTestFailure(failure, details, Collections.emptyList());
-    }
-
     private static List<TestFailure> emptyIfNull(@Nullable List<TestFailure> causes) {
-        return causes == null ? Collections.<TestFailure>emptyList() : causes;
+        return causes == null ? Collections.emptyList() : causes;
     }
 
     private static String messageOf(Throwable throwable) {
@@ -126,5 +121,4 @@ public class DefaultTestFailure extends TestFailure {
             cause
         );
     }
-
 }

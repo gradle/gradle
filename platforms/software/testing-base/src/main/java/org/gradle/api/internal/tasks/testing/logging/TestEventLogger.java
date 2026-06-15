@@ -106,20 +106,32 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
     private void after(TestDescriptor descriptor, TestResult result) {
         TestLogEvent event = getEvent(result);
-
-        if (shouldLogEvent(descriptor, event, hasFrameworkStartupFailure(result))) {
+        boolean bypassGranularity = hasFrameworkFailure(result) || hasOwnFailureOnComposite(descriptor, result);
+        if (shouldLogEvent(descriptor, event, bypassGranularity)) {
             String details = shouldLogExceptions(result) ? exceptionFormatter.format(descriptor, result.getExceptions()) : null;
             logEvent(descriptor, event, details);
         }
     }
 
-    private boolean hasFrameworkStartupFailure(TestResult result) {
+    private boolean hasFrameworkFailure(TestResult result) {
         for (TestFailure failure : result.getFailures()) {
-            if (failure.getDetails().isFrameworkStartupFailure()) {
+            if (failure.getDetails().isFrameworkFailure()) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * A composite descriptor that has its own failures (not just failures inherited from children)
+     * has no leaf to surface them at; granularity filtering would hide them entirely.
+     * <p>
+     * Children's failures don't propagate into a parent's {@link TestResult#getFailures()} — they set the
+     * parent's {@code failedChild} flag instead — so a non-empty failure list on a composite is
+     * always an own-failure.
+     */
+    private boolean hasOwnFailureOnComposite(TestDescriptor descriptor, TestResult result) {
+        return descriptor.isComposite() && !result.getFailures().isEmpty();
     }
 
     private TestLogEvent getEvent(TestResult result) {
