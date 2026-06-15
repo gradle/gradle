@@ -20,10 +20,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
-import java.lang.reflect.Method;
+import java.lang.reflect.Member;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -113,14 +111,8 @@ class DefaultObjectOpener implements ObjectOpener {
 
     @Nullable
     private static Class<?> declaringClassOf(AccessibleObject accessibleObject) {
-        if (accessibleObject instanceof Field) {
-            return ((Field) accessibleObject).getDeclaringClass();
-        }
-        if (accessibleObject instanceof Method) {
-            return ((Method) accessibleObject).getDeclaringClass();
-        }
-        if (accessibleObject instanceof Constructor<?>) {
-            return ((Constructor<?>) accessibleObject).getDeclaringClass();
+        if (accessibleObject instanceof Member accessibleMember) {
+            return accessibleMember.getDeclaringClass();
         }
         return null;
     }
