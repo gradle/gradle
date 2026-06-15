@@ -68,16 +68,16 @@ class DefaultScriptFileResolverTest extends Specification {
 
         where:
         createFiles                                                   | expectedSelectedCandidate | expectedNotifiedFiles
-        []                                                            | null                      | ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdcl"]
-        ["a.gradle"]                                                  | "a.gradle"                | ["a.gradle"]
-        ["a.gradle.kts"]                                              | "a.gradle.kts"            | ["a.gradle", "a.gradle.kts"]
-        ["a.gradle.dcl"]                                              | "a.gradle.dcl"            | ["a.gradle", "a.gradle.kts", "a.gradle.dcl"]
-        ["a.gradle.xdcl"]                                             | "a.gradle.xdcl"           | ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdcl"]
-        ["a.gradle", "a.gradle.kts"]                                  | "a.gradle"                | ["a.gradle"]
-        ["a.gradle", "a.gradle.dcl"]                                  | "a.gradle"                | ["a.gradle"]
-        ["a.gradle.kts", "a.gradle.dcl"]                              | "a.gradle.kts"            | ["a.gradle", "a.gradle.kts"]
-        ["a.gradle.dcl", "a.gradle.xdcl"]                             | "a.gradle.dcl"            | ["a.gradle", "a.gradle.kts", "a.gradle.dcl"]
-        ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdcl"] | "a.gradle"                | ["a.gradle"]
+        []                                                            | null                      | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts", "a.gradle.dcl"]
+        ["a.gradle"]                                                  | "a.gradle"                | ["a.gradle.xdcl", "a.gradle"]
+        ["a.gradle.kts"]                                              | "a.gradle.kts"            | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts"]
+        ["a.gradle.dcl"]                                              | "a.gradle.dcl"            | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts", "a.gradle.dcl"]
+        ["a.gradle.xdcl"]                                             | "a.gradle.xdcl"           | ["a.gradle.xdcl"]
+        ["a.gradle", "a.gradle.kts"]                                  | "a.gradle"                | ["a.gradle.xdcl", "a.gradle"]
+        ["a.gradle", "a.gradle.dcl"]                                  | "a.gradle"                | ["a.gradle.xdcl", "a.gradle"]
+        ["a.gradle.kts", "a.gradle.dcl"]                              | "a.gradle.kts"            | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts"]
+        ["a.gradle.dcl", "a.gradle.xdcl"]                             | "a.gradle.xdcl"           | ["a.gradle.xdcl"]
+        ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdcl"] | "a.gradle.xdcl"           | ["a.gradle.xdcl"]
     }
 
     /**
