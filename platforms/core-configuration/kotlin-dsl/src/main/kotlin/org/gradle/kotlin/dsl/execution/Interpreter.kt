@@ -37,6 +37,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -82,6 +83,7 @@ class Interpreter(
     val moduleRegistry: ModuleRegistry,
     val classLoaderFactory: ClassLoaderFactory,
     val fileSystemAccess: FileSystemAccess,
+    val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
     val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
 ) {
 
@@ -348,15 +350,15 @@ class Interpreter(
                     programKind = programKind,
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
-                    logger = interpreterLogger,
+                    moduleRegistry = moduleRegistry,
+                    classLoaderFactory = classLoaderFactory,
                     metadataCompatibilityChecker = metadataCompatibilityChecker,
+                    fileSystemAccess = fileSystemAccess,
+                    classpathEntrySnapshotCache = classpathEntrySnapshotCache,
+                    incrementalCompilationCache = incrementalCompilationCache,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
-                    moduleRegistry = moduleRegistry,
-                    classLoaderFactory = classLoaderFactory,
-                    fileSystemAccess = fileSystemAccess,
-                    incrementalCompilationCache = incrementalCompilationCache,
                 ).compile(residualProgram.document)
             }
         }
@@ -509,13 +511,13 @@ class Interpreter(
                                 programKind,
                                 programTarget,
                                 host.implicitImports,
-                                interpreterLogger,
-                                moduleRegistry,
-                                classLoaderFactory,
-                                scriptHost.metadataCompatibilityChecker,
-                                fileSystemAccess,
-                                incrementalCompilationCache,
-                                host::runCompileBuildOperation
+                                moduleRegistry = moduleRegistry,
+                                classLoaderFactory = classLoaderFactory,
+                                metadataCompatibilityChecker = scriptHost.metadataCompatibilityChecker,
+                                fileSystemAccess = fileSystemAccess,
+                                classpathEntrySnapshotCache = classpathEntrySnapshotCache,
+                                incrementalCompilationCache = incrementalCompilationCache,
+                                compileBuildOperationRunner = host::runCompileBuildOperation
                             ).emitStage2ProgramFor(
                                 program.secondStageScriptText,
                                 originalScriptPath
