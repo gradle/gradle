@@ -17,7 +17,6 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
@@ -54,8 +53,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     @SuppressWarnings("this-escape")
     public JacocoCoverageVerification() {
         super();
-        ObjectFactory objectFactory = getProject().getObjects();
-        violationRules = objectFactory.newInstance(JacocoViolationRulesContainerImpl.class);
+        violationRules = getObjectFactory().newInstance(JacocoViolationRulesContainerImpl.class);
     }
 
     /**
