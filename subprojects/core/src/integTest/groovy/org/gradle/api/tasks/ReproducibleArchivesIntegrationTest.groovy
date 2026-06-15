@@ -200,7 +200,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fails 'zip'
 
         then:
-        failure.assertHasCause("The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum timestamp 2097-11-01T00:00:00Z supported for ZIP archives.")
+        failure.assertHasCause("The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum supported timestamp 2097-11-01T00:00:00Z.")
     }
 
     def "reproducible #taskName fails when preserveFileTimestamps = true and reproducibleFileTimestamp is specified"() {

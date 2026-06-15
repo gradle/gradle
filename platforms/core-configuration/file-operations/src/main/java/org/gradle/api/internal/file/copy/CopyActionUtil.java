@@ -18,28 +18,41 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.provider.Provider;
 
+import java.time.Instant;
 import java.util.OptionalLong;
+import java.util.function.LongUnaryOperator;
 
 public class CopyActionUtil {
 
     /**
-     * Computes the optional reproducible timestamp from the archive task properties.
+     * Computes the fixed timestamp for every archive entry, or empty to preserve each file's own timestamp.
      * <p>
-     * An exception is thrown if the preserve file timestamps property is true and a reproducible file timestamp is specified.
+     * When a timestamp is set it is clamped to the {@code [minimumValue, maximumValue]} range — values above the
+     * maximum fail, values below the minimum are raised to it — and then adjusted by {@code timezoneNormalizer} for
+     * how the format stores it. Clamping the literal value before normalizing keeps the result independent of the
+     * build time zone.
      *
      * @param preserveFileTimestamps true to preserve file timestamps
      * @param reproducibleFileTimestamp the reproducible file timestamp property
-     * @param minimumValue the minimum timestamp that can be specified
-     * @return the optional reproducible timestamp computed based on the properties
+     * @param timezoneNormalizer adjusts the timestamp for the time zone in which the format stores it (identity if none is needed)
+     * @param minimumValue the minimum storable timestamp; smaller values are raised to it
+     * @param maximumValue the maximum storable timestamp; larger values fail, use {@link Long#MAX_VALUE} for no maximum
+     * @throws InvalidUserDataException if a timestamp is set together with preserveFileTimestamps, or if it exceeds maximumValue
+     * @return the timestamp for every entry, or empty to preserve each file's timestamp
      */
-    public static OptionalLong computeReproducibleTimestamp(boolean preserveFileTimestamps, Provider<Long> reproducibleFileTimestamp, long minimumValue) {
+    public static OptionalLong computeReproducibleTimestamp(boolean preserveFileTimestamps, Provider<Long> reproducibleFileTimestamp, LongUnaryOperator timezoneNormalizer, long minimumValue, long maximumValue) {
         if (!reproducibleFileTimestamp.isPresent()) {
-            return preserveFileTimestamps ? OptionalLong.empty() : OptionalLong.of(minimumValue);
+            return preserveFileTimestamps ? OptionalLong.empty() : OptionalLong.of(timezoneNormalizer.applyAsLong(minimumValue));
         } else if (preserveFileTimestamps) {
             throw new InvalidUserDataException("The reproducible file timestamp property cannot be used when the preserve file timestamps property is set to true");
         } else {
-            return OptionalLong.of(Math.max(reproducibleFileTimestamp.get(), minimumValue));
+            long timestamp = reproducibleFileTimestamp.get();
+            if (timestamp > maximumValue) {
+                throw new InvalidUserDataException(String.format(
+                    "The reproducible file timestamp %s is greater than the maximum supported timestamp %s.",
+                    Instant.ofEpochMilli(timestamp), Instant.ofEpochMilli(maximumValue)));
+            }
+            return OptionalLong.of(timezoneNormalizer.applyAsLong(Math.max(timestamp, minimumValue)));
         }
     }
-
 }

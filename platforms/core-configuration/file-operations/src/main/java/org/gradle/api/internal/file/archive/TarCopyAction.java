@@ -35,6 +35,7 @@ import org.gradle.internal.IoActions;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.OptionalLong;
+import java.util.function.LongUnaryOperator;
 
 public class TarCopyAction implements CopyAction {
     /**
@@ -49,12 +50,18 @@ public class TarCopyAction implements CopyAction {
 
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
-    private final OptionalLong fileTimestampMillis;
+    private final OptionalLong reproducibleFileTimestampMs;
 
     public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, boolean preserveFileTimestamps, Provider<Long> reproducibleFileTimestamp) {
         this.tarFile = tarFile;
         this.compressor = compressor;
-        this.fileTimestampMillis = CopyActionUtil.computeReproducibleTimestamp(preserveFileTimestamps, reproducibleFileTimestamp, CONSTANT_TIME_FOR_TAR_ENTRIES);
+        this.reproducibleFileTimestampMs = CopyActionUtil.computeReproducibleTimestamp(
+            preserveFileTimestamps,
+            reproducibleFileTimestamp,
+            LongUnaryOperator.identity(),
+            CONSTANT_TIME_FOR_TAR_ENTRIES,
+            Long.MAX_VALUE
+        );
     }
 
     @Override
@@ -136,6 +143,6 @@ public class TarCopyAction implements CopyAction {
     }
 
     private long getArchiveTimeFor(FileCopyDetails details) {
-        return fileTimestampMillis.orElseGet(details::getLastModified);
+        return reproducibleFileTimestampMs.orElseGet(details::getLastModified);
     }
 }

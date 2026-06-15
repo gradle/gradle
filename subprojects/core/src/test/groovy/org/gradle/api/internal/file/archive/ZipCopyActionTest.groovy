@@ -165,6 +165,24 @@ class ZipCopyActionTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/pull/37790")
+    def "zip with reproducibleFileTimestamp below the zip minimum is raised to it and independent of the default time zone"() {
+        given:
+        // before 1980-02-01, the earliest date storable as MS-DOS date/time
+        def timestamp = java.time.Instant.parse("1979-06-01T00:00:00Z").toEpochMilli()
+        def utcZip = tmpDir.testDirectory.file("utc.zip")
+        def parisZip = tmpDir.testDirectory.file("paris.zip")
+
+        when:
+        zipInTimeZone(utcZip, timestamp, "UTC")
+        zipInTimeZone(parisZip, timestamp, "Europe/Paris")
+
+        then:
+        entryLastModified(utcZip) == new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).timeInMillis
+        entryLastModified(utcZip) == entryLastModified(parisZip)
+        utcZip.md5Hash == parisZip.md5Hash
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/37790")
     def "zip with reproducibleFileTimestamp above the zip maximum fails"() {
         given:
         // above MAXIMUM_TIME_FOR_ZIP_ENTRIES; commons-compress would add an NTFS extra field with
@@ -176,7 +194,7 @@ class ZipCopyActionTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum timestamp 2097-11-01T00:00:00Z supported for ZIP archives."
+        e.message == "The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum supported timestamp 2097-11-01T00:00:00Z."
     }
 
     private FileCopyDetailsInternal plainFile(final String path) {
