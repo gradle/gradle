@@ -28,6 +28,8 @@ import java.lang.reflect.InaccessibleObjectException;
 /// Implementations fall back to a plain `setAccessible(true)` when the instrumentation
 /// agent is unavailable; the original [InaccessibleObjectException] then propagates from
 /// the caller, matching pre-agent behavior.
+///
+/// The implementations are thread-safe.
 @ServiceScope(Scope.Global.class)
 public interface ObjectOpener {
 

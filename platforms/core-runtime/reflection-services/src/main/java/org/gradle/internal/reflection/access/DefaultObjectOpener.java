@@ -25,7 +25,6 @@ import java.lang.reflect.Member;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /// Opens packages in JDK [Module] through [Instrumentation].
 class DefaultObjectOpener implements ObjectOpener {
@@ -34,16 +33,10 @@ class DefaultObjectOpener implements ObjectOpener {
 
     private final Module targetModule = DefaultObjectOpener.class.getModule();
 
-    /// Keyed by source [Module]. We require the source to live in [ModuleLayer#boot()],
-    /// the JDK-defined layer created at JVM startup. Boot-layer modules are never unloaded - they
-    /// share the lifespan of the daemon by construction - so holding strong references here does not
-    /// pin any [ModuleLayer] or [ClassLoader] that could otherwise have been collected.
-    ///
-    /// The inner set holds the packages already opened to [#targetModule]. Concurrent races on
-    /// the first encounter of a `(module, package)` pair are tolerated:
-    /// [Instrumentation#redefineModule] treats `extraOpens` as a set merge, so a duplicate
-    /// instrumentation call is harmless.
-    private final ConcurrentMap<Module, Set<String>> openedPackagesByModule = new ConcurrentHashMap<>();
+    /// The set of opened packages in the boot module layer.
+    /// We don't track the Module owning the package as within the layer a package can be provided by only one Module.
+    /// While users may technically create their own layers, we don't support opening them and fail hard instead.
+    private final Set<String> openedPackagesInBoot = ConcurrentHashMap.newKeySet();
 
     DefaultObjectOpener(Instrumentation instrumentation) {
         this.instrumentation = instrumentation;
@@ -70,8 +63,7 @@ class DefaultObjectOpener implements ObjectOpener {
         // A _module_ can open a _package_ to another _module_.
         // As a shortcut, we're opening to the module this class is defined in.
         String packageName = reflectedClass.getPackageName();
-        Set<String> openedPackages = openedPackagesByModule.get(sourceModule);
-        if (openedPackages != null && openedPackages.contains(packageName)) {
+        if (openedPackagesInBoot.contains(packageName)) {
             // We've opened the package already.
             return;
         }
@@ -104,9 +96,7 @@ class DefaultObjectOpener implements ObjectOpener {
             Set.of(), // extraUses
             Map.of() // extraProvides
         );
-        openedPackagesByModule
-            .computeIfAbsent(sourceModule, m -> ConcurrentHashMap.newKeySet())
-            .add(packageName);
+        openedPackagesInBoot.add(packageName);
     }
 
     @Nullable
