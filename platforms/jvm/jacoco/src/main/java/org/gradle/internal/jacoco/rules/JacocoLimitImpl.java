@@ -18,6 +18,7 @@ package org.gradle.internal.jacoco.rules;
 
 import org.gradle.api.provider.Property;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 
@@ -32,11 +33,31 @@ public abstract class JacocoLimitImpl implements JacocoLimit {
     public abstract Property<String> getCounter();
 
     @Override
+    public void setCounter(String counter) {
+        getCounter().set(counter);
+    }
+
+    @Override
     public abstract Property<String> getValue();
+
+    @Override
+    public void setValue(String value) {
+        getValue().set(value);
+    }
 
     @Override
     public abstract Property<BigDecimal> getMinimum();
 
     @Override
+    public void setMinimum(@Nullable BigDecimal minimum) {
+        getMinimum().set(minimum);
+    }
+
+    @Override
     public abstract Property<BigDecimal> getMaximum();
+
+    @Override
+    public void setMaximum(@Nullable BigDecimal maximum) {
+        getMaximum().set(maximum);
+    }
 }

@@ -44,6 +44,11 @@ public abstract class JacocoViolationRulesContainerImpl implements JacocoViolati
     public abstract Property<Boolean> getFailOnViolation();
 
     @Override
+    public void setFailOnViolation(boolean ignore) {
+        getFailOnViolation().set(ignore);
+    }
+
+    @Override
     public Provider<List<JacocoViolationRule>> getRules() {
         // Make it read-only
         return rules.map(SerializableLambdas.transformer(__ -> __));

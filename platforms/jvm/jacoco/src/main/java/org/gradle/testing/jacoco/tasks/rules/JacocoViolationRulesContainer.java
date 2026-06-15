@@ -17,7 +17,6 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -41,10 +40,19 @@ public interface JacocoViolationRulesContainer {
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getFailOnViolation();
 
+    /**
+     * Indicates whether build should fail in case of rule violation.
+     *
+     * @param ignore Only render violation but do not fail build
+     */
+    void setFailOnViolation(boolean ignore);
+
+    /**
+     * Used for Kotlin source compatibility after migration to the Provider API.
+     * @see #getFailOnViolation()
+     */
     @Internal
-    @Deprecated
     default Property<Boolean> getIsFailOnViolation() {
-        ProviderApiDeprecationLogger.logDeprecation(JacocoViolationRulesContainer.class, "getIsFailOnViolation()", "getFailOnViolation()");
         return getFailOnViolation();
     }
 
