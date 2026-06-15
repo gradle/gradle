@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.api.problems.Severity
 import org.gradle.initialization.StartParameterBuildOptions
 
 /**
@@ -78,6 +79,30 @@ class IsolatedProjectsIgnoreProblemsIntegrationTest extends AbstractIsolatedProj
             hasStoreFailure = false
             projectsConfigured(":", ":a", ":b")
             problem(KOTLIN_VIOLATION, 2)
+        }
+    }
+
+    def "the dangerously-ignore-problems mode itself is reported through the Problems API"() {
+        given:
+        settingsFile "rootProject.name = 'root'"
+        buildFile "task ok {}"
+        enableProblemsApiCheck()
+
+        when:
+        isolatedProjectsSucceedsIgnoringProblems("ok")
+
+        then:
+        assertIgnoreProblemsBannerShownAtStartAndEnd("> Task :ok")
+        receivedProblems.size() == 1
+        verifyAll(receivedProblem) {
+            fqid == 'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems'
+            contextualLabel == 'Isolated Projects dangerously-ignore-problems is ENABLED. ' +
+                'Isolated Projects violations are being ignored. ' +
+                'Build outputs may be incorrect and the build may crash unexpectedly. ' +
+                'Use this only to evaluate performance. ' +
+                'Do not use this to produce artifacts.'
+            definition.severity == Severity.WARNING
+            definition.documentationLink.url.endsWith("/userguide/isolated_projects.html#sec:dangerously_ignore_problems")
         }
     }
 
