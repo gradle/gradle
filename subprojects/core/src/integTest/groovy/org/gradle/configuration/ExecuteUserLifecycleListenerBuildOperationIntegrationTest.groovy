@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -232,7 +233,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(projectsEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOps)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Configuring projects from root, access to root from projects")
+    @UnsupportedWithIsolatedProjects(because = "Gradle.(beforeProject/addListener/addProjectEvaluationListener) cannot be used at project scope with Isolated Projects")
     def 'beforeEvaluate listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -335,7 +336,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasNoChildren(subBeforeEvaluated, subOtherScriptAppId)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Access to root from projects")
+    @UnsupportedWithIsolatedProjects(because = "Gradle.(afterProject/addListener/addProjectEvaluationListener) cannot be used at project scope with Isolated Projects")
     def 'afterEvaluate listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -440,6 +441,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(subAfterEvaluated, subOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
+    @UnsupportedWithIsolatedProjects(because = "Gradle.afterProject cannot be used at project scope with Isolated Projects")
     def 'nested afterEvaluate listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -500,6 +502,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
+    @UnsupportedWithIsolatedProjects(because = "Gradle.addListener cannot be used at project scope with Isolated Projects")
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
