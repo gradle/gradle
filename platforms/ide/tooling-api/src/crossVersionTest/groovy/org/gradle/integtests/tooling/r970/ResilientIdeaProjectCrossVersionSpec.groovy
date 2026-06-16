@@ -29,7 +29,7 @@ import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryS
 class ResilientIdeaProjectCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     private static final List<String> IP_ENABLED = [
-        "-Dorg.gradle.unsafe.isolated-projects=true"
+        "-Dorg.gradle.isolated-projects=true"
     ]
 
     def setup() {

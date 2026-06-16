@@ -28,4 +28,14 @@ class GradleGitPropertiesSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.gorylenko.gradle-git-properties': TestedVersions.gradleGitProperties
         ]
     }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "gitProperties {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('gitProperties')]
+    }
 }

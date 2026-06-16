@@ -16,8 +16,8 @@
 
 package org.gradle.docs.asciidoctor;
 
-import org.asciidoctor.ast.ContentNode;
 import org.asciidoctor.ast.PhraseNode;
+import org.asciidoctor.ast.StructuralNode;
 import org.asciidoctor.extension.InlineMacroProcessor;
 import org.asciidoctor.extension.Name;
 import org.jspecify.annotations.Nullable;
@@ -36,7 +36,7 @@ import java.util.Map;
 public class SinceGradleLabelProcessor extends InlineMacroProcessor {
 
     @Override
-    public @Nullable PhraseNode process(ContentNode parent, String target, Map<String, Object> attributes) {
+    public @Nullable PhraseNode process(StructuralNode parent, String target, Map<String, Object> attributes) {
         String version = target;
         if (version == null || version.trim().isEmpty()) {
             return null;

@@ -18,7 +18,7 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 import static org.hamcrest.CoreMatchers.containsString
 

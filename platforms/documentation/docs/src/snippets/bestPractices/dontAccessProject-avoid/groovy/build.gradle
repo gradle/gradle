@@ -1,0 +1,17 @@
+// tag::avoid-this[]
+abstract class VersionTask extends DefaultTask {
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction
+    void run() {
+        def outputFile = outputDirectory.file("build_version.txt")
+        outputFile.get().asFile.text = project.version.toString() // <1>
+    }
+}
+
+tasks.register("generateVersionFile", VersionTask) {
+    outputDirectory = project.layout.buildDirectory
+}
+// end::avoid-this[]

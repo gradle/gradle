@@ -285,6 +285,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertOutputContainsPattern(String regexPattern) {
+        String content = getMainContent().withNormalizedEol();
+        if (!Pattern.compile(regexPattern).matcher(content).find()) {
+            failOnMissingOutput("Did not find expected pattern in build output.", "Build output", regexPattern, content);
+        }
+        return this;
+    }
+
+    @Override
     public boolean hasErrorOutput(String expectedOutput) {
         return getError().contains(expectedOutput);
     }

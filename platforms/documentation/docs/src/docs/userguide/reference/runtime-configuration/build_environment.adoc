@@ -477,15 +477,24 @@ An explicit value will override `org.gradle.parallel` in this context.
 +
 _Default is the value of `org.gradle.parallel`._
 
-`org.gradle.unsafe.isolated-projects=(true,false)`::
+`org.gradle.isolated-projects=(true,false)` since-gradle-label:9.7.0[]::
 
-Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
+Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, which configures projects in parallel and implies enabling the Configuration Cache.
 +
 _Default is `false`._
 
-`org.gradle.unsafe.isolated-projects.diagnostics=(true,false)`  since-gradle-label:9.6.0[]::
+`org.gradle.isolated-projects.diagnostics=(true,false)` since-gradle-label:9.7.0[]::
 
 Enables <<isolated_projects.adoc#sec:diagnostics_mode,Diagnostics mode>> for Isolated Projects, which runs project configuration sequentially to surface violations across all projects in a deterministic manner.
+Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
++
+_Default is `false`._
+
+`org.gradle.isolated-projects.dangerously-ignore-problems=(true,false)` since-gradle-label:9.7.0[]::
+
+Ignores <<isolated_projects.adoc#sec:dangerously_ignore_problems,Isolated Projects violations>> so that a parallel build or sync can be timed to estimate the speedup before violations are fixed.
+Violations are still reported but do not fail the build.
+Build outputs may be incorrect.
 Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
 +
 _Default is `false`._

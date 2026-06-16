@@ -19,7 +19,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 class TaskActionIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest

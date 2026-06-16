@@ -72,6 +72,12 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     }
 
     @Override
+    default ExecutionResult assertOutputContainsPattern(String regexPattern) {
+        getDelegate().assertOutputContainsPattern(regexPattern);
+        return this;
+    }
+
+    @Override
     default ExecutionResult assertContentContains(String content, String expectedOutput, String label) {
         getDelegate().assertContentContains(content, expectedOutput, label);
         return null;

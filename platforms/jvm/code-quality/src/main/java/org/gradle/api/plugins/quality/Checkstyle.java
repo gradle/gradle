@@ -22,8 +22,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
+import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
@@ -147,7 +147,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
             configureForkOptions(spec.getForkOptions());
             spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get().toString());
         });
-        workQueue.submit(CheckstyleAction.class, this::setupParameters);
+        workQueue.submit(CheckstyleInvoker.class, this::setupParameters);
     }
 
     private void setupParameters(CheckstyleActionParameters parameters) {

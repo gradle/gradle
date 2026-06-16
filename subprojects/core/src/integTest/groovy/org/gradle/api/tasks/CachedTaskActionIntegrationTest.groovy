@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 
 
 class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {

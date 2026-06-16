@@ -43,9 +43,9 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -102,8 +102,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
-    @Issue("https://github.com/gradle/configuration-cache/issues/97")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
+    @ToBeFixedForConfigurationCache(
+        because = "https://github.com/gradle/gradle/issues/31128",
+        issue = "https://github.com/gradle/configuration-cache/issues/97"
+    )
     def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -151,8 +153,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
-    @Issue("https://github.com/gradle/configuration-cache/issues/156")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
+    @ToBeFixedForConfigurationCache(
+        because = "https://github.com/gradle/gradle/issues/31128",
+        issue = "https://github.com/gradle/configuration-cache/issues/156"
+    )
     def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -1308,7 +1312,12 @@ Hello, subproject1
                 }
             }
 
-            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
 
             task check {
                 doFirst {
@@ -1321,7 +1330,9 @@ Hello, subproject1
         run("check")
 
         then:
-        outputContains("service: parameters = org.gradle.api.services.BuildServiceParameters\$None@")
+        outputContains("Spec parameters: BuildServiceParameters.None")
+        outputContains("Configure closure parameters: BuildServiceParameters.None")
+        outputContains("service: parameters = BuildServiceParameters.None")
     }
 
     def "service can be registered without action"() {

@@ -26,3 +26,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "kmp-app-hello-world"
+
+include ":shared"
+include ":app"

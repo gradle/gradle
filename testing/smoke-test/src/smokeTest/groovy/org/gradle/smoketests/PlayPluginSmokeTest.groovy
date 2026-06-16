@@ -18,7 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
@@ -76,5 +76,15 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         [
             'org.gradle.playframework': Versions.of(TestedVersions.playframework)
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "play {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('play')]
     }
 }

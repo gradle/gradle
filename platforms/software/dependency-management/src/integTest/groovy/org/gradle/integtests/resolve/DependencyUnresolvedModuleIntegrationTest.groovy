@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.maven.MavenFileRepository

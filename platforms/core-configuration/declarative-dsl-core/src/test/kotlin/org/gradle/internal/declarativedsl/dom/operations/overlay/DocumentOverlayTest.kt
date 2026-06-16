@@ -454,8 +454,8 @@ class DocumentOverlayTest {
             resolvedDocument("""configuring { s += myStringList("four")"""),
         )
 
-        val result = docs.fold(overlayResolvedDocuments(resolvedDocument(""), resolvedDocument(""))) { acc, it ->
-            overlayResolvedDocuments(acc.result, it)
+        val result = docs.fold(overlayResolvedDocuments(resolvedDocument(""), resolvedDocument(""))) { acc, doc ->
+            overlayResolvedDocuments(acc.result, doc)
         }
 
         assertEquals(
@@ -600,8 +600,8 @@ class DocumentOverlayTest {
             resolvedDocument("configuring { b = 4 }")
         )
 
-        val result = docs.reduce { acc, it ->
-            val overlayResult = overlayResolvedDocuments(acc, it)
+        val result = docs.reduce { acc, doc ->
+            val overlayResult = overlayResolvedDocuments(acc, doc)
             DocumentWithResolution(overlayResult.document, overlayResult.overlayResolutionContainer)
         }
 

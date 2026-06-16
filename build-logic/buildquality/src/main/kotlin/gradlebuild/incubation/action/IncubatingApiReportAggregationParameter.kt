@@ -27,4 +27,6 @@ interface IncubatingApiReportAggregationParameter : WorkParameters {
     val htmlReportFile: RegularFileProperty
     val csvReportFile: RegularFileProperty
     val currentCommit: Property<String>
+    val versionFile: RegularFileProperty
+    val releasedVersionsFile: RegularFileProperty
 }

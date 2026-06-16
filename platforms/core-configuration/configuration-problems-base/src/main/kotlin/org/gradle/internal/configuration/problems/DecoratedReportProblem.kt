@@ -79,6 +79,19 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
                 }
             }
 
+            is PropertyTrace.CapturedLambdaArguments -> {
+                property("kind", "CapturedArguments")
+                property(
+                    "subkind",
+                    when (trace.subkind) {
+                        PropertyTrace.CapturedLambdaArguments.Subkind.LambdaBody -> "lambdaBody"
+                        PropertyTrace.CapturedLambdaArguments.Subkind.BoundReceiver -> "boundReceiver"
+                    }
+                )
+                property("class", trace.owningClass)
+                property("method", trace.owningMethod)
+            }
+
             is PropertyTrace.VirtualProperty -> {
                 property("kind", "VirtualProperty")
                 property("name", trace.name)
@@ -106,9 +119,8 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
 
             is PropertyTrace.SerializedLambda -> {
                 property("kind", "SerializedLambda")
-                property("implClass", trace.implClass)
-                property("implMethodName", trace.implMethodName)
-                property("implMethodSignature", trace.implMethodSignature)
+                property("type", trace.functionalInterfaceClass)
+                property("returns", trace.instantiatedReturnType)
             }
 
             is PropertyTrace.Project -> {

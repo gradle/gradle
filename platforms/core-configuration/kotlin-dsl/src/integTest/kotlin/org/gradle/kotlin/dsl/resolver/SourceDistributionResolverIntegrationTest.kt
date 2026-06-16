@@ -10,6 +10,8 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
@@ -384,6 +386,47 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             } finally {
                 primaryServer.stop()
                 fallbackServer.stop()
+            }
+        }
+    }
+
+    @Test
+    @LeaksFileHandles
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    fun `warning about unresolvable distribution sources is logged only once per build`() {
+        val gradleVersion = distribution.version
+        val repositoryName = gradleVersion.repositoryName
+        val artifactFileName = gradleVersion.artifactFileName
+
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            val primaryServer = HttpServer().apply { start() }
+            val fallbackServer = HttpServer().apply { start() }
+            try {
+                withCustomGradleProperties("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
+
+                // Both repositories permanently fail to serve the sources, any number of attempts
+                primaryServer.allowGetOrHeadMissing("/$repositoryName/$artifactFileName")
+                fallbackServer.allowGetOrHeadMissing("/$repositoryName/$artifactFileName")
+
+                // The IDE builds one Kotlin DSL model per script, each with its own resolver instance.
+                // Resolving twice in one build must still warn only once and resolve only once.
+                withBuildScript(
+                    """
+                    ${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs()
+                    ${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs()
+                    """
+                )
+
+                val result = build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
+
+                val warning = "Could not resolve Gradle distribution sources. See debug logs for details."
+                val warningCount = result.output.split(warning).size - 1
+                assertThat(warningCount, equalTo(1))
+            } finally {
+                primaryServer.stop()
+                fallbackServer.stop()
+                primaryServer.resetExpectations()
+                fallbackServer.resetExpectations()
             }
         }
     }

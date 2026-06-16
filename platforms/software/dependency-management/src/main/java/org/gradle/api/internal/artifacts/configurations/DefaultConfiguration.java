@@ -109,7 +109,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.jspecify.annotations.Nullable;
-
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
@@ -132,7 +131,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 

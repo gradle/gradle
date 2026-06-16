@@ -23,7 +23,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters used to configure a {@link CodeNarcAction}.
+ * Parameters used to configure a {@link CodeNarcInvoker}.
  */
 public interface CodeNarcActionParameters extends AntWorkParameters {
 

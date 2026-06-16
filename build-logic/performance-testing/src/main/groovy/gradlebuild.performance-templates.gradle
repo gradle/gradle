@@ -124,6 +124,23 @@ performanceTest.registerTestProject("ktsSmall", KtsProjectGeneratorTask) {
     daemonMemory = '512m'
 }
 
+// A single Kotlin DSL project whose build script applies a plugin that creates a large number of
+// Java source sets. Each source set contributes several configurations, and each configuration
+// becomes its own generated type-safe accessor class, so a great number of accessor classes are
+// generated for this single project. The number of source sets is the size parameter.
+performanceTest.registerTestProject("kotlinDslManyAccessors", KtsProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 0
+    createTestComponent = false
+    subProjectTemplates = ['kts-many-accessors']
+    additionalProjectFiles = [
+        'buildSrc/src/main/java/org/gradle/performance/kotlindsl/ManySourceSetsPlugin.java',
+        'buildSrc/src/main/resources/META-INF/gradle-plugins/many-source-sets.properties',
+    ]
+    templateArgs = [sourceSetCount: 500]
+    daemonMemory = '1536m'
+}
+
 // === Native Software Model ===
 performanceTest.registerTestProject("smallNative", NativeProjectGeneratorTask) {
     projects = 1

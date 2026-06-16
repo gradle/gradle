@@ -206,6 +206,10 @@ abstract class AbstractIntegrationSpec extends Specification implements CommonTe
         getSettingsFile(KOTLIN)
     }
 
+    TestFile settingsKotlinFile(@Language(value = "kotlin") String script) {
+        settingsKotlinFile << script
+    }
+
     protected TestFile getSettingsFile(GradleDsl dsl) {
         testDirectory.file(dsl.fileNameFor("settings"))
     }
@@ -690,7 +694,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     /**
-     * Called by {@link ToBeFixedSpecInterceptor} when a test fails as expected so no further checks are applied.
+     * Called by {@link org.gradle.integtests.fixtures.modes.ToBeFixedSpecInterceptor} when a test fails as expected so no further checks are applied.
      */
     void ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true

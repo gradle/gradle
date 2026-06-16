@@ -60,7 +60,7 @@ class PropertyTraceTest {
     }
 
     @Test
-    fun `serialized lambda trace renders impl class, method and signature`() {
+    fun `serialized lambda trace renders captured argument with parameter and return type names`() {
         val taskType = Task::class.java
 
         assertThat(
@@ -68,10 +68,11 @@ class PropertyTraceTest {
                 PropertyKind.Field,
                 "capturedArgs",
                 PropertyTrace.SerializedLambda(
-                    "pkg.SomeClass",
-                    "lambda\$method$0",
-                    "(Ljava/lang/String;)Ljava/lang/Object;",
-                    PropertyTrace.Property(
+                    implClass = "pkg.SomeClass",
+                    implMethodName = "lambda\$method$0",
+                    functionalInterfaceClass = "java.util.function.Supplier",
+                    instantiatedReturnType = "java.lang.String",
+                    trace = PropertyTrace.Property(
                         PropertyKind.Field,
                         "supplier",
                         PropertyTrace.Task(taskType, ":t")
@@ -80,8 +81,7 @@ class PropertyTraceTest {
             ).toString(),
             equalTo(
                 "field `capturedArgs` of " +
-                    "lambda of type `java.lang.invoke.SerializedLambda` " +
-                    "(method: `pkg.SomeClass.lambda\$method\$0(Ljava/lang/String;)Ljava/lang/Object;`) found in " +
+                    "lambda of type `java.util.function.Supplier` returning `java.lang.String` found in " +
                     "field `supplier` of " +
                     "task `:t` of type `${taskType.name}`"
             )

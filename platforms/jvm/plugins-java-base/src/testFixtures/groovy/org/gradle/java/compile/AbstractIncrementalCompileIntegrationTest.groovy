@@ -19,7 +19,7 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {

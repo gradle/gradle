@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -1034,6 +1034,56 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
     }
 
+    def "capability conflict winner's constraint can upgrade the losing module to a version without the conflicting capability"() {
+        mavenRepo.module("org", "f", "1.0").publish()
+        def f2 = mavenRepo.module("org", "f", "2.0").publish()
+
+        def b1 = mavenRepo.module("org", "b", "1.0")
+            .dependencyConstraint(f2)
+            .withModuleMetadata()
+            .publish()
+
+        mavenRepo.module("org", "t", "1.0")
+            .dependsOn(b1)
+            .publish()
+
+        given:
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:f:1.0")
+                implementation("org:t:1.0")
+            }
+        """
+
+        capability("org", "cap") {
+            forComponent("org:f", "1.0")
+            forModule("org:b")
+            selectModule("org", "b")
+        }
+
+        when:
+        succeeds(':checkDeps')
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:f:1.0", "org:f:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
+                module("org:t:1.0") {
+                    module("org:b:1.0") {
+                        constraint("org:f:2.0", "org:f:2.0") {
+                            byConstraint()
+                        }
+                        byConflictResolution("Explicit selection of org:b:1.0 variant runtime")
+                    }
+                }
+            }
+        }
+    }
+
     // region test fixtures
 
     class CapabilityClosure {
@@ -1054,6 +1104,20 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     allVariants {
                         withCapabilities {
                             addCapability('$group', '$artifactId', id.version)
+                        }
+                    }
+                }
+            """
+        }
+
+        def forComponent(String module, String version) {
+            buildFile << """
+                dependencies.components.withModule('$module') {
+                    if (id.version == '$version') {
+                        allVariants {
+                            withCapabilities {
+                                addCapability('$group', '$artifactId', id.version)
+                            }
                         }
                     }
                 }

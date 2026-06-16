@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -399,6 +399,6 @@ abstract class Resolve extends Copy {
         fails ':consumer:resolve'
         then:
         failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered in build file 'build.gradle').")
-        failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
+        failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters TransformParameters.None of artifact transform MakeGreen")
     }
 }

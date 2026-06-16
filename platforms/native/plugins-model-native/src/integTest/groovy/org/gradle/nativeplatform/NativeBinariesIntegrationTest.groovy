@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -59,9 +59,9 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         and:
         buildFile << """
             import org.gradle.nativeplatform.platform.internal.NativePlatforms
-            
+
             apply plugin: 'c'
-            
+
             model {
                 platforms {
                     unknown {
@@ -94,7 +94,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "assemble task produces sensible error when there are no buildable binaries"() {
         buildFile << """
             apply plugin: 'c'
-            
+
             model {
                 platforms {
                     unknown {
@@ -147,7 +147,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            
+
             model {
                 components {
                     main(NativeExecutableSpec) {
@@ -181,7 +181,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: "c"
             apply plugin: "cpp"
-            
+
             model {
                 components {
                     main(NativeExecutableSpec)
@@ -309,7 +309,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "installed executable receives command-line parameters"() {
         buildFile << """
             apply plugin: 'c'
-            
+
             model {
                 components {
                     echo(NativeExecutableSpec)
@@ -319,11 +319,11 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         file("src/echo/c/main.c") << """
             // Simple hello world app
             #include <stdio.h>
-            
+
             // Print the command line args
             int main (int argc, char *argv[]) {
                 int i;
-            
+
                 for (i = 1; i < argc; i++) {
                     printf("[%s] ", argv[i]);
                 }

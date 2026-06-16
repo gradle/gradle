@@ -19,7 +19,7 @@ import groovy.test.NotYetImplemented
 import org.gradle.api.tasks.FsOpsFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.preconditions.FileSystemTestPreconditions

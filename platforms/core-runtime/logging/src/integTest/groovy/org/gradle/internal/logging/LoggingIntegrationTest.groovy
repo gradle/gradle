@@ -20,10 +20,10 @@ package org.gradle.internal.logging
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
