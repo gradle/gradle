@@ -53,25 +53,16 @@ import org.gradle.util.Path
 import java.io.File
 import java.util.function.Supplier
 
-/**
- * A highly restrictive view of a parent [Gradle] instance, used when a project reaches its build's
- * [Gradle.getParent].
- *
- * Only shared services and truly immutable data (versions, directories, build identity) are exposed.
- * Any other access reports an Isolated Projects problem against the referrer project, so that reaching
- * into a parent build's mutable model is flagged rather than silently allowed.
- */
-internal
-class RestrictedParentGradle(
+
+internal class MutableStateAccessReportingParentGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
     private val ipProblems: IsolatedProjectsProblemsReporter
 ) : GradleInternal {
 
-    internal
-    val delegate: GradleInternal = when (gradle) {
+    internal val delegate: GradleInternal = when (gradle) {
         // 'unwrapping' ensures that there are no chains of delegation
-        is RestrictedParentGradle -> gradle.delegate
+        is MutableStateAccessReportingParentGradle -> gradle.delegate
         else -> gradle
     }
 
@@ -126,12 +117,12 @@ class RestrictedParentGradle(
     override fun getGradle(): Gradle = this
 
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> RestrictedParentGradle(delegateParent, referrerProject, ipProblems) }
+        delegate.parent?.let { delegateParent -> MutableStateAccessReportingParentGradle(delegateParent, referrerProject, ipProblems) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> RestrictedParentGradle(root, referrerProject, ipProblems)
+            else -> MutableStateAccessReportingParentGradle(root, referrerProject, ipProblems)
         }
     // endregion accessible
 
