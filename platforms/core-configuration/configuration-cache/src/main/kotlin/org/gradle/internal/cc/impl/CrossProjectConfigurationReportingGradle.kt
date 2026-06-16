@@ -172,10 +172,19 @@ class CrossProjectConfigurationReportingGradle(
         }
     }
 
-
     override fun addListener(listener: Any) {
-        onMutableStateAccess("addListener")
-        delegate.addListener(listener)
+        if (isSupportedListener(listener)) {
+            // IP prohibits project scope registrations even of supported listeners.
+            // Moreover, vintage considering any listener as supported on buildSrc build,
+            // see DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration method,
+            // but IP reports it unconditionally.
+            // This branch exists to avoid double problem reporting.
+            onMutableStateAccess("addListener")
+            delegate.addListener(listener)
+        } else {
+            // non-supported listeners already reported as configuration cache problem
+            delegate.addListener(listener)
+        }
     }
 
     override fun removeListener(listener: Any) {
@@ -183,31 +192,43 @@ class CrossProjectConfigurationReportingGradle(
         delegate.removeListener(listener)
     }
 
+    // This let a project tie its mutable state to the lifecycle of other projects
+    // and receiving notifications in an unspecified order.
     override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {
         onMutableStateAccess("addProjectEvaluationListener")
         return delegate.addProjectEvaluationListener(listener)
     }
 
+    // This let a project tie its mutable state to the lifecycle of other projects
+    // and receiving notifications in an unspecified order.
     override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
         onMutableStateAccess("removeProjectEvaluationListener")
         delegate.removeProjectEvaluationListener(listener)
     }
 
+    // This let a project tie its mutable state to the lifecycle of other projects
+    // and receiving notifications in an unspecified order.
     override fun beforeProject(closure: Closure<*>) {
         onMutableStateAccess("beforeProject")
         delegate.beforeProject(closure)
     }
 
+    // This let a project tie its mutable state to the lifecycle of other projects
+    // and receiving notifications in an unspecified order.
     override fun beforeProject(action: Action<in Project>) {
         onMutableStateAccess("beforeProject")
         delegate.beforeProject(action)
     }
 
+    // This let a project tie its mutable state to the lifecycle of other projects
+    // and receiving notifications in an unspecified order.
     override fun afterProject(closure: Closure<*>) {
         onMutableStateAccess("afterProject")
         delegate.afterProject(closure)
     }
 
+    // This let a project tie its mutable state to the lifecycle of other projects
+    // and receiving notifications in an unspecified order.
     override fun afterProject(action: Action<in Project>) {
         onMutableStateAccess("afterProject")
         delegate.afterProject(action)

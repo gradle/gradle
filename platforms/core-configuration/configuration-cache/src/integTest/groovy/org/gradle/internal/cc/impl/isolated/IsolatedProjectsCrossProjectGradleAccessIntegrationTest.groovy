@@ -89,23 +89,32 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access Gradle.$problemAccess")
+            def message = overrideProblem ?: "Project ':a' cannot access Gradle.$problemAccess"
+            problem("Build file 'a/build.gradle': line 2: $message")
         }
 
         where:
-        invocation                                                        | problemAccess
-        "getPlugins()"                                                    | "getPlugins"
-        "apply([:])"                                                      | "apply"
-        "apply({})"                                                       | "apply"
-        "apply({} as Action)"                                             | "apply"
-        "getPluginManager()"                                              | "getPluginManager"
+        invocation                                                        | problemAccess                     | overrideProblem
+        "getPlugins()"                                                    | "getPlugins"                      | null
+        "apply([:])"                                                      | "apply"                           | null
+        "apply({})"                                                       | "apply"                           | null
+        "apply({} as Action)"                                             | "apply"                           | null
+        "getPluginManager()"                                              | "getPluginManager"                | null
 
-        "beforeProject({})"                                               | "beforeProject"
-        "beforeProject({} as Action)"                                     | "beforeProject"
-        "afterProject({})"                                                | "afterProject"
-        "afterProject({} as Action)"                                      | "afterProject"
-        "addProjectEvaluationListener(${projectEvaluationListener()})"    | "addProjectEvaluationListener"
-        "removeProjectEvaluationListener(${projectEvaluationListener()})" | "removeProjectEvaluationListener"
+        "beforeProject({})"                                               | "beforeProject"                   | null
+        "beforeProject({} as Action)"                                     | "beforeProject"                   | null
+        "afterProject({})"                                                | "afterProject"                    | null
+        "afterProject({} as Action)"                                      | "afterProject"                    | null
+        "addProjectEvaluationListener(${projectEvaluationListener()})"    | "addProjectEvaluationListener"    | null
+        "removeProjectEvaluationListener(${projectEvaluationListener()})" | "removeProjectEvaluationListener" | null
+
+        // CC unsupported listener
+        "addListener(new Object())"                                       | "addListener"                     | "registration of listener on 'Gradle.addListener' is unsupported"
+        "removeListener(new Object())"                                    | "removeListener"                  | null
+
+        // CC supported listener
+        "addListener(${projectEvaluationListener()})"                     | "addListener"                     | null
+        "removeListener(${projectEvaluationListener()})"                  | "removeListener"                  | null
 
         combined:
         mode << ALL_MODES
