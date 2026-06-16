@@ -37,7 +37,7 @@ There are two ways a Declarative init definition can be connected to plugins or 
 
 ## 1. Declarative init file — how it references code
 
-- Lives in a Gradle-User-Home location discovered like today's `init.d/` (`*.init.gradle.dcl`); also an ad-hoc CLI form (see §4).
+- Lives in a Gradle-User-Home location discovered like today's `init.d/` (`*.init.gradle.dcl`); also an ad-hoc CLI form (see §5).
 - Same surface as settings: `pluginManagement { repositories { } }` → `plugins { id("…").version("…") }` → `defaults { }`.
 - A file is **either unguarded** (unconditional) **or carries a single file-level ecosystem guard block** (conditional; the block may list one or more ecosystems) — see §2.
 - **Application target.** Plugins referenced from the init file apply to the **`Gradle` instance** — the same target as today's init scripts (`Plugin<Gradle>`), **not** as settings plugins. Build-wide and forcing.
@@ -104,7 +104,7 @@ Open question: how should `pluginManagement` work? If an ecosystem is requested 
 appear in the build. Should there be a way to affect how the build's `pluginManagement`? 
 Should there be a separate `ecosystemsPluginManagement`?
 
-**Relying on an ecosystem** (guarded init definition) — the whole file applies only where the listed ecosystems are already present. The guard is **one top-level `relyOnEcosystems { }` block** — a DCL container of `ecosystem(...)` elements — that does **not** wrap the file's other top-level blocks:
+**Relying on an ecosystem** (guarded init definition) — the whole file applies only where the listed ecosystems are already present. The guard is **one top-level `relyOnEcosystems { }` block** — a DCL container of elements:
 ```kotlin
 pluginManagement { 
     /* ... */
@@ -116,7 +116,7 @@ relyOnEcosystems {
     id("com.android") {
         versionAtLeast = "8.5"
         versionBelow = "10"           // optional upper bound
-        onVersionOutOfRange = skip    // skip (default) | fail
+        onVersionOutOfRange = skipAndWarn   // skipSilently | skipAndWarn (default) | fail
     }
     id("org.jetbrains.kotlin") {
         versionAtLeast = "2.0"
@@ -140,7 +140,7 @@ Given that `relyOnEcosystems` makes everything else in the file conditional, it 
   the defaults for those ecosystems are evaluated against the versions of the ecosystems resolved by the build (assuming the version check passed).
 - **Multiple ecosystems, conju  nctive:** the file applies iff **every** listed ecosystem is present **and** in its range. For independent (OR-style) reactions, or to mix unconditional + guarded content, **split into separate files**. Ecosystem relations are never nested inside `defaults`/`plugins`.
 - Each `id(...)` element configures its relation via **properties** (`versionAtLeast`, optional `versionBelow`, `onVersionOutOfRange`). The **consumer/build owns the version**; `versionAtLeast` is a **compatibility floor, not a pin**; `versionBelow` bounds validity (majors can break the schema contract); the relation holds when the version is in `[versionAtLeast, versionBelow)`.
-- **Within the range the ecosystem schema is a contract** (additive-compatible) — referenced members are guaranteed present, so no missing-member handling is needed. Out-of-range is governed per element by `onVersionOutOfRange` (skip/fail, default skip).
+- **Within the range the ecosystem schema is a contract** (additive-compatible) — referenced members are guaranteed present, so no missing-member handling is needed. Out-of-range is governed per element by `onVersionOutOfRange` (`skipSilently` / `skipAndWarn` / `fail`, default `skipAndWarn`).
 - A guarded file carries **both defaults (data) and build logic (code)**; when the guard holds, its `plugins {}` is introduced with **forcing/provide** semantics, build-wide.
 - The whole file is validated at authoring time against the listed ecosystems' **floor** schemas (+ base).
 
@@ -199,7 +199,41 @@ rather than derived from a missing witness or from discovery order.
 Left open: whether explicit priority is the right model and what shape it takes 
 (numeric value? named tiers? relative `before`/`after` another definition?), and how it interacts with the per-ecosystem guards and with `plugins {}` application order.
 
-## 4. CLI injection (ad-hoc / tool-facing)
+## 4. Supported Gradle versions
+
+A single `init.d` definition is shared by every build on the machine, and those builds run different Gradle versions (each repo's wrapper). 
+So one definition must be consumable across a range of Gradle versions.
+
+The extra hazard over the ecosystem ranges (§2): the init-definition DSL itself evolves with Gradle, so a file using a newer construct 
+would fail to even *parse* on an older Gradle. The compatibility declaration must therefore be readable before the rest of the file.
+
+**Frozen compatibility preamble.** 
+
+Reuse the §2 version-range vocabulary, targeting the Gradle runtime, in a small preamble parsed by **every** Gradle version with a **frozen** grammar:
+
+```kotlin
+relyOnGradle {
+    versionAtLeast = "10"
+    versionBelow = "12"           // optional upper bound
+    onVersionOutOfRange = skipAndWarn   // skipSilently | skipAndWarn (default) | fail
+}
+```
+
+**Deferred body parsing.** 
+
+Gradle parses only the preamble first; if its own version is out of range it **skips the file without parsing the body**, 
+so newer constructs below are harmless on older Gradle. Only when the version is in range is the body parsed and evaluated against that version's schema — 
+the same "schema is a contract within the declared range" idea as §2, applied to the init DSL.
+
+**Default `skipAndWarn`, diagnosable.** 
+
+A silently skipped definition (e.g. "our defaults don't apply on the 8.x repos") is hard to debug at scale, 
+which is why the default is `skipAndWarn` (each skip is surfaced); `skipSilently` opts out of the warning, `fail` hard-errors. 
+At scale, a report of which definitions were skipped and why (Gradle-version vs ecosystem mismatch) is still useful.
+
+For a genuinely *incompatible* grammar break the fallback is version-scoped discovery (separate files per Gradle era); prefer the single-file preamble.
+
+## 5. CLI injection (ad-hoc / tool-facing)
 
 The **ad-hoc, per-invocation** channel (the `-I` replacement) for IDEs/scanners/CI to inject without editing the project or writing a persistent file. 
 
@@ -228,7 +262,7 @@ This doc is about the *infrastructure* of declarative init/global files. The fol
 
 - **Injecting declarative `Settings` configuration via an init definition** – this can be supported by imperative plugins and is not required in the first step 
   but can be added later as a new Declarative sub-DSL in init definitions.
-- **Model extraction (IDEs / dependency scanners).** Solved by imperative plugins — a tool applies its own (possibly local) model-builder plugin via the init file or the ad-hoc CLI channel (§4),
+- **Model extraction (IDEs / dependency scanners).** Solved by imperative plugins — a tool applies its own (possibly local) model-builder plugin via the init file or the ad-hoc CLI channel (§5),
   and the existing Tooling-API model-request protocol is unchanged. **No new declarative API is required.** (A built-in standard resolved-model / dependency-graph would be an *optional ergonomic* 
   improvement — reduces per-tool duplication + internal-API coupling — not a necessity.)
 - **Problem-specific global config that would need a *new declarative API*** — repository enforcement/override and credentials/secrets. These *could* get first-class declarative APIs, but 
@@ -242,3 +276,4 @@ This doc is about the *infrastructure* of declarative init/global files. The fol
 4. **Apply-time / ecosystem discovery semantics** (§2). Option 1 **single-pass** (resolve the ecosystem set once, then evaluate guards) vs Option 2 **reactive application** (queue guarded definitions and re-check as plugins are added, dependency-resolution-style). Single-pass is the conservative default; whether to allow **cascading** (a guarded definition's ecosystem triggering further guarded definitions) is open — likely disallowed for simplicity.
 5. **`plugins` vs `ecosystems` split** (§2). Keep a single `plugins { }` block (ecosystem plugins detected by their Declarative ecosystem descriptors and carried to the build classpath) vs introduce a separate **`ecosystems { }`** block to make explicit which requests add plugin classes to the target build.
 6. **Local/unpublished plugin support** (§1). Whether to support a `localPlugin(files("…"), "FQN")`-style reference for plugins dropped on an agent rather than published.
+7. **Supported Gradle versions** (§4). A shared `init.d` definition must work across the Gradle versions of different builds, but the init DSL evolves per version. Proposed: a frozen `relyOnGradle { }` preamble (version range + `onVersionOutOfRange`: `skipSilently` / `skipAndWarn` / `fail`, default `skipAndWarn`) that gates parsing of the body. Open: which grammar is frozen forever; the skipped-definition report; whether to gate on the raw Gradle version or a finer init-DSL level.
