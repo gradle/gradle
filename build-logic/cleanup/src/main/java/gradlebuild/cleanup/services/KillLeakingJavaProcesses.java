@@ -160,12 +160,15 @@ public class KillLeakingJavaProcesses {
     }
 
     static void pkill(String pid) {
-        ProcessHandle.of(Long.parseLong(pid)).ifPresent(handle -> {
-            handle.descendants().forEach(ProcessHandle::destroyForcibly);
-            if (!handle.destroyForcibly()) {
-                System.out.println("Failed to kill daemon process " + pid + ". Maybe already killed?");
-            }
-        });
+        boolean killed = ProcessHandle.of(Long.parseLong(pid))
+            .map(handle -> {
+                handle.descendants().forEach(ProcessHandle::destroyForcibly);
+                return handle.destroyForcibly();
+            })
+            .orElse(false);
+        if (!killed) {
+            System.out.println("Failed to kill daemon process " + pid + ". Maybe already killed?");
+        }
     }
 
     static void forEachLeakingJavaProcess(File rootProjectDir, BiConsumer<String, String> action) {
