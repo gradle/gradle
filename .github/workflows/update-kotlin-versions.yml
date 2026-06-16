@@ -1,15 +1,15 @@
-name: Update tested AGP versions
+name: Update tested Kotlin versions
 
 on:
   workflow_dispatch:
   schedule:
-    # Every Saturday at 22:00 UTC
-    - cron: '0 22 * * 6'
+    # Every Saturday at 20:00 UTC
+    - cron: '0 20 * * 6'
 
 permissions: {}
 
 jobs:
-  update-agp-versions:
+  update-kotlin-versions:
     if: github.repository == 'gradle/gradle'
     permissions:
       contents: write
@@ -26,13 +26,13 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Update AGP versions
-        run: ./gradlew updateAgpVersions
+      - name: Update Kotlin versions
+        run: ./gradlew updateKotlinVersions
       - name: Open bot PR
         uses: ./.github/actions/open-pr
         with:
-          branch: tide/update-agp
-          title: Update tested AGP versions
-          message: Update AGP versions
+          branch: tide/update-kotlin
+          title: Update tested Kotlin versions
+          message: Update Kotlin versions
           reviewer: gradle/bt-tide
-          labels: a:chore,re:android,in:performance-test,in:smoke-test,to-triage
+          labels: a:chore,in:performance-test,in:smoke-test,to-triage
