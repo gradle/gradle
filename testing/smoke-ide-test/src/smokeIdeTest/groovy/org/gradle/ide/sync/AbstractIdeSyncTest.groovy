@@ -154,9 +154,26 @@ abstract class AbstractIdeSyncTest extends Specification {
         Logging.setupLogging(testDirectory)
         try {
             ideInvoker.run(ideScenarioDefinition, invocationSettings, {})
+        } catch (Throwable t) {
+            dumpIdeLog(ideSandboxDir)
+            throw t
         } finally {
             Logging.resetLogging()
         }
+    }
+
+    private static void dumpIdeLog(File ideSandboxDir) {
+        def ideaLog = new File(ideSandboxDir, "logs/idea.log")
+        if (!ideaLog.isFile()) {
+            System.err.println("No idea.log found at ${ideaLog} to diagnose the sync failure.")
+            return
+        }
+        def lines = ideaLog.readLines()
+        def maxLines = 2000
+        def tail = lines.size() > maxLines ? lines[-maxLines..-1] : lines
+        System.err.println("==== Tail of ${ideaLog} (last ${tail.size()} of ${lines.size()} lines) ====")
+        tail.each { System.err.println(it) }
+        System.err.println("==== End of ${ideaLog} ====")
     }
 
     /**
