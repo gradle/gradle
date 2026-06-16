@@ -8,9 +8,7 @@ dependencies {
     integTestImplementation(projects.execution)
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 errorprone {
     nullawayEnabled = true
 }

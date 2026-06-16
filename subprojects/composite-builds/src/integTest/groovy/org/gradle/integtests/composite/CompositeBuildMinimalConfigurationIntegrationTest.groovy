@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -50,6 +51,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "does not configure build with declared substitutions that is not required for dependency substitution"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -73,6 +75,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "build with discovered substitutions that is not required for dependency substitution is configured only once"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -96,6 +99,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildC') == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "configures included build only once when building artifacts"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -130,6 +134,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildC') == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "configures included build only once when not building artifacts"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -164,6 +169,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildC') == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "when configuration fails included build with #name substitutions is configured only once "() {
         given:
         dependency "org.test:buildB:1.0"
@@ -197,6 +203,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         name << ["discovered", "declared"]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "configures included build only once when building multiple artifacts"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -224,6 +231,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildB') == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "configures included build only once when building multiple artifacts for a dependency of a referenced task"() {
         given:
         includeBuild buildB

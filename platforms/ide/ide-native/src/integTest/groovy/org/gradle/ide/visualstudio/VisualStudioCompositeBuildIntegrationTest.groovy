@@ -17,8 +17,10 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class VisualStudioCompositeBuildIntegrationTest extends AbstractVisualStudioIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "Visual Studio uses allprojects/subprojects")
     def "includes a visual studio project for every project in build with a C++ component"() {
         when:
         createDirs("one", "two", "three", "util", "other")

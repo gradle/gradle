@@ -16,6 +16,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
     void "publishes war and meta-data for web component with external dependencies"() {
@@ -70,6 +71,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(webModule) { expectFiles "project1-1.9.war" }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     void "publishes war and meta-data for web component with project dependencies"() {
         given:
         createDirs("projectWeb", "depProject1", "depProject2")

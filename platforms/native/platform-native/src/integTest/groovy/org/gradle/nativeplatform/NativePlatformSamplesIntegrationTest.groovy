@@ -30,6 +30,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.junit.Assume.assumeTrue
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 
 @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -172,6 +173,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executable(toolChains.dir.file("build/exe/main/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def multiProject() {
         given:
         sample multiProject
