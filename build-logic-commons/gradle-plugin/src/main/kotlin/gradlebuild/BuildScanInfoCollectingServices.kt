@@ -36,13 +36,20 @@ fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCo
     /* pass the collected information in build-logic and main build to Build Scan */
     buildScanAction: (gradleRootProject: Project, infoCollectedInBuildLogic: Any, infoCollectedInMainBuild: Any) -> Unit
 ) {
+    // This information is only published to Build Scans on CI. Returning early off CI also avoids reaching into
+    // the parent build's model via `gradle.parent.rootProject` below, which is reported as a problem under
+    // Isolated Projects (e.g. in local builds and the Gradleception Isolated Projects smoke tests).
+    if (System.getenv("TEAMCITY_VERSION") == null) {
+        return
+    }
+
     val gradleRootProject = when {
         project.name == "gradle" -> project.rootProject
         project.rootProject.name == "build-logic" -> rootProject.gradle.parent?.rootProject
         else -> project.gradle.parent?.rootProject
     }
 
-    if (gradleRootProject != null && System.getenv("TEAMCITY_VERSION") != null) {
+    if (gradleRootProject != null) {
         val rootProjectName = rootProject.name
         val isInBuildLogic = rootProjectName == "build-logic"
         gradle.taskGraph.whenReady {
@@ -60,4 +67,3 @@ fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCo
         }
     }
 }
-
