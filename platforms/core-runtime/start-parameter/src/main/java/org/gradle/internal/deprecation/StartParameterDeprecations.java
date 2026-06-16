@@ -20,6 +20,14 @@ import org.gradle.StartParameter;
 
 public class StartParameterDeprecations {
 
+    public static void nagOnStartParameterConstructor() {
+        DeprecationLogger.deprecate("Creating a StartParameter instance directly")
+            .withAdvice("A StartParameter is provided by the build; obtain it (e.g. 'gradle.startParameter') and derive a copy with newInstance() or newBuild() if you need one.")
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser();
+    }
+
     public static void nagOnIsConfigurationCacheRequested() {
         DeprecationLogger.deprecateProperty(StartParameter.class, "isConfigurationCacheRequested")
             .withAdvice("Please use 'configurationCache.requested' property on 'BuildFeatures' service instead.")

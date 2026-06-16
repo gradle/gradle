@@ -16,7 +16,7 @@
 
 package org.gradle.profile
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,7 +30,7 @@ class ProfileReportRendererTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "renders report"() {
-        def model = new BuildProfile(new StartParameter(), new BuildStartedTime(0))
+        def model = new BuildProfile(new StartParameterInternal(), new BuildStartedTime(0))
         def file = temp.file("report.html")
 
         model.profilingStarted   = time(12, 20, 0)

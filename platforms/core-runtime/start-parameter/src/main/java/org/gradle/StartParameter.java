@@ -64,7 +64,7 @@ import static java.util.Collections.emptyList;
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
  * Gradle.
  *
- * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
+ * <p>You can obtain an instance of a {@code StartParameter} by duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  */
 @HasInternalProtocol
 public class StartParameter implements LoggingConfiguration, ParallelismConfiguration, Serializable {
@@ -120,7 +120,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * here: a plain {@code StartParameter} is a freely mutable value object, and this module knows
      * nothing about how a mutation should be reported. {@code StartParameterInternal} overrides it to
      * notify a listener, but only the running build's own start parameter has such a listener armed
-     * (after settings have been evaluated), so detached or user-constructed copies stay silent.
+     * (after settings have been evaluated), so detached copies (e.g. one derived via {@link #newInstance}
+     * or the copy a {@code GradleBuild} task configures) stay silent.
      *
      * @param methodSignature the source-level signature of the setter that was called
      */
@@ -252,9 +253,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
+     *
+     * @deprecated A {@code StartParameter} is provided by the build (e.g. {@code gradle.startParameter}) and should not be created directly. Derive a copy from that one with {@link #newInstance} or {@link #newBuild} if you need to.
      */
+    @Deprecated
     public StartParameter() {
         this(new BuildLayoutParameters());
+        // Only direct construction reaches here; Gradle's own duplication goes through the protected
+        // constructor, so this nags third-party callers without nagging internal usage.
+        StartParameterDeprecations.nagOnStartParameterConstructor();
     }
 
     /**
@@ -277,7 +284,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        return prepareNewInstance(new StartParameter());
+        return prepareNewInstance(new StartParameter(new BuildLayoutParameters()));
     }
 
     protected StartParameter prepareNewInstance(StartParameter p) {
@@ -305,7 +312,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return The new parameters.
      */
     public StartParameter newBuild() {
-        return prepareNewBuild(new StartParameter());
+        return prepareNewBuild(new StartParameter(new BuildLayoutParameters()));
     }
 
     protected StartParameter prepareNewBuild(StartParameter p) {

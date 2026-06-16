@@ -68,6 +68,8 @@ public class StartParameterInternal extends StartParameter {
     private transient @Nullable Consumer<String> mutationListener;
 
     public StartParameterInternal() {
+        // Delegate to the protected constructor rather than the deprecated no-arg super().
+        this(new BuildLayoutParameters());
     }
 
     protected StartParameterInternal(BuildLayoutParameters layoutParameters) {
