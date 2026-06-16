@@ -313,11 +313,7 @@ fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCa
     val cacheBuilderFactory = DefaultGlobalScopedCacheBuilderFactory(rootDir, DefaultUnscopedCacheBuilderFactory(TestInMemoryCacheFactory()))
     val inMemoryCacheDecoratorFactory = DefaultInMemoryCacheDecoratorFactory(false, TestCrossBuildInMemoryCacheFactory())
     val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory)
-    val cache = KotlinDslIncrementalCompilationCache(
-        store.scriptsCacheDirectory,
-        store.scriptSourcesCacheDirectory,
-        store.scriptOutputsCacheDirectory,
-    )
+    val cache = KotlinDslIncrementalCompilationCache(store.cache)
     val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
     val snapshotCache = KotlinDslClasspathEntrySnapshotCache(
         snapshotStore.snapshotsCacheDirectory,

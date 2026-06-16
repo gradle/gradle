@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.cache.FineGrainedPersistentCache
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -25,48 +26,59 @@ import kotlin.io.path.createDirectories
 
 
 /**
- * On-disk cache of per-script IC working state, stable script-source paths, and stable
- * script-output paths. Backed by a [org.gradle.cache.PersistentCache] under
- * `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-ic/` and owned by
- * [KotlinDslIncrementalCompilationStore]. The content-addressed classpath snapshots are a separate
- * concern, held by [KotlinDslClasspathEntrySnapshotCache].
+ * On-disk cache of per-script incremental-compilation state, backed by a
+ * [FineGrainedPersistentCache] under `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-ic/` and
+ * owned by [KotlinDslIncrementalCompilationStore].
  *
- * The directories persisted across builds:
- *  - [scriptsCacheDirectory] — one directory per scriptIdentity, owned by BTA: holds its
- *    incremental-compilation working state (source hashes, who-references-what, dirty-file
- *    tracking). BTA wipes contents here on rebuild fallback; nothing else writes into it.
- *  - [scriptSourcesCacheDirectory] — stable per-(scriptIdentity, stage) script-text files we
- *    hand the compiler. A sibling of [scriptsCacheDirectory] because BTA's IC root cleanup
- *    would otherwise delete it.
- *  - [scriptOutputsCacheDirectory] — stable per-scriptIdentity destination the compiler writes
- *    class files into. Persists across builds so BTA's IC can reuse prior outputs across
- *    workspace-cache-key changes; callers copy the contents into the workspace destination
- *    after the compile completes.
+ * One entry per script, keyed by a hash of its identity, at `<scriptHash>/`:
+ *  - `ic-state/` — BTA's IC working state (source hashes, who-references-what, dirty tracking). See [scriptCacheDirectory].
+ *  - `outputs/` — the stable destination the compiler writes class files into.
+ *  - `sources/` — stable script-text files handed to the compiler. See [scriptSourceFile].
  *
- * Known limitations:
- *  - Per-entry contents under [scriptsCacheDirectory], [scriptSourcesCacheDirectory] and
- *    [scriptOutputsCacheDirectory] grow without bound; Gradle's user-home cleanup reclaims whole
- *    cache directories, not entries within an active one. See
- *    [KotlinDslIncrementalCompilationStore]'s cleanup TODO for the plan.
- *  - The cache root lock does *not* serialize per-script writes. Concurrent compiles of the same
- *    scriptIdentity from two processes sharing `GRADLE_USER_HOME` can corrupt that script's IC
- *    working state; BTA detects the inconsistency on the next compile and recovers by falling
- *    back to a full recompile.
+ * Concurrency: each compilation runs under the script's lock via [withScriptState].
  */
 @ServiceScope(Scope.UserHome::class)
 class KotlinDslIncrementalCompilationCache(
-    val scriptsCacheDirectory: Path,
-    val scriptSourcesCacheDirectory: Path,
-    val scriptOutputsCacheDirectory: Path,
+    private val cache: FineGrainedPersistentCache,
 ) {
+    private val baseDir: Path = cache.baseDir.toPath()
+
     /**
-     * Returns BTA's per-script IC working-state directory identified by [scriptIdentity], creating
-     * it if needed. The directory is owned entirely by BTA — it can (and does, on rebuild
-     * fallback) wipe contents under here, so nothing else should write into this subtree. The
-     * stable script-source files live under a sibling directory; see [scriptSourceFile].
+     * Runs [action] holding [scriptIdentity]'s lock — exclusive across the processes sharing
+     * this `GRADLE_USER_HOME`, so concurrent compiles of the same script can't corrupt its
+     * read-modify-write IC state. Different scripts use different keys and don't contend.
+     */
+    fun <T> withScriptState(scriptIdentity: String, action: () -> T): T {
+        var result: T? = null
+        cache.useCache(dirNameFor(scriptIdentity)) { result = action() }
+        @Suppress("UNCHECKED_CAST")
+        return result as T
+    }
+
+    /**
+     * Returns BTA's per-script IC working-state directory, creating it if needed.
      */
     fun scriptCacheDirectory(scriptIdentity: String): Path =
-        scriptsCacheDirectory.resolve(dirNameFor(scriptIdentity)).also { it.createDirectories() }
+        scriptEntry(scriptIdentity).resolve("ic-state").also { it.createDirectories() }
+
+    /**
+     * Returns the stable per-script directory the compiler writes class outputs into, creating it if needed.
+     */
+    fun scriptOutputsDirectory(scriptIdentity: String): Path =
+        scriptEntry(scriptIdentity).resolve("outputs").also { it.createDirectories() }
+
+    /**
+     * Returns a stable per-(scriptIdentity, fileName) path for the script text handed to the
+     * compiler. The same `scriptIdentity` always resolves to the same path across builds.
+     */
+    fun scriptSourceFile(scriptIdentity: String, fileName: String): Path =
+        scriptEntry(scriptIdentity).resolve("sources").also { it.createDirectories() }.resolve(fileName)
+
+    private fun scriptEntry(scriptIdentity: String): Path =
+        baseDir.resolve(dirNameFor(scriptIdentity))
+
+    private fun dirNameFor(scriptIdentity: String): String =
+        Hashing.hashString(scriptIdentity).toString()
 
     /**
      * Whether incremental compilation is worth configuring for [scriptIdentity]. IC only pays off
@@ -80,43 +92,11 @@ class KotlinDslIncrementalCompilationCache(
      * pays for snapshotting and bookkeeping that buys nothing.
      */
     fun shouldConfigureIncrementalCompilation(scriptIdentity: String): Boolean {
-        val dirNameFor = dirNameFor(scriptIdentity)
-        val hasIncrementalState = hasPriorState(scriptsCacheDirectory.resolve(dirNameFor))   // pass 3: incremental
-        val hasPriorOutputs = hasPriorState(scriptOutputsCacheDirectory.resolve(dirNameFor)) // pass 2: bootstrap
-        return hasIncrementalState || hasPriorOutputs                                        // neither → pass 1: cold (skip IC)
+        val entry = scriptEntry(scriptIdentity)
+        val hasIncrementalState = hasPriorState(entry.resolve("ic-state")) // pass 3: incremental
+        val hasPriorOutputs = hasPriorState(entry.resolve("outputs"))      // pass 2: bootstrap
+        return hasIncrementalState || hasPriorOutputs                               // neither → pass 1: cold (skip IC)
     }
-
-    /**
-     * Returns the stable per-[scriptIdentity] directory into which the Kotlin compiler writes class
-     * outputs. Persists across builds so BTA's incremental compilation can reuse prior outputs even
-     * when the kotlin-dsl workspace cache (one layer up) invalidates and hands compile a fresh
-     * destination per cache key. Callers copy the contents into the workspace destination after the
-     * compile completes; see `BTACompiler.compile`.
-     */
-    fun scriptOutputsDirectory(scriptIdentity: String): Path =
-        scriptOutputsCacheDirectory.resolve(dirNameFor(scriptIdentity)).also { it.createDirectories() }
-
-    /**
-     * Returns a stable per-(scriptIdentity, fileName) path at which the kotlin-dsl machinery can
-     * materialise the script text it hands to the Kotlin compiler. The same `scriptIdentity` always
-     * resolves to the same path across builds.
-     *
-     * Used in place of per-compile temporary files for two reasons:
-     *  - The compiler API requires a `File`, but the text actually compiled at each stage is a
-     *    transform of the original script (whitespace-erased fragments for stage 1, partially-
-     *    evaluated body for stage 2) that doesn't exist on disk elsewhere.
-     *  - With BTA incremental compilation, the source file's absolute path is a primary key in
-     *    its source-snapshot and lookup DBs; random per-compile paths make every iteration look
-     *    like a brand-new source and defeat IC. A stable path lets BTA's snapshot find real diffs.
-     *
-     * Lives under [scriptSourcesCacheDirectory] (a sibling of [scriptsCacheDirectory]) — outside
-     * BTA's IC root, because BTA wipes its IC root on rebuild fallback.
-     */
-    fun scriptSourceFile(scriptIdentity: String, fileName: String): Path =
-        scriptSourcesCacheDirectory.resolve(dirNameFor(scriptIdentity)).also { it.createDirectories() }.resolve(fileName)
-
-    private fun dirNameFor(scriptIdentity: String): String =
-        Hashing.hashString(scriptIdentity).toString()
 
     private fun hasPriorState(dir: Path): Boolean =
         Files.isDirectory(dir) && Files.newDirectoryStream(dir).use { it.iterator().hasNext() }
