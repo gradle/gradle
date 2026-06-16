@@ -72,6 +72,8 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import kotlin.reflect.KClass
 
 
@@ -709,21 +711,7 @@ class ResidualProgramCompiler(
         stage: String,
         compileClassPath: ClassPath = classPath
     ): InternalName {
-        // The identity must vary with everything that affects what bytecode this compile would
-        // emit and what would cause it to fail. If any of these change while the source text
-        // does not, BTA's IC concludes "no work needed", the copy step propagates the previous
-        // compile's outputs into the workspace, and a build that should recompile (or fail)
-        // silently succeeds:
-        //  - stage descriptor: stage-1 (buildscript block) and stage-2 (body) compile different
-        //    sources against different classpaths.
-        //  - [programTarget] and [programKind]: the same script applied to Project vs Settings
-        //    vs Init produces a different constructor signature (`(KotlinScriptHost, Target)`),
-        //    so reusing outputs across targets breaks with NoSuchMethodError at load time.
-        //  - [compilerOptions]: when these change (e.g. `allWarningsAsErrors` flips), warnings
-        //    that should be errors would be hidden behind the prior cache hit.
-        // Identity decides BTA's IC working dir, the stable source file (see
-        // [withStableScriptFileFor]), and the stable output dir we copy from.
-        val scriptIdentity = "$originalPath#$stage#$programTarget#$programKind#${compilerOptions.hashCode()}"
+        val scriptIdentity = computeScriptIdentity(originalPath, stage)
         return incrementalCompilationCache.withStableScriptFileFor(scriptIdentity, originalPath, scriptText) { scriptFile ->
             InternalName.from(
                 compileBuildOperationRunner(originalPath, stage) {
@@ -751,6 +739,20 @@ class ResidualProgramCompiler(
                 }
             )
         }
+    }
+
+    private fun computeScriptIdentity(originalPath: String, stage: String): String {
+        // The identity must vary with everything that affects what bytecode this compile would
+        // emit:
+        //  - stage descriptor: stage-1 (buildscript/plugins block) and stage-2 (body) compile different
+        //    sources against different classpaths.
+        //  - [programTarget] (Project/Settings/Gradle): which build-model object the script
+        //    configures.
+        //  - [programKind] (TopLevel/ScriptPlugin): a top-level script vs one applied via
+        //    `apply(from = …)`.
+        //  - [compilerOptions]: when these change (e.g. `allWarningsAsErrors` flips), warnings
+        //    that should be errors would be hidden behind the prior cache hit.
+        return "$originalPath#$stage#${programTarget}#${programKind}#${compilerOptions.hashCode()}"
     }
 
     /**
@@ -793,4 +795,32 @@ class ResidualProgramCompiler(
             else -> TODO("Unsupported program target: `$programTarget`")
         }
 
+}
+
+
+/**
+ * Materialises [scriptText] at a stable per-[scriptIdentity] path under the kotlin-dsl IC cache
+ * and invokes [action] with that file. The path persists across builds.
+ *
+ * Runs under [scriptIdentity]'s lock (see [KotlinDslIncrementalCompilationCache.withScriptState]),
+ * so two processes sharing `GRADLE_USER_HOME` that compile the same script won't race.
+ */
+private
+fun <T> KotlinDslIncrementalCompilationCache.withStableScriptFileFor(
+    scriptIdentity: String,
+    scriptPath: String,
+    scriptText: String,
+    action: (File) -> T
+): T = withScriptState(scriptIdentity) {
+    val target = scriptSourceFile(scriptIdentity, scriptFileNameFor(scriptPath))
+    Files.write(target, scriptText.toByteArray(StandardCharsets.UTF_8))
+    action(target.toFile())
+}
+
+
+private
+fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
+    val index = lastIndexOf('/')
+    if (index != -1) substring(index + 1, length)
+    else substringAfterLast('\\')
 }
