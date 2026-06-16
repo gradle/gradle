@@ -144,12 +144,12 @@ Given that `relyOnEcosystems` makes everything else in the file conditional, it 
 - A guarded file carries **both defaults (data) and build logic (code)**; when the guard holds, its `plugins {}` is introduced with **forcing/provide** semantics, build-wide.
 - The whole file is validated at authoring time against the listed ecosystems' **floor** schemas (+ base).
 
-**Presence is at ecosystem granularity.** 
+### Presence is at ecosystem granularity 
 
 A guard activates when the **build uses the ecosystem** — i.e. the ecosystem is applied/present. 
 Once present, its project types are available and defaults flow to them. 
 
-**Detecting applied ecosystems (open question).** 
+### Detecting applied ecosystems (open question) 
 
 Deciding *which* ecosystems a build uses — needed for guard evaluation and for `defaults` targeting — can't be read from the requested `plugins {}`: an ecosystem plugin's 
 ID may not be requested directly at all (it can be pulled in **transitively**, e.g. by another plugin that depends on it). A separate detection mechanism is needed — for instance, 
@@ -181,7 +181,7 @@ likely **disallowed** to avoid the added complexity, but if a good way to suppor
 Several init definitions can contribute `defaults` for the same project type or property. 
 When they conflict, the result must be **deterministic** — there must be a clear order in which the defaults are layered, so the winning value is predictable.
 
-**Why the regular-defaults ordering doesn't transfer.** 
+### Why the regular-defaults ordering doesn't transfer 
 
 Distributed, plugin-provided defaults order themselves by a **witness**: if one plugin is *aware of* another (it can reference or depend on it), 
 its defaults are layered on top and win. The dependency edge between the plugins is the witness that fixes the order.
@@ -189,7 +189,7 @@ its defaults are layered on top and win. The dependency edge between the plugins
 Init definitions have no such edges. They are independent files dropped into `init.d` (or injected ad hoc), with no dependency relationship between them to act as a witness — 
 so there is **no implicit, reliable order** to derive conflict resolution from. 
 
-**Open question — how to order conflicting init defaults.** 
+### Open question — how to order conflicting init defaults 
 
 One option is to keep the current implicit ordering of init scripts and order the defaults in init definitions according to that.
 
@@ -207,7 +207,7 @@ So one definition must be consumable across a range of Gradle versions.
 The extra hazard over the ecosystem ranges (§2): the init-definition DSL itself evolves with Gradle, so a file using a newer construct 
 would fail to even *parse* on an older Gradle. The compatibility declaration must therefore be readable before the rest of the file.
 
-**Frozen compatibility preamble.** 
+### Frozen compatibility preamble 
 
 Reuse the §2 version-range vocabulary, targeting the Gradle runtime, in a small preamble parsed by **every** Gradle version with a **frozen** grammar:
 
@@ -219,19 +219,11 @@ relyOnGradle {
 }
 ```
 
-**Deferred body parsing.** 
+### Deferred body parsing 
 
 Gradle parses only the preamble first; if its own version is out of range it **skips the file without parsing the body**, 
 so newer constructs below are harmless on older Gradle. Only when the version is in range is the body parsed and evaluated against that version's schema — 
 the same "schema is a contract within the declared range" idea as §2, applied to the init DSL.
-
-**Default `skipAndWarn`, diagnosable.** 
-
-A silently skipped definition (e.g. "our defaults don't apply on the 8.x repos") is hard to debug at scale, 
-which is why the default is `skipAndWarn` (each skip is surfaced); `skipSilently` opts out of the warning, `fail` hard-errors. 
-At scale, a report of which definitions were skipped and why (Gradle-version vs ecosystem mismatch) is still useful.
-
-For a genuinely *incompatible* grammar break the fallback is version-scoped discovery (separate files per Gradle era); prefer the single-file preamble.
 
 ## 5. CLI injection (ad-hoc / tool-facing)
 
@@ -255,6 +247,77 @@ gradle :help --init-plugin-classpath=/opt/idea/tooling.jar --init-apply=com.inte
   The IDE local-by-class case is also expressible there via `localPlugin(files(...), "FQN")`.
 - Local forms **ungated** — trust anchor is the invoker (same as `-I` today). Repeatable; order = application order; composes with persistent `init.d` files.
 - **Decided:** keep both — `--init-definitions` (primary; full declarative init file) **and** `--init-plugin*` sugar for the "apply one plugin" case.
+
+## 6. Reducing ceremony
+
+Principle: simple cases should be simple — the minimal useful definition should be a few lines, with each block opt-in for the cases that need it.
+
+### Inferring the ecosystem relation from `defaults` 
+
+The dominant case — provide defaults for an ecosystem wherever it is used — currently needs an explicit `relyOnEcosystems { id("…") }` guard *plus* the `defaults { }`. 
+But the `defaults` block already names the ecosystem: its project types are the witness. So the relation could be **inferred** from the referenced types, reducing the file to:
+
+```kotlin
+defaults { 
+    kotlinLibrary { 
+        explicitApi = true 
+    } 
+}
+```
+
+— meaning "rely on the Kotlin ecosystem, any version; apply these defaults where it is present." 
+An explicit `relyOnEcosystems` would then only be needed to add version bounds, to gate `plugins {}` (build logic) on presence, or to rely on an ecosystem before writing any defaults for it.
+
+But the explicit guard is not only a runtime gate — it is what brings the ecosystem's schema **into scope for authoring and validation** of the file. 
+With inference there is no in-file declaration of where `kotlinLibrary` comes from, so the file can only be validated **in the context of a project that already has the ecosystem**. 
+Edited standalone — the normal situation for a global `init.d` file — there is nothing to resolve the schema against: no completion, no validation. 
+So inference makes the simple case terser but shifts the cost to authoring; whether to support it (and how tooling would resolve the schema for a standalone file) is **open**.
+
+### Directory bundle 
+
+Keep the pieces physically together without publishing: a folder holding the `*.init.gradle.dcl` next to its local plugin JAR or
+included build source, treated as one unit and added to the build by one command line flag or by having the directory placed and named
+following a convention that says that this is a bundle, like: `$GRADLE_USER_HOME/init.d/my-plugin.init.gradle`
+
+### Embedding the declarative part in an imperative source file 
+
+The tightest co-location: a single Java/Kotlin source file with one public class extending `Plugin<Gradle>`, usable directly as an init file.
+This file will not be a script (even if in Kotlin, it will be the regular Kotlin, not KTS). In addition to the `Plugin<Gradle>`, it could have
+some code that is triggered by the declarative part, e.g. reactions or apply actions. If the schema-first part of DCL is included, the Declarative
+part can also provide some new schema entities, with the imperative part handling their build logic.
+
+```kotlin
+// $GRADLE_USER_HOME/init.d/MyConventions.init.gradle.kt — a regular Kotlin source file (not a script)
+
+import org.gradle.api.Plugin
+import org.gradle.api.invocation.Gradle
+
+// Declarative part: a string literal passed to the recognized `initDefinition(...)`.
+// Gradle reads it as DCL before compiling the file; an IDE analyzes it via language injection.
+val definition = initDefinition("""
+    defaults {
+        kotlinLibrary { explicitApi = true }
+    }
+""")
+
+// Imperative part: compiled and applied as the Gradle-instance plugin —
+// reactions / apply actions the declarative part can't express.
+class MyConventions : Plugin<Gradle> {
+    override fun apply(gradle: Gradle) {
+        // … build logic that complements the declarative part above
+    }
+}
+```
+
+Gradle would extract the declarative part — best from a **string literal passed to a recognized function**, or alternatively from comments — 
+and compile and apply the rest of the file as the plugin.
+
+There is precedent for runtime-parsed inline metadata in source: PEP 723 (inline script metadata in Python) and Go build tags.
+
+IDEs can also analyze one language embedded inside a file written in another via **language injection** (as they do for SQL or regex inside string literals), 
+so the embedded declarative literal can still get completion and validation — though it needs the ecosystem schema resolved, the same standalone-context caveat as inference above.
+
+This might be a convenience for quick, local, single-author use; enterprise/tooling should prefer the directory bundle or a published convention plugin.
 
 ## Out of scope
 
