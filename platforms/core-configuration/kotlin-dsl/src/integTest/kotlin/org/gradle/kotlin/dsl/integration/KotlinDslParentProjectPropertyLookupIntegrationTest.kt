@@ -16,9 +16,8 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -31,10 +30,6 @@ import org.junit.Test
  *
  * @see org.gradle.kotlin.dsl.PropertyDelegate
  */
-@Requires(
-    TestExecutionPreconditions.NotIsolatedProjects::class,
-    reason = "Under Isolated Projects, parent-project lookup is disabled entirely; no deprecation fires"
-)
 class KotlinDslParentProjectPropertyLookupIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
@@ -53,6 +48,7 @@ class KotlinDslParentProjectPropertyLookupIntegrationTest : AbstractKotlinIntegr
     }
 
     @Test
+    @UnsupportedWithIsolatedProjects(because = "Under Isolated Projects, parent-project lookup is disabled entirely; no deprecation fires")
     fun `val by project resolved from parent is deprecated with the Kotlin delegation caller context`() {
         withSettings(
             """
