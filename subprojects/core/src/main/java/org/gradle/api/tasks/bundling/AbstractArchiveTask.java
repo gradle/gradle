@@ -245,14 +245,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Specifies the reproducible file timestamp used for each entry in the archive in milliseconds from the epoch of 1970-01-01T00:00:00Z.
      * <p>
      * If not set, then each archive entry will use the value as determined by the <code>preserveFileTimestamps</code> property.
-     * If set, then each archive entry will use the reproducible file timestamp, and the <code>preserveFileTimestamps</code> property
-     * must be <code>false</code> (the default value), otherwise the task fails.
+     * If set, then each archive entry will use the reproducible file timestamp.
+     * If set, the <code>preserveFileTimestamps</code> property must be <code>false</code> (the default value), otherwise the task fails.
      * <p>
      * Each archive format has a minimum supported timestamp, and smaller values are raised to that minimum:
      * 1980-02-01 00:00 for ZIP archives and 1970-01-02T00:00:00Z for TAR archives.
-     * ZIP archives also have a maximum supported timestamp of 2097-11-01T00:00:00Z, and the task fails for larger values.
      *
-     * @return the reproducible file timestamp used for each entry in the archive in milliseconds from the epoch of 1970-01-01T00:00:00Z
+     * @return the reproducible file timestamp used for each entry in the archive
      * @since 9.7.0
      */
     @Incubating
