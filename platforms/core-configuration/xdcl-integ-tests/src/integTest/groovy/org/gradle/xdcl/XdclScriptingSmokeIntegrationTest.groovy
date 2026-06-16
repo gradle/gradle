@@ -510,6 +510,111 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("library: lib")
     }
 
+    def "can declare defaults in settings"() {
+        given:
+        xdclSettingsFile '''
+            settings {
+                pluginManagement {
+                  includedBuilds ["build-logic"]
+                }
+                plugins [
+                  { id "project-templates" }
+                ]
+                include [
+                  "app",
+                  "lib",
+                ]
+                defaults {
+                  library { name "my lib" }
+                  application { name "my app" }
+                  for MyComponent { version "0.1.0" }
+                }
+            }
+        '''
+        xdclFile 'app/build.gradle.xdcl', '''
+            application {}
+        '''
+        xdclFile 'lib/build.gradle.xdcl', '''
+            library {}
+        '''
+        xdclFile 'build-logic/settings.gradle.xdcl', '''
+            settings {}
+        '''
+        buildFile 'build-logic/build.gradle', '''
+            plugins {
+              id "java-gradle-plugin"
+              id "xdcl-gradle-plugin"
+            }
+            gradlePlugin {
+              plugins {
+                projectTemplatesPlugin {
+                  id = "project-templates"
+                  implementationClass = "my.ProjectTemplatesPlugin"
+                }
+              }
+            }
+        '''
+        xdslFile 'build-logic/src/main/xdcl/my.xdsl', '''
+            package my.dsl
+
+            trait MyComponent {
+              name: String?
+              version: String?
+            }
+
+            template MyApplication with MyComponent {
+              application {}
+            }
+
+            template MyLibrary with MyComponent {
+              library {}
+            }
+        '''
+        javaFile 'build-logic/src/main/java/my/ProjectTemplatesPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.*; // xdcl API is visible as part of the Gradle API
+            import my.dsl.*; // generated facades dir is automatically wired in as a generated source-set
+
+            @BindReaction(ProjectTemplatesPlugin.ApplicationReaction.class)
+            @BindReaction(ProjectTemplatesPlugin.LibraryReaction.class)
+            public class ProjectTemplatesPlugin implements Plugin<Settings> {
+
+                static class ApplicationReaction implements Reaction<MyApplication, Project> {
+                    @Override public void on(MyApplication data, Project context, ReactionScope scope) {
+                        System.out.println("app " + dump(data));
+                    }
+                }
+
+                static class LibraryReaction implements Reaction<MyLibrary, Project> {
+                    @Override public void on(MyLibrary data, Project context, ReactionScope scope) {
+                        System.out.println("lib " + dump(data));
+                    }
+                }
+
+                static String dump(MyComponent data) {
+                    return "{ name " + quoted(data.name().get()) + ", version " + quoted(data.version().get()) + "}";
+                }
+
+                static String quoted(Object value) {
+                    return "\\"" + value + "\\"";
+                }
+
+                @Override public void apply(Settings target) {}
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains 'app { name "my app", version "0.1.0"}'
+        outputContains 'lib { name "my lib", version "0.1.0"}'
+    }
+
     TestFile xdclSettingsFile(String script) {
         file('settings.gradle.xdcl') << script
     }
