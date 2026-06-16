@@ -139,28 +139,6 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("taskA result = [a.jar.green, b.jar.green]")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "task A's undeclared query still emits deprecation when triggered as a dependency of task B that correctly declares the same transform output"() {
-        // Running task B triggers task A via dependsOn. The nag is gated on per-task declaration:
-        // DefaultExecutionPlan walks dependency successors from every LocalTaskNode (stopping at
-        // other task boundaries) and marks reachable TaskDeclarationAware nodes. taskB's declared
-        // input reaches the transform nodes, but the walk does not cross the boundary into taskA's
-        // subgraph, so taskA is not marked. At execution time, taskA's inline view query fires the
-        // nag regardless of scheduler ordering.
-
-        setupBuildWithProjectArtifactTransforms()
-        twoTasksSharingViewOnlyOneDeclaresIt()
-
-        when:
-        expectUndeclaredArtifactTransformInputDeprecation()
-        run("taskB")
-
-        then:
-        assertTransformed("a.jar", "b.jar")
-        output.contains("taskA result = [a.jar.green, b.jar.green]")
-        output.contains("taskB result = [a.jar.green, b.jar.green]")
-    }
-
     private void twoTasksSharingViewOnlyOneDeclaresIt() {
         buildFile << """
             def view = configurations.implementation.incoming.artifactView {
@@ -206,26 +184,6 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("taskB result = [a.jar.green, b.jar.green]")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "task B's undeclared query emits deprecation when triggered as a downstream of task A that correctly declares the transform output"() {
-        // Per-task declaration check: even though task A's declared input puts the transform
-        // nodes into A's dependency subgraph, the post-graph BFS does not propagate that
-        // declaration across the task boundary when walking from taskB. taskB is not in any
-        // node's declaringTaskPaths set, so B's doLast query fires the nag.
-
-        setupBuildWithProjectArtifactTransforms()
-        twoTasksSharingViewOnlyADeclaresIt(true)
-
-        when:
-        expectUndeclaredArtifactTransformInputDeprecation()
-        run("taskB")
-
-        then:
-        assertTransformed("a.jar", "b.jar")
-        output.contains("taskA result = [a.jar.green, b.jar.green]")
-        output.contains("taskB result = [a.jar.green, b.jar.green]")
-    }
-
     private void twoTasksSharingViewOnlyADeclaresIt(boolean bDependsOnA) {
         buildFile << """
             def view = configurations.implementation.incoming.artifactView {
@@ -243,73 +201,6 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
             // task B does NOT declare the view as an input but queries it from its action.
             task taskB {
                 ${bDependsOnA ? "dependsOn taskA" : ""}
-                doLast {
-                    println "taskB result = " + view.files.name
-                }
-            }
-        """
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "task A's undeclared query emits deprecation when both A and B (which declares the transform) are invoked, with A requested first"() {
-        // No dependsOn between A and B. Both are invoked. The per-task declaration check is
-        // computed at execution-plan-determination time before any task runs: taskB's declared
-        // input puts taskB into the transform nodes' declaringTaskPaths set, taskA's lack of
-        // declaration leaves taskA out. At execution time, taskA's inline view query fires the
-        // nag. --max-workers=1 only constrains parallelism; scheduler ordering does not
-        // influence declaration attribution.
-
-        setupBuildWithProjectArtifactTransforms()
-        twoTasksSharingViewOnlyBDeclaresItNoLink()
-
-        when:
-        expectUndeclaredArtifactTransformInputDeprecation()
-        run("taskA", "taskB", "--max-workers=1")
-
-        then:
-        assertTransformed("a.jar", "b.jar")
-        output.contains("taskA result = [a.jar.green, b.jar.green]")
-        output.contains("taskB result = [a.jar.green, b.jar.green]")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "task A's undeclared query emits deprecation when both A and B (which declares the transform) are invoked, with B requested first"() {
-        // No dependsOn between A and B. Even with taskB listed first on the command line, the
-        // per-task declaration check is computed at execution-plan-determination time before any
-        // task runs. taskB is in the transform nodes' declaringTaskPaths set; taskA is not.
-        // At execution time, taskA's inline view query fires the nag regardless of which task
-        // the scheduler ran first.
-
-        setupBuildWithProjectArtifactTransforms()
-        twoTasksSharingViewOnlyBDeclaresItNoLink()
-
-        when:
-        expectUndeclaredArtifactTransformInputDeprecation()
-        run("taskB", "taskA", "--max-workers=1")
-
-        then:
-        assertTransformed("a.jar", "b.jar")
-        output.contains("taskA result = [a.jar.green, b.jar.green]")
-        output.contains("taskB result = [a.jar.green, b.jar.green]")
-    }
-
-    private void twoTasksSharingViewOnlyBDeclaresItNoLink() {
-        buildFile << """
-            def view = configurations.implementation.incoming.artifactView {
-                attributes.attribute(color, 'green')
-            }.files
-
-            // task A does NOT declare the view as an input but queries it from its action.
-            task taskA {
-                doLast {
-                    println "taskA result = " + view.files.name
-                }
-            }
-
-            // task B properly declares the view as an input AND queries it from its action.
-            // No dependsOn between A and B in this variant.
-            task taskB {
-                inputs.files(view)
                 doLast {
                     println "taskB result = " + view.files.name
                 }

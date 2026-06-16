@@ -1595,15 +1595,35 @@ Found the following transformation chains:
 
     def "transforms are created as required and a new instance created for each file"() {
         given:
-        buildFile << """
+        // Replace the class-level setup buildFile to remove its allprojects block (IP-incompatible).
+        // Each project configures itself in its own build.gradle.
+        buildFile.text = """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+
             dependencies {
-                compile project(':lib')
+                attributesSchema {
+                    attribute(usage)
+                }
             }
-            project(':lib') {
-                task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
-                task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts { compile tasks.jar1, tasks.jar2 }
+
+            configurations {
+                dependencyScope('compileDeps')
+                resolvable('compile') {
+                    extendsFrom configurations.compileDeps
+                    attributes.attribute(usage, 'api')
+                }
+            }
+
+            dependencies {
+                compileDeps project(':lib')
+
+                registerTransform(Hasher) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                }
             }
 
             abstract class Hasher implements TransformAction<TransformParameters.None> {
@@ -1626,8 +1646,6 @@ Found the following transformation chains:
                 }
             }
 
-            ${configurationAndTransform('Hasher')}
-
             def configFiles = configurations.compile.incoming.files
             def configView = configurations.compile.incoming.artifactView {
                 attributes { it.attribute(artifactType, 'size') }
@@ -1645,6 +1663,25 @@ Found the following transformation chains:
                 doLast {
                     println "files: " + configView.collect { it.name }
                 }
+            }
+        """
+
+        // :lib configures itself: a consumable 'compile' producing two jars.
+        file('lib/build.gradle') << """
+            def usage = Attribute.of('usage', String)
+
+            configurations {
+                consumable('compile') {
+                    attributes.attribute(usage, 'api')
+                }
+            }
+
+            task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
+            task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+
+            artifacts {
+                compile tasks.jar1, tasks.jar2
             }
         """
 
