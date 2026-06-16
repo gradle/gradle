@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
@@ -50,7 +52,7 @@ public class ModuleSelectorStringNotationConverter extends TypedNotationConverte
         String name = validate(split[1].trim(), notation);
 
         if (split.length == 2) {
-            return new UnversionedModuleComponentSelector(moduleIdentifierFactory.module(group, name));
+            return new UnversionedModuleComponentSelector(moduleIdentifierFactory.module(group, name), ImmutableAttributes.EMPTY, ImmutableSet.of());
         }
         String version = split[2].trim();
         if (!GUtil.isTrue(version)) {
