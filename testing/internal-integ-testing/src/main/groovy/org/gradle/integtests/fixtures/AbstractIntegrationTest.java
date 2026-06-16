@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCacheRule;
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjectsRule;
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCacheRule;
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjectsRule;
 import org.gradle.test.fixtures.IntegrationTest;
 import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.gradle.test.fixtures.file.TestFile;
@@ -57,6 +58,9 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
 
     @Rule
     public final ToBeFixedForConfigurationCacheRule toBeFixedForConfigurationCache = new ToBeFixedForConfigurationCacheRule();
+
+    @Rule
+    public final UnsupportedWithIsolatedProjectsRule unsupportedForIsolatedProjects = new UnsupportedWithIsolatedProjectsRule();
 
     @Rule
     public final ToBeFixedForIsolatedProjectsRule toBeFixedForIsolatedProjects = new ToBeFixedForIsolatedProjectsRule();
