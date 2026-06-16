@@ -122,7 +122,8 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               }
             """
             expectTaskProjectDeprecation()
-            expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'")
+            // The Reporter calls object.rootMethod(...) via the Project, which carries no caller context.
+            expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'", null)
         }
         expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'")
 
@@ -1056,24 +1057,26 @@ task print(type: MyTask) {
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
     }
 
+    private static final String BUILD_SCRIPT_ORIGIN = "a dynamic invocation in the build script"
+
     private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName) {
-        expectParentLookupDeprecation('property', propertyName, childPath, parentDisplayName, null)
+        expectParentLookupDeprecation('property', propertyName, childPath, parentDisplayName, BUILD_SCRIPT_ORIGIN)
     }
 
     private void expectExplicitParentPropertyAccessDeprecation(String api, String propertyName, String childPath, String parentDisplayName) {
-        expectParentLookupDeprecation('property', propertyName, childPath, parentDisplayName, "${api}()")
+        expectParentLookupDeprecation('property', propertyName, childPath, parentDisplayName, "'${api}()'")
     }
 
-    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
-        expectParentLookupDeprecation('method', methodName, childPath, parentDisplayName, null)
+    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName, String origin = BUILD_SCRIPT_ORIGIN) {
+        expectParentLookupDeprecation('method', methodName, childPath, parentDisplayName, origin)
     }
 
-    private void expectParentLookupDeprecation(String memberKind, String memberName, String childPath, String parentDisplayName, String initiatedBy) {
+    private void expectParentLookupDeprecation(String memberKind, String memberName, String childPath, String parentDisplayName, String origin) {
         def plural = memberKind == 'property' ? 'properties' : 'methods'
         executer.expectDocumentedDeprecationWarning("Implicit lookup of ${plural} in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "${memberKind.capitalize()} '${memberName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
-            (initiatedBy ? "This lookup was initiated by '${initiatedBy}'. " : "") +
+            (origin ? "This lookup was initiated by ${origin}. " : "") +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }

@@ -631,6 +631,7 @@ allprojects {
         executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property 'foo' was not declared in project ':a:child' and was resolved from project ':a'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 

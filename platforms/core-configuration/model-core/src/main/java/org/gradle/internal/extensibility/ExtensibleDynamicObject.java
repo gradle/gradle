@@ -88,66 +88,41 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
      * When a lookup walks into the parent, the context currently set on the referrer's dynamic
      * object is read to enrich the deprecation message.
      */
-    public abstract static class CallerContext {
-        private CallerContext() {}
-
-        public abstract boolean isExplicitApiCall();
+    public static final class CallerContext {
 
         /**
-         * The API method name (e.g. {@code "property()"}, {@code "findProperty()"}, or
-         * {@code "val ... by project"}). Only valid for explicit API calls.
+         * The phrase describing how the lookup was initiated, slotted into the deprecation message
+         * after {@code "This lookup was initiated by "}. Includes its own quoting where appropriate.
          */
-        public abstract String apiName();
+        private final String description;
+
+        private CallerContext(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
 
         /**
          * Holder class to avoid initialization-order surprises between the outer class and its
-         * private subclasses.
+         * instances.
          */
         public static final class Instances {
             /** {@code project.property("foo")}. */
-            public static final CallerContext PROPERTY = new ExplicitApiCall("property()");
+            public static final CallerContext PROPERTY = new CallerContext("'property()'");
             /** {@code project.findProperty("foo")}. */
-            public static final CallerContext FIND_PROPERTY = new ExplicitApiCall("findProperty()");
+            public static final CallerContext FIND_PROPERTY = new CallerContext("'findProperty()'");
             /** {@code project.hasProperty("foo")}. */
-            public static final CallerContext HAS_PROPERTY = new ExplicitApiCall("hasProperty()");
+            public static final CallerContext HAS_PROPERTY = new CallerContext("'hasProperty()'");
             /** {@code project.getProperty("foo")}. */
-            public static final CallerContext GET_PROPERTY = new ExplicitApiCall("getProperty()");
+            public static final CallerContext GET_PROPERTY = new CallerContext("'getProperty()'");
             /** Kotlin DSL {@code val foo by project} property delegation. */
-            public static final CallerContext KOTLIN_DELEGATION = new ExplicitApiCall("val ... by project");
+            public static final CallerContext KOTLIN_DELEGATION = new CallerContext("'val ... by project'");
             /** Implicit reference in a Groovy build script (e.g. bare {@code foo} or {@code foo()}). */
-            public static final CallerContext BUILD_SCRIPT = new BuildScriptAccess();
+            public static final CallerContext BUILD_SCRIPT = new CallerContext("a dynamic invocation in the build script");
 
             private Instances() {}
-        }
-
-        private static final class ExplicitApiCall extends CallerContext {
-            private final String api;
-
-            ExplicitApiCall(String api) {
-                this.api = api;
-            }
-
-            @Override
-            public boolean isExplicitApiCall() {
-                return true;
-            }
-
-            @Override
-            public String apiName() {
-                return api;
-            }
-        }
-
-        private static final class BuildScriptAccess extends CallerContext {
-            @Override
-            public boolean isExplicitApiCall() {
-                return false;
-            }
-
-            @Override
-            public String apiName() {
-                throw new UnsupportedOperationException();
-            }
         }
     }
 
@@ -402,8 +377,8 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     private String buildDeprecationContext(String memberKind, String memberName, DynamicObject resolvedParent) {
         String context = capitalize(memberKind) + " '" + memberName + "' was not declared in " + getDisplayName()
             + " and was resolved from " + resolvedParent.getDisplayName() + ".";
-        if (callerContext != null && callerContext.isExplicitApiCall()) {
-            return context + " This lookup was initiated by '" + callerContext.apiName() + "'.";
+        if (callerContext != null) {
+            return context + " This lookup was initiated by " + callerContext.getDescription() + ".";
         }
         return context;
     }

@@ -80,6 +80,8 @@ class ParentPropertyLookupFailOnAccessIntegrationTest extends AbstractIntegratio
             println getProperty('foo')
             println hasProperty('foo')
             println fooMethod()
+            println project.hasProperty('foo')
+            println project.getProperty('foo')
         """)
         // `println foo`, `getProperty('foo')`, `hasProperty('foo')` reach the dynamic-object path
         // without explicit caller context, so they emit the implicit-access message.
@@ -91,6 +93,11 @@ class ParentPropertyLookupFailOnAccessIntegrationTest extends AbstractIntegratio
         ['findProperty', 'property'].each { api ->
             expectParentLookupDeprecation('property', 'foo', "${api}()")
         }
+        // `project.getProperty('foo')` and `project.hasProperty('foo')` route to the Project rather
+        // than the script, so they too carry explicit caller context.
+        ['hasProperty', 'getProperty'].each { api ->
+            expectParentLookupDeprecation('property', 'foo', "${api}()")
+        }
         expectParentLookupDeprecation('method', 'fooMethod', null)
 
         expect:
@@ -99,10 +106,11 @@ class ParentPropertyLookupFailOnAccessIntegrationTest extends AbstractIntegratio
 
     private void expectParentLookupDeprecation(String memberKind, String memberName, String initiatedBy) {
         def plural = memberKind == 'property' ? 'properties' : 'methods'
+        def origin = initiatedBy ? "'${initiatedBy}'" : "a dynamic invocation in the build script"
         executer.expectDocumentedDeprecationWarning("Implicit lookup of ${plural} in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "${memberKind.capitalize()} '${memberName}' was not declared in project ':child' and was resolved from root project 'root'. " +
-            (initiatedBy ? "This lookup was initiated by '${initiatedBy}'. " : "") +
+            "This lookup was initiated by ${origin}. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }

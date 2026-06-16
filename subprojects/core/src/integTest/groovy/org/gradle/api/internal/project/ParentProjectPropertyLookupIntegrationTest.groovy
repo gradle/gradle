@@ -46,6 +46,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         "Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "$COMMON_DEPRECATION_PART"
     }
 
@@ -53,6 +54,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         "Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "$COMMON_DEPRECATION_PART"
     }
 
