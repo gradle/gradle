@@ -42,9 +42,6 @@ dependencies {
     testImplementation(testFixtures(projects.testKit)) {
         because("Test kit preconditions are coming from here")
     }
-    testImplementation(testFixtures(projects.smokeTest)) {
-        because("Smoke test preconditions are coming from here")
-    }
     testImplementation(testFixtures(projects.platformNative)) {
         because("Native test preconditions are coming from here")
     }
