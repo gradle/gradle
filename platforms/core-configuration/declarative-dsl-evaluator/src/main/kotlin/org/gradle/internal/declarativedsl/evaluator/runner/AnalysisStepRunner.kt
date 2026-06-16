@@ -74,7 +74,7 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
 
         val postProcessingFeatures = step.features.filterIsInstance<InterpretationStepFeature.ResolutionResultPostprocessing>()
         val resultHandlers = stepContext.supportedResolutionResultHandlers.filter { processor -> postProcessingFeatures.any(processor::shouldHandleFeature) }
-        val resolution = resultHandlers.fold(parseAndResolveResult.resolution) { acc, it -> it.processResolutionResult(acc) }
+        val resolution = resultHandlers.fold(parseAndResolveResult.resolution) { acc, handler -> handler.processResolutionResult(acc) }
 
         val document = parseAndResolveResult.languageModel.toDocument()
         val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, parseAndResolveResult.resolutionTrace, document)

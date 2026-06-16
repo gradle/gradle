@@ -18,7 +18,7 @@ style:
     active: false
   SerialVersionUIDInSerializableClass:
     active: false
-  UnusedImports:
+  UnusedImport:
     active: true
 
 complexity:
@@ -28,17 +28,17 @@ complexity:
   TooManyFunctions:
     active: false
   LongParameterList:
-    functionThreshold: 15                 # default is 6
-    constructorThreshold: 15              # default is 7
+    allowedFunctionParameters: 15         # default is 5
+    allowedConstructorParameters: 15      # default is 6
   LongMethod:
-    threshold: 100                        # default is 60
+    allowedLines: 100                     # default is 60
     excludes: *testFolders
   CyclomaticComplexMethod:
-    threshold: 25                         # default is 15
+    allowedComplexity: 25                 # default is 14
   ComplexCondition:
     active: false
   NestedBlockDepth:
-    threshold: 7
+    allowedDepth: 7                       # default is 4
 
 exceptions:
   TooGenericExceptionCaught:

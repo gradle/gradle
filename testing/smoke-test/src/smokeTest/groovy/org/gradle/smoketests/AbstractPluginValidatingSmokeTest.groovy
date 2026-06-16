@@ -142,7 +142,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
             include("child")
         """
         file("child/build.gradle") << childConfig
-        SmokeTestGradleRunner testRunner = runner("help")
+        SmokeTestGradleRunner testRunner = runner("--stacktrace", "help")
         getSubprojectExtensionDeprecations(id, version).each { testRunner.expectLegacyDeprecationWarning(it) }
 
         expect:
