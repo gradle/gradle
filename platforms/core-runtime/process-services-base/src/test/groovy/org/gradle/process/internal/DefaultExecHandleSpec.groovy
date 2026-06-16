@@ -19,6 +19,7 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -30,7 +31,6 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
-
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.TextUtil
@@ -39,8 +39,10 @@ import spock.lang.Ignore
 import spock.lang.Timeout
 
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.TimeUnit
 
 @UsesNativeServices
 @Timeout(60)
@@ -298,6 +300,55 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         then:
         thrown(ProcessExecutionException)
         execHandle.state == ExecHandleState.FAILED
+    }
+
+    @Timeout(40)
+    void "executor can shut down while a forwarded-stdin fork's completion is deferred"() {
+        // Regression guard: with onExit(), post-exit stream cleanup is a continuation re-submitted
+        // to this executor. If the executor is shut down before the fork exits, that submission is
+        // rejected; the rejection path must still disconnect the stream forwarders so they don't
+        // keep a thread alive and block awaitTermination forever (see ExecHandleRunner.run()).
+        given:
+        def execFactory = new DefaultExecutorFactory()
+        def realExecutor = execFactory.create("Exec process")
+        def testOver = new CountDownLatch(1)
+        def blockingStdin = new InputStream() {
+            @Override
+            int read() throws IOException {
+                testOver.await()
+                return -1
+            }
+        }
+        def execHandle = handle(realExecutor).args(args(ShortApp.class)).setStandardInput(blockingStdin).build()
+
+        when:
+        execHandle.start()
+        def runner = execHandle.execHandleRunner
+        def waited = 0
+        // Wait for process to start first
+        while ((runner.process == null || !runner.process.isAlive()) && waited < 5000) {
+            Thread.sleep(20)
+            waited += 20
+        }
+
+        def caught = null
+        try {
+            realExecutor.stop(20, TimeUnit.SECONDS)
+        } catch (Exception e) {
+            caught = e
+        }
+
+        then:
+        // The fork exits, the deferred completion is rejected, but the forwarder is disconnected
+        // so the executor terminates cleanly rather than timing out.
+        caught == null
+
+        cleanup:
+        try {
+            testOver.countDown()
+            execHandle.abort()
+        } catch (ignored) {
+        }
     }
 
     void "clients can listen to notifications"() {

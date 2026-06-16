@@ -182,9 +182,18 @@ public class ExecHandleRunner implements Runnable {
                         .thenAcceptAsync(p -> completeAfterExit(p.exitValue()), executor)
                         .whenComplete((unused, ex) -> {
                             if (ex != null) {
-                                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () ->
-                                    execHandle.failed(ex)
-                                );
+                                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                                    // The deferred completion was rejected (e.g. the executor was already shut down).
+                                    // Release the stream forwarders directly: disconnect() is non-blocking, so it is
+                                    // safe to run on the JDK thread that completes onExit(). Without it, a
+                                    // ForwardStdinStreamsHandler reading a never-EOF stream leaks and keeps the
+                                    // executor from terminating.
+                                    try {
+                                        streamsHandler.disconnect();
+                                    } finally {
+                                        execHandle.failed(ex);
+                                    }
+                                });
                             }
                         });
                 }
