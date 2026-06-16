@@ -150,13 +150,6 @@ internal fun cleanupKotlinCompilers() {
 }
 
 internal interface KotlinCompiler {
-    /**
-     * @param scriptIdentity stable, unique identifier for this compilation unit; used to key the incremental
-     *     compilation working state under [KotlinDslIncrementalCompilationCache.scriptsCacheDirectory]. Two
-     *     calls that share a [scriptIdentity] will share BTA's IC working directory and therefore must
-     *     describe the same source set + classpath. For two-stage script compilation (`buildscript`-block vs
-     *     body), include the stage descriptor in the identity to avoid clobbering BTA's state across stages.
-     */
     fun compileKotlinScriptToDirectory(
         outputDirectory: File,
         compilerOptions: KotlinCompilerOptions,
@@ -560,13 +553,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         scriptIdentity: String
     ) {
         SystemProperties.getInstance().withSystemProperties(systemProperties) {
-            // Route BTA at a stable per-scriptIdentity output dir, then copy into the workspace
-            // [destinationDirectory] after the compile. BTA's IC tracks emitted classes and skips
-            // emit when the source is unchanged; the kotlin-dsl workspace cache one layer up
-            // invalidates its destination on every cache-key miss, so handing BTA a fresh empty
-            // dir while its source-snapshot says "no work" would leave us with no class outputs.
-            // With a stable BTA destination, prior outputs persist across cache-key changes; the
-            // copy step transfers them under the current key's directory.
+            // Route BTA at a stable per-scriptIdentity output dir...
             val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
             val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
 
@@ -591,6 +578,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             val operation = operationBuilder.build()
             buildSession.executeOperation(operation, executionPolicy)
 
+            // ... then copy into the workspace [destinationDirectory] (which changes every time the immutable compilation workspace changes).
             copyOutputs(btaOutputDir, destinationDirectory)
         }
     }
@@ -604,6 +592,11 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
                     Files.createDirectories(target)
                 } else {
                     Files.createDirectories(target.parent)
+                    // Copy, not link: [dst] is the immutable-workspace snapshot one layer up and must
+                    // stay isolated. A hard/sym link would share storage with [src] (`outputs/<hash>/`),
+                    // which BTA rewrites in place on the next recompile — mutating the already-published
+                    // workspace entry and invalidating the output hashes recorded for it. A reflink/CoW
+                    // clone would be both safe and fast, but the JDK copy API can't request it.
                     Files.copy(srcPath, target, REPLACE_EXISTING)
                 }
             }

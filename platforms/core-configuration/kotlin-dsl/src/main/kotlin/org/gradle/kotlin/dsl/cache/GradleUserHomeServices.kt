@@ -46,11 +46,7 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     fun createKotlinDslIncrementalCompilationCache(
         store: KotlinDslIncrementalCompilationStore,
     ): KotlinDslIncrementalCompilationCache =
-        KotlinDslIncrementalCompilationCache(
-            store.scriptsCacheDirectory,
-            store.scriptSourcesCacheDirectory,
-            store.scriptOutputsCacheDirectory,
-        )
+        KotlinDslIncrementalCompilationCache(store.cache)
 
     @Provides
     @PrivateService
