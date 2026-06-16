@@ -90,7 +90,8 @@ class CrossProjectConfigurationReportingGradle(
     }
 
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems) }
+        // The parent is a different (parent) build: expose only shared services and immutable data.
+        delegate.parent?.let { delegateParent -> RestrictedParentGradle(delegateParent, referrerProject, ipProblems) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {

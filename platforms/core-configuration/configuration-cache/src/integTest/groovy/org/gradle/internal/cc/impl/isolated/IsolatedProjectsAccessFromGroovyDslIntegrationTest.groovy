@@ -357,13 +357,15 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             projectsConfigured(":include", ":", ":a")
             // TODO:isolated expected behavior for incremental configuration
 //            projectsConfigured(":include")
-            problem("Build file 'include/build.gradle': line 2: Project ':include' cannot access 'Project.buildDir' functionality on subprojects of project ':'")
+            problem("Build file 'include/build.gradle': line 2: $expectedProblem")
         }
 
         where:
-        invocation | _
-        "parent"   | _
-        "root"     | _
+        // `root` still tracks cross-project access, so reaching into the root build's subprojects is reported per-project.
+        // `parent` exposes only the restricted parent view, so even reaching `allprojects` on it is reported as parent-build access.
+        invocation | expectedProblem
+        "parent"   | "Project ':include' cannot access Gradle.allprojects on parent build ':'"
+        "root"     | "Project ':include' cannot access 'Project.buildDir' functionality on subprojects of project ':'"
 
         combined:
         mode << ALL_MODES

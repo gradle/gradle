@@ -103,4 +103,74 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         combined:
         mode << ALL_MODES
     }
+
+    def "reports a problem on project-level access to mutable state of the parent Gradle via #invocation"() {
+        settingsFile """
+            includeBuild("include")
+        """
+        file("include/build.gradle") << """
+            gradle.parent.$invocation
+        """
+
+        when:
+        isolatedProjectsFailsUsing mode, ":include:help"
+
+        then:
+        fixture.assertIsolatedProjectsProblems(mode) {
+            projectsConfigured(":include", ":")
+            problem("Build file 'include/build.gradle': line 2: Project ':include' cannot access Gradle.$problemAccess on parent build ':'")
+        }
+
+        where:
+        invocation             | problemAccess
+        "getTaskGraph()"       | "getTaskGraph"
+        "getStartParameter()"  | "getStartParameter"
+        "getLifecycle()"       | "getLifecycle"
+        "getProviders()"       | "getProviders"
+        "getIncludedBuilds()"  | "getIncludedBuilds"
+        "getPlugins()"         | "getPlugins"
+        "getPluginManager()"   | "getPluginManager"
+        "getExtensions()"      | "getExtensions"
+        "getSettings()"        | "getSettings"
+        "getServices()"        | "getServices"
+        "getProjectRegistry()" | "getProjectRegistry"
+        "rootProject {}"       | "rootProject"
+        "allprojects {}"       | "allprojects"
+        "beforeProject {}"     | "beforeProject"
+        "afterProject {}"      | "afterProject"
+        "apply([:])"           | "apply"
+
+        combined:
+        mode << ALL_MODES
+    }
+
+    def "allows project-level access to shared services and immutable data of the parent Gradle via #invocation"() {
+        settingsFile """
+            includeBuild("include")
+        """
+        file("include/build.gradle") << """
+            gradle.parent.$invocation
+        """
+
+        when:
+        isolatedProjectsRun ":include:help"
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":include", ":")
+        }
+
+        where:
+        invocation << [
+            "getSharedServices()",
+            "getGradleVersion()",
+            "getGradleUserHomeDir()",
+            "getGradleHomeDir()",
+            "getBuildPath()",
+            "getIdentityPath()",
+            "isRootBuild()",
+            "getPublicBuildPath()",
+            "contextualize('something')",
+        ]
+    }
 }
