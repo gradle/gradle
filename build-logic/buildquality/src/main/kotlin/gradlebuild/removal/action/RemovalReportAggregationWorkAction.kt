@@ -30,6 +30,43 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
     companion object {
         val LOGGER: Logger = LoggerFactory.getLogger(RemovalReportAggregationWorkAction::class.java.name) as Logger
         const val GITHUB_BASE_URL = "https://github.com/gradle/gradle/blob"
+
+        // Client-side Project filter: hides non-matching rows and any marker-block/group/section that
+        // ends up empty, and keeps the (count) badges in the headings/notes in sync with what's shown.
+        private val FILTER_SCRIPT = """
+    <script>
+        (function () {
+            var sel = document.getElementById('filter-project');
+            var empty = document.getElementById('empty');
+            function apply() {
+                var p = sel.value;
+                var totalVisible = 0;
+                document.querySelectorAll('section.group').forEach(function (group) {
+                    var groupVisible = 0;
+                    group.querySelectorAll('.marker-block').forEach(function (block) {
+                        var blockVisible = 0;
+                        block.querySelectorAll('tr[data-project]').forEach(function (tr) {
+                            var show = !p || tr.getAttribute('data-project') === p;
+                            tr.style.display = show ? '' : 'none';
+                            if (show) { blockVisible++; }
+                        });
+                        block.style.display = blockVisible ? '' : 'none';
+                        var bc = block.querySelector('.marker-note .count');
+                        if (bc) { bc.textContent = blockVisible; }
+                        groupVisible += blockVisible;
+                    });
+                    group.style.display = groupVisible ? '' : 'none';
+                    var gc = group.querySelector('h2 .count');
+                    if (gc) { gc.textContent = groupVisible; }
+                    totalVisible += groupVisible;
+                });
+                if (empty) { empty.hidden = totalVisible !== 0; }
+            }
+            sel.addEventListener('change', apply);
+            apply();
+        })();
+    </script>
+""".trimIndent()
     }
 
     override fun execute() {
@@ -91,6 +128,8 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
         outputFile.parentFile.mkdirs()
         val currentCommit = parameters.currentCommit.get()
         val csvFileName = parameters.csvReportFile.get().asFile.name
+        val projectOptions = entries.map { it.project }.distinct().sorted()
+            .joinToString("\n") { "                <option value=\"${it.escape()}\">${it.escape()}</option>" }
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
             writer.println(
                 """<!DOCTYPE html>
@@ -103,35 +142,66 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
     <link type="text/css" rel="stylesheet" href="https://docs.gradle.org/current/userguide/base.css">
     <style>
         body { font-family: Lato, sans-serif; margin: 0 auto; max-width: 1200px; padding: 1rem 1.5rem 4rem; }
-        table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+        table { border-collapse: collapse; width: 100%; font-size: .88rem; margin-bottom: .5rem; }
         th, td { text-align: left; border-bottom: 1px solid #e0e0e0; padding: .45rem .6rem; vertical-align: top; }
         th { border-bottom: 2px solid #c0c0c0; }
         code { word-break: break-word; }
         h2 { margin-top: 2rem; }
         .meta { color: #6b6f76; font-size: .9rem; }
+        .filters { margin: 1rem 0; }
+        .filters select { padding: .4rem .5rem; border: 1px solid #c0c0c0; border-radius: 6px; font-size: .9rem; }
+        .marker-note { margin: 1rem 0 .35rem; color: #44484d; }
+        .marker-note code { background: #f1f1f4; padding: .05rem .35rem; border-radius: 4px; }
+        .empty { color: #6b6f76; font-style: italic; margin: 1rem 0; }
         .nogu { color: #b06f00; }
         .dynamic { color: #6b6f76; font-style: italic; }
+        a { color: #1ba0c4; }
     </style>
 </head>
 <body>
     <h1>Gradle 10 removals</h1>
     <p class="meta">${entries.size} deprecation call site(s) across the build &middot; source commit <code>${currentCommit.take(10)}</code> &middot; data: <a href="$csvFileName">$csvFileName</a></p>
+    <div class="filters">
+        <label>Project
+            <select id="filter-project">
+                <option value="">all projects</option>
+$projectOptions
+            </select>
+        </label>
+    </div>
+    <p class="empty" id="empty" hidden>No deprecations for the selected project.</p>
 """
             )
+            // One table per marker. Within a single-marker table the marker is constant, so it moves to a
+            // note above the table instead of a redundant column; groups with several markers get one table each.
             RemovalTimeline.Group.entries.forEach { group ->
-                val inGroup = entries.filter { it.timeline.group == group }
-                if (inGroup.isEmpty()) return@forEach
-                writer.println("<h2>${group.displayName} (${inGroup.size})</h2>")
-                writer.println("<table><thead><tr><th>Deprecated symbol</th><th>Kind</th><th>Marker</th><th>Upgrade guide</th><th>Project</th><th>Source</th></tr></thead><tbody>")
-                inGroup
-                    .sortedWith(compareBy({ it.guideSection ?: "~" }, { it.project }, { it.symbol }))
-                    .forEach { e ->
-                        val symbolCell = if (e.symbol.startsWith("<dynamic")) "<span class=\"dynamic\">${e.symbol.escape()}</span>" else "<code>${e.symbol.escape()}</code>"
-                        val guideCell = e.guideSection?.let { "${e.guideMajor}: $it" } ?: "<span class=\"nogu\">none</span>"
-                        writer.println("<tr><td>$symbolCell</td><td>${e.kind.name.lowercase()}</td><td>${e.timeline.method}</td><td>$guideCell</td><td>${e.project}</td><td><a href=\"${e.url}\">source</a></td></tr>")
-                    }
-                writer.println("</tbody></table>")
+                val groupEntries = entries.filter { it.timeline.group == group }
+                if (groupEntries.isEmpty()) return@forEach
+                writer.println("<section class=\"group\">")
+                writer.println("<h2>${group.displayName} (<span class=\"count\">${groupEntries.size}</span>)</h2>")
+                RemovalTimeline.entries.filter { it.group == group }.forEach { marker ->
+                    val markerEntries = groupEntries.filter { it.timeline == marker }
+                    if (markerEntries.isEmpty()) return@forEach
+                    writer.println("<div class=\"marker-block\">")
+                    writer.println("<p class=\"marker-note\">Marker <code>${marker.method}</code> — ${marker.description} (<span class=\"count\">${markerEntries.size}</span>)</p>")
+                    writer.println("<table><thead><tr><th>Deprecated symbol</th><th>Kind</th><th>Upgrade guide</th><th>Project</th><th>Source</th></tr></thead><tbody>")
+                    markerEntries
+                        .sortedWith(compareBy({ it.guideSection ?: "~" }, { it.project }, { it.symbol }))
+                        .forEach { e ->
+                            val symbolCell = if (e.symbol.startsWith("<dynamic")) "<span class=\"dynamic\">${e.symbol.escape()}</span>" else "<code>${e.symbol.escape()}</code>"
+                            val guideCell = if (e.guideSection != null && e.guideMajor != null) {
+                                "<a href=\"${upgradeGuideUrl(e.guideMajor, e.guideSection)}\">${e.guideMajor}: ${e.guideSection.escape()}</a>"
+                            } else {
+                                "<span class=\"nogu\">none</span>"
+                            }
+                            writer.println("<tr data-project=\"${e.project.escape()}\"><td>$symbolCell</td><td>${e.kind.name.lowercase()}</td><td>$guideCell</td><td>${e.project.escape()}</td><td><a href=\"${e.url}\">source</a></td></tr>")
+                        }
+                    writer.println("</tbody></table>")
+                    writer.println("</div>")
+                }
+                writer.println("</section>")
             }
+            writer.println(FILTER_SCRIPT)
             writer.println("</body></html>")
         }
     }

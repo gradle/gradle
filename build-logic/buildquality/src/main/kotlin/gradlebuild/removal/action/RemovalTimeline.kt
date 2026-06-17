@@ -23,13 +23,14 @@ package gradlebuild.removal.action
  *
  * @param method the exact method name as it appears in source.
  * @param group the report section this marker belongs to.
+ * @param description a human-readable explanation of what the marker announces.
  */
-enum class RemovalTimeline(val method: String, val group: Group) {
-    REMOVED_IN_10("willBeRemovedInGradle10", Group.REMOVAL),
-    ERROR_IN_10("willBecomeAnErrorInGradle10", Group.ERROR),
-    ERROR_IN_NEXT_MAJOR("willBecomeAnErrorInNextMajorGradleVersion", Group.ERROR),
-    STARTING_IN_10("startingWithGradle10", Group.STARTING),
-    STARTING_IN_11("startingWithGradle11", Group.STARTING);
+enum class RemovalTimeline(val method: String, val group: Group, val description: String) {
+    REMOVED_IN_10("willBeRemovedInGradle10", Group.REMOVAL, "Scheduled to be removed in Gradle 10."),
+    ERROR_IN_10("willBecomeAnErrorInGradle10", Group.ERROR, "Will become an error in Gradle 10."),
+    ERROR_IN_NEXT_MAJOR("willBecomeAnErrorInNextMajorGradleVersion", Group.ERROR, "Will become an error in the next major Gradle version."),
+    STARTING_IN_10("startingWithGradle10", Group.STARTING, "Behaviour changes starting with Gradle 10."),
+    STARTING_IN_11("startingWithGradle11", Group.STARTING, "Behaviour changes starting with Gradle 11.");
 
     /**
      * The "starting with" markers take a `String` message argument; the others take none. Used so the

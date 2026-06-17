@@ -118,7 +118,11 @@ abstract class RemovalReportWorkAction : WorkAction<RemovalReportParameter> {
                     writer.println("<h2>${group.displayName} (${inGroup.size})</h2>")
                     writer.println("<ul>")
                     inGroup.forEach { f ->
-                        val guide = f.guideSection?.let { " — upgrade guide ${f.guideMajor}:$it" } ?: " — no upgrade-guide section"
+                        val guide = if (f.guideSection != null && f.guideMajor != null) {
+                            " — <a href=\"${upgradeGuideUrl(f.guideMajor, f.guideSection)}\">upgrade guide ${f.guideMajor}: ${f.guideSection}</a>"
+                        } else {
+                            " — no upgrade-guide section"
+                        }
                         writer.println("   <li><code>${f.symbol.escape()}</code> [${f.kind.name.lowercase()}, ${f.timeline.method}] at ${f.sourceRelativePath}:${f.lineNumber}$guide</li>")
                     }
                     writer.println("</ul>")
@@ -161,6 +165,11 @@ internal fun RemovalFinding.toRecord(): String = listOf(
 
 
 private val NEWLINE_REGEX = "\\s*\\n\\s*".toRegex()
+
+/** Link to the upgrade guide section on the current docs (matches DocumentationRegistry's format). */
+internal fun upgradeGuideUrl(major: Int, section: String): String =
+    "https://docs.gradle.org/current/userguide/upgrading_version_$major.html#$section"
+
 
 private const val MAX_DYNAMIC_LENGTH = 120
 
