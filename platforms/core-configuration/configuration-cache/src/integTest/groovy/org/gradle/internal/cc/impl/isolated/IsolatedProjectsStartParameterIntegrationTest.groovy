@@ -39,7 +39,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
             isolatedProjectsFailsUsing(IsolatedProjectsMode.FAIL_FAST, "help")
             fixture.assertIsolatedProjectsProblems(IsolatedProjectsMode.FAIL_FAST) {
                 projectsConfigured(":")
-                problem("Build file 'build.gradle': line 2: Cannot call '${forbiddenSignature}' on StartParameter after settings have been evaluated when Isolated Projects is enabled.")
+                problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling '${forbiddenSignature}'.")
             }
         }
 
@@ -76,7 +76,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(*configured)
-            problem("Build file '${scriptPath}': line 2: Cannot call 'setDryRun(boolean)' on StartParameter after settings have been evaluated when Isolated Projects is enabled.")
+            problem("Build file '${scriptPath}': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling 'setDryRun(boolean)'.")
         }
 
         where:
@@ -239,7 +239,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         then:
         fixture.assertIsolatedProjectsProblems(IsolatedProjectsMode.FAIL_FAST) {
             projectsConfigured(":")
-            problem("Build file 'build.gradle': line 2: Cannot call '${signature}' on StartParameter after settings have been evaluated when Isolated Projects is enabled.")
+            problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling '${signature}'.")
         }
 
         where:

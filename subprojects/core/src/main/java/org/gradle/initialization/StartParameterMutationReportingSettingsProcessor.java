@@ -43,9 +43,11 @@ public class StartParameterMutationReportingSettingsProcessor implements Setting
         startParameter.setMutationListener(methodSignature ->
             problems.report(factory ->
                 factory.problem(null, messageBuilder -> {
-                    messageBuilder.text(
-                        "Cannot call '" + methodSignature + "' on StartParameter after settings have been evaluated when Isolated Projects is enabled."
-                    );
+                    messageBuilder
+                        .text("The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. ")
+                        .text("This happened when calling ")
+                        .reference(methodSignature)
+                        .text(".");
                     return Unit.INSTANCE;
                 }).exception().build()
             )
