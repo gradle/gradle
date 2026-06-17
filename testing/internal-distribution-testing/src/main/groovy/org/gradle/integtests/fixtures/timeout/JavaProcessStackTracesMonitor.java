@@ -73,7 +73,7 @@ public class JavaProcessStackTracesMonitor {
     }
 
     public static void main(String[] args) {
-        new JavaProcessStackTracesMonitor(new File(args.length == 0 ? "." : args[0])).printAllStackTracesByJstack();
+        new JavaProcessStackTracesMonitor(new File(args.length == 0 ? "." : args[0])).printAllStackTraces();
     }
 
     private static void assertTrue(boolean condition, String message) {
@@ -122,13 +122,21 @@ public class JavaProcessStackTracesMonitor {
         }
 
         String getJstackCommand() {
+            return resolveJdkTool("jstack");
+        }
+
+        String getJcmdCommand() {
+            return resolveJdkTool("jcmd");
+        }
+
+        private String resolveJdkTool(String tool) {
             assertTrue(javaCommand.endsWith("java") || javaCommand.endsWith("java.exe"), "Unknown java command：" + javaCommand);
 
             Path javaPath = Paths.get(javaCommand);
             if (javaPath.getParent().getFileName().toString().equals("bin") && javaPath.getParent().getParent().getFileName().toString().equals("jre")) {
-                return javaPath.resolve("../../../bin/jstack").normalize().toString();
+                return javaPath.resolve("../../../bin/" + tool).normalize().toString();
             } else {
-                return javaPath.resolve("../../bin/jstack").normalize().toString();
+                return javaPath.resolve("../../bin/" + tool).normalize().toString();
             }
         }
 
@@ -145,11 +153,29 @@ public class JavaProcessStackTracesMonitor {
             } catch (Throwable e) {
                 // e.g. java.lang.IllegalThreadStateException: process has not exited
                 //          at java.base/java.lang.ProcessImpl.exitValue(ProcessImpl.java:553)
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                return sw.toString();
+                return stackTraceToString(e);
             }
+        }
+
+        /**
+         * Dumps thread stacks via {@code jcmd <pid> Thread.print}. Unlike jstack, this works on
+         * JDK 25+, and {@code -l} adds lock-ownership details and a deadlock section. Used as the
+         * stack-dump mechanism on JDK 25+ where jstack is broken.
+         */
+        String jcmd() {
+            try {
+                ExecResult result = run(getJcmdCommand(), pid, "Thread.print", "-l");
+                return String.format("Run %s %s Thread.print -l return %s", getJcmdCommand(), pid, result);
+            } catch (Throwable e) {
+                return stackTraceToString(e);
+            }
+        }
+
+        private static String stackTraceToString(Throwable e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            return sw.toString();
         }
     }
 
@@ -274,12 +300,14 @@ public class JavaProcessStackTracesMonitor {
         return matcher.find() && Integer.parseInt(matcher.group(1)) >= targetMajorVersion;
     }
 
-    public File printAllStackTracesByJstack() {
-        if (isJavaVersionAtLeast(25)) {
-            output.println("Java 25+ has issues with jstack, avoiding printing stack traces.");
-            return outputFile;
-        }
-        output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
+    public File printAllStackTraces() {
+        // jstack is broken on JDK 25+, so dump via `jcmd Thread.print` there instead of giving up.
+        boolean useJcmd = isJavaVersionAtLeast(25);
+        output.println(
+            ps().getSuspiciousDaemons().stream()
+                .map(useJcmd ? JavaProcessInfo::jcmd : JavaProcessInfo::jstack)
+                .collect(Collectors.joining("\n"))
+        );
         return outputFile;
     }
 }

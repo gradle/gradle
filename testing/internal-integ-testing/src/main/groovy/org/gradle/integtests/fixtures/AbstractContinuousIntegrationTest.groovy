@@ -197,7 +197,7 @@ ${result.error}
         }
         if (gradle.isRunning() && !endOfBuildReached) {
             def dumpDir = temporaryFolder.getTestDirectory()
-            new JavaProcessStackTracesMonitor(dumpDir).printAllStackTracesByJstack()
+            new JavaProcessStackTracesMonitor(dumpDir).printAllStackTraces()
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
 

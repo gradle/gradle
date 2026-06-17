@@ -62,7 +62,7 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
 
     static String getThreadDump() {
         try {
-            return new JavaProcessStackTracesMonitor(new File(".")).printAllStackTracesByJstack()
+            return new JavaProcessStackTracesMonitor(new File(".")).printAllStackTraces()
         } catch (Throwable e) {
             def stream = new ByteArrayOutputStream()
             e.printStackTrace(new PrintStream(stream))
