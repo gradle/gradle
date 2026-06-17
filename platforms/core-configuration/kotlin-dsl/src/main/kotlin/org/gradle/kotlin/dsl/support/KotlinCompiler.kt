@@ -71,6 +71,8 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Compan
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SCRIPT_RESOLVER_ENVIRONMENT
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget as BtaJvmTarget
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
 import org.jetbrains.kotlin.buildtools.api.daemonExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
@@ -100,7 +102,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import kotlin.io.path.Path
-import kotlin.jvm.java
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import kotlin.script.experimental.annotations.KotlinScript
@@ -108,11 +109,9 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
-// TODO: which modes to use in the end?
 private const val DAEMON_MODE = false
 private const val KEEPALIVE_FLAG = true
 private const val ISOLATED_CLASSLOADER = DAEMON_MODE || false // can't use non-isolated classloader in Daemon mode
-private const val REUSE_BUILD_SESSION = true
 
 // Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
 // KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
@@ -123,7 +122,7 @@ private val systemProperties: Map<String, String> = mapOf(
 )
 
 private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
-private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompiler> = mutableMapOf()
+private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompilerImpl> = mutableMapOf()
 
 internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: ClassLoaderFactory): KotlinCompiler {
     val classLoader = if (ISOLATED_CLASSLOADER) {
@@ -135,18 +134,11 @@ internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: 
 }
 
 internal fun cleanupKotlinCompilers() {
-    compilerInstances.values.forEach { kotlinCompiler -> (kotlinCompiler as KotlinCompilerImpl).clean() }
-    compilerInstances.clear() // TODO: should we do this for each build? it's basically just for closing the BTA session... does that make sense? is it worth it?
-
-    /*
+    compilerInstances.values.forEach { kotlinCompiler -> kotlinCompiler.clean() }
+    compilerInstances.clear()
 
     classloaderInstances.values.forEach { classLoader -> classLoader.close() }
     classloaderInstances.clear()
-
-    // If we clean up the classloaders, there will be metadata related OOM failures after multiple builds (BTA seems to retain them)
-    // Most likely all this cleanup should be done at the end of life of a daemon, which basically means never, I guess
-
-     */
 }
 
 internal interface KotlinCompiler {
@@ -517,6 +509,12 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 }
 
 
+@VisibleForTesting
+fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
+    // Match on string value: the two enums agree on values ("1.8", "9", ... "26") but not on names (e.g. JVM_1_8 vs JVM1_8).
+    BtaJvmTarget.entries.first { it.stringValue == description }
+
+
 @OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
 private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
 
@@ -530,7 +528,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     init {
         SystemProperties.getInstance().withSystemProperties(systemProperties) {
             toolchains = KotlinToolchains.loadImplementation(classLoader)
-            if ((REUSE_BUILD_SESSION && !::buildSession.isInitialized) || !REUSE_BUILD_SESSION) {
+            if (!::buildSession.isInitialized) {
                 buildSession = toolchains.createBuildSession()
             }
         }
@@ -573,8 +571,6 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
             val executionPolicy = createExecutionPolicy()
 
-            // TODO: what JDK does the Daemon run on? KotlinBuildScriptIntegrationTest has failing tests when running on the console, which points to this area
-
             val operation = operationBuilder.build()
             buildSession.executeOperation(operation, executionPolicy)
 
@@ -604,7 +600,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     }
 
     fun clean() {
-        if (!REUSE_BUILD_SESSION) {
+        if (::buildSession.isInitialized) {
             buildSession.close()
         }
     }
@@ -621,9 +617,9 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     }
 
     private fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
-        this[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
-        this[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
-        this[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
+        this[LANGUAGE_VERSION] = KotlinVersion.V2_2
+        this[API_VERSION] = KotlinVersion.V2_2
+        this[JVM_TARGET] = compilerOptions.jvmTarget.toKotlinJvmTarget().toBuildToolsApiJvmTarget()
 
         this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
         this[X_SKIP_PRERELEASE_CHECK] = true

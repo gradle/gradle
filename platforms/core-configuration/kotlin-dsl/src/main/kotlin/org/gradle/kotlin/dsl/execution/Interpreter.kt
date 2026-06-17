@@ -359,6 +359,7 @@ class Interpreter(
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
+                    logger = interpreterLogger
                 ).compile(residualProgram.document)
             }
         }
@@ -504,20 +505,21 @@ class Interpreter(
                         scriptSource.withLocationAwareExceptionHandling {
 
                             ResidualProgramCompiler(
-                                outputDir,
-                                host.compilerOptions,
-                                compilationClassPath,
-                                sourceHash,
-                                programKind,
-                                programTarget,
-                                host.implicitImports,
+                                outputDir = outputDir,
+                                compilerOptions = host.compilerOptions,
+                                classPath = compilationClassPath,
+                                originalSourceHash = sourceHash,
+                                programKind = programKind,
+                                programTarget = programTarget,
+                                implicitImports = host.implicitImports,
                                 moduleRegistry = moduleRegistry,
                                 classLoaderFactory = classLoaderFactory,
                                 metadataCompatibilityChecker = scriptHost.metadataCompatibilityChecker,
                                 fileSystemAccess = fileSystemAccess,
                                 classpathEntrySnapshotCache = classpathEntrySnapshotCache,
                                 incrementalCompilationCache = incrementalCompilationCache,
-                                compileBuildOperationRunner = host::runCompileBuildOperation
+                                compileBuildOperationRunner = host::runCompileBuildOperation,
+                                logger = interpreterLogger
                             ).emitStage2ProgramFor(
                                 program.secondStageScriptText,
                                 originalScriptPath
@@ -669,5 +671,5 @@ fun logClassLoadingOf(templateId: String, source: ScriptSource) {
 }
 
 
-internal
+private
 val interpreterLogger = loggerFor<Interpreter>()
