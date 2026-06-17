@@ -1084,6 +1084,183 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16217")
+    def "testCompileClasspath does not silently resolve to empty when BOM constraint and java-test-fixtures combine with same-coordinate published module"() {
+        given:
+        // Publish an external module that shares coordinates with the local
+        // reproducer subproject, declaring a feature variant carrying a
+        // non-default capability that the reproducer subproject requests.
+        mavenRepo.module("test", "reproducer", "1.0")
+            .variant("annotationProcessorCommonApiElements", [
+                "org.gradle.category": "library",
+                "org.gradle.usage": "java-api",
+                "org.gradle.libraryelements": "jar",
+                "org.gradle.dependency.bundling": "external"
+            ]) {
+                capability("test", "reproducer-annotation-processor-common", "1.0")
+            }
+            .withModuleMetadata()
+            .publish()
+
+        settingsFile << """
+            include 'platform'
+            include 'reproducer'
+        """
+
+        file("platform/build.gradle") << """
+            plugins {
+                id("java-platform")
+            }
+            group = "test"
+            version = "1.0"
+            dependencies {
+                constraints {
+                    api(project(":reproducer"))
+                }
+            }
+        """
+
+        file("reproducer/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+            group = "test"
+            version = "1.0"
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation(platform(project(":platform")))
+                implementation("test:reproducer:1.0") {
+                    capabilities {
+                        requireCapability("test:reproducer-annotation-processor-common")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds(":reproducer:dependencies", "--configuration", "testCompileClasspath")
+
+        then:
+        // The bug per issue 16217: testCompileClasspath silently shows
+        // "No dependencies". This synthetic in-tree setup sets up the
+        // structural scenario (BOM constraint + java-test-fixtures +
+        // same-coordinate published module) but produces a related but
+        // distinct failure mode rather than the issue's exact symptom.
+        // The fix's correctness is locked in by the dedicated unit tests
+        // in DefaultCapabilitiesConflictHandlerTest for the redirect
+        // predicate's branches; this integration test asserts the bug's
+        // signature output ("No dependencies") is absent and the BOM resolves into testCompileClasspath
+        // and its constraint applies to :reproducer — holds.
+        //
+        // These positive assertions do not consistently go RED on the
+        // pre-fix tree across both forking and configCache variants in
+        // this synthetic setup; they describe what the system
+        // must produce and would fire on a future regression that broke
+        // the BOM-resolution promise.
+        !output.contains("No dependencies")
+        output.contains("project ':platform'")
+        output.contains("project ':reproducer' (c)")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16217")
+    def "testCompileClasspath does not silently resolve to empty when BOM constraint and java-test-fixtures combine with same-coordinate published module using separate project"() {
+        given:
+        // Publish an external module that shares coordinates with the local
+        // reproducer subproject, declaring a feature variant carrying a
+        // non-default capability that the reproducer subproject requests.
+        mavenRepo.module("test", "reproducer", "1.0")
+            .variant("annotationProcessorCommonApiElements", [
+                "org.gradle.category": "library",
+                "org.gradle.usage": "java-api",
+                "org.gradle.libraryelements": "jar",
+                "org.gradle.dependency.bundling": "external"
+            ]) {
+                capability("test", "reproducer-annotation-processor-common", "1.0")
+            }
+            .withModuleMetadata()
+            .publish()
+
+        settingsFile << """
+            include 'platform'
+            include 'reproducer'
+            include 'supplier'
+        """
+
+        file("platform/build.gradle") << """
+            plugins {
+                id("java-platform")
+            }
+            group = "test"
+            version = "1.0"
+            dependencies {
+                constraints {
+                    api(project(":reproducer"))
+                }
+            }
+        """
+
+        file("supplier/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "test"
+            version = "1.0"
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("test:reproducer:1.0") {
+                    capabilities {
+                        requireCapability("test:reproducer-annotation-processor-common")
+                    }
+                }
+            }
+        """
+
+        file("reproducer/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+            group = "test"
+            version = "1.0"
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation(platform(project(":platform")))
+                implementation(project(":supplier"))
+            }
+        """
+
+        when:
+        succeeds(":reproducer:dependencies", "--configuration", "testCompileClasspath")
+
+        then:
+        // This variant routes the external `test:reproducer:1.0` dependency
+        // through an intermediate `:supplier` project rather than declaring
+        // it directly on `:reproducer`. With this indirection the bug from
+        // issue 16217 does NOT manifest — the implicit-capability sweep in
+        // `DefaultCapabilitiesConflictHandler.registerCapability` does not
+        // enroll the local `:reproducer` and the published-form-of-itself
+        // into a single capability conflict, because the external module
+        // is reached transitively through `:supplier` rather than via a
+        // direct edge from the BOM-constrained `:reproducer` project. The
+        // dependency tree resolves cleanly here (no "No dependencies", no FAILED markers).
+        //
+        // This test acts as a topology-characterization control: it pins
+        // down that the bug needs the direct external-dependency edge on
+        // the BOM-constrained project. A regression that broadened the
+        // implicit-capability sweep to enroll transitively-reached
+        // components would fire these assertions.
+        !output.contains("No dependencies")
+        output.contains("project ':platform'")
+        output.contains("project ':reproducer' (c)")
+    }
+
     // region test fixtures
 
     class CapabilityClosure {
