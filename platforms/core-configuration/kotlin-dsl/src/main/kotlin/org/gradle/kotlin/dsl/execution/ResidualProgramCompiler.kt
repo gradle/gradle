@@ -94,8 +94,8 @@ class ResidualProgramCompiler(
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
-    @Suppress("unused") private val implicitImports: List<String> = emptyList(), // TODO: would be good to use in the templates
-    private val logger: Logger = interpreterLogger,
+    private val implicitImports: List<String>,
+    private val logger: Logger,
     private val moduleRegistry: ModuleRegistry,
     private val classLoaderFactory: ClassLoaderFactory,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,

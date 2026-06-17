@@ -34,6 +34,7 @@ import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -78,12 +79,14 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         programTarget: ProgramTarget
     ) {
         ResidualProgramCompiler(
-            outputDir,
-            KotlinCompilerOptions(),
-            testRuntimeClassPath,
-            sourceHash,
-            programKind,
-            programTarget,
+            outputDir = outputDir,
+            compilerOptions = KotlinCompilerOptions(),
+            classPath = testRuntimeClassPath,
+            originalSourceHash = sourceHash,
+            programKind = programKind,
+            programTarget = programTarget,
+            implicitImports = emptyList(),
+            logger = loggerFor<TestWithCompiler>(),
             moduleRegistry = TestModuleRegistry(),
             classLoaderFactory = DefaultClassLoaderFactory(),
             metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
