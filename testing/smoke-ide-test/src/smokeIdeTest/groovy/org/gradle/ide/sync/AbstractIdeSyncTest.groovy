@@ -169,8 +169,7 @@ abstract class AbstractIdeSyncTest extends Specification {
             return
         }
         def lines = ideaLog.readLines()
-        def maxLines = 2000
-        def tail = lines.size() > maxLines ? lines[-maxLines..-1] : lines
+        def tail = lines.takeRight(2000)
         System.err.println("==== Tail of ${ideaLog} (last ${tail.size()} of ${lines.size()} lines) ====")
         tail.each { System.err.println(it) }
         System.err.println("==== End of ${ideaLog} ====")
