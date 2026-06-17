@@ -304,8 +304,8 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @ToBeFixedForConfigurationCache(
-        because = "Due to extra parallelism with cc missing dependencies detection can be flaky",
         issue = "https://github.com/gradle/gradle/issues/27576",
+        because = "Due to extra parallelism with cc missing dependencies detection can be flaky",
         skipBecause = "flaky"
     )
     def "fails when missing dependencies using filtered inputs"() {

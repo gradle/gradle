@@ -53,7 +53,10 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         file("second.txt").text == "Hello from the second task"
     }
 
-    @ToBeFixedForConfigurationCache(because = "build cache is not shared, https://github.com/gradle/gradle/issues/37247")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37247",
+        because = "build cache is not shared"
+    )
     def "ad hoc tasks with the same action share results"() {
         file("input.txt").text = "data"
         buildFile << """

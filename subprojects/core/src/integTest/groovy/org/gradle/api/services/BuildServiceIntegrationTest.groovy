@@ -102,10 +102,8 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "https://github.com/gradle/gradle/issues/31128",
-        issue = "https://github.com/gradle/configuration-cache/issues/97"
-    )
+    @Issue("https://github.com/gradle/configuration-cache/issues/97")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -153,10 +151,8 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "https://github.com/gradle/gradle/issues/31128",
-        issue = "https://github.com/gradle/configuration-cache/issues/156"
-    )
+    @Issue("https://github.com/gradle/configuration-cache/issues/156")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
         given:
         serviceImplementation()

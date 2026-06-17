@@ -138,7 +138,10 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/6619") // file1.outputLocation doesn't carry task dependency and cannot be serialized by CC when used as value
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/6619",
+        because = "file1.outputLocation doesn't carry task dependency and cannot be serialized by CC when used as value"
+    )
     def "task not up to date when enabled set changes but output files stays the same"() {
         given:
         buildFile << """
