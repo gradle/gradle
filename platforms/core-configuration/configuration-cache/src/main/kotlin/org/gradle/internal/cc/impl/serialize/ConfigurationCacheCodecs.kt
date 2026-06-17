@@ -241,7 +241,7 @@ class DefaultConfigurationCacheCodecs(
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
             groovyCodecs()
-            bind(SerializedLambdaParametersCheckingCodec)
+            bind(SerializedLambdaParametersCheckingCodec(objectOpener))
 
             // Dependency management types
             val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)

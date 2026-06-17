@@ -18,6 +18,7 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
@@ -41,7 +42,9 @@ import kotlin.reflect.KClass
  *
  * @see [org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes]
  */
-object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
+class SerializedLambdaParametersCheckingCodec(
+    private val objectOpener: ObjectOpener
+) : Codec<SerializedLambda> {
     override suspend fun ReadContext.decode(): SerializedLambda {
         val capturingClass = readClass()
         val functionalInterfaceClass = readString()
@@ -131,7 +134,7 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
 
     private
     val capturingClassField: Field by lazy {
-        SerializedLambda::class.java.getDeclaredField("capturingClass").apply { isAccessible = true }
+        SerializedLambda::class.java.getDeclaredField("capturingClass").also { objectOpener.makeAccessible(it) }
     }
 
     /**
