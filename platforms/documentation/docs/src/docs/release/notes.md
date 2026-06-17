@@ -141,7 +141,7 @@ ExampleTest > initializationError FAILED
 
 The `testLogging.events` predicate still applies, explicitly silencing `FAILED` events is honored.
 
-The new `TestFailureDetails.isFrameworkStartupFailure()` predicate exposes this distinction to Tooling-API and Build-Scan consumers, who may render framework-startup failures differently from ordinary test failures.
+The new `TestFailureDetails.isFrameworkFailure()` predicate exposes this distinction to Tooling-API and Build-Scan consumers, who may render framework-startup failures differently from ordinary test failures.
 
 See the [Test logging](userguide/java_testing.html#sec:test_logging) section in the Gradle User Manual for more details.
 
