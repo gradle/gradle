@@ -20,6 +20,7 @@ import org.gradle.profiler.mutations.AbstractScheduledMutator;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -62,7 +63,7 @@ public class RetryingClearGradleUserHomeMutator extends AbstractScheduledMutator
             try {
                 deleteContents();
                 return;
-            } catch (IOException | IllegalStateException e) {
+            } catch (IOException | UncheckedIOException | IllegalStateException e) {
                 if (retry == MAX_RETRIES) {
                     throw new RuntimeException(e);
                 }
