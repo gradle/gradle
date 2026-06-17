@@ -18,13 +18,12 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.process.ExecOperations
 import java.util.Timer
-import javax.inject.Inject
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.timerTask
 
 
-abstract class PrintStackTracesOnTimeoutBuildService @Inject constructor(private val execOperations: ExecOperations) : BuildService<PrintStackTracesOnTimeoutBuildService.Params>, AutoCloseable {
+abstract class PrintStackTracesOnTimeoutBuildService : BuildService<PrintStackTracesOnTimeoutBuildService.Params>, AutoCloseable {
     interface Params : BuildServiceParameters {
         val timeoutMillis: Property<Long>
         val projectDirectory: DirectoryProperty
@@ -34,12 +33,19 @@ abstract class PrintStackTracesOnTimeoutBuildService @Inject constructor(private
     val timer: Timer = Timer(true).apply {
         schedule(
             timerTask {
-                execOperations.exec {
-                    commandLine(
-                        "${System.getProperty("java.home")}/bin/java",
-                        parameters.projectDirectory.file("testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").get().asFile.absolutePath,
-                        parameters.projectDirectory.asFile.get().absolutePath
-                    )
+                val projectDir = parameters.projectDirectory.asFile.get()
+                val monitorSource = parameters.projectDirectory
+                    .file("testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java")
+                    .get().asFile
+                // Launch via raw ProcessBuilder, not ExecOperations: the deadlocks this watchdog captures
+                // can live in Gradle's exec machinery, so routing through it would deadlock the dump too.
+                val process = ProcessBuilder(
+                    "${System.getProperty("java.home")}/bin/java",
+                    monitorSource.absolutePath,
+                    projectDir.absolutePath
+                ).directory(projectDir).inheritIO().start()
+                if (!process.waitFor(10, TimeUnit.MINUTES)) {
+                    process.destroyForcibly()
                 }
             },
             parameters.timeoutMillis.get()
