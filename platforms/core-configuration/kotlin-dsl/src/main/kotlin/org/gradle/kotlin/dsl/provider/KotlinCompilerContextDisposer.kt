@@ -42,10 +42,17 @@ class KotlinCompilerContextDisposer(
 
     override fun stop() {
         listenerManager.removeListener(this)
+        // Guaranteed cleanup: covers config failure, config-cache hits and tooling-api paths that never reach projectsEvaluated.
+        cleanup()
+    }
+
+    override fun projectsEvaluated(gradle: Gradle) {
+        // Eager cleanup: reclaim the compiler before task execution on the happy path. stop() repeats this idempotently.
+        cleanup()
     }
 
     @OptIn(K1Deprecation::class)
-    override fun projectsEvaluated(gradle: Gradle) { // TODO: If configuration fails (or in some tooling-api paths that don't reach projectsEvaluated), cleanup never fires. do these in the stop method instead?
+    private fun cleanup() {
         KotlinCoreEnvironment.disposeApplicationEnvironment()
         cleanupKotlinCompilers()
     }
