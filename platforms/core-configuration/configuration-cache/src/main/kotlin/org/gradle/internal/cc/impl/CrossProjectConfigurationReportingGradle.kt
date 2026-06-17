@@ -173,23 +173,16 @@ class CrossProjectConfigurationReportingGradle(
     }
 
     override fun addListener(listener: Any) {
-        if (isSupportedListener(listener)) {
-            // IP prohibits project scope registration even for supported listeners:
-            // - ProjectEvaluationListener, see `addProjectEvaluationListener` method
-            // - TaskExecutionGraphListener, as it gives access mutable state of TaskExecutionGraph
-            // - DependencyResolutionListener, as it gives access to ResolvableDependencies, which is mutable state of a Configuration
-            //
-            // Moreover, vintage considering any listener as supported on buildSrc build,
-            // see `DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration` method,
-            // but IP reports it unconditionally.
-            //
-            // This branch exists to avoid double problem reporting.
-            onMutableStateAccess("addListener")
-            delegate.addListener(listener)
-        } else {
-            // non-supported listeners already reported as configuration cache problem
-            delegate.addListener(listener)
-        }
+        // IP prohibits project scope registration even for supported listeners:
+        // - ProjectEvaluationListener, see `addProjectEvaluationListener` method
+        // - TaskExecutionGraphListener, as it gives access mutable state of TaskExecutionGraph
+        // - DependencyResolutionListener, as it gives access to ResolvableDependencies, which is mutable state of a Configuration
+        //
+        // Moreover, vintage considering any listener as supported on buildSrc build,
+        // see `DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration` method,
+        // but IP reports it unconditionally.
+        onMutableStateAccess("addListener")
+        delegate.addListener(listener)
     }
 
     override fun removeListener(listener: Any) {
