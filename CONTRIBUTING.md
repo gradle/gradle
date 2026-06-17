@@ -305,7 +305,7 @@ You can set the 'bin.cmp.report.severity.filter' property in your `gradle.proper
 #### Accepting multiple changes
 
 If you have multiple changes to accept (and you're sure they ought to be accepted instead of corrected), you can use the `Accept Changes for all Errors` button to speed the process.
-This button will cause a Javascript alert dialog to appear asking you to type a reason for accepting the changes, e.g. "Added new API for Gradle 8.x".
+This button will cause a JavaScript alert dialog to appear asking you to type a reason for accepting the changes, e.g. "Added new API for Gradle 8.x".
 
 Clicking okay on the dialog will cause a copy of the `accepted-public-api-changes.json` containing your (properly sorted) addition to be downloaded.
 You can then replace the existing file with this new downloaded version. 
