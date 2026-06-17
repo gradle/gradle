@@ -174,10 +174,15 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun addListener(listener: Any) {
         if (isSupportedListener(listener)) {
-            // IP prohibits project scope registrations even of supported listeners.
+            // IP prohibits project scope registration even for supported listeners:
+            // - ProjectEvaluationListener, see `addProjectEvaluationListener` method
+            // - TaskExecutionGraphListener, as it gives access mutable state of TaskExecutionGraph
+            // - DependencyResolutionListener, as it gives access to ResolvableDependencies, which is mutable state of a Configuration
+            //
             // Moreover, vintage considering any listener as supported on buildSrc build,
-            // see DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration method,
+            // see `DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration` method,
             // but IP reports it unconditionally.
+            //
             // This branch exists to avoid double problem reporting.
             onMutableStateAccess("addListener")
             delegate.addListener(listener)
@@ -188,48 +193,43 @@ class CrossProjectConfigurationReportingGradle(
     }
 
     override fun removeListener(listener: Any) {
+        // Violation for symmetry with `addListener`
         onMutableStateAccess("removeListener")
         delegate.removeListener(listener)
     }
 
-    // This let a project tie its mutable state to the lifecycle of other projects
-    // and receiving notifications in an unspecified order.
     override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {
+        // Prevent tying project's mutable state to the lifecycle of other projects
         onMutableStateAccess("addProjectEvaluationListener")
         return delegate.addProjectEvaluationListener(listener)
     }
 
-    // This let a project tie its mutable state to the lifecycle of other projects
-    // and receiving notifications in an unspecified order.
     override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
+        // Violation for symmetry with `addProjectEvaluationListener`
         onMutableStateAccess("removeProjectEvaluationListener")
         delegate.removeProjectEvaluationListener(listener)
     }
 
-    // This let a project tie its mutable state to the lifecycle of other projects
-    // and receiving notifications in an unspecified order.
     override fun beforeProject(closure: Closure<*>) {
+        // See `addProjectEvaluationListener`
         onMutableStateAccess("beforeProject")
         delegate.beforeProject(closure)
     }
 
-    // This let a project tie its mutable state to the lifecycle of other projects
-    // and receiving notifications in an unspecified order.
     override fun beforeProject(action: Action<in Project>) {
+        // See `addProjectEvaluationListener`
         onMutableStateAccess("beforeProject")
         delegate.beforeProject(action)
     }
 
-    // This let a project tie its mutable state to the lifecycle of other projects
-    // and receiving notifications in an unspecified order.
     override fun afterProject(closure: Closure<*>) {
+        // See `addProjectEvaluationListener`
         onMutableStateAccess("afterProject")
         delegate.afterProject(closure)
     }
 
-    // This let a project tie its mutable state to the lifecycle of other projects
-    // and receiving notifications in an unspecified order.
     override fun afterProject(action: Action<in Project>) {
+        // See `addProjectEvaluationListener`
         onMutableStateAccess("afterProject")
         delegate.afterProject(action)
     }
