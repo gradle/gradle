@@ -44,6 +44,8 @@ public class InterceptingMap<K, V> implements Map<K, V>, Serializable {
         this.interceptor = interceptor;
     }
 
+    // These decorators serialize as their plain delegate: the interceptor is transient runtime wiring,
+    // so a decorated map captured in serializable state round-trips as the underlying map.
     protected Object writeReplace() {
         return delegate;
     }

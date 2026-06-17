@@ -69,8 +69,8 @@ public class InterceptingCollection<E, C extends Collection<E>> implements Colle
         return elementView.apply(element);
     }
 
-    // Serialize as the delegate: the interceptor is runtime-only wiring and instances may be captured
-    // in task state and stored to the configuration cache.
+    // These decorators serialize as their plain delegate: the interceptor is transient runtime wiring,
+    // so a decorated collection captured in serializable state round-trips as the underlying collection.
     protected Object writeReplace() {
         return delegate;
     }
