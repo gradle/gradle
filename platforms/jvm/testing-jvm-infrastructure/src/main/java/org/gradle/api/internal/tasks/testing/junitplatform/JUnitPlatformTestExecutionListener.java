@@ -272,7 +272,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportTestFailure(TestIdentifier testIdentifier, Throwable failure) {
-        TestFailure testFailure = FAILURE_MAPPER.createFailure(failure);
+        TestFailure testFailure = FAILURE_MAPPER.createFailure(failure, testIdentifier.isTest());
         resultProcessor.failure(getId(testIdentifier), testFailure);
     }
 

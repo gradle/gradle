@@ -84,6 +84,11 @@ public class DefaultTestFailure extends TestFailure {
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
+    public static TestFailure fromTestMethodFailure(Throwable failure) {
+        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        return new DefaultTestFailure(failure, details, Collections.emptyList());
+    }
+
     private static List<TestFailure> emptyIfNull(@Nullable List<TestFailure> causes) {
         return causes == null ? Collections.emptyList() : causes;
     }

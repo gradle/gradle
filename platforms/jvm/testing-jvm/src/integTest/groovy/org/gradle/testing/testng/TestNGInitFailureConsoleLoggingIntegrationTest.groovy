@@ -75,4 +75,57 @@ class TestNGInitFailureConsoleLoggingIntegrationTest extends AbstractIntegration
         // configured granularity would otherwise filter the composite class-level event.
         outputContains("NullPointerException")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/26177")
+    static class TestNGOrdinaryFailuresArentMisclassifiedIntegrationTest extends AbstractIntegrationSpec {
+        private void writeProject(String testBody) {
+            TestNGCoverage.enableTestNG(buildFile, '6.3.1')
+            buildFile << """
+                test {
+                    testLogging {
+                        // Keep only task/process-level events; method-level (leaf) events are filtered.
+                        minGranularity = 0
+                        maxGranularity = 1
+                        showExceptions = true
+                    }
+                }
+            """
+
+            file("src/test/java/FooTest.java") << """
+                import org.testng.annotations.*;
+
+                public class FooTest {
+                    @Test public void foo() { ${testBody} }
+                }
+            """
+        }
+
+        def "ordinary non-assertion in-body failure does not bypass the granularity filter"() {
+            // After the polarity inversion, ordinary in-test-method throwables route through
+            // fromTestMethodFailure (plain DefaultTestFailureDetails) — NOT bypass-eligible.
+            // Asserting on the absence of the per-method FAILED line under maxGranularity=1
+            // proves the polarity inversion does not over-classify ordinary test failures as
+            // framework failures.
+            writeProject('throw new IllegalStateException("ordinary in-body boom");')
+
+            expect:
+            fails("test")
+
+            outputDoesNotContain("FooTest.foo FAILED")
+            outputDoesNotContain("java.lang.IllegalStateException")
+        }
+
+        def "control: ordinary assertion failure is correctly filtered by the granularity config"() {
+            writeProject('throw new AssertionError("ordinary assertion boom");')
+
+            expect:
+            fails("test")
+
+            and:
+            // Assertion failures do not appear (as expected): the per-method FAILED line is
+            // filtered by maxGranularity=1 and the assertion path is not bypass-eligible.
+            outputDoesNotContain("FooTest.foo FAILED")
+            outputDoesNotContain("ordinary assertion boom")
+        }
+    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -108,5 +109,107 @@ class JUnitPlatformInitFailureConsoleLoggingIntegrationTest extends AbstractInte
 
         outputContains("FooTest > initializationError FAILED")
         outputContains("java.lang.NullPointerException")
+    }
+
+    def "framework initialization failure via Assertions.fail bypasses granularity"() {
+        // Regression check for the mapper-claim hazard: a @BeforeAll that uses Jupiter's
+        // Assertions.fail(...) throws AssertionFailedError. Without the
+        // DefaultThrowableToTestFailureMapper short-circuit (which skips the mapper chain
+        // when isFailureDuringTest=false), the AssertionFailureMapper would claim the
+        // throwable and emit fromTestAssertionFailure → plain AssertionFailureDetails →
+        // NOT bypass-eligible. With the short-circuit, the container-level failure routes
+        // straight to fromTestFrameworkFailure regardless of the throwable's type, so it
+        // bypasses the granularity gate.
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+            test {
+                useJUnitPlatform()
+                testLogging {
+                    minGranularity = 0
+                    maxGranularity = 1
+                    showExceptions = true
+                }
+            }
+        """
+        file("src/test/java/FooTest.java") << """
+            import org.junit.jupiter.api.Assertions;
+            import org.junit.jupiter.api.BeforeAll;
+            import org.junit.jupiter.api.Test;
+
+            public class FooTest {
+                @BeforeAll
+                public static void boom() { Assertions.fail("assertions-fail-from-@BeforeAll"); }
+                @Test public void foo() {}
+            }
+        """
+
+        expect:
+        fails("test")
+
+        outputContains("FooTest > initializationError FAILED")
+        outputContains("org.opentest4j.AssertionFailedError")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26177")
+    static class JUnitPlatformOrdinaryFailuresArentMisclassifiedIntegrationTest extends AbstractIntegrationSpec {
+        private void writeProject(String testBody) {
+            buildFile << """
+                plugins {
+                    id("java-library")
+                }
+
+                ${mavenCentralRepository()}
+
+                dependencies {
+                    testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+                    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+                }
+
+                test {
+                    useJUnitPlatform()
+                    testLogging {
+                        // Keep only task/process-level events; method-level (leaf) events are filtered.
+                        minGranularity = 0
+                        maxGranularity = 1
+                        showExceptions = true
+                    }
+                }
+            """
+
+            file("src/test/java/FooTest.java") << """
+                import org.junit.jupiter.api.Test;
+
+                public class FooTest {
+                    @Test public void foo() { ${testBody} }
+                }
+            """
+        }
+
+        def "ordinary non-assertion in-body failure does not bypass the granularity filter"() {
+            writeProject('throw new IllegalStateException("ordinary in-body boom");')
+
+            expect:
+            fails("test")
+
+            outputDoesNotContain("FooTest > foo() FAILED")
+            outputDoesNotContain("java.lang.IllegalStateException")
+        }
+
+        def "control: ordinary assertion failure is correctly filtered by the granularity config"() {
+            writeProject('throw new AssertionError("ordinary assertion boom");')
+
+            expect:
+            fails("test")
+
+            and:
+            // Assertion failures do not appear (as expected)
+            outputDoesNotContain("FooTest > foo() FAILED")
+            outputDoesNotContain("ordinary assertion boom")
+        }
     }
 }
