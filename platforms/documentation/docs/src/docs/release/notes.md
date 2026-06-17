@@ -113,6 +113,38 @@ In all modes, the severity of Isolated Projects violations is now independent of
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
+#### Test framework initialization failures for TestNG, JUnit 4, and JUnit Platform are always logged to the console
+
+Gradle's [test logging](userguide/java_testing.html#sec:test_logging) now surfaces test-framework startup failures from TestNG, JUnit 4, and JUnit Platform even when the default granularity would otherwise hide them.
+
+Previously, when these frameworks failed to initialize (for example, when a TestNG test class threw an exception from its constructor, a JUnit 4 suite could not be started, or a Jupiter `@BeforeAll` lifecycle hook aborted a container) the failure was silently filtered out by the default granularity.
+Users would see only `> There were failing tests` and had to read the XML report to find the underlying cause:
+
+```text
+> Task :test FAILED
+
+> There were failing tests. See the report at: file:///.../build/reports/tests/test/index.html
+
+FAILURE: Build failed with an exception.
+```
+
+These framework-startup failures now bypass the granularity filter and are always written to the console by default:
+
+```text
+> Task :test
+
+ExampleTest > initializationError FAILED
+    framework-startup org.testng.TestNGException: Cannot instantiate class ExampleTest
+        at org.testng.internal.ObjectFactoryImpl.newInstance(...)
+        ...
+```
+
+The `testLogging.events` predicate still applies, explicitly silencing `FAILED` events is honored.
+
+The new `TestFailureDetails.isFrameworkFailure()` predicate exposes this distinction to Tooling-API and Build-Scan consumers, who may render framework-startup failures differently from ordinary test failures.
+
+See the [Test logging](userguide/java_testing.html#sec:test_logging) section in the Gradle User Manual for more details.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
