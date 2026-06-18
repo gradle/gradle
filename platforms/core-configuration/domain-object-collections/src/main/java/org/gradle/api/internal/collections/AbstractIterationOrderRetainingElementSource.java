@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
@@ -161,17 +162,17 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), this::doAddRealized);
+        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> clearCachedElement(element));
+            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> clearCachedElement(element)));
         }
         return element;
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), this::doAddRealized);
+        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> clearCachedElement(element));
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> clearCachedElement(element)));
         }
         return element;
     }

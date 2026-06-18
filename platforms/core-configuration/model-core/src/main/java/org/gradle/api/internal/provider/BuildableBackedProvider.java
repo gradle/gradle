@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -67,10 +68,26 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        if (hasDependencies()) {
+        if (dependencies instanceof BuildableBackedProvider.SerializableEmptyTaskDependencyContainer) {
             return ExecutionTimeValue.changingValue(this);
+        } else if (hasDependencies()) {
+            return ExecutionTimeValue.changingValue(
+                new BuildableBackedProvider<>(
+                    // Strip the build dependencies during serialization, since they are
+                    // only used to build the work graph, which happens before CC store.
+                    new SerializableEmptyTaskDependencyContainer(),
+                    valueType,
+                    valueFactory
+                )
+            );
         }
         return ExecutionTimeValue.fixedValue(get());
+    }
+
+    static class SerializableEmptyTaskDependencyContainer implements TaskDependencyContainer, Serializable {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
     }
 
     private boolean hasDependencies() {

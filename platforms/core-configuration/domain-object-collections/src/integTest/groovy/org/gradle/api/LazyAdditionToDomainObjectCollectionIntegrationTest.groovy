@@ -250,8 +250,8 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("withType(Base) called on")
     }
 
-    def "elements carries task dependencies"() {
-        buildFile.text = """
+    def getNamedThing() {
+        """
             class NamedThing implements Named {
                 public String name
                 public NamedThing(String name) {
@@ -264,6 +264,12 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
                     return name
                 }
             }
+        """
+    }
+
+    def "elements carries task dependencies"() {
+        buildFile.text = """
+            ${namedThing}
 
             def task1 = tasks.register("task1") {
                 outputs.file("a.txt")
@@ -292,6 +298,48 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         then:
         outputContains("[a.txt, b.txt, c.txt]")
         result.assertTaskOrder(TaskOrderSpecs.any(":task1", ":task2"), ":task3")
+
+        where:
+        containerType << [
+            "domainObjectContainer",
+            "polymorphicDomainObjectContainer",
+            "domainObjectSet",
+            "namedDomainObjectSet",
+            "namedDomainObjectList"
+        ]
+    }
+
+    def "elements of filtered collection may contain task dependencies"() {
+        buildFile.text = """
+            ${namedThing}
+
+            def task1 = tasks.register("task1") {
+                outputs.file("a.txt")
+                outputs.file("b.txt")
+            }
+            def task2 = tasks.register("task2") {
+                outputs.file("c.txt")
+            }
+
+            def container = objects.$containerType(NamedThing)
+            container.addAllLater(task1.flatMap { it.outputs.files.elements }.map { it.collect { new NamedThing(it.asFile.name) } })
+            container.addAllLater(task2.flatMap { it.outputs.files.elements }.map { it.collect { new NamedThing(it.asFile.name) } })
+            def elements = container.matching { it.name == "c.txt" }.elements
+
+            def task3 = tasks.register("task3") {
+                inputs.property("elements", elements)
+                doLast {
+                    println(elements.get())
+                }
+            }
+        """
+
+        when:
+        succeeds(":task3")
+
+        then:
+        outputContains("[c.txt]")
+        result.assertTaskOrder(":task2", ":task3")
 
         where:
         containerType << [

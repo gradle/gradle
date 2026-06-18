@@ -18,6 +18,7 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -106,11 +107,11 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         return new BuildableBackedProvider<>(
             this,
             Cast.uncheckedCast(List.class),
-            () -> {
+            SerializableLambdas.factory(() -> {
                 ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(estimatedSize());
                 builder.addAll(iterator());
                 return builder.build();
-            }
+            })
         );
     }
 

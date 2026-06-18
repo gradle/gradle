@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -161,10 +162,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public boolean addPending(final ProviderInternal<? extends T> provider) {
         ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
+            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> {
                 values.remove(previousValue);
                 pending.add(collectorFromProvider(provider));
-            });
+            }));
         }
         Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
 
@@ -214,12 +215,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> {
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> {
                 for (T value : previousValues) {
                     values.remove(value);
                 }
                 pending.add(collectorFromCollectionProvider(provider));
-            });
+            }));
         }
         Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
 
@@ -259,10 +260,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 }
             },
             Cast.uncheckedCast(Set.class),
-            () -> {
+            SerializableLambdas.factory(() -> {
                 realizePending();
                 return ImmutableSet.copyOf(values);
-            }
+            })
         );
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -145,11 +146,11 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         return new BuildableBackedProvider<>(
             this,
             Cast.uncheckedCast(Set.class),
-            () -> {
+            SerializableLambdas.factory(() -> {
                 ImmutableSet.Builder<T> builder = ImmutableSet.builderWithExpectedSize(estimatedSize());
                 builder.addAll(iterator());
                 return builder.build();
-            }
+            })
         );
     }
 
