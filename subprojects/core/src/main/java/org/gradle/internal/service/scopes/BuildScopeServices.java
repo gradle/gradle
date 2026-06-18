@@ -176,7 +176,7 @@ import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcesso
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
-import org.gradle.initialization.StartParameterMutationReportingSettingsProcessor;
+import org.gradle.initialization.internal.settings.StartParameterMutationReportingSettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;

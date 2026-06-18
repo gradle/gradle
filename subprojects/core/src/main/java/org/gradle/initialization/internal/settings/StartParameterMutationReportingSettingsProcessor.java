@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization.internal.settings;
 
 import kotlin.Unit;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.SettingsLocation;
+import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.SettingsState;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Arms a listener that reports a problem when the build's start parameter is mutated after its settings
  * have been evaluated. This layer is added to the settings processing chain only when Isolated Projects
  * is enabled, since that is the only mode in which such mutations are reported.
  */
+@NullMarked
 public class StartParameterMutationReportingSettingsProcessor implements SettingsProcessor {
 
     private final SettingsProcessor delegate;
