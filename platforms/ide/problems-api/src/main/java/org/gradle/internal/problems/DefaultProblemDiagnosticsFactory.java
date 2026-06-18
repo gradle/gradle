@@ -172,12 +172,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
             return locationFromStackTrace(getImplicitCallerThrowable(), false, false, transformer);
         }
 
-        /**
-         * Within the limit, captures the full caller stack as before. Past it, captures a cheap bounded
-         * prefix for location inference, up to a further budget, then stops: the bounded walk is cheap per
-         * problem but not free, and a build firing tens of thousands of them (an IDE sync) would otherwise
-         * pay it on every one, while ordinary builds stay well within the budget and keep all locations.
-         */
         @Nullable
         private Throwable getImplicitCallerThrowable() {
             if (remainingStackTraces.getAndDecrement() > 0) {
