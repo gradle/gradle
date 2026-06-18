@@ -313,6 +313,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         store.addPendingCollection(providerInternal);
     }
 
+    @Override
+    public Provider<? extends Collection<T>> getElements() {
+        return store.getElements();
+    }
+
     protected void didAdd(T toAdd) {
     }
 
