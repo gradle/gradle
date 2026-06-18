@@ -16,44 +16,50 @@
 
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
-import gradlebuild.removal.tasks.Gradle10RemovalAggregateReportTask
+import gradlebuild.basics.repoRoot
+import gradlebuild.removal.action.nextMajorGradleVersion
+import gradlebuild.removal.tasks.NextMajorRemovalAggregateReportTask
 
 plugins {
     id("base")
 }
 
+// The report targets the next major version, derived from the current version (e.g. 9.7.0 -> 10).
+val nextMajor = providers.fileContents(repoRoot().file("version.txt")).asText.map { nextMajorGradleVersion(it) }
+
 // Distinct config name from the incubation aggregation plugin ("reports"), since both plugins are
 // applied to the same project.
-val gradle10RemovalReports = configurations.create("gradle10RemovalReports") {
+val nextMajorRemovalReports = configurations.create("nextMajorRemovalReports") {
     isCanBeResolved = false
     isCanBeConsumed = false
-    description = "Dependencies to aggregate Gradle 10 removal reports from"
+    description = "Dependencies to aggregate next-major removal reports from"
 }
 
-val allGradle10RemovalReports = tasks.register<Gradle10RemovalAggregateReportTask>("allGradle10RemovalReports") {
+val allNextMajorRemovalReports = tasks.register<NextMajorRemovalAggregateReportTask>("allNextMajorRemovalReports") {
     group = "verification"
     reports.from(resolver("txt"))
-    htmlReportFile = project.layout.buildDirectory.file("reports/removal/all-gradle10-removals.html")
-    csvReportFile = project.layout.buildDirectory.file("reports/removal/all-gradle10-removals.csv")
+    htmlReportFile = project.layout.buildDirectory.file("reports/removal/all-next-major-removals.html")
+    csvReportFile = project.layout.buildDirectory.file("reports/removal/all-next-major-removals.csv")
     currentCommit = project.buildCommitId
+    targetMajorVersion = nextMajor
 }
 
-tasks.register<Zip>("allGradle10RemovalReportsZip") {
+tasks.register<Zip>("allNextMajorRemovalReportsZip") {
     group = "verification"
     destinationDirectory = layout.buildDirectory.dir("reports/removal")
-    archiveBaseName = "gradle10-removals"
-    from(allGradle10RemovalReports.get().htmlReportFile)
-    from(allGradle10RemovalReports.get().csvReportFile)
+    archiveBaseName = "next-major-removals"
+    from(allNextMajorRemovalReports.get().htmlReportFile)
+    from(allNextMajorRemovalReports.get().csvReportFile)
     from(resolver("html"))
 }
 
-fun resolver(reportType: String) = configurations.create("gradle10RemovalReport${reportType.capitalize()}Path") {
+fun resolver(reportType: String) = configurations.create("nextMajorRemovalReport${reportType.capitalize()}Path") {
     isCanBeResolved = true
     isCanBeConsumed = false
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle10-removal-report-$reportType"))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("next-major-removal-report-$reportType"))
     }
-    extendsFrom(gradle10RemovalReports)
+    extendsFrom(nextMajorRemovalReports)
 }.incoming.artifactView { lenient(true) }.files

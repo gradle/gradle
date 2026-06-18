@@ -16,11 +16,9 @@
 
 package gradlebuild.removal.tasks
 
-import gradlebuild.removal.action.RemovalReportWorkAction
+import gradlebuild.removal.action.RemovalReportAggregationWorkAction
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
@@ -37,47 +35,34 @@ import javax.inject.Inject
 
 
 @CacheableTask
-abstract class Gradle10RemovalReportTask : DefaultTask() {
-
-    // Mirrors IncubatingApiReportTask: the worker hosts the Kotlin compiler embeddable to parse Kotlin sources.
-    private val additionalClasspath = project.objects.fileCollection().apply {
-        val libs = project.the<VersionCatalogsExtension>().named("buildLibs")
-        from(
-            project.configurations.detachedConfiguration(
-                project.dependencies.create(libs.findLibrary("kotlinCompilerEmbeddable").get().get().copy().apply {
-                    version {
-                        strictly(embeddedKotlinVersion)
-                    }
-                }),
-            )
-        )
-    }
-
-    @get:Input
-    abstract val title: Property<String>
+abstract class NextMajorRemovalAggregateReportTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val sources: ConfigurableFileCollection
+    abstract val reports: ConfigurableFileCollection
+
+    @get:Input
+    abstract val currentCommit: Property<String>
+
+    /** The next major Gradle version the report targets (e.g. 10 while developing 9.x). */
+    @get:Input
+    abstract val targetMajorVersion: Property<Int>
 
     @get:OutputFile
     abstract val htmlReportFile: RegularFileProperty
 
     @get:OutputFile
-    abstract val textReportFile: RegularFileProperty
+    abstract val csvReportFile: RegularFileProperty
 
     @get:Inject
     abstract val workerExecutor: WorkerExecutor
 
-    @get:Inject
-    abstract val layout: ProjectLayout
-
     @TaskAction
-    fun analyze() = workerExecutor.processIsolation { classpath.from(additionalClasspath) }.submit(RemovalReportWorkAction::class) {
-        repositoryRoot = layout.settingsDirectory
-        srcDirs.from(this@Gradle10RemovalReportTask.sources)
-        htmlReportFile = this@Gradle10RemovalReportTask.htmlReportFile
-        textReportFile = this@Gradle10RemovalReportTask.textReportFile
-        title = this@Gradle10RemovalReportTask.title
+    fun generateReport() = workerExecutor.noIsolation().submit(RemovalReportAggregationWorkAction::class) {
+        reports.from(this@NextMajorRemovalAggregateReportTask.reports)
+        htmlReportFile = this@NextMajorRemovalAggregateReportTask.htmlReportFile
+        csvReportFile = this@NextMajorRemovalAggregateReportTask.csvReportFile
+        currentCommit = this@NextMajorRemovalAggregateReportTask.currentCommit
+        targetMajorVersion = this@NextMajorRemovalAggregateReportTask.targetMajorVersion
     }
 }

@@ -18,26 +18,44 @@ package gradlebuild.removal.action
 
 
 /**
- * The deprecation timeline marker method that the scanner looks for, i.e. the terminal-ish
- * `DeprecationMessageBuilder` call that states when the deprecated thing changes.
- *
- * @param method the exact method name as it appears in source.
- * @param group the report section this marker belongs to.
- * @param description a human-readable explanation of what the marker announces.
+ * A deprecation timeline marker the scanner looks for, expressed independently of any concrete Gradle
+ * version. The concrete `DeprecationMessageBuilder` method name and the human description are derived
+ * from the **target major version** (the next major release), so the same report works for Gradle 10
+ * today and Gradle 11 once the build moves on — see [method] and [description].
  */
-enum class RemovalTimeline(val method: String, val group: Group, val description: String) {
-    REMOVED_IN_10("willBeRemovedInGradle10", Group.REMOVAL, "Scheduled to be removed in Gradle 10."),
-    ERROR_IN_10("willBecomeAnErrorInGradle10", Group.ERROR, "Will become an error in Gradle 10."),
-    ERROR_IN_NEXT_MAJOR("willBecomeAnErrorInNextMajorGradleVersion", Group.ERROR, "Will become an error in the next major Gradle version."),
-    STARTING_IN_10("startingWithGradle10", Group.STARTING, "Behaviour changes starting with Gradle 10."),
-    STARTING_IN_11("startingWithGradle11", Group.STARTING, "Behaviour changes starting with Gradle 11.");
+enum class RemovalTimeline(val group: Group) {
+    /** `willBeRemovedInGradle<target>` */
+    REMOVED(Group.REMOVAL),
 
-    /**
-     * The "starting with" markers take a `String` message argument; the others take none. Used so the
-     * parser does not mistake that message for the deprecated symbol.
-     */
-    val takesMessageArgument: Boolean
-        get() = this == STARTING_IN_10 || this == STARTING_IN_11
+    /** `willBecomeAnErrorInGradle<target>` */
+    ERROR_THIS_MAJOR(Group.ERROR),
+
+    /** `willBecomeAnErrorInNextMajorGradleVersion` — version-independent, always scanned. */
+    ERROR_NEXT_MAJOR(Group.ERROR),
+
+    /** `startingWithGradle<target>` */
+    STARTING_THIS_MAJOR(Group.STARTING),
+
+    /** `startingWithGradle<target + 1>` */
+    STARTING_NEXT_MAJOR(Group.STARTING);
+
+    /** The exact `DeprecationMessageBuilder` method name for the given [targetMajor] (next major version). */
+    fun method(targetMajor: Int): String = when (this) {
+        REMOVED -> "willBeRemovedInGradle$targetMajor"
+        ERROR_THIS_MAJOR -> "willBecomeAnErrorInGradle$targetMajor"
+        ERROR_NEXT_MAJOR -> "willBecomeAnErrorInNextMajorGradleVersion"
+        STARTING_THIS_MAJOR -> "startingWithGradle$targetMajor"
+        STARTING_NEXT_MAJOR -> "startingWithGradle${targetMajor + 1}"
+    }
+
+    /** A human-readable explanation of what the marker announces, for the given [targetMajor]. */
+    fun description(targetMajor: Int): String = when (this) {
+        REMOVED -> "Scheduled to be removed in Gradle $targetMajor."
+        ERROR_THIS_MAJOR -> "Will become an error in Gradle $targetMajor."
+        ERROR_NEXT_MAJOR -> "Will become an error in the next major Gradle version."
+        STARTING_THIS_MAJOR -> "Behaviour changes starting with Gradle $targetMajor."
+        STARTING_NEXT_MAJOR -> "Behaviour changes starting with Gradle ${targetMajor + 1}."
+    }
 
     enum class Group(val displayName: String) {
         REMOVAL("Removals"),
@@ -46,12 +64,9 @@ enum class RemovalTimeline(val method: String, val group: Group, val description
     }
 
     companion object {
-        private val BY_METHOD = entries.associateBy { it.method }
-
-        /** All marker method names the scanner matches. */
-        val methodNames: Set<String> = entries.map { it.method }.toSet()
-
-        fun fromMethod(method: String): RemovalTimeline? = BY_METHOD[method]
+        /** Marker method names → marker, for the given [targetMajor]. The set the scanner matches. */
+        fun markersByMethod(targetMajor: Int): Map<String, RemovalTimeline> =
+            entries.associateBy { it.method(targetMajor) }
 
         fun fromString(value: String): RemovalTimeline? = entries.firstOrNull { it.name == value }
     }

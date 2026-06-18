@@ -29,4 +29,7 @@ interface RemovalReportParameter : WorkParameters {
     val htmlReportFile: RegularFileProperty
     val textReportFile: RegularFileProperty
     val title: Property<String>
+
+    /** The next major Gradle version the report targets (e.g. 10 while developing 9.x). */
+    val targetMajorVersion: Property<Int>
 }

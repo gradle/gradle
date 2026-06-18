@@ -29,14 +29,35 @@ class RemovalReportWorkActionTest {
     @TempDir
     lateinit var tempDir: File
 
+    // The synthetic sources below use the Gradle 10 marker names, so the scanner is configured for target 10.
+    private val markers = RemovalTimeline.markersByMethod(10)
+
     private fun java(name: String, @Language("java") body: String): List<RemovalFinding> {
         val file = File(tempDir, "$name.java").apply { writeText(body) }
-        return JavaRemovalCollector(tempDir.toPath()).collectFrom(file)
+        return JavaRemovalCollector(tempDir.toPath(), markers).collectFrom(file)
     }
 
     private fun kotlin(name: String, body: String): List<RemovalFinding> {
         val file = File(tempDir, "$name.kt").apply { writeText(body) }
-        return KotlinRemovalCollector(tempDir.toPath()).collectFrom(file)
+        return KotlinRemovalCollector(tempDir.toPath(), markers).collectFrom(file)
+    }
+
+    @Test
+    fun `next major version is derived from the current version`() {
+        assertEquals(10, nextMajorGradleVersion("9.7.0"))
+        assertEquals(10, nextMajorGradleVersion("9.0-milestone-5\n"))
+        assertEquals(11, nextMajorGradleVersion("10.2.0"))
+    }
+
+    @Test
+    fun `markers track the target major version`() {
+        assertEquals(RemovalTimeline.REMOVED, RemovalTimeline.markersByMethod(10)["willBeRemovedInGradle10"])
+        assertEquals(RemovalTimeline.REMOVED, RemovalTimeline.markersByMethod(11)["willBeRemovedInGradle11"])
+        // startingWithGradle11 is "this major" for target 11 but "next major" for target 10.
+        assertEquals(RemovalTimeline.STARTING_NEXT_MAJOR, RemovalTimeline.markersByMethod(10)["startingWithGradle11"])
+        assertEquals(RemovalTimeline.STARTING_THIS_MAJOR, RemovalTimeline.markersByMethod(11)["startingWithGradle11"])
+        // The next-major marker is version-independent.
+        assertEquals(RemovalTimeline.ERROR_NEXT_MAJOR, RemovalTimeline.markersByMethod(10)["willBecomeAnErrorInNextMajorGradleVersion"])
     }
 
     @Test
@@ -55,7 +76,7 @@ class RemovalReportWorkActionTest {
 
         assertEquals(1, findings.size)
         val f = findings.single()
-        assertEquals(RemovalTimeline.REMOVED_IN_10, f.timeline)
+        assertEquals(RemovalTimeline.REMOVED, f.timeline)
         assertEquals(RemovalKind.METHOD, f.kind)
         assertEquals("Foo.bar()", f.symbol)
         assertEquals(9, f.guideMajor)
@@ -81,7 +102,7 @@ class RemovalReportWorkActionTest {
         )
 
         val f = findings.single()
-        assertEquals(RemovalTimeline.ERROR_IN_10, f.timeline)
+        assertEquals(RemovalTimeline.ERROR_THIS_MAJOR, f.timeline)
         assertEquals(RemovalKind.PROPERTY, f.kind)
         assertEquals("Bar.baz", f.symbol)
         assertEquals(8, f.guideMajor)
@@ -104,7 +125,7 @@ class RemovalReportWorkActionTest {
         )
 
         val f = findings.single()
-        assertEquals(RemovalTimeline.ERROR_IN_10, f.timeline)
+        assertEquals(RemovalTimeline.ERROR_THIS_MAJOR, f.timeline)
         assertEquals(RemovalKind.OTHER, f.kind)
         assertTrue(f.symbol.startsWith("<dynamic"), "expected dynamic symbol but was ${f.symbol}")
         assertNull(f.guideSection)
@@ -148,7 +169,7 @@ class RemovalReportWorkActionTest {
         )
 
         val f = findings.single()
-        assertEquals(RemovalTimeline.STARTING_IN_10, f.timeline)
+        assertEquals(RemovalTimeline.STARTING_THIS_MAJOR, f.timeline)
         assertEquals(RemovalKind.BEHAVIOUR, f.kind)
         assertEquals("Some behaviour.", f.symbol)
         assertEquals("groovy_boolean_properties", f.guideSection)
@@ -190,7 +211,7 @@ class RemovalReportWorkActionTest {
         )
 
         val f = findings.single()
-        assertEquals(RemovalTimeline.REMOVED_IN_10, f.timeline)
+        assertEquals(RemovalTimeline.REMOVED, f.timeline)
         assertEquals(RemovalKind.TYPE, f.kind)
         assertEquals("MyDelegate", f.symbol)
         assertEquals(9, f.guideMajor)

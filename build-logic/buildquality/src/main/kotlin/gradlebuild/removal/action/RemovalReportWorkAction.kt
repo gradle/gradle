@@ -64,11 +64,13 @@ abstract class RemovalReportWorkAction : WorkAction<RemovalReportParameter> {
 
     override fun execute() {
         val repositoryRoot = parameters.repositoryRoot.get().asFile.toPath()
+        val targetMajor = parameters.targetMajorVersion.get()
+        val markers = RemovalTimeline.markersByMethod(targetMajor)
         val findings = sortedSetOf(FINDING_ORDER)
         parameters.srcDirs.forEach { srcDir ->
             if (srcDir.exists()) {
-                val java = JavaRemovalCollector(repositoryRoot)
-                val kotlin = KotlinRemovalCollector(repositoryRoot)
+                val java = JavaRemovalCollector(repositoryRoot, markers)
+                val kotlin = KotlinRemovalCollector(repositoryRoot, markers)
                 srcDir.walkTopDown().filter { it.isFile }.forEach { sourceFile ->
                     try {
                         findings.addAll(java.collectFrom(sourceFile))
@@ -80,7 +82,7 @@ abstract class RemovalReportWorkAction : WorkAction<RemovalReportParameter> {
             }
         }
         writeTextReport(findings.toList())
-        writeHtmlReport(findings.toList())
+        writeHtmlReport(findings.toList(), targetMajor)
     }
 
     private
@@ -93,7 +95,7 @@ abstract class RemovalReportWorkAction : WorkAction<RemovalReportParameter> {
     }
 
     private
-    fun writeHtmlReport(findings: List<RemovalFinding>) {
+    fun writeHtmlReport(findings: List<RemovalFinding>, targetMajor: Int) {
         val out = parameters.htmlReportFile.get().asFile
         val title = parameters.title.get()
         out.parentFile.mkdirs()
@@ -102,13 +104,13 @@ abstract class RemovalReportWorkAction : WorkAction<RemovalReportParameter> {
                 """<html lang="en">
     <head>
        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-       <title>Gradle 10 removals for $title</title>
+       <title>Gradle $targetMajor removals for $title</title>
        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,400i,700">
        <meta content="width=device-width, initial-scale=1" name="viewport">
        <link type="text/css" rel="stylesheet" href="https://docs.gradle.org/current/userguide/base.css">
     </head>
     <body>
-       <h1>Gradle 10 removals for $title</h1>
+       <h1>Gradle $targetMajor removals for $title</h1>
        <p>${findings.size} deprecation call site(s) scheduled for removal / to become an error.</p>
 """
             )
@@ -123,7 +125,7 @@ abstract class RemovalReportWorkAction : WorkAction<RemovalReportParameter> {
                         } else {
                             " — no upgrade-guide section"
                         }
-                        writer.println("   <li><code>${f.symbol.escape()}</code> [${f.kind.name.lowercase()}, ${f.timeline.method}] at ${f.sourceRelativePath}:${f.lineNumber}$guide</li>")
+                        writer.println("   <li><code>${f.symbol.escape()}</code> [${f.kind.name.lowercase()}, ${f.timeline.method(targetMajor)}] at ${f.sourceRelativePath}:${f.lineNumber}$guide</li>")
                     }
                     writer.println("</ul>")
                 }
@@ -170,6 +172,14 @@ private val NEWLINE_REGEX = "\\s*\\n\\s*".toRegex()
 internal fun upgradeGuideUrl(major: Int, section: String): String =
     "https://docs.gradle.org/current/userguide/upgrading_version_$major.html#$section"
 
+/**
+ * The next major Gradle version — the target the removal report is about — derived from the current
+ * version (e.g. `9.7.0` → 10, `10.2.0` → 11). Public so the convention plugins can compute it from
+ * `version.txt`.
+ */
+fun nextMajorGradleVersion(currentVersion: String): Int =
+    currentVersion.trim().substringBefore('.').toInt() + 1
+
 
 private const val MAX_DYNAMIC_LENGTH = 120
 
@@ -183,14 +193,17 @@ internal fun dynamicSymbol(rawExpression: String?): String {
 /**
  * Java chain analysis via JavaParser. No symbol solver: only simple names and literals are needed.
  */
-class JavaRemovalCollector(private val repositoryRoot: Path) {
+class JavaRemovalCollector(
+    private val repositoryRoot: Path,
+    private val markersByMethod: Map<String, RemovalTimeline>
+) {
 
     fun collectFrom(sourceFile: File): List<RemovalFinding> {
         if (!sourceFile.name.endsWith(".java")) return emptyList()
         val unit = JavaParser().parse(sourceFile).result.orElse(null) ?: return emptyList()
         return unit.findAll(MethodCallExpr::class.java)
             .mapNotNull { call ->
-                val timeline = RemovalTimeline.fromMethod(call.nameAsString) ?: return@mapNotNull null
+                val timeline = markersByMethod[call.nameAsString] ?: return@mapNotNull null
                 analyze(call, timeline, sourceFile)
             }
     }
@@ -262,7 +275,10 @@ class JavaRemovalCollector(private val repositoryRoot: Path) {
 /**
  * Kotlin chain analysis over PSI produced by [KotlinSourceParser].
  */
-class KotlinRemovalCollector(private val repositoryRoot: Path) {
+class KotlinRemovalCollector(
+    private val repositoryRoot: Path,
+    private val markersByMethod: Map<String, RemovalTimeline>
+) {
 
     fun collectFrom(sourceFile: File): List<RemovalFinding> {
         if (!sourceFile.name.endsWith(".kt")) return emptyList()
@@ -275,7 +291,7 @@ class KotlinRemovalCollector(private val repositoryRoot: Path) {
     fun collectFrom(ktFile: KtFile, sourceFile: File): List<RemovalFinding> =
         ktFile.collectDescendantsOfType<KtCallExpression>()
             .mapNotNull { call ->
-                val timeline = calleeName(call)?.let { RemovalTimeline.fromMethod(it) } ?: return@mapNotNull null
+                val timeline = calleeName(call)?.let { markersByMethod[it] } ?: return@mapNotNull null
                 analyze(call, timeline, ktFile, sourceFile)
             }
 

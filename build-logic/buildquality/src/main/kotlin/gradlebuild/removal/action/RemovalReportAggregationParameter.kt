@@ -27,4 +27,7 @@ interface RemovalReportAggregationParameter : WorkParameters {
     val htmlReportFile: RegularFileProperty
     val csvReportFile: RegularFileProperty
     val currentCommit: Property<String>
+
+    /** The next major Gradle version the report targets (e.g. 10 while developing 9.x). */
+    val targetMajorVersion: Property<Int>
 }

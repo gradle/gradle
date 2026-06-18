@@ -92,10 +92,11 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
             }
         }
 
-        generateHtmlReport(entries)
-        LOGGER.lifecycle("Generated Gradle 10 removal html report to file://${parameters.htmlReportFile.get().asFile.absolutePath}")
-        generateCsvReport(entries)
-        LOGGER.lifecycle("Generated Gradle 10 removal csv report to file://${parameters.csvReportFile.get().asFile.absolutePath}")
+        val targetMajor = parameters.targetMajorVersion.get()
+        generateHtmlReport(entries, targetMajor)
+        LOGGER.lifecycle("Generated Gradle $targetMajor removal html report to file://${parameters.htmlReportFile.get().asFile.absolutePath}")
+        generateCsvReport(entries, targetMajor)
+        LOGGER.lifecycle("Generated Gradle $targetMajor removal csv report to file://${parameters.csvReportFile.get().asFile.absolutePath}")
     }
 
     /** Parses a `timeline;kind;guideMajor;guideSection;relativePath;lineNumber;symbol` record (symbol last). */
@@ -123,7 +124,7 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
         "$GITHUB_BASE_URL/$currentCommit/$relativePath#L$lineNumber".replace(" ", "%20")
 
     private
-    fun generateHtmlReport(entries: List<Entry>) {
+    fun generateHtmlReport(entries: List<Entry>, targetMajor: Int) {
         val outputFile = parameters.htmlReportFile.get().asFile
         outputFile.parentFile.mkdirs()
         val currentCommit = parameters.currentCommit.get()
@@ -136,7 +137,7 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Gradle 10 removals</title>
+    <title>Gradle $targetMajor removals</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,400i,700">
     <meta content="width=device-width, initial-scale=1" name="viewport">
     <link type="text/css" rel="stylesheet" href="https://docs.gradle.org/current/userguide/base.css">
@@ -159,7 +160,7 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
     </style>
 </head>
 <body>
-    <h1>Gradle 10 removals</h1>
+    <h1>Gradle $targetMajor removals</h1>
     <p class="meta">${entries.size} deprecation call site(s) across the build &middot; source commit <code>${currentCommit.take(10)}</code> &middot; data: <a href="$csvFileName">$csvFileName</a></p>
     <div class="filters">
         <label>Project
@@ -183,7 +184,7 @@ $projectOptions
                     val markerEntries = groupEntries.filter { it.timeline == marker }
                     if (markerEntries.isEmpty()) return@forEach
                     writer.println("<div class=\"marker-block\">")
-                    writer.println("<p class=\"marker-note\">Marker <code>${marker.method}</code> — ${marker.description} (<span class=\"count\">${markerEntries.size}</span>)</p>")
+                    writer.println("<p class=\"marker-note\">Marker <code>${marker.method(targetMajor)}</code> — ${marker.description(targetMajor)} (<span class=\"count\">${markerEntries.size}</span>)</p>")
                     writer.println("<table><thead><tr><th>Deprecated symbol</th><th>Kind</th><th>Upgrade guide</th><th>Project</th><th>Source</th></tr></thead><tbody>")
                     markerEntries
                         .sortedWith(compareBy({ it.guideSection ?: "~" }, { it.project }, { it.symbol }))
@@ -207,7 +208,7 @@ $projectOptions
     }
 
     private
-    fun generateCsvReport(entries: List<Entry>) {
+    fun generateCsvReport(entries: List<Entry>, targetMajor: Int) {
         val outputFile = parameters.csvReportFile.get().asFile
         outputFile.parentFile.mkdirs()
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
@@ -218,7 +219,7 @@ $projectOptions
                     writer.println(
                         listOf(
                             e.timeline.group.displayName,
-                            e.timeline.method,
+                            e.timeline.method(targetMajor),
                             e.kind.name.lowercase(),
                             "\"${e.symbol.replace("\"", "\"\"")}\"",
                             e.guideMajor?.toString() ?: "",

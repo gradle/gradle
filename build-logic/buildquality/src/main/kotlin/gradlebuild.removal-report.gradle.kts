@@ -16,17 +16,24 @@
 
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.capitalize
-import gradlebuild.removal.tasks.Gradle10RemovalReportTask
+import gradlebuild.basics.repoRoot
+import gradlebuild.removal.action.nextMajorGradleVersion
+import gradlebuild.removal.tasks.NextMajorRemovalReportTask
 
 plugins {
     java
     groovy
 }
 
-val reportTask = tasks.register<Gradle10RemovalReportTask>("gradle10RemovalReport") {
+// The report targets the next major version, derived from the current version (e.g. 9.7.0 -> 10).
+// Once the build moves to 10.x this becomes 11 with no code change.
+val nextMajor = providers.fileContents(repoRoot().file("version.txt")).asText.map { nextMajorGradleVersion(it) }
+
+val reportTask = tasks.register<NextMajorRemovalReportTask>("nextMajorRemovalReport") {
     group = "verification"
-    description = "Generates a report of deprecations scheduled for removal / to become an error in Gradle 10"
+    description = "Generates a report of deprecations scheduled for removal / to become an error in the next major Gradle version"
     title = project.name
+    targetMajorVersion = nextMajor
     sources.from(sourceSets.main.get().java.sourceDirectories)
     htmlReportFile = file(layout.buildDirectory.file("reports/removal/${project.name}.html"))
     textReportFile = file(layout.buildDirectory.file("reports/removal/${project.name}.txt"))
@@ -43,13 +50,13 @@ plugins.withId("org.jetbrains.kotlin.jvm") {
 consumableVariant("txt", reportTask.flatMap { it.textReportFile })
 consumableVariant("html", reportTask.flatMap { it.htmlReportFile })
 
-fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = configurations.create("gradle10RemovalReport${reportType.capitalize()}") {
+fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = configurations.create("nextMajorRemovalReport${reportType.capitalize()}") {
     isCanBeResolved = false
     isCanBeConsumed = true
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle10-removal-report-$reportType"))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("next-major-removal-report-$reportType"))
     }
     extendsFrom(configurations.implementation.get())
     outgoing.artifact(artifact)
