@@ -22,7 +22,10 @@ import spock.lang.Issue
 
 class ProjectHierarchyCustomizationIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/18726")
-    @ToBeFixedForConfigurationCache(because = "multiple projects registered, https://github.com/gradle/gradle/issues/37119")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37119",
+        because = "multiple projects registered"
+    )
     def "can customize name of child project before customizing the name of parent project"() {
         createDirs("modules", "modules/projectA", "modules/projectA/projectB")
         settingsFile << """

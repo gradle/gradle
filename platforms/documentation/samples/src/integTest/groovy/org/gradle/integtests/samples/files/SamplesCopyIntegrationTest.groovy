@@ -284,7 +284,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("integration-tests/files/copy")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22536")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/13121")
     def "can use copy method in task with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -303,7 +303,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("integration-tests/files/copy")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22536")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/13121")
     def "can use copy method in task with outputs with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

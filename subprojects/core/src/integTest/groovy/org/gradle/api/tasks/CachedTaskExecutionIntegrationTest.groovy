@@ -417,7 +417,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         noneSkipped()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Custom actions flag is not restored, https://github.com/gradle/gradle/issues/37246")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37246",
+        because = "Custom actions flag is not restored"
+    )
     def "task with custom actions gets logged"() {
         when:
         withBuildCache().run "compileJava", "--info"

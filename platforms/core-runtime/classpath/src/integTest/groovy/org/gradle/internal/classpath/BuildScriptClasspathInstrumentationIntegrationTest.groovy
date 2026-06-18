@@ -344,7 +344,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33875")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/33875")
     def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
         given:
         multiProjectJavaBuild("subproject") {
@@ -380,7 +380,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 2
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33875")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/33875")
     def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
         given:
         multiProjectJavaBuild("subproject") {

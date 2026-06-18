@@ -99,7 +99,7 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
 
 
     @Issue('https://github.com/gradle/gradle/issues/23111')
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22041")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/22041")
     def "can configure dynamic property without call method"() {
         buildFile << """
             task test {
