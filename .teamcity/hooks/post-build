@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "$TEAMCITY_BUILD_FINISHED_STATUS"
