@@ -16,10 +16,10 @@
 
 package org.gradle.api
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 
 abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
+    @UnsupportedWithIsolatedProjects(because = "Cross-project configuration")
     def "can mutate containers inside Project hooks"() {
         createDirs("nested")
         settingsFile """
@@ -48,6 +48,7 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
         succeeds "verify"
     }
 
+    @UnsupportedWithIsolatedProjects(because = "Gradle.(beforeProject/afterProject) cannot be used at project scope with Isolated Projects")
     def "can mutate containers inside Gradle hooks"() {
         createDirs("nested")
         settingsFile """

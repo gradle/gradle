@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -219,6 +220,10 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds 'assertActionExecutionOrder'
     }
 
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "can execute #description during task creation action execution"() {
         createDirs("nested")
         settingsFile << "include 'nested'"
@@ -235,6 +240,10 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "can execute #description during task configuration action execution"() {
         createDirs("nested")
         settingsFile << "include 'nested'"
@@ -400,6 +409,10 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "can execute #description during eager configuration action with registered task"() {
         buildFile << """
             tasks.withType(SomeTask) {

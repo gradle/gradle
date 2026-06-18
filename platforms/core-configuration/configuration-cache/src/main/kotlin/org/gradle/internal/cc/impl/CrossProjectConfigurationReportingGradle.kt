@@ -22,7 +22,6 @@ import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
-import org.gradle.api.ProjectState
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
@@ -118,37 +117,11 @@ class CrossProjectConfigurationReportingGradle(
         }
     }
 
-    override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {
-        val result = CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess)
-        delegate.addProjectEvaluationListener(result)
-        return result
-    }
-
-    override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
-        delegate.removeProjectEvaluationListener(CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess))
-    }
-
     override fun projectsEvaluated(closure: Closure<*>) =
         delegate.projectsEvaluated(closure.withCrossProjectModelAccessChecks())
 
     override fun projectsEvaluated(action: Action<in Gradle>) =
         delegate.projectsEvaluated(action.withCrossProjectModelGradleAccessCheck())
-
-    override fun beforeProject(closure: Closure<*>) {
-        delegate.beforeProject(closure.withCrossProjectModelAccessChecks())
-    }
-
-    override fun beforeProject(action: Action<in Project>) {
-        delegate.beforeProject(action.withCrossProjectModelAccessCheck())
-    }
-
-    override fun afterProject(closure: Closure<*>) {
-        delegate.afterProject(closure.withCrossProjectModelAccessChecks())
-    }
-
-    override fun afterProject(action: Action<in Project>) {
-        delegate.afterProject(action.withCrossProjectModelAccessCheck())
-    }
 
     override fun getDefaultProjectState(): InternalProjectState =
         delegate.defaultProjectState
@@ -157,14 +130,6 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun getLifecycle(): GradleLifecycle =
         delegate.lifecycle
-
-    override fun addListener(listener: Any) {
-        delegate.addListener(maybeWrapListener(listener))
-    }
-
-    override fun removeListener(listener: Any) {
-        delegate.removeListener(maybeWrapListener(listener))
-    }
 
     override fun getTaskGraph(): TaskExecutionGraphInternal =
         crossProjectModelAccess.taskGraphForProject(referrerProject, delegate.taskGraph)
@@ -181,13 +146,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun resetState() {
         // Should not be called
         throw UnsupportedOperationException()
-    }
-
-    private
-    fun maybeWrapListener(listener: Any): Any = when (listener) {
-        is ProjectEvaluationListener -> CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess)
-        // all the supported listener types other than ProjectEvaluationListener are already reported as configuration cache problems in non-buildSrc builds
-        else -> listener
     }
 
     private
@@ -214,28 +172,60 @@ class CrossProjectConfigurationReportingGradle(
         }
     }
 
-    private
-    class CrossProjectModelAccessProjectEvaluationListener(
-        private val delegate: ProjectEvaluationListener,
-        private val referrerProject: ProjectIdentity,
-        private val crossProjectModelAccess: CrossProjectModelAccess
-    ) : ProjectEvaluationListener {
-        override fun beforeEvaluate(project: Project) {
-            delegate.beforeEvaluate(crossProjectModelAccess.access(referrerProject, project as ProjectInternal))
-        }
+    override fun addListener(listener: Any) {
+        // IP prohibits project scope registration even listeners supported by CC:
+        // - ProjectEvaluationListener, see `addProjectEvaluationListener` method
+        // - TaskExecutionGraphListener, as it receives the task graph (cross-project state). Supportable in principle, but
+        // only the dedicated `gradle.taskGraph` API wraps the graph for tracking; we stay restrictive here for now
+        // - DependencyResolutionListener, as it gives access to ResolvableDependencies, which is mutable state of a Configuration
+        //
+        // Moreover, CC considering any listener as supported on buildSrc build,
+        // see `DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration` method,
+        // but IP reports it unconditionally.
+        onMutableStateAccess("addListener")
+        delegate.addListener(listener)
+    }
 
-        override fun afterEvaluate(project: Project, state: ProjectState) {
-            delegate.afterEvaluate(crossProjectModelAccess.access(referrerProject, project as ProjectInternal), state)
-        }
+    override fun removeListener(listener: Any) {
+        // Violation for symmetry with `addListener`
+        onMutableStateAccess("removeListener")
+        delegate.removeListener(listener)
+    }
 
-        override fun equals(other: Any?): Boolean =
-            javaClass == (other as? CrossProjectModelAccessProjectEvaluationListener)?.javaClass &&
-                other.delegate == delegate &&
-                other.referrerProject == referrerProject
+    override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener {
+        // Prevent tying project's mutable state to the lifecycle of other projects
+        onMutableStateAccess("addProjectEvaluationListener")
+        return delegate.addProjectEvaluationListener(listener)
+    }
 
-        override fun hashCode(): Int = Objects.hash(delegate, referrerProject)
+    override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
+        // Violation for symmetry with `addProjectEvaluationListener`
+        onMutableStateAccess("removeProjectEvaluationListener")
+        delegate.removeProjectEvaluationListener(listener)
+    }
 
-        override fun toString(): String = "CrossProjectModelAccessProjectEvaluationListener($delegate)"
+    override fun beforeProject(closure: Closure<*>) {
+        // See `addProjectEvaluationListener`
+        onMutableStateAccess("beforeProject")
+        delegate.beforeProject(closure)
+    }
+
+    override fun beforeProject(action: Action<in Project>) {
+        // See `addProjectEvaluationListener`
+        onMutableStateAccess("beforeProject")
+        delegate.beforeProject(action)
+    }
+
+    override fun afterProject(closure: Closure<*>) {
+        // See `addProjectEvaluationListener`
+        onMutableStateAccess("afterProject")
+        delegate.afterProject(closure)
+    }
+
+    override fun afterProject(action: Action<in Project>) {
+        // See `addProjectEvaluationListener`
+        onMutableStateAccess("afterProject")
+        delegate.afterProject(action)
     }
 
     override fun getPlugins(): PluginContainer {
