@@ -104,6 +104,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
+        // Lifecycle task: UP_TO_DATE because downstream packaging tasks re-evaluate
+        // inputs through the secondary variant and find no change to package.
+        result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
 
         and:
         if (GradleContextualExecuter.isConfigCache()) {
