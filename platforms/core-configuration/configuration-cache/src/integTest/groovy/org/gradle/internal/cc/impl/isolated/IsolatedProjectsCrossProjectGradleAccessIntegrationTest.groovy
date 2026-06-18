@@ -142,13 +142,13 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         combined:
         invocation                                          | expectedProblems
         "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project -> expectedProblemsOnAddUnsupportedListener(mode, project) }
-        "removeListener(new Object())"                      | { _, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${projectEvaluationListener()})"       | { _, String project -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${projectEvaluationListener()})"    | { _, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${taskExecutionGraphListener()})"      | { _, String project -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${taskExecutionGraphListener()})"   | { _, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${dependencyResolutionListener()})"    | { _, String project -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${dependencyResolutionListener()})" | { _, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "addListener(${projectEvaluationListener()})"       | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
+        "removeListener(${projectEvaluationListener()})"    | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "addListener(${taskExecutionGraphListener()})"      | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
+        "removeListener(${taskExecutionGraphListener()})"   | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "addListener(${dependencyResolutionListener()})"    | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
+        "removeListener(${dependencyResolutionListener()})" | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
 
         combined:
         mode << ALL_MODES

@@ -173,12 +173,13 @@ class CrossProjectConfigurationReportingGradle(
     }
 
     override fun addListener(listener: Any) {
-        // IP prohibits project scope registration even for supported listeners:
+        // IP prohibits project scope registration even listeners supported by CC:
         // - ProjectEvaluationListener, see `addProjectEvaluationListener` method
-        // - TaskExecutionGraphListener, as it gives access mutable state of TaskExecutionGraph
+        // - TaskExecutionGraphListener, as it receives the task graph (cross-project state). Supportable in principle, but
+        // only the dedicated `gradle.taskGraph` API wraps the graph for tracking; we stay restrictive here for now
         // - DependencyResolutionListener, as it gives access to ResolvableDependencies, which is mutable state of a Configuration
         //
-        // Moreover, vintage considering any listener as supported on buildSrc build,
+        // Moreover, CC considering any listener as supported on buildSrc build,
         // see `DefaultConfigurationCacheProblemsListener.onBuildScopeListenerRegistration` method,
         // but IP reports it unconditionally.
         onMutableStateAccess("addListener")
