@@ -16,6 +16,8 @@
 
 package org.gradle.java.fixtures
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaProjectTestFixturesIntegrationTest {
     @Override
     String getPluginName() {
@@ -27,6 +29,7 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaProjectTestFixt
         compileClasspathPackaging ? [] : [':jar', ':testFixturesJar']
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Java test fixtures cross-project")
     def "can consume test fixtures of subproject written in Groovy"() {
         settingsFile << """
             include 'sub'

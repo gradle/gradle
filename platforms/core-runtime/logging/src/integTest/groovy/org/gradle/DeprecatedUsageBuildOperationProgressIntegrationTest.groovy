@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
@@ -305,6 +306,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IP emits additional deprecation events that break count assertion")
     def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 

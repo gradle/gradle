@@ -70,6 +70,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         "Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '$methodName' was not declared in project ':child' and was resolved from root project 'test'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "${DEPRECATED_PARENT_PROPERTY_ACCESS_URL}"
     }
@@ -78,6 +79,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         "Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property '$propertyName' was not declared in project ':child' and was resolved from root project 'test'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "${DEPRECATED_PARENT_PROPERTY_ACCESS_URL}"
     }

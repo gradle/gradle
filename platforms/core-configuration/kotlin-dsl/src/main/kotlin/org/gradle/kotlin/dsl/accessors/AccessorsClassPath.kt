@@ -97,8 +97,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private
     val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
 
-    private val cachingDisabled: Boolean =
-        internalOptions.getBoolean(KotlinDslInternalOptions.CACHING_DISABLED_PROPERTY)
+    private val accessorCachingDisabledReason = KotlinDslInternalOptions.accessorCachingDisabledReason(internalOptions)
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
         val classLoaderScope = classLoaderScopeOf(scriptTarget)
@@ -127,7 +126,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                     inputFingerprinter,
                     workspaceProvider,
                     isDclEnabledForScriptTarget(scriptTarget),
-                    cachingDisabled,
+                    accessorCachingDisabledReason,
                 )
                 executionEngine.createRequest(work)
                     .execute()
@@ -174,7 +173,7 @@ class GenerateProjectAccessors(
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val isDclEnabled: Boolean,
-    private val cachingDisabled: Boolean,
+    private val cachingDisabledReason: CachingDisabledReason? = null
 ) : ImmutableUnitOfWork {
 
     companion object {
@@ -189,11 +188,10 @@ class GenerateProjectAccessors(
         return Optional.of("GENERATE_PROJECT_ACCESSORS")
     }
 
-    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
-        if (cachingDisabled) {
-            return Optional.of(KotlinDslInternalOptions.CACHING_DISABLED_REASON)
-        }
-        return super.shouldDisableCaching(detectedOverlappingOutputs)
+    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> = if (cachingDisabledReason != null) {
+        Optional.of(cachingDisabledReason)
+    } else {
+        super.shouldDisableCaching(detectedOverlappingOutputs)
     }
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {

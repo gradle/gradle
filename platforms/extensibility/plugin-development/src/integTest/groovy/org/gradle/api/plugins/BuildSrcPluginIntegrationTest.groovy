@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -151,6 +152,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         outputContains("From MyPlugin")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "plugin uses allprojects/subprojects")
     def "build uses jars from multi-project buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         writeBuildSrcPlugin("buildSrc/subproject", "MyPluginSub")

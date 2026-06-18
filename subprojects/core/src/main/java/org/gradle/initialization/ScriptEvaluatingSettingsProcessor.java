@@ -16,7 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -60,7 +60,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         GradleInternal gradle,
         SettingsLocation settingsLocation,
         ClassLoaderScope baseClassLoaderScope,
-        StartParameter startParameter
+        StartParameterInternal startParameter
     ) {
         Timer settingsProcessingClock = Time.startTimer();
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));

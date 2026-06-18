@@ -72,6 +72,4 @@ packageCycles {
     excludePatterns.add("org/gradle/testing/jacoco/plugins/*")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

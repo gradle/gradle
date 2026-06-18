@@ -1,3 +1,10 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.onMutableCall(java.lang.String)",
+            "acceptation": "We don't want to advertise this new API. It can only be used if you derive from it and the only accepted derived class is \"StartParameterInternal\"",
+            "changes": []
+        }
+    ]
 }

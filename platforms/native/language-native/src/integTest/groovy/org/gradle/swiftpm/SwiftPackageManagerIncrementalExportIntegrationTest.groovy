@@ -17,6 +17,7 @@
 package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
     def swiftBuild() {
@@ -107,6 +108,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "regenerates manifest when Swift components added or removed"() {
         given:
         swiftBuild()
@@ -155,6 +157,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "regenerates manifest when Swift dependencies added or removed"() {
         given:
         settingsFile << """
@@ -216,6 +219,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "ignores irrelevant changes to Swift source"() {
         given:
         swiftBuild()
@@ -235,6 +239,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "ignores irrelevant changes to Swift build"() {
         given:
         swiftBuild()
@@ -298,6 +303,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         !file("Package.swift").text.contains('main.cpp')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "regenerates manifest when C++ components added or removed"() {
         given:
         swiftBuild()
@@ -346,6 +352,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "ignores irrelevant changes to C++ source"() {
         given:
         cppBuild()
@@ -368,6 +375,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "ignores irrelevant changes to C++ build"() {
         given:
         cppBuild()

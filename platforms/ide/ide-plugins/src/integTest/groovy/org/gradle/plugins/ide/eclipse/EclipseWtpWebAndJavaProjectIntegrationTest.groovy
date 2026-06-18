@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 
 class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "generates configuration files for web project and java project it depends on"() {
         settingsFile << "include 'web', 'java'"
 

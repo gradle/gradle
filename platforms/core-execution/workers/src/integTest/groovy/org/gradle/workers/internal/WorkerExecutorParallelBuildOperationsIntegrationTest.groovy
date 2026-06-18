@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -64,6 +65,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         withMultipleActionTaskTypeInBuildScript()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
         when:
         createDirs("childProject")

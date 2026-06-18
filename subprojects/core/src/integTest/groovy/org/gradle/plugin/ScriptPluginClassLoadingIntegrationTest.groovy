@@ -161,6 +161,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method 'someMethod' was not declared in project ':sub' and was resolved from root project 'root'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
@@ -260,6 +261,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property 'pluginClass' was not declared in project ':sub' and was resolved from root project 'root'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 

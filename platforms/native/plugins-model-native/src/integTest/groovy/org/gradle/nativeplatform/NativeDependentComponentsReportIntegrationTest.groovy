@@ -18,6 +18,7 @@ package org.gradle.nativeplatform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
@@ -200,6 +201,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "displays dependents across projects in a build"() {
         given:
         settingsFile.text = multiProjectSettings()
@@ -236,6 +238,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
@@ -418,6 +421,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent().trim()
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "circular dependencies across projects are handled gracefully"() {
         given:
         settingsFile.text = multiProjectSettings()

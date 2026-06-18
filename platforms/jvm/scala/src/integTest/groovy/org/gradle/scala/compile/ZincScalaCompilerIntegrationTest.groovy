@@ -18,6 +18,7 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Assume
@@ -143,6 +144,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "compiles Scala incrementally across project boundaries"() {
         file("settings.gradle") << """include 'a', 'b'"""
         // overwrite the build file from setup

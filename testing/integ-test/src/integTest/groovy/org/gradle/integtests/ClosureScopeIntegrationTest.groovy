@@ -18,9 +18,11 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ClosureScopeIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "check scope when closure in ext"() {
         given:
         buildFile("closure_in_ext.gradle", """

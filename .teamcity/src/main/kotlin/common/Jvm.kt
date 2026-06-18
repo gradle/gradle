@@ -67,3 +67,15 @@ object OpenJdk25 : Jvm {
     override val vendor: JvmVendor
         get() = JvmVendor.OPENJDK
 }
+
+/**
+ * Java binary of the JVM the TeamCity agent itself is running on.
+ *
+ * Resolves on every agent without needing the JDK provisioner plugin —
+ * unlike javaHome(BuildToolBuildJvm, …), whose %linux.javaXX.openjdk.64bit%
+ * parameter is only populated by the provisioner.
+ *
+ * Use this for single-file source-launched .java helpers (`java foo.java`)
+ * whose JVM choice should be decoupled from BuildToolBuildJvm.
+ */
+const val AGENT_JAVA_BINARY = "%teamcity.agent.jvm.java.home%/bin/java"

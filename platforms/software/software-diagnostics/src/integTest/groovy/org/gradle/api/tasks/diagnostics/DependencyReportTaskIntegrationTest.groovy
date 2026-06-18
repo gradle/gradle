@@ -16,8 +16,10 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
         createDirs("client", "a", "b", "c")
@@ -62,6 +64,7 @@ compile
         output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "marks project dependency that can't be resolved as 'FAILED'"() {
         given:
         createDirs("A", "B", "C")
@@ -252,6 +255,7 @@ config
         output.contains "foo:bar:1.0 -> 2.0"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "renders selected versions in case of a conflict"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -577,6 +581,7 @@ No dependencies
         output.contains "No configurations"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "dependencies report does not run for subprojects by default"() {
         given:
         createDirs("a")
@@ -669,6 +674,7 @@ conf
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -741,6 +747,7 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
@@ -788,6 +795,7 @@ compile
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "reports external dependency with version updated by resolve rule"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
 
@@ -831,6 +839,7 @@ compile
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "reports external dependency substituted with another"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
         mavenRepo.module("org.other", "another", '0.1').publish()
@@ -1039,6 +1048,7 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
         createDirs("a", "b")
@@ -1064,6 +1074,7 @@ compileClasspath - Compile classpath for source set 'main'.
         succeeds ':a:dependencies'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "adding declarations to invalid configurations for declaration will fail"() {
         given:
         createDirs("a", "b")
