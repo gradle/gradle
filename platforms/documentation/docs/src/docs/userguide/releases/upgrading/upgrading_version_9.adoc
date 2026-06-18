@@ -127,6 +127,20 @@ Update your `gradle.properties` and command-line invocations to the new names.
 
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
+[[deprecated_startparameter_construction]]
+==== Deprecation of creating and copying `StartParameter`
+
+The `StartParameter` for a build is provided by Gradle and is accessed through `Gradle.getStartParameter()`.
+It was never intended to be instantiated or copied by build logic, but the public no-argument constructor and the `newInstance()` / `newBuild()` methods made that possible.
+
+These are now deprecated and will be removed in Gradle 10:
+
+- the public `StartParameter()` constructor;
+- `StartParameter.newInstance()`;
+- `StartParameter.newBuild()`.
+
+Obtain the start parameter from the build (for example via `gradle.startParameter`) instead of constructing or copying one.
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 

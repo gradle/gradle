@@ -105,13 +105,28 @@ public class StartParameterInternal extends StartParameter {
         }
     }
 
+    // The public copy methods are deprecated. They are still reached at runtime via a StartParameter
+    // reference to the (internal) running build's start parameter, so the overrides must nag too;
+    // internal code calls newInstanceInternal()/newBuildInternal() instead, which do not nag.
     @Override
+    @SuppressWarnings("deprecation")
     public StartParameterInternal newInstance() {
-        return (StartParameterInternal) prepareNewInstance(new StartParameterInternal());
+        StartParameterDeprecations.nagOnStartParameterCopy("newInstance()");
+        return newInstanceInternal();
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public StartParameterInternal newBuild() {
+        StartParameterDeprecations.nagOnStartParameterCopy("newBuild()");
+        return newBuildInternal();
+    }
+
+    public StartParameterInternal newInstanceInternal() {
+        return (StartParameterInternal) prepareNewInstance(new StartParameterInternal());
+    }
+
+    public StartParameterInternal newBuildInternal() {
         return prepareNewBuild(new StartParameterInternal());
     }
 

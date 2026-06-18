@@ -22,9 +22,17 @@ public class StartParameterDeprecations {
 
     public static void nagOnStartParameterConstructor() {
         DeprecationLogger.deprecate("Creating a StartParameter instance directly")
-            .withAdvice("A StartParameter is provided by the build; obtain it (e.g. 'gradle.startParameter') and derive a copy with newInstance() or newBuild() if you need one.")
+            .withAdvice("The StartParameter for a build is provided by Gradle and is not intended to be created directly.")
             .willBeRemovedInGradle10()
-            .undocumented()
+            .withUpgradeGuideSection(9, "deprecated_startparameter_construction")
+            .nagUser();
+    }
+
+    public static void nagOnStartParameterCopy(String methodWithParams) {
+        DeprecationLogger.deprecateMethod(StartParameter.class, methodWithParams)
+            .withAdvice("The StartParameter for a build is provided by Gradle and is not intended to be copied.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_startparameter_construction")
             .nagUser();
     }
 

@@ -43,6 +43,18 @@ class StartParameterTest extends Specification {
         new StartParameter() != null
     }
 
+    @ExpectDeprecation("The StartParameter.newInstance() method has been deprecated")
+    void "copying a StartParameter with newInstance emits a deprecation warning"() {
+        expect:
+        newStartParameter().newInstance() != null
+    }
+
+    @ExpectDeprecation("The StartParameter.newBuild() method has been deprecated")
+    void "copying a StartParameter with newBuild emits a deprecation warning"() {
+        expect:
+        newStartParameter().newBuild() != null
+    }
+
     void "new instance has correct state"() {
         def parameter = newStartParameter()
         parameter.taskNames = ['a']
@@ -65,7 +77,7 @@ class StartParameterTest extends Specification {
         parameter.includeBuild(new File('participant'))
 
         when:
-        def newInstance = parameter.newInstance()
+        def newInstance = newInstanceOf(parameter)
 
         then:
         parameter == newInstance
@@ -87,7 +99,7 @@ class StartParameterTest extends Specification {
         parameter.includedBuilds = [new File('participant'), new File("/path/to/another/participant")]
 
         when:
-        def newInstance = parameter.newInstance()
+        def newInstance = newInstanceOf(parameter)
 
         then:
         !parameter.initScripts.is(newInstance.initScripts)
@@ -230,7 +242,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
 
         when:
-        StartParameter newParameter = parameter.newBuild()
+        StartParameter newParameter = newBuildOf(parameter)
 
         then:
         newParameter != parameter
@@ -322,10 +334,18 @@ class StartParameterTest extends Specification {
         assert parameter.taskRequests.size() == 1 && parameter.taskRequests[0] instanceof RunDefaultTasksExecutionRequest
     }
 
-    // The public constructor is deprecated; this test class exercises StartParameter itself, so it
-    // constructs through the deprecated entry point with the deprecation nag suppressed.
+    // The public constructor and the copy methods are deprecated; this test class exercises
+    // StartParameter itself, so it goes through those entry points with the deprecation nag suppressed.
     private static StartParameter newStartParameter() {
         DeprecationLogger.whileDisabled({ new StartParameter() } as Factory)
+    }
+
+    private static StartParameter newInstanceOf(StartParameter parameter) {
+        DeprecationLogger.whileDisabled({ parameter.newInstance() } as Factory)
+    }
+
+    private static StartParameter newBuildOf(StartParameter parameter) {
+        DeprecationLogger.whileDisabled({ parameter.newBuild() } as Factory)
     }
 
     // Previously StartParameter's toString got wildly out of sync with the state inside of it

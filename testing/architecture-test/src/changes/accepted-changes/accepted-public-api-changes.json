@@ -2,8 +2,14 @@
     "acceptedApiChanges": [
         {
             "type": "org.gradle.StartParameter",
+            "member": "Constructor org.gradle.StartParameter(java.lang.Void)",
+            "acceptation": "Internal-only constructor that centralizes creation of a parameterless StartParameter; not part of the advertised public API.",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.StartParameter",
             "member": "Method org.gradle.StartParameter.onMutableCall(java.lang.String)",
-            "acceptation": "We don't want to advertise this new API. It can only be used if you derive from it and the only accepted derived class is \"StartParameterInternal\"",
+            "acceptation": "We don\u0027t want to advertise this new API. It can only be used if you derive from it and the only accepted derived class is \"StartParameterInternal\"",
             "changes": []
         },
         {
