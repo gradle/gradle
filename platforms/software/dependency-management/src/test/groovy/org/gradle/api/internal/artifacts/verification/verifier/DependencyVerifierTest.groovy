@@ -94,7 +94,7 @@ class DependencyVerifierTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20100")
-    def "trustedKeyIdsForGroup collects keys whose group constraint matches, normalized to upper case"() {
+    def "trustedKeysFor collects group-scoped keys whose group constraint matches, normalized to upper case"() {
         given:
         def verifier = verifierWithTrustedKeys([
             trustedKey("abcdef0123456789abcdef0123456789abcdef01", "org"),
@@ -102,46 +102,88 @@ class DependencyVerifierTest extends Specification {
             trustedKey("2222222222222222222222222222222222222222", "com.other"),
         ])
 
-        expect:
-        verifier.trustedKeyIdsForGroup("org") == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01", "1111111111111111111111111111111111111111"] as Set
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("org", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01", "1111111111111111111111111111111111111111"] as Set
+        trusted.moduleScopedKeyIds.isEmpty()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20100")
-    def "trustedKeyIdsForGroup includes keys with no group constraint"() {
+    def "trustedKeysFor distinguishes module-scoped keys from group-scoped keys"() {
+        given:
+        def verifier = verifierWithTrustedKeys([
+            trustedKey("abcdef0123456789abcdef0123456789abcdef01", "org"),
+            moduleTrustedKey("1111111111111111111111111111111111111111", "org", "foo"),
+            moduleTrustedKey("2222222222222222222222222222222222222222", "org", "bar"),
+        ])
+
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("org", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        trusted.moduleScopedKeyIds == ["1111111111111111111111111111111111111111"] as Set
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "trustedKeysFor counts a key with no group constraint as trusted for the group"() {
         given:
         def verifier = verifierWithTrustedKeys([
             trustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", null),
         ])
 
-        expect:
-        verifier.trustedKeyIdsForGroup("any.group") == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("any.group", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        trusted.moduleScopedKeyIds.isEmpty()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20100")
-    def "trustedKeyIdsForGroup honors regex group constraints"() {
+    def "trustedKeysFor honors regex constraints on group and module"() {
         given:
         def verifier = verifierWithTrustedKeys([
             trustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", 'com\\.example.*', true),
+            moduleTrustedKey("1111111111111111111111111111111111111111", 'com\\.example.*', 'foo.*', true),
         ])
 
         expect:
-        verifier.trustedKeyIdsForGroup("com.example.foo") == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
-        verifier.trustedKeyIdsForGroup("org.other").isEmpty()
+        verifier.trustedKeysFor(artifactId("com.example.foo", "foobar")).groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        verifier.trustedKeysFor(artifactId("com.example.foo", "foobar")).moduleScopedKeyIds == ["1111111111111111111111111111111111111111"] as Set
+        verifier.trustedKeysFor(artifactId("org.other", "foobar")).groupScopedKeyIds.isEmpty()
+        verifier.trustedKeysFor(artifactId("org.other", "foobar")).moduleScopedKeyIds.isEmpty()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20100")
-    def "trustedKeyIdsForGroup is empty when there are no trusted keys or the group is null"() {
-        expect:
-        verifier.trustedKeyIdsForGroup("org").isEmpty()
-        verifier.trustedKeyIdsForGroup(null).isEmpty()
+    def "trustedKeysFor is empty when there are no trusted keys"() {
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("org", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds.isEmpty()
+        trusted.moduleScopedKeyIds.isEmpty()
     }
 
     private static DependencyVerifier verifierWithTrustedKeys(List<DependencyVerificationConfiguration.TrustedKey> keys) {
         new DependencyVerifier([:], new DependencyVerificationConfiguration(true, true, [], true, [], [] as Set, keys, null), [])
     }
 
+    private static ModuleComponentArtifactIdentifier artifactId(String group, String name, String version = "1.0") {
+        new ModuleComponentFileArtifactIdentifier(
+            DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version),
+            "${name}-${version}.jar"
+        )
+    }
+
     private static DependencyVerificationConfiguration.TrustedKey trustedKey(String keyId, String group, boolean regex = false) {
         new DependencyVerificationConfiguration.TrustedKey(keyId, group, null, null, null, regex)
+    }
+
+    private static DependencyVerificationConfiguration.TrustedKey moduleTrustedKey(String keyId, String group, String name, boolean regex = false) {
+        new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, null, null, regex)
     }
 
     private void artifact(String group, String name, String version) {
