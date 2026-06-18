@@ -185,6 +185,20 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
+#### Kotlin DSL accessor generation is no longer stored in the build cache
+
+Generating the [type-safe Kotlin DSL accessors](userguide/kotlin_dsl.html#type-safe-accessors) for a project produces Kotlin source files.
+For some projects those files can be sizeable, but their generation is fast.
+
+Storing and fetching those files adds its own overhead when the [Build Cache](userguide/build_cache.html#build_cache) is in use.
+That overhead alone is comparable to or higher than the cost of just regenerating the accessors.
+Gradle therefore no longer stores Kotlin DSL accessor generation in the Build Cache by default.
+
+Builds that use a remote Build Cache will regenerate accessors locally instead of downloading them; in-build deduplication of accessor generation is unaffected.
+Kotlin DSL script compilation continues to be cached as before.
+
+See the [Type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) section in the Gradle User Manual for more details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ========================================================== -->
