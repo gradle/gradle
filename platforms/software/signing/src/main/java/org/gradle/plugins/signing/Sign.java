@@ -31,6 +31,9 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -101,6 +104,9 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
     }
+
+    @Inject
+    protected abstract Problems getProblems();
 
     @Inject
     protected abstract DocumentationRegistry getDocumentationRegistry();
@@ -232,9 +238,21 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @TaskAction
     public void generate() {
         if (getSignatory() == null) {
-            throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory. "
-                + "A signatory holds the PGP key used to sign artifacts and must be configured in the \'signing {}\' block. "
-                + getDocumentationRegistry().getDocumentationRecommendationFor("information on configuring signing", "signing_plugin"));
+            ProblemId problemId = ProblemId.create(
+                "no-configured-signatory",
+                "No configured signatory",
+                GradleCoreProblemGroup.packaging().signing()
+            );
+            throw getProblems().getReporter().throwing(
+                new InvalidUserDataException(),
+                problemId,
+                spec -> spec
+                    .contextualLabel("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory")
+                    .details("A signatory holds the PGP key used to sign artifacts. "
+                        + "It must be configured in the \'signing {}\' block before signing tasks can run.")
+                    .solution("Configure a signatory in the \'signing {}\' block.")
+                    .documentedAt(getDocumentationRegistry().getDocumentationFor("signing_plugin"))
+            );
         }
 
         for (Signature.Generator signature : sanitizedGenerators().values()) {

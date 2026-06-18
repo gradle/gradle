@@ -10,6 +10,8 @@ dependencies {
     api(projects.coreApi)
     api(projects.domainObjectCollections)
     api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.problemsApi)
     api(projects.publish)
     api(projects.stdlibJavaExtensions)
 
