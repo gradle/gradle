@@ -30,15 +30,18 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     private final BuildStateRegistry buildStateRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildLifecycleController buildLifecycleController;
+    private final ResilientModelBuildingFailureCollector modelBuildingFailureCollector;
 
     public DefaultBuildTreeFinishExecutor(
         BuildStateRegistry buildStateRegistry,
         ExceptionAnalyser exceptionAnalyser,
-        BuildLifecycleController buildLifecycleController
+        BuildLifecycleController buildLifecycleController,
+        ResilientModelBuildingFailureCollector modelBuildingFailureCollector
     ) {
         this.buildStateRegistry = buildStateRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildLifecycleController = buildLifecycleController;
+        this.modelBuildingFailureCollector = modelBuildingFailureCollector;
     }
 
     @Override
@@ -52,6 +55,10 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
                 finishNestedBuildsFailures.addAll(result.getFailures());
             }
         });
+
+        // Model builder failures captured during resilient model building are not configuration failures, so they
+        // are not part of the build's lifecycle state. Add them so the build fails when it finishes
+        finishNestedBuildsFailures.addAll(modelBuildingFailureCollector.getAndClearFailures());
 
         RuntimeException reportableFailure = exceptionAnalyser.transform(finishNestedBuildsFailures);
         ExecutionResult<Void> finishResult = buildLifecycleController.finishBuild(reportableFailure);

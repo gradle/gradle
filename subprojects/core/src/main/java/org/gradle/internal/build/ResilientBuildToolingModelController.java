@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
+import org.gradle.internal.buildtree.ResilientModelBuildingFailureCollector;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.problems.failure.Failure;
@@ -48,15 +49,18 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     );
 
     private final FailureFactory failureFactory;
+    private final ResilientModelBuildingFailureCollector modelBuildingFailureCollector;
 
     public ResilientBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
         ToolingModelBuilderLookup buildScopeLookup,
-        FailureFactory failureFactory
+        FailureFactory failureFactory,
+        ResilientModelBuildingFailureCollector modelBuildingFailureCollector
     ) {
         super(buildState, buildController, buildScopeLookup);
         this.failureFactory = failureFactory;
+        this.modelBuildingFailureCollector = modelBuildingFailureCollector;
     }
 
     @Override
@@ -66,23 +70,26 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
     @Override
     protected Try<ToolingModelScope> doLocate(ProjectState targetProject, ToolingModelRequestContext toolingModelContext, Try<Void> buildConfiguration) {
-        return Try.successful(new ResilientProjectToolingScope(targetProject, toolingModelContext, buildConfiguration, failureFactory));
+        return Try.successful(new ResilientProjectToolingScope(targetProject, toolingModelContext, buildConfiguration, failureFactory, modelBuildingFailureCollector));
     }
 
     private static class ResilientProjectToolingScope extends ProjectToolingScope {
 
         private final FailureFactory failureFactory;
+        private final ResilientModelBuildingFailureCollector modelBuildingFailureCollector;
         private final Try<Void> ownerBuildConfiguration;
 
         public ResilientProjectToolingScope(
             ProjectState targetProject,
             ToolingModelRequestContext toolingModelRequestContext,
             Try<Void> ownerBuildConfiguration,
-            FailureFactory failureFactory
+            FailureFactory failureFactory,
+            ResilientModelBuildingFailureCollector modelBuildingFailureCollector
         ) {
             super(targetProject, toolingModelRequestContext);
             this.ownerBuildConfiguration = ownerBuildConfiguration;
             this.failureFactory = failureFactory;
+            this.modelBuildingFailureCollector = modelBuildingFailureCollector;
         }
 
         @Override
@@ -108,7 +115,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
             Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, targetProject, project);
             boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
-            return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
+            return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, modelBuildingFailureCollector, canRunEvenIfProjectNotFullyConfigured);
         }
     }
 
@@ -127,17 +134,20 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         private final Lazy<ToolingModelBuilderLookup.Builder> delegate;
         private final Try<Void> projectConfiguration;
         private final FailureFactory failureFactory;
+        private final ResilientModelBuildingFailureCollector modelBuildingFailureCollector;
         private final boolean canRunEvenIfProjectNotFullyConfigured;
 
         public ResilientToolingModelBuilder(
             Supplier<ToolingModelBuilderLookup.Builder> delegate,
             Try<Void> projectConfiguration,
             FailureFactory failureFactory,
+            ResilientModelBuildingFailureCollector modelBuildingFailureCollector,
             boolean canRunEvenIfProjectNotFullyConfigured
         ) {
             this.delegate = Lazy.unsafe().of(delegate);
             this.projectConfiguration = projectConfiguration;
             this.failureFactory = failureFactory;
+            this.modelBuildingFailureCollector = modelBuildingFailureCollector;
             this.canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured;
         }
 
@@ -149,12 +159,25 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         @Override
         public Object build(@Nullable Object parameter) {
             if (projectConfiguration.isSuccessful()) {
-                return delegate.get().build(parameter);
+                // The project configured successfully, but the model builder itself may still fail. Such a failure is
+                // not a configuration failure, so record it to fail the build, while still returning failure in a fetch result to the client
+                return tryBuildModel(parameter).getOrMapFailure(this::recordAsSoftFailure);
             }
 
-            Object model = canRunEvenIfProjectNotFullyConfigured ? delegate.get().build(parameter) : null;
-            List<Failure> failures = getConfigurationFailure(failureFactory, projectConfiguration);
-            return ToolingModelBuilderResultInternal.attachFailures(model, failures);
+            // Configuration failed, which already fails the build. For models that tolerate a partially-configured
+            // project, build the model on a best-effort basis, but never let a model builder failure mask the
+            // configuration failure that is reported below.
+            Object model = canRunEvenIfProjectNotFullyConfigured ? tryBuildModel(parameter).getOrMapFailure(failure -> null) : null;
+            return ToolingModelBuilderResultInternal.attachFailures(model, getConfigurationFailure(failureFactory, projectConfiguration));
+        }
+
+        private Try<Object> tryBuildModel(@Nullable Object parameter) {
+            return Try.ofFailable(() -> delegate.get().build(parameter));
+        }
+
+        private ToolingModelBuilderResultInternal recordAsSoftFailure(Throwable failure) {
+            modelBuildingFailureCollector.add(failure);
+            return ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
         }
     }
 }

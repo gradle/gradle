@@ -31,6 +31,7 @@ import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.ResilientModelBuildingFailureCollector
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
@@ -89,6 +90,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
 
         // region ALL MODES
         add(ToolingModelParameterCarrier.Factory::class.java, DefaultToolingModelParameterCarrierFactory::class.java)
+        add(ResilientModelBuildingFailureCollector::class.java)
         add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
         add(JavaSerializationEncodingLookup::class.java)
         add(DeprecatedFeaturesListener::class.java)
