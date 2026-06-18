@@ -17,25 +17,19 @@
 package org.gradle.process.internal;
 
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.PathToFileResolver;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.concurrent.Executor;
 
 @NullMarked
 public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory {
 
     private final PathToFileResolver fileResolver;
-    private final Executor executor;
+    private final ExecHandleTrackingExecutor executor;
     private final BuildCancellationToken buildCancellationToken;
 
     private DefaultClientExecHandleBuilderFactory(
         PathToFileResolver fileResolver,
-        Executor executor,
+        ExecHandleTrackingExecutor executor,
         BuildCancellationToken buildCancellationToken
     ) {
         this.fileResolver = fileResolver;
@@ -45,60 +39,15 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
 
     @Override
     public ClientExecHandleBuilder newExecHandleBuilder() {
-        return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken)
+            .listener(executor);
     }
 
     public static DefaultClientExecHandleBuilderFactory of(
         PathToFileResolver fileResolver,
-        ExecutorFactory executorFactory,
-        BuildCancellationToken buildCancellationToken
-    ) {
-        ManagedExecutor executor = executorFactory.create("Exec process");
-        return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
-    }
-
-    public static DefaultClientExecHandleBuilderFactory of(
-        PathToFileResolver fileResolver,
-        Executor executor,
+        ExecHandleTrackingExecutor executor,
         BuildCancellationToken buildCancellationToken
     ) {
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
-    }
-
-    /**
-     * An instance of {@link ClientExecHandleBuilderFactory} that delegates to DefaultClientExecHandleBuilderFactory, but is also Stoppable.
-     *
-     * This is only used in DefaultDaemonStarter, and it should also stay this way. Ideally we would even remove it at one point.
-     */
-    public static class RootClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory, Stoppable {
-        private final DefaultClientExecHandleBuilderFactory delegate;
-
-        private RootClientExecHandleBuilderFactory(DefaultClientExecHandleBuilderFactory delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public ClientExecHandleBuilder newExecHandleBuilder() {
-            return delegate.newExecHandleBuilder();
-        }
-
-        @Override
-        public void stop() {
-            CompositeStoppable.stoppable(delegate.executor).stop();
-        }
-
-        /**
-         * Creates a new {@link RootClientExecHandleBuilderFactory} for Daemon starter.
-         *
-         * This instance has unmanaged executor so the caller has to call {@link #stop()} to stop when instance is not needed anymore.
-         */
-        public static RootClientExecHandleBuilderFactory of(
-            PathToFileResolver fileResolver,
-            ExecutorFactory executorFactory,
-            BuildCancellationToken buildCancellationToken
-        ) {
-            DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory = DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
-            return new RootClientExecHandleBuilderFactory(clientExecHandleBuilderFactory);
-        }
     }
 }

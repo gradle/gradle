@@ -25,6 +25,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory
+import org.gradle.process.internal.ExecHandleTrackingExecutor
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
@@ -34,7 +35,7 @@ class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec 
     def "works on real installation"() {
         when:
         def detector = new DefaultJvmMetadataDetector(
-            DefaultClientExecHandleBuilderFactory.of(TestFiles.pathToFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken()),
+            DefaultClientExecHandleBuilderFactory.of(TestFiles.pathToFileResolver(), ExecHandleTrackingExecutor.create(new DefaultExecutorFactory()), new DefaultBuildCancellationToken()),
             TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
         )
         Jvm jvm = AvailableJavaHomes.differentVersion //the detector has special handling for the current JVM

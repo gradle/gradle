@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.jspecify.annotations.NullMarked;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -36,6 +35,7 @@ import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.DefaultExecSpecFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -74,7 +74,7 @@ public class ProcessServices extends AbstractGradleModuleServices {
             FileCollectionFactory fileCollectionFactory,
             Instantiator instantiator,
             ObjectFactory objectFactory,
-            ExecutorFactory executorFactory,
+            ExecHandleTrackingExecutor execProcessExecutor,
             TemporaryFileProvider temporaryFileProvider,
             BuildCancellationToken buildCancellationToken
         ) {
@@ -82,7 +82,7 @@ public class ProcessServices extends AbstractGradleModuleServices {
                 fileResolver,
                 fileCollectionFactory,
                 instantiator,
-                executorFactory,
+                execProcessExecutor,
                 temporaryFileProvider,
                 buildCancellationToken,
                 objectFactory

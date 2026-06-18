@@ -5,7 +5,6 @@ plugins {
 description = "Process execution abstractions."
 
 dependencies {
-    api(projects.concurrent)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.modelCore)
@@ -18,6 +17,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.logging)
     implementation(projects.persistentCache)

@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.persistentCache)
     implementation(projects.processServices)
+    implementation(projects.processServicesBase)
     implementation(projects.problemsApi)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serviceRegistryBuilder)

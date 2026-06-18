@@ -227,6 +227,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             } catch (Exception e) {
                 newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
             }
+        } else if (newState == ExecHandleState.DETACHED) {
+            broadcast.getSource().executionDetached(this);
         }
 
         lock.lock();
@@ -336,6 +338,20 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             this.waitForFinish();
         } finally {
             lock.unlock();
+        }
+    }
+
+    @Override
+    public void abortNonBlocking() {
+        ExecHandleRunner runner;
+        lock.lock();
+        try {
+            runner = execHandleRunner;
+        } finally {
+            lock.unlock();
+        }
+        if (runner != null) {
+            runner.abortProcess();
         }
     }
 

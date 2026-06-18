@@ -59,6 +59,13 @@ public interface ExecHandle extends Describable {
     void abort();
 
     /**
+     * Requests destruction of the process and disconnects its streams, returning immediately without
+     * waiting for the process to exit. Does nothing if the process has not started or has already
+     * completed.
+     */
+    void abortNonBlocking();
+
+    /**
      * Waits for the process to finish. Returns immediately if the process has already completed.
      *
      * @return result

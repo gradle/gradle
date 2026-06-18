@@ -58,6 +58,7 @@ import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nonnull;
@@ -89,7 +90,7 @@ public abstract class AvailableJavaHomes {
      */
     private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".integTest";
 
-    private static final ClientExecHandleBuilderFactory EXEC_HANDLE_FACTORY = DefaultClientExecHandleBuilderFactory.of(new IdentityFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+    private static final ClientExecHandleBuilderFactory EXEC_HANDLE_FACTORY = DefaultClientExecHandleBuilderFactory.of(new IdentityFileResolver(), ExecHandleTrackingExecutor.create(new DefaultExecutorFactory()), new DefaultBuildCancellationToken());
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
 

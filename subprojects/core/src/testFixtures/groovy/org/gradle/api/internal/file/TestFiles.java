@@ -53,6 +53,7 @@ import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.TestUtil;
@@ -71,7 +72,7 @@ public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
     private static final DefaultClientExecHandleBuilderFactory EXEC_HANDLE_FACTORY =
-        DefaultClientExecHandleBuilderFactory.of(resolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        DefaultClientExecHandleBuilderFactory.of(resolver(), ExecHandleTrackingExecutor.create(new DefaultExecutorFactory()), new DefaultBuildCancellationToken());
 
     public static FileCollectionInternal empty() {
         return FileCollectionFactory.empty();
@@ -238,7 +239,7 @@ public class TestFiles {
             resolver(),
             fileCollectionFactory(),
             TestUtil.instantiatorFactory().inject(),
-            new DefaultExecutorFactory(),
+            ExecHandleTrackingExecutor.create(new DefaultExecutorFactory()),
             NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
             new DefaultBuildCancellationToken(),
             objectFactory()
@@ -263,7 +264,7 @@ public class TestFiles {
     }
 
     public static ClientExecHandleBuilderFactory execHandleFactory(File baseDir) {
-        return DefaultClientExecHandleBuilderFactory.of(resolver(baseDir), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        return DefaultClientExecHandleBuilderFactory.of(resolver(baseDir), ExecHandleTrackingExecutor.create(new DefaultExecutorFactory()), new DefaultBuildCancellationToken());
     }
 
     public static JavaExecHandleFactory javaExecHandleFactory(File baseDir) {

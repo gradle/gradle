@@ -40,7 +40,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         resolver,
         fileCollectionFactory,
         instantiator.decorateLenient(),
-        executorFactory,
+        ExecHandleTrackingExecutor.create(executorFactory),
         TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")),
         new DefaultBuildCancellationToken(),
         TestUtil.objectFactory()

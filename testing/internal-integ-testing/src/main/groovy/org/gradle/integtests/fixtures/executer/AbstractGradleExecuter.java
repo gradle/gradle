@@ -36,6 +36,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
@@ -52,6 +53,7 @@ import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -83,7 +85,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -107,13 +108,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR =
+    private final ExecHandleTrackingExecutor execProcessExecutor = ExecHandleTrackingExecutor.create(new DefaultExecutorFactory());
+    private final JvmVersionDetector jvmVersionDetector =
         new DefaultJvmVersionDetector(
             new CachingJvmMetadataDetector(
                 new DefaultJvmMetadataDetector(
                     DefaultClientExecHandleBuilderFactory.of(
                         new IdentityFileResolver(),
-                        Executors.newCachedThreadPool(),
+                        execProcessExecutor,
                         new DefaultBuildCancellationToken()
                     ),
                     new GradleUserHomeTemporaryFileProvider(
@@ -683,7 +685,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected final JavaVersion getJavaVersionFromJavaHome() {
         try {
-            return JavaVersion.toVersion(JVM_VERSION_DETECTOR.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
+            return JavaVersion.toVersion(jvmVersionDetector.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
         } catch (IllegalArgumentException | JavaHomeException e) {
             return JavaVersion.current();
         }
@@ -1617,7 +1619,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public void stop() {
-        cleanup();
+        try {
+            cleanup();
+        } finally {
+            execProcessExecutor.stop();
+        }
     }
 
     @Override

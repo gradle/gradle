@@ -27,6 +27,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.streams.StreamsHandler
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -351,6 +352,79 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         }
     }
 
+    @Timeout(40)
+    void "stopping the owning executor aborts an in-flight process and drains"() {
+        // Regression guard for executor-stop during service teardown: a process still alive when
+        // the executor stops must be destroyed so its output readers reach EOF and awaitTermination
+        // drains, instead of blocking forever in a native read on the live pipe.
+        given:
+        def component = ExecHandleTrackingExecutor.create(new DefaultExecutorFactory())
+        def execHandle = handle(component).listener(component).args(args(ForeverApp.class)).build()
+
+        when:
+        execHandle.start()
+        def runner = execHandle.execHandleRunner
+        def waited = 0
+        while ((runner.process == null || !runner.process.isAlive()) && waited < 5000) {
+            Thread.sleep(20)
+            waited += 20
+        }
+        def liveProcess = runner.process
+
+        def caught = null
+        try {
+            component.stop()
+        } catch (Exception e) {
+            caught = e
+        }
+
+        then:
+        // stop() returns rather than hanging. disconnect() drains the readers so awaitTermination can
+        // return slightly before the destroyed process is fully reaped, so poll for the steady state:
+        // the process dies and the handle reaches a terminal state (ABORTED via the completion path,
+        // or FAILED via the rejection backstop, depending on the race).
+        caught == null
+        liveProcess != null
+        ConcurrentTestUtil.poll(10) {
+            assert !liveProcess.isAlive()
+            assert execHandle.state.isTerminal()
+        }
+
+        cleanup:
+        try {
+            execHandle.abort()
+        } catch (ignored) {
+        }
+    }
+
+    @Timeout(40)
+    void "stopping the owning executor does not destroy a detached daemon"() {
+        given:
+        def component = ExecHandleTrackingExecutor.create(new DefaultExecutorFactory())
+        def out = new ByteArrayOutputStream()
+        def execHandle = handle(component).listener(component).setDaemon(true).setStandardOutput(out).args(args(SlowDaemonApp.class, "10000")).build()
+
+        when:
+        execHandle.start()
+        execHandle.waitForFinish()
+        def daemonProcess = execHandle.execHandleRunner.process
+
+        then:
+        execHandle.state == ExecHandleState.DETACHED
+        daemonProcess.isAlive()
+        // the detached daemon is removed from the registry so it cannot leak or be destroyed on stop
+        component.trackedHandleCount() == 0
+
+        when:
+        component.stop()
+
+        then:
+        daemonProcess.isAlive()
+
+        cleanup:
+        daemonProcess?.destroyForcibly()
+    }
+
     void "clients can listen to notifications"() {
         ExecHandleListener listener = Mock()
         def execHandle = handle().listener(listener).args(args(TestApp.class)).build()
@@ -651,6 +725,12 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     public static class SlowApp {
         public static void main(String[] args) throws InterruptedException {
             Thread.sleep(10000L)
+        }
+    }
+
+    public static class ForeverApp {
+        public static void main(String[] args) throws InterruptedException {
+            new CountDownLatch(1).await()
         }
     }
 

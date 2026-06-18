@@ -58,8 +58,9 @@ import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory.RootClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
@@ -237,9 +238,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
-            RootClientExecHandleBuilderFactory execActionFactory = RootClientExecHandleBuilderFactory.of(
+            ExecHandleTrackingExecutor execProcessExecutor = ExecHandleTrackingExecutor.create(new DefaultExecutorFactory());
+            DefaultClientExecHandleBuilderFactory execActionFactory = DefaultClientExecHandleBuilderFactory.of(
                 new DefaultFileLookup().getFileResolver(),
-                new DefaultExecutorFactory(),
+                execProcessExecutor,
                 new DefaultBuildCancellationToken()
             );
             try {
@@ -250,7 +252,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
                 handle.waitForFinish();
                 LOGGER.debug("Gradle daemon process is now detached.");
             } finally {
-                CompositeStoppable.stoppable(execActionFactory).stop();
+                CompositeStoppable.stoppable(execProcessExecutor).stop();
             }
 
             return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), args);

@@ -34,4 +34,13 @@ public interface ExecHandleListener {
     void executionStarted(ExecHandle execHandle);
 
     void executionFinished(ExecHandle execHandle, ExecResult execResult);
+
+    /**
+     * Called when the handle detaches from a process that is meant to outlive the build (a daemon).
+     * No {@link #executionFinished(ExecHandle, ExecResult)} is broadcast in this case.
+     *
+     * @param execHandle the handle that detached
+     */
+    default void executionDetached(ExecHandle execHandle) {
+    }
 }

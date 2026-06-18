@@ -65,6 +65,7 @@ import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 import org.jspecify.annotations.NonNull;
@@ -224,12 +225,17 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
+        ExecHandleTrackingExecutor createExecProcessExecutor(ExecutorFactory executorFactory) {
+            return ExecHandleTrackingExecutor.create(executorFactory);
+        }
+
+        @Provides
         ExecFactory createExecFactory(
             FileResolver fileResolver,
             FileCollectionFactory fileCollectionFactory,
             Instantiator instantiator,
             ObjectFactory objectFactory,
-            ExecutorFactory executorFactory,
+            ExecHandleTrackingExecutor execProcessExecutor,
             TemporaryFileProvider temporaryFileProvider,
             BuildCancellationToken buildCancellationToken
         ) {
@@ -237,7 +243,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 fileResolver,
                 fileCollectionFactory,
                 instantiator,
-                executorFactory,
+                execProcessExecutor,
                 temporaryFileProvider,
                 buildCancellationToken,
                 objectFactory

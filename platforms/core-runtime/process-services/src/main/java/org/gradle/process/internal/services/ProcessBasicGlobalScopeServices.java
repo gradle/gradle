@@ -24,15 +24,25 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
+import org.gradle.process.internal.ExecHandleTrackingExecutor;
 
 @NullMarked
 public class ProcessBasicGlobalScopeServices implements ServiceRegistrationProvider {
+    /**
+     * Provided as its own {@link org.gradle.internal.concurrent.Stoppable} service so the registry destroys
+     * any in-flight processes on teardown instead of leaving their output readers blocked on a live pipe.
+     */
+    @Provides
+    ExecHandleTrackingExecutor createExecProcessExecutor(ExecutorFactory executorFactory) {
+        return ExecHandleTrackingExecutor.create(executorFactory);
+    }
+
     @Provides
     ClientExecHandleBuilderFactory createExecHandleFactory(
         FileResolver fileResolver,
-        ExecutorFactory executorFactory,
+        ExecHandleTrackingExecutor execProcessExecutor,
         BuildCancellationToken buildCancellationToken
     ) {
-        return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
+        return DefaultClientExecHandleBuilderFactory.of(fileResolver, execProcessExecutor, buildCancellationToken);
     }
 }
