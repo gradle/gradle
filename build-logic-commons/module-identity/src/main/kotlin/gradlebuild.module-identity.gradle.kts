@@ -29,6 +29,7 @@ import java.util.jar.Attributes
 
 plugins {
     `java-base`
+    id("org.gradle.pom-properties")
 }
 
 val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtension.NAME).apply {
@@ -50,6 +51,7 @@ val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtensio
     // compute these at the settings-level instead of the project-level.
     identity {
         baseName = "gradle-$name"
+        group = "org.gradle"
         buildTimestamp = buildTimestamp()
         promotionBuild = isPromotionBuild
 
@@ -67,6 +69,14 @@ val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtensio
         val baseVersion = trimmedContentsOfFile("version.txt")
         version = baseVersion.zip(computedSuffix) { base, suffix -> GradleVersion.version("$base$suffix") }
         snapshot = specifiedSuffix.map { false }.orElse(true)
+
+        // Same suffix decision as `version`, except that the two timestamped forms record
+        // SNAPSHOT instead of the timestamp. Derived here rather than by rewriting `version`
+        // afterwards, so the version qualifier is kept and no timestamp is needed at all.
+        val reproducibleSuffix = specifiedSuffix
+            .orElse(buildVersionQualifier.map { "-$it-SNAPSHOT" })
+            .orElse("-SNAPSHOT")
+        reproducibleVersion = baseVersion.zip(reproducibleSuffix) { base, suffix -> "$base$suffix" }
         releasedVersions = version.map {
             ReleasedVersionsDetails(
                 it.baseVersion,
@@ -76,22 +86,59 @@ val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtensio
     }
 }
 
-class LazyProjectVersion(private val version: Provider<String>) {
-    override fun toString(): String = version.get()
+/**
+ * Wraps a lazily computed value for assignment to `Project.group` / `Project.version`, which are
+ * plain `Object` and always read through `toString()`. Without this the project properties would
+ * capture their value at apply time and a module that overrides its identity afterwards - as
+ * `:public-api` does - would not be reflected in them.
+ */
+class LazyProjectProperty(private val value: Provider<String>) {
+    override fun toString(): String = value.get()
 }
 
-group = "org.gradle"
-version = LazyProjectVersion(gradleModule.identity.version.map { it.version })
+// ModuleIdentity is the source of truth; the project properties derive from it.
+group = LazyProjectProperty(gradleModule.identity.group)
+version = LazyProjectProperty(gradleModule.identity.version.map { it.version })
 
 tasks.withType<Jar>().configureEach {
     archiveBaseName = gradleModule.identity.baseName
     archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
     manifest.attributes(
         mapOf(
+            // Maven Archiver writes Implementation-Title from the POM name and
+            // Implementation-Vendor from the organization; we follow it for the vendor.
+            //
+            // The title is "Gradle" rather than the module name because it serves as product
+            // evidence for CPE-based scanners, matching `cpe:2.3:a:gradle:gradle` and the value
+            // every earlier release already carries. Scanners that key off Maven coordinates do
+            // not read it: pom.properties takes precedence over the manifest for them.
             Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.reproducibleVersion,
+            Attributes.Name.IMPLEMENTATION_VENDOR.toString() to "Gradle Inc.",
+            // Not a Maven Archiver attribute. It is read first by scanners deriving a groupId
+            // from the manifest (Trivy tries Implementation-Vendor-Id, then Bundle-SymbolicName,
+            // then Implementation-Vendor), so without it they would take the vendor name above
+            // as the group. Spelled out because the JDK constant is deprecated for removal.
+            "Implementation-Vendor-Id" to gradleModule.identity.group
         )
     )
+}
+
+// The org.gradle.pom-properties plugin adds a Maven-style pom.properties to the standard `jar`,
+// at the same path and with the same keys Maven Archiver writes. Take the coordinates from
+// ModuleIdentity so they match the manifest and how the module is published.
+pomProperties {
+    groupId = gradleModule.identity.group
+    artifactId = gradleModule.identity.baseName
+    version = gradleModule.identity.reproducibleVersion
+}
+
+// The plugin only wires the standard `jar`. When the Shadow plugin is applied, the distribution
+// ships the `shadowJar` output in its place, so it needs the same pom.properties.
+pluginManager.withPlugin("com.gradleup.shadow") {
+    tasks.named<Jar>("shadowJar") {
+        from(tasks.named("generatePomProperties"))
+    }
 }
 
 /**

@@ -86,7 +86,7 @@ publishing {
             developers {
                 developer {
                     name = "The Gradle team"
-                    organization = "Gradle Technologies"
+                    organization = "Gradle Inc."
                     organizationUrl = "https://gradle.org"
                 }
             }
