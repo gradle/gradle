@@ -124,7 +124,10 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
      * artifacts but the configuration defines one or more secondary variants. In that case
      * the primary is augmented with {@link FallbackVariant#TRUE} and each secondary with
      * {@link FallbackVariant#FALSE}, so that the default schema disambiguation rule prefers
-     * the secondaries over the primary during variant selection.
+     * the secondaries over the primary during variant selection. This method is invoked
+     * once per variant of the configuration (primary and each secondary), always with the
+     * same {@code primaryArtifacts} set, so the "is fallback?" decision is consistent across
+     * all calls for a given configuration.
      * <p>
      * <strong>B1 constraint (static-empty):</strong> "no declared artifacts" is determined by
      * {@link PublishArtifactSet#isEmpty()} on the primary's set at the time this method is
@@ -133,13 +136,14 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
      * file set do NOT qualify the primary as a fallback; the lazy declaration counts as
      * "non-empty" here.
      * <p>
-     * The method is idempotent with respect to user-supplied attributes: if the input already
-     * carries the {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE}, it is returned unchanged
-     * regardless of value. This lets a build author opt into or out of the marker explicitly.
+     * User-supplied attributes take precedence: if {@code attrs} already carries the
+     * {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE} the value is preserved as-is and
+     * the method returns {@code attrs} unchanged. This lets a build author opt into or out
+     * of the marker explicitly on a per-variant basis.
      *
      * @param attrs the variant's attributes before augmentation
      * @param isPrimary {@code true} if {@code attrs} belong to the configuration's primary variant
-     * @param primaryArtifacts the primary variant's declared artifact set
+     * @param primaryArtifacts the configuration's primary variant artifact set (same instance for every call within one configuration)
      * @param secondaryVariantsExist whether the enclosing configuration declares secondary variants
      * @return the input attributes, possibly augmented with {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE}
      */

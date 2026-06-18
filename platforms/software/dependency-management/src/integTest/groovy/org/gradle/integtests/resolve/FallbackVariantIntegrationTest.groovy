@@ -88,9 +88,15 @@ class FallbackVariantIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Resolved: [secondary.jar]")
     }
 
-    def "consumer request that specifies the secondary's discriminating attribute selects the secondary"() {
+    def "consumer can opt into a secondary by explicitly requesting fallback-variant=false"() {
         expect:
         succeeds("resolve", "-PrequestSecondary=true")
+        outputContains("Resolved: [secondary.jar]")
+    }
+
+    def "consumer request that specifies the secondary's discriminating attribute selects the secondary"() {
+        expect:
+        succeeds("resolve", "-PrequestFormat=true")
         outputContains("Resolved: [secondary.jar]")
     }
 

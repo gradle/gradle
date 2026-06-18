@@ -52,14 +52,15 @@ public final class FallbackVariantSupport {
             FallbackVariant consumerValue = details.getConsumerValue();
             Set<FallbackVariant> candidateValues = details.getCandidateValues();
 
-            // Honour an explicit consumer request, providing the escape hatch for
-            // consumers that want the fallback primary.
+            // Honour any explicit consumer request. This is also the escape hatch
+            // that lets a consumer opt into the fallback primary by requesting TRUE.
             if (consumerValue != null && candidateValues.contains(consumerValue)) {
                 details.closestMatch(consumerValue);
                 return;
             }
 
-            // Prefer FALSE over TRUE when the consumer didn't pin a value.
+            // Silent consumer: prefer FALSE over TRUE so the non-fallback (secondary)
+            // wins over an empty primary that was auto-tagged as a fallback.
             for (FallbackVariant candidate : candidateValues) {
                 if (FallbackVariant.FALSE.equals(candidate.getName())) {
                     details.closestMatch(candidate);

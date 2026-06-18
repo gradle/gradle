@@ -135,14 +135,9 @@ You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary 
 In earlier versions of Gradle, doing so would cause the primary variant to be silently excluded from variant selection, because it lacked artifacts.
 Starting with Gradle 10.0, such primary variants are now considered during variant selection, even if they have no artifacts.
 
-To let producers and consumers reason about this case explicitly, Gradle automatically tags such configurations with a new `org.gradle.fallback-variant` attribute: the empty primary receives `org.gradle.fallback-variant=true` and each secondary receives `org.gradle.fallback-variant=false`. The attribute carries no preference of its own — its default schema disambiguation rule is opt-in and only narrows the candidate set when the consumer explicitly requests a value. A consumer that does not request this attribute is unaffected by it; selection falls through to the configuration's other attributes.
+To preserve the previous outcome of variant selection in this case, Gradle automatically tags such configurations with a new `org.gradle.fallback-variant` attribute: the empty primary receives `org.gradle.fallback-variant=true` and each secondary receives `org.gradle.fallback-variant=false`. A default schema disambiguation rule prefers `false` over `true` when both values are candidates, so a secondary still wins whenever a secondary is compatible with the consumer's request — matching the pre-Gradle 10.0 outcome where the primary was simply absent.
 
-To select the empty primary, a consumer can opt in by requesting `org.gradle.fallback-variant=true` on the resolvable configuration. To prefer a non-fallback (secondary) candidate, request `org.gradle.fallback-variant=false`.
-
-[WARNING]
-====
-This is a behavior change. In earlier versions of Gradle, a silent consumer was guaranteed to bypass the empty primary because the primary was excluded outright. Starting with Gradle 10.0, the empty primary remains a candidate and may now win selection over a secondary when the consumer does not constrain selection enough for a secondary to be the better match. If your build relied on the old "secondary always wins" behavior, add an explicit `org.gradle.fallback-variant=false` request on the consuming configuration, or refine the consumer's attribute request so a secondary is uniquely more specific.
-====
+When the consumer explicitly requests a value for `org.gradle.fallback-variant`, the rule honors that request. This gives consumers an escape hatch: a consumer that wants the empty primary can request `org.gradle.fallback-variant=true` on the resolvable configuration to opt into it.
 
 NOTE: A configuration whose primary declares its own artifacts is unaffected — Gradle does not tag those configurations.
 
