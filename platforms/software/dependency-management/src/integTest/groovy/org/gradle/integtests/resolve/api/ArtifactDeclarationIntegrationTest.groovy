@@ -298,7 +298,6 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                                 artifact(file('classes')) {
                                     builtBy 'classes'
                                 }
-                                attributes.attribute(Attribute.of('other', String), 'select')
                             }
                         }
                     }
@@ -309,8 +308,6 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
         file("b/build.gradle") << """
             $header
-
-            configurations.compile.attributes.attribute(Attribute.of('other', String), 'select')
 
             dependencies {
                 compile project(':a')

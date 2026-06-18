@@ -480,6 +480,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             configurations {
                 compile {
                     attributes.attribute(usage, 'compile')
+                    attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
                 }
             }
 
@@ -504,18 +505,14 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             configurations {
                 compile {
                     attributes.attribute(buildType, 'debug')
-                    attributes.attribute(flavor, 'zero')
-                    outgoing {
-                        artifact file('dummy.txt')
-                        variants {
-                            var1 {
-                                artifact tasks.oneJar
-                                attributes.attribute(flavor, 'one')
-                            }
-                            var2 {
-                                artifact tasks.twoJar
-                                attributes.attribute(flavor, 'two')
-                            }
+                    outgoing.variants {
+                        var1 {
+                            artifact tasks.oneJar
+                            attributes.attribute(flavor, 'one')
+                        }
+                        var2 {
+                            artifact tasks.twoJar
+                            attributes.attribute(flavor, 'two')
                         }
                     }
                     attributes.attribute(usage, 'compile')
@@ -533,18 +530,14 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             task twoJar(type: Jar) { archiveBaseName = 'b2' }
             configurations {
                 compile {
-                    attributes.attribute(flavor, 'zero')
-                    outgoing {
-                        artifact file('dummy.txt')
-                        variants {
-                            var1 {
-                                artifact tasks.oneJar
-                                attributes.attribute(flavor, 'one')
-                            }
-                            var2 {
-                                artifact tasks.twoJar
-                                attributes.attribute(flavor, 'two')
-                            }
+                    outgoing.variants {
+                        var1 {
+                            artifact tasks.oneJar
+                            attributes.attribute(flavor, 'one')
+                        }
+                        var2 {
+                            artifact tasks.twoJar
+                            attributes.attribute(flavor, 'two')
                         }
                     }
                     attributes.attribute(usage, 'compile')
@@ -556,18 +549,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         fails 'show'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
-      - Unmatched attributes:
-          - Provides artifactType 'txt' but the consumer didn't ask for it
-          - Provides buildType 'debug' but the consumer didn't ask for it
-          - Provides flavor 'zero' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'var1' declares attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:compile' variant 'var1' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'var2' declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var2' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
@@ -1153,6 +1141,7 @@ Searched in the following locations:
             }
 
             configurations.compile.attributes.attribute(usage, "compile")
+            configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
             task resolveLenient {
                 def lenientViewFiles = configurations.compile.incoming.artifactView({lenient(true)}).files
@@ -1173,14 +1162,9 @@ Searched in the following locations:
 
             task jar1(type: Jar)
             task jar2(type: Jar)
-            task defaultJar(type: Jar) { archiveBaseName = 'a-default' }
             dependencies {
                 compile project(':c')
             }
-            // Give primary 'default' an artifact so artifact-level variant selection lists it
-            // alongside v1 and v2 as ambiguous (matching master's intent now that primary
-            // variants with no artifacts but with secondary variants remain selectable).
-            artifacts { 'default' tasks.defaultJar }
             configurations.default.outgoing.variants {
                 v1 { artifact tasks.jar1 }
                 v2 { artifact tasks.jar2 }

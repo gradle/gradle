@@ -485,14 +485,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of('artifactType', String), 'mismatch')
-                        outgoing.variants {
-                            files {
-                                attributes.attribute(Attribute.of('artifactType', String), 'jar')
-                                artifact jar1
-                                artifact zip1
-                            }
+                    compile.outgoing.variants {
+                        files {
+                            attributes.attribute(Attribute.of('artifactType', String), 'jar')
+                            artifact tasks.jar1
+                            artifact tasks.zip1
                         }
                     }
                 }
@@ -503,6 +500,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 dependencies {
                     compile project(':lib')
                 }
+
+                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 ${configurationAndTransform('FileSizer')}
             }
@@ -656,19 +655,16 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of('color', String), 'mismatch')
-                        outgoing.variants {
-                            java7 {
-                                attributes.attribute(Attribute.of('javaVersion', String), '7')
-                                attributes.attribute(Attribute.of('color', String), 'green')
-                                artifact jar1
-                            }
-                            java8 {
-                                attributes.attribute(Attribute.of('javaVersion', String), '8')
-                                attributes.attribute(Attribute.of('color', String), 'red')
-                                artifact jar2
-                            }
+                    compile.outgoing.variants {
+                        java7 {
+                            attributes.attribute(Attribute.of('javaVersion', String), '7')
+                            attributes.attribute(Attribute.of('color', String), 'green')
+                            artifact tasks.jar1
+                        }
+                        java8 {
+                            attributes.attribute(Attribute.of('javaVersion', String), '8')
+                            attributes.attribute(Attribute.of('color', String), 'red')
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -684,6 +680,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         to.attribute(Attribute.of('color', String), "red")
                     }
                 }
+
+                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
@@ -764,19 +762,16 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 configurations {
-                    compile {
-                        attributes.attribute(Attribute.of('color', String), 'mismatch')
-                        outgoing.variants {
-                            java7 {
-                                attributes.attribute(Attribute.of('javaVersion', String), '7')
-                                attributes.attribute(Attribute.of('color', String), 'green')
-                                artifact jar1
-                            }
-                            java8 {
-                                attributes.attribute(Attribute.of('javaVersion', String), '8')
-                                attributes.attribute(Attribute.of('color', String), 'red')
-                                artifact jar2
-                            }
+                    compile.outgoing.variants {
+                        java7 {
+                            attributes.attribute(Attribute.of('javaVersion', String), '7')
+                            attributes.attribute(Attribute.of('color', String), 'green')
+                            artifact tasks.jar1
+                        }
+                        java8 {
+                            attributes.attribute(Attribute.of('javaVersion', String), '8')
+                            attributes.attribute(Attribute.of('color', String), 'red')
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -796,6 +791,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         to.attribute(Attribute.of('color', String), "blue")
                     }
                 }
+
+                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
@@ -1089,22 +1086,19 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     archiveFileName = 'lib.jar'
                 }
 
-                configurations.compile {
-                    attributes.attribute(Attribute.of('artifactType', String), 'mismatch')
-                    outgoing.variants{
-                        primary {
-                            attributes {
-                                attribute(artifactType, "jar")
-                                attribute(extraAttribute, "preferred")
-                            }
-                            artifact jar
+                configurations.compile.outgoing.variants{
+                    primary {
+                        attributes {
+                            attribute(artifactType, "jar")
+                            attribute(extraAttribute, "preferred")
                         }
-                        secondary {
-                            attributes {
-                                attribute(artifactType, "intermediate")
-                            }
-                            artifact jar
+                        artifact tasks.jar
+                    }
+                    secondary {
+                        attributes {
+                            attribute(artifactType, "intermediate")
                         }
+                        artifact tasks.jar
                     }
                 }
             }
@@ -1147,6 +1141,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         reg.getTo().attribute(artifactType, "final")
                     }
                 }
+
+                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 task resolve {
                     def artifactFiles = configurations.compile.incoming.artifactView { config ->
@@ -1367,24 +1363,21 @@ Found the following transformation chains:
                 }
 
                 configurations {
-                    compile {
-                        outgoing.artifact file('dummy.txt')
-                        outgoing.variants {
-                            variant1 {
-                                attributes.attribute(buildType, 'release')
-                                attributes.attribute(flavor, 'free')
-                                artifact jar1
-                            }
-                            variant2 {
-                                attributes.attribute(buildType, 'release')
-                                attributes.attribute(flavor, 'paid')
-                                artifact jar1
-                            }
-                            variant3 {
-                                attributes.attribute(buildType, 'debug')
-                                attributes.attribute(flavor, 'free')
-                                artifact jar1
-                            }
+                    compile.outgoing.variants {
+                        variant1 {
+                            attributes.attribute(buildType, 'release')
+                            attributes.attribute(flavor, 'free')
+                            artifact tasks.jar1
+                        }
+                        variant2 {
+                            attributes.attribute(buildType, 'release')
+                            attributes.attribute(flavor, 'paid')
+                            artifact tasks.jar1
+                        }
+                        variant3 {
+                            attributes.attribute(buildType, 'debug')
+                            attributes.attribute(flavor, 'free')
+                            artifact tasks.jar1
                         }
                     }
                 }
@@ -1407,6 +1400,8 @@ Found the following transformation chains:
                         to.attribute(artifactType, 'transformed')
                     }
                 }
+
+                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
@@ -1432,6 +1427,7 @@ Found the following transformation chains:
         then:
         failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:
   - artifactType 'transformed'
+  - org.gradle.fallback-variant 'false'
   - usage 'api'
 Found the following transformation chains:
   - From configuration ':lib:compile' variant 'variant1':
@@ -1439,6 +1435,7 @@ Found the following transformation chains:
           - artifactType 'jar'
           - buildType 'release'
           - flavor 'free'
+          - org.gradle.fallback-variant 'false'
           - usage 'api'
       - Candidate transformation chains:
           - Transformation chain: 'BrokenTransform':
@@ -1453,6 +1450,7 @@ Found the following transformation chains:
           - artifactType 'jar'
           - buildType 'release'
           - flavor 'paid'
+          - org.gradle.fallback-variant 'false'
           - usage 'api'
       - Candidate transformation chains:
           - Transformation chain: 'BrokenTransform':
@@ -1467,6 +1465,7 @@ Found the following transformation chains:
           - artifactType 'jar'
           - buildType 'debug'
           - flavor 'free'
+          - org.gradle.fallback-variant 'false'
           - usage 'api'
       - Candidate transformation chains:
           - Transformation chain: 'BrokenTransform':
