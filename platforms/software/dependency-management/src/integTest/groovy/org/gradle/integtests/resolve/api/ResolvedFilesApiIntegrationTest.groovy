@@ -286,6 +286,8 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         buildFile << """
             $header
 
+            configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
+
             dependencies {
                 compile project(':a')
             }
@@ -307,10 +309,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
                 attributesSchema.attribute(flavor)
                 compile project(':b')
             }
-            configurations.compile {
-                attributes.attribute(flavor, 'mismatch')
-                outgoing.artifact file('dummy.txt')
-            }
             ${freeAndPaidFlavoredJars('a')}
         """
 
@@ -322,25 +320,17 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             dependencies {
                 attributesSchema.attribute(flavor)
             }
-            configurations.compile {
-                attributes.attribute(flavor, 'mismatch')
-                outgoing.artifact file('dummy.txt')
-            }
             ${freeAndPaidFlavoredJars('b')}
         """
 
         expect:
         fails("show")
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
-      - Unmatched attributes:
-          - Provides artifactType 'txt' but the consumer didn't ask for it
-          - Provides flavor 'mismatch' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:compile' variant 'free' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'free' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'paid' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'paid' but the consumer didn't ask for it""")
