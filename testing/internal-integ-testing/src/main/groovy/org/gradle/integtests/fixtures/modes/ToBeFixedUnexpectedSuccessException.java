@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures;
+package org.gradle.integtests.fixtures.modes;
 
-/**
- * Allows {@link org.gradle.integtests.fixtures.modes.GradleModeTestingExtension} to verify
- * test expectations before cleanup so they can be silenced if necessary.
- */
-public interface ResettableExpectations {
-    /**
-     * Resets all pending expectations after verifying them.
-     * Must throw when a verification fails.
-     */
-    void resetExpectations();
+public class ToBeFixedUnexpectedSuccessException extends RuntimeException {
+    public ToBeFixedUnexpectedSuccessException(String gradleMode) {
+        super("Expected the test to fail in '" + gradleMode + "' mode, but it succeeded!");
+    }
 }

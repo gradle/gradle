@@ -23,38 +23,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
-/**
- * Skip the test when running with Configuration Cache executor.
- * <p>
- * Use this annotation when the tested feature is fundamentally incompatible with Configuration Cache
- * and there is no intention to support it. If the intention is to eventually fix either the test
- * or the underlying feature, use {@link ToBeFixedForConfigurationCache} instead.
- * <p>
- * The annotated test is skipped entirely; no assertion is made about its behavior under Configuration Cache.
- */
+/// Skip this test (or all tests in this spec) under Configuration Cache: the feature is not meant to be supported.
+///
+/// Use [ToBeFixedForConfigurationCache] when the test or feature is expected to be made compatible eventually.
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-@ExtensionAnnotation(UnsupportedWithConfigurationCacheExtension.class)
+@ExtensionAnnotation(GradleModeTestingExtension.UnsupportedWithCC.class)
 public @interface UnsupportedWithConfigurationCache {
 
+    /// Why this feature is not supported with Configuration Cache.
     String because() default "";
 
-    /**
-     * Link to the issue documenting why the tested feature is not supported.
-     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
-     */
+    /// Link to the issue documenting non-support. Distinct from `@spock.lang.Issue`.
     String issue() default "";
 
-    /**
-     * Declare to which bottom spec this annotation should be applied.
-     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
-     */
+    /// Limit to specific leaf specs by simple class name. Empty means all subclasses.
     String[] bottomSpecs() default {};
 
-    /**
-     * Declare regular expressions matching the iteration name.
-     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
-     */
+    /// Regexes matched against parameterized iteration display names. Empty means all iterations.
     String[] iterationMatchers() default {};
 }
