@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.console
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
@@ -33,6 +35,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         server.start()
     }
 
+    @UnsupportedWithIsolatedProjects(because = "test verifies cross-project configuration ordering via HTTP-blocking checkpoints; BlockingHttpServer teardown failures escape ToBeFixed's catch")
     def "shows progress bar and percent phase completion"() {
         createDirs("a", "b", "c", "d")
         settingsFile << """
@@ -284,6 +287,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "shows progress bar and percent phase completion with artifact transforms"() {
         given:
         setupTransformBuild()
@@ -326,6 +330,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24370")
+    @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "shows progress bar and percent phase completion with non-planned planned artifact transforms"() {
         given:
         setupTransformBuild()

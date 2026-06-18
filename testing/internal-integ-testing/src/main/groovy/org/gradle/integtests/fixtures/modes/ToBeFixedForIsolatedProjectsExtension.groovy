@@ -19,10 +19,9 @@ package org.gradle.integtests.fixtures.modes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
-import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import static org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP
+import static ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
 
 class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtension<ToBeFixedForIsolatedProjects> {
 
@@ -30,24 +29,37 @@ class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtensio
 
     @Override
     void visitSpecAnnotation(ToBeFixedForIsolatedProjects annotation, SpecInfo spec) {
-        visitAnnotation(annotation, spec)
-    }
-
-    @Override
-    void visitFeatureAnnotation(ToBeFixedForIsolatedProjects annotation, FeatureInfo feature) {
-        visitAnnotation(annotation, feature)
-    }
-
-    private void visitAnnotation(ToBeFixedForIsolatedProjects annotation, SpecElementInfo specElementInfo) {
         if (GradleContextualExecuter.isNotIsolatedProjects()) {
             return
         }
 
-        if (annotation.skip() != DO_NOT_SKIP) {
-            specElementInfo.skip(annotation.skip().reason)
+        if (!isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
             return
         }
 
-        toBeFixedSpecInterceptor.intercept(specElementInfo, new String[0])
+        if (!annotation.skipBecause().isEmpty()) {
+            spec.skipped = true
+            return
+        }
+
+        toBeFixedSpecInterceptor.intercept(spec, annotation.iterationMatchers())
+    }
+
+    @Override
+    void visitFeatureAnnotation(ToBeFixedForIsolatedProjects annotation, FeatureInfo feature) {
+        if (GradleContextualExecuter.isNotIsolatedProjects()) {
+            return
+        }
+
+        if (!isEnabledBottomSpec(annotation.bottomSpecs(), { feature.spec.bottomSpec.name == it })) {
+            return
+        }
+
+        if (!annotation.skipBecause().isEmpty()) {
+            feature.skipped = true
+            return
+        }
+
+        toBeFixedSpecInterceptor.intercept(feature, annotation.iterationMatchers())
     }
 }

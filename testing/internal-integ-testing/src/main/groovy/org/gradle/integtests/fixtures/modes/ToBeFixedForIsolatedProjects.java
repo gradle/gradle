@@ -23,22 +23,33 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 /**
- * Assert that this test fails when run with Isolated Projects enabled.
+ * Expect the test to fail or skip it when running with Isolated Projects enabled.
  * <p>
- * In case the {@link #skip()} reason is anything but {@link Skip#DO_NOT_SKIP DO_NOT_SKIP}, the test will be skipped.
+ * Use this annotation when the intention is to fix either the test itself or the underlying feature,
+ * making it compatible with Isolated Projects. If the intention is to not support the tested feature
+ * with Isolated Projects, use {@link UnsupportedWithIsolatedProjects} instead.
+ * <p>
+ * The expectation of failure essentially flips the test result.
+ * A specific failure is not verified, and we only confirm that the test is not passing.
+ * <p>
+ * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
+ * or has other undesirable effects, such as timeouts.
+ * Set {@link #skipBecause()} to a non-empty reason to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(ToBeFixedForIsolatedProjectsExtension.class)
 public @interface ToBeFixedForIsolatedProjects {
 
-    /**
-     * Set to some {@link Skip} to skip the annotated test.
-     */
-    Skip skip() default Skip.DO_NOT_SKIP;
-
     String because() default "";
+
+    /**
+     * Reason for skipping the annotated test instead of expecting it to fail.
+     * Empty (the default) means expect-failure; any non-empty value skips the test with that reason.
+     */
+    String skipBecause() default "";
 
     /**
      * Link to the issue tracking the incompatibility addressed by this annotation.
@@ -47,30 +58,14 @@ public @interface ToBeFixedForIsolatedProjects {
     String issue() default "";
 
     /**
-     * Reason for skipping a test with isolated projects.
+     * Declare to which bottom spec this annotation should be applied.
+     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
      */
-    enum Skip {
+    String[] bottomSpecs() default {};
 
-        /**
-         * Do not skip this test, this is the default.
-         */
-        DO_NOT_SKIP {
-            @Override
-            public String getReason() {
-                throw new UnsupportedOperationException("Must not be skipped");
-            }
-        },
-
-        /**
-         * Use this reason on tests that intermittently fail with isolated projects.
-         */
-        FLAKY {
-            @Override
-            public String getReason() {
-                return "flaky";
-            }
-        };
-
-        public abstract String getReason();
-    }
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
 }

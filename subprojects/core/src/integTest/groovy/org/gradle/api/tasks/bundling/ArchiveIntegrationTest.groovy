@@ -321,7 +321,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31858")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/31858")
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')

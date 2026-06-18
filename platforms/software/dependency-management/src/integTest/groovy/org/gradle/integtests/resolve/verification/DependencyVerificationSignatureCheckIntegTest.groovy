@@ -1684,7 +1684,10 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "ArtifactResolutionQuery APIs should be deprecated: https://github.com/gradle/gradle/issues/26365")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/26365",
+        because = "ArtifactResolutionQuery APIs should be deprecated"
+    )
     def "dependency verification should work correctly with artifact queries"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)

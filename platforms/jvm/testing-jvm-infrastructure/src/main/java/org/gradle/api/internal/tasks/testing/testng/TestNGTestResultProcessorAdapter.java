@@ -278,7 +278,12 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         if (rawFailure instanceof AssertionError) {
             resultProcessor.failure(testId, DefaultTestFailure.fromTestAssertionFailure(rawFailure, null, null));
         } else {
-            resultProcessor.failure(testId, DefaultTestFailure.fromTestFrameworkFailure(rawFailure));
+            // This path runs for failures thrown from a TestNG @Test method body. The failure
+            // is per-method, so it must not bypass the test-logging granularity filter — route
+            // through fromTestMethodFailure to produce a plain (non-bypass-eligible) failure.
+            // Configuration-method failures (@BeforeClass/@AfterClass/etc.) go through
+            // onConfigurationFailure below and remain classified as framework failures.
+            resultProcessor.failure(testId, DefaultTestFailure.fromTestMethodFailure(rawFailure));
         }
     }
 

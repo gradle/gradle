@@ -37,7 +37,10 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         outputContains("Exit value: null")
     }
 
-    @ToBeFixedForConfigurationCache(because = "accessing execResult, https://github.com/gradle/gradle/issues/11492")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/11492",
+        because = "accessing execResult"
+    )
     def "returns ExecResult when is executed"() {
         makeExecProject()
         writeSucceedingExec()
@@ -63,7 +66,10 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         failureHasCause(~/Process '.*' finished with non-zero exit value 42/)
     }
 
-    @ToBeFixedForConfigurationCache(because = "accessing execResult, https://github.com/gradle/gradle/issues/11492")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/11492",
+        because = "accessing execResult"
+    )
     def "execute with non-zero exit value and ignore exit value should not throw exception"() {
         makeExecProject()
         writeFailingExec()

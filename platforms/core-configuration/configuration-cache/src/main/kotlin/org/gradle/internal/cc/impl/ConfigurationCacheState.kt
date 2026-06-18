@@ -83,7 +83,6 @@ import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readStringsSet
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withDebugFrame
@@ -693,7 +692,6 @@ class ConfigurationCacheState(
     fun WriteContext.writeGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
-            writeStartParameterOf(gradle)
             writeChildBuilds(gradle)
         }
     }
@@ -705,23 +703,8 @@ class ConfigurationCacheState(
         val gradle = build.gradle
         return withGradleIsolate(gradle, userTypesCodec) {
             // per build
-            readStartParameterOf(gradle)
             readChildBuilds()
         }
-    }
-
-    private
-    fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        val startParameterTaskNames = gradle.startParameter.taskNames
-        writeStrings(startParameterTaskNames)
-    }
-
-    private
-    fun ReadContext.readStartParameterOf(gradle: GradleInternal) {
-        // Restore startParameter.taskNames to enable `gradle.startParameter.setTaskNames(...)` idiom in included build scripts
-        // See org/gradle/caching/configuration/internal/BuildCacheCompositeConfigurationIntegrationTest.groovy:134
-        val startParameterTaskNames = readStrings()
-        gradle.startParameter.setTaskNames(startParameterTaskNames)
     }
 
     private

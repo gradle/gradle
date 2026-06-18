@@ -47,7 +47,7 @@ plexusSecDispatcher = "2.0!!"
 plexusUtils = "3.6.1!!"
 plist = "1.27!!"
 slf4j = "2.0.17!!"
-snakeyaml = "2.0!!"
+snakeyaml = "2.6!!"
 sshd = "2.15.0!!"
 tomlj = "1.0.0!!"
 

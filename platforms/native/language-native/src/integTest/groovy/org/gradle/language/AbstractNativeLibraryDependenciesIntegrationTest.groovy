@@ -16,7 +16,10 @@
 
 package org.gradle.language
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 abstract class AbstractNativeLibraryDependenciesIntegrationTest extends AbstractNativeProductionComponentDependenciesIntegrationTest {
+    @ToBeFixedForIsolatedProjects(because = "C++/Swift cross-project native component config")
     def "can define api dependencies on component"() {
         given:
         createDirs("lib")

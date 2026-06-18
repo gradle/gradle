@@ -18,15 +18,16 @@ package org.gradle.integtests.fixtures.modes
 
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.jspecify.annotations.NullMarked
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+import static ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
+import static ToBeFixedSpecInterceptor.iterationMatches
+
 /**
  * JUnit Rule supporting the {@link ToBeFixedForIsolatedProjects} annotation.
  */
-@NullMarked
 class ToBeFixedForIsolatedProjectsRule implements TestRule {
 
     @Override
@@ -35,7 +36,15 @@ class ToBeFixedForIsolatedProjectsRule implements TestRule {
         if (GradleContextualExecuter.isNotIsolatedProjects() || annotation == null) {
             return base
         }
-
-        return new ExpectingFailureRuleStatement(base, "Isolated Projects")
+        def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
+        def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
+        if (enabledBottomSpec && enabledIteration) {
+            if (annotation.skipBecause().isEmpty()) {
+                return new ExpectingFailureRuleStatement(base, "Isolated Projects")
+            } else {
+                return new UnsupportedWithIsolatedProjectsRule.SkippingRuleStatement(base)
+            }
+        }
+        return base
     }
 }

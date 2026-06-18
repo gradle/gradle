@@ -21,6 +21,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.security.internal.PGPUtils;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -206,6 +207,7 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
      *
      * @see <a href="https://github.com/gradle/gradle/issues/20100">gradle/gradle#20100</a>
      */
+    @NullMarked
     public static final class TrustedKeys {
         private final @Nullable String group;
         private final @Nullable String module;

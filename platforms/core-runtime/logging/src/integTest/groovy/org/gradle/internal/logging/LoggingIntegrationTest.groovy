@@ -169,7 +169,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         }
     }}
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/30771")
     def "build emits #level logging"() {
         LogLevel logLevel = logOutput."$level"
         resources.maybeCopy('LoggingIntegrationTest/logging')
@@ -240,7 +240,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         loggerClass << ["DeprecatedListener", "NonDeprecatedListener"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/30771", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
     @UsesSample('integration-tests/tutorial/logging/groovy')
     def "sample emits #level logging"() {
         LogLevel logLevel = sample."$level"

@@ -35,6 +35,7 @@ import static org.gradle.nativeplatform.MachineArchitecture.X86_64
 import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
 import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 
@@ -147,6 +148,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         releaseRuntime.files[0].url == withSharedLibrarySuffix("test_release-1.2")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -267,6 +269,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library with external dependencies to a Maven repository"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -381,6 +384,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "uses base name of library to calculate coordinates"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -576,6 +580,7 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
         succeeds("compileDebugCpp")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "implementation dependencies are not visible to consumer"() {
         def app = new CppAppWithLibraries()
         def repoDir = file("repo")
@@ -693,6 +698,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6766")
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -744,6 +750,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
@@ -814,6 +821,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
@@ -884,6 +892,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails when a dependency is published without a matching target architecture"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 

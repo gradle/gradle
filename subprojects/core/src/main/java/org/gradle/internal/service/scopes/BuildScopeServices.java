@@ -626,7 +626,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
         TextFileResourceLoader textFileResourceLoader,
-        BuildIncludeListener buildIncludeListener
+        BuildIncludeListener buildIncludeListener,
+        IsolatedProjectsProblemsReporter isolatedProjectsProblemsReporter
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -642,7 +643,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                             gradleProperties,
                             textFileResourceLoader,
                             buildIncludeListener
-                        )
+                        ),
+                        isolatedProjectsProblemsReporter
                     )
                 )
             ),

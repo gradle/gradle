@@ -364,8 +364,8 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
 
 
     @ToBeFixedForConfigurationCache(
-        because = "re-download of deleted artifacts requires dependency resolution, which is skipped when configuration cache entry is reused",
-        issue = "https://github.com/gradle/gradle/issues/16179"
+        issue = "https://github.com/gradle/gradle/issues/16179",
+        because = "re-download of deleted artifacts requires dependency resolution, which is skipped when configuration cache entry is reused"
     )
     def "redownloads deleted artifacts for artifact query"() {
         given:

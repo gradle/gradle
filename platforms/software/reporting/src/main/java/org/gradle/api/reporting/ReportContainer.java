@@ -20,10 +20,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.util.Configurable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -86,6 +88,10 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
     @Override
     @Internal
     boolean isEmpty();
+
+    @Override
+    @Internal
+    Provider<? extends Collection<T>> getElements();
 
     /**
      * Returns the enabled reports, keyed by report name.

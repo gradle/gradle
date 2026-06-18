@@ -24,9 +24,11 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ProfilingIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForIsolatedProjects(because = "profiling aggregates across projects")
     def "can generate profiling report"() {
         given:
         createDirs("a", "b", "c")

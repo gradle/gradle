@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -49,7 +49,7 @@ public class RootBuildLifecycleBuildActionExecutor {
     private final BuildTreeLifecycleListener lifecycleListener;
     private final ProblemsInternal problemsService;
     private final BuildOperationProgressEventEmitter eventEmitter;
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final ProblemStream problemsStream;
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
@@ -62,7 +62,7 @@ public class RootBuildLifecycleBuildActionExecutor {
         BuildTreeLifecycleListener lifecycleListener,
         ProblemsInternal problemsService,
         BuildOperationProgressEventEmitter eventEmitter,
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         ProblemStream problemsStream,
         BuildStateRegistry buildStateRegistry,
         BuildActionRunner buildActionRunner
@@ -98,6 +98,8 @@ public class RootBuildLifecycleBuildActionExecutor {
                 RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
+                // Since continuous builds reuse the same StartParameter for multiple build trees.
+                startParameter.clearMutationListener();
                 lifecycleListener.beforeStop();
             }
         } finally {

@@ -36,19 +36,20 @@ import java.lang.annotation.Target;
  * <p>
  * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
  * or has other undesirable effects, such as timeouts.
- * Set {@link #skip()} into any other value apart from {@link Skip#DO_NOT_SKIP DO_NOT_SKIP} to skip the test.
+ * Set {@link #skipBecause()} to a non-empty reason to skip the test.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(ToBeFixedForConfigurationCacheExtension.class)
 public @interface ToBeFixedForConfigurationCache {
 
-    /**
-     * Set to some {@link Skip} to skip the annotated test.
-     */
-    Skip skip() default Skip.DO_NOT_SKIP;
-
     String because() default "";
+
+    /**
+     * Reason for skipping the annotated test instead of expecting it to fail.
+     * Empty (the default) means expect-failure; any non-empty value skips the test with that reason.
+     */
+    String skipBecause() default "";
 
     /**
      * Link to the issue tracking the incompatibility addressed by this annotation.
@@ -67,37 +68,4 @@ public @interface ToBeFixedForConfigurationCache {
      * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
      */
     String[] iterationMatchers() default {};
-
-    /**
-     * Reason for skipping a test with configuration cache.
-     */
-    enum Skip {
-
-        /**
-         * Do not skip this test, this is the default.
-         */
-        DO_NOT_SKIP,
-
-        /**
-         * Use this reason on unrolled tests in super classes that fail on some subclasses.
-         * Spock doesn't allow to override test methods and annotate them.
-         */
-        UNROLLED_FAILS_IN_SUBCLASS,
-
-        /**
-         * Use this reason on tests that intermittently fail with configuration cache.
-         */
-        FLAKY,
-
-        /**
-         * Use this reason on tests that take a long time to fail, slowing down the CI feedback.
-         * Use sparingly, only in dramatic cases.
-         */
-        LONG_TIMEOUT,
-
-        /**
-         * This test has been seen failing, but we did not have time to investigate the reason yet.
-         */
-        INVESTIGATE
-    }
 }

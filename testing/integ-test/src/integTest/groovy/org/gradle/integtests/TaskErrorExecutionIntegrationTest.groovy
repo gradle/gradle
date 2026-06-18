@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.api.problems.Severity
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 
@@ -99,6 +100,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken action")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports task injected by other project fails with runtime exception"() {
         createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
@@ -171,6 +173,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports unknown task"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
@@ -240,6 +243,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         )
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports ambiguous task"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
@@ -291,6 +295,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IP changes error message")
     def "reports unknown project"() {
         enableProblemsApiCheck()
         createDirs("projA", "projB")
@@ -324,6 +329,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "reports ambiguous project"() {
         enableProblemsApiCheck()
         createDirs("projA", "projB")

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.junit.Rule
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule
@@ -34,6 +35,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     void "global sourceCompatibility results in project language level"() {
         given:
         buildFile << """
@@ -56,6 +58,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         iml('child3').languageLevel == null
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     void "specific module languageLevel is exposed with derived language level"() {
         given:
         buildFile << """
@@ -90,6 +93,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         iml("child3").languageLevel == null
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     void "use project language level not source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
@@ -171,6 +175,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         ipr.bytecodeTargetLevel.children().size() == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
         buildFile << """
             allprojects {
@@ -193,6 +198,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         iml('child3').languageLevel == null
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     void "module languageLevel always exposed when no idea root project found"() {
         buildFile << """
             subprojects {
@@ -213,6 +219,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "project bytecodeLevel set explicitly for same java versions"() {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC")
@@ -246,6 +253,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         ipr.bytecodeTargetLevel.@target == "1.6"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "explicit project target level when module version differs from project java sdk"() {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC")
@@ -279,6 +287,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         ipr.bytecodeTargetLevel.@target == "1.7"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "target bytecode version set if differs from calculated idea project bytecode version"() {
         given:
         createDirs("subprojectA")
@@ -311,6 +320,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.7"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "language level set if differs from calculated idea project language level"() {
         given:
         createDirs("child1")
@@ -342,6 +352,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         iml('child1').languageLevel == "JDK_1_7"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "language level set if root has no idea plugin applied"() {
         given:
         createDirs("child1")
@@ -369,6 +380,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         iml('child1').languageLevel == "JDK_1_7"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "can have module specific bytecode version"() {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC", "subprojectD")
@@ -422,6 +434,7 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     void "language levels specified in properties files are ignored"() {
         given:
         file('gradle.properties') << """

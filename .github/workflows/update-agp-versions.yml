@@ -21,16 +21,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
-          aws-region: "eu-central-1"
-      - name: Get secrets
-        uses: aws-actions/aws-secretsmanager-get-secrets@v3
-        with:
-          secret-ids: |
-            BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN
       - name: Setup java
         uses: actions/setup-java@v5
         with:
@@ -38,37 +28,11 @@ jobs:
           java-version: 17
       - name: Update AGP versions
         run: ./gradlew updateAgpVersions
-      - name: Commit, push, and open PR
-        env:
-          GITHUB_TOKEN: ${{ env.BOT_GRADLE_GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "No changes."
-            exit 0
-          fi
-
-          # Don't touch the branch if a PR is already open: someone may
-          # be working on it manually. Close the existing PR first.
-          if [ -n "$(gh pr list --state open --head tide/update-agp --json number --jq '.[].number')" ]; then
-            echo "An open PR for tide/update-agp already exists; skipping."
-            exit 0
-          fi
-
-          git config user.name  "bot-gradle"
-          git config user.email "bot-gradle@gradle.com"
-          git checkout -B tide/update-agp
-          git add -A
-          git commit -s -m "Update AGP versions"
-
-          # Replace any stale branch left behind by a previously-closed PR.
-          git push origin --delete tide/update-agp 2>/dev/null || true
-          git push origin tide/update-agp
-
-          gh pr create \
-            --base master \
-            --title "Update tested AGP versions" \
-            --body "Update tested AGP versions" \
-            --reviewer "gradle/bt-tide" \
-            --label "a:chore,in:performance-test,in:smoke-test,re:android"
-          gh pr comment tide/update-agp --body '@bot-gradle test and merge'
+      - name: Open bot PR
+        uses: ./.github/actions/open-pr
+        with:
+          branch: tide/update-agp
+          title: Update tested AGP versions
+          message: Update AGP versions
+          reviewer: gradle/bt-tide
+          labels: a:chore,re:android,in:performance-test,in:smoke-test,to-triage
