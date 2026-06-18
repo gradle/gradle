@@ -124,6 +124,9 @@ internal class MutableStateAccessReportingParentGradle(
             delegate -> this
             else -> MutableStateAccessReportingParentGradle(root, referrerProject, ipProblems)
         }
+
+    override fun getStartParameter(): StartParameterInternal =
+        delegate.startParameter
     // endregion accessible
 
     // region mutable state
@@ -160,11 +163,6 @@ internal class MutableStateAccessReportingParentGradle(
     override fun getServices(): ServiceRegistry {
         onMutableStateAccess("getServices")
         return delegate.services
-    }
-
-    override fun getStartParameter(): StartParameterInternal {
-        onMutableStateAccess("getStartParameter")
-        return delegate.startParameter
     }
 
     override fun getProjectRegistry(): ProjectRegistry {
