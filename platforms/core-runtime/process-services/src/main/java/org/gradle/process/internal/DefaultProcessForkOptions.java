@@ -45,7 +45,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     // TODO(mlopatkin) this provider is a good candidate for CC deduplication
@@ -62,6 +61,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
      * @deprecated Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead.
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
         this(
             resolver,
@@ -74,10 +74,12 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
         this(objectFactory, resolver, CURRENT_ENVIRONMENT);
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver, Provider<Map<String, String>> inheritableEnvironment) {
         this(
             resolver,
@@ -125,7 +127,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         if (executable instanceof Provider) {
             getExecutable().set(((Provider<?>) executable).map(Object::toString));
         } else {
-            getExecutable().set(Objects.toString(executable));
+            getExecutable().set(Providers.changing(executable::toString));
         }
         return this;
     }
@@ -136,7 +138,6 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
-<<<<<<< HEAD
     public File getWorkingDir() {
         return getWorkingDirectory().get().getAsFile();
     }
@@ -145,19 +146,11 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     public void setWorkingDir(File dir) {
         // We call resolver to resolve "." in some scopes
         getWorkingDirectory().set(resolver.resolve(dir));
-=======
-    public void setWorkingDir(File dir) {
-        getWorkingDir().set(dir);
->>>>>>> 8bd3637bf6c (Add back setters to the Provider API migration)
     }
 
     @Override
     public void setWorkingDir(Object dir) {
-<<<<<<< HEAD
         workingDir(dir);
-=======
-        this.workingDir(dir);
->>>>>>> 8bd3637bf6c (Add back setters to the Provider API migration)
     }
 
     @Override
