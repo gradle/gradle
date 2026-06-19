@@ -40,7 +40,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(*configured)
-            problem("Build file '${scriptPath}': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling 'setDryRun(boolean)'.")
+            problem("Build file '${scriptPath}': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. The mutation occurred via 'setDryRun(boolean)' call.")
         }
 
         where:
@@ -203,7 +203,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         then:
         fixture.assertIsolatedProjectsProblems(IsolatedProjectsMode.FAIL_FAST) {
             projectsConfigured(":")
-            problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling '${signature}'.")
+            problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. The mutation occurred via '${signature}' call.")
         }
 
         where:
@@ -240,7 +240,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":")
-            problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling '$signature'.")
+            problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. The mutation occurred via '$signature' call.")
         }
 
         where:

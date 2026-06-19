@@ -50,9 +50,9 @@ public class StartParameterMutationReportingSettingsProcessor implements Setting
                 factory.problem(null, messageBuilder -> {
                     messageBuilder
                         .text("The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. ")
-                        .text("This happened when calling ")
+                        .text("The mutation occurred via ")
                         .reference(methodSignature)
-                        .text(".");
+                        .text(" call.");
                     return Unit.INSTANCE;
                 }).exception().build()
             )
