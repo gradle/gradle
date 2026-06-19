@@ -66,13 +66,14 @@ abstract class GradleModeTestingExtension<A extends Annotation> implements IAnno
 
         def modeName = gradleMode.displayName()
         if (skipReason) {
+            def skipMessage = "Skipping for '$modeName' mode: $skipReason"
             if (iterationAlwaysMatches(iterationMatchers)) {
-                specOrFeature.skip(skipReason)
+                specOrFeature.skip(skipMessage)
             } else {
                 forEachFeature(specOrFeature) { feature ->
                     feature.featureMethod.addInterceptor { IMethodInvocation invocation ->
                         if (iterationMatches(iterationMatchers, invocation.iteration.displayName)) {
-                            throw new TestAbortedException("Skipping for '$modeName' mode, because: $skipReason")
+                            throw new TestAbortedException(skipMessage)
                         }
                         invocation.proceed()
                     }
