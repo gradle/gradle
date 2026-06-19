@@ -55,6 +55,9 @@ class GradleModeTestingRule implements TestRule {
         Function<A, String> getSkipReason
     ) {
         def annotation = description.getAnnotation(annClass)
+        if (annotation == null && description.testClass != null) {
+            annotation = description.testClass.getAnnotation(annClass)
+        }
         if (annotation == null || !gradleMode.active) {
             return base
         }
