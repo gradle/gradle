@@ -107,7 +107,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     @Override
     public ProblemStream newUnlimitedStream() {
-        return new DefaultProblemStream(Integer.MAX_VALUE, maxBoundedCaptures);
+        return new DefaultProblemStream(maxStackTraces, Integer.MAX_VALUE);
     }
 
     @Override

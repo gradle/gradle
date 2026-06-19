@@ -117,6 +117,20 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         3 * boundedCallerStackCapturer.captureCallerStack() >> null
     }
 
+    def "unlimited stream caps full captures and uses bounded captures past the cap"() {
+        given:
+        def boundedThrowable = new Exception()
+        def stream = factory.newUnlimitedStream()
+
+        when:
+        def diagnostics = (1..5).collect { stream.forCurrentCaller() }
+
+        then:
+        !diagnostics[0].stack.empty
+        !diagnostics[1].stack.empty
+        3 * boundedCallerStackCapturer.captureCallerStack() >> boundedThrowable
+    }
+
     def "each stream has an independent stack trace limit"() {
         def stream1 = factory.newStream()
         def stream2 = factory.newStream()
