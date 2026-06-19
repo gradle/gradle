@@ -102,11 +102,48 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
+    def "'#method' fails the build with the same settings failure as other fetch methods with #dsl DSL"() {
+        given:
+        setupInitScriptWithCustomModelBuilder()
+        writeSettingsFile(dsl, "garbage !!!")
+
+        when:
+        fails {
+            action(buildAction)
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        def e = thrown(BuildException)
+        def expectedCause = dsl == GROOVY ? "Could not compile settings file" : "Script compilation error"
+        collectCauseMessages(e).any { it?.contains(expectedCause) }
+
+        where:
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+
+        combined:
+        dsl << [GROOVY, KOTLIN]
+    }
+
     private void writeBuildFile(GradleDsl dsl, String s) {
         if (dsl == KOTLIN) {
             buildFileKts << s
         } else {
             buildFile << s
+        }
+    }
+
+    private void writeSettingsFile(GradleDsl dsl, String s) {
+        if (dsl == KOTLIN) {
+            settingsFile.delete()
+            settingsKotlinFile << s
+        } else {
+            settingsFile << s
         }
     }
 

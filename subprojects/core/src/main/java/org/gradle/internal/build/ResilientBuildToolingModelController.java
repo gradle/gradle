@@ -65,7 +65,13 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
     @Override
     protected Try<Void> configureBuild() {
-        return tryRunConfiguration(buildController::configureProjectsIgnoringLaterFailures);
+        Try<Void> configuration = tryRunConfiguration(buildController::configureProjectsIgnoringLaterFailures);
+        // A build-level configuration failure (e.g. a failing settings script) is not tied to a specific project, so
+        // it is not recorded by the per-project capture below - the default project may not even exist. Record it
+        // here so the build still fails at finish, while partial models are returned. The failure is deduplicated, so
+        // recording it again per project is harmless.
+        configuration.getFailure().ifPresent(modelBuildingFailureCollector::addConfigurationFailure);
+        return configuration;
     }
 
     @Override

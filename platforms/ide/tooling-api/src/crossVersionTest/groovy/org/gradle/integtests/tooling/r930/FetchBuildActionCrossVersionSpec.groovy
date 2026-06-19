@@ -222,7 +222,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' method returns the same failed result as other fetch methods with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder()
