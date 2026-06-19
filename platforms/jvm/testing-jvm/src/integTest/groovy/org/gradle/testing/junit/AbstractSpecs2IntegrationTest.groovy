@@ -140,5 +140,13 @@ abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersion
         !errorOutput.contains("No reporter found for test descriptor")
         !errorOutput.contains("GroupTestEventReporterInternal")
         !errorOutput.contains("Test process encountered an unexpected problem")
+
+        and: "the post-fix tree shape matches the Gradle 9.2.1 expected output — single hierarchy, no duplicated synthetic suite"
+        // The count is the load-bearing pin: a duplicated tree (e.g., the registered
+        // class node plus a synthetic suite for the same class) would shift the
+        // total to 5+. The variant-specific test-line shape (JUnit 4 reports the
+        // synthetic test as "classMethod"; JUnit Vintage reports it under the
+        // fully-qualified class name) is not pinned here.
+        errorOutput.contains("4 tests completed, 2 failed, 2 skipped")
     }
 }

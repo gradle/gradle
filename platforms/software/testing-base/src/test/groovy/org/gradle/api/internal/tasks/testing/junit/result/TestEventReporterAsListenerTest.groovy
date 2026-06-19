@@ -28,7 +28,18 @@ import java.util.function.Function
 @Issue("https://github.com/gradle/gradle/issues/38193")
 class TestEventReporterAsListenerTest extends Specification {
 
-    def "does not throw ClassCastException when a child descriptor's parent was reported as a non-composite leaf"() {
+    /*
+     * Negative regression test: pins the consumer-side invariant that the producer-side
+     * fix in JUnitTestEventAdapter.addDescriptorAndChildren now relies on.
+     *
+     * The cast at TestEventReporterAsListener.java:57-58 is intentionally unguarded.
+     * The producer side guarantees that any descriptor which will acquire children
+     * is registered as composite from the start, so the parent-slot reporter is always
+     * a GroupTestEventReporterInternal. If that producer-side invariant is ever broken
+     * (a future change emits a non-composite parent slot) the cast will throw
+     * ClassCastException — and this test goes red as the canary.
+     */
+    def "throws ClassCastException when fed a non-composite parent — pins the consumer-side invariant the producer-side fix relies on"() {
         given:
         def rootGroupReporter = Mock(GroupTestEventReporterInternal)
         def specClassReporter = Mock(TestEventReporter)
@@ -54,14 +65,15 @@ class TestEventReporterAsListenerTest extends Specification {
         and: "the spec-class descriptor is reported as a non-composite leaf under the root group"
         rootGroupReporter.reportTestDirectly(specClass) >> specClassReporter
 
-        when: "the root and the spec-class start normally"
+        and: "the root and the spec-class start normally"
         listener.started(root, new TestStartEvent(0L))
         listener.started(specClass, new TestStartEvent(0L))
 
-        and: "a synthetic child descriptor is started under the (now-leaf) spec-class — mirrors Specs2 BeforeAfterAll's classMethod failure"
+        when: "a synthetic child descriptor is started under the (now-leaf) spec-class"
         listener.started(classMethod, new TestStartEvent(0L))
 
-        then: "the listener tolerates a non-group parent reporter rather than blowing up with ClassCastException"
-        noExceptionThrown()
+        then: "the unguarded cast throws ClassCastException naming GroupTestEventReporterInternal"
+        def e = thrown(ClassCastException)
+        e.message.contains("GroupTestEventReporterInternal")
     }
 }
