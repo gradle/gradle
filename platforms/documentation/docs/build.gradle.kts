@@ -6,7 +6,6 @@ import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
-import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
@@ -15,8 +14,6 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
     id("gradlebuild.internal.java")
-    // TODO: Apply asciidoctor in documentation plugin instead.
-    id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")
     id("org.gradle.samples")
     id("gradlebuild.android-home-warmup")
@@ -98,24 +95,6 @@ dependencies {
 
 jvmCompile {
     addCompilationFrom(sourceSets.docsTest)
-}
-
-asciidoctorj {
-    setVersion(buildLibs.versions.asciidoctor.get())
-    modules.pdf.setVersion("2.3.23")
-    // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
-    // TODO: tables are not handled properly in pdfs
-    fatalWarnings.add(
-        Regex("^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*").toPattern()
-    )
-}
-
-tasks.withType<AsciidoctorTask>().configureEach {
-    val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    doctorj.docExtensions(
-        project.dependencies.create(project(":docs-asciidoctor-extensions")),
-        project.dependencies.create(files("src/main/resources"))
-    )
 }
 
 gradleDocumentation {
