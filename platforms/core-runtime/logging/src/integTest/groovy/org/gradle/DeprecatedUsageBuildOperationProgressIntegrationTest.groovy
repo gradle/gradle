@@ -306,7 +306,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "IP emits additional deprecation events that break count assertion")
+    @ToBeFixedForIsolatedProjects(skipBecause = "tests the default 50-capture cap, which Isolated Projects raises to 5000 so the past-cap path is never reached; IP also emits extra deprecation events that make the count unstable")
     def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 
