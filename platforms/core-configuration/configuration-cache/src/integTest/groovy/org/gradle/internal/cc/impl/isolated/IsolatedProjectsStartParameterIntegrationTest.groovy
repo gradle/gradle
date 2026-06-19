@@ -18,42 +18,6 @@ package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "StartParameter access from a build script after settings evaluation honors the IP contract (#description)"() {
-        // One explicit statement of the contract: reads and the exempt task-name replacement are
-        // allowed, while every mutation -- via a setter or through a collection view -- is reported.
-        // The other tests cover locations, individual setters and view paths in detail; this one makes
-        // the allowed-vs-forbidden boundary self-evident in a single place. Forbidden cases use
-        // fail-fast: the violation is thrown before the backing collection is touched, so the outcome
-        // does not depend on whether that collection is mutable.
-        buildFile("""
-            gradle.startParameter.$operation
-        """)
-
-        expect:
-        if (forbiddenSignature == null) {
-            isolatedProjectsRun("help")
-            fixture.assertStateStored {
-                projectsConfigured(":")
-            }
-        } else {
-            isolatedProjectsFailsUsing(IsolatedProjectsMode.FAIL_FAST, "help")
-            fixture.assertIsolatedProjectsProblems(IsolatedProjectsMode.FAIL_FAST) {
-                projectsConfigured(":")
-                problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling '${forbiddenSignature}'.")
-            }
-        }
-
-        where:
-        description              | operation                            | forbiddenSignature
-        "read a scalar"          | "offline"                            | null
-        "read a map view"        | "projectProperties.containsKey('x')" | null
-        "iterate a set view"     | "excludedTaskNames.each { }"         | null
-        "replace the task names" | "setTaskNames(['help'])"             | null
-        "mutate via a setter"    | "setOffline(true)"                   | "setOffline(boolean)"
-        "mutate a map view"      | "projectProperties.put('p', 'v')"    | "getProjectProperties().put(Object, Object)"
-        "mutate a set view"      | "excludedTaskNames.add('x')"         | "getExcludedTaskNames().add(Object)"
-    }
-
     def "mutating StartParameter after settings evaluation is a violation (#location)"() {
         // The violation pipeline (onMutableCall -> listener -> IP problem) is the same for every setter
         // and only the call location varies, so one representative setter exercised from each location
