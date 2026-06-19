@@ -27,19 +27,14 @@ import java.util.function.Function
 
 @Issue("https://github.com/gradle/gradle/issues/38193")
 class TestEventReporterAsListenerTest extends Specification {
-
     /*
-     * Negative regression test: pins the consumer-side invariant that the producer-side
-     * fix in JUnitTestEventAdapter.addDescriptorAndChildren now relies on.
-     *
-     * The cast at TestEventReporterAsListener.java:57-58 is intentionally unguarded.
-     * The producer side guarantees that any descriptor which will acquire children
+     * Negative regression test: pins the consumer-side invariant that any descriptor which will acquire children
      * is registered as composite from the start, so the parent-slot reporter is always
      * a GroupTestEventReporterInternal. If that producer-side invariant is ever broken
      * (a future change emits a non-composite parent slot) the cast will throw
      * ClassCastException — and this test goes red as the canary.
      */
-    def "throws ClassCastException when fed a non-composite parent — pins the consumer-side invariant the producer-side fix relies on"() {
+    def "throws ClassCastException when fed a non-composite parent"() {
         given:
         def rootGroupReporter = Mock(GroupTestEventReporterInternal)
         def specClassReporter = Mock(TestEventReporter)

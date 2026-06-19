@@ -539,9 +539,7 @@ public class JUnitTestEventAdapter extends RunListener {
             // they register as composite from the start. This restriction is scoped to the
             // testRunStarted tree walk; processIgnoredClass and testIgnored continue to
             // use RegistrationMode.DETECTED.
-            RegistrationMode mode = isClassLevelDescription(child)
-                ? RegistrationMode.SUITE
-                : RegistrationMode.DETECTED;
+            RegistrationMode mode = isClassLevelDescription(child) ? RegistrationMode.SUITE : RegistrationMode.DETECTED;
             TestNode node = createNode(parentNode, child, mode);
             addDescriptorAndChildren(child, node);
         }
@@ -549,8 +547,8 @@ public class JUnitTestEventAdapter extends RunListener {
 
     /**
      * Tests whether the given JUnit 4 description names a test class rather than a single test method.
-     *
-     * <p>Class-level descriptions are recognised in two ways: by their backing {@link Class} (JUnit
+     * <p>
+     * Class-level descriptions are recognized in two ways: by their backing {@link Class} (JUnit
      * 4.6+ exposes {@code Description.getTestClass()}), or — for JUnit ≤ 4.5 and custom-runner-produced
      * synthetic suites — by checking that the stringified form equals the parsed class name. The
      * fallback also accepts pure string suite descriptions ({@code Description.createSuiteDescription(String)});
