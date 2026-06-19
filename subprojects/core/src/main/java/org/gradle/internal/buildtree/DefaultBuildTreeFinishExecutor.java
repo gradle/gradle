@@ -47,6 +47,11 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     @Override
     @Nullable
     public RuntimeException finishBuildTree(List<Throwable> failures) {
+        // Whether the build is already failing because of the requested work (e.g. tasks were requested and
+        // configuration failed). In that case a configuration failure captured during resilient model building is
+        // already reported by the work, so it must not be added again.
+        boolean buildAlreadyFailing = !failures.isEmpty();
+
         List<Throwable> finishNestedBuildsFailures = new ArrayList<>(failures);
 
         buildStateRegistry.visitBuilds(buildState -> {
@@ -56,9 +61,17 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
             }
         });
 
-        // Model builder failures captured during resilient model building are not configuration failures, so they
-        // are not part of the build's lifecycle state. Add them so the build fails when it finishes
-        finishNestedBuildsFailures.addAll(modelBuildingFailureCollector.getAndClearFailures());
+        // Model builder failures captured during resilient model building are not part of the build's lifecycle
+        // state, so add them so the build fails when it finishes
+        finishNestedBuildsFailures.addAll(modelBuildingFailureCollector.getAndClearModelBuilderFailures());
+
+        // Configuration failures captured during resilient model building are normally swallowed when no tasks run.
+        // Add them so the build fails as it would in a non-resilient sync, unless the build is already failing due
+        // to a configuration error (e.g. tasks were requested and configuration failed), to avoid reporting it twice.
+        List<Throwable> configurationFailures = modelBuildingFailureCollector.getAndClearConfigurationFailures();
+        if (!buildAlreadyFailing) {
+            finishNestedBuildsFailures.addAll(configurationFailures);
+        }
 
         RuntimeException reportableFailure = exceptionAnalyser.transform(finishNestedBuildsFailures);
         ExecutionResult<Void> finishResult = buildLifecycleController.finishBuild(reportableFailure);

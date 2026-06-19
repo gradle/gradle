@@ -25,27 +25,58 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Collects failures thrown by tooling model builders during resilient model building (after the target project
- * configured successfully). Unlike configuration failures, these would otherwise only be reported as per-model
- * failures; they are added to the build tree failures at build finish so the build fails while partial models are
- * still returned to the client.
+ * Collects failures observed during resilient model building so the build still fails when it finishes, while
+ * partial models are returned to the client. Two kinds of failures are tracked:
+ *
+ * <ul>
+ *     <li><em>Model builder failures</em> - thrown by a tooling model builder after the target project configured
+ *     successfully. These are always propagated.</li>
+ *     <li><em>Configuration failures</em> - captured while configuring projects leniently. When no tasks run these
+ *     would otherwise be swallowed; they are propagated unless the build is already failing because of the same
+ *     configuration failure (e.g. tasks were requested and configuration failed).</li>
+ * </ul>
  */
 @NullMarked
 @ServiceScope(Scope.BuildTree.class)
 public class ResilientModelBuildingFailureCollector {
 
-    private final List<Throwable> failures = new ArrayList<>();
+    private final List<Throwable> modelBuilderFailures = new ArrayList<>();
+    private final List<Throwable> configurationFailures = new ArrayList<>();
 
-    public synchronized void add(Throwable failure) {
-        failures.add(failure);
+    public synchronized void addModelBuilderFailure(Throwable failure) {
+        modelBuilderFailures.add(failure);
     }
 
     /**
-     * Returns the collected failures and clears them, so they are not reported again if the build tree is reused.
+     * Records a configuration failure. The same failure instance may be observed while building a model for each
+     * project that failed to configure, so duplicates are ignored.
      */
-    public synchronized List<Throwable> getAndClearFailures() {
-        List<Throwable> collected = ImmutableList.copyOf(failures);
-        failures.clear();
+    public synchronized void addConfigurationFailure(Throwable failure) {
+        for (Throwable existing : configurationFailures) {
+            if (existing == failure) {
+                return;
+            }
+        }
+        configurationFailures.add(failure);
+    }
+
+    /**
+     * Returns the collected model builder failures and clears them, so they are not reported again if the build tree
+     * is reused.
+     */
+    public synchronized List<Throwable> getAndClearModelBuilderFailures() {
+        List<Throwable> collected = ImmutableList.copyOf(modelBuilderFailures);
+        modelBuilderFailures.clear();
+        return collected;
+    }
+
+    /**
+     * Returns the collected configuration failures and clears them, so they are not reported again if the build tree
+     * is reused.
+     */
+    public synchronized List<Throwable> getAndClearConfigurationFailures() {
+        List<Throwable> collected = ImmutableList.copyOf(configurationFailures);
+        configurationFailures.clear();
         return collected;
     }
 }

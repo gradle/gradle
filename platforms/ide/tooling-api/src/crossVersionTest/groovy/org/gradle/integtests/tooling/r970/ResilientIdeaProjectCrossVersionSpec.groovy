@@ -38,7 +38,7 @@ class ResilientIdeaProjectCrossVersionSpec extends KotlinDslPluginRelatedTooling
         settingsFile.delete()
     }
 
-    def "can query IdeaProject for included build, even if main project configuration fails#description"() {
+    def "resilient sync fails the build but still returns partial IdeaProject models when main project configuration fails#description"() {
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -77,16 +77,24 @@ class ResilientIdeaProjectCrossVersionSpec extends KotlinDslPluginRelatedTooling
             }
         """
 
+        def capturedResult = null
+
         when:
-        def result = succeeds {
-            action(new TestResilientModelAction(IdeaProject, ROOT_BUILD_FIRST))
+        // A configuration failure must be propagated to the client as a BuildException, while the partial models
+        // gathered during resilient model building are still delivered.
+        fails {
+            action()
+                .buildFinished(new TestResilientModelAction(IdeaProject, ROOT_BUILD_FIRST), { capturedResult = it } as IntermediateResultHandler)
+                .build()
                 .withArguments(*extraGradleProperties)
+                .forTasks()
                 .run()
         }
 
         then:
-        result.successfullyQueriedProjects == ['build-logic']
-        result.failedToQueryProjects == ['root', 'a', 'b', 'c']
+        thrown(BuildException)
+        capturedResult.successfullyQueriedProjects == ['build-logic']
+        capturedResult.failedToQueryProjects == ['root', 'a', 'b', 'c']
 
         where:
         description | extraGradleProperties
@@ -94,7 +102,7 @@ class ResilientIdeaProjectCrossVersionSpec extends KotlinDslPluginRelatedTooling
         " with IP"  | IP_ENABLED
     }
 
-    def "can query IdeaProject for included build, even if main settings fail#description"() {
+    def "resilient sync fails the build but still returns partial IdeaProject models when main settings fail#description"() {
         settingsKotlinFile << """
             pluginManagement {
                 includeBuild("build-logic")
@@ -132,17 +140,23 @@ class ResilientIdeaProjectCrossVersionSpec extends KotlinDslPluginRelatedTooling
             }
         """
 
+        def capturedResult = null
+
         when:
-        def result = succeeds {
-            action(new TestResilientModelAction(IdeaProject, ROOT_BUILD_FIRST))
+        fails {
+            action()
+                .buildFinished(new TestResilientModelAction(IdeaProject, ROOT_BUILD_FIRST), { capturedResult = it } as IntermediateResultHandler)
+                .build()
                 .withArguments(*extraGradleProperties)
+                .forTasks()
                 .run()
         }
 
         then:
-        result.successfullyQueriedProjects == ['build-logic']
+        thrown(BuildException)
+        capturedResult.successfullyQueriedProjects == ['build-logic']
         // Since the settings file fails to configure, only the root of the main project can be seen
-        result.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
+        capturedResult.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
 
         where:
         description | extraGradleProperties
