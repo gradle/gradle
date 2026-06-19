@@ -234,6 +234,28 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12172")
+    @Test
+    fun `can configure implementation dependency declared with kotlin helper`() {
+        withBuildScript(
+            """
+            plugins {
+                java
+            }
+
+            $repositoriesBlock
+
+            dependencies {
+                implementation(kotlin("reflect")) {
+                    because("exercise dependency configuration overload")
+                }
+            }
+            """
+        )
+
+        build("help")
+    }
+
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `accepts lambda as SAM argument to Kotlin function`() {

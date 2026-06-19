@@ -90,7 +90,7 @@ fun DependencyHandler.embeddedKotlin(module: String): Any =
  * @param module simple name of the Kotlin module, for example "reflect".
  * @param version optional desired version, unspecified if null.
  */
-fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
+fun DependencyHandler.kotlin(module: String, version: String? = null): String =
     "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}"
 
 
