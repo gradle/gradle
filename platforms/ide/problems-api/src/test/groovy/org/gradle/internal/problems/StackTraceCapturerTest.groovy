@@ -22,20 +22,20 @@ import spock.lang.Specification
 class StackTraceCapturerTest extends Specification {
 
     def boundedCapturer = Mock(BoundedCallerStackCapturer)
-    def fullException = new Exception()
-    def fullFactory = { fullException } as Supplier
 
-    def "spends the full budget, then the bounded budget, then captures nothing"() {
+    def "captureCaller spends the full budget, then the bounded budget, then captures nothing"() {
         given:
         def boundedException = new Exception()
         def capturer = new StackTraceCapturer(2, 3, boundedCapturer)
 
         when:
-        def results = (1..6).collect { capturer.captureStack(fullFactory, true) }
+        def results = (1..6).collect { capturer.captureCaller() }
 
         then:
-        results[0].is(fullException)
-        results[1].is(fullException)
+        results[0] != null
+        results[1] != null
+        !results[0].is(boundedException)
+        !results[1].is(boundedException)
         results[2].is(boundedException)
         results[3].is(boundedException)
         results[4].is(boundedException)
@@ -44,43 +44,46 @@ class StackTraceCapturerTest extends Specification {
         3 * boundedCapturer.captureCallerStack() >> boundedException
     }
 
-    def "without bounded fallback, captures full then nothing and leaves the bounded budget untouched"() {
+    def "captureSupplied returns the supplied throwable until the full budget is spent, never falling back to bounded"() {
         given:
+        def supplied = new Exception()
+        def factory = { supplied } as Supplier
         def capturer = new StackTraceCapturer(2, 3, boundedCapturer)
 
         when:
-        def results = (1..4).collect { capturer.captureStack(fullFactory, false) }
+        def results = (1..4).collect { capturer.captureSupplied(factory) }
 
         then:
-        results[0].is(fullException)
-        results[1].is(fullException)
+        results[0].is(supplied)
+        results[1].is(supplied)
         results[2] == null
         results[3] == null
 
         0 * boundedCapturer.captureCallerStack()
     }
 
-    def "an unbounded bounded budget keeps capturing past the full cap"() {
+    def "captureCaller with an unbounded bounded budget keeps capturing past the full cap"() {
         given:
         def boundedException = new Exception()
         def capturer = new StackTraceCapturer(1, Integer.MAX_VALUE, boundedCapturer)
 
         when:
-        def results = (1..100).collect { capturer.captureStack(fullFactory, true) }
+        def results = (1..100).collect { capturer.captureCaller() }
 
         then:
-        results[0].is(fullException)
+        results[0] != null
+        !results[0].is(boundedException)
         results[1..99].every { it.is(boundedException) }
 
         99 * boundedCapturer.captureCallerStack() >> boundedException
     }
 
-    def "a null bounded capture still spends the bounded budget"() {
+    def "captureCaller spends the bounded budget even when the bounded capture is null"() {
         given:
         def capturer = new StackTraceCapturer(0, 2, boundedCapturer)
 
         when:
-        def results = (1..3).collect { capturer.captureStack(fullFactory, true) }
+        def results = (1..3).collect { capturer.captureCaller() }
 
         then:
         results.every { it == null }

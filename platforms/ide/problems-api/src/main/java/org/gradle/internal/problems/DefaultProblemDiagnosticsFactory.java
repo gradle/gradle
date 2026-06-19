@@ -47,13 +47,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
-    private static final Supplier<Throwable> EXCEPTION_FACTORY = new Supplier<Throwable>() {
-        @Override
-        public Throwable get() {
-            return new Exception();
-        }
-    };
-
     private static final int MAX_STACKTRACE_COUNT = 50;
     private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
 
@@ -169,12 +162,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Nullable
         private Throwable getImplicitCallerThrowable() {
-            return capturer.captureStack(EXCEPTION_FACTORY, true);
+            return capturer.captureCaller();
         }
 
         @Nullable
         private Throwable getImplicitThrowable(Supplier<? extends Throwable> factory) {
-            return capturer.captureStack(factory, false);
+            return capturer.captureSupplied(factory);
         }
     }
 

@@ -22,8 +22,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Captures a stack trace for a problem within per-stream budgets: a full trace while the full budget
- * lasts, then a cheaper bounded caller-stack capture while the bounded budget lasts, then nothing.
+ * Captures the stack trace that locates a problem, within per-stream budgets.
  */
 final class StackTraceCapturer {
 
@@ -38,12 +37,20 @@ final class StackTraceCapturer {
     }
 
     @Nullable
-    Throwable captureStack(Supplier<? extends Throwable> fullFactory, boolean allowBounded) {
+    Throwable captureCaller() {
         if (remainingFull.getAndDecrement() > 0) {
-            return fullFactory.get();
+            return new Exception();
         }
-        if (allowBounded && remainingBounded.getAndDecrement() > 0) {
+        if (remainingBounded.getAndDecrement() > 0) {
             return boundedCallerStackCapturer.captureCallerStack();
+        }
+        return null;
+    }
+
+    @Nullable
+    Throwable captureSupplied(Supplier<? extends Throwable> factory) {
+        if (remainingFull.getAndDecrement() > 0) {
+            return factory.get();
         }
         return null;
     }
