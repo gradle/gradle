@@ -110,12 +110,6 @@ dependencies {
     runtimeOnly(libs.kotlinScriptingJvm) {
         isTransitive = false
     }
-    runtimeOnly(libs.kotlinDaemonClient) {
-        isTransitive = false
-    }
-    runtimeOnly(libs.kotlinDaemonEmbeddable) {
-        isTransitive = false
-    }
     runtimeOnly(libs.kotlinCompilerRunner) {
         isTransitive = false
     }

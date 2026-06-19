@@ -43,8 +43,6 @@ import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfigurati
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
-import org.jetbrains.kotlin.buildtools.api.DelicateBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.ExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SourcesChanges
@@ -74,7 +72,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget as BtaJvmTarget
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
-import org.jetbrains.kotlin.buildtools.api.daemonExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
@@ -109,9 +106,8 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
-private const val DAEMON_MODE = false
 private const val KEEPALIVE_FLAG = true
-private const val ISOLATED_CLASSLOADER = DAEMON_MODE || false // can't use non-isolated classloader in Daemon mode
+private const val ISOLATED_CLASSLOADER = false
 
 // Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
 // KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
@@ -569,7 +565,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
                 operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
             }
 
-            val executionPolicy = createExecutionPolicy()
+            val executionPolicy = toolchains.createInProcessExecutionPolicy()
 
             val operation = operationBuilder.build()
             buildSession.executeOperation(operation, executionPolicy)
@@ -765,21 +761,6 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
         return listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
-
-
-    private fun createExecutionPolicy(): ExecutionPolicy =
-        if (DAEMON_MODE) {
-            toolchains.daemonExecutionPolicy {
-                @OptIn(DelicateBuildToolsApi::class)
-                // this[ExecutionPolicy.WithDaemon.DAEMON_RUN_DIR_PATH] = daemonRunPath // TODO: examine how KGP configures its daemon
-                if (KEEPALIVE_FLAG) {
-                    this[ExecutionPolicy.WithDaemon.JVM_ARGUMENTS] = listOf("D${KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property}=true") // TODO: just "D"?!? stupid, but this is how it works
-                }
-                this[ExecutionPolicy.WithDaemon.SHUTDOWN_DELAY_MILLIS] = 10_000
-            }
-        } else {
-            toolchains.createInProcessExecutionPolicy()
-        }
 }
 
 private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleRegistry) : ClassPathProvider {
@@ -797,11 +778,6 @@ private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleReg
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-compiler-impl-embeddable").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-jvm").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlinx-coroutines-core-jvm").getImplementationClasspath())
-
-        if (DAEMON_MODE) {
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-runner").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-embeddable").getImplementationClasspath())
-        }
 
         return classpath
     }
