@@ -20,17 +20,15 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -46,7 +44,6 @@ import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -135,7 +132,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         }
     }
 
-    public ResolvedDependencyGraph getResolvedDependencyGraph(Set<UnresolvedDependency> dependencyLockingFailures) {
+    public ResolvedDependencyGraph getResolvedDependencyGraph(Set<DefaultUnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
         GraphFactory graphSource = new GraphFactory(data, cache, failures, dependencyLockingFailures, () -> {
             StatefulSerializers statefulSerializers = statefulSerializersFactory.get();
@@ -362,14 +359,14 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final BinaryStore.BinaryData data;
         private final Store<GraphStructure> cache;
         private final List<ModuleVersionResolveException> failures;
-        private final Set<UnresolvedDependency> dependencyLockingFailures;
+        private final Set<DefaultUnresolvedDependency> dependencyLockingFailures;
         private final Supplier<GraphDeserializer> deserializerFactory;
 
         GraphFactory(
             BinaryStore.BinaryData data,
             Store<GraphStructure> cache,
             List<ModuleVersionResolveException> failures,
-            Set<UnresolvedDependency> dependencyLockingFailures,
+            Set<DefaultUnresolvedDependency> dependencyLockingFailures,
             Supplier<GraphDeserializer> deserializerFactory
         ) {
             this.data = data;
@@ -433,7 +430,11 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             this.attributeDesugaring = attributeDesugaring;
         }
 
-        public GraphStructure deserializeFrom(Decoder decoder, List<ModuleVersionResolveException> edgeFailures, Set<UnresolvedDependency> dependencyLockingFailures) {
+        public GraphStructure deserializeFrom(
+            Decoder decoder,
+            List<ModuleVersionResolveException> edgeFailures,
+            Set<DefaultUnresolvedDependency> dependencyLockingFailures
+        ) {
             int valuesRead = 0;
             byte type = -1;
             Timer clock = Time.startTimer();
@@ -488,7 +489,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private void readNode(
             Decoder decoder,
             List<ModuleVersionResolveException> edgeFailures,
-            Set<UnresolvedDependency> dependencyLockingFailures
+            Set<DefaultUnresolvedDependency> dependencyLockingFailures
         ) throws Exception {
             long nodeId = decoder.readSmallLong();
             long ownerId = decoder.readSmallLong();
@@ -527,9 +528,8 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             // TODO: These failures should be injected way earlier while validating the graph
             // rather than side-loading them when building the graph structure representation.
             if (nodeId == rootNodeId) {
-                for (UnresolvedDependency failure : dependencyLockingFailures) {
-                    ModuleVersionSelector failureSelector = failure.getSelector();
-                    ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
+                for (DefaultUnresolvedDependency failure : dependencyLockingFailures) {
+                    ComponentSelector failureComponentSelector = failure.getRequested();
                     builder.addFailedEdge(
                         failureComponentSelector,
                         true,

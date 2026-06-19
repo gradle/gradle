@@ -195,6 +195,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
+    @Deprecated
     public DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter) {
         addRule(new DependencyResolveDetailsWrapperAction(rule, componentSelectorConverter, Actions::doNothing, instantiator));
         return this;
@@ -447,6 +448,10 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
+    /**
+     * @deprecated To be removed in Gradle 10 when {@link #allWithDependencyResolveDetails(Action, ComponentSelectorConverter)} is removed.
+     */
+    @Deprecated
     private static class DependencyResolveDetailsWrapperAction extends AbstractDependencySubstitutionAction {
         private final Action<? super DependencyResolveDetails> delegate;
         private final ComponentSelectorConverter componentSelectorConverter;

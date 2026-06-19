@@ -126,6 +126,7 @@ public class ArtifactSetToFileCollectionFactory {
                                 }
 
                                 @Override
+                                @Deprecated
                                 public ResolvedArtifact toPublicView() {
                                     throw new UnsupportedOperationException();
                                 }

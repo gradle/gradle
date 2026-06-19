@@ -23,6 +23,11 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 
 public interface DependencySubstitutionsInternal extends DependencySubstitutions, DependencySubstitutionRules {
+
+    /**
+     * @deprecated To be removed in Gradle 10 when {@link org.gradle.api.artifacts.ResolutionStrategy#eachDependency(Action)} is removed.
+     */
+    @Deprecated
     DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter);
 
     void setMutationValidator(MutationValidator validator);
@@ -33,4 +38,5 @@ public interface DependencySubstitutionsInternal extends DependencySubstitutions
      * Discard all state held by this container.
      */
     void discard();
+
 }

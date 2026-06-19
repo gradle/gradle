@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.management;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginId;
@@ -43,11 +42,11 @@ public interface PluginRequest {
 
     /**
      * The implementation module of the plugin if one was explicitly specified, otherwise null.
-     * <p>
-     * Prefer {@link #getSelector()}.
+     *
+     * @deprecated This method will be removed in Gradle 10.0. Use {@link #getSelector()} instead.
      */
-    @Nullable
-    ModuleVersionSelector getModule();
+    @Deprecated
+    org.gradle.api.artifacts.@Nullable ModuleVersionSelector getModule();
 
     /**
      * A selector for the implementation of the plugin if one was explicitly specified, otherwise null.

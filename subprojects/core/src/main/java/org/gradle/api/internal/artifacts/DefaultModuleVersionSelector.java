@@ -19,11 +19,14 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
-public class DefaultModuleVersionSelector implements ModuleVersionSelector {
+/**
+ * @deprecated To be removed in Gradle 10 when {@link org.gradle.api.artifacts.ModuleVersionSelector} is removed.
+ */
+@Deprecated
+public class DefaultModuleVersionSelector implements org.gradle.api.artifacts.ModuleVersionSelector {
 
     private final ModuleIdentifier module;
     private final String version;
@@ -34,26 +37,31 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     @Override
+    @Deprecated
     public String getGroup() {
         return module.getGroup();
     }
 
     @Override
+    @Deprecated
     public String getName() {
         return module.getName();
     }
 
     @Override
+    @Deprecated
     public String getVersion() {
         return version;
     }
 
     @Override
+    @Deprecated
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
     @Override
+    @Deprecated
     public ModuleIdentifier getModule() {
         return module;
     }
@@ -88,25 +96,25 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
      * @deprecated Prefer the below factory methods, as this class is only intended to wrap existing types.
      */
     @Deprecated
-    public static ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
+    public static org.gradle.api.artifacts.ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
         return new DefaultModuleVersionSelector(module, version);
     }
 
-    public static ModuleVersionSelector newSelector(ModuleVersionIdentifier moduleVersionId) {
+    public static org.gradle.api.artifacts.ModuleVersionSelector newSelector(ModuleVersionIdentifier moduleVersionId) {
         return new DefaultModuleVersionSelector(
             moduleVersionId.getModule(),
             moduleVersionId.getVersion()
         );
     }
 
-    public static ModuleVersionSelector newSelector(ModuleComponentIdentifier moduleComponentId) {
+    public static org.gradle.api.artifacts.ModuleVersionSelector newSelector(ModuleComponentIdentifier moduleComponentId) {
         return new DefaultModuleVersionSelector(
             moduleComponentId.getModuleIdentifier(),
             moduleComponentId.getVersion()
         );
     }
 
-    public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
+    public static org.gradle.api.artifacts.ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
         return new DefaultModuleVersionSelector(selector.getModuleIdentifier(), selector.getVersion());
     }
 }

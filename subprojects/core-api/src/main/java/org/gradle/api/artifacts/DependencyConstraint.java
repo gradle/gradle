@@ -25,7 +25,33 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 4.5
  */
+@SuppressWarnings("deprecation") // This type will no longer extend ModuleVersionSelector in Gradle 10
 public interface DependencyConstraint extends ModuleVersionSelector, HasConfigurableAttributes<DependencyConstraint> {
+
+    /**
+     * The group of the module this constraint targets.
+     */
+    @Override
+    String getGroup();
+
+    /**
+     * The name of the module this constraint targets.
+     */
+    @Override
+    String getName();
+
+    /**
+     * The identifier of the module this constraint targets.
+     */
+    @Override
+    ModuleIdentifier getModule();
+
+    /**
+     * The version of the module this constraint specifies.
+     */
+    @Override
+    @Nullable
+    String getVersion();
 
     /**
      * Configures the version constraint for this dependency constraint.

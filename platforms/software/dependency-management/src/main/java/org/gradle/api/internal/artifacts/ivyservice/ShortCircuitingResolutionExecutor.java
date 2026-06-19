@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -47,6 +48,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -80,9 +82,10 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
-        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
-            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved()
-        );
+        @SuppressWarnings("deprecation")
+        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved();
+
+        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE, legacyResolverResults);
     }
 
     public ResolverResults resolveGraph(LegacyResolutionParameters legacyParams, ResolutionParameters params, List<ResolutionAwareRepository> repositories) throws ResolveException {
@@ -100,12 +103,14 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
+        @SuppressWarnings("deprecation")
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
             graphResults, params.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
         );
-        return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
-            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration)
-        );
+        @SuppressWarnings("deprecation")
+        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration);
+
+        return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE, legacyResolverResults);
     }
 
     private static boolean hasDependencies(ResolutionParameters params) {
@@ -181,9 +186,11 @@ public class ShortCircuitingResolutionExecutor {
     }
 
     @VisibleForTesting
+    @Deprecated
     public static class EmptyLenientConfiguration implements LenientConfigurationInternal {
 
         @Override
+        @Deprecated
         public ArtifactSelectionSpec getImplicitSelectionSpec() {
             return new ArtifactSelectionSpec(
                 ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT
@@ -191,22 +198,42 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             return Collections.emptySet();
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedDependency> getAllModuleDependencies() {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getAllModuleDependencies()")
+                .replaceWith("getFirstLevelModuleDependencies()")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+                .nagUser();
             return Collections.emptySet();
         }
 
         @Override
+        @Deprecated
         public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getUnresolvedModuleDependencies()")
+                .withAdvice("Use ResolutionResult instead")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+                .nagUser();
             return Collections.emptySet();
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedArtifact> getArtifacts() {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getArtifacts()")
+                .replaceWith("ArtifactView#getArtifacts()")
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+                .nagUser();
+
             return Collections.emptySet();
         }
 

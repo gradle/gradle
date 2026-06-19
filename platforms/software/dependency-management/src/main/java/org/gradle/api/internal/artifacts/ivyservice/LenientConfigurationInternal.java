@@ -22,12 +22,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 /**
  * Internal counterpart of {@link LenientConfiguration}.
  */
+@Deprecated // Soft deprecated until we introduce "Artifact Graph" API
 public interface LenientConfigurationInternal extends LenientConfiguration {
 
     /**
      * An artifact selection spec that can be applied to a visited artifact set to select
      * the artifacts that a configuration's intrinsic file collection would select.
      */
+    @Deprecated
     ArtifactSelectionSpec getImplicitSelectionSpec();
 
 }

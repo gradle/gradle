@@ -43,8 +43,9 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final CalculatedValue<File> fileSource;
     private final WorkNodeAction resolvedArtifactDependency;
     private final CalculatedValueFactory calculatedValueFactory;
-    private final ResolvedArtifact publicView;
+    private final @Deprecated ResolvedArtifact publicView;
 
+    @SuppressWarnings("deprecation")
     public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
@@ -98,6 +99,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     }
 
     @Override
+    @Deprecated
     public ResolvedArtifact toPublicView() {
         return publicView;
     }

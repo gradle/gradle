@@ -52,7 +52,10 @@ public interface VisitedGraphResults {
     /**
      * Returns all failures to resolve a dependency.
      * These failures are also accessible via the resolution result.
+     *
+     * @deprecated To be removed in Gradle 10 when {@link org.gradle.api.artifacts.LenientConfiguration#getUnresolvedModuleDependencies()} is removed.
      */
+    @Deprecated
     Set<UnresolvedDependency> getUnresolvedDependencies();
 
     /**

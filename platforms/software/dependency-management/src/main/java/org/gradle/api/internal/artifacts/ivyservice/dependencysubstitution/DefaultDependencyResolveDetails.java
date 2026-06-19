@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -37,6 +36,10 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 
+/**
+ * @deprecated To be removed in Gradle 10 when {@link DependencyResolveDetails} is removed.
+ */
+@Deprecated
 public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
 
     private static final NotationParser<Object, ModuleComponentSelector> USE_TARGET_NOTATION_PARSER = ModuleComponentSelectorParsers.parser("useTarget()");
@@ -59,11 +62,13 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     @Override
-    public ModuleVersionSelector getRequested() {
+    @Deprecated
+    public org.gradle.api.artifacts.ModuleVersionSelector getRequested() {
         return DefaultModuleVersionSelector.newSelector(requested);
     }
 
     @Override
+    @Deprecated
     public void useVersion(String version) {
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
@@ -74,6 +79,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
    }
 
     @Override
+    @Deprecated
     public void useTarget(Object notation) {
         useVersion = null;
         useSelector = USE_TARGET_NOTATION_PARSER.parseNotation(notation);
@@ -81,6 +87,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     @Override
+    @Deprecated
     public DependencyResolveDetails because(String description) {
         customDescription = description;
         dirty = true;
@@ -88,6 +95,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     @Override
+    @Deprecated
     public DependencyResolveDetails artifactSelection(Action<? super ArtifactSelectionDetails> configurationAction) {
         artifactSelectionAction = Actions.composite(artifactSelectionAction, configurationAction);
         dirty = true;
@@ -95,7 +103,8 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     @Override
-    public ModuleVersionSelector getTarget() {
+    @Deprecated
+    public org.gradle.api.artifacts.ModuleVersionSelector getTarget() {
         complete();
 
         if (target.equals(delegate.getRequested())) {

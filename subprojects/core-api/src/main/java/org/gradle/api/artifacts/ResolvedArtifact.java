@@ -22,11 +22,17 @@ import java.io.File;
 
 /**
  * Information about a resolved artifact.
+ *
+ * @deprecated This type will be removed in a future version of Gradle.
+ * Use {@link org.gradle.api.artifacts.result.ResolvedArtifactResult} instead.
  */
+@Deprecated
 public interface ResolvedArtifact {
+
     /**
      * Returns the local file for this artifact. Downloads the artifact if not already available locally, blocking until complete.
      */
+    @Deprecated
     File getFile();
 
     /**
@@ -34,17 +40,24 @@ public interface ResolvedArtifact {
      *
      * @return The module.
      */
+    @Deprecated
     ResolvedModuleVersion getModuleVersion();
 
+    @Deprecated
     String getName();
 
+    @Deprecated
     String getType();
 
     @Nullable
+    @Deprecated
     String getExtension();
 
     @Nullable
+    @Deprecated
     String getClassifier();
 
+    @Deprecated
     ComponentArtifactIdentifier getId();
+
 }

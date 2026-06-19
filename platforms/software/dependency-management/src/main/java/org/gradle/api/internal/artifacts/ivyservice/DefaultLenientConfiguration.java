@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.VariantIdentifier;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -49,6 +51,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+@Deprecated // Soft deprecated until we introduce "Artifact Graph" API
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
     private final ResolutionHost resolutionHost;
@@ -89,12 +92,20 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated
     public ArtifactSelectionSpec getImplicitSelectionSpec() {
         return implicitSelectionSpec;
     }
 
     @Override
+    @Deprecated
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getUnresolvedModuleDependencies()")
+            .withAdvice("Use ResolutionResult instead")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         return graphResults.getUnresolvedDependencies();
     }
 
@@ -140,12 +151,20 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated // Soft deprecated until we introduce "Artifact Graph" API
     public ImmutableSet<ResolvedDependency> getFirstLevelModuleDependencies() {
         return getRoot().getChildren();
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedDependency> getAllModuleDependencies() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getAllModuleDependencies()")
+            .replaceWith("ArtifactView#getArtifacts()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<>();
         Deque<ResolvedDependency> workQueue = new LinkedList<>(getRoot().getChildren());
         while (!workQueue.isEmpty()) {
@@ -159,7 +178,14 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getArtifacts() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getArtifacts()")
+            .replaceWith("ArtifactView#getArtifacts()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
         resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());

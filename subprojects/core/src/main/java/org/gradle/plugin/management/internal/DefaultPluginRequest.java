@@ -16,10 +16,9 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 import org.jspecify.annotations.Nullable;
@@ -76,11 +75,17 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return selector;
     }
 
-    @Nullable
     @Override
-    public ModuleVersionSelector getModule() {
+    @Deprecated
+    public org.gradle.api.artifacts.@Nullable ModuleVersionSelector getModule() {
+        DeprecationLogger.deprecateMethod(PluginRequest.class, "getModule()")
+            .replaceWith("getSelector()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         if (selector instanceof ModuleComponentSelector) {
-            return DefaultModuleVersionSelector.newSelector((ModuleComponentSelector) selector);
+            return org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector((ModuleComponentSelector) selector);
         }
         return null;
     }

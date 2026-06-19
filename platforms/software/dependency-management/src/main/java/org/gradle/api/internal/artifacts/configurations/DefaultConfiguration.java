@@ -558,6 +558,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * called on a configuration that does not permit this usage.
      */
     @Override
+    @Deprecated
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOrFailOnInvalidUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
         return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();

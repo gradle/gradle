@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -236,7 +235,7 @@ public class ResolutionExecutor {
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, artifactsGraphVisitor);
         doResolve(params, legacyParams, ImmutableList.of(), resolvers, IS_LOCAL_EDGE, visitors);
 
-        Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
+        Set<DefaultUnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolvedDependencyGraph(), unresolvedDependencies);
         VisitedArtifactResults artifactsResults = artifactsGraphVisitor.complete();
 
@@ -256,11 +255,10 @@ public class ResolutionExecutor {
 
         VisitedArtifactSet visitedArtifacts = getVisitedArtifactSet(params, resolvers, graphResults, artifactsResults, dependenciesResolverFactory);
 
-        return DefaultResolverResults.buildDependenciesResolved(
-            graphResults,
-            visitedArtifacts,
-            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved()
-        );
+        @SuppressWarnings("deprecation")
+        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved();
+
+        return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);
     }
 
     /**
@@ -313,12 +311,12 @@ public class ResolutionExecutor {
 
         VisitedArtifactResults artifactsResults = artifactVisitor.complete();
 
-        Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
+        Set<DefaultUnresolvedDependency> lockingFailures = Collections.emptySet();
         if (lockingVisitor != null) {
             lockingFailures = lockingVisitor.collectLockingFailures();
         }
 
-        Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
+        Set<DefaultUnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
         ResolvedDependencyGraph resolvedDependencyGraph = graphStructureBuilder.getResolvedDependencyGraph(lockingFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolvedDependencyGraph, resolutionFailures);
 
@@ -343,6 +341,7 @@ public class ResolutionExecutor {
         VisitedArtifactSet visitedArtifacts = getVisitedArtifactSet(params, resolvers, graphResults, artifactsResults, dependenciesResolverFactory);
 
         // Legacy results
+        @SuppressWarnings("deprecation")
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
             params.getResolutionHost(),
             graphResults,
@@ -353,13 +352,12 @@ public class ResolutionExecutor {
             buildOperationExecutor
         );
 
+        @SuppressWarnings("deprecation")
         DefaultResolvedConfiguration configuration = new DefaultResolvedConfiguration(graphResults, params.getResolutionHost(), visitedArtifacts, lenientConfiguration);
+        @SuppressWarnings("deprecation")
+        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(configuration);
 
-        return DefaultResolverResults.graphResolved(
-            graphResults,
-            visitedArtifacts,
-            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(configuration)
-        );
+        return DefaultResolverResults.graphResolved(graphResults, visitedArtifacts, legacyResolverResults);
     }
 
     private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolutionParameters params) {

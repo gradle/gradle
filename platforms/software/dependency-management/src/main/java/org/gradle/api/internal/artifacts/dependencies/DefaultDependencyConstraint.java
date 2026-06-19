@@ -32,6 +32,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
@@ -62,16 +63,19 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
     @Nullable
     @Override
+    @SuppressWarnings("deprecation")
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public String getName() {
         return moduleIdentifier.getName();
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public String getVersion() {
         return Strings.emptyToNull(versionConstraint.getRequiredVersion());
     }
@@ -135,11 +139,18 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
     }
 
     @Override
+    @Deprecated
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
+        DeprecationLogger.deprecateMethod(DependencyConstraint.class, "matchesStrictly(ModuleVersionIdentifier)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ModuleIdentifier getModule() {
         return moduleIdentifier;
     }

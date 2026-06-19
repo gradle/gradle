@@ -24,8 +24,11 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 public interface MinimalExternalModuleDependency extends ExternalModuleDependency {
+
     @Override
+    @SuppressWarnings("deprecation")
     ModuleIdentifier getModule();
+
     @Override
     VersionConstraint getVersionConstraint();
 
@@ -34,4 +37,5 @@ public interface MinimalExternalModuleDependency extends ExternalModuleDependenc
      */
     @Override
     MinimalExternalModuleDependency copy();
+
 }

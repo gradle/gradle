@@ -210,7 +210,10 @@ public interface ResolutionStrategy {
      * @param notations typically group:name:version notations to append
      * @return this ResolutionStrategy instance
      * @since 1.0-milestone-7
+     *
+     * @deprecated This method will be removed in Gradle 10. Use strict versions to enforce dependency versions.
      */
+    @Deprecated
     ResolutionStrategy force(Object... notations);
 
     /**
@@ -233,7 +236,10 @@ public interface ResolutionStrategy {
      * @param moduleVersionSelectorNotations typically group:name:version notations to set
      * @return this ResolutionStrategy instance
      * @since 1.0-milestone-7
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     ResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations);
 
     /**
@@ -241,7 +247,10 @@ public interface ResolutionStrategy {
      *
      * @return forced modules
      * @since 1.0-milestone-7
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     Set<ModuleVersionSelector> getForcedModules();
 
     /**
@@ -273,7 +282,10 @@ public interface ResolutionStrategy {
      *
      * @return this
      * @since 1.4
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #dependencySubstitution(Action)} instead.
      */
+    @Deprecated
     ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule);
 
     /**

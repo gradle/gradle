@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
@@ -35,9 +34,9 @@ public interface CacheExpirationControl {
 
     Expiry missingModuleExpiry(ModuleComponentIdentifier component, Duration age);
 
-    Expiry moduleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry moduleExpiry(ModuleComponentIdentifier component, ModuleVersionIdentifier resolvedModuleVersion, Duration age);
 
-    Expiry moduleExpiry(ResolvedModuleVersion resolvedModuleVersion, Duration age, boolean changing);
+    Expiry moduleExpiry(ModuleVersionIdentifier resolvedModuleVersion, Duration age, boolean changing);
 
     Expiry moduleArtifactsExpiry(
         ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts,
@@ -46,7 +45,7 @@ public interface CacheExpirationControl {
 
     Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
-    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ModuleVersionIdentifier resolvedModuleVersion, Duration age);
 
     interface Expiry {
 

@@ -28,17 +28,28 @@ import java.util.Set;
  *     <li>Returned file sets do not track task dependencies.</li>
  *     <li>The returned types do not reflect the variant-aware nature of the dependency resolution engine.</li>
  * </ul>
+ *
+ * @deprecated This type will be removed in a future Gradle version. Use {@link org.gradle.api.artifacts.result.ResolutionResult},
+ * {@link org.gradle.api.file.FileCollection}, or {@link ArtifactCollection} instead.
  */
+@Deprecated
 public interface ResolvedConfiguration {
 
     /**
      * Returns whether all dependencies were successfully retrieved or not.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     * Use {@link org.gradle.api.artifacts.result.ResolutionResult} instead.
      */
+    @Deprecated
     boolean hasError();
 
     /**
      * Provides configuration that does not fail eagerly when some dependencies are not resolved.
+     *
+     * @deprecated This method will be removed in a future Gradle version.
      */
+    @Deprecated
     LenientConfiguration getLenientConfiguration();
 
     /**
@@ -49,7 +60,11 @@ public interface ResolvedConfiguration {
      * <p>This method does nothing when resolution was successful.</p>
      *
      * @throws ResolveException when the resolve was not successful.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     * Use {@link org.gradle.api.artifacts.result.ResolutionResult} instead.
      */
+    @Deprecated
     void rethrowFailure() throws ResolveException;
 
     /**
@@ -62,7 +77,10 @@ public interface ResolvedConfiguration {
      *
      * @return A {@code ResolvedDependency} instance for each direct dependency.
      * @throws ResolveException when the resolve was not successful.
+     *
+     * @deprecated This method will be removed in a future Gradle version.
      */
+    @Deprecated
     Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException;
 
     /**
@@ -72,7 +90,11 @@ public interface ResolvedConfiguration {
      *
      * @return The set of artifacts.
      * @throws ResolveException when the resolve was not successful.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     * Use {@link ResolvableDependencies#getArtifacts()} instead.
      */
+    @Deprecated
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
 
 }
