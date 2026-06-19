@@ -101,6 +101,7 @@ gradleDocumentation {
     javadocs {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
+        javadocReferenceUrl = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/specs/man/javadoc.html") }
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
         groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }

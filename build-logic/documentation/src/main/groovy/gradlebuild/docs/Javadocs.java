@@ -33,6 +33,11 @@ public abstract class Javadocs {
     public abstract Property<URI> getJavaApi();
 
     /**
+     * Link to the documentation for the {@code javadoc} tool, referenced from the user manual.
+     */
+    public abstract Property<URI> getJavadocReferenceUrl();
+
+    /**
      * Package list of the Java API used to generate Javadoc offline
      */
     public abstract DirectoryProperty getJavaPackageListLoc();

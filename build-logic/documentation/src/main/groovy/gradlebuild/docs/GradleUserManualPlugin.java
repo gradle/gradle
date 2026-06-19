@@ -160,8 +160,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             attributes.put("javaApi", extension.getJavadocs().getJavaApi().get().toString());
             attributes.put("jdkDownloadUrl", "https://jdk.java.net/");
-            // TODO: This is coupled to extension.getJavadocs().getJavaApi()
-            attributes.put("javadocReferenceUrl", "https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html");
+            attributes.put("javadocReferenceUrl", extension.getJavadocs().getJavadocReferenceUrl().get().toString());
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
             attributes.put("minJdkVersion", "17");
 
