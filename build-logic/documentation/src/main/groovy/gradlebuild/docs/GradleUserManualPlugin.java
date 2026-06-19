@@ -169,8 +169,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
-            attributes.put("gradleVersion90", "9.0.0");
-            attributes.put("gradleVersion8", "8.14.4");
+            attributes.put("gradleVersion8", "8.14.5");
             attributes.put("snippetsPath", "snippets");
             task.attributes(attributes);
         });
