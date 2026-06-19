@@ -127,6 +127,159 @@ Update your `gradle.properties` and command-line invocations to the new names.
 
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
+[[deprecated_each_dependency]]
+==== Deprecation of `ResolutionStrategy.eachDependency`
+
+link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#eachDependency(org.gradle.api.Action)[`ResolutionStrategy.eachDependency(Action)`] method and link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html[`DependencyResolveDetails`] type are deprecated and will be removed in Gradle 10.
+`eachDependency` is a thin wrapper around link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#dependencySubstitution(org.gradle.api.Action)[`dependencySubstitution(Action)`], meaning existing usages should be relatively straightforward to migrate.
+
+When the rule pins a known module, the targeted form is the cleanest replacement:
+
+[source,kotlin]
+----
+// Deprecated
+configurations.runtimeClasspath {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "com.example" && requested.name == "lib") {
+            useVersion("1.2.3")
+        }
+    }
+}
+
+// Replacement
+configurations.runtimeClasspath {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("com.example:lib")).using(module("com.example:lib:1.2.3"))
+    }
+}
+----
+
+When the rule must inspect every dependency — for example, to match a group prefix or transform a coordinate — use link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#all(org.gradle.api.Action)[`DependencySubstitutions.all(Action)`], which is the literal 1:1 replacement for `eachDependency`:
+
+[source,kotlin]
+----
+configurations.runtimeClasspath {
+    resolutionStrategy.dependencySubstitution {
+        all {
+            val req = requested
+            if (req is ModuleComponentSelector && req.group == "com.example") {
+                useTarget("com.example:${req.module}:1.2.3")
+            }
+        }
+    }
+}
+----
+
+[[deprecated_force_modules]]
+==== Deprecation of forcing modules on `ResolutionStrategy`
+
+The following methods on `ResolutionStrategy` for forcing dependency versions are deprecated and will be removed in Gradle 10:
+
+* link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`force(Object...)`]
+* link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#setForcedModules(java.lang.Object...)[`setForcedModules(Object...)`]
+* link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#getForcedModules()[`getForcedModules()`]
+
+For controlling versions across a dependency graph, the recommended replacement is to declare a strict version, either directly on the dependency that pulls the module in or via a dependency constraint:
+
+[source,kotlin]
+----
+// Deprecated
+configurations.runtimeClasspath {
+    resolutionStrategy.force("com.example:lib:1.2.3")
+}
+
+// Replacement: strict version via a constraint
+dependencies {
+    constraints {
+        implementation("com.example:lib") {
+            version { strictly("1.2.3") }
+        }
+    }
+}
+----
+
+If you require the lower-level mechanism `force` was sugar for, use `dependencySubstitution` directly:
+
+[source,kotlin]
+----
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("com.example:lib")).using(module("com.example:lib:1.2.3"))
+    }
+}
+----
+
+`getForcedModules()` returns the modules previously passed to `force(...)`; once `force` is removed there is nothing to query, so the getter is removed alongside.
+
+[[deprecated_resolved_lenient_configuration]]
+==== Deprecation of legacy `ResolvedConfiguration` and `LenientConfiguration` query methods
+
+link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[`ResolvedConfiguration`] and link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html[`LenientConfiguration`] expose two pre-variant-aware ways to inspect the results of dependency resolution: walking failures, and collecting resolved artifacts and dependencies.
+Both responsibilities now have variant-aware replacements: link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] for graph inspection, and link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] for artifact selection.
+The legacy query methods below are deprecated and will be removed in Gradle 10.
+
+[[deprecated_legacy_resolution_failure_inspection]]
+===== Failure inspection methods
+
+The following methods are deprecated and will be removed in Gradle 10:
+
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#hasError()[`ResolvedConfiguration.hasError()`]
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#rethrowFailure()[`ResolvedConfiguration.rethrowFailure()`]
+* link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getUnresolvedModuleDependencies()[`LenientConfiguration.getUnresolvedModuleDependencies()`]
+
+In most cases you do not need to query for failures: Gradle throws and fails the build when resolution fails.
+If you genuinely need to walk failures programmatically — for example, in reporting tooling — use `ResolutionResult` and check whether outgoing edges are `instanceof UnresolvedDependencyResult`.
+
+The link:{javadocPath}/org/gradle/api/artifacts/UnresolvedDependency.html[`UnresolvedDependency`] type, which is the return type of `getUnresolvedModuleDependencies()`, is also deprecated and will be removed in Gradle 10.
+
+[[deprecated_legacy_artifact_dependency_collection]]
+===== Artifact and dependency collection methods
+
+The following methods are deprecated and will be removed in Gradle 10:
+
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolvedArtifacts()[`ResolvedConfiguration.getResolvedArtifacts()`]
+* link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getArtifacts()[`LenientConfiguration.getArtifacts()`]
+* link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getAllModuleDependencies()[`LenientConfiguration.getAllModuleDependencies()`]
+
+Use an `ArtifactView` on the configuration's link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts()[`incoming.artifacts`] instead.
+For the lenient behavior previously provided by `LenientConfiguration`, configure the view as lenient:
+
+[source,kotlin]
+----
+val artifacts = configurations["runtimeClasspath"].incoming
+    .artifactView { lenient(true) }
+    .artifacts
+----
+
+See <<artifact_views.adoc#sec:performing_lenient_artifact_selection, Performing lenient artifact selection and resolution>> in the Gradle User Manual for details.
+
+[[deprecated_misc_dependency_resolution_apis]]
+==== Other dependency resolution deprecations
+
+The following will be removed in Gradle 10:
+
+* link:{javadocPath}/org/gradle/plugin/management/PluginRequest.html#getModule()[`PluginRequest.getModule()`] — use link:{javadocPath}/org/gradle/plugin/management/PluginRequest.html#getSelector()[`getSelector()`] and check `instanceof ModuleComponentSelector` to access the same information through the modern selector hierarchy.
+* link:{javadocPath}/org/gradle/api/artifacts/ExternalDependency.html#matchesStrictly(org.gradle.api.artifacts.ModuleVersionIdentifier)[`ExternalDependency.matchesStrictly(ModuleVersionIdentifier)`] and link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html#matchesStrictly(org.gradle.api.artifacts.ModuleVersionIdentifier)[`DependencyConstraint.matchesStrictly(ModuleVersionIdentifier)`] — inherited from `ModuleVersionSelector` and removed with no direct replacement.
+* link:{javadocPath}/org/gradle/api/artifacts/ModuleVersionSelector.html[`ModuleVersionSelector`] (type) — fully superseded by link:{javadocPath}/org/gradle/api/artifacts/component/ModuleComponentSelector.html[`ModuleComponentSelector`].
+The type is only reachable through other deprecated APIs above, so migrating off those APIs migrates off `ModuleVersionSelector` automatically.
+`ExternalDependency` and `DependencyConstraint` will no longer extend `ModuleVersionSelector` in Gradle 10, but their `getGroup()`, `getName()`, `getModule()`, and `getVersion()` methods are retained.
+
+[[discouraged_dependency_resolution_apis]]
+==== Discouraged dependency resolution APIs
+
+The following types and methods are not being removed in Gradle 10 but are discouraged for new code.
+They still permit some use cases that are awkward to express with the current alternatives; a more complete replacement is planned for a future Gradle release.
+
+* link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getResolvedConfiguration()[`Configuration.getResolvedConfiguration()`]
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[`ResolvedConfiguration`] (type)
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getLenientConfiguration()[`ResolvedConfiguration.getLenientConfiguration()`]
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getFirstLevelModuleDependencies()[`ResolvedConfiguration.getFirstLevelModuleDependencies()`]
+* link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html[`LenientConfiguration`] (type)
+* link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getFirstLevelModuleDependencies()[`LenientConfiguration.getFirstLevelModuleDependencies()`]
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedArtifact.html[`ResolvedArtifact`] (type)
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html[`ResolvedDependency`] (type)
+* link:{javadocPath}/org/gradle/api/artifacts/ResolvedModuleVersion.html[`ResolvedModuleVersion`] (type)
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
