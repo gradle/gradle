@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - id: setup-matrix
         run: echo "matrix=$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)" >> $GITHUB_OUTPUT
       - name: setup java
@@ -68,7 +68,7 @@ jobs:
     needs: build
     steps:
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup java
         uses: actions/setup-java@v5
         with:
@@ -102,7 +102,7 @@ jobs:
       fail-fast: false
     steps:
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup java
         uses: actions/setup-java@v5
         with:
@@ -131,7 +131,7 @@ jobs:
       - name: Enable Git long paths
         run: git config --system core.longpaths true
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup java
         uses: actions/setup-java@v5
         with:
