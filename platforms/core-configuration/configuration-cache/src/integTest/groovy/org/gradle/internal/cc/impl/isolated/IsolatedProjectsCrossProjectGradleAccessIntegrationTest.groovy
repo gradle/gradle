@@ -121,6 +121,10 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
             }
         """
 
+        // `useLogger` emits a deprecation warning when it runs (in DIAGNOSTICS); this test asserts IP problems,
+        // not deprecations, so don't fail on it.
+        executer.noDeprecationChecks()
+
         when:
         isolatedProjectsFailsUsing mode, "help"
 
@@ -141,7 +145,11 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
 
         combined:
         invocation                                          | expectedProblems
-        "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project -> expectedProblemsOnAddUnsupportedListener(mode, project) }
+        "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "addListener") }
+        "buildFinished({})"                                 | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "buildFinished") }
+        "buildFinished({} as Action)"                       | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "buildFinished") }
+        "addBuildListener(${buildListener()})"              | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "addBuildListener") }
+        "useLogger(new Object())"                           | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "useLogger") }
         "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
         "addListener(${projectEvaluationListener()})"       | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
         "removeListener(${projectEvaluationListener()})"    | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
@@ -154,16 +162,16 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         mode << ALL_MODES
     }
 
-    private static List<String> expectedProblemsOnAddUnsupportedListener(IsolatedProjectsMode mode, String accessor) {
+    private static List<String> expectedProblemsOnUnsupportedListener(IsolatedProjectsMode mode, String accessor, String method) {
         // In FAIL_FAST the build halts on the first (IP) problem, so only it is reported.
         if (mode == IsolatedProjectsMode.FAIL_FAST) {
-            return ["Project '$accessor' cannot access Gradle.addListener"]
+            return ["Project '$accessor' cannot access Gradle.$method"]
         }
         // In DIAGNOSTICS, CC also reports the unsupported-listener registration, except in buildSrc,
         // which CC exempts (see ConfigurationCacheProblemsListener.isBuildSrcBuild).
         accessor == ":buildSrc"
-            ? ["Project '$accessor' cannot access Gradle.addListener"]
-            : ["Project '$accessor' cannot access Gradle.addListener", "registration of listener on 'Gradle.addListener' is unsupported"]
+            ? ["Project '$accessor' cannot access Gradle.$method"]
+            : ["Project '$accessor' cannot access Gradle.$method", "registration of listener on 'Gradle.$method' is unsupported"]
     }
 
     private static String projectEvaluationListener() {
@@ -176,5 +184,9 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
 
     private static String dependencyResolutionListener() {
         """new org.gradle.api.artifacts.DependencyResolutionListener() { void beforeResolve(org.gradle.api.artifacts.ResolvableDependencies d) {}; void afterResolve(org.gradle.api.artifacts.ResolvableDependencies d) {} }"""
+    }
+
+    private static String buildListener() {
+        """new org.gradle.BuildAdapter() {}"""
     }
 }

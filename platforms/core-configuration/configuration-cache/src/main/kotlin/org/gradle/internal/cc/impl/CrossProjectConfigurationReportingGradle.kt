@@ -253,6 +253,34 @@ class CrossProjectConfigurationReportingGradle(
         return delegate.pluginManager
     }
 
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun buildFinished(action: Action<in BuildResult>) {
+        // see `addListener`
+        onMutableStateAccess("buildFinished")
+        delegate.buildFinished(action)
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun buildFinished(closure: Closure<*>) {
+        // see `addListener`
+        onMutableStateAccess("buildFinished")
+        delegate.buildFinished(closure)
+    }
+
+    override fun addBuildListener(buildListener: BuildListener) {
+        // see `addListener`
+        onMutableStateAccess("addBuildListener")
+        delegate.addBuildListener(buildListener)
+    }
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
+    override fun useLogger(logger: Any) {
+        // see `addListener`
+        onMutableStateAccess("useLogger")
+        delegate.useLogger(logger)
+    }
+
     override fun getExtensions(): ExtensionContainer =
         CrossProjectConfigurationReportingGradleExtensionsContainer(
             delegate.extensions as ExtensionContainerInternal,
@@ -290,25 +318,6 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun projectsLoaded(action: Action<in Gradle>) =
         delegate.projectsLoaded(action)
-
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(closure: Closure<*>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(closure)
-
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(action: Action<in BuildResult>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(action)
-
-    override fun addBuildListener(buildListener: BuildListener) =
-        // already reported as configuration cache problem, no need to override
-        delegate.addBuildListener(buildListener)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun useLogger(logger: Any) =
-        delegate.useLogger(logger)
 
     override fun getSharedServices(): BuildServiceRegistry =
         delegate.sharedServices
