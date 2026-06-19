@@ -133,7 +133,7 @@ class ResilientGradleProjectCrossVersionSpec extends KotlinDslPluginRelatedTooli
         when:
         def result = succeeds {
             action(new TestResilientModelAction(GradleProject, ROOT_BUILD_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true", *extraGradleProperties)
+                .withArguments(*extraGradleProperties)
                 .run()
         }
 
