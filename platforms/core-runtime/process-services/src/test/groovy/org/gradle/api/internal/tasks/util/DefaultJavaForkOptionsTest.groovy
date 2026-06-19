@@ -297,6 +297,31 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.allJvmArgs.get() == ['-Xbootclasspath:' + files.join(System.properties['path.separator']), fileEncodingProperty(), *localeProperties()]
     }
 
+    def "executable(Object) evaluates the object's string representation lazily"() {
+        given:
+        def evaluated = false
+        def lazyExecutable = new Object() {
+            @Override
+            String toString() {
+                evaluated = true
+                return "executable"
+            }
+        }
+
+        when:
+        options.executable(lazyExecutable)
+
+        then:
+        !evaluated
+
+        when:
+        def result = options.executable.get()
+
+        then:
+        evaluated
+        result == 'executable'
+    }
+
     def "can copy to target options"() {
         JavaForkOptions target = TestUtil.newInstance(DefaultJavaForkOptions, objectFactory, resolver, fileCollectionFactory)
 
