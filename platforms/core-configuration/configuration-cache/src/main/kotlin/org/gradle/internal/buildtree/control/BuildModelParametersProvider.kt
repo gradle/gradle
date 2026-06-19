@@ -90,17 +90,17 @@ object BuildModelParametersProvider {
         val ccDisabledReason = getConfigurationCacheDisabledReason(startParameter)
         return when {
             // TODO:isolated should this also disable IP?
-            ccDisabledReason != null -> vintageMode(requirements, startParameter, options, ccDisabledReason)
+            ccDisabledReason != null -> vintageMode(requirements, startParameter, ccDisabledReason)
             startParameter.isolatedProjects.get() -> isolatedProjectsMode(requirements, startParameter, options)
             startParameter.configurationCache.get() ->
                 if (requirements.isCreatesModel) {
                     // CC by itself does not yet support caching models or caching of the work graph that runs before model building
-                    vintageMode(requirements, startParameter, options)
+                    vintageMode(requirements, startParameter)
                 } else {
                     configurationCacheTasksOnlyMode(requirements, startParameter, options)
                 }
 
-            else -> vintageMode(requirements, startParameter, options)
+            else -> vintageMode(requirements, startParameter)
         }
     }
 
@@ -126,7 +126,6 @@ object BuildModelParametersProvider {
     fun vintageMode(
         requirements: BuildActionModelRequirements,
         startParameter: StartParameterInternal,
-        options: InternalOptions,
         ccDisabledReason: String? = null
     ): GradleVintageMode {
 
