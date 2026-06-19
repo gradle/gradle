@@ -71,6 +71,7 @@ abstract class FileContentGenerator {
         return """
         plugins {
             ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
+            ${config.deprecationsPerProject > 0 ? pluginBlockApply("perf-deprecations") : ""}
         }
 
         group = "org.gradle.test.performance"

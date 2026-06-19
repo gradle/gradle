@@ -28,7 +28,8 @@ import spock.lang.Specification
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
-    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2)
+    def boundedCallerStackCapturer = Mock(BoundedCallerStackCapturer)
+    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2, Integer.MAX_VALUE, boundedCallerStackCapturer)
 
     def "uses caller's stack trace to calculate problem location"() {
         given:
@@ -101,6 +102,19 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics5 = stream.forCurrentCaller(supplier)
         diagnostics5.exception == null
         diagnostics5.stack.empty
+    }
+
+    def "stops capturing bounded stacks once the bounded budget is spent"() {
+        given:
+        // 2 full captures, then a bounded budget of 3, then no capture at all.
+        def cappedFactory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2, 3, boundedCallerStackCapturer)
+        def stream = cappedFactory.newStream()
+
+        when:
+        6.times { stream.forCurrentCaller() }
+
+        then:
+        3 * boundedCallerStackCapturer.captureCallerStack() >> null
     }
 
     def "each stream has an independent stack trace limit"() {

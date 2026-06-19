@@ -14,71 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.internal.problems.impl;
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
-import org.gradle.initialization.ClassLoaderScopeRegistryListener;
-import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.gradle.internal.problems.failure.StackFramePredicate;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-@ServiceScope(Scope.BuildTree.class)
-public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
+class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer {
 
     private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
 
-    private final Lock lock = new ReentrantLock();
-    private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
-    private final ClassLoaderScopeRegistryListenerManager listenerManager;
+    private final RegisteredScripts registeredScripts;
 
-    public DefaultProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
-        listenerManager.add(this);
-    }
-
-    @Override
-    public void close() throws IOException {
-        listenerManager.remove(this);
-        lock.lock();
-        try {
-            scripts.clear();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
-        if (origin instanceof ClassLoaderScopeOrigin.Script) {
-            ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
-            lock.lock();
-            try {
-                scripts.put(scriptOrigin.getFileName(), scriptOrigin);
-            } finally {
-                lock.unlock();
-            }
-        }
-    }
-
-    @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
+    public DefaultProblemLocationAnalyzer(RegisteredScripts registeredScripts) {
+        this.registeredScripts = registeredScripts;
     }
 
     @Override
@@ -109,12 +64,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             }
         }
 
-        lock.lock();
-        try {
-            return locationFromStackRange(startPos, endPos, stack);
-        } finally {
-            lock.unlock();
-        }
+        return locationFromStackRange(startPos, endPos, stack);
     }
 
     private static int getStartPosWithLocation(Failure failure) {
@@ -144,7 +94,11 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             return null;
         }
 
-        ClassLoaderScopeOrigin.Script source = scripts.get(frame.getFileName());
+        String fileName = frame.getFileName();
+        if (fileName == null) {
+            return null;
+        }
+        ClassLoaderScopeOrigin.Script source = registeredScripts.scriptFor(fileName);
         if (source == null) {
             return null;
         }

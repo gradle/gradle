@@ -148,6 +148,20 @@ See the [Test logging](userguide/java_testing.html#sec:test_logging) section in 
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Source locations for more problems
+
+To keep stack trace capture affordable, Gradle attached a source location to only the first 50 problems per build, so builds that report many problems (deprecations especially) left most of them without a file and line.
+
+Gradle now captures a source location for up to 2000 additional problems past that cap.
+The capture mechanism is far cheaper than a full stack trace, so the added coverage has negligible cost.
+As a result, the [console](userguide/command_line_interface.html), the [problems report](userguide/reporting_problems.html#sec:generated_html_report), and the [Tooling API](userguide/third_party_integration.html) show a source location for many more problems than before.
+
+![Problems report listing many problems with their source locations](release-notes-assets/problems-locations.png)
+
+Run with `--warning-mode=all` to remove the limit and capture a source location for every problem.
+
+See the [CLI reference](userguide/command_line_interface.html#sec:command_line_warnings) in the Gradle User Manual for more details.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 

@@ -186,6 +186,12 @@ Then failure details, including problems, are automatically available via `Gradl
 Gradle generates an HTML report at the end of the build if any problems were reported.
 It’s a central place to review issues and complements the console and Build Scan outputs.
 
+[NOTE]
+====
+To keep stack trace capture affordable, Gradle infers a source location for only a limited number of problems per build, so very large builds may list some problems without a file and line.
+Run with `--warning-mode=all` to lift the limit and infer a location for every problem.
+====
+
 - The report is skipped if no problems are found.
 - Disable report generation with the `--no-problems-report` flag.
 

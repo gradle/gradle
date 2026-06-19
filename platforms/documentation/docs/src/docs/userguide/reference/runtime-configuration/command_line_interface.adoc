@@ -759,6 +759,8 @@ Set to `fail` to log all warnings and fail the build if there are any warnings.
 Set to `summary` to suppress all warnings and log a summary at the end of the build.
 +
 Set to `none` to suppress all warnings, including the summary at the end of the build.
++
+In `all` mode, Gradle also lifts the limit it puts on capturing source locations, so a file and line is inferred for every problem rather than only the first ones.
 
 [[sec:rich_console]]
 === Rich console

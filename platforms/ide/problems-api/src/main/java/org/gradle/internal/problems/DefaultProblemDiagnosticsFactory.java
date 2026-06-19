@@ -58,19 +58,26 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     private static final int MAX_STACKTRACE_COUNT = 50;
     private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
 
+    // Budget for bounded location captures past the cap: capping the count keeps the stack walk cost
+    // bounded and negligible at scale. Builds with more distinct call sites lose locations past it.
+    private static final int MAX_BOUNDED_CAPTURES = 2000;
+
     private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
+    private final int maxBoundedCaptures;
+    private final BoundedCallerStackCapturer boundedCallerStackCapturer;
 
     @Inject
     public DefaultProblemDiagnosticsFactory(
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
-        BuildModelParameters buildModelParameters
+        BuildModelParameters buildModelParameters,
+        BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
-        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters));
+        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters), MAX_BOUNDED_CAPTURES, boundedCallerStackCapturer);
     }
 
     private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
@@ -82,12 +89,16 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
-        int maxStackTraces
+        int maxStackTraces,
+        int maxBoundedCaptures,
+        BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
         this.failureFactory = failureFactory;
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
+        this.maxBoundedCaptures = maxBoundedCaptures;
+        this.boundedCallerStackCapturer = boundedCallerStackCapturer;
     }
 
     @Override
@@ -130,15 +141,17 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     @NullMarked
     private class DefaultProblemStream implements ProblemStream {
         private final AtomicInteger remainingStackTraces = new AtomicInteger();
+        private final AtomicInteger remainingBoundedCaptures = new AtomicInteger();
 
         public DefaultProblemStream() {
             remainingStackTraces.set(maxStackTraces);
+            remainingBoundedCaptures.set(maxBoundedCaptures);
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
             if (exception == null) {
-                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+                return locationFromStackTrace(getImplicitCallerThrowable(), false, false, NO_OP);
             } else {
                 return locationFromStackTrace(exception, true, true, NO_OP);
             }
@@ -146,7 +159,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Override
         public ProblemDiagnostics forCurrentCaller() {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+            return locationFromStackTrace(getImplicitCallerThrowable(), false, false, NO_OP);
         }
 
         @Override
@@ -156,7 +169,18 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Override
         public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, transformer);
+            return locationFromStackTrace(getImplicitCallerThrowable(), false, false, transformer);
+        }
+
+        @Nullable
+        private Throwable getImplicitCallerThrowable() {
+            if (remainingStackTraces.getAndDecrement() > 0) {
+                return EXCEPTION_FACTORY.get();
+            }
+            if (remainingBoundedCaptures.getAndDecrement() > 0) {
+                return boundedCallerStackCapturer.captureCallerStack();
+            }
+            return null;
         }
 
         @Nullable
