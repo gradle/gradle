@@ -19,6 +19,7 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -26,6 +27,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.streams.StreamsHandler
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -78,6 +80,40 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             assert it[0].class == ExecHandleShutdownHookAction
             true
         }
+    }
+
+    void "exec process threads are daemon so a wedged output forwarder cannot block JVM exit"() {
+        // A forwarder reading a process pipe held open by a reparented grandchild can park in an
+        // uninterruptible native read() that the JVM cannot unblock. Such threads must be daemon so
+        // they never prevent a worker JVM from exiting. Build the handle through the production
+        // factory path so the assertion covers the executor the real code uses.
+        given:
+        def factory = DefaultClientExecHandleBuilderFactory.of(
+            TestFiles.pathToFileResolver(),
+            new DefaultExecutorFactory(),
+            buildCancellationToken
+        )
+        def execHandle = factory.newExecHandleBuilder()
+            .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
+            .setTimeout(20000)
+            .setWorkingDir(tmpDir.getTestDirectory())
+            .environment('CLASSPATH', mergeClasspath())
+            .args(args(SlowApp.class))
+            .build()
+
+        when:
+        execHandle.start()
+        def execThreads = []
+        ConcurrentTestUtil.poll(10) {
+            execThreads = Thread.getAllStackTraces().keySet().findAll { it.name.startsWith("Exec process") }
+            assert !execThreads.isEmpty()
+        }
+
+        then:
+        execThreads.every { it.daemon }
+
+        cleanup:
+        execHandle.abort()
     }
 
     void "waiting for process returns quickly if process already completed"() {

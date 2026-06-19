@@ -93,7 +93,9 @@ public class DefaultExecActionFactory implements ExecFactory {
             fileResolver,
             fileCollectionFactory,
             instantiator,
-            executorFactory.create("Exec process"),
+            // Daemon threads so a wedged output forwarder, parked in an uninterruptible native read()
+            // on a pipe a reparented child holds open that the JVM cannot unblock, cannot prevent JVM exit.
+            executorFactory.createDaemon("Exec process"),
             temporaryFileProvider,
             buildCancellationToken,
             objectFactory,

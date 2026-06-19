@@ -53,7 +53,9 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         ExecutorFactory executorFactory,
         BuildCancellationToken buildCancellationToken
     ) {
-        ManagedExecutor executor = executorFactory.create("Exec process");
+        // Daemon threads so a wedged output forwarder, parked in an uninterruptible native read()
+        // on a pipe a reparented child holds open that the JVM cannot unblock, cannot prevent JVM exit.
+        ManagedExecutor executor = executorFactory.createDaemon("Exec process");
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
     }
 

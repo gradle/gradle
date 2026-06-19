@@ -29,10 +29,16 @@ public class ThreadFactoryImpl implements ThreadFactory {
     private final String displayName;
     @Nullable
     private final ClassLoader contextClassloader;
+    private final boolean daemon;
 
     public ThreadFactoryImpl(String displayName, @Nullable ClassLoader contextClassloader) {
+        this(displayName, contextClassloader, false);
+    }
+
+    public ThreadFactoryImpl(String displayName, @Nullable ClassLoader contextClassloader, boolean daemon) {
         this.displayName = displayName;
         this.contextClassloader = contextClassloader;
+        this.daemon = daemon;
     }
 
     @Override
@@ -40,6 +46,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
         Thread thread = new Thread(r);
         thread.setName(nextThreadName());
         thread.setContextClassLoader(contextClassloader);
+        thread.setDaemon(daemon);
         return thread;
     }
 

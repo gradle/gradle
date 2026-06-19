@@ -120,6 +120,11 @@ class ConcurrentTestUtil extends ExternalResource {
             }
 
             @Override
+            ManagedExecutor createDaemon(String displayName) {
+                return new ManagedExecutorStub(ConcurrentTestUtil.this)
+            }
+
+            @Override
             ManagedExecutor create(String displayName, int fixedSize) {
                 // Ignores size of thread pool
                 return new ManagedExecutorStub(ConcurrentTestUtil.this)
