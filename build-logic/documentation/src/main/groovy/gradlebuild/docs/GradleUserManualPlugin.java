@@ -21,6 +21,7 @@ import gradlebuild.docs.dsl.source.GenerateDefaultImports;
 import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -199,10 +200,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.setIncludeEmptyDirs(false);
             });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
-            task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
-                sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
-                sub.into("img");
-            });
+            stageUserManualImages(task, extension);
             task.from(extension.getUserManual().getResources());
 
             task.from(generateDocinfo);
@@ -263,11 +261,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.from(userguideSinglePageHtml);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
-            // TODO: Eliminate this duplication with the flatten task
-            task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
-                sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
-                sub.into("img");
-            });
+            stageUserManualImages(task, extension);
             task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
                 sub.include("**/*.js");
                 sub.into("js");
@@ -307,6 +301,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         // TODO: This breaks the provider
         attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
         task.attributes(attributes);
+    }
+
+    private static void stageUserManualImages(CopySpec spec, GradleDocumentationExtension extension) {
+        spec.from(extension.getUserManual().getRoot().dir("img"), sub -> {
+            sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
+            sub.into("img");
+        });
     }
 
     private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
