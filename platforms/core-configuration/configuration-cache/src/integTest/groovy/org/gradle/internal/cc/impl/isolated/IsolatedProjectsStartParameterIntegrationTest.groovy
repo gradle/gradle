@@ -251,4 +251,108 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         "excludedTaskNames.removeIf { it == 'x' }"                                        | "getExcludedTaskNames().removeIf(Predicate)"
     }
 
+    // Exhaustive end-to-end coverage: every notifying mutator of StartParameter and
+    // StartParameterInternal is exercised through a real build and asserted to be reported, so a change
+    // in behavior for any single method is caught here, not only by the instrumentation unit test. One
+    // build per method keeps every case independent and the assertion trivial (a single problem).
+    // setTaskNames/setTaskRequests are intentionally absent: they are exempt (see "replacing the
+    // requested tasks ..."). Each invocation uses a value matching the current/default state so the
+    // build still completes configuration in diagnostics mode.
+    def "every mutating method of StartParameter is reported (#signature)"() {
+        buildFile("""
+            gradle.startParameter.$invocation
+        """)
+
+        when:
+        isolatedProjectsDiagnosticsFails("help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":")
+            problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. This happened when calling '$signature'.")
+        }
+
+        where:
+        [invocation, signature] << PUBLIC_MUTATORS + INTERNAL_MUTATORS
+    }
+
+    // Every notifying public mutator of StartParameter, with an invocation whose value matches the
+    // current/default state so the build completes in diagnostics mode.
+    private static final List<List<String>> PUBLIC_MUTATORS = [
+        ["setLogLevel(org.gradle.api.logging.LogLevel.LIFECYCLE)", "setLogLevel(LogLevel)"],
+        ["setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.INTERNAL_EXCEPTIONS)", "setShowStacktrace(ShowStacktrace)"],
+        ["setConsoleOutput(org.gradle.api.logging.configuration.ConsoleOutput.Auto)", "setConsoleOutput(ConsoleOutput)"],
+        ["setConsoleUnicodeSupport(org.gradle.api.logging.configuration.ConsoleUnicodeSupport.Auto)", "setConsoleUnicodeSupport(ConsoleUnicodeSupport)"],
+        ["setNonInteractive(false)", "setNonInteractive(boolean)"],
+        ["setWarningMode(org.gradle.api.logging.configuration.WarningMode.Summary)", "setWarningMode(WarningMode)"],
+        ["setProjectCacheDir(null)", "setProjectCacheDir(File)"],
+        ["setExcludedTaskNames([])", "setExcludedTaskNames(Iterable)"],
+        ["setCurrentDir(file('.'))", "setCurrentDir(File)"],
+        ["setProjectProperties([:])", "setProjectProperties(Map)"],
+        ["setSystemPropertiesArgs(new HashMap(gradle.startParameter.systemPropertiesArgs))", "setSystemPropertiesArgs(Map)"],
+        ["setGradleUserHomeDir(gradle.gradleUserHomeDir)", "setGradleUserHomeDir(File)"],
+        ["setBuildProjectDependencies(true)", "setBuildProjectDependencies(boolean)"],
+        ["setDryRun(false)", "setDryRun(boolean)"],
+        // addInitScript is not covered: the CLI converter populates initScripts with an immutable
+        // list in real distributions, so appending already fails with an UnsupportedOperationException.
+        ["setInitScripts([])", "setInitScripts(List)"],
+        // setProjectDir(null) would also notify for setCurrentDir(File); the non-null path does not
+        ["setProjectDir(projectDir)", "setProjectDir(File)"],
+        ["setProfile(false)", "setProfile(boolean)"],
+        ["setContinueOnFailure(false)", "setContinueOnFailure(boolean)"],
+        ["setOffline(false)", "setOffline(boolean)"],
+        ["setRefreshDependencies(false)", "setRefreshDependencies(boolean)"],
+        ["setRerunTasks(false)", "setRerunTasks(boolean)"],
+        ["setTaskGraph(false)", "setTaskGraph(boolean)"],
+        ["setParallelProjectExecutionEnabled(gradle.startParameter.parallelProjectExecutionEnabled)", "setParallelProjectExecutionEnabled(boolean)"],
+        ["setBuildCacheEnabled(false)", "setBuildCacheEnabled(boolean)"],
+        ["setBuildCacheDebugLogging(false)", "setBuildCacheDebugLogging(boolean)"],
+        ["setMaxWorkerCount(gradle.startParameter.maxWorkerCount)", "setMaxWorkerCount(int)"],
+        ["setConfigureOnDemand(false)", "setConfigureOnDemand(boolean)"],
+        ["setContinuous(false)", "setContinuous(boolean)"],
+        // includeBuild is not covered for the same reason: includedBuilds is immutable in real distributions.
+        ["setIncludedBuilds([])", "setIncludedBuilds(List)"],
+        ["setBuildScan(false)", "setBuildScan(boolean)"],
+        ["setNoBuildScan(false)", "setNoBuildScan(boolean)"],
+        ["setWriteDependencyLocks(false)", "setWriteDependencyLocks(boolean)"],
+        ["setLockedDependenciesToUpdate([])", "setLockedDependenciesToUpdate(List)"],
+        ["setWriteDependencyVerifications([])", "setWriteDependencyVerifications(List)"],
+        ["setDependencyVerificationMode(org.gradle.api.artifacts.verification.DependencyVerificationMode.STRICT)", "setDependencyVerificationMode(DependencyVerificationMode)"],
+        ["setRefreshKeys(false)", "setRefreshKeys(boolean)"],
+        ["setExportKeys(false)", "setExportKeys(boolean)"],
+    ]
+
+    // Every notifying mutator of StartParameterInternal. The Option.Value-typed setters
+    // (setConfigurationCache, setIsolatedProjects, setParallelToolingModelBuilding) are omitted: the
+    // option type is awkward to construct in a script and flipping the enablement flags mid-build is
+    // meaningless. Values match the current/default state, as above.
+    private static final List<List<String>> INTERNAL_MUTATORS = [
+        ["setGradleHomeDir(gradle.gradleHomeDir)", "setGradleHomeDir(File)"],
+        ["doNotSearchUpwards()", "doNotSearchUpwards()"],
+        ["useEmptySettings()", "useEmptySettings()"],
+        ["setWatchFileSystemMode(org.gradle.internal.watch.registry.WatchMode.DEFAULT)", "setWatchFileSystemMode(WatchMode)"],
+        ["setVfsVerboseLogging(false)", "setVfsVerboseLogging(boolean)"],
+        ["setConfigurationCacheProblems(org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.FAIL)", "setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value)"],
+        ["setConfigurationCacheDebug(false)", "setConfigurationCacheDebug(boolean)"],
+        ["setConfigurationCacheIgnoreInputsDuringStore(false)", "setConfigurationCacheIgnoreInputsDuringStore(boolean)"],
+        ["setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(false)", "setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean)"],
+        ["setConfigurationCacheParallel(gradle.startParameter.configurationCacheParallel)", "setConfigurationCacheParallel(boolean)"],
+        ["setConfigurationCacheReadOnly(false)", "setConfigurationCacheReadOnly(boolean)"],
+        ["setConfigurationCacheEntriesPerKey(1)", "setConfigurationCacheEntriesPerKey(int)"],
+        ["setConfigurationCacheMaxProblems(512)", "setConfigurationCacheMaxProblems(int)"],
+        ["setConfigurationCacheIgnoredFileSystemCheckInputs(null)", "setConfigurationCacheIgnoredFileSystemCheckInputs(String)"],
+        ["setConfigurationCacheRecreateCache(false)", "setConfigurationCacheRecreateCache(boolean)"],
+        ["setConfigurationCacheQuiet(false)", "setConfigurationCacheQuiet(boolean)"],
+        ["setConfigurationCacheIntegrityCheckEnabled(false)", "setConfigurationCacheIntegrityCheckEnabled(boolean)"],
+        ["setConfigurationCacheHeapDumpDir(null)", "setConfigurationCacheHeapDumpDir(String)"],
+        ["setConfigurationCacheFineGrainedPropertyTracking(true)", "setConfigurationCacheFineGrainedPropertyTracking(boolean)"],
+        ["setIsolatedProjectsDiagnostics(true)", "setIsolatedProjectsDiagnostics(boolean)"],
+        ["setContinuousBuildQuietPeriod(java.time.Duration.ofMillis(250))", "setContinuousBuildQuietPeriod(Duration)"],
+        ["setPropertyUpgradeReportEnabled(false)", "setPropertyUpgradeReportEnabled(boolean)"],
+        ["enableProblemReportGeneration(true)", "enableProblemReportGeneration(boolean)"],
+        ["setDaemonJvmCriteriaConfigured(false)", "setDaemonJvmCriteriaConfigured(boolean)"],
+        ["setDevelocityUrl(null)", "setDevelocityUrl(String)"],
+        ["setDevelocityPluginVersion(null)", "setDevelocityPluginVersion(String)"],
+    ]
+
 }
