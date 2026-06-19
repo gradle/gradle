@@ -42,7 +42,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     // TODO(mlopatkin) this provider is a good candidate for CC deduplication
@@ -120,7 +119,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         if (executable instanceof Provider) {
             getExecutable().set(((Provider<?>) executable).map(Object::toString));
         } else {
-            getExecutable().set(Objects.toString(executable));
+            getExecutable().set(Providers.changing(executable::toString));
         }
         return this;
     }
