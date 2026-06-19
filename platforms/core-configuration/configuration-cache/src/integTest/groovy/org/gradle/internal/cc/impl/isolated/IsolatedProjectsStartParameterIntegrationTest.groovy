@@ -249,6 +249,13 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         "projectProperties.keySet().with { def i = it.iterator(); i.next(); i.remove() }" | "getProjectProperties().keySet().iterator().remove()"
         "projectProperties.entrySet().find { it.key == 'seed' }.setValue('x')"            | "getProjectProperties().entrySet().Entry.setValue(Object)"
         "excludedTaskNames.removeIf { it == 'x' }"                                        | "getExcludedTaskNames().removeIf(Predicate)"
+        "systemPropertiesArgs.put('p', 'v')"                                              | "getSystemPropertiesArgs().put(Object, Object)"
+        "writeDependencyVerifications.add('x')"                                           | "getWriteDependencyVerifications().add(Object)"
+        "lockedDependenciesToUpdate.add('x')"                                             | "getLockedDependenciesToUpdate().add(Object)"
+        // setTaskNames/setTaskRequests are exempt because tooling legitimately replaces the requested
+        // tasks while the build runs, but there is no known use case for mutating the taskRequests list
+        // directly, so it is reported like the other collection views.
+        "taskRequests.clear()"                                                            | "getTaskRequests().clear()"
     }
 
     // Exhaustive end-to-end coverage: every notifying mutator of StartParameter and
