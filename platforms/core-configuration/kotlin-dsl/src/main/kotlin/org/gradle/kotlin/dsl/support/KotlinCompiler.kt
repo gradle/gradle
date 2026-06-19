@@ -20,12 +20,9 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
-import org.gradle.api.internal.ClassPathProvider
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.classloader.FilteringClassLoader
-import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -107,7 +104,6 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
 private const val KEEPALIVE_FLAG = true
-private const val ISOLATED_CLASSLOADER = false
 
 // Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
 // KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
@@ -121,11 +117,7 @@ private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutabl
 private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompilerImpl> = mutableMapOf()
 
 internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: ClassLoaderFactory): KotlinCompiler {
-    val classLoader = if (ISOLATED_CLASSLOADER) {
-        classloaderInstances.computeIfAbsent(BTACompilerClasspathProvider(moduleRegistry).findClassPath(""), { classPath -> createCompilerClassLoader(classPath, classLoaderFactory) })
-    } else {
-        KotlinCompiler::class.java.classLoader
-    }
+    val classLoader = KotlinCompiler::class.java.classLoader
     return compilerInstances.computeIfAbsent(Pair(moduleRegistry, classLoaderFactory), { KotlinCompilerImpl(moduleRegistry, classLoader) })
 }
 
@@ -761,40 +753,4 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
         return listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
-}
-
-private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleRegistry) : ClassPathProvider {
-    override fun findClassPath(name: String): ClassPath {
-        var classpath = ClassPath.EMPTY
-
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-api").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-impl").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-embeddable").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-script-runtime").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-stdlib").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-reflect").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-common").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-compiler-impl-embeddable").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-jvm").getImplementationClasspath())
-        classpath = classpath.plus(moduleRegistry.getModule("kotlinx-coroutines-core-jvm").getImplementationClasspath())
-
-        return classpath
-    }
-}
-
-
-@OptIn(ExperimentalBuildToolsApi::class)
-private fun createCompilerClassLoader(classPath: ClassPath, classLoaderFactory: ClassLoaderFactory): URLClassLoader {
-    // TODO: since we have an isolated class loader, we can load an implementation with a different version than
-    //  the API we are using, thus making it configurable to users supported versions range from -3 major version
-    //  to +1 major version
-
-    val apiParent = KotlinToolchains::class.java.classLoader
-    val filterSpec = FilteringClassLoader.Spec().apply {
-        allowPackage("org.jetbrains.kotlin.buildtools.api")
-    }
-    val filteredParent = classLoaderFactory.createFilteringClassLoader(apiParent, filterSpec)
-
-    return VisitableURLClassLoader.fromClassPath("isolated-bta-loader", filteredParent, classPath)
 }
