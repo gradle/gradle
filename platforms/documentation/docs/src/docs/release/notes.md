@@ -159,7 +159,7 @@ As a result, the [console](userguide/command_line_interface.html), the [problems
 ![Problems report listing many problems with their source locations](release-notes-assets/problems-locations.png)
 
 Run with `--warning-mode=all` to remove the limit and capture a source location for every problem.
-Past the cap, including under `--warning-mode=all`, the capture keeps the originating build logic down to the calling script, enough to locate the problem, rather than the full call chain.
+Past the cap, including under `--warning-mode=all` and `fail`, the capture keeps the originating build logic down to the calling script, enough to locate the problem, rather than the full call chain.
 
 See the [CLI reference](userguide/command_line_interface.html#sec:command_line_warnings) in the Gradle User Manual for more details.
 
