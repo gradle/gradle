@@ -137,7 +137,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 /**
  * The default {@link Configuration} implementation.
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"this-escape", "rawtypes"})
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private final ConfigurationResolver resolver;
     private final DefaultDependencySet dependencies;

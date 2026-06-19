@@ -33,8 +33,6 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -132,10 +130,6 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
             task.setGroup("documentation");
 
             int webserverPort = 8000;
-            task.getJavaLauncher().set(
-                task.getProject().getExtensions().getByType(JavaToolchainService.class)
-                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(25)))
-            );
             task.getDocsDirectory().convention(extension.getDocumentationRenderedRoot());
             task.getPort().convention(webserverPort);
 

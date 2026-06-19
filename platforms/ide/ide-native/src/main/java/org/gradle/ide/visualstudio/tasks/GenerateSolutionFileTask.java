@@ -42,6 +42,7 @@ import java.util.List;
 /**
  * Task for generating a Visual Studio solution file (e.g. {@code foo.sln}).
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
@@ -49,6 +50,7 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> solution.getSolutionFile().getLocation()));
     private final Cached<SolutionSpec> spec = Cached.of(this::calculateSpec);
 
+    @SuppressWarnings("this-escape")
     @Inject
     public GenerateSolutionFileTask(DefaultVisualStudioSolution solution) {
         generator = new ConfigurationObjectGenerator();

@@ -59,6 +59,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
+    @SuppressWarnings("this-escape")
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
 

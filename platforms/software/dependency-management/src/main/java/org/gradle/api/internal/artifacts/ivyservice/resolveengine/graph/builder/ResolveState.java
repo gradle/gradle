@@ -73,6 +73,7 @@ import java.util.Map;
 /**
  * Global resolution state.
  */
+@SuppressWarnings("this-escape")
 public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final Map<ModuleIdentifier, ModuleResolveState> modules;

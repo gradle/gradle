@@ -32,6 +32,7 @@ import java.util.Map;
  * @param <T> The report model type
  * @since 7.6
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractProjectBasedReportTask<T> extends ConventionReportTask {

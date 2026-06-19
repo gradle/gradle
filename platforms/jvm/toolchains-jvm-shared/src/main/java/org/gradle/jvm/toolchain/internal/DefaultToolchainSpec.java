@@ -77,6 +77,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         }
     }
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultToolchainSpec(PropertyFactory propertyFactory) {
         version = propertyFactory.property(JavaLanguageVersion.class);

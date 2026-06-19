@@ -71,6 +71,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+@SuppressWarnings("this-escape")
 public abstract class DefaultIvyPublication implements IvyPublicationInternal {
 
     public static final String DEFAULT_STATUS = "integration";

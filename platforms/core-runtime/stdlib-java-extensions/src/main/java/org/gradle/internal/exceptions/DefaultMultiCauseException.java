@@ -45,6 +45,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         this.causes.addAll(Arrays.asList(causes));
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message);
         this.message = message;
@@ -60,6 +61,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         this.causes.addAll(Arrays.asList(causes));
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(Factory<String> messageFactory, Iterable<? extends Throwable> causes) {
         this(messageFactory);
         initCauses(causes);

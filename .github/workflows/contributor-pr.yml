@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - id: determine-sys-prop-args
         uses: actions/github-script@v9
         with:
@@ -73,7 +73,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
@@ -107,7 +107,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
@@ -135,8 +135,8 @@ jobs:
       - name: setup java
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft #because that's what is available on ARM windows. zulu would also be an option.
-          java-version: 17
+          distribution: microsoft # no temurin available
+          java-version: 25
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties

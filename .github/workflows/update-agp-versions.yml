@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - name: Update AGP versions
         run: ./gradlew updateAgpVersions
       - name: Open bot PR
