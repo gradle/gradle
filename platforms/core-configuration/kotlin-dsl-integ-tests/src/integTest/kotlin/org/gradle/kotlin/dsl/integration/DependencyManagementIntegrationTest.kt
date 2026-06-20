@@ -183,4 +183,25 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
             )
         }
     }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/12172")
+    fun `can configure dependency created by kotlin dependency helper`() {
+
+        withBuildScript(
+            """
+          plugins {
+              `java-library`
+          }
+
+          dependencies {
+              implementation(kotlin("reflect")) {
+                  because("reason")
+              }
+          }
+          """
+        )
+
+        build("help")
+    }
 }
