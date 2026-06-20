@@ -233,10 +233,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
             .nagUser();
 
+        doForce(notations);
+        return this;
+    }
+
+    private void doForce(Object[] notations) {
         mutationValidator.validateMutation(STRATEGY);
         parsedForcedModules = null;
         Collections.addAll(forcedModules, notations);
-        return this;
     }
 
     @Override
@@ -284,14 +288,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Deprecated
     public DefaultResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations) {
         DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "setForcedModules(Object...)")
-            .replaceWith("dependencySubstitution(Action)")
+            .withAdvice("Use strict versions instead.")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
             .nagUser();
 
         mutationValidator.validateMutation(STRATEGY);
         this.forcedModules.clear();
-        force(moduleVersionSelectorNotations);
+        doForce(moduleVersionSelectorNotations);
         return this;
     }
 

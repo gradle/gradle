@@ -247,7 +247,9 @@ dependencies {
 dependencies {
     conf("org.test:maven:1.0")
 }
-configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
+configurations.conf.resolutionStrategy.dependencySubstitution {
+    substitute(module('org.test:ivy')).using(module('org.test:ivy:1.2'))
+}
 """
         expect:
         succeeds 'checkDeps'
@@ -257,6 +259,7 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
                     configuration = 'compile'
                     edge('org.test:ivy:1.0', 'org.test:ivy:1.2') {
                         forced()
+                        selectedByRule()
                         artifact(name: 'default')
                         module('org.test:m3:1.0') {
                             variant("compile")
