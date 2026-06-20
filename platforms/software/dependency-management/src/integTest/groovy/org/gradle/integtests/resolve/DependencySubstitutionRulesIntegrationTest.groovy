@@ -740,9 +740,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                         it.selected.selectionReason.conflictResolution
                     }
 
-                    def resolvedDeps = configurations.runtimeClasspath.resolvedConfiguration.firstLevelModuleDependencies
+                    def resolvedDeps = configurations.runtimeClasspath.incoming.artifacts
                     resolvedDeps.size() == 1
-                    resolvedDeps[0].module.id == moduleId("org.utils", "api", "2.0")
+                    resolvedDeps[0].id.componentIdentifier.displayName == "org.utils:api:2.0"
                 }
             }
         """

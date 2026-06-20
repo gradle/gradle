@@ -28,7 +28,6 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    @UnsupportedWithConfigurationCache(because = "task exercises the ResolvedConfiguration API, which is a deprecated API that we don't want to invest in making compatible with configuration cache")
     def "artifacts may have no extension"() {
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
         m1.artifact(type: 'jar', ext: '')
@@ -51,13 +50,18 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
             }
 
             task show {
-                inputs.files configurations.compile
+                def legacyArtifacts = configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.iterator().next().moduleArtifacts
+                def legacyNames = legacyArtifacts.collect { "\$it.name:\$it.extension:\$it.type" }
+                def legacyClassifiers = legacyArtifacts.collect { it.classifier }
+
+                def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
+                dependsOn(resolvedArtifacts)
                 doLast {
-                    println "files: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }
-                    println "display-names: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.toString() }
-                    println "ids: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.id.toString() }
-                    println "names: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\$it.name:\$it.extension:\$it.type" }
-                    println "classifiers: " + configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.classifier }
+                    println "files: " + resolvedArtifacts.get().collect { it.file.name }
+                    println "display-names: " + resolvedArtifacts.get().collect { it.toString() }
+                    println "ids: " + resolvedArtifacts.get().collect { it.id.displayName }
+                    println "names: " + legacyNames
+                    println "classifiers: " + legacyClassifiers
                 }
             }
         """
@@ -74,7 +78,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         outputContains("files: [test-1.0, test-1.0, test-1.0-classy]")
         outputContains("display-names: [test-1.0 (org:test:1.0), test-1.0 (org:test:1.0), test-1.0-classy (org:test:1.0)]")
         outputContains("ids: [test-1.0 (org:test:1.0), test-1.0 (org:test:1.0), test-1.0-classy (org:test:1.0)]")
-        outputContains("names: [test::jar, test::, test::]")
+        outputContains("names: [test::, test::jar, test::]")
         outputContains("classifiers: [null, null, classy]")
     }
 

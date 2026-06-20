@@ -218,7 +218,7 @@ public class ShortCircuitingResolutionExecutor {
         @Deprecated
         public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
             DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getUnresolvedModuleDependencies()")
-                .withAdvice("Use ResolutionResult instead")
+                .withAdvice("Use ResolutionResult instead.")
                 .willBeRemovedInGradle10()
                 .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
                 .nagUser();

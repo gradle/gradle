@@ -49,13 +49,13 @@ dependencies {
 }
 
 task check {
+    def rootComponent = configurations.compile.incoming.resolutionResult.rootComponent
+    def rootVariant = configurations.compile.incoming.resolutionResult.rootVariant
     doLast {
-        configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
-            it.children.each { transitive ->
-                println "transitive.moduleGroup=\${transitive.moduleGroup}"
-                println "transitive.moduleName=\${transitive.moduleName}"
-                println "transitive.moduleVersion=\${transitive.moduleVersion}"
-            }
+        rootComponent.get().getDependenciesForVariant(rootVariant.get()).each { transitive ->
+            println "transitive.moduleGroup=\${transitive.owner.group}"
+            println "transitive.moduleName=\${transitive.owner.module}"
+            println "transitive.moduleVersion=\${transitive.owner.version}"
         }
         println files.collect { it.name }
     }
