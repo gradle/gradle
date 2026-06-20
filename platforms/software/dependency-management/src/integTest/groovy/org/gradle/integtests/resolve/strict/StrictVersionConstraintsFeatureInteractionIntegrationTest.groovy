@@ -420,10 +420,9 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         }
 
         buildFile << """
-            configurations.conf.resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if (details.requested.name == 'foo') {
-                    details.useVersion '0.11'
-                    details.because 'because I can'
+            configurations.conf.resolutionStrategy {
+                dependencySubstitution {
+                    substitute(module('org:foo')).because('because I can').using(module('org:foo:0.11'))
                 }
             }
             dependencies {
@@ -454,7 +453,10 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:0.11').byConstraint()
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:0.11').selectedByRule('because I can')
+                    edge('org:foo:2.0', 'org:foo:0.11') {
+                        forced()
+                        selectedByRule('because I can')
+                    }
                 }
             }
         }
@@ -472,9 +474,18 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         }
 
         buildFile << """
-           configurations.conf.resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if (details.requested.name == 'foo' && details.requested.version == '1.0') {
-                    details.useTarget 'org:new:1.0' // this also has to remove the 'strict' state of all 'org:foo:1.0' edges
+            configurations.conf.resolutionStrategy {
+                dependencySubstitution {
+                    // Use the 'all' syntax since module() creates ModuleComponentSelectors without a strict version,
+                    // which does not match the declared dependency with a strict version
+                    all { dep ->
+                        if (dep.requested instanceof ModuleComponentSelector) {
+                            ModuleComponentSelector req = dep.requested as ModuleComponentSelector
+                            if (req.module == 'foo' && req.version == '1.0') {
+                                dep.useTarget('org:new:1.0')
+                            }
+                        }
+                    }
                 }
             }
             dependencies {

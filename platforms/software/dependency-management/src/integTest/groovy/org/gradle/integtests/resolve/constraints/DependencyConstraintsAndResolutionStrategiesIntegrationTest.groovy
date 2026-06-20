@@ -153,10 +153,9 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
                 }
             }
             configurations.conf.resolutionStrategy {
-                eachDependency { DependencyResolveDetails details ->
-                    if (details.requested.group == 'org') {
-                        details.useVersion '1.0'
-                    }
+                dependencySubstitution {
+                    substitute(module('org:bar')).using(module('org:bar:1.0'))
+                    substitute(module('org:foo')).using(module('org:foo:1.0'))
                 }
             }
         """
@@ -169,8 +168,10 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
             root(":", ":test:") {
                 constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
+                    forced()
                     selectedByRule()
                     edge("org:foo:1.0","org:foo:1.0") {
+                        forced()
                         selectedByRule()
                         byConstraint()
                     }

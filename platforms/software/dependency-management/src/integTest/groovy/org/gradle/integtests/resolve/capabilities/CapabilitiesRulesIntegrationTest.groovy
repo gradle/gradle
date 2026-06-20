@@ -469,10 +469,8 @@ configurations.configureEach {
                 select('jakarta:activation:1.0')
             }
         }
-        eachDependency { details ->
-            if (details.requested.name == 'xml' && details.requested.group == 'jakarta') {
-                details.useVersion('1.0')
-            }
+        dependencySubstitution {
+            substitute(module('jakarta:xml')).using(module('jakarta:xml:1.0'))
         }
     }
 }
@@ -514,6 +512,7 @@ dependencies {
             root(":", ":test:") {
                 edge('jakarta:xml', 'jakarta:xml:1.0') {
                     byConflictResolution("Explicit selection of jakarta:xml:1.0 variant ${this.runtimeVariant}")
+                    forced()
                     selectedByRule()
                     module('jakarta:activation:1.0') {
                         byConflictResolution("Explicit selection of jakarta:activation:1.0 variant ${this.runtimeVariant}")

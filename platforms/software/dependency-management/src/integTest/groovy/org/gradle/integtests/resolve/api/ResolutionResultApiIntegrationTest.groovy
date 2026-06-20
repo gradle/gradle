@@ -252,10 +252,8 @@ baz:1.0 requested
             }
 
             configurations.all {
-                resolutionStrategy.eachDependency {
-                    if (requested.name == 'foo') {
-                        because("fix comes from component selection rule").useTarget("org:bar:1.0")
-                    }
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')).because('fix comes from component selection rule').using(module('org:bar:1.0'))
                 }
             }
 
@@ -308,10 +306,8 @@ baz:1.0 requested
             }
 
             configurations.all {
-                resolutionStrategy.eachDependency {
-                    if (requested.name == 'foo') {
-                        because("fix comes from component selection rule").useTarget("org:bar:1.0")
-                    }
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')).because('fix comes from component selection rule').using(module('org:bar:1.0'))
                 }
             }
 

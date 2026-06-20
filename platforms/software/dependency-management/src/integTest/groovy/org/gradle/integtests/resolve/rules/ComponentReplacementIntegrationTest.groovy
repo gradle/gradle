@@ -269,10 +269,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
         buildFile << """
-            configurations.all { resolutionStrategy.eachDependency { dep ->
-                if (dep.requested.name == 'b') {
-                    dep.useTarget 'org:d:1'
-                }
+            configurations.all { resolutionStrategy.dependencySubstitution {
+                substitute(module('org:b')).using(module('org:d:1'))
             }}
         """
         expect:
@@ -283,10 +281,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
         buildFile << """
-            configurations.all { resolutionStrategy.eachDependency { dep ->
-                if (dep.requested.name == 'a') {
-                    dep.useTarget 'org:b:1'
-                }
+            configurations.all { resolutionStrategy.dependencySubstitution {
+                substitute(module('org:a')).using(module('org:b:1'))
             }}
         """
         expect:
@@ -298,10 +294,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->d'
         buildFile << """
-            configurations.all { resolutionStrategy.eachDependency { dep ->
-                if (dep.requested.name == 'b') {
-                    dep.useTarget 'org:d:1'
-                }
+            configurations.all { resolutionStrategy.dependencySubstitution {
+                substitute(module('org:b')).using(module('org:d:1'))
             }}
         """
         expect:
@@ -313,9 +307,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'c', 'd'
         declaredReplacements 'a->b'
         buildFile << """
-            configurations.all { resolutionStrategy.eachDependency { dep ->
-                if (dep.requested.name == 'c') { dep.useTarget 'org:a:1' }
-                if (dep.requested.name == 'd') { dep.useTarget 'org:b:1' }
+            configurations.all { resolutionStrategy.dependencySubstitution {
+                substitute(module('org:c')).using(module('org:a:1'))
+                substitute(module('org:d')).using(module('org:b:1'))
             }}
         """
         expect:
@@ -327,8 +321,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'c->d'
         buildFile << """
-            configurations.all { resolutionStrategy.eachDependency { dep ->
-                if (dep.requested.name == 'b') { dep.useTarget 'org:d:1' }
+            configurations.all { resolutionStrategy.dependencySubstitution {
+                substitute(module('org:b')).using(module('org:d:1'))
             }}
         """
         expect:
@@ -340,8 +334,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b', 'd->a'
         buildFile << """
-            configurations.all { resolutionStrategy.eachDependency { dep ->
-                if (dep.requested.name == 'b') { dep.useTarget 'org:d:1' }
+            configurations.all { resolutionStrategy.dependencySubstitution {
+                substitute(module('org:b')).using(module('org:d:1'))
             }}
         """
         //a->b->d->a

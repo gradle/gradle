@@ -263,10 +263,8 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 other
                 conf.shouldResolveConsistentlyWith(other)
 
-                conf.resolutionStrategy.eachDependency { details ->
-                    if (details.requested.name == 'foo') {
-                        details.useVersion '1.2'
-                    }
+                conf.resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')).using(module('org:foo:1.2'))
                 }
             }
 
@@ -291,6 +289,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org:foo:1.1', 'org:foo:1.2') {
+                    forced()
                     selectedByRule()
                     byConsistentResolution('other')
                 }

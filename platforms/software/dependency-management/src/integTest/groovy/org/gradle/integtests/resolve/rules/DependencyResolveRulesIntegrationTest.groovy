@@ -56,11 +56,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf project(':a')
             }
             configurations.conf.resolutionStrategy {
-                eachDependency {
-                    assert it.requested.toString() == 'org.gradle.test:a:1.2'
-                    assert it.target.toString() == 'org.gradle.test:a:1.2'
-                    it.useVersion('1.3')
-                    assert it.target.toString() == 'org.gradle.test:a:1.3'
+                dependencySubstitution {
+                    substitute(project(':a')).using(module('org.gradle.test:a:1.3'))
                 }
             }
 
@@ -99,10 +96,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                eachDependency {
-                    if (it.requested.group == 'org.utils' && it.requested.name != 'optional-lib') {
-                        it.useVersion '1.5'
-                    }
+                dependencySubstitution {
+                    substitute(module('org.utils:api')).using(module('org.utils:api:1.5'))
+                    substitute(module('org.utils:impl')).using(module('org.utils:impl:1.5'))
                 }
                 failOnVersionConflict()
             }
@@ -115,10 +111,12 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                  module("org.stuff:foo:2.0") {
                     module("org.utils:api:1.5") {
                         selectedByRule()
+                        forced()
                     }
                 }
                 edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     selectedByRule()
+                    forced()
                     module("org.utils:api:1.5")
                 }
                 module("org.utils:optional-lib:5.0")
@@ -143,10 +141,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                eachDependency {
-                    if (it.requested.group == 'org.utils') {
-                        it.useVersion '1.5'
-                    }
+                dependencySubstitution {
+                    substitute(module('org.utils:api')).using(module('org.utils:api:1.5'))
+                    substitute(module('org.utils:impl')).using(module('org.utils:impl:1.5'))
                 }
             }
         """
@@ -158,8 +155,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 module("org.stuff:foo:2.0") {
                     edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                         selectedByRule()
+                        forced()
                         module("org.utils:api:1.5") {
                             selectedByRule()
+                            forced()
                         }
                     }
                 }
@@ -182,19 +181,25 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                eachDependency {
-                    assert it.target == it.requested
-                    it.useVersion '1.4'
+                dependencySubstitution {
+                    all { dep ->
+                        assert dep.target == dep.requested
+                        dep.useTarget(dep.requested.group + ':' + dep.requested.module + ':1.4')
+                    }
                 }
-                eachDependency {
-                    assert it.target.version == '1.4'
-                    assert it.target.name == it.requested.name
-                    assert it.target.group == it.requested.group
-                    it.useVersion '1.5'
+                dependencySubstitution {
+                    all { dep ->
+                        assert dep.target.version == '1.4'
+                        assert dep.target.module == dep.requested.module
+                        assert dep.target.group == dep.requested.group
+                        dep.useTarget(dep.requested.group + ':' + dep.requested.module + ':1.5')
+                    }
                 }
-                eachDependency {
-                    assert it.target.version == '1.5'
-                    //don't change the version
+                dependencySubstitution {
+                    all { dep ->
+                        assert dep.target.version == '1.5'
+                        //don't change the version
+                    }
                 }
             }
         """
@@ -230,13 +235,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
-                eachDependency {
-                    it.useVersion it.requested.version
+                dependencySubstitution {
+                    substitute(module('org.utils:impl')).using(module('org.utils:impl:1.3'))
+                    substitute(module('org.utils:api')).using(module('org.utils:api:1.3'))
                 }
             }
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("checkDeps")
         resolve.expectGraph {
             root(":", ":test:") {
@@ -269,14 +276,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
-                eachDependency {
-                    assert it.target.version == '1.5'
-                    it.useVersion '1.3'
+                dependencySubstitution {
+                    substitute(module('org.utils:impl')).using(module('org.utils:impl:1.3'))
+                    substitute(module('org.utils:api')).using(module('org.utils:api:1.3'))
                 }
             }
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("checkDeps")
         resolve.expectGraph {
             root(":", ":test:") {
@@ -309,16 +317,14 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5")
 
-                eachDependency {
-                    if (it.requested.name == 'api') {
-                        assert it.target == it.requested
-                        it.useVersion '1.5'
-                    }
+                dependencySubstitution {
+                    substitute(module('org.utils:api')).using(module('org.utils:api:1.5'))
                 }
             }
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("checkDeps")
         resolve.expectGraph {
             root(":", ":test:") {
@@ -326,6 +332,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     forced()
                     module("org.utils:api:1.5") {
                         selectedByRule()
+                        forced()
                     }
                 }
             }
@@ -344,8 +351,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                it.useVersion '1.+'
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('org.utils:api')).using(module('org.utils:api:1.+'))
             }
         """
 
@@ -355,6 +362,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             root(":", ":test:") {
                 edge("org.utils:api:1.3", "org.utils:api:1.5") {
                     selectedByRule()
+                    forced()
                 }
             }
         }
@@ -373,11 +381,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution {
                 // a:1.2 is denied, 1.4 should be used instead:
-                if (it.requested.name == 'a' && it.requested.version == '1.2') {
-                    it.useVersion '1.4'
-                }
+                substitute(module('org.utils:a:1.2')).using(module('org.utils:a:1.4'))
             }
         """
 
@@ -408,11 +414,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution {
                 // a:1.2 is denied, 1.2.1 should be used instead:
-                if (it.requested.name == 'a' && it.requested.version == '1.2') {
-                    it.useVersion '1.2.1'
-                }
+                substitute(module('org.utils:a:1.2')).using(module('org.utils:a:1.2.1'))
             }
         """
 
@@ -441,10 +445,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:default'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.version == 'default') {
-                    it.useVersion '1.3'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('org.utils:api:default')).using(module('org.utils:api:1.3'))
             }
         """
 
@@ -470,10 +472,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:impl:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.version == 'default') {
-                    it.useVersion '1.3'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('org.utils:api:default')).using(module('org.utils:api:1.3'))
             }
         """
 
@@ -500,8 +500,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                it.useVersion '1.123.15' //does not exist
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                //does not exist
+                substitute(module('org.utils:api')).using(module('org.utils:api:1.123.15'))
             }
 
             task check {
@@ -556,8 +557,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             List requested = new ${CopyOnWriteArrayList.name}()
 
             configurations.conf.resolutionStrategy {
-                eachDependency {
-                    requested << "\$it.requested.name:\$it.requested.version"
+                dependencySubstitution {
+                    all { dep ->
+                        requested << "\$dep.requested.module:\$dep.requested.version"
+                    }
                 }
             }
 
@@ -593,11 +596,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                eachDependency {
-                    it.useVersion '1.3' //happy
-                }
-                eachDependency {
-                    throw new RuntimeException("Unhappy :(")
+                dependencySubstitution {
+                    //happy
+                    substitute(module('org.utils:impl')).using(module('org.utils:impl:1.3'))
+                    substitute(module('org.utils:api')).using(module('org.utils:api:1.3'))
+                    all { dep ->
+                        throw new RuntimeException("Unhappy :(")
+                    }
                 }
             }
         """
@@ -625,10 +630,8 @@ Required by:
                 conf 'org.utils:a:1.2', 'org.utils:b:2.0'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.name == 'a') {
-                    it.useTarget(it.requested.group + ':b:2.1')
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('org.utils:a')).using(module('org.utils:b:2.1'))
             }
         """
 
@@ -660,10 +663,8 @@ Required by:
                 conf 'org:a:1.0', 'foo:b:1.0'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.group == 'foo') {
-                    it.useTarget('org:' + it.requested.name + ':' + it.requested.version)
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('foo:b:1.0')).using(module('org:b:1.0'))
             }
         """
 
@@ -698,10 +699,8 @@ Required by:
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.group == 'foo') {
-                    it.useTarget group: 'org', name: 'b', version: '1.0'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('foo:bar:baz')).using(module('org:b:1.0'))
             }
         """
 
@@ -741,9 +740,11 @@ Required by:
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.group == 'foo') {
-                    it.useTarget $accessSyntax
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                all { dep ->
+                    if (dep.requested.group == 'foo') {
+                        dep.useTarget($accessSyntax)
+                    }
                 }
             }
         """
@@ -775,8 +776,10 @@ Required by:
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                it.useTarget "foobar"
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                all { dep ->
+                    dep.useTarget("foobar")
+                }
             }
         """
 
@@ -832,10 +835,8 @@ Required by:
                 conf 'org:a:1.0', 'org:a:2.0'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.name == 'a' && it.requested.version == '1.0') {
-                    it.useTarget group: 'org', name: 'c', version: '1.1'
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute(module('org:a:1.0')).using(module('org:c:1.1'))
             }
         """
 
@@ -913,16 +914,11 @@ Required by:
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency {
-                        switch (it.requested.name) {
-                           case 'foo':
-                              it.because('because I am in control').useVersion('2.0')
-                              break
-                           case 'bar':
-                              it.because('why not?').useTarget('org.test:bar:2.0')
-                              break
-                           default:
-                              useVersion(it.requested.version)
+                    resolutionStrategy {
+                        dependencySubstitution {
+                            substitute(module('org:foo')).because('because I am in control').using(module('org:foo:2.0'))
+                            substitute(module('org:bar')).because('why not?').using(module('org.test:bar:2.0'))
+                            substitute(module('org:baz')).using(module('org:baz:1.0'))
                         }
                     }
                 }
@@ -943,12 +939,14 @@ Required by:
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:2.0") {
                     selectedByRule("because I am in control")
+                    forced()
                 }
                 edge("org:bar:1.0", "org.test:bar:2.0") {
                     selectedByRule("why not?")
                 }
                 module("org:baz:1.0") {
                     selectedByRule()
+                    forced()
                 }
             }
         }

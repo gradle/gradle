@@ -191,8 +191,13 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                         it.useTarget group: 'org.utils', name: it.requested.module, version: '1.4'
                     }
                 }
-                eachDependency {
-                    it.useVersion '1.5'
+                dependencySubstitution {
+                    all { dep ->
+                        if (dep.requested instanceof ModuleComponentSelector) {
+                            def req = dep.requested as ModuleComponentSelector
+                            dep.useTarget(req.group + ':' + req.module + ':1.5')
+                        }
+                    }
                 }
             }
         """
@@ -1522,8 +1527,8 @@ Required by:
                      }
                   }
                }""",
-            """eachDependency { dep ->
-                  if (dep.requested.name == 'lib') {
+            """dependencySubstitution.all { DependencySubstitution dep ->
+                  if (dep.requested instanceof ModuleComponentSelector && (dep.requested as ModuleComponentSelector).module == 'lib') {
                      dep.artifactSelection {
                         selectArtifact('jar', 'jar', null)
                      }

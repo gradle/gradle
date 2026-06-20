@@ -135,7 +135,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public Set<org.gradle.api.artifacts.ModuleVersionSelector> getForcedModules() {
         DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "getForcedModules()")
             .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
             .nagUser();
 
         return getParsedForcedModules().stream()
@@ -230,7 +230,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "force(Object...)")
             .withAdvice("Use strict versions instead.")
             .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
             .nagUser();
 
         mutationValidator.validateMutation(STRATEGY);
@@ -286,7 +286,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "setForcedModules(Object...)")
             .replaceWith("dependencySubstitution(Action)")
             .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
             .nagUser();
 
         mutationValidator.validateMutation(STRATEGY);

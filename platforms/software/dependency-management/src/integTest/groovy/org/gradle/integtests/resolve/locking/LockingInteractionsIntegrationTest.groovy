@@ -450,10 +450,8 @@ repositories {
 }
 configurations {
     lockedConf {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'org' && details.requested.name == 'test') {
-                details.useVersion '1.0'
-            }
+        resolutionStrategy.dependencySubstitution {
+            substitute(module('org:test')).using(module('org:test:1.0'))
         }
     }
 }
