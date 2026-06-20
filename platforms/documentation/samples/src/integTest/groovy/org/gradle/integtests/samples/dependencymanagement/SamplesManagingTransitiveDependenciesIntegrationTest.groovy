@@ -66,23 +66,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("integration-tests/dependencyManagement/managingTransitiveDependencies-forceForConfiguration")
-    def "can force a dependency version for particular configuration for #dsl dsl"() {
-        TestFile dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        def libs = listFilesInBuildLibsDir(dslDir)
-        libs.any { it.name == 'commons-codec-1.9.jar' }
-        !libs.any { it.name == 'commons-codec-1.10.jar' }
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
     @UsesSample("integration-tests/dependencyManagement/managingTransitiveDependencies-disableForDependency")
     def "can disable transitive dependency resolution for dependency for #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)

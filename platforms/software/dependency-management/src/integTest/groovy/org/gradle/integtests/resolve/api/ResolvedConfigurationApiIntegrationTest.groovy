@@ -101,8 +101,9 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
             }
 
             task show {
+                def artifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
                 doLast {
-                    configurations.compile.resolvedConfiguration.resolvedArtifacts
+                    artifacts.get()
                 }
             }
         """
@@ -143,8 +144,9 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
             }
 
             task show {
+                def artifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
                 doLast {
-                    configurations.compile.resolvedConfiguration.resolvedArtifacts.each { it.file }
+                    artifacts.get()
                 }
             }
         """
@@ -155,8 +157,10 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         m1.artifact.expectGetMissing()
         def m2 = mavenHttpRepo.module("test", "test2", "1.2").publish()
         m2.pom.expectGet()
+        m2.artifact.expectGet()
         def m3 = mavenHttpRepo.module("test", "test3", "1.2").publish()
         m3.pom.expectGet()
+        m3.artifact.expectGet()
 
         fails("show")
 

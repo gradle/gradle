@@ -1,23 +1,21 @@
 // tag::resolve-rules[]
 configurations.configureEach {
-    resolutionStrategy {
-        eachDependency {
-            if (requested.group == "com.example" && requested.name == "old-library") {
-                useTarget("com.example:new-library:1.0.0")
-                because("Our license only allows use of version 1")
-            }
-        }
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("com.example:old-library"))
+            .because("Our license only allows use of version 1")
+            .using(module("com.example:new-library:1.0.0"))
     }
 }
 // end::resolve-rules[]
 
 // tag::custom-versioning-scheme[]
 configurations.configureEach {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.version == 'default') {
-            def version = findDefaultVersionInCatalog(details.requested.group, details.requested.name)
-            details.useVersion version.version
-            details.because version.because
+    resolutionStrategy.dependencySubstitution {
+        all { dep ->
+            if (dep.requested.version == 'default') {
+                def version = findDefaultVersionInCatalog(dep.requested.group, dep.requested.module)
+                dep.useTarget("${dep.requested.group}:${dep.requested.module}:${version.version}", version.because)
+            }
         }
     }
 }
@@ -30,25 +28,24 @@ def findDefaultVersionInCatalog(String group, String name) {
 
 // tag::denying_version[]
 configurations.configureEach {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == 'org.software' && details.requested.name == 'some-library' && details.requested.version == '1.2') {
-            details.useVersion '1.2.1'
-            details.because 'fixes critical bug in 1.2'
-        }
+    resolutionStrategy.dependencySubstitution {
+        substitute(module('org.software:some-library:1.2'))
+            .because('fixes critical bug in 1.2')
+            .using(module('org.software:some-library:1.2.1'))
     }
 }
 // end::denying_version[]
 
 // tag::module_substitution[]
 configurations.configureEach {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.name == 'groovy-all') {
-            details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
-            details.because "prefer 'groovy' over 'groovy-all'"
-        }
-        if (details.requested.name == 'log4j') {
-            details.useTarget "org.slf4j:log4j-over-slf4j:1.7.10"
-            details.because "prefer 'log4j-over-slf4j' 1.7.10 over any version of 'log4j'"
+    resolutionStrategy.dependencySubstitution {
+        all { dep ->
+            if (dep.requested.module == 'groovy-all') {
+                dep.useTarget("${dep.requested.group}:groovy:${dep.requested.version}", "prefer 'groovy' over 'groovy-all'")
+            }
+            if (dep.requested.module == 'log4j') {
+                dep.useTarget('org.slf4j:log4j-over-slf4j:1.7.10', "prefer 'log4j-over-slf4j' 1.7.10 over any version of 'log4j'")
+            }
         }
     }
 }

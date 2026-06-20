@@ -362,7 +362,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         } else if (conflictResolution == ConflictResolution.preferProjectModules) {
             out.preferProjectModules();
         }
-        out.setForcedModules(forcedModules);
+        out.doForce(forcedModules.toArray());
         for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {
             out.getComponentSelection().addRule(ruleAction);
         }

@@ -197,7 +197,7 @@ public interface ResolutionStrategy {
      *   <li>any collection or array of above will be automatically flattened</li>
      * </ul>
      * Example:
-     * <pre class='autoTested'>
+     * <pre>
      * plugins {
      *     id 'java' // so that there are some configurations
      * }

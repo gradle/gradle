@@ -740,16 +740,15 @@ Required by:
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution {
-                all { dep ->
-                    if (dep.requested.group == 'foo') {
-                        dep.useTarget($accessSyntax)
-                    }
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.group == 'foo') {
+                    it.useTarget $accessSyntax
                 }
             }
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds("checkDeps")
         resolve.expectGraph {
             root(":", ":test:") {
@@ -806,6 +805,7 @@ Required by:
                 it.useTarget dependencies.constraints.create("org:b:1.0")
             }
         """
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         executer.expectDocumentedDeprecationWarning(
             "Converting an instance of ModuleVersionSelector to ModuleComponentSelector has been deprecated. This will fail with an error in Gradle 10. Don't create or use ModuleVersionSelector instances and pass one of the other supported notations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_moduleversionselector_to_modulecomponentselector"
         )
