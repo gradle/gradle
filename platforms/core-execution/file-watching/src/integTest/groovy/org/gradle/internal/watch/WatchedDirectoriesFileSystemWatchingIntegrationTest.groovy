@@ -89,8 +89,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
         then:
         outputContains("File system watching is active")
-        !file(".gradle/file-system.probe").exists()
-        file(".gradle").assertIsEmptyDir()
+        file(".gradle").assertDoesNotExist()
         cacheDir.isDirectory()
     }
 
