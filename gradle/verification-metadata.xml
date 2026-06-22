@@ -900,36 +900,6 @@
             <sha256 value="5b8f84f082ee8fa872e63d0616a84b65e7d24cf57aafcdd080e74926e9dbe3ae" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.ci.health" name="common" version="0.63">
-         <artifact name="common-0.63.jar">
-            <sha256 value="1cbecb45b99d98523a62f9ead6a248b95e295d5db186d09222e6ae1ea6ce0292" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="common" version="0.74">
-         <artifact name="common-0.74.jar">
-            <sha256 value="c9e7a770270510d50ad4c7b9df04fc4fa88a60011e610822d653a9b25791bef7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="github-client" version="0.74">
-         <artifact name="github-client-0.74.jar">
-            <sha256 value="5bb1ef363623fdf76ca64a07abbd4c69d3b915876f87538d031791add35f2683" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="gradle-build-tag-plugin" version="0.74">
-         <artifact name="gradle-build-tag-plugin-0.74.jar">
-            <sha256 value="4824afdf33200a96ad995ed9f4b6c9cbac98168cbda53642e7f8664cb7331556" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="tagging" version="0.74">
-         <artifact name="tagging-0.74.jar">
-            <sha256 value="5c5db6b64345396574d4527f44623a449753aeb308ab8adf1ad717795ec708b7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="teamcity-client" version="0.74">
-         <artifact name="teamcity-client-0.74.jar">
-            <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.25.0">
          <artifact name="gradle-guides-plugin-0.25.0.jar">
             <sha256 value="aaef2108d192420ab4a2723fab4d2ca00aec68836056dd2e2f56c529d2681ca8" origin="Verified" reason="Artifact is not signed"/>
