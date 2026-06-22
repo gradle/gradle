@@ -43,6 +43,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -217,7 +218,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 OperatingSystem.current(),
                 nativeCapabilities,
                 fileEvents,
-                fileWatchingFilter.getImmutableLocations()::contains)
+                fileWatchingFilter::isImmutableLocation)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     root,
@@ -348,8 +349,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             StringInterner stringInterner,
             VirtualFileSystem root,
             FileSystemAccess.WriteListener writeListener,
-            DirectorySnapshotterStatistics.Collector statisticsCollector
+            DirectorySnapshotterStatistics.Collector statisticsCollector,
+            ProjectCacheDir projectCacheDir,
+            FileWatchingFilter fileWatchingFilter
         ) {
+            fileWatchingFilter.addCurrentBuildImmutableLocation(projectCacheDir.getDir());
+
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
                 hasher,
                 stringInterner,

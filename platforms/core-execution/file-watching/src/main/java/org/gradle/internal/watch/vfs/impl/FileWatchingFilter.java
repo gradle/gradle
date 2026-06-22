@@ -21,6 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.FileSystemAccess;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -36,11 +37,20 @@ import java.util.concurrent.atomic.AtomicReference;
 @ServiceScope(Scope.UserHome.class)
 public class FileWatchingFilter implements FileSystemAccess.WriteListener {
     private final FileHierarchySet immutableLocations;
+    private final AtomicReference<FileHierarchySet> currentBuildImmutableLocations = new AtomicReference<>(FileHierarchySet.empty());
     private final AtomicReference<FileHierarchySet> locationsWrittenByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
     private volatile boolean buildRunning;
 
     public FileWatchingFilter(FileHierarchySet immutableLocations) {
         this.immutableLocations = immutableLocations;
+    }
+
+    public void addCurrentBuildImmutableLocation(File location) {
+        currentBuildImmutableLocations.updateAndGet(locations -> locations.plus(location));
+    }
+
+    public boolean isImmutableLocation(String location) {
+        return immutableLocations.contains(location) || currentBuildImmutableLocations.get().contains(location);
     }
 
     @Override
@@ -61,10 +71,6 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
         return !locationsWrittenByCurrentBuild.get().contains(location);
     }
 
-    public FileHierarchySet getImmutableLocations() {
-        return immutableLocations;
-    }
-
     public void buildStarted() {
         resetLocationsWritten();
         buildRunning = true;
@@ -72,6 +78,7 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
 
     public void buildFinished() {
         resetLocationsWritten();
+        currentBuildImmutableLocations.set(FileHierarchySet.empty());
         buildRunning = false;
     }
 
