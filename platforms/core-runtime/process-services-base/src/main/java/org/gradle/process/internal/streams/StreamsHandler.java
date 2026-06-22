@@ -46,4 +46,19 @@ public interface StreamsHandler extends Stoppable {
      */
     @Override
     void stop();
+
+    /**
+     * Like {@link #stop()}, but waits at most {@code timeoutMillis} for the asynchronous work on the process's streams to finish.
+     *
+     * <p>A forwarder reading the process' stdout/stderr can stay parked in an uninterruptible native {@code read()} when a
+     * surviving child process (for example a Gradle daemon started by the process) keeps the output pipe open after the process
+     * itself has exited. This variant lets callers put an upper bound on how long they wait for such draining before giving up.</p>
+     *
+     * @param timeoutMillis the maximum time to wait, in milliseconds
+     * @return {@code true} if all work on the streams finished within the timeout, {@code false} if work is still ongoing
+     */
+    default boolean stop(long timeoutMillis) {
+        stop();
+        return true;
+    }
 }

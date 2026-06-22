@@ -116,6 +116,41 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.abort()
     }
 
+    void "completes promptly after the process exits even if a child holds its output pipe open"() {
+        // Reproduces the cause of the docs-test hang: a process that exits while a surviving child keeps its
+        // stdout/stderr pipe open leaves an output forwarder parked in an uninterruptible native read(). Completion
+        // must not wait on that forwarder indefinitely. The child sleeps for 30s, so before the fix waitForFinish()
+        // blocked until the child exited; with the fix it returns within the ~10s grace period.
+        //
+        // Built through the production factory (daemon executor) so the deliberately-abandoned forwarder thread is a
+        // daemon thread, rather than one the ConcurrentSpec test executor tracks and waits for at teardown.
+        given:
+        def factory = DefaultClientExecHandleBuilderFactory.of(
+            TestFiles.pathToFileResolver(),
+            new DefaultExecutorFactory(),
+            buildCancellationToken
+        )
+        def execHandle = factory.newExecHandleBuilder()
+            .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
+            .setTimeout(60000)
+            .setWorkingDir(tmpDir.getTestDirectory())
+            .environment('CLASSPATH', mergeClasspath())
+            .environment('JAVA_EXE_PATH', TextUtil.normaliseFileSeparators(Jvm.current().getJavaExecutable().getAbsolutePath()))
+            .args(args(AppLeavingChildHoldingOutputOpen.class))
+            .build()
+
+        when:
+        def start = System.currentTimeMillis()
+        def result = execHandle.start().waitForFinish()
+        def elapsedMillis = System.currentTimeMillis() - start
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
+        result.exitValue == 0
+        // The child sleeps for 30s; completion must happen well before that (within the ~10s grace period).
+        elapsedMillis < 25000
+    }
+
     void "waiting for process returns quickly if process already completed"() {
         given:
         def execHandle = handle()
@@ -555,7 +590,9 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         result.rethrowFailure()
         1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as Executor)
         1 * streamsHandler.start()
-        1 * streamsHandler.stop()
+        // After the process exits the runner waits for the streams with a bounded grace period; returning true
+        // means they drained in time, so no forcible disconnect is needed.
+        1 * streamsHandler.stop(_) >> true
         0 * streamsHandler._
     }
 
@@ -706,6 +743,27 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         static void main(String[] args) throws InterruptedException {
             def java = System.getenv('JAVA_EXE_PATH')
             "$java ${AppWithChild.name}".execute().waitFor()
+        }
+    }
+
+    /**
+     * Exits immediately after starting a child that inherits — and so holds open — this process' stdout/stderr.
+     * The child outlives this process, keeping the output pipe open the way a leaked Gradle daemon does, which
+     * parks the output forwarder in a native read() that never sees end-of-stream.
+     */
+    static class AppLeavingChildHoldingOutputOpen {
+        static void main(String[] args) throws Exception {
+            def java = System.getenv('JAVA_EXE_PATH')
+            new ProcessBuilder(java, PipeHoldingChild.name)
+                .inheritIO()
+                .start()
+            // Return immediately, leaving the child holding the output pipe open.
+        }
+    }
+
+    static class PipeHoldingChild {
+        static void main(String[] args) throws InterruptedException {
+            Thread.sleep(30000L)
         }
     }
 }

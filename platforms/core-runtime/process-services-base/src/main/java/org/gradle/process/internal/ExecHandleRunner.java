@@ -47,6 +47,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
 
+    /**
+     * How long to wait for the process' output to finish being forwarded after the process has exited, before completing the
+     * handle regardless. This only has an effect when a surviving child process is holding the output pipe open; see
+     * {@link #completeAfterExit(int)}.
+     */
+    private static final long STREAM_FORWARDING_GRACE_PERIOD_MILLIS = 10_000;
+
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
@@ -194,10 +201,26 @@ public class ExecHandleRunner implements Runnable {
         });
     }
 
+    /**
+     * After the process exits, wait for its output to finish being forwarded before completing — but only for a bounded grace
+     * period. {@link StreamsHandler#stop()} blocks until the stdout/stderr forwarders reach end-of-stream, which can never
+     * happen while a surviving child process (for example a Gradle daemon started by the process) keeps the output pipe open,
+     * parking a forwarder in an uninterruptible native {@code read()}. The process has already exited and will produce no more
+     * output of its own, so rather than block completion — and therefore {@link DefaultExecHandle#waitForFinish()} — forever,
+     * we give the streams a grace period to drain and then complete regardless. Forwarder threads are daemon threads, so an
+     * abandoned one cannot keep the JVM alive.
+     */
     private void completeAfterExit(int exitValue) {
         CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
             try {
-                streamsHandler.stop();
+                if (!streamsHandler.stop(STREAM_FORWARDING_GRACE_PERIOD_MILLIS)) {
+                    LOGGER.debug(
+                        "Output of process '{}' was not fully forwarded within {} ms of it exiting; "
+                            + "a surviving child process may be holding its output pipe open. Completing without it.",
+                        execHandle.getDisplayName(), STREAM_FORWARDING_GRACE_PERIOD_MILLIS
+                    );
+                    streamsHandler.disconnect();
+                }
                 completed(exitValue);
             } catch (Throwable t) {
                 execHandle.failed(t);

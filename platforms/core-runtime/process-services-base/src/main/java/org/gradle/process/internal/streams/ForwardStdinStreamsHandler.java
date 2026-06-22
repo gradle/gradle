@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Forwards the contents of an {@link InputStream} to the process' stdin
@@ -64,6 +65,16 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
         disconnect();
         try {
             completed.await();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public boolean stop(long timeoutMillis) {
+        disconnect();
+        try {
+            return completed.await(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

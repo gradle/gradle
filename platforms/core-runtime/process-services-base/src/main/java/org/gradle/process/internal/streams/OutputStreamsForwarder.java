@@ -22,6 +22,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Reads from the process' stdout and stderr (if not merged into stdout) and forwards to {@link OutputStream}.
@@ -73,6 +74,15 @@ public class OutputStreamsForwarder implements StreamsHandler {
     public void stop() {
         try {
             completed.await();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public boolean stop(long timeoutMillis) {
+        try {
+            return completed.await(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

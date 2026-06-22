@@ -529,6 +529,15 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
 
         @Override
+        public boolean stop(long timeoutMillis) {
+            // Bound each handler independently; the output forwarder is the one that can wedge on a pipe held open
+            // by a surviving child process, so we must not let it block completion indefinitely.
+            boolean outputStopped = outputHandler.stop(timeoutMillis);
+            boolean inputStopped = inputHandler.stop(timeoutMillis);
+            return outputStopped && inputStopped;
+        }
+
+        @Override
         public void disconnect() {
             outputHandler.disconnect();
             inputHandler.disconnect();
