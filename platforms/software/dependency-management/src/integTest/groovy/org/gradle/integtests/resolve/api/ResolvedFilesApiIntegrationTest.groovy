@@ -323,15 +323,17 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         expect:
         fails("show")
-        failure.assertHasCause("""The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' variant 'free' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'free' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'paid' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
-          - Provides flavor 'paid' but the consumer didn't ask for it""")
+          - Provides flavor 'paid' but the consumer didn't ask for it
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
 
         where:
         expression << ALL_EXPRESSIONS
@@ -411,11 +413,8 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
           - Doesn't say anything about flavor (required 'preview')
           - Doesn't say anything about usage (required 'compile')""")
         } else {
-            // Lazy FileCollection expressions resolve the project dependency graph but not external or file dependencies.
-            // Project :a's primary configuration is auto-tagged with org.gradle.fallback-variant=true (because it has
-            // secondary variants), so consumer-side injection of fallback-variant=false makes the graph-level matcher
-            // reject :a's primary before file resolution even begins.
-            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+            // Lazy FileCollection expressions resolve the project dependency graph but not external or file dependencies
+            failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
 
         where:
@@ -597,7 +596,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
             failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
             failure.assertHasCause("broken 2")
-            failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':")
+            failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':")
         } else {
             failure.assertHasDescription("Could not determine the dependencies of task ':show'.")
         }

@@ -549,17 +549,19 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         fails 'show'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:compile' variant 'var1' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:compile' variant 'var1' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant 'var2' declares attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile':
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant 'var2' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
-          - Provides flavor 'two' but the consumer didn't ask for it""")
+          - Provides flavor 'two' but the consumer didn't ask for it
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
 
         where:
         expression                                                    | _
@@ -1009,7 +1011,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
-        failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false'. However we cannot choose between the following variants of project ':a':")
+        failure.assertHasCause("More than one variant of project ':a' matches the consumer attributes")
 
         where:
         expression                                                    | _
@@ -1101,13 +1103,15 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:default' variant 'v1' declares attribute 'org.gradle.fallback-variant' with value 'false':
-      - Unmatched attribute:
+        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:default' variant 'v1':
+      - Unmatched attributes:
           - Doesn't say anything about usage (required 'compile')
-  - Configuration ':a:default' variant 'v2' declares attribute 'org.gradle.fallback-variant' with value 'false':
-      - Unmatched attribute:
-          - Doesn't say anything about usage (required 'compile')""")
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
+  - Configuration ':a:default' variant 'v2':
+      - Unmatched attributes:
+          - Doesn't say anything about usage (required 'compile')
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
     }
 
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {

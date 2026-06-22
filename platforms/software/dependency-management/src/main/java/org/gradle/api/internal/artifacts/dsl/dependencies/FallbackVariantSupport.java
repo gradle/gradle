@@ -23,6 +23,7 @@ import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -86,6 +87,43 @@ public final class FallbackVariantSupport {
             return consumerAttributes;
         }
         return attributesFactory.concat(consumerAttributes, FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, falseValue);
+    }
+
+    /**
+     * Returns {@code attrs} stripped of any {@link FallbackVariant#FALLBACK_VARIANT_ATTRIBUTE}
+     * entry, or {@code attrs} unchanged if no such entry is present. Used to keep the
+     * consumer-side auto-injection of {@code fallback-variant=false} out of error messages
+     * that report on the original (un-augmented) consumer request.
+     *
+     * @param attrs the attribute set to filter
+     * @param attributesFactory factory used to rebuild the filtered set
+     * @return {@code attrs} unchanged if it doesn't carry the attribute, otherwise a copy without it
+     */
+    public ImmutableAttributes removeFallbackVariant(
+        ImmutableAttributes attrs,
+        AttributesFactory attributesFactory
+    ) {
+        if (attrs.findEntry(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName()) == null) {
+            return attrs;
+        }
+        ImmutableAttributes result = ImmutableAttributes.EMPTY;
+        for (ImmutableAttributesEntry<?> entry : attrs.getEntries()) {
+            if (!entry.getKey().getName().equals(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName())) {
+                result = concatEntry(result, entry, attributesFactory);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * A bound type parameter {@code <T>} is required so that the
+     * {@code concat(_, Attribute<T>, Isolatable<T>)} overload of {@link AttributesFactory}
+     * is unambiguously selected. Inlining this at the call site would erase {@code T} to
+     * {@code Object}, after which both that overload and {@code concat(_, Attribute<T>, T value)}
+     * become applicable and the compiler cannot pick one.
+     */
+    private static <T> ImmutableAttributes concatEntry(ImmutableAttributes node, ImmutableAttributesEntry<T> entry, AttributesFactory attributesFactory) {
+        return attributesFactory.concat(node, entry.getKey(), entry.getValue());
     }
 
     @VisibleForTesting
