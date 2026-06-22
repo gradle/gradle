@@ -106,8 +106,8 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    FallbackVariantSupport createFallbackVariantSupport() {
-        return new FallbackVariantSupport();
+    FallbackVariantSupport createFallbackVariantSupport(NamedObjectInstantiator instantiator) {
+        return new FallbackVariantSupport(instantiator);
     }
 
     @Provides

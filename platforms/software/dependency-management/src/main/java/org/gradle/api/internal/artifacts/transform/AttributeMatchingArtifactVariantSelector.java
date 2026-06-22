@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.attributes.FallbackVariant;
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -45,19 +47,22 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler failureHandler;
     private final TransformationChainSelector transformationChainSelector;
+    private final FallbackVariantSupport fallbackVariantSupport;
 
     public AttributeMatchingArtifactVariantSelector(
         ImmutableAttributesSchema consumerSchema,
         ConsumerProvidedVariantFinder transformationChainBuilder,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler failureHandler
+        ResolutionFailureHandler failureHandler,
+        FallbackVariantSupport fallbackVariantSupport
     ) {
         this.consumerSchema = consumerSchema;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.failureHandler = failureHandler;
         this.transformationChainSelector = new TransformationChainSelector(transformationChainBuilder, failureHandler);
+        this.fallbackVariantSupport = fallbackVariantSupport;
     }
 
     @Override
@@ -80,6 +85,9 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     ) {
         AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
         ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
+        if (anyCandidateCarriesFallbackVariant(producer.getCandidates())) {
+            targetAttributes = fallbackVariantSupport.augmentConsumerWithDefault(targetAttributes, attributesFactory);
+        }
 
         // Check for matching variant without using artifact transforms.  If we found only one match, return it.
         // If we found multiple matches, there is ambiguity.
@@ -102,5 +110,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         } else {
             throw failureHandler.noCompatibleArtifactFailure(matcher, producer, targetAttributes);
         }
+    }
+
+    private static boolean anyCandidateCarriesFallbackVariant(List<? extends ResolvedVariant> candidates) {
+        for (ResolvedVariant candidate : candidates) {
+            if (candidate.getAttributes().findEntry(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName()) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }

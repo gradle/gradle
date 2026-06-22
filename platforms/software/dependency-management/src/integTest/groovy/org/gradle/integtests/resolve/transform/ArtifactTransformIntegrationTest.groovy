@@ -501,8 +501,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     compile project(':lib')
                 }
 
-                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
-
                 ${configurationAndTransform('FileSizer')}
             }
         """
@@ -681,8 +679,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     }
                 }
 
-                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
-
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
                         attributes {
@@ -791,8 +787,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         to.attribute(Attribute.of('color', String), "blue")
                     }
                 }
-
-                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
@@ -1142,8 +1136,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     }
                 }
 
-                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
-
                 task resolve {
                     def artifactFiles = configurations.compile.incoming.artifactView { config ->
                         config.attributes {
@@ -1400,8 +1392,6 @@ Found the following transformation chains:
                         to.attribute(artifactType, 'transformed')
                     }
                 }
-
-                configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
 
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
