@@ -87,20 +87,17 @@ public class DefaultProjectDependencyConstraint extends AbstractDependencyConstr
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public String getGroup() {
         return projectDependency.getGroup();
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public String getName() {
         return projectDependency.getName();
     }
 
     @Nullable
     @Override
-    @SuppressWarnings("deprecation")
     public String getVersion() {
         return projectDependency.getVersion();
     }
@@ -117,7 +114,6 @@ public class DefaultProjectDependencyConstraint extends AbstractDependencyConstr
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public ModuleIdentifier getModule() {
         String group = projectDependency.getGroup();
         return DefaultModuleIdentifier.newId(group != null ? group : "", projectDependency.getName());

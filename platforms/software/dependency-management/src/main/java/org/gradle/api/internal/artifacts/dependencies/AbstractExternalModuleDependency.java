@@ -78,19 +78,16 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public @Nullable String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public String getName() {
         return moduleIdentifier.getName();
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public @Nullable String getVersion() {
         String requiredVersion = versionConstraint.getRequiredVersion();
         String version = requiredVersion.isEmpty() ? versionConstraint.getPreferredVersion() : requiredVersion;
@@ -126,7 +123,6 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public ModuleIdentifier getModule() {
         return moduleIdentifier;
     }

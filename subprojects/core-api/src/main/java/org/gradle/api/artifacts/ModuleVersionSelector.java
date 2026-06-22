@@ -34,7 +34,6 @@ public interface ModuleVersionSelector {
      *
      * @return module group
      */
-    @Deprecated
     String getGroup();
 
     /**
@@ -42,7 +41,6 @@ public interface ModuleVersionSelector {
      *
      * @return module name
      */
-    @Deprecated
     String getName();
 
     /**
@@ -51,7 +49,6 @@ public interface ModuleVersionSelector {
      * @return module version
      */
     @Nullable
-    @Deprecated
     String getVersion();
 
     /**
@@ -73,7 +70,6 @@ public interface ModuleVersionSelector {
      *
      * @since 4.9
      */
-    @Deprecated
     ModuleIdentifier getModule();
 
 }

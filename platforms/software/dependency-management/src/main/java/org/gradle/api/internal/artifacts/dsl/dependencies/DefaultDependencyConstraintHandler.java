@@ -79,20 +79,17 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public String getGroup() {
             throw shouldNotBeCalled();
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public String getName() {
             throw shouldNotBeCalled();
         }
 
         @Nullable
         @Override
-        @SuppressWarnings("deprecation")
         public String getVersion() {
             throw shouldNotBeCalled();
         }
@@ -104,7 +101,6 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public ModuleIdentifier getModule() {
             throw shouldNotBeCalled();
         }

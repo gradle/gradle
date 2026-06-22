@@ -63,19 +63,16 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
     @Nullable
     @Override
-    @SuppressWarnings("deprecation")
     public String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public String getName() {
         return moduleIdentifier.getName();
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public String getVersion() {
         return Strings.emptyToNull(versionConstraint.getRequiredVersion());
     }
@@ -150,7 +147,6 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public ModuleIdentifier getModule() {
         return moduleIdentifier;
     }
