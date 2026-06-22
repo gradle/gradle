@@ -33,12 +33,12 @@ import org.jetbrains.kotlin.load.java.Jsr305Settings
 import org.jetbrains.kotlin.load.java.ReportLevel
 
 
-fun KotlinCompile.configureKotlinCompilerForGradleBuild(moduleName: String) {
+fun KotlinCompile.configureKotlinCompilerForGradleBuild(moduleName: String? = null) {
     compilerOptions {
         this.allWarningsAsErrors = true
         this.apiVersion = KotlinVersion.KOTLIN_2_2
         this.languageVersion = KotlinVersion.KOTLIN_2_2
-        this.moduleName = moduleName
+        moduleName?.let { this.moduleName = it }
         this.freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-Xjspecify-annotations=strict",
