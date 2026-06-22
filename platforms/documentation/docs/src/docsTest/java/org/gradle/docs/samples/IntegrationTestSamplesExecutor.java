@@ -33,6 +33,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,6 +107,18 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             //    Our operation:
             //    Lock file: /mnt/tcagent1/work/b6cfc23ab10332e6/intTestHomeDir/distributions-full/caches/build-cache-1/build-cache-1.lock
             executer.withGradleUserHomeDir(new File(workingDir, "user-home"));
+        } else {
+            // Samples run in parallel across docsTest workers, each forking its own Gradle daemon. When those
+            // daemons share one Gradle user home they contend on - and can deadlock on - the cross-process file
+            // lock of its shared dependency (artifact) cache: the same class of cross-process cache contention
+            // documented above for the build cache. Give each worker its own writable user home (per-worker, so
+            // a worker's sequential samples still reuse its daemon and caches) and read dependencies from the
+            // shared, pre-seeded cache read-only, so resolution stays fast and free of cross-process locking.
+            File sharedUserHome = IntegrationTestBuildContext.INSTANCE.getGradleUserHomeDir();
+            String workerKey = ManagementFactory.getRuntimeMXBean().getName().replaceAll("[^A-Za-z0-9]", "_");
+            executer
+                .withGradleUserHomeDir(new File(sharedUserHome.getParentFile(), sharedUserHome.getName() + "-sample-worker-" + workerKey))
+                .withReadOnlyCacheDir(new File(sharedUserHome, "caches"));
         }
 
         if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {
