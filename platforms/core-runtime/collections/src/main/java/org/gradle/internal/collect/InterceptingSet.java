@@ -17,7 +17,6 @@
 package org.gradle.internal.collect;
 
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * A generic {@link Set} decorator over {@link InterceptingCollection}. {@code Set} adds no methods to
@@ -27,9 +26,5 @@ public class InterceptingSet<E> extends InterceptingCollection<E, Set<E>> implem
 
     public InterceptingSet(Set<E> delegate, Interceptor interceptor) {
         super(delegate, interceptor);
-    }
-
-    protected InterceptingSet(Set<E> delegate, Interceptor interceptor, Function<E, E> elementView) {
-        super(delegate, interceptor, elementView);
     }
 }
