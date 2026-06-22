@@ -38,6 +38,8 @@ dependencies {
     implementation(projects.processServicesBase)
     implementation(projects.daemonProtocol)
     implementation(projects.daemonLogging)
+
+    runtimeOnly(projects.tracing)
 }
 
 gradleModule {

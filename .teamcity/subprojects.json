@@ -1666,6 +1666,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "tracing",
+    "path": "platforms/core-runtime/tracing",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "unit-test-fixtures",
     "path": "platforms/extensibility/unit-test-fixtures",
     "unitTests": true,
