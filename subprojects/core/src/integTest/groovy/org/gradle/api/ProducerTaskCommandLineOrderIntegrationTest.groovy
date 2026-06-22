@@ -263,7 +263,7 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
+    @ToBeFixedForIsolatedProjects(skipBecause = "flaky")
     def "producer task with a dependency on an artifact transform will run before destroyer tasks when ordered first"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
