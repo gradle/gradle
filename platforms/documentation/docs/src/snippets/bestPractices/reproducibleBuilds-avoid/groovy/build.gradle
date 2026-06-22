@@ -1,0 +1,10 @@
+// tag::avoid-this[]
+plugins {
+    id 'java-library' // <1>
+}
+
+tasks.named('jar', Jar) {
+    preserveFileTimestamps = true   // <2>
+    reproducibleFileOrder = false   // <3>
+}
+// end::avoid-this[]
