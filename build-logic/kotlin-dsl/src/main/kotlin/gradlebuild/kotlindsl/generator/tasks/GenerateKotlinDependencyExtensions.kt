@@ -80,7 +80,7 @@ val embeddedKotlinVersion = "$embeddedKotlinVersion"
  *
  * @param module simple name of the Kotlin module, for example "reflect".
  */
-fun DependencyHandler.embeddedKotlin(module: String): Any =
+fun DependencyHandler.embeddedKotlin(module: String): String =
     kotlin(module, embeddedKotlinVersion)
 
 
