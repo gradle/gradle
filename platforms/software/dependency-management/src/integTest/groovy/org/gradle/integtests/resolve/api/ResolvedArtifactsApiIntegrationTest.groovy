@@ -480,7 +480,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             configurations {
                 compile {
                     attributes.attribute(usage, 'compile')
-                    attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
+
                 }
             }
 
@@ -1009,7 +1009,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
-        failure.assertHasCause("More than one variant of project ':a' matches the consumer attributes")
+        failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false'. However we cannot choose between the following variants of project ':a':")
 
         where:
         expression                                                    | _
@@ -1101,15 +1101,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
-  - Configuration ':a:default' variant 'v1':
-      - Unmatched attributes:
+        outputContains("""failure 6: The consumer was configured to find attribute 'org.gradle.fallback-variant' with value 'false', attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:default' variant 'v1' declares attribute 'org.gradle.fallback-variant' with value 'false':
+      - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
-          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
-  - Configuration ':a:default' variant 'v2':
-      - Unmatched attributes:
-          - Doesn't say anything about usage (required 'compile')
-          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
+  - Configuration ':a:default' variant 'v2' declares attribute 'org.gradle.fallback-variant' with value 'false':
+      - Unmatched attribute:
+          - Doesn't say anything about usage (required 'compile')""")
     }
 
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
@@ -1141,7 +1139,7 @@ Searched in the following locations:
             }
 
             configurations.compile.attributes.attribute(usage, "compile")
-            configurations.compile.attributes.attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant, "false"))
+
 
             task resolveLenient {
                 def lenientViewFiles = configurations.compile.incoming.artifactView({lenient(true)}).files
