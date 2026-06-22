@@ -82,9 +82,13 @@ testing/$performanceProjectName/build/performance-test-results.zip
             )
             val bucketedPerformanceTests = performanceTestProject.performanceTests.filter { it.testProjects.isNotEmpty() }
             if (bucketedPerformanceTests.isNotEmpty()) {
-                // Baselines come from this build's own parameter; per-bucket TeamCity build IDs are derived inside the
-                // report task from the surviving perf-results-*.json files. The expected bucket count is passed so the
-                // verify task can fail the Trigger when fewer buckets reported than configured.
+                // Authoritative per-bucket TeamCity build IDs from the dependency graph. The report needs these to tell
+                // results this pipeline produced apart from results restored from the Gradle build cache: a cached
+                // bucket's perf-results-*.json carries the `teamCityBuildId` of the build that originally produced it,
+                // so the JSON cannot be trusted to identify this pipeline's buckets.
+                val dependencyBuildIds = bucketedPerformanceTests.joinToString(",") { "%dep.${it.id}.env.BUILD_ID%" }
+                // Baselines come from this build's own parameter. The expected bucket count is passed so the verify
+                // task can fail the Trigger when fewer buckets reported than configured.
                 val verifyTaskName = "verify${taskName.replaceFirstChar { it.titlecase() }}Buckets"
                 gradleRunnerStep(
                     model,
@@ -94,6 +98,7 @@ testing/$performanceProjectName/build/performance-test-results.zip
                             "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                             "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                             "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+                            "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds,
                             "-Porg.gradle.performance.expectedBuckets" to bucketedPerformanceTests.size.toString(),
                             "-PperformanceBaselines" to "%performance.baselines%",
                         ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) },

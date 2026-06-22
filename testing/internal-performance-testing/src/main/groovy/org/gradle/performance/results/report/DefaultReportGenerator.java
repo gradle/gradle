@@ -51,7 +51,14 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
-                if (scenario.isBuildFailed()) {
+                if (scenario.isFromCache()) {
+                    // Results restored from the Gradle build cache were produced by a previous pipeline (the cached
+                    // bucket task output bakes in the original build's teamCityBuildId), so neither a failure nor a
+                    // regression here is attributable to this change. The scenario still appears in the report, but it
+                    // must not fail this build - the pipeline that actually executed it is responsible for its status.
+                    System.out.println("Ignoring cached (not re-executed) scenario for build status: " + scenario.getName() + " "
+                        + scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(Collectors.joining(", ")));
+                } else if (scenario.isBuildFailed()) {
                     System.out.println("Build failed for " + scenario.getName() + scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(Collectors.joining(", ")));
                     failureCollector.scenarioFailed();
                 } else if (scenario.isRegressed()) {

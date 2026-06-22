@@ -50,6 +50,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_URL
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_USERNAME
+import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
@@ -124,6 +125,7 @@ object BuildParams {
     const val PERFORMANCE_DB_USERNAME = "org.gradle.performance.db.username"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val PERFORMANCE_STAGE_ENV = "PERFORMANCE_STAGE"
+    const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val RERUN_ALL_TESTS = "rerunAllTests"
     const val DEVELOCITY_SERVER_URL_ENV = "DEVELOCITY_SERVER_URL"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
@@ -299,6 +301,15 @@ val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
 
 val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
+
+/**
+ * The TeamCity build IDs of the performance test buckets that this pipeline actually triggered, comma-separated.
+ * Passed authoritatively by the Trigger build from the TeamCity dependency graph (not derived from the result
+ * JSONs, whose `teamCityBuildId` is baked into the cacheable bucket task output and therefore points at the
+ * original producing build on a build-cache hit). Empty when not running on CI.
+ */
+val Project.performanceDependencyBuildIds: Provider<String>
+    get() = gradleProperty(PERFORMANCE_DEPENDENCY_BUILD_IDS).orElse("")
 
 val Project.performanceStage: Provider<String>
     get() = environmentVariable(PERFORMANCE_STAGE_ENV)
