@@ -133,16 +133,16 @@ This ensures that even if a malicious script runs, it cannot access your files.
 [[build-published-artifacts-securely]]
 == Build your Published Artifacts Securely
 
-When publishing, ensure that artifacts are built in a trusted, reproducible way to protect your software supply chain.
+When publishing, ensure that artifacts are built in a trusted, reproducible way to protect your link:https://slsa.dev/[software supply chain].
 
 === Explanation
 
-For a project to be trustworthy, its published artifacts must be reproducible.
-This means that a clean build from a given set of source files will always produce a byte-for-byte identical output, regardless of when or where the build is executed.
+For a project's build to be considered mature and trustworthy, its published artifacts must be reproducible.
+This means that a clean build from a given set of source files will always produce byte-for-byte identical final output files, regardless of when or where the build is executed.
 To achieve this, the build process must be isolated from any external state that could influence the final artifact.
 
-When preparing a project for publishing, it is critical to use a secure, isolated, and non-incremental build process. This prevents potential security risks and ensures that the published artifact is a direct and verifiable result of the source code.
-that contains minimal infrastructure, such as only the JDK.
+When preparing a project for publishing, it is critical to use a secure and isolated build process.
+This prevents potential security risks and ensures that the published artifact is a direct and verifiable result of the source code.
 
 ==== Don't Do This
 
@@ -152,6 +152,10 @@ An incremental build might use a leftover artifact from an older, potentially co
 Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact.
 The build output would then be dependent on the state of the machine it was run on, undermining the integrity of your software.
 
+NOTE: This guidance is specific to builds that produce published artifacts.
+Gradle's <<build_cache.adoc#build_cache,build cache>> and <<configuration_cache.adoc#config_cache,configuration cache>> are safe and deterministic when configured correctly, and non-publishing builds should continue to take full advantage of them.
+Avoiding caching for publishing builds is an extra layer of paranoia, not a statement that caches are inherently unsafe.
+
 ==== Do This Instead
 
 Published artifacts should always be built in a trusted, pristine environment.
@@ -160,4 +164,4 @@ This approach, often referred to as *Ephemeral CI*, guarantees that the build st
 
 === Tags
 
-<<tags_reference.adoc:structuring-builds,#structuring-builds>>
+<<tags_reference.adoc#tag:publishing,`#publishing`>>

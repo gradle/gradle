@@ -42,7 +42,7 @@ Here you can find a brief explanation of all the tags used in the best practices
 `#properties` :: Items that explain the proper way to use <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, and the appropriate usage of using particular properties.
 
 [[tag:publishing]]
-`#publishing` :: Items that explain the proper way publish Gradle builds.
+`#publishing` :: Items that explain the proper way to <<publishing_setup.adoc#publishing_components,publish>> Gradle builds.
 
 [[tag:repositories]]
 `#repositories` :: Items that explain how to declare and use <<declaring_repositories.adoc#three-declaring-repositories,dependency repositories>>.
