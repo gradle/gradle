@@ -70,6 +70,7 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withDebugFrame
+import org.gradle.internal.serialize.graph.withImmediateMode
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
 
@@ -336,7 +337,9 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
             ) { providerInstance ->
                 readContext.runReadOperation {
                     sharedIdentities.putInstance(id, providerInstance)
-                    read()!!.uncheckedCast()
+                    withImmediateMode {
+                        read()!!.uncheckedCast()
+                    }
                 }
             }
             provider.uncheckedCast()
