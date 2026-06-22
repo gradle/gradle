@@ -98,6 +98,11 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     }
 
     @Override
+    public void removeProbeFiles() {
+        watchProbesByHierarchy.values().forEach(WatchProbe::deleteProbeFile);
+    }
+
+    @Override
     public File getProbeDirectory(File hierarchy) {
         WatchProbe watchProbe = watchProbesByHierarchy.get(hierarchy);
         if (watchProbe == null) {
@@ -179,6 +184,12 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
 
         public synchronized boolean leftArmed() {
             return state == State.ARMED;
+        }
+
+        public synchronized void deleteProbeFile() {
+            if (!probeFile.delete() && probeFile.exists()) {
+                LOGGER.debug("Could not delete probe file: {}", probeFile);
+            }
         }
 
         public File getProbeFile() {

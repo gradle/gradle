@@ -53,4 +53,6 @@ public interface FileWatcherProbeRegistry {
     void triggerWatchProbe(String path);
 
     File getProbeDirectory(File hierarchy);
+
+    void removeProbeFiles();
 }
