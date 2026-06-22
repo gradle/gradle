@@ -56,7 +56,7 @@ task check {
             'slf4j-api-1.7.5.jar'
         ]
 
-        assert compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == [
+        assert compile.incoming.files.collect { it.name } == [
             'logback-classic-1.0.13.jar',
             'logback-core-1.0.13.jar',
             'slf4j-api-1.7.5.jar'

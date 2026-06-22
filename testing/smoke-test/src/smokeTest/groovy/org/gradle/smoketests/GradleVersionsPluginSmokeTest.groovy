@@ -73,7 +73,13 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             "https://github.com/ben-manes/gradle-versions-plugin/issues/910"
         )
 
-        def result = runner.build()
+        def result = runner
+            .expectDeprecationWarning(
+                "The LenientConfiguration.getUnresolvedModuleDependencies() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/ben-manes/gradle-versions-plugin/blob/d3b4e93a2cc327cac96529fb313fc5fc092511df/gradle-versions-plugin/src/main/kotlin/com/github/benmanes/gradle/versions/updates/Resolver.kt#L60" +
+                    "https://github.com/ben-manes/gradle-versions-plugin/blob/d3b4e93a2cc327cac96529fb313fc5fc092511df/gradle-versions-plugin/src/main/kotlin/com/github/benmanes/gradle/versions/updates/Resolver.kt#L287"
+            )
+            .build()
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS

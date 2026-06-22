@@ -102,6 +102,7 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
             .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecation()
+                expectForceDeprecation()
             }
             .build()
 

@@ -85,7 +85,20 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         def smokeTestRunner = runner('assembleBootDist', 'check')
-        def buildResult = smokeTestRunner.build()
+        def buildResult = smokeTestRunner
+            .expectDeprecationWarning(
+                "The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/VersionConfiguringAction.java#L104"
+            )
+            .expectDeprecationWarning(
+                "The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/maven/MavenPomResolver.java#L79"
+            )
+            .expectDeprecationWarning(
+                "The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/maven/ConfigurationModelResolver.java#L91"
+            )
+            .build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
@@ -93,7 +106,20 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         smokeTestRunner = runner('bootRun')
-        def runResult = smokeTestRunner.build()
+        def runResult = smokeTestRunner
+            .expectDeprecationWarning(
+                "The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/VersionConfiguringAction.java#L104"
+            )
+            .expectDeprecationWarning(
+                "The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/maven/MavenPomResolver.java#L79"
+            )
+            .expectDeprecationWarning(
+                "The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/maven/ConfigurationModelResolver.java#L91"
+            )
+            .build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS

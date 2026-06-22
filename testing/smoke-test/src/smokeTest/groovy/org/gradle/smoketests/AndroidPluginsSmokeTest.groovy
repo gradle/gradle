@@ -57,7 +57,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'first build'
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectProjectDependencyNotationDeprecation(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }
             .build()
 
@@ -77,7 +77,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'up-to-date build'
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectProjectDependencyNotationDeprecation(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }
             .build()
 
@@ -96,7 +96,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         abiChange.run()
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectProjectDependencyNotationDeprecation(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }
             .build()
 
@@ -114,12 +114,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
-                expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectProjectDependencyNotationDeprecation(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }
             .build()
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectProjectDependencyNotationDeprecation(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }.build()
 
         then:

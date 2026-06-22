@@ -68,6 +68,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecation()
+                expectForceDeprecation()
             }
             .build()
     }
@@ -75,7 +76,8 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
             .deprecations(AndroidProjectDeprecations) {
-                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectProjectDependencyNotationDeprecation(GradleContextualExecuter.isNotConfigCache())
+                expectForceDeprecation(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
     }

@@ -44,6 +44,18 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
 
         when:
         def result = runner("dependencies", "--configuration", "compileClasspath")
+            .expectDeprecationWarning(
+                "The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/VersionConfiguringAction.java#L104"
+            )
+            .expectDeprecationWarning(
+                "The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/maven/MavenPomResolver.java#L79"
+            )
+            .expectDeprecationWarning(
+                "The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spring-gradle-plugins/dependency-management-plugin/blob/e2237bdfa2b68dd365e5a0887cf80c1815bb313d/src/main/java/io/spring/gradle/dependencymanagement/internal/maven/ConfigurationModelResolver.java#L91"
+            )
             .build()
 
         then:

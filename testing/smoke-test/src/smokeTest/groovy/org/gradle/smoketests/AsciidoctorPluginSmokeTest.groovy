@@ -16,11 +16,7 @@
 
 package org.gradle.smoketests
 
-
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
-import org.gradle.util.internal.VersionNumber
-
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     // CC will be supported in plugin 5.x+
@@ -45,7 +41,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('asciidoc').deprecations(AsciidocDeprecations) {
-            expectAsciiDocDeprecationWarnings(version)
+            expectAsciiDocDeprecationWarnings()
         }.build()
 
         then:
@@ -86,15 +82,11 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         if (!testedPluginId.startsWith("org.asciidoctor.jvm.")) {
             return []
         }
-        def versionNumber = VersionNumber.parse(version)
-        def deprecations = [parentMethodInvocationDeprecation('asciidoctorj')]
-        if (versionNumber.major >= 4) {
-            deprecations << ("The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
-                "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested").toString()
-        }
-        return deprecations
+        return [
+            parentMethodInvocationDeprecation('asciidoctorj'),
+            getStartParameterDeprecation(),
+            getEachDependencyDeprecation()
+        ]
     }
 
     static class AsciidocDeprecations extends BaseDeprecations {
@@ -102,19 +94,26 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             super(runner)
         }
 
-        void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
-            def versionNumber = VersionNumber.parse(asciidoctorVersion)
-            runner.expectDeprecationWarningIf(
-                // Once the plugin is fixed, we should include the fixed version in the smoke-tested set and flip the condition to be less-than (<)
-                versionNumber.major >= 4,
-                "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 10. " +
-                    "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
-                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
+        void expectAsciiDocDeprecationWarnings() {
+            runner.expectDeprecationWarning(
+                getStartParameterDeprecation(),
                 "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/751"
+            )
+            runner.expectDeprecationWarning(
+                getEachDependencyDeprecation(),
+                "https://github.com/asciidoctor/asciidoctor-gradle-plugin/blob/d969307023d3a6567a70f549f406f28dd23e962c/jvm/src/main/groovy/org/asciidoctor/gradle/jvm/AsciidoctorJExtension.groovy#L650"
             )
             // Asciidoc plugin currently triggers an --enable-native-access warning on Java 24+
             runner.withJdkWarningChecksDisabled()
         }
+
+    }
+
+    private static String getStartParameterDeprecation() {
+        "The StartParameter.isConfigurationCacheRequested property has been deprecated. This is scheduled to be removed in Gradle 10. Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested"
+    }
+
+    private static String getEachDependencyDeprecation() {
+        "The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations"
     }
 }

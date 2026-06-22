@@ -145,7 +145,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
-            expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+            expectProjectDependencyNotationDeprecation(GradleContextualExecuter.isNotConfigCache())
         }.build()
 
         then:

@@ -149,7 +149,12 @@ public class MyUtil {
 """
 
         when:
-        runner(":jar").build()
+        runner(":jar")
+            .expectDeprecationWarning(
+                getRethrowFailureDeprecation(),
+                "https://github.com/bndtools/bnd/blob/a708b3ff6ad31137597e4dcdb8772ec7b5478b01/gradle-plugins/biz.aQute.bnd.gradle/src/main/java/aQute/bnd/gradle/BndBuilderPlugin.java#L118"
+            )
+            .build()
 
         then: "version numbers exist in the manifest"
         assertJarManifestContains("Import-Package", "com.example.util;version=\"$calculatedDirectVersionRange\"")
@@ -335,7 +340,12 @@ public class MyUtil {
 """
 
         expect:
-        runner(":resolve").build()
+        runner(":resolve")
+            .expectDeprecationWarning(
+                getRethrowFailureDeprecation(),
+                "https://github.com/bndtools/bnd/blob/a708b3ff6ad31137597e4dcdb8772ec7b5478b01/gradle-plugins/biz.aQute.bnd.gradle/src/main/java/aQute/bnd/gradle/BndBuilderPlugin.java#L118"
+            )
+            .build()
     }
 
     def "BND plugin can run a simple project"() {
@@ -428,5 +438,9 @@ ${mavenCentralRepository()}
         [
             'biz.aQute.bnd.builder': Versions.of(TestedVersions.bnd),
         ]
+    }
+
+    private static String getRethrowFailureDeprecation() {
+        "The ResolvedConfiguration.rethrowFailure() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations"
     }
 }
