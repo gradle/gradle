@@ -140,6 +140,21 @@ public class InterceptingMap<K, V> implements Map<K, V>, Serializable {
             return interceptingEntry(entry, interceptor);
         }
 
+        /**
+         * Replaces each entry in {@code array} with a wrapping entry, mutating it in place. Both
+         * {@code toArray} overloads put exactly {@link #size()} entries at the front; a larger array
+         * from {@code toArray(T[])} keeps its trailing null terminator and padding untouched, so only
+         * the prefix is visited and no element can be null.
+         */
+        @SuppressWarnings("unchecked")
+        private <T> T[] wrapEntriesInPlace(T[] array) {
+            int entryCount = size();
+            for (int i = 0; i < entryCount; i++) {
+                array[i] = (T) wrap((Entry<K, V>) array[i]);
+            }
+            return array;
+        }
+
         @Override
         public Iterator<Entry<K, V>> iterator() {
             Iterator<Entry<K, V>> base = super.iterator();
@@ -168,23 +183,13 @@ public class InterceptingMap<K, V> implements Map<K, V>, Serializable {
 
         @Override
         public Object[] toArray() {
-            return wrapAll(super.toArray());
+            return wrapEntriesInPlace(super.toArray());
         }
 
         @Override
         @SuppressWarnings("SuspiciousToArrayCall")
         public <T> T[] toArray(T[] a) {
-            return wrapAll(super.toArray(a));
-        }
-
-        @SuppressWarnings("unchecked")
-        private <T> T[] wrapAll(T[] array) {
-            for (int i = 0; i < array.length; i++) {
-                if (array[i] != null) {
-                    array[i] = (T) wrap((Entry<K, V>) array[i]);
-                }
-            }
-            return array;
+            return wrapEntriesInPlace(super.toArray(a));
         }
 
         @Override
