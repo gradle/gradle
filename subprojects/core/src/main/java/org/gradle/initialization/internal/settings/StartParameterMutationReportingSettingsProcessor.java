@@ -27,9 +27,9 @@ import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReport
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Arms a listener that reports a problem when the build's start parameter is mutated after its settings
- * have been evaluated. This layer is added to the settings processing chain only when Isolated Projects
- * is enabled, since that is the only mode in which such mutations are reported.
+ * Registers a listener that reports a problem when the build's start parameter is mutated after its
+ * settings have been evaluated. This layer is added to the settings processing chain only when Isolated
+ * Projects is enabled, since that is the only mode in which such mutations are reported.
  */
 @NullMarked
 public class StartParameterMutationReportingSettingsProcessor implements SettingsProcessor {
@@ -44,6 +44,9 @@ public class StartParameterMutationReportingSettingsProcessor implements Setting
 
     @Override
     public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameterInternal startParameter) {
+        // Evaluate settings first, then register the listener: mutating the start parameter up to and
+        // during settings evaluation (init scripts, the settings script, settingsEvaluated callbacks) is
+        // allowed; only mutations after this point are violations.
         SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         startParameter.setMutationListener(methodSignature ->
             problems.report(factory ->

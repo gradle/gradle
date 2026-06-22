@@ -645,8 +645,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             )
         );
         if (buildModelParameters.isIsolatedProjects()) {
-            // Mutating the start parameter after settings evaluation is only reported under Isolated
-            // Projects, so the reporting layer is added to the chain only then.
             settingsProcessor = new StartParameterMutationReportingSettingsProcessor(settingsProcessor, isolatedProjectsProblemsReporter);
         }
         return new BuildOperationSettingsProcessor(
