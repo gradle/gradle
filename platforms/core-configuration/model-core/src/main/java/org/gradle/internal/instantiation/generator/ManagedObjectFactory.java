@@ -16,8 +16,10 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import com.google.common.base.Defaults;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Describable;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
@@ -49,6 +51,27 @@ public class ManagedObjectFactory {
             ((OwnerAware) instance).attachOwner(owner, displayNameFor(owner, propertyName));
         }
         return instance;
+    }
+
+    /**
+     * Unwraps the value backing an upgraded {@link Provider} getter for a pre-upgrade eager accessor.
+     * Called from generated eager-shim getters; see
+     * {@code AsmBackedClassGenerator.LocalMethodVisitorScope#applyEagerShimGetter}.
+     *
+     * <p>When the provider is absent the result is the JVM default of {@code legacyType}: {@code null}
+     * for reference types (equivalent to {@link Provider#getOrNull()}) and the boxed zero
+     * ({@code false}/{@code 0}/{@code 0L}/...) for primitives. The generated getter then unboxes the
+     * result, which reproduces the previous behaviour while avoiding the {@link NullPointerException}
+     * that unboxing a {@code null} {@code getOrNull()} would cause for a primitive.
+     *
+     * @param provider the upgraded Provider-typed backing value
+     * @param legacyType the declared return type of the pre-upgrade eager accessor
+     * @return the provider's value, or the JVM default of {@code legacyType} when the provider is absent
+     */
+    @Nullable
+    public static Object unpackEagerShim(Provider<?> provider, Class<?> legacyType) {
+        Object value = provider.getOrNull();
+        return value != null ? value : Defaults.defaultValue(legacyType);
     }
 
     // Called from generated code

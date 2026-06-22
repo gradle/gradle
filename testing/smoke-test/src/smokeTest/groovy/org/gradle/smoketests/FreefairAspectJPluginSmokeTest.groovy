@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
@@ -33,7 +32,6 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
      * TODO: Fix for Gradle 10.0
      */
     // AspectJ does not support JDK17 yet
-    @Ignore("Overrides AbstractCompile.classpath, but we don't handle that yet")
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     def 'freefair aspectj plugin'() {
         given:

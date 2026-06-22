@@ -37,6 +37,33 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         succeedsWithPluginCompiledWithPreviousVersion()
     }
 
+    def "can use upgraded Checkstyle in a #compilation Groovy plugin compiled with a previous Gradle version where the plugin overrode a migrated getter"() {
+        given:
+        prepareGroovyPluginTest("""
+            project.tasks.register("myCheckstyle", CustomCheckstyle) {
+                maxErrors = 1
+                int currentMaxErrors = maxErrors
+                assert currentMaxErrors == 1
+            }
+        """, """
+            $annotation
+            abstract class CustomCheckstyle extends Checkstyle {
+                @Override
+                int getMaxErrors() {
+                    return super.getMaxErrors()
+                }
+            }
+        """)
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+
+        where:
+        compilation          | annotation
+        "dynamically compiled" | ""
+        "statically compiled"  | "@groovy.transform.CompileStatic"
+    }
+
     def "can use upgraded Checkstyle in a Java plugin compiled with a previous Gradle version"() {
         given:
         prepareJavaPluginTest """
@@ -51,6 +78,123 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
                 assert file.getName().equals("someWeb.xml");
             });
         """
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+    }
+
+    def "can use upgraded Checkstyle in a Java plugin compiled with a previous Gradle version where the plugin overrode a migrated getter"() {
+        given:
+        prepareJavaPluginTest("""
+            project.getTasks().register("myCheckstyle", CustomCheckstyle.class, it -> {
+                it.setMaxErrors(1);
+                int currentMaxErrors = it.getMaxErrors();
+                assert currentMaxErrors == 1;
+            });
+        """, """
+            abstract class CustomCheckstyle extends Checkstyle {
+                @Inject
+                public CustomCheckstyle() {
+                }
+
+                @Override
+                public int getMaxErrors() {
+                    return super.getMaxErrors();
+                }
+            }
+        """)
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+    }
+
+    def "can use upgraded Checkstyle in a Kotlin plugin compiled with a previous Gradle version where the plugin overrode a migrated getter"() {
+        given:
+        prepareKotlinPluginTest("""
+            project.tasks.register("myCheckstyle", CustomCheckstyle::class.java) {
+                maxErrors = 1
+                val currentMaxErrors = maxErrors
+                assert(currentMaxErrors == 1)
+            }
+        """, """
+            abstract class CustomCheckstyle : Checkstyle() {
+                override fun getMaxErrors(): Int {
+                    return super.getMaxErrors()
+                }
+            }
+        """)
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+    }
+
+    def "can use upgraded Checkstyle in a #compilation Groovy plugin compiled with a previous Gradle version where the plugin overrode a migrated file collection getter"() {
+        given:
+        prepareGroovyPluginTest("""
+            project.tasks.register("myCheckstyle", CustomCheckstyle) {
+                checkstyleClasspath = project.files("custom.jar")
+                FileCollection currentClasspath = checkstyleClasspath
+                assert currentClasspath.singleFile.name == "custom.jar"
+            }
+        """, """
+            $annotation
+            abstract class CustomCheckstyle extends Checkstyle {
+                @Override
+                FileCollection getCheckstyleClasspath() {
+                    return super.getCheckstyleClasspath()
+                }
+            }
+        """)
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+
+        where:
+        compilation          | annotation
+        "dynamically compiled" | ""
+        "statically compiled"  | "@groovy.transform.CompileStatic"
+    }
+
+    def "can use upgraded Checkstyle in a Java plugin compiled with a previous Gradle version where the plugin overrode a migrated file collection getter"() {
+        given:
+        prepareJavaPluginTest("""
+            project.getTasks().register("myCheckstyle", CustomCheckstyle.class, it -> {
+                it.setCheckstyleClasspath(project.files("custom.jar"));
+                FileCollection currentClasspath = it.getCheckstyleClasspath();
+                assert currentClasspath.getSingleFile().getName().equals("custom.jar");
+            });
+        """, """
+            abstract class CustomCheckstyle extends Checkstyle {
+                @Inject
+                public CustomCheckstyle() {
+                }
+
+                @Override
+                public FileCollection getCheckstyleClasspath() {
+                    return super.getCheckstyleClasspath();
+                }
+            }
+        """)
+
+        expect:
+        succeedsWithPluginCompiledWithPreviousVersion()
+    }
+
+    def "can use upgraded Checkstyle in a Kotlin plugin compiled with a previous Gradle version where the plugin overrode a migrated file collection getter"() {
+        given:
+        prepareKotlinPluginTest("""
+            project.tasks.register("myCheckstyle", CustomCheckstyle::class.java) {
+                checkstyleClasspath = project.files("custom.jar")
+                val currentClasspath = checkstyleClasspath
+                assert(currentClasspath.singleFile.name == "custom.jar")
+            }
+        """, """
+            abstract class CustomCheckstyle : Checkstyle() {
+                override fun getCheckstyleClasspath(): FileCollection {
+                    return super.getCheckstyleClasspath()
+                }
+            }
+        """)
 
         expect:
         succeedsWithPluginCompiledWithPreviousVersion()

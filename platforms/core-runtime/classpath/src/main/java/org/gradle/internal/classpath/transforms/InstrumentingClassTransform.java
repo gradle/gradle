@@ -44,7 +44,16 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.LineNumberNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -77,7 +86,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 38;
+    private static final int DECORATION_FORMAT = 41;
 
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -172,7 +181,9 @@ public class InstrumentingClassTransform implements ClassTransform {
         private int nextBridgeMethodIndex;
 
         private boolean isInterface;
+        private boolean isAbstractClass;
         private String className;
+        private String superName;
         private String sourceFileName;
         private boolean hasGroovyCallSites;
 
@@ -194,7 +205,9 @@ public class InstrumentingClassTransform implements ClassTransform {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             this.isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
+            this.isAbstractClass = (access & Opcodes.ACC_ABSTRACT) != 0;
             this.className = name;
+            this.superName = superName;
         }
 
         @Override
@@ -208,6 +221,17 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
             }
+
+            // Replace super-delegating overrides of upgraded property accessors with abstract methods.
+            // When a subclass overrides a getter that was upgraded to return a more specialized type,
+            // and the override just calls super, we make it abstract (preserving annotations) so the
+            // class generator can provide a managed implementation. See https://github.com/gradle/gradle/issues/25421
+            if (isSuperDelegatingOverrideOfReplacedAccessor(access, name, descriptor)) {
+                // Emit an abstract method with the same signature and annotations, but no body.
+                MethodVisitor abstractMethod = super.visitMethod(access | Opcodes.ACC_ABSTRACT, name, descriptor, signature, exceptions);
+                return new AbstractMethodAnnotationForwarder(abstractMethod);
+            }
+
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
                 Optional<MethodNode> methodNode = classData.readClassAsNode().methods.stream().filter(method ->
@@ -216,6 +240,205 @@ public class InstrumentingClassTransform implements ClassTransform {
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
             return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+        }
+
+        private boolean isSuperDelegatingOverrideOfReplacedAccessor(int access, String name, String descriptor) {
+            // Can only convert to abstract in an abstract class
+            if (!isAbstractClass) {
+                return false;
+            }
+            // Only consider concrete, non-static, non-bridge, non-synthetic instance methods
+            if ((access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_STATIC | Opcodes.ACC_BRIDGE | Opcodes.ACC_SYNTHETIC)) != 0) {
+                return false;
+            }
+
+            // Find the MethodNode for this method
+            MethodNode methodNode = classData.readClassAsNode().methods.stream()
+                .filter(m -> Objects.equals(m.name, name) && Objects.equals(m.desc, descriptor))
+                .findFirst()
+                .orElse(null);
+            if (methodNode == null) {
+                return false;
+            }
+
+            // Check if the method is a pure super-delegation. We accept both the JVM bytecode shape
+            // (INVOKESPECIAL, as emitted by javac, Kotlin and statically-compiled Groovy) and the
+            // dynamically-compiled Groovy shape (ScriptBytecodeAdapter.invokeMethodOnSuper0).
+            //
+            // A super-delegating override compiled against the pre-upgrade API has its own (name, descriptor)
+            // equal to the replaced accessor it delegates to, and `superName` as the owner, so we use those for
+            // the lookup rather than reading them off the call instruction (which the Groovy shape lacks).
+            if (!isJvmSuperDelegation(methodNode) && !isGroovySuperDelegation(methodNode)) {
+                return false;
+            }
+
+            // Check if any interceptor recognizes this as a replaced accessor of an upgraded property
+            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
+                if (interceptor.isReplacedAccessor(superName, name, descriptor)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Analyzes the method's instructions to determine if it only delegates to {@code super}, as compiled to
+         * a JVM bytecode super call (javac, Kotlin, statically-compiled Groovy).
+         *
+         * Expected pattern (filtering out labels, line numbers, frames):
+         *   ALOAD 0 -> [param loads] -> INVOKESPECIAL super.<sameName> -> [optional Kotlin non-null assertion]
+         *   -> [optional CHECKCAST] -> xRETURN
+         *
+         * Kotlin emits a trailing {@code Intrinsics.checkNotNullExpressionValue(value, "...")} for non-null
+         * platform-type returns; it asserts and leaves the delegated value on the stack, so the override is still
+         * a pure delegation and is tolerated here.
+         */
+        private boolean isJvmSuperDelegation(MethodNode methodNode) {
+            AbstractInsnNode[] realInsns = realInstructions(methodNode);
+
+            Type[] argTypes = Type.getArgumentTypes(methodNode.desc);
+            int expectedParamLoads = argTypes.length;
+            // ALOAD 0 + params + INVOKESPECIAL + RETURN
+            if (realInsns.length < 3 + expectedParamLoads) {
+                return false;
+            }
+
+            int idx = 0;
+
+            // First: ALOAD 0 (this)
+            if (!(realInsns[idx] instanceof VarInsnNode) || ((VarInsnNode) realInsns[idx]).var != 0 || realInsns[idx].getOpcode() != Opcodes.ALOAD) {
+                return false;
+            }
+            idx++;
+
+            // Parameter loads
+            int slot = 1;
+            for (int i = 0; i < expectedParamLoads; i++) {
+                if (!(realInsns[idx] instanceof VarInsnNode)) {
+                    return false;
+                }
+                VarInsnNode loadInsn = (VarInsnNode) realInsns[idx];
+                int expectedOpcode = argTypes[i].getOpcode(Opcodes.ILOAD);
+                if (loadInsn.getOpcode() != expectedOpcode || loadInsn.var != slot) {
+                    return false;
+                }
+                slot += argTypes[i].getSize();
+                idx++;
+            }
+
+            // INVOKESPECIAL to the same method on the superclass
+            if (!(realInsns[idx] instanceof MethodInsnNode) || realInsns[idx].getOpcode() != Opcodes.INVOKESPECIAL) {
+                return false;
+            }
+            MethodInsnNode invokeSpecial = (MethodInsnNode) realInsns[idx];
+            if (!invokeSpecial.name.equals(methodNode.name) || !invokeSpecial.owner.equals(superName)) {
+                return false;
+            }
+            idx++;
+
+            // Optional Kotlin non-null assertion: DUP, LDC(String), INVOKESTATIC Intrinsics.checkNotNullExpressionValue
+            if (idx + 2 < realInsns.length
+                && realInsns[idx].getOpcode() == Opcodes.DUP
+                && realInsns[idx + 1] instanceof LdcInsnNode
+                && realInsns[idx + 2] instanceof MethodInsnNode) {
+                MethodInsnNode assertion = (MethodInsnNode) realInsns[idx + 2];
+                if (assertion.getOpcode() == Opcodes.INVOKESTATIC
+                    && assertion.owner.equals("kotlin/jvm/internal/Intrinsics")
+                    && assertion.name.equals("checkNotNullExpressionValue")) {
+                    idx += 3;
+                }
+            }
+
+            // Optional CHECKCAST
+            if (idx < realInsns.length && realInsns[idx] instanceof TypeInsnNode && realInsns[idx].getOpcode() == Opcodes.CHECKCAST) {
+                idx++;
+            }
+
+            // xRETURN, and it must be the last meaningful instruction
+            return idx == realInsns.length - 1 && isReturn(realInsns[idx]);
+        }
+
+        /**
+         * Analyzes the method's instructions to determine if it only delegates to {@code super}, as compiled by
+         * the dynamic Groovy compiler. A {@code return super.getX()} override there is dispatched reflectively via
+         * {@code ScriptBytecodeAdapter.invokeMethodOnSuper0(Class, GroovyObject, String)} rather than an
+         * INVOKESPECIAL, with the target method name carried as a String constant.
+         *
+         * We require: a single {@code invokeMethodOnSuper0} call dispatching the same-named method, an optional
+         * numeric unbox / CHECKCAST of its result, then a return; and no other method calls beyond the Groovy
+         * call-site-array setup. This keeps the match to genuine pure-delegation overrides.
+         */
+        private boolean isGroovySuperDelegation(MethodNode methodNode) {
+            AbstractInsnNode[] realInsns = realInstructions(methodNode);
+
+            boolean sawSuperDispatch = false;
+            for (int i = 0; i < realInsns.length; i++) {
+                AbstractInsnNode insn = realInsns[i];
+                if (insn instanceof MethodInsnNode) {
+                    MethodInsnNode call = (MethodInsnNode) insn;
+                    if (isGroovyCallSiteArraySetup(call) || isGroovyResultCoercion(call)) {
+                        continue;
+                    }
+                    if (call.getOpcode() == Opcodes.INVOKESTATIC
+                        && call.owner.equals("org/codehaus/groovy/runtime/ScriptBytecodeAdapter")
+                        && call.name.equals("invokeMethodOnSuper0")) {
+                        // The dispatched method name is the String constant loaded just before the call.
+                        if (sawSuperDispatch || !dispatchesMethodNamed(realInsns, i, methodNode.name)) {
+                            return false;
+                        }
+                        sawSuperDispatch = true;
+                        continue;
+                    }
+                    // Any other method call means the override does more than delegate.
+                    return false;
+                }
+                if (insn instanceof org.objectweb.asm.tree.InvokeDynamicInsnNode) {
+                    // indy-compiled Groovy uses a different dispatch shape we do not (yet) recognize.
+                    return false;
+                }
+            }
+            return sawSuperDispatch && isReturn(realInsns[realInsns.length - 1]);
+        }
+
+        private static boolean isGroovyCallSiteArraySetup(MethodInsnNode call) {
+            return call.getOpcode() == Opcodes.INVOKESTATIC && call.name.equals("$getCallSiteArray");
+        }
+
+        private static boolean isGroovyResultCoercion(MethodInsnNode call) {
+            if (call.getOpcode() != Opcodes.INVOKESTATIC) {
+                return false;
+            }
+            // Coercion of the Object result back to the declared return type: primitive unboxing via
+            // DefaultTypeTransformation, or reference casting via ScriptBytecodeAdapter.castToType.
+            return call.owner.equals("org/codehaus/groovy/runtime/typehandling/DefaultTypeTransformation")
+                || (call.owner.equals("org/codehaus/groovy/runtime/ScriptBytecodeAdapter") && call.name.equals("castToType"));
+        }
+
+        private static boolean dispatchesMethodNamed(AbstractInsnNode[] realInsns, int callIndex, String methodName) {
+            for (int i = callIndex - 1; i >= 0; i--) {
+                if (realInsns[i] instanceof LdcInsnNode) {
+                    Object cst = ((LdcInsnNode) realInsns[i]).cst;
+                    if (cst instanceof String) {
+                        return methodName.equals(cst);
+                    }
+                }
+            }
+            return false;
+        }
+
+        private static boolean isReturn(AbstractInsnNode insn) {
+            if (!(insn instanceof InsnNode)) {
+                return false;
+            }
+            int opcode = insn.getOpcode();
+            return opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN;
+        }
+
+        private static AbstractInsnNode[] realInstructions(MethodNode methodNode) {
+            // Collect meaningful instructions (skip labels, line numbers, frames)
+            return java.util.Arrays.stream(methodNode.instructions.toArray())
+                .filter(insn -> !(insn instanceof LabelNode) && !(insn instanceof LineNumberNode) && !(insn instanceof FrameNode))
+                .toArray(AbstractInsnNode[]::new);
         }
 
         @Override
@@ -457,6 +680,37 @@ public class InstrumentingClassTransform implements ClassTransform {
                 return bridgeMethod.bridgeMethodHandle;
             }
             return handle; // No instrumentation requested.
+        }
+    }
+
+    /**
+     * A MethodVisitor that forwards annotation visits to the delegate but drops the method body.
+     * Used to convert a concrete method into an abstract one while preserving its annotations.
+     */
+    private static class AbstractMethodAnnotationForwarder extends MethodVisitor {
+        private final MethodVisitor delegate;
+
+        AbstractMethodAnnotationForwarder(MethodVisitor delegate) {
+            // Pass delegate so annotation visits (visitAnnotation, visitParameterAnnotation, etc.) are forwarded automatically
+            super(ASM_LEVEL, delegate);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void visitCode() {
+            // Abstract methods have no code. Stop forwarding all subsequent visits by clearing the delegate.
+            mv = null;
+        }
+
+        @Override
+        public void visitMaxs(int maxStack, int maxLocals) {
+            // No code means no maxs
+        }
+
+        @Override
+        public void visitEnd() {
+            // Must forward to finalize the method definition
+            delegate.visitEnd();
         }
     }
 }

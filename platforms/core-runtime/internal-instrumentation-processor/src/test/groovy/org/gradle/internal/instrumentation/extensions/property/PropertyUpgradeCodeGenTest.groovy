@@ -577,4 +577,97 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         // SETTER access method is dropped because the source-level setMaxErrors exists
         !adapterContents.contains("access_set_setMaxErrors")
     }
+
+    def "should generate isReplacedAccessor for upgraded property"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(originalType = int.class)
+                public abstract Property<Integer> getMaxErrors();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        // A plain @ReplacesEagerProperty registers only the getter accessor (eager setters are no
+        // longer auto-synthesised), so isReplacedAccessor reports only the getter.
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                @Override
+                public boolean isReplacedAccessor(String owner, String name, String descriptor) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                        if (name.equals("getMaxErrors") && descriptor.equals("()I")) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
+
+    def "should generate isReplacedAccessor for upgraded property with custom accessor names"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+            import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+            import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+            import java.io.File;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(replacedAccessors = {
+                    @ReplacedAccessor(value = GETTER, name = "getDestinationDir", originalType = File.class),
+                    @ReplacedAccessor(value = SETTER, name = "setDestinationDir", originalType = File.class)
+                })
+                public abstract DirectoryProperty getDestinationDirectory();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        // When both accessors are declared explicitly, isReplacedAccessor reports both.
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                @Override
+                public boolean isReplacedAccessor(String owner, String name, String descriptor) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                        if (name.equals("getDestinationDir") && descriptor.equals("()Ljava/io/File;")) {
+                            return true;
+                        }
+                        if (name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V")) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
 }
