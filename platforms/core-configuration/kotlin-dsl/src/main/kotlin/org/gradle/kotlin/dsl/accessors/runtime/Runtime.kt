@@ -73,7 +73,7 @@ fun addConfiguredDependencyTo(
 
 
 @Suppress("LongParameterList", "DEPRECATION")
-@Deprecated("Use single-string notation instead")
+@Deprecated("Use single-string notation or DependencyFactory instead")
 fun addExternalModuleDependencyTo(
     dependencyHandler: DependencyHandler,
     targetConfiguration: String,
@@ -97,7 +97,7 @@ fun addExternalModuleDependencyTo(
     dependencyHandler.add(targetConfiguration, it)
 }
 
-@Deprecated("Use single-string notation instead")
+@Deprecated("Use single-string notation or DependencyFactory instead")
 fun externalModuleDependencyFor(
     dependencyHandler: DependencyHandler,
     group: String,

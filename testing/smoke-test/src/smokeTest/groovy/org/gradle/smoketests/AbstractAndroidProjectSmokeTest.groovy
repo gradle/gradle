@@ -27,7 +27,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 /**
@@ -125,9 +124,6 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         } else {
             throw new UnsupportedOperationException("Unsupported operating system: ${OperatingSystem.current().name}")
         }
-        runner.maybeExpectLegacyDeprecationWarning(
-            "Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.google.protobuf:protoc:4.29.2:${protobufClassifier}@exe\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
-        )
 
         runner
     }
