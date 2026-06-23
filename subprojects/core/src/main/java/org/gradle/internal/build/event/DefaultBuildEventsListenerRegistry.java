@@ -23,6 +23,8 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
@@ -64,12 +66,23 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TransferQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
+    private static final Logger LOGGER = Logging.getLogger(DefaultBuildEventsListenerRegistry.class);
+
+    // DEBUG (bz-debug-windows-arm-timeout): how long to wait for a build event listener's worker thread to
+    // finish draining its queue before forcefully shutting it down. Bumped from 60s to 10m while we
+    // troubleshoot the "Timeout waiting for concurrent jobs to complete" shutdown hang.
+    private static final int CLOSE_TIMEOUT_MINUTES = 10;
+
+    // DEBUG: interval at which we dump the stuck worker thread's stack while waiting for it to finish.
+    private static final long CLOSE_WATCHDOG_INTERVAL_SECONDS = 60;
+
     private final UserCodeApplicationContext applicationContext;
     private final BuildEventListenerFactory factory;
     private final ListenerManager listenerManager;
@@ -162,6 +175,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             subscription = subscriptions.remove(listenerProvider);
         }
         if (subscription != null) {
+            LOGGER.lifecycle("[build-event-listener] Unsubscribing (build service stopping) {}", subscription.getDescription());
             subscription.getListeners().forEach(this::unsubscribe);
             subscription.close();
         }
@@ -175,10 +189,16 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             subscriptions.clear();
         }
 
+        LOGGER.lifecycle("[build-event-listener] Unsubscribing all {} remaining listener(s) at build finish: {}",
+            subscribed.size(),
+            subscribed.stream().map(AbstractListener::getDescription).collect(toImmutableList()));
+
         subscribed.stream()
             .flatMap(it -> it.getListeners().stream())
             .forEach(this::unsubscribe);
         CompositeStoppable.stoppable(subscribed).stop();
+
+        LOGGER.lifecycle("[build-event-listener] Finished unsubscribing all listeners at build finish");
     }
 
     private void unsubscribe(Object listener) {
@@ -196,15 +216,24 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
     private static abstract class AbstractListener<T> implements Closeable {
         private static final Object END = new Object();
+        // DEBUG: unique id per listener so register/close log lines can be correlated.
+        private static final AtomicInteger ID_SEQUENCE = new AtomicInteger();
+
+        private final int id = ID_SEQUENCE.incrementAndGet();
         @Nullable
         private final UserCodeSource registrationPoint;
         private final ManagedExecutor executor;
         private final TransferQueue<Object> events = new LinkedTransferQueue<>();
         private final AtomicReference<Throwable> failure = new AtomicReference<>();
+        // DEBUG: the worker thread running run(), captured so we can dump its stack if shutdown hangs.
+        private volatile Thread workerThread;
 
         public AbstractListener(@Nullable UserCodeSource registrationPoint, ExecutorFactory executorFactory) {
             this.registrationPoint = registrationPoint;
-            this.executor = executorFactory.create("build event listener");
+            // Include the registration point in the executor (thread) name so any thread dump can identify
+            // which listener is involved.
+            this.executor = executorFactory.create("build event listener " + getDescription());
+            LOGGER.lifecycle("[build-event-listener] Registered {}", getDescription());
             Future<?> ignored = executor.submit(this::run);
         }
 
@@ -213,7 +242,18 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             return registrationPoint;
         }
 
+        /**
+         * DEBUG: a stable, human-readable identifier for this listener used in troubleshooting logs.
+         */
+        public String getDescription() {
+            String source = registrationPoint == null
+                ? "unknown source"
+                : registrationPoint.getDisplayName().getDisplayName();
+            return getClass().getSimpleName() + "#" + id + " (" + source + ")";
+        }
+
         private void run() {
+            workerThread = Thread.currentThread();
             while (true) {
                 Object next;
                 try {
@@ -250,11 +290,82 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         @Override
         public void close() {
             events.add(END);
-            executor.stop(60, TimeUnit.SECONDS);
+            LOGGER.lifecycle("[build-event-listener] Closing {} (pending events: {}); waiting up to {} minutes for worker to finish",
+                getDescription(), events.size(), CLOSE_TIMEOUT_MINUTES);
+            long startNanos = System.nanoTime();
+            Thread watchdog = startCloseWatchdog();
+            try {
+                executor.stop(CLOSE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                LOGGER.lifecycle("[build-event-listener] Closed {} in {} ms", getDescription(), elapsedMillis(startNanos));
+            } catch (RuntimeException e) {
+                // Most likely "Timeout waiting for concurrent jobs to complete" - the worker thread is stuck,
+                // typically inside user code invoked from handle(). Dump what it (and every other thread) is
+                // doing so we can identify the culprit, then rethrow to preserve existing behaviour.
+                LOGGER.error("[build-event-listener] Timed out after {} minutes closing {} (waited {} ms). "
+                        + "The worker thread did not finish draining its event queue. Thread dump follows:\n{}",
+                    CLOSE_TIMEOUT_MINUTES, getDescription(), elapsedMillis(startNanos), fullThreadDump(), e);
+                throw e;
+            } finally {
+                watchdog.interrupt();
+            }
             Throwable failure = this.failure.get();
             if (failure != null) {
+                LOGGER.lifecycle("[build-event-listener] {} reported a failure during dispatch; rethrowing", getDescription());
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
+        }
+
+        /**
+         * DEBUG: starts a daemon thread that periodically dumps the worker thread's stack while we wait for it
+         * to finish, so a hang shows up incrementally instead of only at the final timeout. Interrupted (and so
+         * stops) as soon as {@link #close()} completes.
+         */
+        private Thread startCloseWatchdog() {
+            Thread watchdog = new Thread(() -> {
+                long startNanos = System.nanoTime();
+                try {
+                    while (true) {
+                        Thread.sleep(TimeUnit.SECONDS.toMillis(CLOSE_WATCHDOG_INTERVAL_SECONDS));
+                        Thread worker = workerThread;
+                        LOGGER.lifecycle("[build-event-listener] Still waiting ({} ms) for {} to finish. Worker thread '{}' stack:\n{}",
+                            elapsedMillis(startNanos), getDescription(), worker == null ? "<not started>" : worker.getName(), stackTraceOf(worker));
+                    }
+                } catch (InterruptedException ignored) {
+                    // close() finished (or timed out) - stop dumping
+                }
+            }, "build event listener close watchdog " + getDescription());
+            watchdog.setDaemon(true);
+            watchdog.start();
+            return watchdog;
+        }
+
+        private static long elapsedMillis(long startNanos) {
+            return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+        }
+
+        private static String stackTraceOf(@Nullable Thread thread) {
+            if (thread == null) {
+                return "    <worker thread not available>";
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append("    ").append(thread).append(" state=").append(thread.getState()).append('\n');
+            for (StackTraceElement element : thread.getStackTrace()) {
+                sb.append("        at ").append(element).append('\n');
+            }
+            return sb.toString();
+        }
+
+        private static String fullThreadDump() {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+                Thread thread = entry.getKey();
+                sb.append('"').append(thread.getName()).append("\" state=").append(thread.getState()).append('\n');
+                for (StackTraceElement element : entry.getValue()) {
+                    sb.append("        at ").append(element).append('\n');
+                }
+                sb.append('\n');
+            }
+            return sb.toString();
         }
     }
 
