@@ -65,4 +65,24 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
      * <p>This should be used only when custom user listeners are required, i.e. only in the build JVM around the build execution.
      */
     LoggingManagerInternal enableUserStandardOutputListeners();
+
+    /**
+     * Returns the standard output listeners registered with this manager, in registration order.
+     *
+     * <p>Intended for serialization (e.g. by the configuration cache), so that listeners registered
+     * during configuration can be restored and re-registered on a later run.
+     *
+     * @return the registered standard output listeners; never null
+     */
+    Iterable<StandardOutputListener> getStandardOutputListeners();
+
+    /**
+     * Returns the standard error listeners registered with this manager, in registration order.
+     *
+     * <p>Intended for serialization (e.g. by the configuration cache), so that listeners registered
+     * during configuration can be restored and re-registered on a later run.
+     *
+     * @return the registered standard error listeners; never null
+     */
+    Iterable<StandardOutputListener> getStandardErrorListeners();
 }

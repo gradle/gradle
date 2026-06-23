@@ -527,4 +527,32 @@ class DefaultLoggingManagerTest extends Specification {
         1 * loggingRouter.restore(snapshot)
         0 * loggingRouter._
     }
+
+    public void "exposes registered standard output and error listeners in registration order"() {
+        def out1 = Mock(StandardOutputListener)
+        def out2 = Mock(StandardOutputListener)
+        def err1 = Mock(StandardOutputListener)
+
+        when:
+        loggingManager.addStandardOutputListener(out1)
+        loggingManager.addStandardOutputListener(out2)
+        loggingManager.addStandardErrorListener(err1)
+
+        then:
+        (loggingManager.standardOutputListeners as List) == [out1, out2]
+        (loggingManager.standardErrorListeners as List) == [err1]
+    }
+
+    public void "returned listener collections are independent copies of internal state"() {
+        def out1 = Mock(StandardOutputListener)
+
+        when:
+        loggingManager.addStandardOutputListener(out1)
+        def snapshot = loggingManager.standardOutputListeners as List
+        loggingManager.removeStandardOutputListener(out1)
+
+        then:
+        snapshot == [out1]
+        (loggingManager.standardOutputListeners as List) == []
+    }
 }
