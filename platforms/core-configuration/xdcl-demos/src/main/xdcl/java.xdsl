@@ -1,0 +1,51 @@
+package org.gradle.demos.java.dsl
+
+/// Capability contract shared by all JVM project types in the demo. Carries the configuration a
+/// reaction reads to wire a JVM component: its toolchain version, its named source sets, and its
+/// dependencies. `dependencies` is a record PROPERTY (not an xdcl extension) so the single
+/// JavaLibraryReaction can read it off the JavaLibrary facade — an extension would emit a standalone
+/// ExtensionFacade with no accessor on the host facade, forcing a second reaction.
+trait JavaComponent {
+  /// JDK source/target version. e.g. 8, 17, 21.
+  javaVersion: Int = 17
+  /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
+  /// the whole map to add more. Optional map-of-records — exercises the codegen fix for nested
+  /// extractor lambdas.
+  sources: [String: JavaSource]?
+  /// Library dependencies, by scope.
+  dependencies: Dependencies?
+  /// Repositories the reaction configures on the project so `dependencies` can resolve.
+  repositories: [Repository]?
+}
+
+/// A repository: a builtin marker symbol, or a String read as a maven repository URL. Modelled after
+/// the settings bootstrap schema's `RepositoryNotation`, but under distinct names — the bootstrap
+/// types share the registry and its facades are not shipped, so reusing its names collides. Declaring
+/// these locally makes the `:mavenCentral`/`:gradlePluginPortal` symbols available with compilable facades.
+type Repository = NamedRepository | String
+type NamedRepository = Symbol where it in [:gradlePluginPortal, :mavenCentral]
+
+/// One named source set. Directories are optional overrides; the reaction falls back to the
+/// conventional `src/<name>/java` and `src/<name>/resources`. Its `dependencies` map to
+/// per-source-set configurations (`<name>Api`, `<name>Implementation`, …) that extend the matching
+/// top-level configurations.
+record JavaSource {
+  javaDirs: [String]?
+  resourceDirs: [String]?
+  dependencies: Dependencies?
+}
+
+/// Library dependencies, mirroring the four JVM dependency scopes. Each is a list of coordinate
+/// notations (e.g. "group:name:version").
+record Dependencies {
+  api: [String]?
+  implementation: [String]?
+  runtimeOnly: [String]?
+  compileOnly: [String]?
+}
+
+/// Top-level Java library project type.
+template JavaLibrary with JavaComponent {
+  javaLibrary {
+  }
+}
