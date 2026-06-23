@@ -100,7 +100,6 @@ import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -229,8 +228,9 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(root));
             listenerManager.addListener((BuildAddedListener) buildState -> {
-                    File buildRootDir = buildState.getBuildRootDir();
-                    virtualFileSystem.registerWatchableHierarchy(buildRootDir);
+                    if (buildState.isImportableBuild()) {
+                        virtualFileSystem.registerWatchableHierarchy(buildState.getBuildRootDir());
+                    }
                 }
             );
             return virtualFileSystem;
