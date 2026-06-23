@@ -87,4 +87,59 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew :native:test --% --stacktrace --info -PrerunAllTests -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - name: Start periodic thread-dump capture
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $dir = Join-Path $env:GITHUB_WORKSPACE 'thread-dumps'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $proc = Start-Process pwsh -PassThru -WindowStyle Hidden -ArgumentList @(
+            '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', "$env:GITHUB_WORKSPACE\.github\scripts\capture-thread-dumps.ps1",
+            '-JavaHome', "$env:JAVA_HOME",
+            '-OutDir', "$dir",
+            '-IntervalSeconds', '8'
+          )
+          $proc.Id | Out-File -FilePath (Join-Path $env:GITHUB_WORKSPACE 'dumper.pid') -Encoding ascii
+          Write-Host "Started thread-dump capture, pid=$($proc.Id), out=$dir"
+      - name: Run tests
+        run: ./gradlew :native:test --% --stacktrace --info -PrerunAllTests -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - name: Stop thread-dump capture and take final dump
+        if: always()
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $dir = Join-Path $env:GITHUB_WORKSPACE 'thread-dumps'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          # One last dump for good measure, before tearing things down.
+          $ts = Get-Date -Format "yyyyMMdd-HHmmss-fff"
+          foreach ($p in (Get-CimInstance Win32_Process -Filter "Name = 'java.exe'")) {
+            $file = Join-Path $dir "threaddump-final-$ts-pid$($p.ProcessId).txt"
+            ("cmdline: " + $p.CommandLine) | Out-File -FilePath $file -Encoding utf8
+            & "$env:JAVA_HOME\bin\jcmd.exe" $p.ProcessId Thread.print -l 2>&1 | Out-File -FilePath $file -Append -Encoding utf8
+          }
+          $pidFile = Join-Path $env:GITHUB_WORKSPACE 'dumper.pid'
+          if (Test-Path $pidFile) {
+            $dumperPid = (Get-Content $pidFile | Select-Object -First 1).Trim()
+            Write-Host "Stopping thread-dump capture pid=$dumperPid"
+            taskkill /PID $dumperPid /T /F 2>&1 | Write-Host
+          }
+      - name: Collect Gradle daemon logs
+        if: always()
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $dir = Join-Path $env:GITHUB_WORKSPACE 'thread-dumps'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $candidates = New-Object System.Collections.ArrayList
+          if ($env:USERPROFILE) { [void]$candidates.Add((Join-Path $env:USERPROFILE '.gradle\daemon')) }
+          if ($env:GRADLE_USER_HOME) { [void]$candidates.Add((Join-Path $env:GRADLE_USER_HOME 'daemon')) }
+          $candidates = $candidates | Where-Object { Test-Path $_ }
+          foreach ($root in $candidates) {
+            Get-ChildItem -Path $root -Recurse -Filter '*.log' -ErrorAction SilentlyContinue |
+              ForEach-Object { Copy-Item $_.FullName -Destination (Join-Path $dir ("daemon-" + $_.Name)) -ErrorAction SilentlyContinue }
+          }
+      - name: Upload thread dumps
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-arm-thread-dumps
+          path: thread-dumps
+          if-no-files-found: warn
