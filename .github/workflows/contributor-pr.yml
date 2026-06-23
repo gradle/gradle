@@ -70,12 +70,12 @@ jobs:
       fail-fast: false
       matrix:
         jdk:
-          - { name: "17 (control)", distribution: microsoft, version: "17" }
-          - { name: "21 GA", distribution: zulu, version: "21.0.0" }
-          - { name: "22 GA", distribution: zulu, version: "22.0.0" }
-          - { name: "23 GA", distribution: zulu, version: "23.0.0" }
-          - { name: "24 GA", distribution: zulu, version: "24.0.0" }
-          - { name: "25 (control)", distribution: microsoft, version: "25" }
+          - { name: "17.0.0 (control)", distribution: zulu, version: "17.0.0" }
+          - { name: "21.0.0 GA", distribution: zulu, version: "21.0.0" }
+          - { name: "22.0.0 GA", distribution: zulu, version: "22.0.0" }
+          - { name: "23.0.0 GA", distribution: zulu, version: "23.0.0" }
+          - { name: "24.0.0 GA", distribution: zulu, version: "24.0.0" }
+          - { name: "25.0.0 (control)", distribution: zulu, version: "25.0.0" }
     defaults:
       run:
         shell: pwsh
