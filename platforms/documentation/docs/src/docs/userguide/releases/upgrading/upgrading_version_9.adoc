@@ -44,13 +44,15 @@ The previous step will help you identify potential problems by issuing deprecati
 ==== The project cache directory is no longer watched
 
 Gradle no longer watches the _project cache directory_ (the `.gradle` directory in the root project, or a custom location set with `--project-cache-dir`).
-It is managed by Gradle and kept consistent without watching.
+Because Gradle is the only writer to this directory, it keeps the virtual file system up to date directly, without relying on OS file system events.
 
-A direct consequence is that a custom project cache directory no longer turns file system watching off.
-Previously, specifying `--project-cache-dir` (or `org.gradle.projectcachedir`) was incompatible with watching: combining it with `--watch-fs` failed the build, and otherwise it silently disabled watching.
-Now watching follows the usual rules regardless of the project cache directory.
+As a result, a custom project cache directory no longer disables file system watching.
+Previously, `--project-cache-dir` (or `org.gradle.projectcachedir`) was incompatible with watching: passing `--watch-fs` alongside it failed the build, and leaving watching at its default silently disabled it.
+File system watching now follows the usual rules regardless of where the project cache directory is located.
 
-See <<file_system_watching.adoc#sec:enable,Enable file system watching>> for details.
+This also applies to source-dependency check-outs, which live under the project cache directory: their roots are no longer registered as watchable hierarchies.
+
+See <<file_system_watching.adoc#sec:excluding_files_and_directories,Excluding files and directories>> for details.
 
 ==== Upgrade to Kotlin 2.4.0
 
