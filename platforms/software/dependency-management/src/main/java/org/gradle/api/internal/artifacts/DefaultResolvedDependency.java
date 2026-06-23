@@ -97,7 +97,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     @Override
-    public Set<ResolvedDependency> getChildren() {
+    public ImmutableSet<ResolvedDependency> getChildren() {
         return ImmutableSet.copyOf(children);
     }
 

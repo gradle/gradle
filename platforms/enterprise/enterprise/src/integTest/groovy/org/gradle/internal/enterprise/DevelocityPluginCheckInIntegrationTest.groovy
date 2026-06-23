@@ -19,7 +19,7 @@ package org.gradle.internal.enterprise
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
@@ -91,7 +91,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         plugin.serviceCreatedOnce(output)
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "shows warning message when Develocity plugin version is used with isolated projects enabled"() {
         given:
         plugin.runtimeVersion = pluginVersion
@@ -102,7 +102,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
+        succeeds("t", "-Dorg.gradle.isolated-projects=true")
 
         then:
         output.contains("present: ${supported}")
@@ -111,12 +111,33 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         if (supported) {
             assert output.contains("develocityPlugin.checkIn.supported")
         } else {
-            assert output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin 3.13.1 has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
+            assert output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin ${pluginVersion} has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 4.0 or newer to restore functionality.")
         }
 
         where:
         pluginVersion                    | supported
         MINIMUM_SUPPORTED_PLUGIN_VERSION | false
-        '3.15'                           | true
+        '3.15'                           | false
+        '4.0'                            | true
+    }
+
+    def "emits deprecation when Develocity plugin version #pluginVersion relies on parent-property lookup"() {
+        given:
+        plugin.runtimeVersion = pluginVersion
+        plugin.artifactVersion = pluginVersion
+        applyPlugin()
+        if (deprecated) {
+            plugin.expectParentPropertyLookupDeprecation(executer, pluginVersion)
+        }
+
+        expect:
+        succeeds "t"
+
+        where:
+        pluginVersion | deprecated
+        '3.17'        | true
+        '3.19.2'      | true
+        '4.0'         | false
+        '4.4.1'       | false
     }
 }

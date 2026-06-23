@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.vintage
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 
@@ -24,8 +24,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_VINTAGE_VERSION
 
 @TargetCoverage({ [LATEST_VINTAGE_VERSION] })
 class JUnitVintageFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnitVintageMultiVersionTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
 }

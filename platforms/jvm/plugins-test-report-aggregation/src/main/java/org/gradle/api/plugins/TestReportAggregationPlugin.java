@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteName;
@@ -53,6 +54,9 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
     public static final String TEST_REPORT_AGGREGATION_CONFIGURATION_NAME = "testReportAggregation";
+
+    @Inject
+    protected abstract DependencyFactory getDependencyFactory();
 
     @Inject
     protected abstract JvmPluginServices getJvmPluginServices();
@@ -108,7 +112,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         // convention for synthesizing reports based on existing test suites in "this" project
         project.getPlugins().withId("test-suite-base", plugin -> {
             // Depend on this project for aggregation
-            testAggregation.getDependencies().add(project.getDependencyFactory().create(project));
+            testAggregation.getDependencies().add(getDependencyFactory().createProjectDependency());
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -183,7 +184,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
         UserCodeApplicationContext.Application current = context.current();
-        DisplayName displayName = current == null ? null : current.getSource().getDisplayName();
+        Describable displayName = current == null ? null : current.getSource().getDisplayName();
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
@@ -201,7 +202,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void ruleMutationDisallowedOnProject(DisplayName ruleName) {
         UserCodeApplicationContext.Application current = context.current();
-        DisplayName displayName = current == null ? null : current.getSource().getDisplayName();
+        Describable displayName = current == null ? null : current.getSource().getDisplayName();
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }

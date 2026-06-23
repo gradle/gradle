@@ -2137,22 +2137,22 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskRegistration(String taskName, String taskType) {
-            return "val " + taskName + " by tasks.registering(" + taskType + "::class)";
+            return "val " + taskName + " = tasks.register<" + taskType + ">(" + string(taskName) + ")";
         }
 
         @Override
         public String taskConfiguration(String taskName, String taskType) {
-            return "val " + taskName + " by tasks.getting(" + taskType + "::class)";
+            return "val " + taskName + " = tasks.named<" + taskType + ">(" + string(taskName) + ")";
         }
 
         @Override
         public String suiteRegistration(String suiteName, String suiteType) {
-            return "val " + suiteName + " by registering(" + suiteType + "::class)";
+            return "val " + suiteName + " = register<" + suiteType + ">(" + string(suiteName) + ")";
         }
 
         @Override
         public String suiteConfiguration(String suiteName, String suiteType) {
-            return "val " + suiteName + " by getting(" + suiteType + "::class)";
+            return "val " + suiteName + " = named<" + suiteType + ">(" + string(suiteName) + ")";
         }
 
         @Override
@@ -2179,7 +2179,7 @@ public class BuildScriptBuilder {
         private String getLiteral(String container, String elementName, @Nullable String elementType, String varName) {
             if (varName == null) {
                 if (elementType == null) {
-                    return "val " + elementName + " by " + container + ".creating";
+                    return "val " + elementName + " = " + container + ".create(" + string(elementName) + ")";
                 }
                 return container + ".create<" + elementType + ">(" + string(elementName) + ")";
             }

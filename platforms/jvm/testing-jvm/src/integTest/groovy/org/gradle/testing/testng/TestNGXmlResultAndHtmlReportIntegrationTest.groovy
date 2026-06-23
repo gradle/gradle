@@ -18,7 +18,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -38,12 +37,6 @@ import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.startsWith
 
 class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     static class Mode {
         String name
         TestResultOutputAssociation outputAssociation
@@ -98,7 +91,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
     void verify(Mode mode) {
         verifyTestResultWith(new JUnitXmlTestExecutionResult(file("."), mode.outputAssociation), mode.outputAssociation)
         // Always use WITH_TESTCASE for HTML report as it doesn't aggregate
-        verifyTestResultWith(new HtmlTestExecutionResult(file("."), "build/reports/tests/test", testFramework), WITH_TESTCASE)
+        verifyTestResultWith(new HtmlTestExecutionResult(file("."), "build/reports/tests/test"), WITH_TESTCASE)
     }
 
     def runWithTestConfig(String testConfiguration) {

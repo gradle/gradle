@@ -20,7 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 
@@ -36,7 +36,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        protected InternalProblems getProblemsService() {
+        protected ProblemsInternal getProblemsService() {
             throw new UnsupportedOperationException()
         }
     }
@@ -50,7 +50,6 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def filter = selector.getFilter(new TaskSelector.SelectionContext(Path.path(":a:b"), "type"), project1, "b", false)
 
         then:
-        1 * projectConfigurer.configure(projectModel1)
         1 * resolver.selectWithName("b", project1, false) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
         0 * _
@@ -69,7 +68,6 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def filter = selector.getFilter(new TaskSelector.SelectionContext(Path.path(":a:b"), "type"), project1, "b", false)
 
         then:
-        1 * projectConfigurer.configure(projectModel1)
         1 * resolver.selectWithName("b", project1, false) >> null
         1 * resolver.selectAll(project1, false) >> [b1: selectionResult]
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
@@ -91,8 +89,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def filter = selector.getFilter(new TaskSelector.SelectionContext(Path.path(":a:b"), "type"), project1, "b", true)
 
         then:
-        1 * projectConfigurer.configure(projectModel1)
-        1 * resolver.tryFindUnqualifiedTaskCheaply("b", projectModel1) >> true
+        1 * resolver.tryFindUnqualifiedTaskCheaply("b", project1) >> true
         0 * _
 
         and:
@@ -109,9 +106,8 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def filter = selector.getFilter(new TaskSelector.SelectionContext(Path.path(":a:b"), "type"), project1, "b", true)
 
         then:
-        1 * projectConfigurer.configure(projectModel1)
-        1 * resolver.tryFindUnqualifiedTaskCheaply("b", projectModel1) >> false
-        1 * projectConfigurer.configureHierarchy(projectModel1)
+        1 * resolver.tryFindUnqualifiedTaskCheaply("b", project1) >> false
+        1 * projectConfigurer.configureHierarchy(project1)
         1 * resolver.selectWithName("b", project1, true) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
         0 * _

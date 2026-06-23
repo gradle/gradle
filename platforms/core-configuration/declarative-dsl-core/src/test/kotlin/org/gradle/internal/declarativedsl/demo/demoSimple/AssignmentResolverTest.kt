@@ -1,14 +1,22 @@
 package org.gradle.internal.declarativedsl.demo.demoSimple
 
+import com.example.Abc
+import com.example.C
+import com.example.D
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
-import org.gradle.internal.declarativedsl.demo.propertyLinkTrace
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver
 import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
 import org.gradle.internal.declarativedsl.assertIs
+import org.gradle.internal.declarativedsl.mappingToJvm.propertyLinkTrace
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 
+val schema = schemaFromTypes(
+    topLevelReceiver = Abc::class,
+    types = listOf(Abc::class, C::class, D::class),
+)
 
 class AssignmentResolverTest {
     @Test

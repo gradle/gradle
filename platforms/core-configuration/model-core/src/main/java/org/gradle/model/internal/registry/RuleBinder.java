@@ -36,6 +36,7 @@ public class RuleBinder {
     private int inputsBound;
     private final List<ModelBinding> inputBindings;
 
+    @SuppressWarnings("this-escape")
     public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction action, Collection<RuleBinder> binders) {
         this.action = action;
         this.inputReferences = inputReferences;

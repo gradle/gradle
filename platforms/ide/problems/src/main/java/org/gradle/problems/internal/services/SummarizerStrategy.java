@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 
 import java.util.HashMap;
@@ -41,7 +41,7 @@ public class SummarizerStrategy {
             .collect(toImmutableList());
     }
 
-    synchronized boolean shouldEmit(InternalProblem problem) {
+    synchronized boolean shouldEmit(ProblemInternal problem) {
         ProblemSummaryInfo summaryInfo = seenProblemsWithCounts.computeIfAbsent(
             problem.getDefinition().getId(),
             key -> new ProblemSummaryInfo()

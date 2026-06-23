@@ -25,6 +25,11 @@ class EclipseMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationT
     String libraryPluginId = "java-library"
 
     @Override
+    protected String[] getDeprecatedTaskNames() {
+        return ["eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject"]
+    }
+
+    @Override
     EclipseWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName) {
         return new EclipseWorkspaceFixture(workspaceDir)
     }

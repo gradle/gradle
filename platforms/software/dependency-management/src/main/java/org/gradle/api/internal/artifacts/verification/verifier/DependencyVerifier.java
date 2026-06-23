@@ -270,6 +270,7 @@ public class DependencyVerifier {
         private List<PGPPublicKey> failedKeys = null;
         private List<String> ignoredKeys = null;
         private boolean hasValidSignatures = true;
+        private String corruptionError = null;
 
         private DefaultSignatureVerificationResultBuilder(File file, File signatureFile) {
             this.file = file;
@@ -320,6 +321,11 @@ public class DependencyVerifier {
             hasValidSignatures = false;
         }
 
+        @Override
+        public void failedToReadSignatureFile(String causeDescription) {
+            corruptionError = causeDescription;
+        }
+
         private boolean hasOnlyIgnoredKeys() {
             return ignoredKeys != null
                 && trustedKeys == null
@@ -329,6 +335,9 @@ public class DependencyVerifier {
         }
 
         public VerificationFailure asError(PublicKeyService publicKeyService) {
+            if (corruptionError != null) {
+                return new InvalidSignatureFile(file, signatureFile, corruptionError);
+            }
             if (!hasValidSignatures) {
                 return new InvalidSignature(file, signatureFile);
             }
@@ -360,7 +369,7 @@ public class DependencyVerifier {
         }
 
         public boolean hasError() {
-            return failedKeys != null || validNotTrusted != null || missingKeys != null || !hasValidSignatures || hasOnlyIgnoredKeys();
+            return failedKeys != null || validNotTrusted != null || missingKeys != null || !hasValidSignatures || corruptionError != null || hasOnlyIgnoredKeys();
         }
     }
 

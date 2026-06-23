@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.integtests.resolve.versions.AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON
@@ -27,7 +27,7 @@ import static org.gradle.integtests.resolve.versions.AbstractVersionRangeResolve
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
  */
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 class ModuleDependencyExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """

@@ -110,6 +110,7 @@ Existing installations are ignored by Gradle.
 
 <<compatibility.adoc#compatibility, See the full compatibility notes for Java, Groovy, Kotlin, and Android.>>
 
+[[linux_installation]]
 == Linux installation
 
 .Installing with a package manager
@@ -181,6 +182,7 @@ $ export PATH=${GRADLE_HOME}/bin:${PATH}
 
 =====
 
+[[macos_installation]]
 == macOS installation
 
 .Installing with a package manager
@@ -265,6 +267,7 @@ $ export PATH=$GRADLE_HOME/bin:$PATH
 
 =====
 
+[[windows_installation]]
 == Windows installation
 
 .Installing manually

@@ -19,7 +19,7 @@ package org.gradle.internal.nativeintegration.console;
 import org.jspecify.annotations.Nullable;
 
 public class TestOverrideConsoleDetector implements ConsoleDetector {
-    public static final String INTERACTIVE_TOGGLE = "org.gradle.internal.interactive";
+    public static final String INTERACTIVE_CONSOLE_TOGGLE = "org.gradle.internal.interactive";
     public static final String TEST_CONSOLE_PROPERTY = "org.gradle.internal.console.test-console";
 
     private final ConsoleDetector detector;
@@ -39,10 +39,10 @@ public class TestOverrideConsoleDetector implements ConsoleDetector {
     }
 
     @Override
-    public boolean isConsoleInput() {
-        if (Boolean.getBoolean(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE)) {
+    public boolean isInteractiveConsole() {
+        if (Boolean.getBoolean(TestOverrideConsoleDetector.INTERACTIVE_CONSOLE_TOGGLE)) {
             return true;
         }
-        return detector.isConsoleInput();
+        return detector.isInteractiveConsole();
     }
 }

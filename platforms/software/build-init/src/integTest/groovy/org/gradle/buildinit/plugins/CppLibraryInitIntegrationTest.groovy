@@ -20,9 +20,10 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 
-@Requires(UnitTestPreconditions.NotAlpine)
+
+@Requires(OsTestPreconditions.NotAlpine)
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIB_CLASS = "hello.cpp"

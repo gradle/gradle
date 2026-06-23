@@ -17,7 +17,8 @@
 package org.gradle.internal.remote.internal.inet
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import spock.lang.Specification
 
 class InetAddressesTest extends Specification{
@@ -28,7 +29,7 @@ class InetAddressesTest extends Specification{
         !addresses.loopback.empty
     }
 
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "always contains at least one remote address"() {
         expect:
         !addresses.remote.empty

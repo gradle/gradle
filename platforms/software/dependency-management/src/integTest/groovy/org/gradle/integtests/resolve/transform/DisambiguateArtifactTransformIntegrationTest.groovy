@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -43,6 +44,7 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "disambiguates A -> B -> C and B -> C by selecting the latter"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -135,6 +137,7 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "can not disambiguate A -> C and B -> C as both are valid chains"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -234,7 +237,7 @@ ${artifactTransform("TestTransform")}
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compileClasspath'.")
-        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:""")
+        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:""")
         failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 
@@ -409,6 +412,7 @@ task resolve(type: Copy) {
         output.count('Sizing') == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
         createDirs("child")

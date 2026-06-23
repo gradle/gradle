@@ -30,7 +30,6 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("build-events")
     subproject("composite-builds")
     subproject("core-api")
 }
@@ -52,12 +51,13 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classpath")
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
         subproject("collections")
         subproject("concurrent")
-        subproject("daemon-main")
+        subproject("daemon-messaging")
         subproject("daemon-protocol")
         subproject("daemon-services")
         subproject("daemon-server")
@@ -84,6 +84,7 @@ val core = platform("core") {
         subproject("native")
         subproject("process-memory-services")
         subproject("process-services")
+        subproject("process-services-base")
         subproject("process-services-api")
         subproject("report-rendering")
         subproject("serialization")
@@ -91,6 +92,7 @@ val core = platform("core") {
         subproject("service-provider")
         subproject("service-registry-builder")
         subproject("service-registry-impl")
+        subproject("start-parameter")
         subproject("time")
         subproject("tooling-api-provider")
         subproject("versioned-cache")
@@ -117,6 +119,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
+        subproject("domain-object-collections")
         subproject("encryption-services")
         subproject("file-collections")
         subproject("file-operations")
@@ -148,6 +151,7 @@ val core = platform("core") {
     module("core-execution") {
         subproject("build-cache")
         subproject("build-cache-base")
+        subproject("build-cache-core")
         subproject("build-cache-example-client")
         subproject("build-cache-http")
         subproject("build-cache-local")
@@ -158,6 +162,10 @@ val core = platform("core") {
         subproject("execution-e2e-tests")
         subproject("file-watching")
         subproject("hashing")
+        subproject("hashing-services")
+        subproject("normalization")
+        subproject("normalization-api")
+        subproject("normalization-java")
         subproject("persistent-cache")
         subproject("worker-process-services")
         subproject("request-handler-worker")
@@ -185,6 +193,7 @@ module("ide") {
     subproject("ide-plugins")
     subproject("problems")
     subproject("problems-api")
+    subproject("problems-impl")
     subproject("problems-rendering")
     subproject("tooling-api")
     subproject("tooling-api-builders")
@@ -249,7 +258,6 @@ val jvm = platform("jvm") {
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
-    subproject("normalization-java")
     subproject("platform-jvm")
     subproject("plugins-application")
     subproject("plugins-groovy")
@@ -289,6 +297,7 @@ platform("native") {
     subproject("tooling-native")
     subproject("tooling-native-model-impls")
     subproject("testing-native")
+    subproject("plugins-model-native")
 }
 
 
@@ -336,14 +345,3 @@ FeaturePreviews.Feature.entries.forEach { feature ->
     }
 }
 
-fun getBuildJavaHome() = System.getProperty("java.home")
-
-gradle.settingsEvaluated {
-    if ("true" == System.getProperty("org.gradle.ignoreBuildJavaVersionCheck")) {
-        return@settingsEvaluated
-    }
-
-    if (JavaVersion.current() != JavaVersion.VERSION_17) {
-        throw GradleException("This build requires JDK 17. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
-    }
-}

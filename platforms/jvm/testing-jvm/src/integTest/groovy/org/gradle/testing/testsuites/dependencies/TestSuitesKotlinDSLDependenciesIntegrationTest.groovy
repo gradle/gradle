@@ -18,6 +18,7 @@ package org.gradle.testing.testsuites.dependencies
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -33,12 +34,12 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             testing {
                 suites {
-                    val test by getting(JvmTestSuite::class) {
+                    named<JvmTestSuite>("test") {
                         dependencies {
                             implementation("org.apache.commons:commons-lang3:3.11")
                         }
                     }
-                    val integTest by registering(JvmTestSuite::class) {
+                    register<JvmTestSuite>("integTest") {
                         useJUnit()
                     }
                 }
@@ -129,8 +130,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
     // endregion basic functionality
 
@@ -151,7 +152,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         testing {
             suites {
-                val integTest by registering(JvmTestSuite::class)
+                register<JvmTestSuite>("integTest")
             }
         }
 
@@ -192,7 +193,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         testing {
             suites {
-                val integTest by registering(JvmTestSuite::class) {
+                register<JvmTestSuite>("integTest") {
                     dependencies {
                         implementation(project())
                     }
@@ -223,6 +224,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def 'can add dependencies to other projects to #suiteDesc'() {
         given:
         settingsKotlinFile << """
@@ -276,8 +278,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
     // endregion dependencies - projects
 
@@ -298,14 +300,14 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             testing {
                 suites {
-                    val test by getting(JvmTestSuite::class) {
+                    named<JvmTestSuite>("test") {
                         dependencies {
                             implementation("com.google.guava:guava:30.1.1-jre")
                             compileOnly("javax.servlet:servlet-api:3.0-alpha-1")
                             runtimeOnly("mysql:mysql-connector-java:8.0.26")
                         }
                     }
-                    val integTest by registering(JvmTestSuite::class) {
+                    register<JvmTestSuite>("integTest") {
                         // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                         dependencies {
                             implementation(project())
@@ -359,7 +361,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             testing {
                 suites {
-                    val integTest by registering(JvmTestSuite::class)
+                    register<JvmTestSuite>("integTest")
                 }
             }
 
@@ -372,12 +374,12 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 testRuntimeOnly("mysql:mysql-connector-java:8.0.26")
 
                 // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-                val integTestImplementation by configurations.getting
-                integTestImplementation(project)
+                val integTestImplementation = configurations.getByName("integTestImplementation")
+                integTestImplementation(project())
                 integTestImplementation("com.google.guava:guava:29.0-jre")
-                val integTestCompileOnly by configurations.getting
+                val integTestCompileOnly = configurations.getByName("integTestCompileOnly")
                 integTestCompileOnly("javax.servlet:servlet-api:2.5")
-                val integTestRuntimeOnly by configurations.getting
+                val integTestRuntimeOnly = configurations.getByName("integTestRuntimeOnly")
                 integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")
             }
 
@@ -486,8 +488,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
 
     def "can NOT add multiple GAV dependencies to #suiteDesc in a single method call - at the top level (list)"() {
@@ -518,8 +520,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
 
     def "can NOT add multiple GAV dependencies to #suiteDesc (list)"() {
@@ -549,8 +551,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
     // endregion multiple GAV strings
     // endregion dependencies - modules (GAV)
@@ -573,14 +575,14 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         testing {
             suites {
-                val test by getting(JvmTestSuite::class) {
+                named<JvmTestSuite>("test") {
                     dependencies {
                         // Constrain commons-lang3 and guava
                         implementation(constraint("org.apache.commons:commons-lang3:3.12.0"))
                         implementation(constraint("com.google.guava:guava:33.0.0-jre"))
                     }
                 }
-                val integTest by registering(JvmTestSuite::class) {
+                register<JvmTestSuite>("integTest") {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
                         implementation(project())
@@ -638,7 +640,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
             testing {
                 suites {
-                    val test by getting(JvmTestSuite::class) {
+                    named<JvmTestSuite>("test") {
                         dependencies {
                             implementation(commonsLang)
                             compileOnly(servletApi)
@@ -740,8 +742,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
 
     def "can add an enforced platform dependency to #suiteDesc"() {
@@ -806,8 +808,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
     // endregion dependencies - platforms
 
@@ -850,8 +852,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
     // endregion dependencies - self-resolving dependencies
 
@@ -916,8 +918,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
 
     def "can add testFixture dependency to the same project to #suiteDesc"() {
@@ -969,8 +971,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        'the default suite' | 'test'      | 'named<JvmTestSuite>("test")'
+        'a custom suite'    | 'integTest' | 'register<JvmTestSuite>("integTest")'
     }
     // endregion dependencies - testFixtures
 }

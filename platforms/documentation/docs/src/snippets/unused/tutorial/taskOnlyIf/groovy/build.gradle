@@ -1,0 +1,12 @@
+def hello = tasks.register('hello') {
+    doLast {
+        println 'hello world'
+    }
+}
+
+hello.configure {
+    def skipProvider = providers.gradleProperty("skipHello")
+    onlyIf("there is no property skipHello") {
+        !skipProvider.present
+    }
+}

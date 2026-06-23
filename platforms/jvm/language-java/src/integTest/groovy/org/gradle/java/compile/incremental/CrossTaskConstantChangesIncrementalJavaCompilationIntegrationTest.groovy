@@ -18,9 +18,13 @@ package org.gradle.java.compile.incremental
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
+
+@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
@@ -276,6 +280,7 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
     }
 
     @NotYetImplemented
+    @UnsupportedWithIsolatedProjects(because = "@NotYetImplemented test does not throw, so class-level ToBeFixedForIsolatedProjects sees unexpected success")
     // This would be possible but it's not yet implemented since we would have
     // to track every constants as (symbol, value) pair and this is expensive, so there is no solution yet
     def "ignores irrelevant changes to constant values in annotations"() {
@@ -428,7 +433,7 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
         impl.recompiledClasses 'B'
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "recompiles all if constant used by annotation on module-info is changed"() {
         given:
         source api: "package constant; public class Const { public static final String CONST = \"unchecked\"; }"

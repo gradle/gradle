@@ -13,11 +13,11 @@ dependencies {
     api(projects.toolingApi)
 
     api(libs.jspecify)
-
-    implementation(projects.core)
-    implementation(projects.fileTemp)
     api(libs.guava)
+
+    implementation(projects.fileTemp)
     implementation(projects.logging)
+    implementation(projects.startParameter)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 
@@ -64,14 +64,13 @@ gradleModule {
 // TODO Find a way to not register this and the task instead
 configurations.remove(configurations.apiStubElements.get())
 
-val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath.from(sourceSets.main.map { it.runtimeClasspath })
-    outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")
+val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
+val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
+    classpath.from(configurations.runtimeClasspath.get())
+    outputFile = runtimeApiInfoDir.map { it.file("org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt") }
 }
-tasks.jar {
-    into("org/gradle/api/internal/runtimeshaded") {
-        from(generateTestKitPackageList)
-    }
+sourceSets.main {
+    resources.srcDir(files(runtimeApiInfoDir) { builtBy(generateTestKitPackageList) })
 }
 
 packageCycles {
@@ -82,6 +81,4 @@ tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

@@ -49,9 +49,8 @@ class DefaultProjectDescriptorTest extends Specification {
 
     def "can set project name"() {
         given:
-        def descriptor = projectDescriptor()
         def registry = Mock(ProjectDescriptorRegistry)
-        descriptor.setProjectDescriptorRegistry(registry)
+        def descriptor = projectDescriptor(null, registry)
 
         when:
         descriptor.name = "newName"
@@ -112,7 +111,7 @@ class DefaultProjectDescriptorTest extends Specification {
         given:
         def expectedBuildFile = tmpDir.createFile(buildFilename)
         def scriptFileResolver = Spy(DefaultScriptFileResolver)
-        def descriptor = projectDescriptor(scriptFileResolver, buildFilename)
+        def descriptor = projectDescriptor(scriptFileResolver, descriptorRegistry, buildFilename)
 
         when:
         def foundBuildFile = descriptor.buildFile
@@ -125,14 +124,18 @@ class DefaultProjectDescriptorTest extends Specification {
         buildFilename << ['build.gradle', 'build.gradle.kts']
     }
 
-    private ProjectDescriptor projectDescriptor(ScriptFileResolver scriptFileResolver = null, String expectedBuildFileName = Project.DEFAULT_BUILD_FILE) {
+    private ProjectDescriptor projectDescriptor(
+        ScriptFileResolver scriptFileResolver = null,
+        ProjectDescriptorRegistry descriptorRegistry = null,
+        String expectedBuildFileName = Project.DEFAULT_BUILD_FILE
+    ) {
+        descriptorRegistry = descriptorRegistry == null ? this.descriptorRegistry : descriptorRegistry
         def problemsReporter = Stub(ProblemReporter)
         def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver, problemsReporter)
         def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver, problemsReporter)
         assertSame(parentDescriptor, descriptor.parent)
         assertThat(parentDescriptor.children.size(), is(1))
         assertTrue(parentDescriptor.children.contains(descriptor))
-        assertSame(descriptor.projectDescriptorRegistry, descriptorRegistry)
         assertThat(descriptor.name, equalTo(testName.methodName))
         assertThat(descriptor.projectDir, equalTo(testDirectory.canonicalFile))
         assertThat(descriptor.buildFileName, equalTo(expectedBuildFileName))

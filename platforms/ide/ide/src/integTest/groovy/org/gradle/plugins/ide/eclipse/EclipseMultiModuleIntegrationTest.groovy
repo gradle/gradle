@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -24,6 +25,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void dealsWithDuplicatedModuleNames() {
       /*
@@ -44,45 +46,46 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def settingsFile = file("settings.gradle")
         createDirs("api", "shared", "shared/api", "shared/model", "services", "services/utilities", "util", "contrib", "contrib/services", "contrib/services/util")
         settingsFile << """
-rootProject.name = 'root'
-include 'api'
-include 'shared:api', 'shared:model'
-include 'services:utilities'
-include 'util'
-include 'contrib:services:util'
+            rootProject.name = 'root'
+            include 'api'
+            include 'shared:api', 'shared:model'
+            include 'services:utilities'
+            include 'util'
+            include 'contrib:services:util'
 
         """
 
         def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':shared:api'), project(':shared:model')
-    }
-}
+            project(':api') {
+                dependencies {
+                    implementation project(':shared:api'), project(':shared:model')
+                }
+            }
 
-project(':shared:model') {
-    eclipse {
-        project.name = 'very-cool-model'
-    }
-}
+            project(':shared:model') {
+                eclipse {
+                    project.name = 'very-cool-model'
+                }
+            }
 
-project(':services:utilities') {
-    dependencies {
-        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
-    }
-    eclipse {
-        project.name = 'util'
-    }
-}
-"""
+            project(':services:utilities') {
+                dependencies {
+                    implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+                }
+                eclipse {
+                    project.name = 'util'
+                }
+            }
+        """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         //then
@@ -106,6 +109,7 @@ project(':services:utilities') {
         assert deps.contains("/shared-api")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectName() {
         //use case from the mailing list
@@ -126,9 +130,11 @@ project(':services:utilities') {
             }
 
             subprojects {
-                eclipse {
-                    project {
-                        name = rootProject.name + path.replace(':', '-')
+                if (project.name != 'nonEclipse') {
+                    eclipse {
+                        project {
+                            name = rootProject.name + path.replace(':', '-')
+                        }
                     }
                 }
             }
@@ -142,6 +148,7 @@ project(':services:utilities') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         //then
@@ -151,6 +158,7 @@ project(':services:utilities') {
         assert deps.contains("/nonEclipse")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
         createDirs("api", "shared", "shared/model")
@@ -179,6 +187,7 @@ project(':services:utilities') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         //then

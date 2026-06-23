@@ -72,7 +72,7 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
         fails("broken")
 
         then:
-        failure.assertHasCause("Included build 'buildB' not found in build 'root'.")
+        failure.assertHasCause("Included build 'buildB' not found in build ':'.")
         result.assertTaskScheduled(":buildB:jar")
     }
 }

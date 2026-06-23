@@ -26,7 +26,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
@@ -44,7 +44,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Timeout(180)
 @Retry(condition = { onContinuousBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 // Can't use the FS watching, embedded executor and TAPI together
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String BUILD_CANCELLED = "Build cancelled."

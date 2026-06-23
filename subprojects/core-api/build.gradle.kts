@@ -6,26 +6,34 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
-    
+
     api(projects.antApi)
     api(projects.credentialsApi)
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
-    api(projects.buildDiscovery)
     api(projects.loggingApi)
+    api(projects.normalizationApi)
     api(projects.baseServices)
+    api(projects.buildCacheSpi)
+    api(projects.credentialsApi)
+    api(projects.declarativeDslApi)
     api(projects.files)
-    api(projects.resources)
+    api(projects.internalInstrumentationApi)
+    api(projects.loggingApi)
     api(projects.persistentCache)
     api(projects.processServicesApi)
-    api(projects.declarativeDslApi)
+    api(projects.resources)
+    api(projects.startParameter)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolingApi)
+
     api(libs.jspecify)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
 
-    implementation(projects.io)
     implementation(projects.baseServicesGroovy)
+    implementation(projects.io)
     implementation(projects.logging)
 
     implementation(libs.ant)
@@ -65,6 +73,4 @@ strictCompile {
 // AutoTestedSamplesCoreApiIntegrationTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
 integTest.generateDefaultAutoTestedSamplesTest = false
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

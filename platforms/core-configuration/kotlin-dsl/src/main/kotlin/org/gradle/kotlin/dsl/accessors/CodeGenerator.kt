@@ -16,11 +16,10 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtensionAware
-
 import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.util.internal.TextUtil
-
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -31,8 +30,10 @@ data class AccessorScope(
     private val projectFeatureEntriesByName: HashMap<AccessorNameSpec, HashSet<TypedProjectFeatureEntry>> = hashMapOf(),
     private val containerElementFactoriesByName: HashMap<AccessorNameSpec, HashSet<TypedContainerElementFactoryEntry>> = hashMapOf(),
 ) {
+    val lexer = KotlinLexer()
+
     fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
-        uniqueAccessorsFrom(entries.asSequence().mapNotNull(::typedAccessorSpec))
+        uniqueAccessorsFrom(entries.asSequence().mapNotNull { typedAccessorSpec(it, lexer) })
 
     fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
         accessorSpecs.filter(::add)
@@ -69,6 +70,7 @@ fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
             type.deprecation(),
             uniqueOptInAnnotations(receiver, type)
         )
+
         is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
@@ -83,6 +85,7 @@ fun nestedModelAccessor(spec: TypedAccessorSpec): String = spec.run {
             type.deprecation(),
             uniqueOptInAnnotations(receiver, type)
         )
+
         is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorForNestedModel(receiver.type.kotlinString, name, type)
     }
 }
@@ -208,7 +211,6 @@ fun accessibleNestedModelAccessorFor(
 }
 
 
-
 private
 fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
@@ -288,7 +290,14 @@ fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: Type
 internal
 fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString, type.deprecation(), uniqueOptInAnnotations(spec.type))
+        is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(
+            receiver.type.kotlinString,
+            name,
+            type.type.kotlinString,
+            type.deprecation(),
+            uniqueOptInAnnotations(spec.type)
+        )
+
         is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type)
     }
 }
@@ -326,36 +335,63 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 
 internal
 fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
+    val receiverKotlinType = receiver.type.kotlinString
+    val isTopLevelReceiver = receiver.type.value.concreteClass == SharedModelDefaults::class.java
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString, type.deprecation(), type.optInRequirements)
-        is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(
+            receiverKotlinType,
+            isTopLevelReceiver,
+            name,
+            type.type.kotlinString,
+            type.deprecation(),
+            type.optInRequirements
+        )
+        is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(receiverKotlinType, isTopLevelReceiver, name, type)
     }
 }
 
 
 private
-fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?, optIns: List<AnnotationRepresentation>): String = name.run {
+fun accessibleModelDefaultAccessorFor(
+    receiverType: String,
+    isTopLevelReceiver: Boolean,
+    name: AccessorNameSpec,
+    type: String,
+    deprecation: Deprecated?,
+    optIns: List<AnnotationRepresentation>
+): String = name.run {
     val annotations = """${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optIns)}"""
+    val body =
+        if (isTopLevelReceiver) """add("$stringLiteral", $type, configure)"""
+        else """applyProjectFeature(this, "$stringLiteral", configure)"""
     """
     |        /**
-    |         * Adds model defaults for the [$original][$name] project type.
+    |         * Adds model defaults for the [$original][$type] project feature.
     |         */
-    |        ${annotations}fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
-    |            add("$stringLiteral", $type, configure)
+    |        ${annotations}fun $receiverType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+    |            $body
     """.trimMargin()
 }
 
 
 private
-fun inaccessibleModelDefaultAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+fun inaccessibleModelDefaultAccessorFor(
+    receiverType: String,
+    isTopLevelReceiver: Boolean,
+    name: AccessorNameSpec,
+    typeAccess: TypeAccessibility.Inaccessible
+): String = name.run {
+    val body =
+        if (isTopLevelReceiver) """add("$stringLiteral", KotlinType.Any, configure)"""
+        else """applyProjectFeature(this, "$stringLiteral", configure)"""
     """
         /**
-         * Adds model defaults for the `$original` project type.
+         * Adds model defaults for the `$original` project feature.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<Any>): Unit =
-            add("$stringLiteral", KotlinType.Any, configure)
+        fun $receiverType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
+            $body
 
     """
 }
@@ -376,17 +412,18 @@ class AccessorNameSpec private constructor(val original: String) {
     }
 
     companion object {
+
         /**
          * Create a new [AccessorNameSpec], if [original] is valid.
          * Else, return `null`.
          */
         internal
-        fun createOrNull(original: String): AccessorNameSpec? =
-            if (isLegalAccessorName(original)) AccessorNameSpec(original)
+        fun createOrNull(lexer: KotlinLexer, original: String): AccessorNameSpec? =
+            if (lexer.isLegalAccessorName(original)) AccessorNameSpec(original)
             else null
 
         private
-        fun isLegalAccessorName(name: String): Boolean =
+        fun KotlinLexer.isLegalAccessorName(name: String): Boolean =
             isKotlinIdentifier("`$name`")
                 && name.indexOfAny(invalidNameChars) < 0
 
@@ -394,13 +431,12 @@ class AccessorNameSpec private constructor(val original: String) {
         val invalidNameChars = charArrayOf('.', '/', '\\')
 
         private
-        fun isKotlinIdentifier(candidate: String): Boolean =
-            KotlinLexer().run {
-                start(candidate)
-                tokenStart == 0
-                    && tokenEnd == candidate.length
-                    && tokenType == KtTokens.IDENTIFIER
-            }
+        fun KotlinLexer.isKotlinIdentifier(candidate: String): Boolean {
+            start(candidate)
+            return tokenStart == 0
+                && tokenEnd == candidate.length
+                && tokenType == KtTokens.IDENTIFIER
+        }
     }
 
     override fun toString(): String = "AccessorNameSpec(original=$original)"
@@ -449,8 +485,11 @@ fun escapeStringTemplateDollarSign(string: String) =
 
 
 private
-fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>): TypedAccessorSpec? {
-    val accessorName = AccessorNameSpec.createOrNull(schemaEntry.name) ?: return null
+fun typedAccessorSpec(
+    schemaEntry: ProjectSchemaEntry<TypeAccessibility>,
+    lexer: KotlinLexer,
+): TypedAccessorSpec? {
+    val accessorName = AccessorNameSpec.createOrNull(lexer, schemaEntry.name) ?: return null
     return when (schemaEntry.target) {
         is TypeAccessibility.Accessible ->
             TypedAccessorSpec(schemaEntry.target, accessorName, schemaEntry.type)

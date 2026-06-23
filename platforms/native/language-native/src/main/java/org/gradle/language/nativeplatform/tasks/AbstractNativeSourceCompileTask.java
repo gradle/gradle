@@ -55,6 +55,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         }
     }
 
+    @SuppressWarnings("this-escape")
     public AbstractNativeSourceCompileTask() {
         super();
         getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {

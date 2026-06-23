@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
@@ -1008,6 +1009,7 @@ group:projectB:2.2;release
         outputContains 'Providing metadata for group:projectA:1.2'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Needs further investigation on IP incompatibility: https://github.com/gradle/gradle/issues/38006")
     def "can cache the result of processing a rule across projects"() {
         settingsFile << """
             include 'b'

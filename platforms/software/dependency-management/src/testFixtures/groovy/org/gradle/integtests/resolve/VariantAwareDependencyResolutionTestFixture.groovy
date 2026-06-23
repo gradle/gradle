@@ -22,8 +22,8 @@ import org.gradle.test.fixtures.file.TestFile
 trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
 
-    def setupBuildWithColorVariants(TestFile buildFile = getBuildFile()) {
-        buildFile << """
+    String colorVariants() {
+        """
             def color = Attribute.of('color', String)
             allprojects {
                 configurations {
@@ -46,7 +46,11 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
                     }
                 }
             }
+        """
+    }
 
+    String showFileCollectionTask() {
+        """
             class ShowFileCollection extends DefaultTask {
                 @InputFiles
                 final ConfigurableFileCollection files = project.objects.fileCollection()

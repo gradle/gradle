@@ -17,10 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
+import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Models the result of resolving dependency graph. Provides access to the root
@@ -28,6 +31,11 @@ import java.util.function.Consumer;
  * building the graph.
  */
 public interface VisitedGraphResults {
+
+    /**
+     * The attributes that were requested for the root of the dependency graph.
+     */
+    ImmutableAttributes getRequestedAttributes();
 
     /**
      * Returns true if any failures occurred while building these results.
@@ -48,7 +56,15 @@ public interface VisitedGraphResults {
     Set<UnresolvedDependency> getUnresolvedDependencies();
 
     /**
-     * Returns the root of the dependency graph.
+     * Get the raw structure of the resolved graph, without mapping to any
+     * public API. This is the most efficient way to obtain a rich
+     * representation of a dependency graph.
      */
-    MinimalResolutionResult getResolutionResult();
+    Supplier<GraphStructure> getGraphStructureSource();
+
+    /**
+     * Returns the public view of the resolved graph.
+     */
+    Supplier<ResolvedGraphResult> getResolvedGraphResultSource();
+
 }

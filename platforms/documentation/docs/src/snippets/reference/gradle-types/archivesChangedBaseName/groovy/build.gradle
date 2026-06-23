@@ -1,0 +1,33 @@
+plugins {
+    id 'base'
+}
+
+version = 1.0
+// tag::base-plugin-config[]
+base {
+    archivesName = "gradle"
+    distsDirectory = layout.buildDirectory.dir('custom-dist')
+    libsDirectory = layout.buildDirectory.dir('custom-libs')
+}
+// end::base-plugin-config[]
+
+def myZip = tasks.register('myZip', Zip) {
+    from 'somedir'
+}
+
+def myOtherZip = tasks.register('myOtherZip', Zip) {
+    archiveAppendix = 'wrapper'
+    archiveClassifier = 'src'
+    from 'somedir'
+}
+
+tasks.register('echoNames') {
+    def projectNameString = project.name
+    def archiveFileName = myZip.flatMap { it.archiveFileName }
+    def myOtherArchiveFileName = myOtherZip.flatMap { it.archiveFileName }
+    doLast {
+        println "Project name: $projectNameString"
+        println archiveFileName.get()
+        println myOtherArchiveFileName.get()
+    }
+}

@@ -39,10 +39,10 @@ class UpdateReleasedVersionsTest extends Specification {
         def version = new ReleasedVersion('4.2', '20170913122310+0000')
 
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, [version])
+        ReleasedVersionsHelperKt.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, [version])
     }
 
-    def "final releases are sorted by version"() {
+    def "final releases are deduplicated and ordered by Gradle version (desc)"() {
         def snapshot = snapshot('4.3')
         def rc = releasedVersion('4.3-rc-1')
         def referenceBuildTime = System.currentTimeMillis() - DAYS.toMillis(10)
@@ -56,8 +56,34 @@ class UpdateReleasedVersionsTest extends Specification {
         def versions = releasedVersions(snapshot, rc, finalVersionsBefore)
         def version = new ReleasedVersion('4.2', '20170913122310+0000')
         expect:
-        def expectedVersions = (finalVersionsBefore + version).sort { it.version }.reverse()
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, expectedVersions)
+        def expectedVersions = [
+            releasedVersion('4.4', referenceBuildTime + 5),
+            releasedVersion('4.3.1', referenceBuildTime + 7),
+            releasedVersion('4.3', referenceBuildTime + 2),
+            releasedVersion('4.2.1', referenceBuildTime + 3),
+            releasedVersion('4.2', referenceBuildTime),
+        ]
+        ReleasedVersionsHelperKt.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, expectedVersions)
+    }
+
+    def "final release update is idempotent"() {
+        def snapshot = snapshot('4.3')
+        def rc = releasedVersion('4.3-rc-1')
+        def finalRow = releasedVersion('4.2')
+        def versions = releasedVersions(snapshot, rc, [])
+        expect:
+        def once = ReleasedVersionsHelperKt.updateReleasedVersions(finalRow, versions)
+        ReleasedVersionsHelperKt.updateReleasedVersions(finalRow, once) == once
+    }
+
+    def "duplicate identical final releases in file are collapsed"() {
+        def snapshot = snapshot('4.3')
+        def rc = releasedVersion('4.3-rc-1')
+        def duplicate = releasedVersion('4.2')
+        def versions = releasedVersions(snapshot, rc, [duplicate, duplicate])
+        expect:
+        ReleasedVersionsHelperKt.updateReleasedVersions(duplicate, versions) ==
+            releasedVersions(snapshot, rc, [duplicate])
     }
 
     def "newer snapshots are stored"() {
@@ -68,7 +94,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newSnapshot = snapshot(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newSnapshot, versions) == releasedVersions(newSnapshot, rc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newSnapshot, versions) == releasedVersions(newSnapshot, rc, [])
 
         where:
         version | buildTime
@@ -85,7 +111,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newSnapshot = snapshot(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newSnapshot, versions) == releasedVersions(oldSnapshot, rc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newSnapshot, versions) == releasedVersions(oldSnapshot, rc, [])
 
         where:
         version | buildTime
@@ -102,7 +128,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newRc = releasedVersion(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, newRc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, newRc, [])
 
         where:
         version | buildTime
@@ -119,7 +145,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newRc = releasedVersion(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, oldRc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, oldRc, [])
 
         where:
         version | buildTime

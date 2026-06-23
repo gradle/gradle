@@ -248,7 +248,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             emptySet(),
             emptyList(),
             listOf(newElementFactoryFunction(host, syntheticContainerTypeRef(host), elementType).orFailWith { return it }),
-            emptyList()
+            emptyList(),
+            metadata = emptyList() // TODO include the metadata telling about the NDOC type?
         ).let(::schemaResult)
     }
 

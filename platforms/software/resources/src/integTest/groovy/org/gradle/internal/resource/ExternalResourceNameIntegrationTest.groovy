@@ -18,12 +18,13 @@ package org.gradle.internal.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 class ExternalResourceNameIntegrationTest extends AbstractIntegrationSpec {
 
     // Network shares on Linux and macOS are just normal file paths, so we don't have anything to test here
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "can access repository on network share"() {
         //since we do not have a network share, we test the failure case and assert that the correct path was searched
         given:

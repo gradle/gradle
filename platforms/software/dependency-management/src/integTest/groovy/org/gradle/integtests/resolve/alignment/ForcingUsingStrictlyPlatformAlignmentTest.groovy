@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = """
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = """
 This test is very expensive due to the permutation testing.
 Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
 Se we run the tests only in embedded mode
@@ -163,8 +163,8 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:databind:{strictly 2.7.9}'
-   Constraint path: 'root project :' (conf) --> 'org:core:2.9.4' ($coreVariant) --> 'org:platform:2.9.4' (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
+   Dependency path: 'root project 'test'' (conf) --> 'org:databind:{strictly 2.7.9}'
+   Constraint path: 'root project 'test'' (conf) --> 'org:core:2.9.4' ($coreVariant) --> 'org:platform:2.9.4' (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
 
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
@@ -214,8 +214,8 @@ include 'other'
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:databind:{strictly 2.7.9}'
-   Constraint path: 'root project :' (conf) --> 'project :other' (conf) --> 'org:core:2.9.4' ($coreVariant) --> 'org:platform:2.9.4' (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
+   Dependency path: 'root project 'test'' (conf) --> 'org:databind:{strictly 2.7.9}'
+   Constraint path: 'root project 'test'' (conf) --> 'project ':other'' (conf) --> 'org:core:2.9.4' ($coreVariant) --> 'org:platform:2.9.4' (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
 
     String getCoreVariant() {

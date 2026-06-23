@@ -19,9 +19,9 @@ package org.gradle.integtests.fixtures.executer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.IsNoDaemonExecutor)
+@Requires(TestExecutionPreconditions.IsNoDaemonExecutor)
 class NoDaemonGradleExecuterIntegrationTest extends AbstractIntegrationSpec {
     def "no daemon executer does not spawn daemon"() {
         given:

@@ -25,6 +25,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.WorkOutput
+import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
@@ -103,8 +104,9 @@ class GeneratePluginSpecBuilderAccessors(
     fileCollectionFactory: FileCollectionFactory,
     inputFingerprinter: InputFingerprinter,
     workspaceProvider: KotlinDslWorkspaceProvider,
+    cachingDisabledReason: CachingDisabledReason?
 ) : AbstractStage1BlockAccessorsUnitOfWork(
-    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider
+    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider, cachingDisabledReason
 ) {
 
     override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"
@@ -313,7 +315,8 @@ fun BufferedWriter.appendSourceCodeForPluginDependencySpecAccessors(
 private
 fun defaultPackageTypesIn(pluginDependencySpecAccessors: List<PluginDependencySpecAccessor>) =
     defaultPackageTypesIn(
-        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors)
+        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors),
+        ClassNamesFromTypeStrings()
     )
 
 
@@ -379,9 +382,9 @@ fun pluginTreesFrom(pluginEntries: List<Pair<String, String>>): Map<String, Plug
 fun pluginEntriesFrom(classPathFiles: Iterable<File>, pluginEntryCache: PluginEntryCache): List<Pair<String, String>> =
     classPathFiles
         .asSequence()
-        .filter { it.isFile && it.extension.equals("jar", true) }
+        .filter { it.isFile && it.name.endsWith(".jar", ignoreCase = true) }
         .flatMap { pluginEntriesFrom(it, pluginEntryCache).asSequence() }
-        .map { Pair(it.pluginId, it.implementationClass)}
+        .map { Pair(it.pluginId, it.implementationClass) }
         .toCollection(mutableListOf())
 
 

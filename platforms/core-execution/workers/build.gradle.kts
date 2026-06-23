@@ -9,6 +9,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildProcessServices)
     api(projects.classloaders)
+    api(projects.classpath)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -22,6 +23,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
+    api(projects.problemsApi)
     api(projects.workerMain)
     api(projects.workerProcessServices)
 
@@ -71,6 +73,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

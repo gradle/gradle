@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
@@ -150,7 +150,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotEmbeddedExecutor,
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
         reason = """
             We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
             The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.

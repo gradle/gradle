@@ -1,0 +1,24 @@
+abstract class CreateFileTask extends DefaultTask {
+    @Input
+    abstract Property<String> getFileText()
+
+    @Input
+    String fileName = "myfile.txt"
+
+    @OutputFile
+    File getMyFile() {
+        return new File(fileName)
+    }
+
+    @TaskAction
+    void action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText.get())
+    }
+}
+
+tasks.register("createMyFileTaskInConventionPlugin", CreateFileTask) {
+    group = "from my convention plugin"
+    description = "Create myfile.txt in the current directory"
+    fileText.set("HELLO FROM MY CONVENTION PLUGIN")
+}

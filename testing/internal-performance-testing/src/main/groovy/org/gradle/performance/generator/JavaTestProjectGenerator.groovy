@@ -47,6 +47,14 @@ enum JavaTestProjectGenerator {
         .withCompilerMemory('512m')
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000).create()),
+    LARGE_JAVA_MULTI_PROJECT_DEPRECATIONS(new TestProjectGeneratorConfigurationBuilder("largeJavaMultiProjectDeprecations", "largeJavaMultiProject")
+        .withSourceFiles(100)
+        .withSubProjects(500)
+        .withDaemonMemory('2g')
+        .withCompilerMemory('512m')
+        .withDeprecationsPerProject(4)
+        .assembleChangeFile()
+        .testChangeFile(450, 2250, 45000).create()),
     LARGE_JAVA_MULTI_PROJECT_HIERARCHY(new TestProjectGeneratorConfigurationBuilder("largeJavaMultiProjectHierarchy")
         .withSourceFiles(100)
         .withSubProjects(250)
@@ -161,7 +169,7 @@ enum JavaTestProjectGenerator {
             "otel" : "io.opentelemetry:opentelemetry-sdk:1.33.0",
             "jackson" : "com.fasterxml.jackson.core:jackson-databind:2.10.0",
             "junit5" : "org.junit.jupiter:junit-jupiter-engine:5.10.0",
-            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:2.3.20",
+            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:2.4.0",
             "testcontainers": "org.testcontainers:mysql:1.15.3",
             "vertx": "io.vertx:vertx-web:4.4.2",
             "keycloak": "org.keycloak:keycloak-core:24.0.1"

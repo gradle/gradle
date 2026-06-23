@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
+import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
@@ -53,7 +54,6 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
-import org.jetbrains.kotlin.config.JvmTarget.JVM_25
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
@@ -161,8 +161,8 @@ fun compileKotlinScriptModuleTo(
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
-                add(SamWithReceiverConfigurationKeys.ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
-                add(AssignmentConfigurationKeys.ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
+                add(SamWithReceiverConfigurationKeys.SAM_WITH_RECEIVER_ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
+                add(AssignmentConfigurationKeys.ASSIGNMENT_ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
             }
 
             val environment = kotlinCoreEnvironmentFor(configuration)
@@ -309,9 +309,10 @@ class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 }
 
 
+@OptIn(CompilerConfiguration.Internals::class)
 private
 fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
-    CompilerConfiguration().apply {
+    CompilerConfiguration.create().apply {
         put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
         put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
@@ -325,10 +326,10 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
 
 @VisibleForTesting
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 25
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JVM_25
+        else JvmTarget.JVM_26
 }
 
 
@@ -381,7 +382,6 @@ fun CompilerConfiguration.addScriptingCompilerComponents() {
 @OptIn(K1Deprecation::class)
 private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
-    org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
     return SystemProperties.getInstance().withSystemProperty(
         KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
         "true"
@@ -449,7 +449,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     private
     fun indentedErrorMessages() =
-        errors.asSequence().map(::errorMessage).map(::prependIndent).toList()
+        errors.map { prependIndent(errorMessage(it)) }
 
     private
     fun errorMessage(error: ScriptCompilationError): String =

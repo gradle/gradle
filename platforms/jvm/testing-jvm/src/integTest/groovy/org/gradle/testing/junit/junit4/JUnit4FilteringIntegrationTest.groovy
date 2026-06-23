@@ -64,7 +64,7 @@ class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationT
         succeeds('test')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         testResult.assertTestPathsExecuted(*includedClasses)
 
         where:

@@ -19,7 +19,7 @@ package org.gradle.internal.enterprise
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
@@ -30,7 +30,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
-@Requires(IntegTestPreconditions.NotConfigCached)
+@Requires(TestExecutionPreconditions.NotConfigCached)
 class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
@@ -154,7 +154,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
     def "can use input handler when from cache"() {
         given:
         buildFile << """
-            def serviceRef = gradle.serviceRef
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task read {
                 doLast {
                     def response =  serviceRef.get()._requiredServices.userInputHandler.askYesNoQuestion("there?")
@@ -177,7 +177,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
     }
 
     private void runInteractive(String task, String answer) {
-        executer.withForceInteractive(true)
+        executer.withForceInteractiveSession(true)
         executer.withStdinPipe()
         executer.withTasks(task, "--configuration-cache")
         def handle = executer.start()
@@ -192,7 +192,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
     def "exposes correct start parameter"() {
         given:
         buildFile << """
-            def serviceRef = gradle.serviceRef
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             t.doLast {
                 println "offline: " + serviceRef.get()._buildState.startParameter.offline
             }
@@ -212,7 +212,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
 
     private String taskPrintBuildInvocationId(String taskName) {
         """
-            def serviceRef = gradle.extensions.serviceRef
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task $taskName {
                 doLast {
                     println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId
@@ -223,15 +223,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
 
     private String taskPrintRootBuildInvocationId(String taskName) {
         """
-            def rootServiceRef() {
-                def rootGradle = gradle
-                while (rootGradle.parent != null) {
-                    rootGradle = gradle.parent
-                }
-                rootGradle.extensions.serviceRef
-            }
-
-            def serviceRef = rootServiceRef()
+            def serviceRef = ${plugin.serviceOfGradleEnterprisePluginServiceRef()}
             task $taskName {
                 doLast {
                     println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId

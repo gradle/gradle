@@ -36,9 +36,9 @@ class TestFixturesDependencyModifiersTest extends Specification {
         dependency = modifier.modify(dependency)
         then:
         dependency.getCapabilitySelectors().size() == 1
-        dependency.getCapabilitySelectors()[0].with {
-            assert it instanceof FeatureCapabilitySelector
-            assert it.featureName == "test-fixtures"
+        verifyAll(dependency.getCapabilitySelectors()[0]) {
+            it instanceof FeatureCapabilitySelector
+            featureName == "test-fixtures"
         }
     }
 
@@ -53,9 +53,9 @@ class TestFixturesDependencyModifiersTest extends Specification {
         dependency = modifier.modify(dependency)
         then:
         dependency.getCapabilitySelectors().size() == 1
-        dependency.getCapabilitySelectors()[0].with {
-            assert it instanceof FeatureCapabilitySelector
-            assert it.featureName == "test-fixtures"
+        verifyAll(dependency.getCapabilitySelectors()[0]) {
+            it instanceof FeatureCapabilitySelector
+            featureName == "test-fixtures"
         }
 
         0 * _

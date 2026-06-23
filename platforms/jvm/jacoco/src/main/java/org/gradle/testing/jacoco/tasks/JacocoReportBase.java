@@ -55,6 +55,7 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoReportBase extends JacocoBase {
 
+    @SuppressWarnings("this-escape")
     public JacocoReportBase() {
         onlyIf("Any of the execution data files exists", new Spec<Task>() {
             @Override

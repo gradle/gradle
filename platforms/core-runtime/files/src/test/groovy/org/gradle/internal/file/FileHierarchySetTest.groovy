@@ -16,9 +16,11 @@
 
 package org.gradle.internal.file
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -97,14 +99,14 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11508")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "creates from file system root files"() {
         expect:
         def set = from(File.listRoots())
         set.contains(tmpDir.file("any"))
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def 'can handle more root dirs'() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result
@@ -125,7 +127,7 @@ class FileHierarchySetTest extends Specification {
         ['C:\\any1', 'D:\\any2'] | 'D:\\any2\\thing' | true
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def 'can handle complicated roots'() {
         expect:
         rootsOf(from([
@@ -139,7 +141,7 @@ class FileHierarchySetTest extends Specification {
         ]
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def 'can handle more dirs on Unix'() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result
@@ -358,11 +360,32 @@ class FileHierarchySetTest extends Specification {
         rootsOf(from(dir1, commonDir2, commonDir3)) == [dir1.absolutePath, commonDir2.absolutePath, commonDir3.absolutePath]
     }
 
+    def "handles two unrelated paths correctly"() {
+        def set = FileHierarchySet.empty()
+        def absolutePaths
+        if (OperatingSystem.current().isUnix()) {
+            absolutePaths = ['/some/dIR', '/another/dIR']
+        } else {
+            absolutePaths = ['C:\\Some\\DIR', 'D:\\Another\\DIR']
+        }
+
+        expect:
+        rootsOf(fromPaths(absolutePaths)) == absolutePaths
+    }
+
     private static FileHierarchySet from(File... roots) {
         from(roots as List)
     }
 
     private static FileHierarchySet from(Iterable<File> roots) {
+        def set = FileHierarchySet.empty()
+        for (def root : roots) {
+            set = set.plus(root)
+        }
+        return set
+    }
+
+    private static FileHierarchySet fromPaths(Iterable<String> roots) {
         def set = FileHierarchySet.empty()
         for (def root : roots) {
             set = set.plus(root)

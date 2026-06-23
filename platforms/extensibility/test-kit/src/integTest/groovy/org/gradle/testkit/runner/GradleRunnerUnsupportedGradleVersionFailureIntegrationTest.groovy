@@ -16,12 +16,69 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.junit.Assume
+
+import java.util.logging.Handler
+import java.util.logging.LogRecord
+import java.util.logging.Logger
 
 import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
 
 @NonCrossVersion
 class GradleRunnerUnsupportedGradleVersionFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
+
+    // Pick a Gradle version above RUN_BUILDS.since (2.6) but below MINIMUM_SUPPORTED_GRADLE_VERSION,
+    // so it triggers the deprecation warning path in ToolingApiGradleExecutor/BuildResultOutputFeatureCheck.
+    // Regression test for https://github.com/gradle/gradle/issues/36267
+    def "succeeds running build with deprecated Gradle version below minimum supported version"() {
+        // The old Gradle versions fail to run on the modern JDKs, so this test is embedded-only
+        Assume.assumeTrue(embedded)
+
+        given:
+        def oldGradleVersion = new ReleasedVersionDistributions().all
+            .collect { it.version }
+            .findAll { it < MINIMUM_SUPPORTED_GRADLE_VERSION }
+            .max()
+            .version
+        buildFile << helloWorldTask()
+        List<LogRecord> logRecords = []
+        def handler = new Handler() {
+            @Override
+            void publish(LogRecord record) { logRecords << record }
+
+            @Override
+            void flush() {}
+
+            @Override
+            void close() {}
+        }
+        def logger = Logger.getLogger("org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck")
+        logger.addHandler(handler)
+
+        when:
+        def result = runner('helloWorld')
+            .withGradleVersion(oldGradleVersion)
+            .build()
+
+        and:
+        def output = result.output
+
+        then:
+        output.contains("Hello world!")
+        logRecords.any {
+            it.message.contains("The version of Gradle you are using ($oldGradleVersion) is deprecated with TestKit. " +
+                "TestKit will only support the last 5 major versions in future. " +
+                "This will fail with an error starting with Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/tooling_api.html#sec:embedding_compatibility"
+            )
+        }
+
+        cleanup:
+        logger.removeHandler(handler)
+    }
+
     def "fails informatively when trying to use unsupported gradle version"() {
         given:
         buildFile << helloWorldTask()

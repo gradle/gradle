@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -79,8 +79,8 @@ class DefaultProjectDependencyConstraintTest extends Specification {
         }
         projectState.getMutableModel() >> project
 
-        def projectStateRegistry = Mock(ProjectStateRegistry) {
-            findProjectState(Path.ROOT) >> projectState
+        def projectStateLookup = Mock(ProjectStateLookup) {
+            findProject(Path.ROOT) >> projectState
         }
 
         def dependencyFactory = new DefaultProjectDependencyFactory(
@@ -88,7 +88,7 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             new CapabilityNotationParserFactory(false).create(),
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
-            projectStateRegistry,
+            projectStateLookup,
             new UnknownProjectFinder("")
         )
 

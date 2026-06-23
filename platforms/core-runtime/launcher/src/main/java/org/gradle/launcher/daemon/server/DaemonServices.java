@@ -47,6 +47,7 @@ import org.gradle.launcher.daemon.server.api.HandleReportStatus;
 import org.gradle.launcher.daemon.server.api.HandleStop;
 import org.gradle.launcher.daemon.server.exec.CleanUpVirtualFileSystemAfterBuild;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.exec.ApplyClientEnvironmentVariables;
 import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
 import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput;
@@ -170,6 +171,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
+            new ApplyClientEnvironmentVariables(processEnvironment),
             new LogAndCheckHealth(healthStats, healthCheck, runningStats),
             new ForwardClientInput(inputReader, eventDispatch),
             new RequestStopIfSingleUsedDaemon(),

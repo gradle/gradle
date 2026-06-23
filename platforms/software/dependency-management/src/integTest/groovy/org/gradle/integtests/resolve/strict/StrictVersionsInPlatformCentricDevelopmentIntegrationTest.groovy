@@ -472,8 +472,8 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         failure.assertHasCause "Could not resolve org:foo:{strictly 3.2}."
         failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
-3.1.1 - transitively via 'project :recklessLibrary' (conf)
-3.2 - directly in 'project :recklessLibrary' (conf)"""
+3.1.1 - transitively via 'project ':recklessLibrary'' (conf)
+3.2 - directly in 'project ':recklessLibrary'' (conf)"""
         failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
         failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 

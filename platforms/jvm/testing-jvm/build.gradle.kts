@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(projects.testingJvmInfrastructure)
 
     implementation(libs.commonsIo)
@@ -91,6 +92,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

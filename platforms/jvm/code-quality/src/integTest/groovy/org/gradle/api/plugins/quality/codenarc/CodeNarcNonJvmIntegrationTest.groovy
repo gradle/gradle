@@ -21,11 +21,12 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import spock.lang.Issue
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByCurrentJdk })
-@Requires(UnitTestPreconditions.StableGroovy)
+@Requires(TestEnvironmentPreconditions.StableGroovy)
 class CodeNarcNonJvmIntegrationTest extends MultiVersionIntegrationSpec implements CodeNarcTestFixture {
 
     @Issue("https://github.com/gradle/gradle/issues/23343")

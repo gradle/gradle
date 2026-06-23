@@ -19,6 +19,6 @@ package gradlebuild.buildutils.model
 import org.gradle.util.GradleVersion
 
 
-data class ReleasedVersion(private val version: String, private val buildTime: String) {
+data class ReleasedVersion(val version: String, val buildTime: String) {
     fun gradleVersion() = GradleVersion.version(version)
 }

@@ -19,12 +19,12 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ReadIdentities
 import org.gradle.internal.serialize.graph.WriteIdentities
-import org.gradle.internal.serialize.graph.decodePreservingIdentity
 
 
 internal
@@ -147,26 +147,33 @@ open class InlineClassLoaderScopeSpecDecoder : ClassLoaderScopeSpecDecoder {
     private
     val scopes = ReadIdentities()
 
-    override fun Decoder.decodeScope(): ClassLoaderScopeSpec = decodePreservingIdentity(scopes) { id ->
-        val parent = if (readBoolean()) {
-            decodeScope()
-        } else {
-            null
-        }
+    override fun Decoder.decodeScope(): ClassLoaderScopeSpec {
+        val id = readSmallInt()
+        val previousValue = scopes.getInstance(id)
+        return when {
+            previousValue != null -> previousValue.uncheckedCast()
+            else -> {
+                val parent = if (readBoolean()) {
+                    decodeScope()
+                } else {
+                    null
+                }
 
-        val name = readString()
-        val origin = readOrigin()
-        val localImplementationHash = readNullableHashCode()
-        val localClassPath = decodeClassPath()
-        val exportClassPath = decodeClassPath()
+                val name = readString()
+                val origin = readOrigin()
+                val localImplementationHash = readNullableHashCode()
+                val localClassPath = decodeClassPath()
+                val exportClassPath = decodeClassPath()
 
-        val newScope = ClassLoaderScopeSpec(parent, name, origin).apply {
-            this.localClassPath = localClassPath
-            this.localImplementationHash = localImplementationHash
-            this.exportClassPath = exportClassPath
+                val newScope = ClassLoaderScopeSpec(parent, name, origin).apply {
+                    this.localClassPath = localClassPath
+                    this.localImplementationHash = localImplementationHash
+                    this.exportClassPath = exportClassPath
+                }
+                scopes.putInstance(id, newScope)
+                newScope
+            }
         }
-        scopes.putInstance(id, newScope)
-        newScope
     }
 
     protected open fun Decoder.decodeClassPath(): ClassPath =

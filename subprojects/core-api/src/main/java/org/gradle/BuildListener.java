@@ -24,6 +24,20 @@ import org.gradle.internal.service.scopes.Scope;
 /**
  * <p>A {@code BuildListener} is notified of the major lifecycle events as a build is executed.</p>
  *
+ * <p>Registering this listener type is not supported when the
+ * configuration cache is enabled.
+ * The {@link #buildFinished(BuildResult)} callback is incompatible
+ * because it relies on execution-time state that is not available
+ * on a cache hit.
+ * <p>
+ * To receive notifications about task completion, use a
+ * {@link org.gradle.api.services.BuildService BuildService} that
+ * implements {@link org.gradle.tooling.events.OperationCompletionListener}
+ * and register it via
+ * {@link org.gradle.build.event.BuildEventsListenerRegistry}.
+ * To react to the build work result, use
+ * {@link org.gradle.api.flow.FlowProviders#getBuildWorkResult()}.
+ *
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
 @EventScope(Scope.Build.class)

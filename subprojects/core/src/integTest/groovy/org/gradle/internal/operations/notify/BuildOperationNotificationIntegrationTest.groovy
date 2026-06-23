@@ -32,13 +32,12 @@ import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -104,7 +103,6 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: [], cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can emit notifications for nested builds"() {
         when:
         file("buildSrc/build.gradle") << ""
@@ -208,13 +206,18 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).id
 
         def treeGraphOps = notifications.ops(CalculateTreeTaskGraphBuildOperationType.Details)
-        treeGraphOps.size() == 3
+        treeGraphOps.size() == (GradleContextualExecuter.configCache ? 4 : 3)
         treeGraphOps[0].parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
         treeGraphOps[1].parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         treeGraphOps[2].parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        def expectedParentIds = [treeGraphOps[2].id]
+        if (GradleContextualExecuter.configCache) {
+            treeGraphOps[3].parentId == notifications.op(ConfigurationCacheLoadBuildOperationType.Details).id
+            expectedParentIds = [treeGraphOps[2].id, treeGraphOps[3].id]
+        }
 
-        notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).parentId == treeGraphOps[2].id
-        notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a"]).parentId == treeGraphOps[2].id
+        notifications.ops(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"])*.parentId == expectedParentIds
+        notifications.ops(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a"])*.parentId == expectedParentIds
         notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == treeGraphOps[1].id
         notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == treeGraphOps[0].id
 

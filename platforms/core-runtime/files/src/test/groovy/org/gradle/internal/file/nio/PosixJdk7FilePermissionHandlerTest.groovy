@@ -18,11 +18,12 @@ package org.gradle.internal.file.nio
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Specification
 
-@Requires(UnitTestPreconditions.NotWindows)
+@Requires(OsTestPreconditions.NotWindows)
 class PosixJdk7FilePermissionHandlerTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 

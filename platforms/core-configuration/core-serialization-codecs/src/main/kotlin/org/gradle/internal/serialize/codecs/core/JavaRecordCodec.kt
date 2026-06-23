@@ -46,7 +46,7 @@ object JavaRecordCodec : EncodingProducer, Decoding {
         val args = readFields(fields)
         val types = fields.map { it.type }.toTypedArray()
         return try {
-            recordType.getConstructor(*types).newInstance(*args.toTypedArray())
+            recordType.getDeclaredConstructor(*types).apply { isAccessible = true }.newInstance(*args.toTypedArray())
         } catch (ex: Exception) {
             throw IllegalStateException("Failed to create instance of ${recordType.name} with args $args", ex)
         }

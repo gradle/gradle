@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasBuildActions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasInvalidationReason
 import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
+import org.gradle.internal.cc.impl.isolated.AbstractIsolatedProjectsIntegrationTest.IsolatedProjectsMode
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.tooling.provider.model.internal.QueryToolingModelBuildOperationType
 
@@ -115,6 +116,45 @@ class IsolatedProjectsFixture {
         assertHasWarningThatIncubatingFeatureUsed()
         assertProjectsConfigured(details)
         assertModelsQueried(details)
+    }
+
+    /**
+     * Asserts an IP-violation outcome for the given {@code mode}.
+     *
+     * <p>{@link IsolatedProjectsMode#DIAGNOSTICS} forwards to {@link #assertStateStoredAndDiscarded}.
+     *
+     * <p>{@link IsolatedProjectsMode#FAIL_FAST} asserts the build failed, the cache was not loaded,
+     * and at least one declared violation surfaced. Parallel configuration means we cannot assert
+     * which projects configured or which violation fired first.
+     */
+    void assertIsolatedProjectsProblems(IsolatedProjectsMode mode, @DelegatesTo(StateDiscardedWithProblemsDetails) Closure closure) {
+        switch (mode) {
+            case IsolatedProjectsMode.DIAGNOSTICS:
+                assertStateStoredAndDiscarded(closure)
+                break
+            case IsolatedProjectsMode.FAIL_FAST:
+                assertFailFastIpViolation(closure)
+                break
+            default:
+                throw new IllegalArgumentException("Unsupported IP mode: $mode")
+        }
+    }
+
+    private void assertFailFastIpViolation(Closure closure) {
+        def details = new StateDiscardedWithProblemsDetails()
+        closure.delegate = details
+        closure.resolveStrategy = Closure.DELEGATE_FIRST
+        closure()
+
+        assert spec.failed: "expected build to fail in fail-fast IP mode"
+        configurationCacheBuildOperations.assertLoadPhaseSkipped()
+
+        // Problem summaries land on stdout or stderr depending on the violation, so search both.
+        def expected = details.normalizedProblemMessages
+        assert !expected.empty: "fail-fast assertion requires at least one expected problem"
+        def output = spec.failure.output + '\n' + spec.failure.error
+        def matched = expected.find { output.contains(it) }
+        assert matched: "expected one of $expected in build output, but found none.\n--- output ---\n$output"
     }
 
     /**

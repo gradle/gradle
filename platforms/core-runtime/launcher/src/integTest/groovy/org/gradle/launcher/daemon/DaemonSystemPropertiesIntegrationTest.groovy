@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @Issue("GRADLE-2460")
@@ -109,7 +109,7 @@ task verify {
         daemons.daemons.size() == 2
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
         buildFile """
@@ -140,7 +140,7 @@ task verify {
         daemons(gradleVersion).daemons.size() == 2
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon for changed javax.net.ssl sys properties"() {
         setup:
         buildFile """
@@ -171,7 +171,7 @@ task verify {
         daemons(gradleVersion).daemons.size() == 2
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon for changed cache reserved space sys property"() {
         setup:
         buildFile """

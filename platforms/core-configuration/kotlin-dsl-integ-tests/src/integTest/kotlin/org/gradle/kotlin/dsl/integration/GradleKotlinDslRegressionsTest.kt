@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import org.gradle.util.GradleVersion
 import org.junit.Test
 import spock.lang.Issue
 
@@ -74,11 +75,21 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
 
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            @file:Suppress("DEPRECATION")
+
             tasks.withType<DefaultTask>().configureEach {
                 val p: String by project
             }
         """)
         withBuildScript("""plugins { id("my-plugin") }""")
+
+        executer.expectDocumentedDeprecationWarning(
+            "The 'val name: Type by project' property delegate syntax has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "Use 'val property = project.property(name)' instead. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kotlin_dsl_delegated_properties"
+        )
 
         build("help")
     }

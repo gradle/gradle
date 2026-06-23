@@ -29,6 +29,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     private final LockCache<K, T> resourceLocks;
     private final ConcurrentMap<Long, ThreadLockDetails<T>> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails<T>>();
 
+    @SuppressWarnings("this-escape")
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
         this.resourceLocks = new LockCache<K, T>(coordinationService, this);
     }
@@ -83,12 +84,21 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         lockDetails.locks.add(Cast.<T>uncheckedCast(resourceLock));
     }
 
+    /**
+     * {@return all locks currently cached} Locks are removed from the cache when they are no longer referenced,
+     * so this can only be relied upon to return locks that are currently held, but it may also include locks that are not currently held.
+     */
+    protected Iterable<T> getCachedResourceLocks() {
+        return resourceLocks.values();
+    }
+
     public boolean holdsLock() {
         ThreadLockDetails<T> details = detailsForCurrentThread();
         return !details.locks.isEmpty();
     }
 
     private ThreadLockDetails<T> detailsForCurrentThread() {
+        @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
         long id = Thread.currentThread().getId();
         ThreadLockDetails<T> lockDetails = threadLocks.get(id);
         if (lockDetails == null) {
@@ -100,6 +110,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     @Override
     public void lockReleased(ResourceLock resourceLock) {
+        @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
         ThreadLockDetails<T> lockDetails = threadLocks.get(Thread.currentThread().getId());
         if (lockDetails == null || !lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not release any locks.");

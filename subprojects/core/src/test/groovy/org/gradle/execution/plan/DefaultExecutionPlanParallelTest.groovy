@@ -37,7 +37,8 @@ import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -1128,7 +1129,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @ToBeImplemented("When we support symlinks in the VFS, we should implement this as well")
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "a task that writes into a symlink that overlaps with output of currently running task is not started"() {
         given:
         def taskOutput = file("outputDir").createDir()
@@ -1148,7 +1149,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @ToBeImplemented("When we support symlinks in the VFS, we should implement this as well")
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "a task that writes into a symlink of a shared output dir of currently running task is not started"() {
         given:
         def taskOutput = file("outputDir").createDir()
@@ -1170,7 +1171,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     @ToBeImplemented("When we support symlinks in the VFS, we should implement this as well")
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "a task that stores local state into a symlink of a shared output dir of currently running task is not started"() {
         given:
         def taskOutput = file("outputDir").createDir()

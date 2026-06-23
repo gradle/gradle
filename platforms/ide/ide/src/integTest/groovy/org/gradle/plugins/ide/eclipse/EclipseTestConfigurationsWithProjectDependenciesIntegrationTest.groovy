@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends AbstractEclipseTestSourcesIntegrationTest {
@@ -35,6 +36,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "dependencies in main source set dependency configurations are not marked with test classpath attribute"() {
         given:
         file('a/build.gradle') << """
@@ -44,12 +46,14 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
         assertProjectDependencyDoesNotHaveTestAttribute('a', 'b')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "dependencies in test source set dependency configurations are marked with test classpath attribute"() {
         given:
         file('a/build.gradle') << """
@@ -59,12 +63,14 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
         assertProjectDependencyHasTestAttribute('a', 'b')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "dependencies in jvm test suites are marked with test classpath attribute"() {
         file('a/build.gradle') << """
             plugins {
@@ -83,12 +89,14 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
         assertProjectDependencyHasTestAttribute('a', 'b')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "dependencies in custom source set dependency configurations are marked with test classpath attribute if the source set name contains the 'test' substring"() {
         given:
         file('a/build.gradle') << """
@@ -102,12 +110,14 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
         assertProjectDependencyHasTestAttribute('a', 'b')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "dependencies in custom source set dependency configurations are not marked with test classpath attribute if the source set name does not contain the 'test' substring"() {
         given:
         file('a/build.gradle') << """
@@ -121,12 +131,14 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
         assertProjectDependencyDoesNotHaveTestAttribute('a', 'b')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "can configure which source set dependency configurations contribute test dependencies to the classpath"() {
         given:
         settingsFile << "\ninclude 'c'"
@@ -155,6 +167,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -162,6 +175,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         assertProjectDependencyDoesNotHaveTestAttribute('a', 'c')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "dependencies present in test and non-test configurations are not marked with test classpath attribute"() {
         given:
         file('a/build.gradle') << """
@@ -172,6 +186,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -179,6 +194,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
     }
 
     @Issue('https://github.com/gradle/gradle/issues/21968')
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def 'dependencies for different features present in test and non-test configurations are not marked with test classpath attribute'() {
         given:
         settingsFile << """
@@ -214,6 +230,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:

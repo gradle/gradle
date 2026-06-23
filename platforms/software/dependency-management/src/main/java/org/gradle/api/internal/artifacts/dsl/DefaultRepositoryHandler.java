@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -77,7 +78,13 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
+    @Deprecated
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
+        DeprecationLogger.deprecateMethod(RepositoryHandler.class, "flatDir(Map)")
+            .withAdvice("Use flatDir(Action) instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_repository_handler_map_overloads")
+            .nagUser();
         Map<String, Object> modifiedArgs = new HashMap<>(args);
         if (modifiedArgs.containsKey("dirs")) {
             modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
@@ -106,7 +113,13 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
+    @Deprecated
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
+        DeprecationLogger.deprecateMethod(RepositoryHandler.class, "mavenCentral(Map)")
+            .withAdvice("Use mavenCentral(Action) instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_repository_handler_map_overloads")
+            .nagUser();
         Map<String, Object> modifiedArgs = new HashMap<>(args);
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<>(modifiedArgs));
     }

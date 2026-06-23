@@ -18,8 +18,8 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
@@ -38,9 +38,11 @@ import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModule;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -72,24 +74,24 @@ public class IdeaModelBuilder implements IdeaModelBuilderInternal {
     @Override
     public DefaultIdeaProject buildForRoot(Project project, boolean offlineDependencyResolution) {
         Project root = project.getRootProject();
-        applyIdeaPluginToBuildTree((ProjectInternal) root, new ArrayList<>());
+        applyIdeaPluginToBuildTree(((ProjectInternal) root).getOwner(), new HashSet<>());
         DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         return build(root, rootGradleProject, offlineDependencyResolution);
     }
 
-    private void applyIdeaPluginToBuildTree(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
-        Set<Project> allProjects = root.getAllprojects();
-        for (Project p : allProjects) {
-            p.getPluginManager().apply(IdeaPlugin.class);
-        }
-        for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
+    private static void applyIdeaPluginToBuildTree(ProjectState rootState, Set<Path> alreadyProcessed) {
+        BuildState build = rootState.getOwner();
+        build.getProjects().applyToMutableStateOfAllProjects(access -> {
+            for (Project p : access.getMutableModel(rootState).getAllprojects()) {
+                p.getPluginManager().apply(IdeaPlugin.class);
+            }
+        });
+        for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
                 target.ensureProjectsConfigured();
-                GradleInternal build = target.getMutableModel();
-                if (!alreadyProcessed.contains(build)) {
-                    alreadyProcessed.add(build);
-                    applyIdeaPluginToBuildTree(build.getRootProject(), alreadyProcessed);
+                if (alreadyProcessed.add(target.getIdentityPath())) {
+                    applyIdeaPluginToBuildTree(target.getProjects().getRootProject(), alreadyProcessed);
                 }
             }
         }

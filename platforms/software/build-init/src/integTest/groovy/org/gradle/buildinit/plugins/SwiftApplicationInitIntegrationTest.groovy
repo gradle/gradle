@@ -23,10 +23,11 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
-@Requires(value = UnitTestPreconditions.HasXCTest, reason = "Runs tests")
+@Requires(value = TestEnvironmentPreconditions.HasXCTest, reason = "Runs tests")
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 

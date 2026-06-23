@@ -76,7 +76,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
     private static final String OPERATIONS_FOR_EXECUTION_SQL_TEMPLATE = """
         select version, testExecution, totalTime
         from testOperation
-        join (select t.id from (%s) as t order by t.startTime desc limit ?) as executionIds
+        join (select t.id from (%s) as t group by t.id order by max(t.startTime) desc limit ?) as executionIds
           on executionIds.id = testOperation.testExecution
         """;
 
@@ -281,6 +281,9 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                     executionsForNameRs = testExecutions;
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
+                        if (results.containsKey(id)) {
+                            continue;
+                        }
                         CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
                         performanceResults.setTestClass(experiment.getScenario().getClassName());
                         performanceResults.setTestId(experiment.getScenario().getTestName());

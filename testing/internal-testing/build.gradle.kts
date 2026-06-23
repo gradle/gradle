@@ -11,6 +11,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.commonsCompress)
     api(libs.groovy)
     api(testLibs.hamcrest)
     api(libs.jspecify)
@@ -26,9 +27,7 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serialization)
 
-    implementation(libs.ant)
     implementation(libs.asm)
-    implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)

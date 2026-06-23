@@ -22,6 +22,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
@@ -30,11 +31,9 @@ import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.Describables
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.readProjectRef
 import org.gradle.internal.cc.base.serialize.writeProjectRef
-import org.gradle.internal.code.DefaultUserCodeSource
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -112,11 +111,7 @@ class TaskNodeCodec(
                     writeOnlyIfSpec(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
-                        withTaskReferencesAllowed {
-                            writeRegisteredPropertiesOf(
-                                task
-                            )
-                        }
+                        writeRegisteredPropertiesOf(task)
                     }
                     writeTaskActions(task)
                     writeDestroyablesOf(task)
@@ -128,21 +123,12 @@ class TaskNodeCodec(
     }
 
     private
-    fun WriteContext.writeUserCodeSource(source: UserCodeSource) {
-        when (source) {
-            UserCodeSource.UNKNOWN -> {
-                writeByte(0)
-            }
-
-            UserCodeSource.BY_RULE -> {
-                writeByte(1)
-            }
-
-            else -> {
-                writeByte(2)
-                writeString(source.displayName.displayName)
-                writeNullableString(source.pluginId)
-            }
+    suspend fun WriteContext.writeUserCodeSource(source: UserCodeSource?) {
+        if (source == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            UserCodeSourceCodec.run { encode(source) }
         }
     }
 
@@ -176,14 +162,9 @@ class TaskNodeCodec(
     }
 
     private
-    fun ReadContext.readUserCodeSource(): UserCodeSource = when (readByte()) {
-        0.toByte() -> UserCodeSource.UNKNOWN
-        1.toByte() -> UserCodeSource.BY_RULE
-        else -> {
-            val displayName = readString()
-            val pluginId = readNullableString()
-            DefaultUserCodeSource(Describables.of(displayName), pluginId)
-        }
+    suspend fun ReadContext.readUserCodeSource(): UserCodeSource? = when (readBoolean()) {
+        false -> null
+        true -> UserCodeSourceCodec.run { decode() }
     }
 
     private
@@ -399,7 +380,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
         property.run {
             when (this) {
                 is RegisteredProperty.InputFile -> {
-                    val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
+                    val finalValue = adaptInputFileValueForSerialization(DeferredUtil.unpackNestableDeferred(propertyValue), filePropertyType)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(true)
@@ -425,12 +406,49 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
     val outputProperties = collectRegisteredOutputsOf(task)
     writeCollection(outputProperties) { property ->
         property.run {
-            val finalValue = DeferredUtil.unpackOrNull(propertyValue)
+            val finalValue = adaptOutputFileValueForSerialization(DeferredUtil.unpackNestableDeferred(propertyValue), filePropertyType)
             writeOutputProperty(propertyName, finalValue)
             writeBoolean(optional)
             writeEnum(filePropertyType)
         }
     }
+}
+
+/**
+ * Adapts an `inputs.files(...)` property value into a form that can be safely serialized by the configuration cache.
+ *
+ * The raw value registered with `TaskInputs.files(...)` can be anything `FileCollectionFactory.resolvingLeniently(...)`
+ * accepts. Wrapping the value in a resolving [FileCollection] up-front routes serialization through [FileCollectionCodec],
+ * which only serializes the resolved set of files and the task dependencies — never the source collection's
+ * mutable internals. This is semantically equivalent to what consumers of `TaskInputs` do at execution time
+ * via `FileParameterUtils.resolveInputFileValue`.
+ *
+ * Only applied to [InputFilePropertyType.FILES] — [InputFilePropertyType.FILE] and [InputFilePropertyType.DIRECTORY]
+ * expect a single path-like value on read, so wrapping in a [FileCollection] would break `inputs.file(...)` /
+ * `inputs.dir(...)`.
+ */
+private
+fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
+    if (value == null || value is FileCollection || filePropertyType != InputFilePropertyType.FILES) {
+        return value
+    }
+    return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
+}
+
+
+/**
+ * Same as [adaptInputFileValueForSerialization] but for `outputs.files(...)` / `outputs.dirs(...)` property values.
+ *
+ * Only applied to the multi-valued [OutputFilePropertyType.FILES] and [OutputFilePropertyType.DIRECTORIES] —
+ * [OutputFilePropertyType.FILE] and [OutputFilePropertyType.DIRECTORY] expect a single path-like value on read,
+ * so wrapping in a [FileCollection] would break `outputs.file(...)` / `outputs.dir(...)`.
+ */
+private
+fun WriteContext.adaptOutputFileValueForSerialization(value: Any?, filePropertyType: OutputFilePropertyType): Any? {
+    if (value == null || value is FileCollection || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY) {
+        return value
+    }
+    return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
 }
 
 
@@ -584,7 +602,7 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?, userCodeSource: UserCodeSource): TaskInternal {
+fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?, userCodeSource: UserCodeSource?): TaskInternal {
     val task = project.tasks.createWithoutConstructor(taskName, taskClass, uniqueId, userCodeSource) as TaskInternal
     if (incompatibleReason != null) {
         task.notCompatibleWithConfigurationCache(incompatibleReason)
@@ -593,13 +611,3 @@ fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out 
 }
 
 
-private
-inline fun IsolateContext.withTaskReferencesAllowed(action: () -> Unit) {
-    val ownerTask = isolate.owner as IsolateOwners.OwnerTask
-    try {
-        ownerTask.allowTaskReferences = true
-        action()
-    } finally {
-        ownerTask.allowTaskReferences = false
-    }
-}

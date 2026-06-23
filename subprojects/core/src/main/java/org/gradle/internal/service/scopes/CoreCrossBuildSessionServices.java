@@ -16,8 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -101,11 +99,6 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     @Provides
     ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
         return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
-    }
-
-    @Provides
-    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-        return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
     }
 
     @Provides

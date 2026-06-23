@@ -52,3 +52,16 @@ class FunctionReturnTypeDiscovery : TypeDiscovery {
                 DiscoveredClass.classesOf(fn.returnType, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable)).map(::schemaResult)
             }
 }
+
+class FunctionParameterTypeDiscovery : TypeDiscovery {
+    /**
+     * Collects everything that restricted functions mention as return values.
+     */
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
+        typeDiscoveryServices.host.classMembers(kClass).declarativeMembers
+            .flatMapTo(mutableSetOf()) { fn ->
+                fn.parameters.flatMap {
+                    DiscoveredClass.classesOf(it.type, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable)).map(::schemaResult)
+                }
+            }
+}

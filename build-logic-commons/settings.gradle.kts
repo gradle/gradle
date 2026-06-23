@@ -37,6 +37,9 @@ include("basics")
 // Platform: defines shared dependency versions
 include("build-platform")
 
+// Plugin that applies the build-platform constraints
+include("build-platform-plugin")
+
 // Compute the identity/version we are building and related details (like current git commit)
 include("module-identity")
 

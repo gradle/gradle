@@ -18,7 +18,8 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -178,7 +179,7 @@ public class Other {}
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33161")
-    @Requires(value = UnitTestPreconditions.Jdk21OrLater, reason = "JDK 21+ required for new enum switch expressions")
+    @Requires(value = JdkVersionTestPreconditions.Jdk21OrLater, reason = "JDK 21+ required for new enum switch expressions")
     def "detects changes to class referenced in method body via enum in switch expression"() {
         given:
         source """class A {

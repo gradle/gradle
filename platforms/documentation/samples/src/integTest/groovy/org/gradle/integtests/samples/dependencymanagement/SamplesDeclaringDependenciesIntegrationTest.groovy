@@ -29,7 +29,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("dependencyManagement/declaringDependencies-concreteVersion")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-concreteVersion")
     def "can use declare and resolve dependency with concrete version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -44,7 +44,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/declaringDependencies-withoutVersion")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-withoutVersion")
     def "can use declare and resolve dependency without version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -59,7 +59,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/declaringDependencies-dynamicVersion")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-dynamicVersion")
     def "can use declare and resolve dependency with dynamic version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -74,7 +74,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/declaringDependencies-changingVersion")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-changingVersion")
     def "can use declare and resolve dependency with changing version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -89,7 +89,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/declaringDependencies-fileDependencies")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-fileDependencies")
     def "can use declare and resolve file dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -108,7 +108,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/declaringDependencies-artifactOnly")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-artifactOnly")
     def "can resolve dependency with artifact-only declaration with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -123,7 +123,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/declaringDependencies-artifactOnlyWithClassifier")
+    @UsesSample("integration-tests/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier")
     def "can resolve dependency with artifact-only declaration with classifier with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

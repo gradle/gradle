@@ -20,10 +20,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 
@@ -39,20 +37,20 @@ object BuildModelParametersProvider {
     val logger = Logging.getLogger(BuildModelParametersProvider::class.java)
 
     private
-    val configurationCacheParallelStore = InternalFlag("org.gradle.internal.configuration-cache.parallel-store", true)
+    val configurationCacheParallelStore = InternalOptions.ofBoolean("org.gradle.internal.configuration-cache.parallel-store", true)
 
     private
-    val configurationCacheParallelLoad = InternalFlag("org.gradle.internal.configuration-cache.parallel-load", true)
+    val configurationCacheParallelLoad = InternalOptions.ofBoolean("org.gradle.internal.configuration-cache.parallel-load", true)
 
     private
-    val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
+    val invalidateCoupledProjects = InternalOptions.ofBoolean("org.gradle.internal.invalidate-coupled-projects", true)
 
     /**
      * If model dependencies between projects should be treated as project dependencies.
      * Model dependency is observed when a project requests a model from another project.
      */
     private
-    val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
+    val modelProjectDependencies = InternalOptions.ofBoolean("org.gradle.internal.model-project-dependencies", true)
 
     @JvmStatic
     val isolatedProjectsConfigureOnDemand =
@@ -65,10 +63,6 @@ object BuildModelParametersProvider {
     @JvmStatic
     val isolatedProjectsCaching =
         InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.NONE)
-
-    private
-    val resilientModelBuilding =
-        InternalFlag("org.gradle.internal.resilient-model-building", false)
 
     /**
      * A public *system property* that allows removing the implication that
@@ -96,17 +90,17 @@ object BuildModelParametersProvider {
         val ccDisabledReason = getConfigurationCacheDisabledReason(startParameter)
         return when {
             // TODO:isolated should this also disable IP?
-            ccDisabledReason != null -> vintageMode(requirements, startParameter, options, ccDisabledReason)
+            ccDisabledReason != null -> vintageMode(requirements, startParameter, ccDisabledReason)
             startParameter.isolatedProjects.get() -> isolatedProjectsMode(requirements, startParameter, options)
             startParameter.configurationCache.get() ->
                 if (requirements.isCreatesModel) {
                     // CC by itself does not yet support caching models or caching of the work graph that runs before model building
-                    vintageMode(requirements, startParameter, options)
+                    vintageMode(requirements, startParameter)
                 } else {
                     configurationCacheTasksOnlyMode(requirements, startParameter, options)
                 }
 
-            else -> vintageMode(requirements, startParameter, options)
+            else -> vintageMode(requirements, startParameter)
         }
     }
 
@@ -124,8 +118,7 @@ object BuildModelParametersProvider {
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = null,
-            parallelModelBuilding = false,
-            resilientModelBuilding = false
+            parallelModelBuilding = false
         )
     }
 
@@ -133,7 +126,6 @@ object BuildModelParametersProvider {
     fun vintageMode(
         requirements: BuildActionModelRequirements,
         startParameter: StartParameterInternal,
-        options: InternalOptions,
         ccDisabledReason: String? = null
     ): GradleVintageMode {
 
@@ -146,7 +138,6 @@ object BuildModelParametersProvider {
                 configureOnDemand = false,
                 configurationCacheDisabledReason = ccDisabledReason,
                 parallelModelBuilding = parallelModelBuilding,
-                resilientModelBuilding = options[resilientModelBuilding],
             )
         } else {
             GradleVintageMode(
@@ -155,7 +146,6 @@ object BuildModelParametersProvider {
                 configureOnDemand = startParameter.isConfigureOnDemand,
                 configurationCacheDisabledReason = ccDisabledReason,
                 parallelModelBuilding = false,
-                resilientModelBuilding = false,
             )
         }
     }
@@ -200,27 +190,36 @@ object BuildModelParametersProvider {
         }
         validateIsolatedProjectsCachingOption(options)
 
-        val configureOnDemand = isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
-        val parallelIsolatedProjects = isolatedProjectsParallel.forInvocation(requirements, options)
+        val diagnostics = startParameter.isIsolatedProjectsDiagnostics
+        // Only governs whether IP violations are fatal; deliberately does not touch parallelism,
+        // since the point of this mode is to keep parallel configuration on while estimating speedup.
+        val dangerouslyIgnoreProblems = startParameter.isIsolatedProjectsDangerouslyIgnoreProblems
+        // In Diagnostics mode, configure all projects to surface all possible violations.
+        val configureOnDemand = !diagnostics && isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
+        // In Diagnostics mode, run sequentially so all violations can be collected deterministically.
+        val parallelIsolatedProjects = !diagnostics && isolatedProjectsParallel.forInvocation(requirements, options)
         val parallelConfigurationCacheStore = parallelIsolatedProjects && options[configurationCacheParallelStore]
         val invalidateCoupledProjects = options[invalidateCoupledProjects]
 
         return if (requirements.isCreatesModel) {
             GradleIsolatedProjectsMode(
                 modelBuilding = true,
+                isolatedProjectsDiagnostics = diagnostics,
+                isolatedProjectsDangerouslyIgnoreProblems = dangerouslyIgnoreProblems,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
-                cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
+                cachingModelBuilding = !diagnostics && options[isolatedProjectsCaching].buildingModels,
                 parallelModelBuilding = parallelIsolatedProjects,
                 invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = options[modelProjectDependencies],
-                resilientModelBuilding = options[resilientModelBuilding]
+                modelAsProjectDependency = options[modelProjectDependencies]
             )
         } else {
             GradleIsolatedProjectsMode(
                 modelBuilding = false,
+                isolatedProjectsDiagnostics = diagnostics,
+                isolatedProjectsDangerouslyIgnoreProblems = dangerouslyIgnoreProblems,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
@@ -228,8 +227,7 @@ object BuildModelParametersProvider {
                 cachingModelBuilding = false,
                 parallelModelBuilding = false,
                 invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = false,
-                resilientModelBuilding = false
+                modelAsProjectDependency = false
             )
         }
     }
@@ -254,7 +252,7 @@ object BuildModelParametersProvider {
             "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.propertyName,
         )
         for ((previous, current) in replacements) {
-            if (options.getOption(StringInternalOption.of(previous)).isExplicit) {
+            if (options.isExplicitlySet(previous)) {
                 logger.warn("Warning: option '$previous' has been replaced with '$current'")
             }
         }
@@ -281,5 +279,5 @@ object BuildModelParametersProvider {
     }
 
     private
-    operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
+    operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getValue(option)
 }

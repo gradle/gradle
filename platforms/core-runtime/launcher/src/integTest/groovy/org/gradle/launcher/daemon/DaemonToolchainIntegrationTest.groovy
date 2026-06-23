@@ -24,10 +24,11 @@ import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Assume
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
     def setup() {
         executer.requireIsolatedDaemons()
@@ -44,7 +45,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(Jvm.current())
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "executes the daemon with the specified jdk"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -56,7 +57,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given other daemon toolchain version and vendor When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -70,7 +71,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given criteria matching JAVA_HOME environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -86,7 +87,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given installation with relative path to project and disabled auto-detection When executing any task Then daemon jvm was set up with the relative path toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -105,7 +106,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given installation with relative path to project and disabled auto-detection When executing from subproject Then daemon jvm was set up with toolchain resolved relative to root dir"() {
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)

@@ -16,13 +16,14 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.DisplayName
+import org.gradle.api.Describable
 import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Reference
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
+import org.gradle.util.Path
 import kotlin.reflect.KClass
 
 
@@ -47,13 +48,13 @@ enum class DocumentationSection(val page: String, val anchor: String) {
     NotYetImplemented("configuration_cache_status", "config_cache:not_yet_implemented"),
     NotYetImplementedSourceDependencies("configuration_cache_status", "config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("configuration_cache_status", "config_cache:not_yet_implemented:java_serialization"),
-    NotYetImplementedTestKitJavaAgent("configuration_cache_status", "config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     NotYetImplementedBuildServiceInFingerprint("configuration_cache_status", "config_cache:not_yet_implemented:build_services_in_fingerprint"),
     NotYetImplementedBuildEventListeners("configuration_cache_status", "config_cache:not_yet_implemented:more_build_event_listeners"),
     TaskOptOut("configuration_cache_debugging", "config_cache:task_opt_out"),
     RequirementsBuildListeners("configuration_cache_requirements","config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("configuration_cache_requirements","config_cache:requirements:disallowed_types"),
     RequirementsExternalProcess("configuration_cache_requirements","config_cache:requirements:external_processes"),
+    RequirementsJavaAgent("configuration_cache_requirements", "config_cache:requirements:java_agent"),
     RequirementsTaskAccess("configuration_cache_requirements","config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("configuration_cache_requirements","config_cache:requirements:reading_sys_props_and_env_vars"),
     RequirementsUseProjectDuringExecution("configuration_cache_requirements","config_cache:requirements:use_project_during_execution"),
@@ -121,6 +122,10 @@ data class StructuredMessage(val fragments: List<Fragment>) {
             fragments.add(Reference(name))
         }
 
+        fun reference(path: Path): Builder = apply {
+            fragments.add(Reference(path.asString()))
+        }
+
         fun reference(type: Class<*>): Builder = apply {
             reference(type.name)
         }
@@ -179,7 +184,7 @@ sealed class PropertyTrace {
 
     @ConsistentCopyVisibility
     data class BuildLogic private constructor(
-        val source: DisplayName,
+        val source: Describable,
         val lineNumber: Int? = null
     ) : PropertyTrace() {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
@@ -233,6 +238,52 @@ sealed class PropertyTrace {
             with(builder) {
                 reference(type.name)
                 text(" bean found in ")
+            }
+        }
+    }
+
+    data class SerializedLambda(
+        val implClass: String,
+        val implMethodName: String,
+        val functionalInterfaceClass: String,
+        val instantiatedReturnType: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
+
+        override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("lambda of type ")
+                reference(functionalInterfaceClass)
+                text(" returning ")
+                reference(instantiatedReturnType)
+                text(" found in ")
+            }
+        }
+    }
+
+    data class CapturedLambdaArguments(
+        val subkind: Subkind,
+        val owningClass: String,
+        val owningMethod: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        enum class Subkind { LambdaBody, BoundReceiver }
+
+        override val containingUserCodeMessage: StructuredMessage
+            get() = trace.containingUserCodeMessage
+
+        override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                when (subkind) {
+                    Subkind.LambdaBody -> text("captured state from method ")
+                    Subkind.BoundReceiver -> text("bound receiver of method ")
+                }
+                reference("$owningClass.$owningMethod")
+                text(" of ")
             }
         }
     }
@@ -360,6 +411,8 @@ sealed class PropertyTrace {
     val tail: PropertyTrace?
         get() = when (this) {
             is Bean -> trace
+            is SerializedLambda -> trace
+            is CapturedLambdaArguments -> trace
             is Property -> trace
             is VirtualProperty -> owner
             is SystemProperty -> trace

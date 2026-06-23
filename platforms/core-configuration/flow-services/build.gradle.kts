@@ -32,6 +32,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.core)
+    implementation(projects.execution)
     implementation(projects.messaging)
     implementation(projects.modelReflect)
     implementation(projects.problemsApi)
@@ -52,6 +53,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

@@ -16,17 +16,15 @@
 
 package gradlebuild.performance.junit4
 
-import org.junit.Assert.assertEquals
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 class SecureUnmarshallerTest {
 
-    @JvmField
-    @Rule
-    val tempFolder = TemporaryFolder()
+    @TempDir
+    lateinit var tempFolder: File
 
     @Test
     fun `extracts data from test report`() {
@@ -85,7 +83,7 @@ class SecureUnmarshallerTest {
 
     private
     fun junitReportXml(): File =
-        tempFolder.newFile("junit.xml").apply {
+        File(tempFolder, "junit.xml").apply {
             writeText("""
                 <?xml version="1.0" encoding="UTF-8"?>
                 <testsuite name="com.example.performance.Language" tests="4" skipped="1" failures="1" errors="1" timestamp="2025-05-22T16:11:00.828Z" hostname="dev6435.example.com" time="982.6">

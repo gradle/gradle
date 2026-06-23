@@ -18,7 +18,7 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 
 class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec {
@@ -177,7 +177,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // TestKit usage inside of the test requires distribution
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // TestKit usage inside of the test requires distribution
     def "can request plugin from TestKit injected classpath"() {
 
         given:
@@ -359,7 +359,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // TestKit usage inside of the test requires distribution
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // TestKit usage inside of the test requires distribution
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
 
         given:

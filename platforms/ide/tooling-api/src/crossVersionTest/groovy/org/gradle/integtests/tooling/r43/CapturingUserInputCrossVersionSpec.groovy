@@ -17,15 +17,16 @@
 package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-
-@TargetGradleVersion(">=4.3")
+// 8.8 is excluded: it shipped the new client-side prompt protocol (PromptOutputEvent/UserResponse) but
+// still had the daemon greedily consume the client's stdin, so the forwarded answer is swallowed as raw
+// stdin before the prompt response is read and askYesNoQuestion returns null. The greedy consumption was
+// removed in 8.9 (commit 66832d04eff), and 8.7 and earlier use the older protocol that is unaffected.
+@TargetGradleVersion(">=4.3 !8.8")
 @Timeout(120)
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
 
@@ -82,23 +83,11 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection) {
-        def stdin = new PipedInputStream()
-        def stdinWriter = new PipedOutputStream(stdin)
-        def resultHandler = new TestResultHandler()
+        def stdin = new ByteArrayInputStream(("yes" + System.getProperty('line.separator')).bytes)
 
         basicBuildConfiguration(connection)
             .setStandardInput(stdin)
-            .run(resultHandler)
-
-        poll(60) {
-            assert getOutput().contains("Accept license? [yes, no]")
-        }
-
-        stdinWriter.write(("yes" + System.getProperty('line.separator')).bytes)
-        stdinWriter.close()
-
-        resultHandler.finished()
-        resultHandler.assertNoFailure()
+            .run()
     }
 
     private static BuildLauncher basicBuildConfiguration(ProjectConnection connection) {

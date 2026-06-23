@@ -56,8 +56,8 @@ They use `-Xmx512m` by default.
 
 *Example 1:* Set compile options for Java compilation tasks:
 ====
-include::sample[dir="snippets/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/unused/build-environment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/unused/build-environment/javaCompileOptions/groovy",files="build.gradle[]"]
 ====
 
 See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
@@ -77,8 +77,8 @@ A simple way to do this is using the `isCI` project property.
 
 *Example 1:* Prevent releasing outside of CI:
 ====
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/unused/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/unused/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -87,5 +87,5 @@ $ ./gradlew performRelease -PisCI=true --quiet
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
+include::{snippetsPath}/unused/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----

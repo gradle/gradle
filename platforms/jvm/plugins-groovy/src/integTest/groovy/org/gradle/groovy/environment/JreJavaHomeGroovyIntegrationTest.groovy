@@ -19,13 +19,15 @@ package org.gradle.groovy.environment
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
     @Requires(value = [
-        IntegTestPreconditions.BestJreAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.BestJreAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with a JRE")
     def "groovy java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
@@ -52,7 +54,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         forkMode << [true, false]
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode"() {
         given:
         writeJavaTestSource("src/main/groovy")

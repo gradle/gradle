@@ -50,13 +50,9 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                     @InputFiles
                     abstract ConfigurableFileCollection getArtifacts()
 
-                    @Internal
-                    List<String> expectations = []
-
                     @TaskAction
                     void assertThat() {
                         logger.lifecycle 'Found files: {}', artifacts.files*.name
-                        assert artifacts.files*.name == expectations
                     }
                 }
 
@@ -191,43 +187,27 @@ Artifacts
     }
 
     def 'consumer resolves jar variant of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolve {
-                expectations = [ 'producer-jar.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolve')
+        outputContains("Found files: [producer-jar.txt]")
     }
 
     def 'consumer resolves javadoc variant of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolveJavadoc {
-                expectations = [ 'producer-javadoc.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolveJavadoc')
+        outputContains("Found files: [producer-javadoc.txt]")
     }
 
     def 'consumer resolves other variant of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolveOther {
-                expectations = [ 'producer-other.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolveOther')
+        outputContains("Found files: [producer-other.txt]")
     }
 
     def 'consumer resolves all variants of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolveAll {
-                expectations = [ 'producer-jar.txt', 'producer-javadoc.txt', 'producer-other.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolveAll')
+        outputContains("Found files: [producer-jar.txt, producer-javadoc.txt, producer-other.txt]")
     }
 
     def 'consumer resolves jar variant of producer with dependencies'() {
@@ -245,13 +225,9 @@ Artifacts
                 jarElements project(":direct")
             }
         '''
-        file('consumer/build.gradle') << '''
-            tasks.resolve {
-                expectations = ['producer-jar.txt', 'direct-jar.txt', 'transitive-jar.txt']
-            }
-        '''
         expect:
         succeeds(':consumer:resolve')
+        outputContains("Found files: [producer-jar.txt, direct-jar.txt, transitive-jar.txt]")
     }
 
     def 'consumer resolves javadoc variant of producer with dependencies on jarElements'() {
@@ -269,13 +245,9 @@ Artifacts
                 jarElements project(":direct")
             }
         '''
-        file('consumer/build.gradle') << '''
-            tasks.resolveJavadoc {
-                expectations = ['producer-javadoc.txt', 'direct-javadoc.txt', 'transitive-javadoc.txt']
-            }
-        '''
         expect:
         succeeds(':consumer:resolveJavadoc')
+        outputContains("Found files: [producer-javadoc.txt, direct-javadoc.txt, transitive-javadoc.txt]")
     }
 
     def 'consumer resolves other variant of producer with dependencies on jarElements'() {
@@ -293,13 +265,9 @@ Artifacts
                 jarElements project(":direct")
             }
         '''
-        file('consumer/build.gradle') << '''
-            tasks.resolveOther {
-                expectations = ['producer-other.txt', 'direct-other.txt', 'transitive-other.txt']
-            }
-        '''
         expect:
         succeeds(':consumer:resolveOther')
+        outputContains("Found files: [producer-other.txt, direct-other.txt, transitive-other.txt]")
     }
 
     def 'consumer resolves other variant of producer with dependencies on otherElements'() {
@@ -317,12 +285,8 @@ Artifacts
                 otherElements project(":direct")
             }
         '''
-        file('consumer/build.gradle') << '''
-            tasks.resolveOther {
-                expectations = ['producer-other.txt']
-            }
-        '''
         expect:
         succeeds(':consumer:resolveOther')
+        outputContains("Found files: [producer-other.txt]")
     }
 }

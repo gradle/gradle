@@ -17,7 +17,6 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 
 /**
  * Tests that exercise and demonstrate a broken Non-Class-Based Testing Engine that fails during execution.
@@ -26,11 +25,6 @@ class FailsExecutionNonClassBasedTestingIntegrationTest extends AbstractNonClass
     @Override
     List<TestEngines> getEnginesToSetup() {
         return [TestEngines.FAILS_EXECUTION_RESOURCE_BASED]
-    }
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
     }
 
     def "engine failing during execution is handled gracefully"() {
@@ -62,7 +56,7 @@ class FailsExecutionNonClassBasedTestingIntegrationTest extends AbstractNonClass
         def results = resultsFor()
         def testPath = results.testPath(":engine_fails-execution-rbt-engine")
         testPath.onlyRoot().assertChildCount(1, 1)
-        results.testPathPreNormalized(":engine_fails-execution-rbt-engine:initializationError").onlyRoot()
+        results.testPath(":engine_fails-execution-rbt-engine:initializationError").onlyRoot()
             .assertFailureMessages(containsNormalizedString("org.junit.platform.commons.JUnitException: TestEngine with ID 'fails-execution-rbt-engine' failed to execute tests"))
             .assertFailureMessages(containsNormalizedString("java.lang.RuntimeException: Test execution failed"))
     }

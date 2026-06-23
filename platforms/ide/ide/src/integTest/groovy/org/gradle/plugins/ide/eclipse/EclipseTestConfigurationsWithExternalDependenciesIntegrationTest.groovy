@@ -40,6 +40,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -55,6 +56,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -81,6 +83,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -107,6 +110,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -126,6 +130,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -145,6 +150,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -173,6 +179,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -190,6 +197,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:

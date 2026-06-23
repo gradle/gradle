@@ -46,7 +46,7 @@ gradleModule {
 testing {
     suites {
         @Suppress("UnstableApiUsage")
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             dependencies {
                 implementation(testFixtures(project()))
             }

@@ -26,11 +26,11 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "works on real installation"() {
         when:
         def detector = new DefaultJvmMetadataDetector(

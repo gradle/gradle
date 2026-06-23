@@ -104,7 +104,6 @@ public interface Dependencies {
      *
      * @return the current project as a dependency
      */
-    @HiddenInDefinition
     default ProjectDependency project() {
         return getDependencyFactory().createProjectDependency();
     }

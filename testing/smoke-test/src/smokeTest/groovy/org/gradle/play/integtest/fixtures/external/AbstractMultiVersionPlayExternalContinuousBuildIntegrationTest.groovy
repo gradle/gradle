@@ -20,12 +20,13 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
 @MultiVersionTest
-@Requires(UnitTestPreconditions.Jdk11OrEarlier)
+@Requires(JdkVersionTestPreconditions.Jdk11OrEarlier)
 abstract class AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest extends AbstractPlayExternalContinuousBuildIntegrationTest {
     static def version
 

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
@@ -27,7 +28,10 @@ import java.io.File;
 
 /**
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration <p> At this moment nearly all configuration is done via {@link IdeaProject}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
@@ -41,13 +45,22 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     }
 
     @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
+    }
+
+    @Override
     protected void configure(Project xmlModule) {
-        getIdeaProject().mergeXmlProject(xmlModule);
+        DeprecationLogger.whileDisabled(() -> getIdeaProject().mergeXmlProject(xmlModule));
     }
 
     @Override
     public Project create() {
-        Project project = new Project(getXmlTransformer(), ideaProject.getPathFactory());
+        Project project = new Project(getXmlTransformer(), DeprecationLogger.whileDisabled(ideaProject::getPathFactory));
         return project;
     }
 
@@ -56,7 +69,7 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
         if (ideaProject == null) {
             return super.getXmlTransformer();
         }
-        return ideaProject.getIpr().getXmlTransformer();
+        return DeprecationLogger.whileDisabled(() -> ideaProject.getIpr().getXmlTransformer());
     }
 
     /**

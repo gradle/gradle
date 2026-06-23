@@ -49,6 +49,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         run 'eclipse'
 
         then:
@@ -97,6 +98,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         run 'eclipse'
 
         then:

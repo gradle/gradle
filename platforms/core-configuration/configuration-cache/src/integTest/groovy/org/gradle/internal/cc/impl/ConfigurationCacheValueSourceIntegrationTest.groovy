@@ -18,11 +18,48 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.process.ShellScript
 import spock.lang.Issue
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/30182")
+    def "value source without parameters can access None parameters"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                String obtain() {
+                    println("Parameters: " + getParameters())
+                    return "Hello!"
+                }
+            }
+
+            def greetValueSource = providers.of(GreetValueSource) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
+            tasks.register("greet") {
+                doLast { println greetValueSource.get() }
+            }
+        """)
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("Spec parameters: ValueSourceParameters.None")
+        output.contains("Configure closure parameters: ValueSourceParameters.None")
+        output.contains("Parameters: ValueSourceParameters.None")
+        output.contains("Hello!")
+    }
 
     def "value source without parameters can be used as task input"() {
         given:
@@ -889,5 +926,65 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         and:
         configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32828")
+    def "value source whose parameters reference an extension's nested bean does not deadlock on store/load"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            import javax.inject.Inject
+
+            abstract class B {
+                abstract Property<String> getName()
+            }
+
+            abstract class A {
+                @Nested abstract B getB()
+
+                final Provider<String> calculated
+
+                @Inject
+                A(ProviderFactory providers) {
+                    getB().name.convention("hi")
+                    calculated = providers.of(MySrc) { spec ->
+                        spec.parameters.b.set(getB())
+                    }
+                }
+            }
+
+            abstract class MySrc implements ValueSource<String, Params> {
+                interface Params extends ValueSourceParameters {
+                    @Nested Property<B> getB()
+                }
+                String obtain() {
+                    parameters.b.get().name.get() + "!"
+                }
+            }
+
+            abstract class ShowTask extends DefaultTask {
+                @Input abstract Property<String> getValue()
+                @TaskAction void run() { println("v=" + value.get()) }
+            }
+
+            def aInstance = objects.newInstance(A)
+            tasks.register("show", ShowTask) {
+                value = aInstance.calculated
+            }
+        """
+
+        when:
+        configurationCacheRun "show"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("v=hi!")
+
+        when:
+        configurationCacheRun "show"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("v=hi!")
     }
 }

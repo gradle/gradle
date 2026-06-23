@@ -1,0 +1,15 @@
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+}
+
+group = "org.example"
+version = "1.0"
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlin.reflect)
+}

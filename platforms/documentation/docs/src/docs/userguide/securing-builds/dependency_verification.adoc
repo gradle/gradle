@@ -34,6 +34,7 @@ Finding the right balance between security and convenience is hard, but Gradle p
 
 NOTE: Dependency verification is meant to protect yourself from compromised dependencies, not to prevent you from including _vulnerable_ dependencies.
 
+[[understanding_verification_methods]]
 == Understanding Verification Methods
 
 Gradle provides two complementary mechanisms for dependency verification:
@@ -218,32 +219,8 @@ WARNING: Disabling dependency verification reduces security. This API exists for
 To disable verification for a configuration, use the `ResolutionStrategy#disableDependencyVerification` method:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-configurations {
-    myConfiguration {
-        resolutionStrategy {
-            disableDependencyVerification()
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-configurations {
-    myConfiguration {
-        resolutionStrategy {
-            disableDependencyVerification()
-        }
-    }
-}
-----
-=====
+include::sample[dir="snippets/securing-builds/dependencyVerification-disableVerification/kotlin",files="build.gradle.kts[tags=disable-verification]"]
+include::sample[dir="snippets/securing-builds/dependencyVerification-disableVerification/groovy",files="build.gradle[tags=disable-verification]"]
 ====
 
 You can also disable verification on detached configurations:
@@ -364,6 +341,7 @@ If a malicious dependency has already been introduced into your build (or into a
 This is why you must **review the generated verification file**.
 Bootstrapping is convenient for getting started or updating your verification file, but it's not a substitute for manual verification of critical dependencies.
 
+[[generating_checksums_only]]
 === Generating Checksums Only
 
 To enable checksum verification, you need to generate a configuration file based on your current, trusted dependencies.
@@ -385,6 +363,7 @@ Gradle supports `MD5`, `SHA1`, `SHA-256`, and `SHA-512` checksums.
 However, only `SHA-256` and `SHA-512` are considered secure for modern use.
 `SHA-1` has known collisions and `MD5` should not be used.
 
+[[generating_checksums_and_signatures]]
 === Generating Checksums and Signatures
 
 To generate both checksums and signatures (recommended when signatures are available), run:
@@ -417,6 +396,7 @@ Executing this command will cause Gradle to:
 Gradle only supports verification of signatures published as ASCII-armored PGP files (`.asc`) on remote repositories.
 Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate—only that the artifact was signed by a specific key.
 
+[[example_verification_metadata_file]]
 === Example Verification Metadata File
 
 A snippet of the resulting `verification-metadata.xml` looks like this:
@@ -481,6 +461,7 @@ Instead of generating the `verification-metadata.xml` file, Gradle will create a
 
 NOTE: Because `--dry-run` doesn't execute tasks, it runs much faster but will miss any dependency resolution that happens at task execution time.
 
+[[updating_verification_metadata]]
 == Updating Verification Metadata
 
 Once the `verification-metadata.xml` file is generated, every time a developer or CI server runs the build, Gradle will compare the downloaded file's checksum against the one in the XML file.
@@ -548,6 +529,7 @@ WARNING: There are dependencies that Gradle _cannot_ discover automatically. In 
 
 You can add a new `<component>` entry for a checksum or signature to the XML file manually.
 
+[[adding_checksums_for_an_artifact]]
 ==== Adding Checksums for an Artifact
 
 External components are identified by GAV coordinates (`group`, artifact `name`, `version`), and each artifact by its file name.
@@ -588,6 +570,7 @@ You need to declare checksums for both (unless you <<sec:disabling-metadata-veri
 </verification-metadata>
 ----
 
+[[where_to_get_checksums]]
 ===== Where to Get Checksums
 
 Checksums are generally published alongside artifacts on public repositories.
@@ -599,6 +582,7 @@ It's much harder to compromise both the repository and the official website simu
 In the example above, the checksum for the JAR was found on the official PDFBox website, while the POM checksum was verified manually.
 The `origin` attribute documents where the checksum came from, helping others understand how trustworthy the verification is.
 
+[[using_multiple_checksums]]
 ===== Using Multiple Checksums
 
 You can declare multiple checksums for the same artifact.
@@ -620,6 +604,7 @@ Use multiple checksums when:
 * You want to add generated checksums alongside manually verified ones for extra validation.
 * You're upgrading to more secure checksums but don't want to remove existing ones yet.
 
+[[handling_transitive_dependencies]]
 ===== Handling Transitive Dependencies
 
 Using a dependency like `pdfbox` will bring in transitive dependencies.
@@ -662,6 +647,7 @@ In general, you should verify the artifact is correct, then declare the addition
 
 You can have as many `also-trust` entries as needed, though typically you shouldn't need more than two.
 
+[[adding_keys_for_an_artifact]]
 ==== Adding Keys for an Artifact
 
 To trust a key for signature verification, add a `pgp` entry to your verification metadata:
@@ -724,6 +710,7 @@ The `trusted-key` element supports these attributes:
 * `file` - the name of the artifact file to trust
 * `regex` - whether to interpret the other attributes as regular expressions (defaults to `false`)
 
+[[security_considerations]]
 ===== Security Considerations
 
 Be careful when trusting keys globally:
@@ -791,6 +778,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 [[sec:ignoring-keys]]
 === Configuring Key Servers, Keyrings, and Keys
 
+[[specifying_key_servers]]
 ==== Specifying Key Servers
 
 Gradle automatically downloads public keys from well-known key servers.
@@ -840,6 +828,7 @@ To enable this mode, disable key servers in the configuration file:
 
 NOTE: If you are asking Gradle to generate verification metadata and an existing file sets `enabled` to `false`, this flag will be ignored so that potentially missing keys can be downloaded.
 
+[[ignoring_unavailable_keys]]
 ==== Ignoring Unavailable Keys
 
 Sometimes a key is not available because it wasn't published to a public key server or was lost.
@@ -872,6 +861,7 @@ NOTE: If Gradle cannot download a key while bootstrapping, it will automatically
 Once you've set up dependency verification, you'll need to maintain the verification metadata file and keyring files over time.
 This includes cleaning up old entries, refreshing keys, and managing your local keyring for better performance.
 
+[[cleaning_up_verification_file]]
 === Cleaning up the Verification File
 
 If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
@@ -945,6 +935,7 @@ NOTE: Remember to use full 40-character fingerprint IDs when working with keys, 
 Gradle automatically downloads public keys from key servers, but this can be slow and requires everyone to download the same keys repeatedly.
 To avoid this, you can export keys to a local keyring file that can be committed to version control.
 
+[[keyring_file_formats]]
 ==== Keyring File Formats
 
 Gradle supports two keyring formats:
@@ -972,6 +963,7 @@ Available options are `armored` and `binary`.
 
 Without `keyring-format` specified, if `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` exists, Gradle will use it. The binary version (`.gpg`) takes precedence if both exist.
 
+[[exporting_keys]]
 ==== Exporting Keys
 
 To export all keys used during verification to the keyring file, run:
@@ -993,6 +985,7 @@ $ ./gradlew --export-keys
 
 NOTE: This command will not report verification errors, only export keys.
 
+[[committing_keyring_files]]
 ==== Committing Keyring Files
 
 It's a good idea to commit the keyring file to version control (as long as you trust your VCS).
@@ -1050,6 +1043,7 @@ This commonly happens when POM files differ between repositories in non-meaningf
 
 Dependency verification can fail in different ways. This section explains how to deal with various cases.
 
+[[missing_verification_metadata]]
 === Missing Verification Metadata
 
 The simplest failure occurs when verification metadata is missing from the dependency verification file.
@@ -1079,6 +1073,7 @@ You need to add an entry to the verification file:
 Alternatively, ask Gradle to generate the missing information using <<#sec:bootstrapping-verification,bootstrapping>>.
 Existing information will be preserved—Gradle only adds missing verification metadata.
 
+[[incorrect_checksums]]
 === Incorrect Checksums
 
 A more serious issue is when checksum verification fails:
@@ -1106,6 +1101,7 @@ Several scenarios:
 
 Note: A variation is _name squatting_ (GAV coordinates that look legit but differ by one character) or _repository shadowing_ (official GAV coordinates published in a malicious repository that comes first in your build).
 
+[[untrusted_signatures]]
 === Untrusted Signatures
 
 With signature verification enabled, Gradle verifies signatures but doesn't automatically trust them:
@@ -1118,6 +1114,7 @@ With signature verification enabled, Gradle verifies signatures but doesn't auto
 
 You need to verify if the key can be trusted, then refer to <<#sec:understanding-signature-verification,Understanding Signature Verification>> to declare trusted keys.
 
+[[failed_signature_verification]]
 === Failed Signature Verification
 
 If Gradle fails to verify a signature, you must take action because **this may indicate a compromised dependency**.
@@ -1140,6 +1137,7 @@ If they do, verify that Gradle's downloaded signature matches the published one.
 
 If you've verified the dependency is not compromised and only the signature is wrong, declare an artifact-level key exclusion and provide a checksum.
 
+[[handling_wrong_signatures]]
 === Handling Wrong Signatures
 
 There are several options when you encounter a signature verification failure:

@@ -19,11 +19,11 @@ package org.gradle.integtests.resolve.versions
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.gradle.integtests.resolve.versions.AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON
 
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 class IvyRichVersionConstraintsIntegrationTest extends AbstractRichVersionConstraintsIntegrationTest {
     // Test split in two to reduce overall serial time execution

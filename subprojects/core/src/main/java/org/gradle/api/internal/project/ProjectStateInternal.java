@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectState;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ public class ProjectStateInternal implements ProjectState {
     }
 
     private State state = State.UNCONFIGURED;
+    @Nullable
     private ProjectConfigurationException failure;
 
     @Override
@@ -100,6 +102,7 @@ public class ProjectStateInternal implements ProjectState {
     }
 
     @Override
+    @Nullable
     public Throwable getFailure() {
         return failure;
     }

@@ -17,7 +17,8 @@
 package org.gradle.api.internal.catalog
 
 import com.google.common.collect.Interners
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
+import org.gradle.util.TestProblems
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -25,6 +26,8 @@ import spock.lang.Subject
 import java.util.function.Supplier
 
 class AbstractVersionCatalogTest extends Specification {
+    final TestProblems problems = TestUtil.problemsService()
+
     @Subject
     DefaultVersionCatalogBuilder builder = createVersionCatalogBuilder()
 
@@ -37,10 +40,13 @@ class AbstractVersionCatalogTest extends Specification {
             TestUtil.objectFactory(),
             supplier) {
                 @Override
-                protected InternalProblems getProblemsService() {
-                    TestUtil.problemsService()
+                protected ProblemsInternal getProblemsService() {
+                    problems
                 }
         }
     }
 
+    def setup() {
+        problems.resetRecordedProblems()
+    }
 }

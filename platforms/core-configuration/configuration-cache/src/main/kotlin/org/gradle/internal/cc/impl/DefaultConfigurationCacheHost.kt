@@ -23,7 +23,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.problems.Problems
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -119,27 +119,27 @@ class DefaultConfigurationCacheHost internal constructor(
 
         private
         fun createRootProject() {
-            val rootProject = createProject(rootProjectDescriptor())
-            gradle.rootProject = rootProject
-            gradle.defaultProject = rootProject
+            val rootProjectState = createProject(rootProjectDescriptor())
+            gradle.defaultProjectState = rootProjectState
         }
 
         private
         fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
 
         private
-        fun createProject(descriptor: ProjectDescriptorInternal): ProjectInternal {
+        fun createProject(descriptor: ProjectDescriptorInternal): ProjectState {
             val projectState = state.projects.getProject(descriptor.path())
             projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
-            val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
-            buildDirs[project.projectPath]?.let {
-                project.layout.buildDirectory.set(it)
+            buildDirs[projectState.projectPath]?.let { buildDir ->
+                projectState.applyToMutableState { project ->
+                    project.layout.buildDirectory.set(buildDir)
+                }
             }
             for (child in descriptor.children()) {
                 createProject(child)
             }
-            return project
+            return projectState
         }
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild {

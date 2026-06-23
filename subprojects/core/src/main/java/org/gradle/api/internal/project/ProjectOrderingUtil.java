@@ -23,7 +23,11 @@ public class ProjectOrderingUtil {
     }
 
     public static int compare(ProjectState left, ProjectState right) {
-        int buildCompare = left.getOwner().getIdentityPath().compareTo(right.getOwner().getIdentityPath());
+        return compare(left.getIdentity(), right.getIdentity());
+    }
+
+    public static int compare(ProjectIdentity left, ProjectIdentity right) {
+        int buildCompare = left.getBuildPath().compareTo(right.getBuildPath());
         if (buildCompare != 0) {
             return buildCompare;
         }
@@ -37,11 +41,11 @@ public class ProjectOrderingUtil {
     }
 
     public static int depthCompare(Project left, Project right) {
-        return depthCompare(owner(left), owner(right));
+        return depthCompare(owner(left).getIdentity(), owner(right).getIdentity());
     }
 
-    public static int depthCompare(ProjectState left, ProjectState right) {
-        return Integer.compare(left.getDepth(), right.getDepth());
+    public static int depthCompare(ProjectIdentity left, ProjectIdentity right) {
+        return Integer.compare(left.getProjectDepth(), right.getProjectDepth());
     }
 
     private static ProjectState owner(Project project) {

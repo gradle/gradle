@@ -28,6 +28,8 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.InPlaceClasspathBuilder
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.Identity
@@ -38,8 +40,10 @@ import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
 import org.gradle.internal.execution.WorkOutput
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.file.TreeType.DIRECTORY
+import org.gradle.internal.file.TreeType.FILE
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -51,13 +55,10 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
+import org.gradle.kotlin.dsl.provider.KotlinDslInternalOptions
 import org.gradle.kotlin.dsl.concurrent.IO
-import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.typeProjectionStrings
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
@@ -78,6 +79,8 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
 import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 
@@ -88,30 +91,48 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory,
+    internalOptions: InternalOptions,
 ) {
+
+    private
+    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+
+    private val accessorCachingDisabledReason = KotlinDslInternalOptions.accessorCachingDisabledReason(internalOptions)
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
         val classLoaderScope = classLoaderScopeOf(scriptTarget)
-            ?: return AccessorsClassPath.empty
-        val configuredProjectSchemaOf = configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            ?: return AccessorsClassPath.empty
-
-        val work = GenerateProjectAccessors(
-            scriptTarget,
-            configuredProjectSchemaOf,
-            classPath,
-            fileCollectionFactory,
-            inputFingerprinter,
-            workspaceProvider,
-            asyncIO,
-            isDclEnabledForScriptTarget(scriptTarget),
-        )
-        return executionEngine.createRequest(work)
-            .execute()
-            .getOutputAs(AccessorsClassPath::class.java)
-            .get()
+        if (classLoaderScope == null) {
+            return AccessorsClassPath.empty
+        }
+        return classPathCache.computeIfAbsent(classLoaderScope) {
+            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
+                ?: AccessorsClassPath.empty
+        }
     }
+
+    private
+    fun buildAccessorsClassPathFor(
+        classLoaderScope: ClassLoaderScope,
+        scriptTarget: Any,
+        classPath: ClassPath
+    ): AccessorsClassPath? =
+        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?.let { scriptTargetSchema ->
+                val work = GenerateProjectAccessors(
+                    scriptTarget,
+                    scriptTargetSchema,
+                    classPath,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    workspaceProvider,
+                    isDclEnabledForScriptTarget(scriptTarget),
+                    accessorCachingDisabledReason,
+                )
+                executionEngine.createRequest(work)
+                    .execute()
+                    .getOutputAs(AccessorsClassPath::class.java)
+                    .get()
+            }
 
 
     private
@@ -129,8 +150,17 @@ fun isDclEnabledForScriptTarget(target: Any): Boolean {
         is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
-    return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
+    return gradleProperties?.isDclEnabled ?: false
 }
+
+internal val GradleProperties.isDclEnabled: Boolean
+    get() = try {
+        getBooleanKotlinDslOption(this, DCL_ENABLED_PROPERTY_NAME, false)
+    } catch (_: IllegalStateException) {
+        // Properties may not be loaded yet, e.g. base/resilient script model before settings evaluation.
+        // Treat DCL as disabled rather than failing.
+        false
+    }
 
 const val DCL_ENABLED_PROPERTY_NAME = "org.gradle.kotlin.dsl.dcl"
 
@@ -142,8 +172,8 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory,
-    private val isDclEnabled: Boolean
+    private val isDclEnabled: Boolean,
+    private val cachingDisabledReason: CachingDisabledReason? = null
 ) : ImmutableUnitOfWork {
 
     companion object {
@@ -158,16 +188,20 @@ class GenerateProjectAccessors(
         return Optional.of("GENERATE_PROJECT_ACCESSORS")
     }
 
+    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> = if (cachingDisabledReason != null) {
+        Optional.of(cachingDisabledReason)
+    } else {
+        super.shouldDisableCaching(detectedOverlappingOutputs)
+    }
+
     override fun execute(executionContext: ExecutionContext): WorkOutput {
         val workspace = executionContext.workspace
-        asyncIO.runBlocking {
-            buildAccessorsFor(
-                scriptTargetSchema,
-                classPath,
-                srcDir = getSourcesOutputDir(workspace),
-                binDir = getClassesOutputDir(workspace)
-            )
-        }
+        buildAccessorsToJars(
+            scriptTargetSchema,
+            classPath,
+            classesJar = getClassesOutputFile(workspace),
+            sourcesJar = getSourcesOutputFile(workspace)
+        )
         return object : WorkOutput {
             override fun getDidWork() = WorkOutput.WorkResult.DID_WORK
 
@@ -176,8 +210,8 @@ class GenerateProjectAccessors(
     }
 
     override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
-        DefaultClassPath.of(getClassesOutputDir(workspace)),
-        DefaultClassPath.of(getSourcesOutputDir(workspace))
+        DefaultClassPath.of(getClassesOutputFile(workspace)),
+        DefaultClassPath.of(getSourcesOutputFile(workspace))
     )
 
     override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
@@ -211,20 +245,20 @@ class GenerateProjectAccessors(
     }
 
     override fun visitOutputs(workspace: File, visitor: OutputVisitor) {
-        val sourcesOutputDir = getSourcesOutputDir(workspace)
-        val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
+        val sourcesOutputFile = getSourcesOutputFile(workspace)
+        val classesOutputFile = getClassesOutputFile(workspace)
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, FILE, OutputFileValueSupplier.fromStatic(sourcesOutputFile, fileCollectionFactory.fixed(sourcesOutputFile)))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, FILE, OutputFileValueSupplier.fromStatic(classesOutputFile, fileCollectionFactory.fixed(classesOutputFile)))
     }
 }
 
 
 private
-fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+fun getClassesOutputFile(workspace: File) = File(workspace, "classes.jar")
 
 
 private
-fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
+fun getSourcesOutputFile(workspace: File) = File(workspace, "sources.jar")
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
@@ -257,6 +291,30 @@ fun IO.buildAccessorsFor(
 }
 
 
+internal fun buildAccessorsToJars(
+    projectSchema: TypedProjectSchema,
+    classPath: ClassPath,
+    classesJar: File,
+    sourcesJar: File,
+    packageName: String = KOTLIN_DSL_PACKAGE_NAME,
+    format: AccessorFormat = AccessorFormats.default
+) {
+    val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
+    val classpathBuilder = InPlaceClasspathBuilder()
+    classpathBuilder.jar(classesJar) { classesOut ->
+        classpathBuilder.jar(sourcesJar) { sourcesOut ->
+            emitAccessorsToJars(
+                availableSchema,
+                classesOut,
+                sourcesOut,
+                OutputPackage(packageName),
+                format
+            )
+        }
+    }
+}
+
+
 typealias AccessorFormat = (String) -> String
 
 
@@ -276,20 +334,21 @@ object AccessorFormats {
 
     private
     val valFunOrClass by lazy {
-        "^(val|fun|class) ".toRegex(RegexOption.MULTILINE).toPattern()
+        Pattern.compile("^(val|fun|class) ", Pattern.MULTILINE)
     }
 }
 
 
 internal
-fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
+fun importsRequiredBy(candidateTypes: List<TypeAccessibility>, classNamesFromTypeStrings: ClassNamesFromTypeStrings): List<String> =
     defaultPackageTypesIn(
         candidateTypes
             .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
                 val ownImports = accessibleTypes.map { it.type.kotlinString }
                 val importsRequiredByOptInAnnotations = importsRequiredByOptInAnnotations(accessibleTypes)
                 if (importsRequiredByOptInAnnotations != null) importsRequiredByOptInAnnotations.toList() + ownImports else ownImports
-            }
+            },
+        classNamesFromTypeStrings
     )
 
 private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessibility.Accessible>): MutableSet<String>? {
@@ -328,9 +387,9 @@ private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessib
 }
 
 internal
-fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
+fun defaultPackageTypesIn(typeStrings: List<String>, classNamesFromTypeStrings: ClassNamesFromTypeStrings): List<String> =
     typeStrings
-        .flatMap { classNamesFromTypeString(it).all }
+        .flatMap { classNamesFromTypeStrings.classNamesFrom(it).all }
         .filter { '.' !in it }
         .distinct()
 
@@ -399,6 +458,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         classPath.asFiles
     )
 
+    private val classNamesFromTypeStrings = ClassNamesFromTypeStrings()
 
     private val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
@@ -421,7 +481,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         }
 
     private fun inaccessibilityReasonsFor(type: SchemaType): List<InaccessibilityReason> =
-        inaccessibilityReasonsFor(classNamesFromTypeString(type))
+        inaccessibilityReasonsFor(classNamesFromTypeStrings.classNamesFrom(type.kotlinString))
 
     private fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
@@ -495,56 +555,6 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     override fun close() {
         classBytesRepository.close()
     }
-}
-
-
-internal
-class ClassNamesFromTypeString(
-    val all: List<String>,
-    val leaves: List<String>
-)
-
-
-internal
-fun classNamesFromTypeString(type: SchemaType): ClassNamesFromTypeString =
-    classNamesFromTypeString(type.kotlinString)
-
-
-internal
-fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
-    val all = mutableListOf<String>()
-    val leafs = mutableListOf<String>()
-    var buffer = StringBuilder()
-
-    fun nonPrimitiveKotlinType(): String? =
-        buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
-            if (it in primitiveKotlinTypeNames || it in typeProjectionStrings) null
-            else it
-        }
-
-    typeString.forEach { char ->
-        when (char) {
-            '<' -> {
-                nonPrimitiveKotlinType()?.also { all.add(it) }
-                buffer = StringBuilder()
-            }
-
-            in " ,>" -> {
-                nonPrimitiveKotlinType()?.also {
-                    all.add(it)
-                    leafs.add(it)
-                }
-                buffer = StringBuilder()
-            }
-
-            else -> buffer.append(char)
-        }
-    }
-    nonPrimitiveKotlinType()?.also {
-        all.add(it)
-        leafs.add(it)
-    }
-    return ClassNamesFromTypeString(all, leafs)
 }
 
 
@@ -695,15 +705,15 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
     putProjectFeatureEntries(schema.projectFeatureEntries)
-    putAllSorted(schema.configurations.map { it.target })
+    putConfigurationEntries(schema.configurations)
     hash()
 }
 
 
 private
-fun Hasher.putAllSorted(strings: List<String>) {
-    putInt(strings.size)
-    strings.sorted().forEach(::putString)
+fun Hasher.putConfigurationEntries(configurations: List<ConfigurationEntry<String>>) {
+    putInt(configurations.size)
+    configurations.sortedBy { it.target }.forEach { putString(it.target) }
 }
 
 
@@ -744,17 +754,25 @@ fun IO.writeAccessorsTo(
     packageName: String = KOTLIN_DSL_PACKAGE_NAME
 ) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
-        if (imports.isNotEmpty()) {
-            imports.forEach {
-                appendReproducibleNewLine("import $it")
-            }
-            appendReproducibleNewLine()
+        appendImportsAndAccessors(packageName, imports, accessors)
+    }
+}
+
+internal fun Appendable.appendImportsAndAccessors(
+    packageName: String,
+    imports: List<String>,
+    accessors: Iterable<String>
+) {
+    appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
+    if (imports.isNotEmpty()) {
+        imports.forEach {
+            appendReproducibleNewLine("import $it")
         }
-        accessors.forEach {
-            appendReproducibleNewLine(it)
-            appendReproducibleNewLine()
-        }
+        appendReproducibleNewLine()
+    }
+    accessors.forEach {
+        appendReproducibleNewLine(it)
+        appendReproducibleNewLine()
     }
 }
 

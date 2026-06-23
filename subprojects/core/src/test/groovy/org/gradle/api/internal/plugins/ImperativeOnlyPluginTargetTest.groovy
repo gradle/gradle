@@ -61,7 +61,7 @@ class ImperativeOnlyPluginTargetTest extends Specification {
         e.message == "custom error"
 
         and:
-        problems.assertProblemEmittedOnce(_)
+        problems.assertNoProblemsEmitted()
     }
 
 }

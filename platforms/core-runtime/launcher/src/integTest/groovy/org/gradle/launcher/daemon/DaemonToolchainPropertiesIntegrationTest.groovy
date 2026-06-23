@@ -22,12 +22,13 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.internal.TextUtil
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture, ToolchainPropertiesDeprecationsFixture {
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "nags when the daemon jdk is specified as a project property on the command line"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -41,7 +42,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "nags when the daemon jdk is specified as a project property on the command line and as a property in gradle.properties"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -56,7 +57,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not nag when the daemon jdk is specified as a system property on the command line"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -69,7 +70,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not nag when the daemon jdk is specified in gradle.properties"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -82,7 +83,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not nag when the daemon jdk is specified in gradle user home gradle.properties"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -96,7 +97,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not nag when the daemon jdk is specified as a system property and a project property on the command line"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -110,7 +111,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "sensible error when the daemon jdk is specified as a system property and a project property on the command line and the values differ"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion

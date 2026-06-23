@@ -18,15 +18,16 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
+    @Requires(JdkVersionTestPreconditions.Jdk11OrEarlier)
     @UnsupportedWithConfigurationCache(because = "https://github.com/gradle/playframework/issues/184")
     def 'build basic Play project'() {
         given:
@@ -75,5 +76,15 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         [
             'org.gradle.playframework': Versions.of(TestedVersions.playframework)
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "play {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('play')]
     }
 }

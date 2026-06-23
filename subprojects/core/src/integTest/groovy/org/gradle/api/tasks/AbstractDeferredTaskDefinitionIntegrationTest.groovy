@@ -83,7 +83,7 @@ abstract class AbstractDeferredTaskDefinitionIntegrationTest extends AbstractInt
         if (description.startsWith("Project")) {
             target = "root project 'root'"
         } else if (description.startsWith("Gradle")) {
-            target = "build 'root'"
+            target = "build ':'"
         } else {
             throw new IllegalArgumentException("Can't determine the exception text for '${description}'")
         }

@@ -20,16 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import spock.lang.Issue
 
 import java.util.function.Consumer
 import java.util.function.Predicate
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.escapeString
 
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
@@ -47,7 +46,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << localCache.localCacheConfiguration()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fails build when packing archive fails"() {
         when:
         file("input.txt") << "data"
@@ -56,12 +54,16 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "base"
             task customTask {
-                inputs.file "input.txt"
-                outputs.file "build/output" withPropertyName "output"
+                def outputDir = file("build/output")
+                def outputFile = file("build/output/output.txt")
+                def inputFile = file("input.txt")
+
+                inputs.file(inputFile)
+                outputs.file(outputDir).withPropertyName("output")
                 outputs.cacheIf { true }
                 doLast {
-                  mkdir('build/output')
-                  file('build/output/output.txt').text = file('input.txt').text
+                  outputDir.mkdirs()
+                  outputFile.text = inputFile.text
                 }
             }
         """
@@ -76,7 +78,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheTempFiles().empty
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "archive is not pushed to remote when packing fails"() {
         executer.withStacktraceEnabled()
 
@@ -88,12 +89,16 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "base"
             task customTask {
-                inputs.file "input.txt"
-                outputs.file "build/output" withPropertyName "output"
+                def outputDir = file("build/output")
+                def outputFile = file("build/output/output.txt")
+                def inputFile = file("input.txt")
+
+                inputs.file(inputFile)
+                outputs.file(outputDir).withPropertyName("output")
                 outputs.cacheIf { true }
                 doLast {
-                  mkdir('build/output')
-                  file('build/output/output.txt').text = file('input.txt').text
+                  outputDir.mkdirs()
+                  outputFile.text = inputFile.text
                 }
             }
         """
@@ -106,7 +111,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         errorOutput =~ /${RuntimeException.name}: Could not pack tree 'output'/
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "corrupt archive loaded from remote cache is not copied into local cache"() {
         when:
         file("input.txt") << "data"
@@ -114,12 +118,15 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "base"
             task customTask {
-                inputs.file "input.txt"
-                outputs.file "build/output" withPropertyName "output"
+                def outputFile = file("build/output")
+                def inputFile = file("input.txt")
+
+                inputs.file(inputFile)
+                outputs.file(outputFile).withPropertyName("output")
                 outputs.cacheIf { true }
                 doLast {
-                  mkdir('build')
-                  file('build/output').text = file('input.txt').text
+                  outputFile.parentFile.mkdirs()
+                  outputFile.text = inputFile.text
                 }
             }
         """
@@ -220,7 +227,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFailedFiles().size() == 1
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     @Issue("https://github.com/gradle/gradle/issues/9906")
     def "don't cache if task produces broken symlink"() {
         def link = file('root/link')

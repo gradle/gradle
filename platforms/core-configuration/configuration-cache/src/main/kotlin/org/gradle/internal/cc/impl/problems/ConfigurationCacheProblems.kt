@@ -24,11 +24,11 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -44,6 +44,7 @@ import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
 import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
@@ -65,6 +66,36 @@ import java.io.File
 import java.io.IOException
 
 
+/**
+ * Warning shown when the Isolated Projects "dangerously ignore problems" mode is enabled (see
+ * [org.gradle.internal.buildtree.BuildModelParameters.isIsolatedProjectsDangerouslyIgnoreProblems]).
+ * Rendered as a console banner at the start and end of every such build, and joined with spaces
+ * as the message of the Problem reported through the Problems API.
+ */
+private
+val isolatedProjectsDangerouslyIgnoreProblemsSentences = listOf(
+    "Isolated Projects dangerously-ignore-problems is ENABLED.",
+    "Isolated Projects violations are being ignored.",
+    "Build outputs may be incorrect and the build may crash unexpectedly.",
+    "Use this only to evaluate performance.",
+    "Do not use this to produce artifacts."
+)
+
+
+private
+val isolatedProjectsDangerouslyIgnoreProblemsDocumentation =
+    Documentation.userManual("isolated_projects", "sec:dangerously_ignore_problems")
+
+
+private
+fun isolatedProjectsDangerouslyIgnoreProblemsBanner(): String {
+    val lines = isolatedProjectsDangerouslyIgnoreProblemsSentences +
+        "See ${isolatedProjectsDangerouslyIgnoreProblemsDocumentation.url}"
+    val fence = "=".repeat(lines.maxOf { it.length })
+    return (listOf("", fence) + lines + listOf(fence, "")).joinToString("\n", prefix = "\n", postfix = "\n")
+}
+
+
 @ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
@@ -82,7 +113,7 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager,
 
     private
-    val problemsService: InternalProblems,
+    val problemsService: ProblemsInternal,
 
     private
     val problemFactory: ProblemFactory,
@@ -91,11 +122,11 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider,
+    val buildStateRegistry: BuildStateRegistry,
 
     private
     val degradationController: DefaultConfigurationCacheDegradationController
-) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
+) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -105,6 +136,12 @@ class ConfigurationCacheProblems(
 
     private
     val isWarningMode: Boolean = startParameter.isWarningMode
+
+    private
+    val isIsolatedProjectsDiagnostics: Boolean = startParameter.isIsolatedProjectsDiagnostics
+
+    private
+    val isIsolatedProjectsDangerouslyIgnoreProblems: Boolean = startParameter.isIsolatedProjectsDangerouslyIgnoreProblems
 
     private
     var seenSerializationErrorOnStore = false
@@ -250,14 +287,28 @@ class ConfigurationCacheProblems(
         report.onProblem(problem)
     }
 
+    override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
+        // IP severity is governed only by IP settings, independent of the CC `--configuration-cache-problems` flag.
+        val severity = when {
+            // "Dangerously ignore problems" mode: keep going past IP violations so the build can be
+            // timed, and succeed the build at the end even with these violations.
+            isIsolatedProjectsDangerouslyIgnoreProblems -> ProblemSeverity.Suppressed
+            // Diagnostics mode runs project configuration sequentially to collect every violation deterministically.
+            isIsolatedProjectsDiagnostics -> ProblemSeverity.Deferred
+            // Default (optimistic-parallel) mode: fail fast so user code does not run against unreliable state.
+            else -> ProblemSeverity.Interrupting
+        }
+        onProblem(problem, severity, forIsolatedProjects = true)
+    }
+
     override fun onProblem(problem: PropertyProblem) {
         onProblem(problem, ProblemSeverity.Deferred)
     }
 
     private
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
-        if (summarizer.onProblem(problem, severity)) {
-            problemsService.onProblem(problem, severity)
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, forIsolatedProjects: Boolean = false) {
+        if (summarizer.onProblem(problem, severity, forIsolatedProjects)) {
+            problemsService.onProblem(problem, severity, forIsolatedProjects)
             report.onProblem(problem)
         }
 
@@ -271,7 +322,7 @@ class ConfigurationCacheProblems(
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
-    fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+    fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity, forIsolatedProjects: Boolean) {
         val message = problem.message.render()
         internalReporter.internalCreate {
             id(
@@ -282,11 +333,34 @@ class ConfigurationCacheProblems(
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
-            severity(severity.toProblemSeverity())
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
-        }.also { internalReporter.report(it) }
+        }.also {
+            // Deferred IP problems (i.e. not dangerously ignoring problems, where they are Suppressed instead)
+            // always report as errors; deferred CC problems only when not in warn mode.
+            if (severity == ProblemSeverity.Interrupting || (severity == ProblemSeverity.Deferred && (forIsolatedProjects || !isWarningMode))) {
+                internalReporter.reportError(it)
+            } else {
+                internalReporter.report(it)
+            }
+        }
+    }
+
+    private
+    fun reportDangerouslyIgnoringProblems() {
+        val message = isolatedProjectsDangerouslyIgnoreProblemsSentences.joinToString(" ")
+        problemsService.internalReporter.internalCreate {
+            id(
+                "isolated-projects-dangerously-ignoring-problems",
+                "Isolated Projects problems are dangerously ignored",
+                configCacheValidation
+            )
+            contextualLabel(message)
+            documentedAt(isolatedProjectsDangerouslyIgnoreProblemsDocumentation.url)
+        }.also {
+            problemsService.internalReporter.report(it)
+        }
     }
 
     private
@@ -307,21 +381,14 @@ class ConfigurationCacheProblems(
     private
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
 
-    private
-    fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed ||
-            this == ProblemSeverity.SuppressedSilently -> Severity.ADVICE
-
-        isWarningMode -> Severity.WARNING
-        else -> Severity.ERROR
-    }
-
     override fun getId(): String {
         return "configuration-cache"
     }
 
     fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
-        val failDueToProblems = summary.deferredProblemCount > 0 && !isWarningMode
+        // IP violations fail the build regardless of the CC warn flag; CC problems honor it.
+        val failDueToProblems = summary.deferredIsolatedProjectsProblemCount > 0 ||
+            (summary.deferredProblemCount > 0 && !isWarningMode)
         val hasTooManyProblems = hasTooManyProblems(summary)
         val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
         return when {
@@ -394,7 +461,7 @@ class ConfigurationCacheProblems(
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
         return ProblemReportDetails(
-            buildDisplayName = buildNameProvider.buildName(),
+            buildDisplayName = buildStateRegistry.rootBuild.displayName.displayName,
             cacheAction = cacheActionText,
             cacheActionDescription = cacheActionDescription,
             requestedTasks = requestedTasks,
@@ -425,7 +492,12 @@ class ConfigurationCacheProblems(
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
 
-        override fun afterStart() = Unit
+        override fun afterStart() {
+            if (isIsolatedProjectsDangerouslyIgnoreProblems) {
+                logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
+                reportDangerouslyIgnoringProblems()
+            }
+        }
 
         @Suppress("CyclomaticComplexMethod")
         override fun beforeComplete(failure: Throwable?) {
@@ -455,6 +527,9 @@ class ConfigurationCacheProblems(
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
+            }
+            if (isIsolatedProjectsDangerouslyIgnoreProblems) {
+                logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
             }
         }
     }
@@ -496,7 +571,11 @@ class ConfigurationCacheProblems(
     private
     fun discardStateDueToProblems(summary: Summary) =
         incompatibleTasks.isNotEmpty() || shouldDegradeGracefully() ||
-            summary.consoleProblemCount > 0 && !isWarningMode
+            // IP-diagnostics violations (Deferred) discard the entry regardless of the CC warn flag.
+            summary.deferredIsolatedProjectsProblemCount > 0 ||
+            // Otherwise discard on any console problem unless warn mode keeps a reusable entry;
+            // dangerously-ignore (IP violations as Suppressed) always discards.
+            summary.consoleProblemCount > 0 && (!isWarningMode || isIsolatedProjectsDangerouslyIgnoreProblems)
 
     private
     fun hasTooManyProblems(summary: Summary) =

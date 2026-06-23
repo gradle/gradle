@@ -19,11 +19,11 @@ package org.gradle.integtests.resolve.versions
 
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.gradle.integtests.resolve.versions.AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON
 
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 class VersionRangeResolvePreferPairBatch1IntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
     def "resolve prefer pair #permutation"() {
         given:

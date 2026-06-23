@@ -29,6 +29,7 @@ import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
@@ -46,9 +47,10 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
     private final List<? extends BuildOption<? super LoggingConfiguration>> options = Arrays.asList(
         new LogLevelOption(),
         new StacktraceOption(),
+        new WarningsOption(),
         new ConsoleOption(),
         new ConsoleUnicodeOption(),
-        new WarningsOption()
+        new NonInteractiveOption()
     );
 
     @Override
@@ -200,7 +202,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         protected OptionCategory getCategory() {
-            return OptionCategory.LOGGING;
+            return OptionCategory.CONSOLE;
         }
 
         @Override
@@ -227,7 +229,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         protected OptionCategory getCategory() {
-            return OptionCategory.LOGGING;
+            return OptionCategory.CONSOLE;
         }
 
         @Override
@@ -240,6 +242,23 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }
+        }
+    }
+
+    @NullMarked
+    private static class NonInteractiveOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
+        public NonInteractiveOption() {
+            super(null, CommandLineOptionConfiguration.create("non-interactive", "Do not do interactive prompting."));
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONSOLE;
+        }
+
+        @Override
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
+            settings.setNonInteractive(true);
         }
     }
 

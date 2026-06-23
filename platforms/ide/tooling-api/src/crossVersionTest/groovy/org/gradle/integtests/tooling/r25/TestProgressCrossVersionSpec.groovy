@@ -23,7 +23,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -359,7 +360,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.tests.tail().every { it.descriptor.parent != null }
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
         includeProjects("sub1", "sub2")

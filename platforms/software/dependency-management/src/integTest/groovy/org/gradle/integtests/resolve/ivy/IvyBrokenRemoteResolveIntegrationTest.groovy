@@ -253,12 +253,12 @@ Searched in the following locations:
   - ${moduleA.ivy.uri}
 Required by:
     root project 'root' > group:projectC:0.99
-    root project 'root' > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > project ':child1' > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
 Required by:
-    root project 'root' > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > project ':child1' > group:projectD:1.0GA""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

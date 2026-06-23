@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
@@ -66,7 +66,7 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionSpec extends ToolingAp
         e.cause.message.contains("Cannot find a Java installation on your machine")
     }
 
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
         def otherJvm = requireDifferentVersionJvmCompatibleWithTargetDist()

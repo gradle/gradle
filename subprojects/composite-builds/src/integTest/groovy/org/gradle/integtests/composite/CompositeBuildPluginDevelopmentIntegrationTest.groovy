@@ -17,6 +17,9 @@
 package org.gradle.integtests.composite
 
 
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -103,12 +106,14 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "taskFromPluginBuild")
 
         then:
-        failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
+        failureDescriptionContains("Could not compile build file '$buildA.buildFile.canonicalPath'.")
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'compilation:groovy-dsl:compilation-failed'
             contextualLabel == "Could not compile build file '${buildA.buildFile.absolutePath}'."
+            oneLocation(LineInFileLocation).path == buildA.buildFile.absolutePath
         }
     }
 
@@ -360,6 +365,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "can use an included build that provides both a buildscript dependency and a compile dependency"() {
         given:
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -707,6 +713,7 @@ tasks.register("resolve") {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15068")
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can develop plugin whose build requires dependency resolution using configure-on-demand"() {
         given:
         buildA = multiProjectBuild("cod", ["consumer"]) {

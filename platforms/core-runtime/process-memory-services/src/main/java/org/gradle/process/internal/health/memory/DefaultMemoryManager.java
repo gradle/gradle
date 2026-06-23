@@ -50,11 +50,13 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
+    @SuppressWarnings("this-escape")
     public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
         this(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, DEFAULT_MIN_FREE_MEMORY_PERCENTAGE, true);
     }
 
     @VisibleForTesting
+    @SuppressWarnings("this-escape")
     DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage, boolean autoFree) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");

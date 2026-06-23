@@ -18,12 +18,13 @@ package org.gradle.integtests.wrapper
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 @SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
     @Requires(value = [
-        UnitTestPreconditions.NotWindowsJavaBefore11
+        OsTestPreconditions.NotWindowsJavaBefore11
     ], reason = "see https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         when:
@@ -37,7 +38,7 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
     }
 
     @Requires(value = [
-        UnitTestPreconditions.NotWindowsJavaBefore11
+        OsTestPreconditions.NotWindowsJavaBefore11
     ], reason = "see https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:

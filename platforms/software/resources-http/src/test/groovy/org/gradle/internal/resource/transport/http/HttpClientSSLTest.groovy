@@ -23,7 +23,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -274,7 +275,7 @@ class HttpClientSSLTest extends Specification {
      * E.g. by adding a certificate from internal-integ-testing/src/main/resources/test-key-store/trustStore
      * and changing performExternalRequest() to performRequest()
      **/
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "can use windows-root trust store"() {
         given:
         System.properties["javax.net.ssl.trustStoreType"] = "Windows-ROOT"

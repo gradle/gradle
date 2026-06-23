@@ -28,6 +28,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -56,6 +57,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -89,7 +91,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
+
+    @Deprecated
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
+
+    @Deprecated
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
 
     /**
@@ -339,6 +345,12 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
             buildTask.setGroup(BasePlugin.BUILD_GROUP);
             buildTask.dependsOn(BUILD_TASK_NAME);
+            buildTask.doFirst(SerializableLambdas.action(t -> {
+                DeprecationLogger.deprecateTask(BUILD_NEEDED_TASK_NAME)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "deprecate_build_needed_build_dependents_tasks")
+                    .nagUser();
+            }));
         });
     }
 
@@ -347,6 +359,12 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
             buildTask.setGroup(BasePlugin.BUILD_GROUP);
             buildTask.dependsOn(BUILD_TASK_NAME);
+            buildTask.doFirst(SerializableLambdas.action(t -> {
+                DeprecationLogger.deprecateTask(BUILD_DEPENDENTS_TASK_NAME)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "deprecate_build_needed_build_dependents_tasks")
+                    .nagUser();
+            }));
         });
     }
 

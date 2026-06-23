@@ -23,8 +23,10 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
@@ -32,7 +34,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         file('src/main/scala/Person.scala') << "class Person(name: String)"
     }
 
-    @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
+    @Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
     def "compile is out of date when changing the #changedVersion version"() {
         buildFile(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
@@ -65,9 +67,9 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Requires(value = [
-        IntegTestPreconditions.Java17HomeAvailable,
-        IntegTestPreconditions.Java21HomeAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.Java17HomeAvailable,
+        InstalledJdkTestPreconditions.Java21HomeAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific JDK versions")
     def "compile is out of date when changing the java version"() {
         def jdk17 = AvailableJavaHomes.jdk17
@@ -116,9 +118,9 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Requires(value = [
-        IntegTestPreconditions.Java21HomeAvailable,
-        IntegTestPreconditions.Java24HomeAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.Java21HomeAvailable,
+        InstalledJdkTestPreconditions.Java24HomeAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific JDK versions")
     def "compile is out of date when changing the java launcher"() {
         def jdk21 = AvailableJavaHomes.jdk21
@@ -178,8 +180,8 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Requires(value = [
-        IntegTestPreconditions.Java21HomeAvailable,
-        IntegTestPreconditions.Java24HomeAvailable,
+        InstalledJdkTestPreconditions.Java21HomeAvailable,
+        InstalledJdkTestPreconditions.Java24HomeAvailable,
     ], reason = "needed for toolchain use")
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()

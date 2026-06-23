@@ -68,7 +68,7 @@ val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.Sort
 val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit-store")
 
 tasks {
-    val reorderRuleStore by registering(ReorderArchUnitRulesTask::class) {
+    val reorderRuleStore = register<ReorderArchUnitRulesTask>("reorderRuleStore") {
         ruleFile = ruleStoreDir.file("stored.rules").asFile
     }
 

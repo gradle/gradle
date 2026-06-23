@@ -18,16 +18,16 @@ package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractUniqueProjectNameProvider implements UniqueProjectNameProvider {
 
-    protected final ProjectStateRegistry projectRegistry;
+    protected final ProjectStateLookup projectStateLookup;
 
-    protected AbstractUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
-        this.projectRegistry = projectRegistry;
+    protected AbstractUniqueProjectNameProvider(ProjectStateLookup projectStateLookup) {
+        this.projectStateLookup = projectStateLookup;
     }
 
     /**
@@ -44,7 +44,7 @@ public abstract class AbstractUniqueProjectNameProvider implements UniqueProject
         if (parentInBuildTreePath == null) {
             return null;
         }
-        ProjectState parentInBuildTree = projectRegistry.findProjectState(parentInBuildTreePath);
+        ProjectState parentInBuildTree = projectStateLookup.findProject(parentInBuildTreePath);
         if (parentInBuildTree == null) {
             return null;
         }

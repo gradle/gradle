@@ -110,7 +110,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         then:
         def results = resultsFor(testDirectory)
         results.testPath("UnrollTest").onlyRoot().assertChildCount(1, 0)
-        results.testPathPreNormalized(":UnrollTest:can test #type").onlyRoot().assertChildCount(2, 0).assertOnlyChildrenExecuted("can test 1", "can test 2")
+        results.testPath(":UnrollTest:can test #type").onlyRoot().assertChildCount(2, 0).assertOnlyChildrenExecuted("can test 1", "can test 2")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4358')

@@ -36,4 +36,19 @@ class IdeaModuleDeduplicationIntegrationTest extends AbstractIdeDeduplicationInt
         assert iml != null
         return iml.name - ".iml"
     }
+
+    @Override
+    protected String[] getDeprecatedTaskNames() {
+        return ["idea", "ideaModule", "ideaProject", "ideaWorkspace"]
+    }
+
+    @Override
+    protected String[] getDeprecatedCleanTaskNames() {
+        return ["cleanIdea", "cleanIdeaModule", "cleanIdeaProject"]
+    }
+
+    @Override
+    protected String[] getDeprecatedTaskNamesWhenRootHasNoIdePlugin() {
+        return ["idea", "ideaModule"]
+    }
 }

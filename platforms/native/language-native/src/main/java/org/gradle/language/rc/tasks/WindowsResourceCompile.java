@@ -73,6 +73,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     // It would be better to provide some way for a task to express these things separately.
     private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
+    @SuppressWarnings("this-escape")
     public WindowsResourceCompile() {
         getInputs().property("outputType", new Callable<String>() {
             @Override

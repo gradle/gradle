@@ -27,5 +27,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface TaskExecutionAccessChecker {
     void notifyProjectAccess(TaskInternal task);
     void notifyTaskDependenciesAccess(TaskInternal task, String invocationDescription);
-    void notifyConventionAccess(TaskInternal task, String invocationDescription);
+    void notifyTaskExtensionsAccess(TaskInternal task, String invocationDescription);
 }

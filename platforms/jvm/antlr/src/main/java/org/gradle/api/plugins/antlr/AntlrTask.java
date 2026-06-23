@@ -65,6 +65,7 @@ import java.util.concurrent.Callable;
 /**
  * Generates parsers from Antlr grammars.
  */
+@SuppressWarnings("this-escape")
 @NullMarked
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
@@ -232,7 +233,7 @@ public abstract class AntlrTask extends SourceTask {
             }
             if (rebuildRequired) {
                 try {
-                    getDeleter().ensureEmptyDirectory(outputDirectory);
+                    getDeleter().ensureEmptyDirectory(getOutputDirectory());
                 } catch (IOException ex) {
                     throw UncheckedException.throwAsUncheckedException(ex);
                 }

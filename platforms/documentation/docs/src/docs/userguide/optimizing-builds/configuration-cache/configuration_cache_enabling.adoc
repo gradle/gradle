@@ -47,7 +47,8 @@ $ ./gradlew --no-configuration-cache
 === Ignoring Configuration Cache Problems
 
 By default, Gradle fails the build if Configuration Cache problems occur.
-However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings by enabling _warning mode_.
+However, when working on adopting the Configuration Cache in the build, it can be useful to temporarily turn problems into warnings by enabling _warning mode_.
+For example, if you want to see execution time problems without fixing the whole configuration phase.
 
 To change this behavior at build time, use the following flag:
 
@@ -71,7 +72,10 @@ org.gradle.configuration-cache.problems=warn
 Warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
 It will also not prevent new incompatibilities being accidentally added to your build later.
 
-Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
+With warning mode enabled, Gradle stores cache entries even when problems are present.
+On a cache hit, tasks run against deserialized state that may be incomplete or incorrect, which can produce silently wrong results or confusing errors — such as missing dependency information or empty inputs.
+
+Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>> and keeping the default `problems=fail`.
 ====
 
 [[config_cache:usage:max_problems]]
@@ -155,8 +159,8 @@ To help teams adopt configuration caching, Gradle provides a strict mode behind 
 You can enable this feature flag in your build using the following configuration:
 
 ====
-include::sample[dir="snippets/configurationCache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/stableFeatureFlag/groovy",files="settings.gradle[]"]
 ====
 
 Enabling the `STABLE_CONFIGURATION_CACHE` feature flag activates stricter validation and introduces the following behavior:

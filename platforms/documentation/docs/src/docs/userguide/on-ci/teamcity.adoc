@@ -1,0 +1,235 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[teamcity]]
+= Gradle on TeamCity
+
+This page is a reference for integrating Gradle with link:https://www.jetbrains.com/teamcity/[JetBrains TeamCity].
+TeamCity ships a built-in link:https://www.jetbrains.com/help/teamcity/gradle.html[Gradle runner] — no additional plugins are required to build Gradle projects.
+
+[[teamcity_gradle_runner]]
+== The Gradle runner
+
+When you create a project from a repository URL, TeamCity scans for `build.gradle` or `build.gradle.kts` files and offers a pre-configured Gradle build step.
+You can also add a Gradle step manually by selecting *Gradle* as the runner type.
+
+[[teamcity_gradle_runner_settings]]
+=== Key runner settings
+
+[cols="1,3",options="header"]
+|===
+| Setting | Description
+
+| *Tasks*
+| Space-separated Gradle tasks to execute (e.g. `clean build`). Defaults to the project's default task when blank.
+
+| *Use Gradle Wrapper*
+| When enabled, TeamCity launches the Wrapper script from the checkout directory. Enabled by default on auto-detected steps. Recommended for all projects.
+
+| *Gradle Wrapper Path*
+| Custom path to `gradlew` relative to the working directory. Only needed if the Wrapper is not at the repository root.
+
+| *Build File*
+| Relative path to `build.gradle` or `build.gradle.kts`. For Gradle 9.0+, use the `-p` flag in *Additional Command Line Parameters* instead.
+
+| *Additional Command Line Parameters*
+| Extra flags and project properties, e.g. `--configuration-cache`, `-x test`, `-PmyProp=value`, `--scan`.
+
+| *Gradle Home*
+| Path to a local Gradle installation. Ignored when the Wrapper is enabled. Falls back to the agent's `GRADLE_HOME` environment variable.
+
+| *Incremental Building*
+| Detects changed modules via VCS and runs `:buildDependents` only for affected projects. Available for classic build configurations.
+
+| *Debug / Stacktrace*
+| Toggle `-d` or `-s` flags. Debug logging may expose sensitive information in the build log.
+
+| *JDK*
+| Select from environment variables (`JDK_HOME`, `JAVA_HOME`), an explicit path, or the agent's default JDK.
+
+| *JVM Parameters*
+| Arguments passed to the JVM that runs Gradle, e.g. `-Xmx2g`.
+
+| *Docker / Podman*
+| Run the build step inside a container image. Requires a Docker or Podman connection configured at the project level.
+
+| *Code Coverage*
+| Built-in support for IntelliJ IDEA and JaCoCo coverage engines.
+|===
+
+See the link:https://www.jetbrains.com/help/teamcity/gradle.html[Gradle runner documentation] for the full setting reference.
+
+[[teamcity_minimal_config]]
+== Minimal build configuration
+
+[[teamcity_minimal_ui]]
+=== Via the UI
+
+. Create a project from a repository URL.
+. TeamCity auto-detects a Gradle build step with `clean build` tasks and Wrapper usage.
+. Confirm the detected step.
+. Add a *VCS Trigger* (Build Configuration Settings → Triggers) so builds run on every push.
+
+[[teamcity_minimal_kotlin_dsl]]
+=== Via Kotlin DSL
+
+TeamCity supports link:https://www.jetbrains.com/help/teamcity/kotlin-dsl.html[configuration as code] using Kotlin DSL, stored in `.teamcity/settings.kts` in your repository:
+
+[source,kotlin]
+----
+import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
+
+version = "2025.11"
+
+project {
+    buildType(Build)
+}
+
+object Build : BuildType({
+    name = "Build"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        gradle {
+            tasks = "clean build"
+            useGradleWrapper = true
+        }
+    }
+
+    triggers {
+        vcs {}
+    }
+})
+----
+
+[[teamcity_minimal_yaml]]
+=== Via YAML pipelines
+
+[source,yaml]
+----
+jobs:
+  Build:
+    name: Build
+    steps:
+      - type: gradle
+        name: Gradle Build
+        tasks: clean build
+        use-gradle-wrapper: "true"
+----
+
+[[teamcity_wrapper]]
+== Using the Gradle Wrapper
+
+The Gradle runner's *Use Gradle Wrapper* option (enabled by default on auto-detected steps) is the recommended way to invoke Gradle.
+With the Wrapper enabled, build agents need only a JDK — the correct Gradle distribution is downloaded and cached automatically.
+
+If the Wrapper script is not at the repository root, set *Gradle Wrapper Path* to its location relative to the working directory.
+
+[[teamcity_caching]]
+== Caching and performance
+
+TeamCity build agents are typically long-lived, so the Gradle User Home (`~/.gradle`) is preserved between builds on the same agent.
+Downloaded dependencies, Wrapper distributions, and the local build cache persist automatically without additional configuration.
+
+For distributed or cloud agents, consider:
+
+* A link:https://docs.gradle.org/current/userguide/build_cache.html[Gradle Remote Build Cache] to share task outputs across agents.
+* A repository manager (link:https://jfrog.com/[Artifactory], link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus]) to proxy external dependencies within your network.
+* The `--configuration-cache` flag (or `org.gradle.configuration-cache=true` in `gradle.properties`) to skip the configuration phase on repeated builds.
+
+[NOTE]
+====
+The configuration cache has known limitations with TeamCity's parallel test features and clean checkout scenarios.
+See the link:https://www.jetbrains.com/help/teamcity/gradle.html[Gradle runner documentation] for details.
+====
+
+[[teamcity_system_properties]]
+== System properties and environment variables
+
+TeamCity link:https://www.jetbrains.com/help/teamcity/configuring-build-parameters.html[system properties] (those prefixed with `system.`) are passed to Gradle as native project properties — the same mechanism as `gradle.properties`.
+
+Access them in `build.gradle[.kts]`:
+
+[source,kotlin]
+----
+// Simple names (no dots) — available as top-level properties
+println("Build number: $buildNumber")    // from system.buildNumber
+
+// Names containing dots — use the project.ext map
+val vcsNumber: String by project.ext     // from system.vcsNumber
+// or:
+project.findProperty("build.vcs.number.1")
+----
+
+TeamCity also exposes `env.` parameters as environment variables on the agent. These can be read in Gradle via `System.getenv("ENV_VAR_NAME")` or `providers.environmentVariable("ENV_VAR_NAME")`.
+
+[[teamcity_build_scans]]
+== Publishing Build Scans
+
+Add `--scan` to the *Additional Command Line Parameters* field (or to the `gradleParams` DSL property) to publish a link:https://scans.gradle.com[Build Scan®] for every build.
+
+For richer integration, install the link:https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[TeamCity Build Scan plugin].
+With the plugin installed, Build Scan links appear directly in the *Build Results* view rather than only in the build log.
+
+To auto-accept the terms of use in CI without `--scan`, configure the Develocity plugin in `settings.gradle[.kts]`:
+
+[source,kotlin]
+----
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        publishing.onlyIf { true }
+    }
+}
+----
+
+[[teamcity_test_reporting]]
+== Test reporting
+
+The Gradle runner automatically parses JUnit and TestNG XML reports produced by Gradle's `test` task.
+Test results appear on the *Tests* tab of the build results, including individual test durations, failure details, and history across builds.
+
+No additional configuration is needed — TeamCity discovers `TEST-*.xml` files under `build/test-results/` by default.
+
+[[teamcity_triggers]]
+== Build triggers and branch monitoring
+
+Common trigger configurations for Gradle projects:
+
+[cols="1,3",options="header"]
+|===
+| Trigger | Usage
+
+| *VCS Trigger*
+| Polls the repository (default: every 60 seconds) and starts a build when changes are detected. Add `+:refs/heads/*` to the branch specification to monitor all branches.
+
+| *Schedule Trigger*
+| Runs builds on a cron schedule, e.g. nightly integration tests.
+
+| *Pull Request builds*
+| Enable the *Pull Requests* build feature and select your VCS provider (GitHub, GitLab, Bitbucket). TeamCity detects open pull requests and triggers builds automatically.
+
+| *Commit Status Publisher*
+| Reports build results back to the VCS provider, displaying pass/fail status on pull requests and commits.
+|===

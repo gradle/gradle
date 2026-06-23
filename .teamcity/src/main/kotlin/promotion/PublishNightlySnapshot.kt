@@ -37,8 +37,14 @@ const val NIGHTLY_SNAPSHOT_BUILD_ID = "Promotion_Nightly"
 fun VersionedSettingsBranch.determineNightlyPromotionTriggerHour(): Int? {
     val oldReleasePattern = "release(\\d+)x".toRegex()
     return when (branchName) {
-        "master" -> 0
-        "release" -> 1
+        "master" -> {
+            0
+        }
+
+        "release" -> {
+            1
+        }
+
         else -> {
             val matchResult = oldReleasePattern.find(branchName)
             if (matchResult == null) {
@@ -86,7 +92,7 @@ class PublishNightlySnapshot(
             // for master/release branch, we trigger them on midnight (with pending change only, i.e. if there is no change, don't rigger it)
             // for old release branches, we trigger them on midnight if there is change, or unconditionally on weekends
             when {
-                branch.isMaster || branch.isRelease ->
+                branch.isMaster || branch.isRelease -> {
                     schedule {
                         scheduledTrigger(
                             branch,
@@ -94,6 +100,7 @@ class PublishNightlySnapshot(
                             pendingChangesOnly = true,
                         )
                     }
+                }
 
                 else -> {
                     schedule {

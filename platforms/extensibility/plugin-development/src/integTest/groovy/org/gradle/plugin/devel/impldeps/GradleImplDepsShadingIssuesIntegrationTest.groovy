@@ -18,11 +18,11 @@ package org.gradle.plugin.devel.impldeps
 
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
 class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     @Issue("GRADLE-3456")

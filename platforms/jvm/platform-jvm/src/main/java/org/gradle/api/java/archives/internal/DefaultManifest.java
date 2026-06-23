@@ -66,6 +66,7 @@ public class DefaultManifest implements ManifestInternal {
     private final Provider<String> contentCharsetProvider;
     private final String contentCharset;
 
+    @SuppressWarnings("this-escape")
     public DefaultManifest(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
         this.contentCharsetProvider = null;
@@ -73,6 +74,7 @@ public class DefaultManifest implements ManifestInternal {
         init();
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultManifest(PathToFileResolver fileResolver, String contentCharset) {
         this.fileResolver = fileResolver;
         this.contentCharsetProvider = null;
@@ -80,6 +82,7 @@ public class DefaultManifest implements ManifestInternal {
         init();
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultManifest(PathToFileResolver fileResolver, @Nullable Provider<String> contentCharsetProvider) {
         this.fileResolver = fileResolver;
         this.contentCharsetProvider = contentCharsetProvider;
@@ -93,8 +96,14 @@ public class DefaultManifest implements ManifestInternal {
     }
 
     @Override
-    public @Nullable Provider<String> getContentCharset() {
+    public @Nullable Provider<String> getContentCharsetProvider() {
         return contentCharsetProvider;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public String getContentCharset() {
+        return getEffectiveContentCharset();
     }
 
     private String getEffectiveContentCharset() {

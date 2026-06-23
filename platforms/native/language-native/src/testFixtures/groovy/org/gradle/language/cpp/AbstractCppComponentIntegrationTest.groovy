@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -123,11 +122,6 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'CppUnitTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'CppUnitTestComponentWithBothLibraryLinkageIntegrationTest',
-        'CppUnitTestComponentWithSharedLibraryLinkageIntegrationTest'
-    ], because = "may compile main and test binaries concurrently so may fail with multiple exceptions")
     def "fails when no target architecture can be built"() {
         given:
         makeSingleProject()
@@ -138,8 +132,14 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         buildFile << configureToolChainSupport('foo')
 
         expect:
-        fails taskNameToAssembleDevelopmentBinary
-        failure.assertHasCause("No tool chain is available to build C++")
+        // With configuration cache, compilation tasks may run in parallel.
+        // Use --continue to deterministically collect all failures.
+        fails taskNameToAssembleDevelopmentBinary, "--continue"
+        def compileTasksCount = compilationTasks.size()
+        failure.assertHasFailures(compileTasksCount)
+        compileTasksCount.times {
+            failure.assertHasCause("No tool chain is available to build C++")
+        }
     }
 
     def "can build current architecture when other, non-buildable architectures are specified"() {
@@ -192,6 +192,10 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary(String variant = "")
+
+    protected List<String> getCompilationTasks(String variant = "") {
+        return getTasksToAssembleDevelopmentBinary(variant).findAll { it.startsWith(':compile') }
+    }
 
     protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 

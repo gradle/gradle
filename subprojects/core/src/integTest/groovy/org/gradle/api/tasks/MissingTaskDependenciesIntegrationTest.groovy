@@ -17,9 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.TextUtil
@@ -27,12 +27,15 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
+
+    def setup() {
+        enableProblemsApiCheck()
+    }
 
     def "detects missing dependency between two tasks and fails (#description)"() {
         buildFile """
@@ -301,8 +304,9 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @ToBeFixedForConfigurationCache(
-        skip = FLAKY,
-        because = "Due to extra parallelism with cc missing dependencies detection can be flaky. See https://github.com/gradle/gradle/issues/27576"
+        issue = "https://github.com/gradle/gradle/issues/27576",
+        because = "Due to extra parallelism with cc missing dependencies detection can be flaky",
+        skipBecause = "flaky"
     )
     def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
@@ -542,6 +546,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "fails when an input file collection can't be resolved"() {
+        disableProblemsApiCheck()
         buildFile """
             task "broken" {
                 inputs.files(5).withPropertyName("invalidInputFileCollection")
@@ -565,9 +570,14 @@ The following types/formats are supported:
         when:
         fails "broken"
         then:
-        executedAndNotSkipped ":broken"
-        failureDescriptionContains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
-        failureCauseContains(cause)
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache state could not be cached")
+            failureCauseContains(cause)
+        } else {
+            executedAndNotSkipped ":broken"
+            failureDescriptionContains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+            failureCauseContains(cause)
+        }
     }
 
     def "detects missing dependency when executed in #firstTask -> #secondTask order"() {
@@ -680,29 +690,28 @@ The following types/formats are supported:
     }
 
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
-        expectReindentedValidationMessage()
-        def expectedMessage = implicitDependency {
-            at(producedConsumedLocations[0])
-            consumer(consumerTask)
-            producer(producerTask)
-            includeLink()
-        }
-        failure.assertThatDescription(containsNormalizedString(expectedMessage))
+        // Under CC, producer and consumer can run in parallel and each emit its own validation
+        // failure. Mark every per-task failure description as checked so the cleanup hook does
+        // not flag them as unchecked.
+        failure.assertThatAllDescriptions(Matchers.anyOf(
+            Matchers.startsWith("A problem was found with the configuration of task '${producerTask}'"),
+            Matchers.startsWith("A problem was found with the configuration of task '${consumerTask}'")
+        ))
 
-        // TODO: Fix this
-        // With cc tasks can run in parallel so reporting is a bit flaky
-        // and we sometimes report only the first location, but sometimes also other locations, depending on the task execution
-        if (GradleContextualExecuter.isConfigCache()) {
-            def matchers = []
-            for (int i = 0; i < producedConsumedLocations.length; i++) {
-                matchers += containsNormalizedString(implicitDependency {
-                    at(producedConsumedLocations[i])
-                    consumer(consumerTask)
-                    producer(producerTask)
-                    includeLink()
-                })
+        // Verify that an implicit-dependency problem was emitted matching the expected
+        // producer/consumer/location combination via the Problems API.
+        def expectedLocationPaths = producedConsumedLocations*.absolutePath
+        def matched = false
+        receivedProblems.size().times { i ->
+            def problem = receivedProblem(i)
+            if (problem.definition.id.fqid == 'validation:property-validation:implicit-dependency') {
+                def text = "${problem.contextualLabel ?: ''} ${problem.details ?: ''}"
+                if (text.contains("'${producerTask}'") && text.contains("'${consumerTask}'")
+                    && expectedLocationPaths.any { text.contains(it) }) {
+                    matched = true
+                }
             }
-            failure.assertThatAllDescriptions(Matchers.anyOf(matchers))
         }
+        assert matched: "No implicit-dependency problem matched producer=${producerTask} consumer=${consumerTask} locations=${expectedLocationPaths}"
     }
 }

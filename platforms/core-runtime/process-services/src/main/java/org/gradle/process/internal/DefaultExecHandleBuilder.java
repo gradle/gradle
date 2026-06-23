@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.File;
 import java.io.InputStream;
@@ -224,7 +225,9 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
-        delegate.copyTo(options);
+        options.setExecutable(delegate.getExecutable());
+        options.setWorkingDir(delegate.getWorkingDir());
+        options.setEnvironment(delegate.getEnvironment());
         return this;
     }
 }

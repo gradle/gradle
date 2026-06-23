@@ -19,7 +19,7 @@ package org.gradle.testing.junit.platform
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -104,7 +104,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         def results = resultsFor(testDirectory)
         results.testPath('org.gradle.ClassErrorTest').onlyRoot()
             .assertChildCount(successCount + 1, 1)
-        results.testPathPreNormalized(":org.gradle.ClassErrorTest:$failedTestName").onlyRoot()
+        results.testPath(":org.gradle.ClassErrorTest:$failedTestName").onlyRoot()
             .assertFailureMessages(containsString(location))
 
         where:
@@ -176,15 +176,15 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         def results = resultsFor(testDirectory)
         results.testPath('org.gradle.RepeatTest').onlyRoot()
             .assertChildCount(3, 1)
-        results.testPathPreNormalized(':org.gradle.RepeatTest:ok()').onlyRoot()
+        results.testPath(':org.gradle.RepeatTest:ok()').onlyRoot()
             .assertChildrenExecuted('ok()[1]', 'ok()[2]', 'ok()[3]')
-        results.testPathPreNormalized(':org.gradle.RepeatTest:partialFail(RepetitionInfo)').onlyRoot()
+        results.testPath(':org.gradle.RepeatTest:partialFail(RepetitionInfo)').onlyRoot()
             .assertChildrenExecuted('partialFail(RepetitionInfo)[1]')
             .assertChildrenFailed('partialFail(RepetitionInfo)[2]')
             .assertChildrenExecuted('partialFail(RepetitionInfo)[3]')
-        results.testPathPreNormalized(':org.gradle.RepeatTest:partialFail(RepetitionInfo):partialFail(RepetitionInfo)[2]').onlyRoot()
+        results.testPath(':org.gradle.RepeatTest:partialFail(RepetitionInfo):partialFail(RepetitionInfo)[2]').onlyRoot()
             .assertFailureMessages(containsString('java.lang.RuntimeException'))
-        results.testPathPreNormalized(':org.gradle.RepeatTest:partialSkip(RepetitionInfo)').onlyRoot()
+        results.testPath(':org.gradle.RepeatTest:partialSkip(RepetitionInfo)').onlyRoot()
             .assertChildrenExecuted('partialSkip(RepetitionInfo)[1]')
             .assertChildrenSkipped('partialSkip(RepetitionInfo)[2]')
             .assertChildrenExecuted('partialSkip(RepetitionInfo)[3]')
@@ -216,7 +216,7 @@ public class UninstantiableExtension implements BeforeEachCallback {
 
         then:
         def results = resultsFor(testDirectory)
-        results.testPathPreNormalized(":engine_junit-jupiter:initializationError").onlyRoot()
+        results.testPath(":engine_junit-jupiter:initializationError").onlyRoot()
             .assertFailureMessages(containsString('UninstantiableExtension'))
     }
 
@@ -432,19 +432,19 @@ public class StaticInnerTest {
 
         then:
         def results = resultsFor(testDirectory)
-        results.testPath("PoisonTest", "passingTest").onlyRoot()
+        results.testPath("PoisonTest", "passingTest()").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPath("PoisonTest", "testWithUnserializableException").onlyRoot()
+        results.testPath("PoisonTest", "testWithUnserializableException()").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-        results.testPath("PoisonTest", "normalFailingTest").onlyRoot()
+        results.testPath("PoisonTest", "normalFailingTest()").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString("AssertionError"))
     }
 
     // When running embedded with test distribution, the remote distribution has a newer version of
     // junit-platform-launcher which is not compatible with the junit jupiter jars we test against.
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     // JUnitCoverage is quite limited and doesn't test older versions or the newest version.
     // Future work is planned to improve junit test rewriting, and at the same time should verify
     // greater ranges of junit platform testing. This is only reproducible with the newest version

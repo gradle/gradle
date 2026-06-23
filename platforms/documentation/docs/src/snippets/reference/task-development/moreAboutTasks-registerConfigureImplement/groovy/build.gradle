@@ -1,0 +1,24 @@
+plugins {
+    id 'base'
+}
+
+// tag::register-configure-implement[]
+tasks.register("myCopy", Copy)                              // <1>
+
+tasks.named("myCopy", Copy) {                               // <2>
+    from "resources"
+    into "target"
+    include "**/*.txt", "**/*.xml", "**/*.properties"
+}
+
+abstract class MyCopyTask extends DefaultTask {             // <3>
+    @TaskAction
+    void copyFiles() {
+        fileTree('sourceDir').matching {
+            include '**/*.txt'
+        }.forEach { file ->
+            file.copyTo(file.path.replace('sourceDir', 'destinationDir'))
+        }
+    }
+}
+// end::register-configure-implement[]

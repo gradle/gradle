@@ -43,6 +43,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -62,6 +63,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         file('src/test/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -93,6 +95,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         file('src/test/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -123,6 +126,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         file('src/int_test/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -149,6 +153,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         file('src/main/resources').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -182,6 +187,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
 
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -209,6 +215,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -241,6 +248,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:

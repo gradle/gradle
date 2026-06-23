@@ -16,9 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture
 
-class ConfigurationCacheStableConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheStableConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements StableConfigurationCacheDeprecations {
 
     def setup() {
         settingsFile '''
@@ -67,7 +68,7 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
             tasks.register('problematic') { doLast { println project.name } }
         """
 
-        executer.expectDocumentedDeprecationWarning "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project"
+        expectTaskGetProjectDeprecations()
 
         expect:
         succeeds ':problematic'

@@ -17,6 +17,7 @@
 plugins {
     id("gradlebuild.distribution.implementation-java")
     id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.jmh")
 }
 
 description = "Tools to serialize data"
@@ -52,6 +53,12 @@ gradleModule {
 jvmCompile {
     compilations {
         named("main") {
+            // usesFutureStdlib opts this module out of `--release N` because
+            // StackTraceElementPlaceholder calls StackTraceElement.getClassLoaderName(),
+            // getModuleName(), getModuleVersion(), and the 7-arg StackTraceElement
+            // constructor (all JDK 9+). Those calls are gated at runtime by
+            // JavaVersion.current().isJava9Compatible(), so they are safe on a JDK 8
+            // runtime, but their symbols must still resolve at compile time.
             usesFutureStdlib = true
         }
     }

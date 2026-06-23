@@ -11,4 +11,6 @@ dependencies {
     implementation("gradlebuild:module-identity")
     implementation(buildLibs.gson)
     implementation(buildLibs.jsoup)
+    implementation(libs.asm)
+    implementation(libs.maven3RepositoryMetadata)
 }

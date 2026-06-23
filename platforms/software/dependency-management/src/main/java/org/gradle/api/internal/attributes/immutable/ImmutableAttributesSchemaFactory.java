@@ -43,7 +43,7 @@ public class ImmutableAttributesSchemaFactory {
     private final InMemoryInterner<ImmutableAttributesSchema> schemas;
     private final InMemoryLoadingCache<SchemaPair, ImmutableAttributesSchema> mergedSchemas;
 
-    @SuppressWarnings("CheckReturnValue")
+    @SuppressWarnings({"this-escape", "CheckReturnValue"})
     public ImmutableAttributesSchemaFactory(InMemoryCacheFactory cacheFactory) {
         this.schemas = cacheFactory.createInterner();
         this.schemas.intern(ImmutableAttributesSchema.EMPTY);

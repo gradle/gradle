@@ -10,6 +10,7 @@
 # Build infrastructure
 .teamcity/                                  @gradle/bt-developer-productivity
 .github/                                    @gradle/bt-developer-productivity @gradle/bt-product-operations # This might need to be more finegrained in the future
+/.coderabbit.yaml                           @gradle/bt-developer-productivity
 /build-logic/                               @gradle/bt-developer-productivity
 /build-logic-commons/                       @gradle/bt-developer-productivity
 /build-logic-settings/                      @gradle/bt-developer-productivity
@@ -58,6 +59,9 @@ images/
 LICENSE                                 @gradle/bt-product-operations
 *.md                                    @gradle/bt-product-operations @gradle/bt-docs-reviewers
 contributing/                           @gradle/bt-product-operations @gradle/bt-docs-reviewers
+
+# AI related files
+.claude/                                @gradle/bt-developer-productivity
 
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
@@ -112,23 +116,23 @@ subprojects/core-api                                        # @gradle/bt-cortex 
 
 # Develocity integration
 platforms/enterprise/                                   @gradle/bt-build-scan
-platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-acceleration-team
-platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-acceleration-team
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-efficiency-team
+platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-efficiency-team
 
 # JVM platform
 platforms/jvm/                                      @gradle/bt-jvm
 platforms/core-configuration/java-api-extractor     @gradle/bt-jvm
 
 # JVM testing services also shared by Develocity testing plugins
-platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/dv-acceleration-team
-platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-acceleration-team
+platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/dv-efficiency-team
+platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-efficiency-team
 
 # Software platform
 platforms/software/                         @gradle/bt-jvm
 
 # Extensibility
-platforms/extensibility/          @gradle/bt-tide
-subprojects/build-events          @gradle/bt-tide
+platforms/extensibility/                    @gradle/bt-tide
+platforms/core-runtime/daemon-messaging     @gradle/bt-tide
 
 # Native
 platforms/native/                 @gradle/bt-jvm
@@ -143,7 +147,7 @@ platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
 # Documentation
 platforms/documentation/          @gradle/bt-docs-reviewers
 
-platforms/documentation/docs/src/snippets/kotlinDsl/                                                        @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/snippets/reference/dsl-apis/                                                         @gradle/bt-docs-reviewers @gradle/bt-tide
 platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/kotlin_dsl.adoc                          @gradle/bt-docs-reviewers @gradle/bt-tide
 platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
 

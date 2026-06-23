@@ -7,16 +7,16 @@ description = "Process execution abstractions."
 dependencies {
     api(projects.concurrent)
     api(projects.baseServices)
-    api(projects.buildOperations)
     api(projects.coreApi)
     api(projects.modelCore)
     api(projects.processServicesApi)
+    api(projects.processServicesBase)
     api(projects.fileCollections)
     api(projects.fileTemp)
+    api(projects.serviceProvider)
 
     api(libs.inject)
     api(libs.jspecify)
-    api(libs.nativePlatform)
 
     implementation(projects.instrumentationAgentServices)
     implementation(projects.logging)
@@ -24,13 +24,9 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.messaging)
     implementation(projects.native)
-    implementation(projects.serviceLookup)
-    api(projects.serviceProvider)
 
-    implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)
-    implementation(libs.jnrConstants)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.io)

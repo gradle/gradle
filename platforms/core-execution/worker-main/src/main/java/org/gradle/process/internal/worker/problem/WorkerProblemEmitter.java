@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.worker.problem;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -39,7 +39,7 @@ public class WorkerProblemEmitter implements ProblemSummarizer {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         protocol.reportProblem(problem, id);
     }
 

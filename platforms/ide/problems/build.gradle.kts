@@ -25,43 +25,23 @@ description = """Problem SPI implementations.
 """.trimMargin()
 
 
-val problemReportReportPath by configurations.creating {
-    isCanBeConsumed = false
-    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
-}
-
-// You can have a faster feedback loop by running `configuration-cache-report` as an included build
-// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
-dependencies {
-    problemReportReportPath(libs.configurationCacheReport)
-}
-
-tasks.processResources {
-    from(zipTree(problemReportReportPath.elements.map { it.first().asFile })) {
-        into("org/gradle/internal/impl/problems")
-        exclude("META-INF/**")
-        rename { fileName ->
-            fileName.replace("configuration-cache-report", "problems-report")
-        }
-    }
-}
-
 dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.concurrent)
-    api(projects.configurationProblemsBase)
     api(projects.core)
     api(projects.fileTemp)
     api(projects.loggingApi)
     api(projects.problemsApi)
     api(projects.serviceProvider)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
+    implementation(projects.configurationProblemsBase)
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
@@ -96,9 +76,7 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 // Problems should not be part of the public API, this only contains internal types
 // TODO Find a way to not register this and the task instead

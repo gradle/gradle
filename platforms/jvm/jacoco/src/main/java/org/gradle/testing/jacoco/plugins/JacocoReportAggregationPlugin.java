@@ -23,6 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -57,6 +58,9 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
+
+    @Inject
+    protected abstract DependencyFactory getDependencyFactory();
 
     @Inject
     protected abstract JvmPluginServices getEcosystemUtilities();
@@ -126,7 +130,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPlugins().withId("jvm-test-suite", plugin -> {
             // Depend on this project for aggregation
             jacocoAggregation.configure(conf -> {
-                conf.getDependencies().add(project.getDependencyFactory().create(project));
+                conf.getDependencies().add(getDependencyFactory().createProjectDependency());
             });
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);

@@ -36,10 +36,13 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
     def "can dynamically access properties"() {
 
         given:
-        file("gradle.properties") << "someProjectProperty=true"
+        propertiesFile << "someProjectProperty=true"
         settingsFile << """
-            if (properties.someProjectProperty == 'true') {
-                println('signal')
+            if (getProperty('someProjectProperty') == 'true') {
+                println('getProperty worked')
+            }
+            if (someProjectProperty == 'true') {
+                println('dynamic property access worked')
             }
         """
 
@@ -47,7 +50,8 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds('help')
 
         then:
-        outputContains('signal')
+        outputContains('etProperty worked')
+        outputContains('dynamic property access worked')
     }
 
     def "Can type-safely use ExtensionAware with the Groovy DSL"() {
@@ -83,9 +87,7 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
 
         // Need to use settings because Kotlin DSL needs to be re-compiled
         testDirectory.file(answerFile) << """
-        val theAnswer: () -> Int by settings.extra {
-            { 42 }
-        }
+        settings.extra["theAnswer"] = { 42 }
         """
 
         settingsKotlinFile << """
@@ -96,11 +98,9 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
                 "Can access inside buildscript"
             }
 
-            val hamlet by settings.extra {
-                "To be or not to be"
-            }
+            settings.extra["hamlet"] = "To be or not to be"
 
-            assert(hamlet == "To be or not to be") {
+            assert(settings.extra["hamlet"] == "To be or not to be") {
                 "Can access inside buildscript"
             }
         }
@@ -109,15 +109,16 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
             "Can access outside buildscript"
         }
 
-        val hamlet: String by settings.extra
+        val hamlet = settings.extra["hamlet"] as String
 
         assert(hamlet == "To be or not to be") {
-            "Can access delegate outside buildscript"
+            "Can access outside buildscript"
         }
 
         apply(from = "$answerFile")
 
-        val theAnswer: () -> Int by settings.extra
+        @Suppress("UNCHECKED_CAST")
+        val theAnswer = settings.extra["theAnswer"] as () -> Int
 
         assert(theAnswer() == 42) {
             "Can access from applied file"

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -31,7 +32,10 @@ import java.io.File;
  * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
  * <p>
  * At this moment nearly all configuration is done via {@link IdeaModule}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
@@ -45,8 +49,17 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     }
 
     @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
+    }
+
+    @Override
     protected Module create() {
-        return new Module(getXmlTransformer(), module.getPathFactory());
+        return new Module(getXmlTransformer(), DeprecationLogger.whileDisabled(() -> module.getPathFactory()));
     }
 
     @Override
@@ -59,7 +72,7 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
         if (module == null) {
             return super.getXmlTransformer();
         }
-        return module.getIml().getXmlTransformer();
+        return DeprecationLogger.whileDisabled(() -> module.getIml().getXmlTransformer());
     }
 
     /**

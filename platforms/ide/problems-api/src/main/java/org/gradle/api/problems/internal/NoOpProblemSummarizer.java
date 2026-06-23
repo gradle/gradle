@@ -24,7 +24,7 @@ import java.io.File;
 public class NoOpProblemSummarizer implements ProblemSummarizer {
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         // no op
     }
 

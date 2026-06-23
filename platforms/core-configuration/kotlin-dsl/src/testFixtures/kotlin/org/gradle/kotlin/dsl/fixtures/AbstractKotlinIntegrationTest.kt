@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
-import org.gradle.kotlin.dsl.support.zipTo
 import org.junit.Before
 import java.io.File
 import java.util.Properties
@@ -260,7 +259,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun scriptWithKotlinDslPlugin(version: String? = null): String =
         """
             plugins {
-                `kotlin-dsl`${if (version == null) "" else " version \"$version\""}
+                ${if (version == null) "`kotlin-dsl`" else "id(\"org.gradle.kotlin.kotlin-dsl\") version \"$version\""}
             }
 
             $repositoriesBlock

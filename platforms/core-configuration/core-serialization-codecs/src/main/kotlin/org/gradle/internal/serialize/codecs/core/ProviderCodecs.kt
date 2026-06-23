@@ -67,6 +67,7 @@ import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
@@ -188,7 +189,7 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     override suspend fun ReadContext.decode(): RegisteredFlowAction {
         val flowActionClass = readClassOf<FlowAction<FlowParameters>>()
         withFlowActionIsolate(flowActionClass, verifiedIsolateOwner()) {
-            return RegisteredFlowAction(flowActionClass, read()?.uncheckedCast())
+            return RegisteredFlowAction(flowActionClass, readNonNull())
         }
     }
 
@@ -253,7 +254,7 @@ class BuildServiceProviderCodec(
             val implementationType = readClassOf<BuildService<*>>()
             val isResolved = readBoolean()
             if (isResolved) {
-                val parameters = read() as BuildServiceParameters?
+                val parameters = readNonNull<BuildServiceParameters>()
                 val maxUsages = readInt()
                 buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
@@ -313,13 +314,9 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
         // TODO:configuration-cache `encodePreservingSharedIdentityOf` should be unnecessary for shared objects
         encodePreservingSharedIdentityOf(value) {
             value.run {
-                val hasParameters = parametersType != null
                 writeClass(valueSourceType)
-                writeBoolean(hasParameters)
-                if (hasParameters) {
-                    writeClass(parametersType as Class<*>)
-                    write(parameters)
-                }
+                writeClass(parametersType as Class<*>)
+                write(parameters)
             }
         }
     }
@@ -327,19 +324,21 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
     private
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         // TODO:configuration-cache `decodePreservingSharedIdentity` should be unnecessary for shared objects
-        decodePreservingSharedIdentity {
+        decodePreservingIdentity(sharedIdentities) { id ->
             val valueSourceType = readClass()
-            val hasParameters = readBoolean()
-            val parametersType = if (hasParameters) readClass() else null
-            val parameters = if (hasParameters) read()!! else null
+            val parametersType = readClass()
 
+            val readContext = this
             val valueSourceProviderFactory = isolate.owner.serviceOf<ValueSourceProviderFactory>()
-            val provider =
-                valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
-                    valueSourceType.uncheckedCast(),
-                    parametersType?.uncheckedCast(),
-                    parameters?.uncheckedCast()
-                )
+            val provider = valueSourceProviderFactory.instantiateValueSourceProviderForDeserialization<Any, ValueSourceParameters>(
+                valueSourceType.uncheckedCast(),
+                parametersType.uncheckedCast()
+            ) { providerInstance ->
+                readContext.runReadOperation {
+                    sharedIdentities.putInstance(id, providerInstance)
+                    read()!!.uncheckedCast()
+                }
+            }
             provider.uncheckedCast()
         }
 }
@@ -400,9 +399,11 @@ class PropertyCodec(
     override suspend fun ReadContext.decodeThis(): DefaultProperty<*> {
         return decodePreservingIdentity { id ->
             val type: Class<Any> = readClass().uncheckedCast()
-            val provider = providerCodec.run { decodeProvider() }
-            val property = propertyFactory.property(type).provider(provider)
+            val property = propertyFactory.property(type)
             isolate.identities.putInstance(id, property)
+
+            val provider = providerCodec.run { decodeProvider() }
+            property.provider(provider)
             property
         }
     }
@@ -411,40 +412,60 @@ class PropertyCodec(
 
 class DirectoryPropertyCodec(
     private val filePropertyFactory: FilePropertyFactory,
-    providerCodec: FixedValueReplacingProviderCodec
-) : AbstractPropertyCodec<DefaultDirectoryVar>(providerCodec) {
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultDirectoryVar> {
 
-    override suspend fun WriteContext.encodeThis(value: DefaultDirectoryVar) {
-        write(value.fileResolver)
-        write(value.fileCollectionResolver)
-        providerCodec.run { encodeProvider(value.provider) }
+    override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
+        encodePreservingIdentityOf(value) {
+            writeBoolean(value.isDisallowChanges)
+            write(value.fileResolver)
+            write(value.fileCollectionResolver)
+            providerCodec.run { encodeProvider(value.provider) }
+        }
     }
 
-    override suspend fun ReadContext.decodeThis(): DefaultDirectoryVar {
-        val fileResolver = readNonNull<FileResolver>()
-        val fileCollectionResolver = readNonNull<PathToFileResolver>()
-        val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver)
-        return newPropFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
+    override suspend fun ReadContext.decode(): DefaultDirectoryVar {
+        return decodePreservingIdentity { id ->
+            val isDisallowChanges = readBoolean()
+            val fileResolver = readNonNull<FileResolver>()
+            val fileCollectionResolver = readNonNull<PathToFileResolver>()
+            val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver)
+            val property = newPropFactory.newDirectoryProperty() as DefaultDirectoryVar
+            isolate.identities.putInstance(id, property)
+            val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
+            property.value(provider)
+            if (isDisallowChanges) property.disallowChanges()
+            property
+        }
     }
 }
 
 
 class RegularFilePropertyCodec(
     private val filePropertyFactory: FilePropertyFactory,
-    providerCodec: FixedValueReplacingProviderCodec
-) : AbstractPropertyCodec<DefaultRegularFileVar>(providerCodec) {
+    private val providerCodec: FixedValueReplacingProviderCodec
+) : Codec<DefaultRegularFileVar> {
 
-    override suspend fun WriteContext.encodeThis(value: DefaultRegularFileVar) {
-        write(value.fileResolver)
-        providerCodec.run { encodeProvider(value.provider) }
+    override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
+        encodePreservingIdentityOf(value) {
+            writeBoolean(value.isDisallowChanges)
+            write(value.fileResolver)
+            providerCodec.run { encodeProvider(value.provider) }
+        }
     }
 
-    override suspend fun ReadContext.decodeThis(): DefaultRegularFileVar {
-        val fileResolver = readNonNull<FileResolver>()
-        val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        val newPropFactory = filePropertyFactory.withResolver(fileResolver)
-        return newPropFactory.newFileProperty().value(provider) as DefaultRegularFileVar
+    override suspend fun ReadContext.decode(): DefaultRegularFileVar {
+        return decodePreservingIdentity { id ->
+            val isDisallowChanges = readBoolean()
+            val fileResolver = readNonNull<FileResolver>()
+            val newPropFactory = filePropertyFactory.withResolver(fileResolver)
+            val property = newPropFactory.newFileProperty() as DefaultRegularFileVar
+            isolate.identities.putInstance(id, property)
+            val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
+            property.value(provider)
+            if (isDisallowChanges) property.disallowChanges()
+            property
+        }
     }
 }
 
@@ -455,15 +476,21 @@ class ListPropertyCodec(
 ) : AbstractPropertyCodec<DefaultListProperty<*>>(providerCodec){
 
     override suspend fun WriteContext.encodeThis(value: DefaultListProperty<*>) {
-        writeClass(value.elementType)
-        providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+        encodePreservingIdentityOf(value) {
+            writeClass(value.elementType)
+            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+        }
     }
 
     override suspend fun ReadContext.decodeThis(): DefaultListProperty<*> {
-        val type: Class<Any> = readClass().uncheckedCast()
-        val value: ValueSupplier.ExecutionTimeValue<List<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
-        return propertyFactory.listProperty(type).apply {
-            fromState(value)
+        return decodePreservingIdentity { id ->
+            val type: Class<Any> = readClass().uncheckedCast()
+            val property = propertyFactory.listProperty(type) as DefaultListProperty<*>
+            isolate.identities.putInstance(id, property)
+            val value = providerCodec.run { decodeValue() }
+            property.apply {
+                fromState(value.uncheckedCast())
+            }
         }
     }
 }
@@ -475,15 +502,21 @@ class SetPropertyCodec(
 ) : AbstractPropertyCodec<DefaultSetProperty<*>>(providerCodec) {
 
     override suspend fun WriteContext.encodeThis(value: DefaultSetProperty<*>) {
-        writeClass(value.elementType)
-        providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+        encodePreservingIdentityOf(value) {
+            writeClass(value.elementType)
+            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+        }
     }
 
     override suspend fun ReadContext.decodeThis(): DefaultSetProperty<*> {
-        val type: Class<Any> = readClass().uncheckedCast()
-        val value: ValueSupplier.ExecutionTimeValue<Set<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
-        return propertyFactory.setProperty(type).apply {
-            fromState(value)
+        return decodePreservingIdentity { id ->
+            val type: Class<Any> = readClass().uncheckedCast()
+            val property = propertyFactory.setProperty(type) as DefaultSetProperty<*>
+            isolate.identities.putInstance(id, property)
+            val value = providerCodec.run { decodeValue() }
+            property.apply {
+                fromState(value.uncheckedCast())
+            }
         }
     }
 }
@@ -495,17 +528,23 @@ class MapPropertyCodec(
 ) : AbstractPropertyCodec<DefaultMapProperty<*, *>>(providerCodec) {
 
     override suspend fun WriteContext.encodeThis(value: DefaultMapProperty<*, *>) {
-        writeClass(value.keyType)
-        writeClass(value.valueType)
-        providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+        encodePreservingIdentityOf(value) {
+            writeClass(value.keyType)
+            writeClass(value.valueType)
+            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+        }
     }
 
     override suspend fun ReadContext.decodeThis(): DefaultMapProperty<*, *> {
-        val keyType: Class<Any> = readClass().uncheckedCast()
-        val valueType: Class<Any> = readClass().uncheckedCast()
-        val state: ValueSupplier.ExecutionTimeValue<Map<Any, Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
-        return propertyFactory.mapProperty(keyType, valueType).apply {
-            fromState(state)
+        return decodePreservingIdentity { id ->
+            val keyType: Class<Any> = readClass().uncheckedCast()
+            val valueType: Class<Any> = readClass().uncheckedCast()
+            val property = propertyFactory.mapProperty(keyType, valueType) as DefaultMapProperty<*, *>
+            isolate.identities.putInstance(id, property)
+            val value = providerCodec.run { decodeValue() }
+            property.apply {
+                fromState(value.uncheckedCast())
+            }
         }
     }
 }

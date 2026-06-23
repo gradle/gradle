@@ -29,7 +29,7 @@ import org.junit.Test
 class SamplesJUnitIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
-    public final Sample sample = new Sample(testDirectoryProvider, 'testing/junit-categories')
+    public final Sample sample = new Sample(testDirectoryProvider, 'integration-tests/testing/junit-categories')
 
     @Before
     void setup() {

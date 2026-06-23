@@ -1,0 +1,261 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gitlab_ci]]
+= Gradle on GitLab CI
+
+This page is a reference for integrating Gradle with link:https://docs.gitlab.com/ee/ci/[GitLab CI/CD] on GitLab.com, self-managed, or GitLab Dedicated instances.
+
+[[gitlab_ci_template]]
+== Using the GitLab-provided template
+
+GitLab ships an official Gradle CI template at link:https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Gradle.gitlab-ci.yml[`Gradle.gitlab-ci.yml`].
+Include it with:
+
+[source,yaml]
+----
+include:
+  - template: Gradle.gitlab-ci.yml
+----
+
+The template defines three stages, `build`, `test`, `deploy`, using the `gradle:alpine` image, and configures a `.gradle/` cache keyed by branch.
+Use it as a starting point; most projects override the image and script sections to pin a specific JDK and use the Gradle Wrapper.
+
+[[gitlab_ci_minimal_pipeline]]
+== Minimal pipeline
+
+A reference `.gitlab-ci.yml` that builds a Gradle project using the Wrapper and publishes test results:
+
+[source,yaml]
+----
+image: eclipse-temurin:21
+
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+build:
+  stage: build
+  script:
+    - ./gradlew --no-daemon build
+  artifacts:
+    when: always
+    reports:
+      junit: "**/build/test-results/test/TEST-*.xml"
+    paths:
+      - "**/build/reports"
+    expire_in: 1 week
+----
+
+* `image` provides the JDK; the Gradle Wrapper supplies Gradle itself.
+* `GRADLE_USER_HOME` is placed inside `$CI_PROJECT_DIR` so it falls within GitLab's cacheable and uploadable area.
+* `GRADLE_OPTS=-Dorg.gradle.daemon=false` disables the Gradle daemon on short-lived runners.
+* `reports:junit` surfaces test results directly on the merge request and pipeline pages.
+
+[[gitlab_ci_caching]]
+== Caching
+
+GitLab caches are scoped by `key` and stored per runner (for project runners) or on shared object storage (for SaaS shared runners). Two patterns are common.
+
+[[gitlab_ci_caching_wrapper]]
+=== Wrapper-only cache
+
+Recommended for SaaS shared runners, where uploading a large cache archive often outweighs the savings:
+
+[source,yaml]
+----
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+
+cache:
+  key:
+    files:
+      - gradle/wrapper/gradle-wrapper.properties
+  paths:
+    - .gradle/wrapper
+----
+
+Keying on `gradle-wrapper.properties` means the cache is rebuilt only when the Gradle version changes.
+
+[[gitlab_ci_caching_full]]
+=== Full Gradle User Home cache
+
+Appropriate for dedicated or self-hosted runners with local cache storage:
+
+[source,yaml]
+----
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .gradle/caches
+    - .gradle/wrapper
+    - .gradle/notifications
+----
+
+[TIP]
+====
+For cross-branch dependency reuse, prefer a link:https://docs.gradle.org/current/userguide/build_cache.html[Gradle Remote Build Cache].
+====
+
+[[gitlab_ci_cache_policy]]
+=== Cache policies across stages
+
+For multi-stage pipelines, use the `push` / `pull` / `pull-push` (default) policy to control which jobs write the cache:
+
+[source,yaml]
+----
+build:
+  stage: build
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    policy: pull-push
+    paths: [.gradle]
+
+test:
+  stage: test
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    policy: pull
+    paths: [.gradle]
+----
+
+The `build` job populates the cache; downstream jobs read from it without uploading.
+
+[[gitlab_ci_build_scans]]
+== Publishing Build Scans
+
+To publish link:https://scans.gradle.com[Gradle Build Scans®] from GitLab CI, apply the Develocity plugin in `settings.gradle[.kts]` and accept the terms of use when running under CI:
+
+[source,kotlin]
+----
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        if (System.getenv("CI") != null) {
+            termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+            termsOfUseAgree = "yes"
+            publishing.onlyIf { true }
+        }
+    }
+}
+----
+
+GitLab CI sets `CI=true` automatically.
+Build Scan URLs are printed to the job log and can be linked from merge request discussions.
+
+[[gitlab_ci_merge_request_pipelines]]
+== Merge request and branch pipelines
+
+Use `rules` to distinguish merge-request pipelines from branch pipelines — for example, to skip slow integration tests on feature branches:
+
+[source,yaml]
+----
+integration-test:
+  stage: test
+  script: ./gradlew integrationTest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+----
+
+[[gitlab_ci_releases]]
+== Release pipelines
+
+A typical Gradle release pipeline on GitLab CI combines a versioning plugin (such as link:https://github.com/allegro/axion-release-plugin[Axion Release]) with `publish` targeting GitLab's link:https://docs.gitlab.com/ee/user/packages/maven_repository/[Maven Package Registry] or an external repository. The pattern described in link:https://buransky.com/programming/release-gradle-project-using-gitlab-ci-cd-pipeline/[Release Gradle project using GitLab CI/CD pipeline] is:
+
+[source,yaml]
+----
+variables:
+  # Required so Axion Release can read existing version tags
+  GIT_FETCH_EXTRA_FLAGS: --tags
+
+release:
+  stage: release
+  script:
+    - ./gradlew createRelease -Prelease.customUsername=$GITLAB_USER -Prelease.customPassword=$GITLAB_TOKEN
+    - ./gradlew publish
+    - echo "VERSION=$(./gradlew -q currentVersion)" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+  rules:
+    # Skip when the pipeline is triggered by a tag the release job itself pushed
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+----
+
+Key points:
+
+* `GIT_FETCH_EXTRA_FLAGS: --tags` exposes existing version tags to the job; without it, Axion (and similar plugins) cannot compute the next version.
+* The release job needs write access to push the new tag back — supply a link:https://docs.gitlab.com/ee/ci/jobs/ci_job_token.html[project access token] or deploy key with `write_repository` scope via `GITLAB_TOKEN`.
+* The `rules` block prevents the tag push from triggering a recursive release.
+* Credentials for publishing (for example `CI_REPOSITORY_USERNAME` / `CI_REPOSITORY_PASSWORD`) are set as masked/protected CI/CD variables in the project settings, then read by `build.gradle[.kts]`:
++
+[source,kotlin]
+----
+publishing {
+    repositories {
+        maven {
+            url = uri("${System.getenv("CI_API_V4_URL")}/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
+            credentials(HttpHeaderCredentials::class) {
+                name = "Job-Token"
+                value = System.getenv("CI_JOB_TOKEN")
+            }
+            authentication {
+                create<HttpHeaderAuthentication>("header")
+            }
+        }
+    }
+}
+----
+
+A downstream GitLab `release` job can then consume the `VERSION` dotenv artifact to create a GitLab Release entry.
+
+[[gitlab_ci_predefined_variables]]
+== Useful predefined variables
+
+[cols="1,3",options="header"]
+|===
+| Variable | Purpose
+
+| `CI`
+| Always `true` in GitLab CI. Use to branch Gradle build logic.
+
+| `CI_PROJECT_DIR`
+| Absolute path to the checked-out repository. Base for `GRADLE_USER_HOME`.
+
+| `CI_COMMIT_REF_SLUG`
+| URL-safe branch/tag name. Common `cache:key`.
+
+| `CI_COMMIT_BRANCH` / `CI_COMMIT_TAG`
+| Populated on branch and tag pipelines respectively. Use in `rules`.
+
+| `CI_PIPELINE_SOURCE`
+| Trigger type (`push`, `merge_request_event`, `schedule`, `web`, …).
+
+| `CI_JOB_TOKEN`
+| Short-lived token for authenticating to the project's package registry and API.
+
+| `CI_API_V4_URL` / `CI_PROJECT_ID`
+| Compose URLs to the GitLab API and package registries.
+|===
+
+See link:https://docs.gitlab.com/ee/ci/variables/predefined_variables.html[Predefined CI/CD variables] for the full list.

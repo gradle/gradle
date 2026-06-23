@@ -16,6 +16,8 @@
 
 package org.gradle.api.services;
 
+import org.gradle.api.internal.parameters.NoneParameters;
+
 /**
  * A set of parameters to be injected into a {@link BuildService} implementation.
  *
@@ -27,7 +29,7 @@ public interface BuildServiceParameters {
      *
      * @since 6.1
      */
-    final class None implements BuildServiceParameters {
+    final class None extends NoneParameters implements BuildServiceParameters {
         private None() {
         }
     }

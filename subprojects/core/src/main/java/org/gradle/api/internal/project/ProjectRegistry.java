@@ -44,7 +44,7 @@ public interface ProjectRegistry extends HoldsProjectState {
     @Nullable ProjectIdentifier getProject(String path);
 
     /**
-     * Prefer {@link ProjectStateRegistry#findProjectState(Path)}.
+     * Prefer {@link ProjectStateRegistry#findProject(Path)}.
      */
     @Nullable ProjectInternal getProjectInternal(String path);
 

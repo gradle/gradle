@@ -16,35 +16,19 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
+
     private final long instanceId;
     private final T graphMetadata;
-    private final AttributeDesugaring attributeDesugaring;
     private final ImmutableCapability implicitCapability;
 
-    // The public view of all graph variants of this component, mapped by their instance ID.
-    private final ConcurrentHashMap<Long, ResolvedVariantResult> publicVariants = new ConcurrentHashMap<>();
-
-    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, AttributeDesugaring attributeDesugaring) {
+    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata) {
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
-        this.attributeDesugaring = attributeDesugaring;
         this.implicitCapability =  DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
     }
 
@@ -83,49 +67,4 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return implicitCapability;
     }
 
-    @Override
-    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        return getCandidatesForGraphVariantSelection()
-            .getVariantsForAttributeMatching()
-            .stream()
-            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
-            .map(artifactSet -> new DefaultResolvedVariantResult(
-                getId(),
-                Describables.of(artifactSet.getName()),
-                attributeDesugaring.desugar(artifactSet.getAttributes().asImmutable()),
-                capabilitiesFor(artifactSet.getCapabilities()),
-                null
-            ))
-            .collect(Collectors.toList());
-    }
-
-    private ImmutableList<Capability> capabilitiesFor(ImmutableCapabilities capabilities) {
-        if (capabilities.asSet().isEmpty()) {
-            return ImmutableList.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
-        } else {
-            return ImmutableList.copyOf(capabilities.asSet());
-        }
-    }
-
-    @Override
-    public ResolvedVariantResult getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant) {
-        if (externalVariant != null) {
-            // Don't cache the result
-            // Note that the external variant is a function of the metadata of the component, so should be constructed by this state object and cached rather than passed in
-            return createVariantResult(variant, externalVariant);
-        }
-
-        return publicVariants.computeIfAbsent(variant.getInstanceId(), k -> createVariantResult(variant, null));
-    }
-
-    private DefaultResolvedVariantResult createVariantResult(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant) {
-        VariantGraphResolveMetadata metadata = variant.getMetadata();
-        return new DefaultResolvedVariantResult(
-            getId(),
-            Describables.of(metadata.getDisplayName()),
-            attributeDesugaring.desugar(metadata.getAttributes()),
-            capabilitiesFor(metadata.getCapabilities()),
-            externalVariant
-        );
-    }
 }

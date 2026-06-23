@@ -26,7 +26,8 @@ import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -91,7 +92,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         unsatisfiedReason.contains "JVM is incompatible"
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "contexts with symlinked javaHome are compatible"() {
         def linkToJdk = tmp.testDirectory.file("link")
         linkToJdk.createLink(javaHome)

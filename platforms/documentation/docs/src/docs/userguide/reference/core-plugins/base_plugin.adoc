@@ -23,8 +23,8 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 Applying the Base Plugin:
 
 ====
-include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
-include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
 ====
 
 [[sec:base_tasks]]
@@ -77,8 +77,8 @@ The Base Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginE
 This allows to configure the following properties inside a dedicated DSL block.
 
 ====
-include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
-include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
+include::sample[dir="snippets/reference/core-plugins/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
+include::sample[dir="snippets/reference/core-plugins/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
 ====
 
 `archivesName` — default: `$project.name`::

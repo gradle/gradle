@@ -16,18 +16,19 @@
 
 package org.gradle.api.internal.notations
 
-import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.problems.Severity
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
 class DependencyStringNotationConverterTest extends Specification {
-    def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
+    def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe(), TestUtil.problemsService());
 
     def "with artifact"() {
         when:
@@ -194,7 +195,7 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "parses short hand-notation #notation for strict dependencies"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency, SimpleMapInterner.notThreadSafe());
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency, SimpleMapInterner.notThreadSafe(), TestUtil.problemsService());
 
         when:
         def d = parse(parser, "org.foo:bar:$notation")
@@ -215,14 +216,22 @@ class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "rejects short hand notation for strict if it starts with double-bang"() {
-        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency, SimpleMapInterner.notThreadSafe());
+        def problems = TestUtil.problemsService()
+        def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency, SimpleMapInterner.notThreadSafe(), problems);
 
         when:
         parse(parser, "org.foo:bar:!!1.0")
 
         then:
-        def t = thrown(InvalidUserCodeException)
-        t.message == 'The strict version modifier (!!) must be appended to a valid version number'
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce {
+            it.definition.id.displayName == 'Invalid version notation'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == 'The strict version modifier (!!) must be appended to a valid version number'
+            it.details == "The strict version modifier syntax expects a base version before '!!'"
+            it.solutions == ["Place a valid version number before '!!', e.g. '1.0!!'"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_version_notation')
+        }
     }
 
     def parse(def parser, def value) {

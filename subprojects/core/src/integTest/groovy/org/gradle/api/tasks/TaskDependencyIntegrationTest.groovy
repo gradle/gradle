@@ -40,4 +40,110 @@ class TaskDependencyIntegrationTest extends AbstractIntegrationSpec {
         'removeAll([])' | _
         'retainAll([])' | _
     }
+
+    def "can use a closure as a task dependency"() {
+        buildFile << """
+            def bar = tasks.register("bar")
+            tasks.register("foo") {
+                dependsOn {
+                    bar
+                }
+            }
+        """
+
+        when:
+        succeeds("foo")
+
+        then:
+        executed(":bar")
+    }
+
+    def "accessing task provided to task dependency closure is deprecated"() {
+        buildFile << """
+            def bar = tasks.register("bar")
+            tasks.register("foo") {
+                dependsOn { task ->
+                    task.getName()
+                    bar
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Accessing tasks provided to task dependency closures has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_in_task_dependency_closure")
+        succeeds("foo")
+    }
+
+    def "accessing task provided to task dependency closure using it is deprecated"() {
+        buildFile << """
+            def bar = tasks.register("bar")
+            tasks.register("foo") {
+                dependsOn {
+                    it.getName()
+                    bar
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Accessing tasks provided to task dependency closures has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_in_task_dependency_closure")
+        succeeds("foo")
+    }
+
+    def "cannot pass a Java Function to dependsOn"() {
+        buildFile << """
+            def bar = tasks.register("bar")
+            tasks.register("foo") {
+                java.util.function.Function<Task, Object> function = { task ->
+                    task.getName()
+                    bar
+                }
+                dependsOn(function)
+            }
+        """
+
+        when:
+        fails("foo")
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':foo'")
+    }
+
+    def "cannot pass a Kotlin Function to dependsOn"() {
+        buildKotlinFile << """
+            val bar = tasks.register("bar")
+            tasks.register("foo") {
+                val function: (Task) -> Any = { task ->
+                    task.getName()
+                    bar
+                }
+                dependsOn(function)
+            }
+        """
+
+        when:
+        fails("foo")
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':foo'")
+    }
+
+    def "cannot pass a Kotlin closure to dependsOn"() {
+        buildKotlinFile << """
+            val bar = tasks.register("bar")
+            tasks.register("foo") {
+                dependsOn({ task: Task ->
+                    task.getName()
+                    bar
+                })
+            }
+        """
+
+        when:
+        fails("foo")
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':foo'")
+    }
+
 }

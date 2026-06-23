@@ -1,0 +1,37 @@
+// tag::buildscript_block[]
+import org.yaml.snakeyaml.Yaml
+
+buildscript {
+    repositories { // Where to find the plugin or library
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.yaml:snakeyaml:1.19' // The library's classpath dependency
+        classpath 'com.gradleup.shadow:shadow-gradle-plugin:8.3.4' // Plugin dependency for legacy plugin application
+    }
+}
+
+// Applies legacy Shadow plugin
+apply plugin: 'com.gradleup.shadow'
+
+// Uses the library in the build script
+def yamlContent = """
+        name: Project Name
+    """
+def yaml = new Yaml()
+def data = yaml.load(yamlContent)
+// end::buildscript_block[]
+
+// tag::plugin[]
+class MyPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        println("Plugin ${this.getClass().getSimpleName()} applied on ${project.name}")
+    }
+}
+
+apply plugin: MyPlugin
+// end::plugin[]

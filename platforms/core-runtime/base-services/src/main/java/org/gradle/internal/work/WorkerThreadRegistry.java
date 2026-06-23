@@ -21,6 +21,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * Allows a thread to enlist in resource locking, for example to lock the mutable state of a project.
  */
@@ -47,6 +49,19 @@ public interface WorkerThreadRegistry {
      * This method blocks until a worker lease is available.
      */
     void runAsWorkerThread(Runnable action);
+
+    /**
+     * Like {@link #runAsWorkerThread(Factory)}, but does not block waiting for a worker lease.
+     *
+     * <p>If the current thread is already a worker, the action is run immediately without re-acquiring a worker lease.
+     *
+     * <p>The factory may not return {@code null}, as there is no way to distinguish a {@code null} return value from the case where no worker lease was available.
+     * An exception will be thrown if the factory returns {@code null}.
+     *
+     * @return {@link Optional#empty()} if no worker lease was available at the moment of the call,
+     * or {@link Optional#of(Object)} with the result of the action if the action was executed.
+     */
+    <T> Optional<T> tryRunAsWorkerThread(Factory<T> action);
 
     /**
      * Runs the given action as an unmanaged worker, if not already a worker. This is basically the same as {@link #runAsWorkerThread(Runnable)} but does not block waiting for a lease.

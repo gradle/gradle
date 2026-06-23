@@ -20,12 +20,31 @@ import org.gradle.util.internal.DistributionLocator
 
 class ReleasedGradleDistribution extends DownloadableGradleDistribution {
 
+    /**
+     * When set (e.g. in CI behind a cluster HTTP cache), replaces {@link DistributionLocator#getBaseUrl()} in the
+     * resolved distribution URI. Does not set {@code org.gradle.internal.services.base.url}, so Gradle under test is
+     * unaffected.
+     */
+    private static final String INTERNAL_TEST_SERVICES_BASE_URL_ENV =
+        "GRADLE_INTERNAL_TEST_SERVICES_BASE_URL"
+
     ReleasedGradleDistribution(String version, TestFile versionDir) {
         super(version, versionDir)
     }
 
     @Override
     protected URL getDownloadURL() {
-        return new DistributionLocator().getDistributionFor(getVersion()).toURL();
+        def uri = new DistributionLocator().getDistributionFor(getVersion())
+        def baseOverride = System.getenv(INTERNAL_TEST_SERVICES_BASE_URL_ENV)?.trim()
+        if (!baseOverride) {
+            return uri.toURL()
+        }
+        def oldBase = DistributionLocator.getBaseUrl()
+        def uriString = uri.toASCIIString()
+        if (!uriString.startsWith(oldBase)) {
+            throw new IllegalStateException("Expected distribution URI '$uriString' to start with '$oldBase'")
+        }
+        def newBase = baseOverride.replaceAll(/\/+$/, '')
+        return new URL(newBase + uriString.substring(oldBase.length()))
     }
 }

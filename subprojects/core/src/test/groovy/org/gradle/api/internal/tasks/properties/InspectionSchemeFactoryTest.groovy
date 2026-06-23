@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -63,11 +63,12 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(ProblemsInternal.class))
         metadata.visitValidationFailures(null, validationContext)
 
         then:
-        validationContext.problems.isEmpty()
+        validationContext.warnings.isEmpty()
+        validationContext.errors.isEmpty()
 
         when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
@@ -89,11 +90,12 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(ProblemsInternal.class))
         metadata.visitValidationFailures(null, validationContext)
 
         then:
-        validationContext.problems.isEmpty()
+        validationContext.warnings.isEmpty()
+        validationContext.errors.isEmpty()
 
         when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }

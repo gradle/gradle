@@ -19,10 +19,12 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
+@ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
 class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
@@ -167,11 +169,11 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
         then:
         result.groupedOutput.transformCount == 2
 
-        result.groupedOutput.transform("GreenMultiplier", "lib1.jar (project :lib)")
+        result.groupedOutput.transform("GreenMultiplier", "lib1.jar (project ':lib')")
             .assertOutputContains("Creating multiplier")
             .assertOutputContains("Transforming lib1.jar to lib1.jar.green")
 
-        result.groupedOutput.transform("GreenMultiplier", "lib2.jar (project :lib)")
+        result.groupedOutput.transform("GreenMultiplier", "lib2.jar (project ':lib')")
             .assertOutputContains("Creating multiplier")
             .assertOutputContains("Transforming lib2.jar to lib2.jar.green")
 
@@ -227,8 +229,8 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
         then:
         block.waitForAllPendingCalls()
         poll {
-            RichConsoleStyling.assertHasWorkInProgress(build, "> Transforming lib1.jar (project :lib) with Red > Red lib1.jar")
-            RichConsoleStyling.assertHasWorkInProgress(build, "> Transforming lib2.jar (project :lib) with Red > Red lib2.jar")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> Transforming lib1.jar (project ':lib') with Red > Red lib1.jar")
+            RichConsoleStyling.assertHasWorkInProgress(build, "> Transforming lib2.jar (project ':lib') with Red > Red lib2.jar")
         }
 
         block.releaseAll()
@@ -245,7 +247,7 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
         succeeds(":util:resolveBlue", "-DshowOutput")
         then:
         result.groupedOutput.transformCount == 4
-        def initialSubjects = ["lib1.jar (project :lib)", "lib2.jar (project :lib)"] as Set
+        def initialSubjects = ["lib1.jar (project ':lib')", "lib2.jar (project ':lib')"] as Set
         result.groupedOutput.subjectsFor('GreenMultiplier') == initialSubjects
         result.groupedOutput.subjectsFor('BlueMultiplier') == initialSubjects
     }

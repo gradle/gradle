@@ -19,10 +19,10 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = 'Test explicitly enables the configuration cache')
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = 'Test explicitly enables the configuration cache')
 class JacocoConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -44,7 +44,7 @@ class JacocoConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
 
             reporting {
                 reports {
-                    val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+                    create<JacocoCoverageReport>("testCodeCoverageReport") {
                         testSuiteName = "test"
                     }
                 }

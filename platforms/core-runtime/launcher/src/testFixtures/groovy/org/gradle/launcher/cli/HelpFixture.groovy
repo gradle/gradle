@@ -35,14 +35,17 @@ Help:
   --version, -v                      Prints version information and exits.
 
 Logging:
-  --console                          Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
-  --console-unicode                  Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
   --debug, -d                        Sets log level to debug. Includes the normal stacktrace.
   --full-stacktrace, -S              Prints the full (very verbose) stacktrace for all exceptions.
   --info, -i                         Sets the log level to info.
   --quiet, -q                        Logs errors only.
   --stacktrace, -s                   Prints the stacktrace for all exceptions.
   --warn, -w                         Sets the log level to warn.
+
+Console:
+  --console                          Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
+  --console-unicode                  Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
+  --non-interactive                  Do not do interactive prompting.
 
 Configuration:
   --gradle-user-home, -g             Specifies the Gradle user home directory. Default is ~/.gradle.
@@ -71,6 +74,8 @@ Performance:
   --no-configuration-cache           Disables the configuration cache.
   --configure-on-demand              Configures necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
   --no-configure-on-demand           Disables the use of configuration on demand. [incubating]
+  --isolated-projects                Enables Isolated Projects. Projects are configured in parallel. Implies `--configuration-cache`. [incubating]
+  --no-isolated-projects             Disables Isolated Projects. [incubating]
   --max-workers                      Configures the maximum number of concurrent workers Gradle is allowed to use.
   --parallel                         Builds projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
   --no-parallel                      Disables parallel project execution.

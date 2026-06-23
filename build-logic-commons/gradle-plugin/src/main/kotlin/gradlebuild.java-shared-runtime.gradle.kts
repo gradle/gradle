@@ -19,7 +19,7 @@ java {
 
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        getByName<JvmTestSuite>("test") {
             useSpock()
             dependencies {
                 implementation(platform("gradlebuild:build-platform"))

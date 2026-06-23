@@ -7,7 +7,6 @@ description = "Kotlin extensions to make working with Gradle :core and family mo
 
 dependencies {
     api(projects.buildOperations)
-    api(projects.buildOption)
     api(projects.core)
     api(projects.coreApi)
     api(projects.files)

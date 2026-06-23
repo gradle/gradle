@@ -25,7 +25,7 @@ import spock.lang.Specification
 class SampleSpec extends Specification {
 
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
-    Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
+    Sample sample = new Sample(testDirectoryProvider, 'integration-tests/java/multiproject')
     @Rule TestRule rule = RuleChain.outerRule(testDirectoryProvider).around(sample)
 
     def 'sample dir'() {

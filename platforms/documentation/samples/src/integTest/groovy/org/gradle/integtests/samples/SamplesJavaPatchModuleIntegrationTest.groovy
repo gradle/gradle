@@ -18,13 +18,14 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+@Requires(JdkVersionTestPreconditions.Jdk9OrLater)
 class SamplesJavaPatchModuleIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'testing/patch-module')
+    @Rule Sample sample = new Sample(temporaryFolder, 'integration-tests/testing/patch-module')
 
     def setup() {
         executer.withRepositoryMirrors()

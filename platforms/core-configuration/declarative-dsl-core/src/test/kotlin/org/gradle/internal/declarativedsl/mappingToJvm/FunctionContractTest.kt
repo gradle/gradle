@@ -34,7 +34,7 @@ class FunctionContractTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::Receiver)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::Receiver)
 
         assertEquals(1, result.x)
         assertEquals(2, result.y)

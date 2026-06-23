@@ -30,6 +30,7 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.service.Provides;
@@ -61,7 +62,8 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         SimpleMapInterner stringInterner,
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
-        Project project
+        Project project,
+        Problems problems
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
@@ -71,7 +73,8 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
             classPathRegistry,
             fileCollectionFactory,
             runtimeShadedJarFactory,
-            stringInterner
+            stringInterner,
+            problems
         );
 
         return new DefaultDependencyFactory(

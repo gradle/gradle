@@ -18,10 +18,10 @@ package org.gradle.internal.declarativedsl.evaluator.conversion
 
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.runner.InterpretationSequenceStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.StepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.StepResult
@@ -30,9 +30,6 @@ import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessorsWithPostProcessing
-import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
-import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
-import org.gradle.internal.declarativedsl.objectGraph.reflect
 
 
 data class ConversionStepContext(
@@ -78,11 +75,7 @@ class AnalysisAndConversionStepRunner(
         is EvaluationResult.Evaluated ->
             if (step is InterpretationSequenceStepWithConversion<*>) {
                 val evaluationSchema = step.evaluationSchemaForStep
-                val context = ReflectionContext(
-                    SchemaTypeRefContext(evaluationSchema.analysisSchema),
-                    analysisResult.stepResult.propertyLinkTrace.resolvedPropertyLinksResolutionResult,
-                )
-                val topLevelObjectReflection = reflect(analysisResult.stepResult.resolutionResult.topLevelReceiver, context)
+                val resolutionResult = analysisResult.stepResult.propertyLinkTrace.resolvedPropertyLinksResolutionResult
 
                 val classLoaderForConversion = if (step.features.any { it is InterpretationStepFeature.RunsBeforeClassScopeIsReady }) {
                     stepContext.parentScopeClassLoader
@@ -90,7 +83,7 @@ class AnalysisAndConversionStepRunner(
                     stepContext.scopeClassLoader
                 }
 
-                applyReflectionToJvmObjectConversion(evaluationSchema, step, stepContext, classLoaderForConversion, topLevelObjectReflection)
+                applyReflectionToJvmObjectConversion(evaluationSchema, step, stepContext, classLoaderForConversion, resolutionResult)
 
                 EvaluationResult.Evaluated(ConversionStepResult.ConversionSucceeded(analysisResult.stepResult))
             } else EvaluationResult.Evaluated(ConversionStepResult.ConversionNotApplicable(analysisResult.stepResult))
@@ -102,7 +95,7 @@ class AnalysisAndConversionStepRunner(
         step: InterpretationSequenceStepWithConversion<R>,
         context: ConversionStepContext,
         getScopeClassLoader: () -> ClassLoader,
-        topLevelObjectReflection: ObjectReflection,
+        resolutionResult: ResolutionResult
     ) {
         val target = context.targetObject
         val conversionSchema = evaluationSchema.conversionSchemaForScriptTarget(target)
@@ -114,7 +107,7 @@ class AnalysisAndConversionStepRunner(
         val converter = DeclarativeReflectionToObjectConverter(
             emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors, getScopeClassLoader
         )
-        converter.apply(topLevelObjectReflection)
+        converter.applyConversion(resolutionResult)
 
         if (context.isFinal) {
             // Run any post-processing required by custom accessors

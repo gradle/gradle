@@ -20,12 +20,14 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -268,7 +270,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         executedAndNotSkipped(':buildDashboard')
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
+    @Requires(TestEnvironmentPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -329,6 +331,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
+    @ToBeFixedForIsolatedProjects(because = "reporting plugin uses cross-project configuration")
     void 'reports from subprojects are aggregated'() {
         given:
         goodCode()
@@ -367,7 +370,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
+    @Requires(TestEnvironmentPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()

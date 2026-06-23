@@ -18,12 +18,13 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 import static org.gradle.util.Matchers.containsText
 
 class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
-    @Requires(UnitTestPreconditions.HasXCode)
+    @Requires(TestEnvironmentPreconditions.HasXCode)
     def "fails to build when project code is broken"() {
         useXcodebuildTool()
 

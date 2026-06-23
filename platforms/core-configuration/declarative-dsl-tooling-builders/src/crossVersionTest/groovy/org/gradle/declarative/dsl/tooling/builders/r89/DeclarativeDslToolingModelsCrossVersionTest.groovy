@@ -324,39 +324,55 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.features.binding.ProjectFeatureBinding;
             import org.gradle.features.binding.ProjectTypeBindingBuilder;
             import org.gradle.features.binding.ProjectFeatureBindingBuilder;
+            import org.gradle.features.binding.ProjectTypeApplyAction;
+            import org.gradle.features.binding.ProjectFeatureApplyAction;
+            import org.gradle.features.binding.ProjectFeatureApplicationContext;
+            import org.gradle.features.binding.BuildModel;
+            import org.gradle.features.binding.Definition;
 
             @BindsProjectType(SoftwareTypeImplPlugin.TypeBinding.class)
             @BindsProjectFeature(SoftwareTypeImplPlugin.FeatureBinding.class)
             abstract public class SoftwareTypeImplPlugin implements Plugin<Project> {
                 static class TypeBinding implements ProjectTypeBinding {
                     public void bind(ProjectTypeBindingBuilder builder) {
-                        builder.bindProjectType("testSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> {
-                            Services services = context.getObjectFactory().newInstance(Services.class);
-                            services.getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
-                                task.doLast("print restricted extension content", t -> {
-                                    System.out.println("id = " + definition.getId().get());
-                                    System.out.println("bar = " + definition.getFoo().getBar().get());
-
-                                    ${gradleVersion >= GradleVersion.version("8.14") ? """
-                                    System.out.println("baz = " + definition.getFoo().getBaz().get());
-                                    """ : ""}
-                                });
-                            });
-                        })
+                        builder.bindProjectType("testSoftwareType", TestSoftwareTypeExtension.class, TypeApplyAction.class)
                         .withUnsafeDefinition();
                     }
+                }
 
-                    interface Services {
-                        @javax.inject.Inject
-                        Project getProject();
+                static abstract class TypeApplyAction implements ProjectTypeApplyAction<TestSoftwareTypeExtension, TestSoftwareTypeExtension.Model> {
+                    @javax.inject.Inject public TypeApplyAction() { }
+
+                    @javax.inject.Inject
+                    abstract protected Project getProject();
+
+                    @Override
+                    public void apply(ProjectFeatureApplicationContext context, TestSoftwareTypeExtension definition, TestSoftwareTypeExtension.Model model) {
+                        getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                            task.doLast("print restricted extension content", t -> {
+                                System.out.println("id = " + definition.getId().get());
+                                System.out.println("bar = " + definition.getFoo().getBar().get());
+
+                                ${gradleVersion >= GradleVersion.version("8.14") ? """
+                                System.out.println("baz = " + definition.getFoo().getBaz().get());
+                                """ : ""}
+                            });
+                        });
                     }
                 }
 
                 static class FeatureBinding implements ProjectFeatureBinding {
                     public void bind(ProjectFeatureBindingBuilder builder) {
-                        builder.bindProjectFeatureToBuildModel("feature", TestSoftwareTypeExtension.Feature.class, TestSoftwareTypeExtension.Model.class, (context, definition, model, parent) -> {
-                            System.out.println("Configuring feature with property: " + definition.getSomeFeatureProperty().get());
-                        });
+                        builder.bindProjectFeatureToBuildModel("feature", TestSoftwareTypeExtension.Feature.class, TestSoftwareTypeExtension.Model.class, FeatureApplyAction.class);
+                    }
+                }
+
+                static abstract class FeatureApplyAction implements ProjectFeatureApplyAction<TestSoftwareTypeExtension.Feature, BuildModel.None, Definition<TestSoftwareTypeExtension.Model>> {
+                    @javax.inject.Inject public FeatureApplyAction() { }
+
+                    @Override
+                    public void apply(ProjectFeatureApplicationContext context, TestSoftwareTypeExtension.Feature definition, BuildModel.None model, Definition<TestSoftwareTypeExtension.Model> parent) {
+                        System.out.println("Configuring feature with property: " + definition.getSomeFeatureProperty().get());
                     }
                 }
 
@@ -383,14 +399,21 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.features.annotations.BindsProjectType;
             import org.gradle.features.binding.ProjectTypeBinding;
             import org.gradle.features.binding.ProjectTypeBindingBuilder;
+            import org.gradle.features.binding.ProjectTypeApplyAction;
+            import org.gradle.features.binding.ProjectFeatureApplicationContext;
 
             @BindsProjectType(AnotherSoftwareTypeImplPlugin.Binding.class)
             abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
                 static class Binding implements ProjectTypeBinding {
                     public void bind(ProjectTypeBindingBuilder builder) {
-                        builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> { })
+                        builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, ApplyAction.class)
                             .withUnsafeDefinition();
                     }
+                }
+
+                static abstract class ApplyAction implements ProjectTypeApplyAction<TestSoftwareTypeExtension, TestSoftwareTypeExtension.Model> {
+                    @javax.inject.Inject public ApplyAction() { }
+                    @Override public void apply(ProjectFeatureApplicationContext context, TestSoftwareTypeExtension definition, TestSoftwareTypeExtension.Model model) { }
                 }
 
                 @Inject

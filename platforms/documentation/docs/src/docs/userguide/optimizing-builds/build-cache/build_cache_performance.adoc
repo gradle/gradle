@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[build_cache_performance]]
 = Build cache performance
 
 The sole reason to use any build cache is to make builds faster.
@@ -22,6 +23,7 @@ These measurements can later serve as baselines for future improvements, and to 
 
 NOTE: Proper configuration and maintenance of a build can improve caching performance in a big way.
 
+[[fully_cached_builds]]
 == Fully cached builds
 
 The most straightforward way to get a feel for what the cache can do for you is to measure the difference between a non-cached build and a _fully cached_ build. This will give you the theoretical limit of how fast builds with the cache can get, if everything you're trying to build has already been built. The easiest way to measure this is using the local cache:
@@ -50,6 +52,7 @@ As with any cache, the impact should therefore be measured over time.
 
 In a setup where a team uses a shared cache backend, there are two locations worth measuring cache impact at: on CI and on developer machines.
 
+[[cache_impact_on_ci_builds]]
 == Cache impact on CI builds
 
 The best way to learn about the impact of caching on CI is to set up the same builds with the cache enabled and disabled, and compare the results over time. If you have a single Gradle build step that you want to enable caching for, it's easy to compare the results using your CI system's built-in statistical tools.
@@ -69,6 +72,7 @@ You can also measure the cumulative time your build agents spent building a chan
 
 If you want to look at the measurement for the Gradle build itself you can have a look at the blog post https://blog.gradle.org/introducing-gradle-build-cache["Introducing the build cache"].
 
+[[measuring_developer_builds]]
 == Measuring developer builds
 
 Gradle's build cache can be very useful in reducing CI infrastructure cost and feedback time, but it usually has the biggest impact when developers can reuse cached results in their local builds. This is also the hardest to quantify for a number of reasons:
@@ -87,6 +91,7 @@ A rise in the hit rate there probably indicates better usage by developers:
 [.screenshot]
 image::build-cache/cache-admin-hit-rate.png[build cache hit rate]
 
+[[analyzing_performance_in_build_scan]]
 == Analyzing performance in Build Scan
 
 A Build Scan provides a summary of all cache operations for a build via the _"Build cache"_ section of the _"Performance"_ page.
@@ -99,6 +104,7 @@ It also indicates the hits and misses for the local and remote caches individual
 For remote cache operations, the time taken to transfer artifacts to and from the cache is given, along with the transfer rate.
 This is particularly important for assessing the impact of network link quality on performance, as transfer times contribute to build time.
 
+[[remote_cache_performance]]
 == Remote cache performance
 
 Improving the network link between the build and the remote cache can significantly improve build cache performance.

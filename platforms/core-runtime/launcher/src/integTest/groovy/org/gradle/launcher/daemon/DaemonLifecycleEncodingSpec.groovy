@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @DoesNotSupportNonAsciiPaths(reason = "Requires running with ASCII file encoding")
 class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
@@ -58,7 +58,7 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
         }
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
         buildFile """

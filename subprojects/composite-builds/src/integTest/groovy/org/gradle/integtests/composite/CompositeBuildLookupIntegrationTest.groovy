@@ -42,7 +42,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildValidati
         fails(buildA, "broken")
 
         then:
-        failure.assertHasCause("Included build 'unknown' not found in build 'buildA'.")
+        failure.assertHasCause("Included build 'unknown' not found in build ':'.")
     }
 
     def "dir name is used as build name"() {
@@ -75,7 +75,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildValidati
         fails(buildA, "broken")
 
         then:
-        failure.assertHasCause("Included build 'b' not found in build 'buildA'.")
+        failure.assertHasCause("Included build 'b' not found in build ':'.")
     }
 
     def "build name can be specified at include time"() {
@@ -108,7 +108,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildValidati
         fails(buildA, "broken")
 
         then:
-        failure.assertHasCause("Included build 'buildB' not found in build 'buildA'.")
+        failure.assertHasCause("Included build 'buildB' not found in build ':'.")
     }
 
     def "included builds added from command-line are visible to root build"() {
@@ -165,12 +165,12 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildValidati
         fails(buildA, "buildB:broken1")
 
         then:
-        failure.assertHasCause("Included build 'buildA' not found in build 'buildB'.")
+        failure.assertHasCause("Included build 'buildA' not found in build ':buildB'.")
 
         when:
         fails(buildA, "buildB:broken2")
 
         then:
-        failure.assertHasCause("Included build 'buildC' not found in build 'buildB'.")
+        failure.assertHasCause("Included build 'buildC' not found in build ':buildB'.")
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.configuration;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.code.DefaultUserCodeSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.code.UserCodeSource;
@@ -61,7 +60,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            UserCodeSource source = new DefaultUserCodeSource(getSource().getShortDisplayName(), null);
+            URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
+            UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri);
             userCodeApplicationContext.apply(source, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

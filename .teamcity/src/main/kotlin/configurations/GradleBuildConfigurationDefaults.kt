@@ -90,6 +90,7 @@ fun BaseGradleBuildType.tcParallelTests(numberOfBatches: Int) {
         features {
             parallelTests {
                 this.numberOfBatches = numberOfBatches
+                groupArtifactsByBuild = true
             }
         }
     }

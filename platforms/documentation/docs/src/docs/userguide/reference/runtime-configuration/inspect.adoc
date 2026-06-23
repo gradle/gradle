@@ -21,6 +21,7 @@ Gradle provides multiple ways to inspect your build:
 2. Local profile reports
 3. Low level profiling
 
+[[sec:what_is_a_build_scan]]
 == What is a Build Scan?
 
 A https://scans.gradle.com/[Build Scan] is a persistent, shareable record of what happened when running a build.
@@ -55,6 +56,7 @@ https://gradle.com/s/e6ircx2wjbf7e
 
 This section explains how to profile your build with a Build Scan.
 
+[[sec:profile_with_a_build_scan]]
 == 1. Profile with a Build Scan
 
 The performance page can help use a Build Scan to profile a build.
@@ -89,6 +91,7 @@ image::performance/script-b-application.png[title="Showing the application of sc
 
 You can see that subproject `:app1` applied the script once, from inside of that subproject's `build.gradle` file.
 
+[[sec:profile_report]]
 == 2. Profile report
 
 If you prefer not to use a Build Scan, you can generate an HTML report in the
@@ -108,6 +111,7 @@ The following profile report shows the different categories available:
 
 image::performance/gradle-profile-report.png[title="An example profile report", alt="Sample Gradle profile report"]
 
+[[sec:low_level_profiling]]
 == 3. Low level profiling
 
 Sometimes your build can be slow even though your build scripts do everything right.
@@ -118,11 +122,13 @@ Use the Profiler to produce a Build Scan. Or combine it with method profilers li
 These profilers can help you find inefficient algorithms in custom plugins.
 If you find that something in Gradle itself slows down your build, don't hesitate to send a profiler snapshot to performance@gradle.com.
 
+[[sec:performance_categories]]
 == Performance categories
 
 Both a Build Scan and local profile reports break down build execution into the same categories.
 The following sections explain those categories.
 
+[[startup]]
 === Startup
 
 This reflects Gradle’s initialization time, which consists mostly of:
@@ -136,6 +142,7 @@ Even when a build execution has a long startup time, subsequent runs usually see
 Persistently slow build startup times are usually the result of problems in your init scripts.
 Double check that the work you’re doing there is necessary and performant.
 
+[[settings_and_buildsrc]]
 === Settings and _buildSrc_
 
 After startup, Gradle initializes your project. Usually, Gradle only processes your settings file.
@@ -147,6 +154,7 @@ You can then add that project's JAR artifact as a dependency.
 The settings file rarely contains code with significant I/O or computation.
 If you find that Gradle takes a long time to process it, use more traditional profiling methods, like the https://github.com/gradle/gradle-profiler[Gradle Profiler], to determine the cause.
 
+[[loading_projects]]
 === Loading projects
 
 It normally doesn’t take a significant amount of time to load projects, nor do you have any control over it.

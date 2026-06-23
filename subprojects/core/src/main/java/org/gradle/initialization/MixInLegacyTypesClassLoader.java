@@ -46,8 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
-import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
+import static org.gradle.internal.classpath.types.CommonTypes.OBJECT_TYPE;
+import static org.gradle.internal.classpath.types.CommonTypes.STRING_TYPE;
 
 /**
  * A ClassLoader that takes care of mixing-in some methods and types into various classes, for binary compatibility with older Gradle versions.

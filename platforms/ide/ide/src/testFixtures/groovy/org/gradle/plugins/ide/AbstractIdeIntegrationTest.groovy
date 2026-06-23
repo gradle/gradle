@@ -20,13 +20,14 @@ package org.gradle.plugins.ide
 import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.plugins.ide.fixtures.ExpectedIdeDeprecations
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.plugins.ide.fixtures.IdeaProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 
-abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
+abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest implements ExpectedIdeDeprecations {
     @Before
     void setUp() {
         executer.withRepositoryMirrors()

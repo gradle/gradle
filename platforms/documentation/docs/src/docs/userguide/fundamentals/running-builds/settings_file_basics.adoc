@@ -69,6 +69,7 @@ include('sub-project-c')
 =====
 ====
 
+[[sec:define_project_name]]
 == 1. Define the project name
 
 The settings file defines your project name:
@@ -80,6 +81,7 @@ rootProject.name = "root-project"
 
 There is only one root project per build.
 
+[[sec:add_subprojects]]
 == 2. Add subprojects
 
 The settings file defines the structure of the project by including subprojects, if there are any:

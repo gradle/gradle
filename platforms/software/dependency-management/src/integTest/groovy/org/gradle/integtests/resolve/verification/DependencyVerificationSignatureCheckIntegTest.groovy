@@ -19,8 +19,8 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.fixtures.SimpleKeyRing
@@ -1571,7 +1571,10 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "ArtifactResolutionQuery APIs should be deprecated: https://github.com/gradle/gradle/issues/26365")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/26365",
+        because = "ArtifactResolutionQuery APIs should be deprecated"
+    )
     def "dependency verification should work correctly with artifact queries"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1991,4 +1994,42 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def artifact = module.getArtifact([type: artifactType, classifier: classifier])
         return new File(new File(modulePath, getChecksum(module, "sha1", artifactType)), artifact.file.name)
     }
+
+    private static byte[] corruptAscBytes() {
+        // ASCII-armored envelope wrapping garbage; triggers ArmoredInputException in bcpg
+        def out = new ByteArrayOutputStream()
+        out.write("-----BEGIN PGP SIGNATURE-----\n\n".bytes)
+        out.write([0xff, 0xfe, 0xfd, 0xfc, 0x0a] as byte[])
+        out.write("-----END PGP SIGNATURE-----\n".bytes)
+        return out.toByteArray()
+    }
+
+    def "fails verification with clear message when signature file is corrupt"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+        }
+
+        given:
+        terseConsoleOutput(false)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature { artifact ->
+                new File("${artifact}.asc").bytes = corruptAscBytes()
+            }
+        }
+        buildFile """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause("Dependency verification failed for configuration ':compileClasspath'")
+        failure.assertHasErrorOutput("foo-1.0.jar (org:foo:1.0) in repository 'maven': signature file is corrupt (ArmoredInputException")
+    }
+
 }

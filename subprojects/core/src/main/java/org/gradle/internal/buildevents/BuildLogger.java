@@ -20,8 +20,9 @@ import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -98,10 +99,11 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     @Override
     public void projectsLoaded(Gradle gradle) {
         if (logger.isInfoEnabled()) {
-            ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
-            logger.info("Projects loaded. Root project using {}.",
-                projectInternal.getBuildScriptSource().getDisplayName());
-            logger.info("Included projects: {}", projectInternal.getAllprojects());
+            ProjectState rootProjectState = ((GradleInternal) gradle).getOwner().getRootProject();
+            rootProjectState.applyToMutableState(rootProject -> {
+                logger.info("Projects loaded. Root project using {}.", rootProject.getBuildScriptSource().getDisplayName());
+                logger.info("Included projects: {}", rootProject.getAllprojects());
+            });
         }
     }
 

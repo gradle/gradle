@@ -31,7 +31,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
@@ -78,7 +78,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     private final InitScriptHandler initScriptHandler;
     private final List<BuiltInCommand> builtInCommands;
     private final CacheConfigurationsInternal cacheConfigurations;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
     private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     public DefaultSettingsPreparer(
@@ -94,7 +94,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         InitScriptHandler initScriptHandler,
         List<BuiltInCommand> builtInCommands,
         CacheConfigurationsInternal cacheConfigurations,
-        InternalProblems problems,
+        ProblemsInternal problems,
         JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator
     ) {
         this.buildOperationRunner = buildOperationRunner;
@@ -273,9 +273,9 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         return startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
     }
 
-    private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
+    private SettingsState createEmptySettings(GradleInternal gradle, StartParameterInternal startParameter, ClassLoaderScope classLoaderScope) {
         logger.debug("Creating empty settings for build: '{}'", gradle.getIdentityPath());
-        StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
+        StartParameterInternal noSearchParameter = startParameter.newInstance();
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(noSearchParameter.toBuildLayoutConfiguration());
@@ -289,7 +289,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
      */
     private SettingsState findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         BuildLayout buildLayout,
         ClassLoaderScope classLoaderScope
     ) {

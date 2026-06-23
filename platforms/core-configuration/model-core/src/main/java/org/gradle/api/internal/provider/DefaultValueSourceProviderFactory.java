@@ -47,6 +47,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
 
@@ -89,9 +90,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
         try {
             Class<P> parametersType = extractParametersTypeOf(valueSourceType);
-            P parameters = parametersType != null
-                ? paramsInstantiator.newInstance(parametersType)
-                : null;
+            P parameters = isolationScheme.instantiateParameters(parametersType, paramsInstantiator::newInstance);
 
             // TODO - consider deferring configuration
             configureParameters(parameters, configureAction);
@@ -108,28 +107,39 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     @NonNull
     public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        @Nullable Class<P> parametersType,
-        @Nullable P parameters
+        Class<P> parametersType,
+        P parameters
     ) {
         return new ValueSourceProvider<>(
             new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
         );
     }
 
+    @Override
+    @NonNull
+    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProviderForDeserialization(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Class<P> parametersType,
+        Function<Provider<T>, P> parametersDecoder
+    ) {
+        LazilyObtainedValue<T, P> lazyValue = new LazilyObtainedValue<>(valueSourceType, parametersType, null);
+        ValueSourceProvider<T, P> provider = new ValueSourceProvider<>(lazyValue);
+        lazyValue.parameters = parametersDecoder.apply(provider);
+        return provider;
+    }
+
     @NonNull
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        @Nullable Class<P> parametersType,
-        @Nullable P isolatedParameters
+        Class<P> parametersType,
+        P isolatedParameters
     ) {
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .displayName("value source services")
             .provider(registration -> {
                 registration.add(GradleProperties.class, gradleProperties);
                 registration.add(ExecOperations.class, execOperations);
-                if (isolatedParameters != null) {
-                    registration.add(parametersType, isolatedParameters);
-                }
+                registration.add(parametersType, isolatedParameters);
             })
             .build();
 
@@ -140,12 +150,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             .newInstance(valueSourceType);
     }
 
-    @Nullable
     private <T, P extends ValueSourceParameters> Class<P> extractParametersTypeOf(Class<? extends ValueSource<T, P>> valueSourceType) {
-        return isolationScheme.parameterTypeForOrNull(valueSourceType, 1);
+        return isolationScheme.parameterTypeFor(valueSourceType, 1);
     }
 
-    private <P extends ValueSourceParameters> void configureParameters(@Nullable P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
+    private <P extends ValueSourceParameters> void configureParameters(P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
         DefaultValueSourceSpec<P> valueSourceSpec = Cast.uncheckedNonnullCast(specInstantiator.newInstance(
             DefaultValueSourceSpec.class,
             parameters
@@ -153,8 +162,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         configureAction.execute(valueSourceSpec);
     }
 
-    @Nullable
-    private <P extends ValueSourceParameters> P isolateParameters(@Nullable P parameters) {
+    private <P extends ValueSourceParameters> P isolateParameters(P parameters) {
         // TODO - consider if should hold the project lock to do the isolation
         return isolatableFactory.isolate(parameters).isolate();
     }
@@ -204,12 +212,10 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return String.format("valueof(%s)", getValueSourceType().getSimpleName());
         }
 
-        @Nullable
         public Class<P> getParametersType() {
             return value.parametersType;
         }
 
-        @Nullable
         public P getParameters() {
             return value.parameters;
         }
@@ -257,11 +263,10 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public final Class<? extends ValueSource<T, P>> sourceType;
 
-        @Nullable
         public final Class<P> parametersType;
 
         @Nullable
-        public final P parameters;
+        private P parameters;
 
         private final CalculatedValue<@Nullable T> value;
         // A temporary holder for the source used to obtain the value.
@@ -271,7 +276,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         private LazilyObtainedValue(
             Class<? extends ValueSource<T, P>> sourceType,
-            @Nullable Class<P> parametersType,
+            Class<P> parametersType,
             @Nullable P parameters
         ) {
             this.sourceType = sourceType;
@@ -364,14 +369,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private final Try<@Nullable T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
-        @Nullable
         private final P parameters;
 
         public DefaultObtainedValue(
             Try<@Nullable T> value,
             Class<? extends ValueSource<T, P>> valueSourceType,
-            @Nullable Class<P> parametersType,
-            @Nullable P parameters
+            Class<P> parametersType,
+            P parameters
         ) {
             this.value = value;
             this.valueSourceType = valueSourceType;
@@ -390,7 +394,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
-        @Nullable
         public Class<P> getValueSourceParametersType() {
             return parametersType;
         }

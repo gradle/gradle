@@ -79,8 +79,8 @@ public class CheckBadMerge {
         }
 
         List<String> commitBranches = branchesOf(commit);
-        if (commitBranches.contains("origin/release")) {
-            System.out.println(commit + " is a merge commit already on release, ignoring.");
+        if (commitBranches.stream().anyMatch(b -> b.startsWith("origin/release"))) {
+            System.out.println(commit + " is a merge commit already on a release branch, ignoring.");
             System.out.println("  Branches: " + commitBranches);
             return;
         }

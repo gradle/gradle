@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import spock.lang.Issue
 
 class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -328,5 +329,118 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
 
         then:
         succeeds("a", "b")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32607")
+    def "can serialize property with circular reference in a lambda"() {
+        javaFile("buildSrc/src/main/java/com/example/MyTask.java", """
+            package com.example;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class MyTask extends DefaultTask {
+                @Internal
+                abstract Property<String> getValue();
+
+                @TaskAction
+                public void action() {
+                    System.out.println("value = " + getValue().getOrNull());
+                }
+            }
+        """)
+
+        javaFile("buildSrc/src/main/java/com/example/MyPlugin.java", """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            import java.io.File;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project p) {
+                    var environment = p.getProviders().systemProperty("some.property");
+                    p.getTasks().register("run", MyTask.class, task -> {
+                        var value = task.getValue();
+                        value.set(environment.map(v -> v + System.identityHashCode(value)));
+                    });
+                }
+            }
+        """)
+
+        buildFile """
+            apply plugin: com.example.MyPlugin
+        """
+
+        when:
+        configurationCacheRun("run", "-Dsome.property=some value")
+
+        then:
+        outputContains("some value")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22920")
+    def "report identifies #kind by impl method when it appears in property trace"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import java.util.function.Supplier;
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+                    private Supplier<String> supplier;
+
+                    public void setSupplier(Supplier<String> supplier) {
+                        this.supplier = supplier;
+                    }
+
+                    public void captureProject() {
+                        Project p = getProject();
+                        setSupplier(() -> "project name is " + p.getName());
+                    }
+
+                    public void captureProjectBoundRef() {
+                        Project p = getProject();
+                        setSupplier(p::getName);
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("supplier -> " + supplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                ${setupCall}()
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        problems.htmlReport(failure.error).assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.") {
+                at(":ok").at("supplier").at("lambda of type java.util.function.Supplier returning java.lang.String").at(expectedCapturedArgs)
+            }
+            ignoringUnexpectedInputs()
+        }
+
+        where:
+        kind               | setupCall                | expectedCapturedArgs
+        "lambda body"      | "captureProject"         | "captured state from method my.LambdaTask.captureProject"
+        "bound method ref" | "captureProjectBoundRef" | "bound receiver of method org.gradle.api.Project.getName"
     }
 }

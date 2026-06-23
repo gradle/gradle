@@ -24,22 +24,14 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * This class has three public APIs:
+ * Entry point for matching test descriptors against include and exclude patterns.
  *
- * <ul>
- * <li>Judge whether a test class might be matched.
- * <li>Judge whether a test class or class+method is definitely matched.
- * <li>Judge whether a test file is definitely matched for resource-based tests.
- * </ul>
- *
- * For example, class 'org.gradle.Test' can't be matched by pattern 'org.apache.Test', so
+ * <p>For example, class 'org.gradle.Test' can't be matched by pattern 'org.apache.Test', so
  * {@link #mayIncludeClass(String)} will return false when given 'org.gradle.Test'.
  *
- * In all cases, if the pattern starts with an uppercase letter, matching is performed on the
+ * <p>In all cases, if the pattern starts with an uppercase letter, matching is performed on the
  * simple name of the test. For classes, this is the class name. For resource files, this is
- * the file name without an extension.
- *
- * Otherwise, the pattern will be used to match the fully qualified name of the test.
+ * the file name without an extension. Otherwise, the pattern matches the fully qualified name.
  *
  * @see ClassTestSelectionMatcher
  * @see FileTestSelectionMatcher
@@ -79,6 +71,36 @@ public class TestSelectionMatcher {
      */
     public boolean matchesTest(String className, @Nullable String methodName) {
         return classTestSelectionMatcher.matchesTest(className, methodName);
+    }
+
+    /**
+     * Returns true if the given class and method matches the include patterns.
+     * Exclude patterns are <strong>not</strong> consulted.
+     *
+     * @see ClassTestSelectionMatcher#matchesIncludeTest(String, String)
+     */
+    public boolean matchesIncludeTest(String className, @Nullable String methodName) {
+        return classTestSelectionMatcher.matchesIncludeTest(className, methodName);
+    }
+
+    /**
+     * Returns true if the given class and method matches any exclude pattern. Include patterns are not consulted.
+     *
+     * @see ClassTestSelectionMatcher#matchesExcludeTest(String, String)
+     */
+    public boolean matchesExcludeTest(String className, @Nullable String methodName) {
+        return classTestSelectionMatcher.matchesExcludeTest(className, methodName);
+    }
+
+    /**
+     * Returns true if the given class name exactly matches an exclude pattern's class component.
+     * Unlike {@link #matchesExcludeTest(String, String)}, this does <em>not</em> apply the fuzzy
+     * {@code mayMatchClass} heuristic.
+     *
+     * @see ClassTestSelectionMatcher#matchesExcludeClassExactly(String)
+     */
+    public boolean matchesExcludeClassExactly(String className) {
+        return classTestSelectionMatcher.matchesExcludeClassExactly(className);
     }
 
     /**

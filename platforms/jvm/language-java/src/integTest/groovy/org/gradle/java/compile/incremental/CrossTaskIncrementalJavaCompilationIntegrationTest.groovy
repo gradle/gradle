@@ -18,10 +18,13 @@ package org.gradle.java.compile.incremental
 
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Issue
 
+@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
@@ -39,7 +42,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     // This behavior is kept for backward compatibility - may be removed in the future
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes with manual module path"() {
         source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}"]
         def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
@@ -73,7 +76,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         result.hasErrorOutput("package a is not visible")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     @Issue("https://github.com/gradle/gradle/issues/23067")
     def "incremental compilation works with modules #description"() {
         file("impl/build.gradle") << """
@@ -120,7 +123,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "incremental compilation detects if some exported package for compiled module was deleted #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout
@@ -155,7 +158,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "incremental compilation works for multi-module project with manual module paths"() {
         file("impl/build.gradle") << """
             def layout = project.layout
@@ -205,7 +208,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.unrelated.module-info")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes"() {
         given:
         settingsFile << "include 'otherApi'"

@@ -25,8 +25,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
 import javax.inject.Inject;
@@ -46,7 +48,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -120,7 +122,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -177,6 +179,7 @@ public abstract class IdeaModule {
     private String jdkName;
     protected IdeaLanguageLevel languageLevel;
     protected JavaVersion targetBytecodeVersion;
+    @SuppressWarnings("deprecation")
     private final IdeaModuleIml iml;
     private final Project project;
     private PathFactory pathFactory;
@@ -184,6 +187,7 @@ public abstract class IdeaModule {
     private Map<String, Iterable<File>> singleEntryLibraries;
 
     @Inject
+    @SuppressWarnings("deprecation")
     public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;
@@ -254,7 +258,7 @@ public abstract class IdeaModule {
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * plugins {
      *     id 'java'
      *     id 'idea'
@@ -464,8 +468,12 @@ public abstract class IdeaModule {
 
     /**
      * See {@link #iml(Action)}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public IdeaModuleIml getIml() {
+        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
         return iml;
     }
 
@@ -479,11 +487,25 @@ public abstract class IdeaModule {
         return project;
     }
 
+    /**
+     * Returns the path factory used to construct paths in the generated *.iml file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public PathFactory getPathFactory() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathFactory");
         return pathFactory;
     }
 
+    /**
+     * Sets the path factory used to construct paths in the generated *.iml file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathFactory");
         this.pathFactory = pathFactory;
     }
 
@@ -510,7 +532,10 @@ public abstract class IdeaModule {
      * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
      * <p>
      * For example see docs for {@link IdeaModule}.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void iml(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaModuleIml.class) Closure closure) {
         configure(closure, getIml());
     }
@@ -521,8 +546,11 @@ public abstract class IdeaModule {
      * For example see docs for {@link IdeaModule}.
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void iml(Action<? super IdeaModuleIml> action) {
+        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
         action.execute(iml);
     }
 
@@ -555,34 +583,42 @@ public abstract class IdeaModule {
         return ideaDependenciesProvider.provide(this);
     }
 
+    /**
+     * Merges the existing *.iml content with the configuration from this model.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public void mergeXmlModule(Module xmlModule) {
-        iml.getBeforeMerged().execute(xmlModule);
+        DeprecationLogger.whileDisabled(() -> {
+            iml.getBeforeMerged().execute(xmlModule);
 
-        Path contentRoot = getPathFactory().path(getContentRoot());
-        Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
-        Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
-        Set<Path> testSourceFolders = pathsOf(existing(getTestSources().getFiles()));
-        Set<Path> resourceFolders = pathsOf(existing(getResourceDirs()));
-        Set<Path> testResourceFolders = pathsOf(existing(getTestResources().getFiles()));
-        Set<Path> excludeFolders = pathsOf(getExcludeDirs());
-        Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
-        Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
-        Set<Dependency> dependencies = resolveDependencies();
-        String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
+            Path contentRoot = getPathFactory().path(getContentRoot());
+            Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
+            Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
+            Set<Path> testSourceFolders = pathsOf(existing(getTestSources().getFiles()));
+            Set<Path> resourceFolders = pathsOf(existing(getResourceDirs()));
+            Set<Path> testResourceFolders = pathsOf(existing(getTestResources().getFiles()));
+            Set<Path> excludeFolders = pathsOf(getExcludeDirs());
+            Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
+            Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
+            Set<Dependency> dependencies = resolveDependencies();
+            String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
 
-        xmlModule.configure(
-            contentRoot,
-            sourceFolders, testSourceFolders,
-            resourceFolders, testResourceFolders,
-            generatedSourceFolders,
-            excludeFolders,
-            getInheritOutputDirs(), outputDir, testOutputDir,
-            dependencies,
-            getJdkName(), level
-        );
+            xmlModule.configure(
+                contentRoot,
+                sourceFolders, testSourceFolders,
+                resourceFolders, testResourceFolders,
+                generatedSourceFolders,
+                excludeFolders,
+                getInheritOutputDirs(), outputDir, testOutputDir,
+                dependencies,
+                getJdkName(), level
+            );
 
-        iml.getWhenMerged().execute(xmlModule);
+            iml.getWhenMerged().execute(xmlModule);
+        });
     }
 
     private Set<File> existing(Set<File> files) {

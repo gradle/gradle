@@ -23,7 +23,8 @@ import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Assume
 
 import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
@@ -31,8 +32,8 @@ import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     @Requires(value = [
-        IntegTestPreconditions.NotEmbeddedExecutor,
-        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable
+        TestExecutionPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable
     ], reason = "requires use of specific JDK version")
     def "not up-to-date when default Java version changes"() {
         def otherJdk = AvailableJavaHomes.differentVersion

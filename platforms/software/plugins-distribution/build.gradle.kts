@@ -25,10 +25,11 @@ dependencies {
 
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.fileOperations)
 
+    implementation(projects.core)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
     implementation(projects.logging)
@@ -53,6 +54,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

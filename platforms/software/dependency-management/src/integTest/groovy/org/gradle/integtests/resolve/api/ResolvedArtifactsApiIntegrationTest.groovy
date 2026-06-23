@@ -17,10 +17,9 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -123,11 +122,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar]")
-        outputContains("ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
-        outputContains("unique ids: [test-lib.jar, a.jar (project :a), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
-        outputContains("display-names: [test-lib.jar, a.jar (project :a), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project :b), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
-        outputContains("components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
-        outputContains("unique components: [test-lib.jar, project :a, a-lib.jar, org:test:1.0, project :b, b-lib.jar, org:test2:1.0]")
+        outputContains("ids: [test-lib.jar, a.jar (project ':a'), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project ':b'), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
+        outputContains("unique ids: [test-lib.jar, a.jar (project ':a'), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project ':b'), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
+        outputContains("display-names: [test-lib.jar, a.jar (project ':a'), a-lib.jar, test-1.0.jar (org:test:1.0), b.jar (project ':b'), b-lib.jar, test2-1.0.jar (org:test2:1.0)]")
+        outputContains("components: [test-lib.jar, project ':a', a-lib.jar, org:test:1.0, project ':b', b-lib.jar, org:test2:1.0]")
+        outputContains("unique components: [test-lib.jar, project ':a', a-lib.jar, org:test:1.0, project ':b', b-lib.jar, org:test2:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar, org.gradle.status=release}]")
 
         where:
@@ -212,8 +211,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         outputContains("files: [a1.jar, b2.jar]")
-        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
-        outputContains("components: [project :a, project :b]")
+        outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
+        outputContains("components: [project ':a', project ':b']")
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         where:
@@ -333,8 +332,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         outputContains("files: [a1.jar, b2.jar]")
-        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
-        outputContains("components: [project :a, project :b]")
+        outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
+        outputContains("components: [project ':a', project ':b']")
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         and:
@@ -450,8 +449,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         outputContains("files: [a1.jar, b2.jar]")
-        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
-        outputContains("components: [project :a, project :b]")
+        outputContains("ids: [a1.jar (project ':a'), b2.jar (project ':b')]")
+        outputContains("components: [project ':a', project ':b']")
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         and:
@@ -548,13 +547,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         fails 'show'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
-  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:compile' variant 'var1' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
           - Provides flavor 'one' but the consumer didn't ask for it
-  - Configuration ':a:compile' variant var2 declares attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant 'var2' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides buildType 'debug' but the consumer didn't ask for it
@@ -663,7 +662,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
-        outputContains("components: [test-lib.jar, project :a, project :b, org:test:1.0]")
+        outputContains("components: [test-lib.jar, project ':a', project ':b', org:test:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=release}]")
     }
 
@@ -701,13 +700,13 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
             dependencies {
                 compile project(':b')
-                compile rootProject.files('lib.jar')
+                compile files(rootProject.isolated.projectDirectory.file('lib.jar'))
                 compile files('lib.jar')
             }
             artifacts {
                 compile file('one/lib.jar')
                 compile file('two/lib.jar')
-                compile rootProject.file('lib.jar')
+                compile file(rootProject.isolated.projectDirectory.file('lib.jar'))
             }
         """
 
@@ -715,11 +714,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             $header
 
             dependencies {
-                compile rootProject.files('lib.jar')
+                compile files(rootProject.isolated.projectDirectory.file('lib.jar'))
                 compile files('lib.jar')
             }
             artifacts {
-                compile rootProject.file('lib.jar')
+                compile file(rootProject.isolated.projectDirectory.file('lib.jar'))
             }
         """
 
@@ -728,10 +727,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         outputContains("files: [lib.jar, a/one/lib.jar, a/two/lib.jar, lib.jar, a/lib.jar, lib.jar, b/lib.jar]")
-        outputContains("ids: [lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar, lib.jar (project :b), lib.jar]")
-        outputContains("unique ids: [lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar, lib.jar (project :b), lib.jar]")
-        outputContains("components: [lib.jar, project :a, project :a, project :a, lib.jar, project :b, lib.jar]")
-        outputContains("unique components: [lib.jar, project :a, lib.jar, project :b, lib.jar]")
+        outputContains("ids: [lib.jar, lib.jar (project ':a'), lib.jar (project ':a'), lib.jar (project ':a'), lib.jar, lib.jar (project ':b'), lib.jar]")
+        outputContains("unique ids: [lib.jar, lib.jar (project ':a'), lib.jar (project ':a'), lib.jar (project ':a'), lib.jar, lib.jar (project ':b'), lib.jar]")
+        outputContains("components: [lib.jar, project ':a', project ':a', project ':a', lib.jar, project ':b', lib.jar]")
+        outputContains("unique components: [lib.jar, project ':a', lib.jar, project ':b', lib.jar]")
 
         where:
         expression                                                    | _
@@ -867,10 +866,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
-        failure.assertHasCause("""No matching variant of project :a was found. The consumer was configured to find attribute 'volume' with value '11' but:
+        failure.assertHasCause("""No matching variant of project ':a' was found. The consumer was configured to find attribute 'volume' with value '11' but:
   - Variant 'compile':
       - Incompatible because this component declares attribute 'volume' with value '8' and the consumer needed attribute 'volume' with value '11'""")
-        failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'volume' with value '11' but:
+        failure.assertHasCause("""No matching variant of project ':b' was found. The consumer was configured to find attribute 'volume' with value '11' but:
   - Variant 'compile':
       - Incompatible because this component declares attribute 'volume' with value '9' and the consumer needed attribute 'volume' with value '11'""")
 
@@ -955,8 +954,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24640")
-    @UnsupportedWithConfigurationCache(because = "Multiple failures are currently not all reported by the configuration cache, only the first is")
+    @UnsupportedWithConfigurationCache(
+        because = "Multiple failures are currently not all reported by the configuration cache, only the first is",
+        issue = "https://github.com/gradle/gradle/issues/24640"
+    )
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
         settingsFile << """
             include 'a'
@@ -1004,7 +1005,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
-        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
+        failure.assertHasCause("More than one variant of project ':a' matches the consumer attributes")
 
         where:
         expression                                                    | _
@@ -1014,8 +1015,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24640")
-    @UnsupportedWithConfigurationCache(because = "Multiple failures are currently not all reported by the configuration cache, only the first is")
+    @UnsupportedWithConfigurationCache(
+        because = "Multiple failures are currently not all reported by the configuration cache, only the first is",
+        issue = "https://github.com/gradle/gradle/issues/24640"
+    )
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << """
             include 'a'
@@ -1088,17 +1091,17 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         succeeds 'resolveLenient'
 
         outputContains("failure 1: Could not find org:missing-module:1.0.")
-        outputContains("failure 2: Could not resolve project :b.")
+        outputContains("failure 2: Could not resolve project ':b'.")
         outputContains("failure 3: broken")
         outputContains("""failure 4: Could not find missing-artifact-1.0.jar (org:missing-artifact:1.0).
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
-  - Configuration ':a:default' variant v1:
+        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+  - Configuration ':a:default' variant 'v1':
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
-  - Configuration ':a:default' variant v2:
+  - Configuration ':a:default' variant 'v2':
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')""")
     }

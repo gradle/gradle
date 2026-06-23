@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "fails with badly formed task name"() {
+        enableProblemsApiCheck()
         createDirs("a")
         settingsFile """
             rootProject.name = 'broken'
@@ -32,15 +34,22 @@ class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(taskName)
 
         then:
-        failure.assertHasDescription(message)
+        failureDescriptionContains(message)
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == expectedFqid
+            definition.id.displayName == expectedDisplayName
+            contextualLabel == message
+            additionalData.asMap == ['requestedPath': taskName]
+        }
 
         where:
-        taskName | message
-        ""       | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."
-        ":"      | "Cannot locate tasks that match ':'. The path should include a task name (for example ':help' or 'help')."
-        "::"     | "Cannot locate tasks that match '::'. The path should include a task name (for example ':help' or 'help')."
-        ":a::"   | "Cannot locate tasks that match ':a::'. The path should not include an empty segment (try ':a' instead)."
-        ":a::b"  | "Cannot locate tasks that match ':a::b'. The path should not include an empty segment (try ':a:b' instead)."
+        taskName | message                                                                                                                  | expectedFqid                         | expectedDisplayName
+        ""       | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."   | "task-selection:empty-path"          | "Empty path"
+        ":"      | "Cannot locate tasks that match ':'. The path should include a task name (for example ':help' or 'help')."               | "task-selection:missing-task-name"   | "Missing task name"
+        "::"     | "Cannot locate tasks that match '::'. The path should include a task name (for example ':help' or 'help')."              | "task-selection:missing-task-name"   | "Missing task name"
+        ":a::"   | "Cannot locate tasks that match ':a::'. The path should not include an empty segment (try ':a' instead)."                | "task-selection:empty-segments"      | "Empty segments"
+        ":a::b"  | "Cannot locate tasks that match ':a::b'. The path should not include an empty segment (try ':a:b' instead)."             | "task-selection:empty-segments"      | "Empty segments"
     }
 
     def "build logic can mutate the list of requested tasks"() {

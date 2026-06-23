@@ -26,7 +26,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -165,7 +166,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         file("build/reports/checkstyle/main.html").assertExists()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
     def "analyze bad code with the toolchain JDK"() {
         executer.withDefaultLocale(new Locale('en'))
         badCode()
@@ -187,7 +188,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34759")
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
     def "fails with helpful error when using incompatible Java 8 toolchain with Checkstyle 10.x"() {
         given:
         goodCode()

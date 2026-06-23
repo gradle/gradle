@@ -20,8 +20,8 @@ import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.test.precondition.Requires
 
-import static org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
-import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCode
+import static org.gradle.test.preconditions.TestExecutionPreconditions.NotEmbeddedExecutor
+import static org.gradle.test.preconditions.TestEnvironmentPreconditions.HasXCode
 
 abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     @Override

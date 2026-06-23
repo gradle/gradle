@@ -3,12 +3,14 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
+import java.io.FileFilter
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
-import java.io.FileFilter
 
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
@@ -20,16 +22,14 @@ plugins {
     id("gradlebuild.android-home-warmup")
 }
 
+configureTestSourceSetInIde(sourceSets.docsTest.get())
+
 androidHomeWarmup {
     rootProjectDir = project.layout.projectDirectory.dir("../../..")
     sdkVersions.set(
         listOf(
-            // Used by declaringConfigurations-kmp (AGP 8.11.2) and declaringConfigurations-android (AGP 8.13.0)
-            // Both use compileSdk 36, and AGP < 9.0 uses build-tools 35.0.0
-            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.11.2"),
-
-            // Used by android-application snippet (AGP 8.3.0)
-            SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.3.0"),
+            // Used by declaringConfigurations-android and declaringConfigurations-kmp (AGP 9.0.1)
+            SdkVersion(compileSdk = 36, buildTools = "36.1.0", agpVersion = "9.0.1"),
 
             // Used by structuring-software-projects/android-app snippet (AGP 8.9.0)
             SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
@@ -100,15 +100,9 @@ jvmCompile {
     addCompilationFrom(sourceSets.docsTest)
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
 asciidoctorj {
-    setVersion("2.5.13")
-    modules.pdf.setVersion("2.3.10")
+    setVersion(buildLibs.versions.asciidoctor.get())
+    modules.pdf.setVersion("2.3.23")
     // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
     // TODO: tables are not handled properly in pdfs
     fatalWarnings.add(
@@ -145,16 +139,26 @@ samples {
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
     // iterate through each snippets and record their names and locations
     val directoriesOnly = FileFilter { it.isDirectory }
-    val topLevelDirs = file("src/snippets").listFiles(directoriesOnly).orEmpty()
-    val snippetDirs = topLevelDirs.flatMap { it.listFiles(directoriesOnly).orEmpty().toList() }
-        .filter { dir ->
-            File(dir, "kotlin").exists() || File(dir, "groovy").exists()
+    val snippetsRoot = file("src/snippets")
+    val variantDirNames = setOf("groovy", "kotlin", "common", "tests", "tests-groovy", "tests-kotlin", "tests-common")
+
+    // Recursively find snippet directories (those containing a groovy/ or kotlin/ variant subdirectory)
+    val snippetDirs = mutableListOf<File>()
+    fun findSnippets(dir: File) {
+        for (child in dir.listFiles(directoriesOnly).orEmpty()) {
+            if (child.name in variantDirNames || child.name == "integration-tests" || child.name == "unused") continue
+            if (File(child, "kotlin").exists() || File(child, "groovy").exists()) {
+                snippetDirs.add(child)
+            } else {
+                findSnippets(child)
+            }
         }
+    }
+    findSnippets(snippetsRoot)
 
     snippetDirs.forEach { snippetDir ->
-        val snippetName = snippetDir.name
-        val categoryName = snippetDir.parentFile.name
-        val id = org.gradle.docs.internal.StringUtils.toLowerCamelCase("snippet-$categoryName-$snippetName")
+        val relativePath = snippetsRoot.toPath().relativize(snippetDir.toPath()).toString()
+        val id = org.gradle.docs.internal.StringUtils.toLowerCamelCase("snippet-${relativePath.replace(File.separatorChar, '-')}")
         publishedSamples.create(id) {
             description = "Snippet from $snippetDir"
             category = "Other"
@@ -212,46 +216,18 @@ tasks.named<Test>("docsTest") {
     systemProperties.clear()
 
     filter {
-        if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
-            // Disable tests that suffer from charset issues under JDK 18 for now
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task")
-        }
-
         if (!javaVersion.isJava11Compatible) {
             // This test sets source and target compatibility to 11
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dsl-apis-accessors_*")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-other-topics-gradle-version_*_testKitFunctionalTestSpockGradleDistribution")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
-            // Android requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects*android-app")
-            // Umbrella build project also contains Android projects
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_umbrella-build")
             // AGP AND KMP are tested on Java 17 only
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*")
-            // Spring Boot requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_build-server-application")
-        }
-
-        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
-            // Sample requests Java 21
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-writing-tasks-custom-test-task_*_consumer")
-        }
-
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
-            // Incompatible for unknown reasons, investigation ongoing
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_build-android-app")
-        }
-
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
-            // SpotBugs doesn't support Java 23
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-publishing-convention-plugins*")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-incubating-build-organization-publishing-convention-plugins*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dependency-management-declaring-dependencies-declaring-configurations-*")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
@@ -262,106 +238,92 @@ tasks.named<Test>("docsTest") {
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
             // PMD doesn't support Java 26
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
             // There is a bug in either AGP or the JDK which causes JdkImageTransform to fail with Java 26
             // https://issuetracker.google.com/issues/486844145
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-kmp*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dependency-management-declaring-dependencies-declaring-configurations-kmp*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects*android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-native-*")
         }
     }
 
     filter {
         // TODO(https://github.com/gradle/gradle/issues/22538)
-        excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation")
+        excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-jvm-cross-compilation_*_crossCompilation")
     }
 
     if (project.configurationCacheEnabledForDocsTests) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
 
+        // Substring markers identifying groups of tests excluded when docsTest runs with the configCache
+        // executer. Loaded from the resource file alongside SampleFailureMessageFormatter, which uses the
+        // same list at test runtime — that file is the single source of truth. Each marker is used two ways:
+        //   - wrapped as "*${marker}*" for the excludeTestsMatching glob below, and
+        //   - matched directly against --tests CLI patterns in the pre-flight check below.
+        val configCacheExcludedTestGroups = providers.fileContents(
+            layout.projectDirectory.file("src/main/resources/non-config-cache-compatible-snippets.txt")
+        ).asText.map { text ->
+            text.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        }.get()
+
+        // Pre-flight: if every --tests pattern targets one of the excluded groups above, Gradle's default
+        // "No tests found" message hides the real cause. Replace it with a message that names the property
+        // the user must clear.
+        val testTask = this
+        doFirst {
+            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns
+            if (cliPatterns.isNotEmpty() && cliPatterns.all { p -> configCacheExcludedTestGroups.any { p.contains(it) } }) {
+                throw GradleException(
+                    "All --tests filters target tests that are excluded from docsTest when " +
+                        "enableConfigurationCacheForDocsTests=true.\n" +
+                        "  Filters: ${cliPatterns.joinToString(", ") { "'$it'" }}\n" +
+                        "  Set enableConfigurationCacheForDocsTests=false (or remove it from gradle.properties) to run these samples."
+                )
+            }
+        }
+
         filter {
-            // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-*")
-            excludeTestsMatching("*WithoutCC*")
+            configCacheExcludedTestGroups.forEach { excludeTestsMatching("*${it}*") }
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             val testsForUnsupportedFeatures = listOf(
-                "snippet-ant-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget",
-                "snippet-ant-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget",
-                "snippet-ant-depends-on-ant-target_groovy_dependsOnAntTarget",
-                "snippet-ant-depends-on-ant-target_kotlin_dependsOnAntTarget",
-                "snippet-ant-depends-on-task_groovy_dependsOnTask",
-                "snippet-ant-depends-on-task_kotlin_dependsOnTask",
-                "snippet-ant-hello_groovy_antHello",
-                "snippet-ant-hello_kotlin_antHello",
-                "snippet-ant-rename-task_groovy_renameAntDelegate",
-                "snippet-ant-rename-task_kotlin_renameAntDelegate",
-                "snippet-ant-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig",
-                "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig",
-                "snippet-ant-ant-logging_groovy_antLogging",
-                "snippet-ant-ant-logging_kotlin_antLogging",
-                "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck",
-                "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy",
-                "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck",
-                "snippet-buildlifecycle-task-execution-events_kotlin_taskExecutionEvents.kotlin",
-                "snippet-custom-model-internal-views_groovy_softwareModelExtend-iv-model",
-                "snippet-custom-model-language-type_groovy_softwareModelExtend-components",
-
-                // These snippets are not used in the documentation, but only in the integration tests.
-                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_groovy_accessingMetadataArtifact",
-                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_kotlin_accessingMetadataArtifact",
-                "snippet-dependency-management-working-with-dependencies-iterate-artifacts_kotlin_iterating-artifacts",
-                "snippet-dependency-management-working-with-dependencies-walk-graph_groovy_walking-dependency-graph",
-                "snippet-dependency-management-working-with-dependencies-walk-graph_kotlin_walking-dependency-graph",
-
-                "snippet-ide-eclipse_groovy_wtpWithXml",
-                "snippet-ide-eclipse_kotlin_wtpWithXml",
-                "snippet-ide-idea-additional-test-sources_groovy_ideaAdditionalTestSources",
-                "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources",
-                "snippet-ide-idea_groovy_projectWithXml",
-                "snippet-ide-idea_kotlin_projectWithXml",
-                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy",
-                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin",
-                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all",
-                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task",
-                "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired",
-                "snippet-model-rules-configure-elements-of-map_groovy_modelDslModelMapNestedAll",
-                "snippet-model-rules-initialization-rule-runs-before-configuration-rules_groovy_modelDslInitializationRuleRunsBeforeConfigurationRule",
-                "snippet-native-binaries-cpp_groovy_nativeComponentReport",
-                "snippet-native-binaries-cunit_groovy_assembleDependentComponents",
-                "snippet-native-binaries-cunit_groovy_assembleDependentComponentsReport",
-                "snippet-native-binaries-cunit_groovy_buildDependentComponents",
-                "snippet-native-binaries-cunit_groovy_buildDependentComponentsReport",
-                "snippet-native-binaries-cunit_groovy_completeCUnitExample",
-                "snippet-native-binaries-cunit_groovy_dependentComponentsReport",
-                "snippet-native-binaries-cunit_groovy_dependentComponentsReportAll",
+                "snippet-reference-other-topics-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget",
+                "snippet-reference-other-topics-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget",
+                "snippet-reference-other-topics-depends-on-ant-target_groovy_dependsOnAntTarget",
+                "snippet-reference-other-topics-depends-on-ant-target_kotlin_dependsOnAntTarget",
+                "snippet-reference-other-topics-depends-on-task_groovy_dependsOnTask",
+                "snippet-reference-other-topics-depends-on-task_kotlin_dependsOnTask",
+                "snippet-reference-other-topics-hello_groovy_antHello",
+                "snippet-reference-other-topics-hello_kotlin_antHello",
+                "snippet-reference-other-topics-rename-task_groovy_renameAntDelegate",
+                "snippet-reference-other-topics-rename-task_kotlin_renameAntDelegate",
+                "snippet-reference-other-topics-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig",
+                "snippet-reference-other-topics-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig",
+                "snippet-reference-other-topics-ant-logging_groovy_antLogging",
+                "snippet-reference-other-topics-ant-logging_kotlin_antLogging",
+                "snippet-reference-runtime-configuration-custom-logger_groovy_customLogger.groovy",
+                "snippet-reference-runtime-configuration-custom-logger_kotlin_customLogger.kotlin",
+                "snippet-reference-platforms-native-cpp_groovy_nativeComponentReport",
+                "snippet-reference-platforms-native-cunit_groovy_assembleDependentComponents",
+                "snippet-reference-platforms-native-cunit_groovy_assembleDependentComponentsReport",
+                "snippet-reference-platforms-native-cunit_groovy_buildDependentComponents",
+                "snippet-reference-platforms-native-cunit_groovy_buildDependentComponentsReport",
+                "snippet-reference-platforms-native-cunit_groovy_completeCUnitExample",
+                "snippet-reference-platforms-native-cunit_groovy_dependentComponentsReport",
+                "snippet-reference-platforms-native-cunit_groovy_dependentComponentsReportAll",
             )
 
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
             // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
-            val testsWithThirdPartyFailures = listOf(
-                "snippet-build-organization-structuring-software-projects_groovy_aggregate-reports",
-                "snippet-build-organization-structuring-software-projects_groovy_build-android-app",
-                "snippet-build-organization-structuring-software-projects_groovy_build-server-application",
-                "snippet-build-organization-structuring-software-projects_groovy_umbrella-build",
-                "snippet-build-organization-structuring-software-projects_kotlin_aggregate-reports",
-                "snippet-build-organization-structuring-software-projects_kotlin_build-android-app",
-                "snippet-build-organization-structuring-software-projects_kotlin_build-server-application",
-                "snippet-build-organization-structuring-software-projects_kotlin_umbrella-build",
+            val testsWithThirdPartyFailures = listOf<String>(
             )
 
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
             // The tests should be removed from this list when the feature becomes supported.
             val testsForNotYetSupportedFeatures = listOf(
-                // TODO(https://github.com/gradle/gradle/issues/14880)
-                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies",
-                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies",
-
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod",
@@ -370,24 +332,8 @@ tasks.named<Test>("docsTest") {
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             val testsToBeFixedForConfigurationCache = listOf(
-                "snippet-build-cache-configure-task_groovy_configureTask",
-                "snippet-build-cache-configure-task_kotlin_configureTask",
-                // TODO(mlopatkin) These snippets use bintray plugin which is not fully CC-compatible. Remove bintray plugin from samples.
-                "snippet-plugins-buildscript_groovy_sanityCheck",
-                "snippet-plugins-buildscript_kotlin_sanityCheck",
-                "snippet-plugins-dsl_groovy_sanityCheck",
-                "snippet-plugins-dsl_kotlin_sanityCheck",
-                // TODO(lkasso) remove this when config cache is working later but needed to merge for now.
-                "snippet-dependency-management-introduction-core-dependencies_groovy_sanityCheck",
-                "snippet-dependency-management-introduction-core-dependencies_kotlin_sanityCheck",
-                "snippet-dependency-management-introduction-core-dependencies_groovy_dependencyIntroReport",
-                "snippet-dependency-management-introduction-core-dependencies_kotlin_dependencyIntroReport",
-                "snippet-dependency-management-catalogs-toml-simple_groovy_sanityCheck",
-                "snippet-dependency-management-catalogs-toml-simple_kotlin_sanityCheck",
-                "snippet-dependency-management-catalogs-toml-simple_groovy_resolve",
-                "snippet-dependency-management-catalogs-toml-simple_kotlin_resolve",
-                "snippet-dependency-management-catalogs-platforms_groovy_sanityCheck",
-                "snippet-dependency-management-catalogs-platforms_kotlin_sanityCheck",
+                "snippet-optimizing-builds-build-cache-configure-task_groovy_configureTask",
+                "snippet-optimizing-builds-build-cache-configure-task_kotlin_configureTask",
             )
 
             val brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

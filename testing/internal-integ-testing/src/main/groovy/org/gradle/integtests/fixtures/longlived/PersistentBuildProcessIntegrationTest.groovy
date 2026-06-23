@@ -18,12 +18,12 @@ package org.gradle.integtests.fixtures.longlived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 /**
  * Base class for test that test the behaviour of Gradle when running subsequent builds in the same build process.
  */
-@Requires(IntegTestPreconditions.IsLongLivingProcess)
+@Requires(TestExecutionPreconditions.IsLongLivingProcess)
 class PersistentBuildProcessIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

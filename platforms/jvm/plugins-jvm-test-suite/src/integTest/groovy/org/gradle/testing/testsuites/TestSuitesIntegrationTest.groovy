@@ -27,6 +27,7 @@ import org.gradle.api.testing.toolchains.internal.TestNGTestToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "new test suites adds appropriate test tasks"() {
@@ -308,6 +309,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${SpockTestToolchain.DEFAULT_VERSION}.jar"
         'useSpock("2.3-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.3-groovy-3.0.jar"
         'useSpock("2.3-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.3-groovy-4.0.jar"
+        'useSpock("2.4-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.4-groovy-4.0.jar"
         'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${KotlinTestTestToolchain.DEFAULT_VERSION}.jar"
         'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
         'useTestNG()'                | TestNGTestFramework        | "testng-${TestNGTestToolchain.DEFAULT_VERSION}.jar"
@@ -1039,11 +1041,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("assertCopyCanBeResolved")
         failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failureHasCause("""Method call not allowed
-  Calling configuration method 'copy()' is not allowed for configuration 'testImplementation'
-    'testImplementation' has the following permitted usage(s):
-    \tDeclarable - this configuration can have dependencies added to it
-    This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
+        failureCauseContains("""Calling configuration method 'copy()' is not allowed for configuration 'testImplementation', which has permitted usage(s):
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
     }
 
     def "configuring different test suites with different framework versions is allowed"() {
@@ -1089,6 +1089,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/36428")
+    @ToBeFixedForIsolatedProjects(because = "test suites cross-project")
     def "cross-project dependency manipulation with allDependencies.configureEach does not break test suite creation"() {
         given: "a multi-project build with cross-project configuration accessing allDependencies"
         settingsFile << """

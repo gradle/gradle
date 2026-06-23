@@ -16,14 +16,17 @@
 
 package org.gradle.plugins.ide
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ConfigureUtil
 
-abstract class AbstractIdeProjectIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractIdeProjectIntegrationTest extends AbstractIdeIntegrationSpec {
     protected abstract String projectName(String path)
 
     protected abstract String getIdeName()
+
+    protected abstract String[] getDeprecatedTaskNames()
+
+    protected abstract String[] getDeprecatedCleanTaskNames()
 
     protected abstract String getConfiguredModule()
 
@@ -38,11 +41,11 @@ abstract class AbstractIdeProjectIntegrationTest extends AbstractIntegrationSpec
     Project project(String projectName, boolean allProjects = true, Closure configClosure) {
         String applyTo = allProjects ? "allprojects" : "subprojects"
         buildFile.createFile().text = """
-$applyTo {
-    apply plugin:'java'
-    apply plugin:'$ideName'
-}
-"""
+            $applyTo {
+                apply plugin:'java'
+                apply plugin:'$ideName'
+            }
+        """
         settingsFile.createFile().text = "rootProject.name='$projectName'\n"
         def proj = new Project(name: projectName, path: "", projectDir: getTestDirectory())
         ConfigureUtil.configure(configClosure, proj);

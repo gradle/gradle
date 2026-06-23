@@ -18,8 +18,9 @@ package org.gradle.configuration
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.execution.ProjectConfigurer
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.operations.BuildOperationRunner
 import spock.lang.Specification
@@ -27,7 +28,8 @@ import spock.lang.Specification
 class DefaultProjectsPreparerTest extends Specification {
     def startParameter = Mock(StartParameterInternal)
     def gradle = Mock(GradleInternal)
-    def rootProject = Mock(ProjectInternal)
+    def rootProjectState = Mock(ProjectState)
+    def buildState = Mock(BuildState)
     def projectConfigurer = Mock(ProjectConfigurer)
     def modelParameters = Mock(BuildModelParameters)
     def buildOperationRunner = Mock(BuildOperationRunner)
@@ -35,7 +37,8 @@ class DefaultProjectsPreparerTest extends Specification {
 
     def setup() {
         gradle.startParameter >> startParameter
-        gradle.rootProject >> rootProject
+        gradle.owner >> buildState
+        buildState.rootProject >> rootProjectState
     }
 
     def "configures build for standard mode"() {
@@ -43,7 +46,7 @@ class DefaultProjectsPreparerTest extends Specification {
         configurer.prepareProjects(gradle)
 
         then:
-        1 * projectConfigurer.configureHierarchy(rootProject)
+        1 * projectConfigurer.configureHierarchy(rootProjectState)
     }
 
     def "configures root build for on demand mode"() {
@@ -62,6 +65,6 @@ class DefaultProjectsPreparerTest extends Specification {
         then:
         gradle.rootBuild >> false
         modelParameters.configureOnDemand >> true
-        1 * projectConfigurer.configureHierarchy(rootProject)
+        1 * projectConfigurer.configureHierarchy(rootProjectState)
     }
 }

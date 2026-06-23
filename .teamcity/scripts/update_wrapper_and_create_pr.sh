@@ -2,13 +2,13 @@
 set -e
 
 # Script to update Gradle wrapper and create a pull request
-# 
+#
 # Usage:
 #   ./update_wrapper_and_create_pr.sh [wrapper_version]
 #
 # Arguments:
 #   wrapper_version - The Gradle version to update the wrapper to
-# 
+#
 # Environment variables:
 #   DEFAULT_BRANCH  - The default branch to create the pull request on (e.g. "master"/"release")
 #   GITHUB_TOKEN    - GitHub bot token
@@ -53,20 +53,20 @@ main() {
         export WRAPPER_VERSION="$promotedVersion"
     fi
 
-    ./gradlew wrapper --gradle-version=$WRAPPER_VERSION 
-    ./gradlew wrapper
+    ./gradlew :wrapper --gradle-version=$WRAPPER_VERSION
+    ./gradlew :wrapper
     git add gradle && git add gradlew && git add gradlew.bat
-    
+
     if git diff --cached --quiet; then
         echo "No changes to commit"
         exit 0
     fi
-    
+
     BRANCH_NAME="devprod/update-wrapper-$(date +%Y%m%d-%H%M%S)"
     git switch -c $BRANCH_NAME
     git commit --signoff --author="bot-gradle <bot-gradle@gradle.com>" -m "Update Gradle wrapper to version $WRAPPER_VERSION"
     git push https://${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
-    
+
     PR_TITLE="Update Gradle wrapper to version $WRAPPER_VERSION"
 
     PR_RESPONSE=$(post "/pulls" "{
@@ -79,7 +79,9 @@ main() {
     echo "PR_RESPONSE: $PR_RESPONSE"
 
     PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number' 2>/dev/null)
-    
+
+    echo "##teamcity[buildStatus text='{build.status.text}, PR: https://github.com/gradle/gradle/pull/$PR_NUMBER']"
+
     post "/issues/$PR_NUMBER/comments" '{
         "body": "@bot-gradle test and merge"
     }'

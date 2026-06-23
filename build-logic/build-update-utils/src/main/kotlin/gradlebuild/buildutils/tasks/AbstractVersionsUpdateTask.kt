@@ -16,15 +16,17 @@
 
 package gradlebuild.buildutils.tasks
 
+import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.internal.util.PropertiesUtils
 import org.gradle.work.DisableCachingByDefault
-import org.w3c.dom.Element
+import java.net.URI
 import java.util.Properties
 import javax.xml.XMLConstants
+import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 
 @DisableCachingByDefault(because = "Not worth tracking")
@@ -61,7 +63,7 @@ abstract class AbstractVersionsUpdateTask : DefaultTask() {
     }
 
     protected
-    fun fetchVersionsFromMavenMetadata(url: String): List<String> =
+    fun createSecureDocumentBuilder(): DocumentBuilder =
         DocumentBuilderFactory.newInstance().apply {
             setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
             setFeature("http://xml.org/sax/features/external-general-entities", false)
@@ -72,12 +74,12 @@ abstract class AbstractVersionsUpdateTask : DefaultTask() {
             setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
             setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
         }.newDocumentBuilder()
-            .parse(url)
-            .getElementsByTagName("version").let { versions ->
-                (0 until versions.length)
-                    .map { idx -> (versions.item(idx) as Element).textContent }
-                    .reversed()
-            }
+
+    protected
+    fun fetchVersionsFromMavenMetadata(url: String): List<String> {
+        val metadata = URI(url).toURL().openStream().use { MetadataXpp3Reader().read(it) }
+        return metadata.versioning.versions.reversed()
+    }
 
     protected
     fun updateProperties(populateProperties: Properties.() -> Unit) =

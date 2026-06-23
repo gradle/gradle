@@ -54,24 +54,40 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
 
     private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent) {
         Optional<TestSource> source = descriptor.getSource();
-        if (!source.isPresent()) {
-            return true;
+        if (source.isPresent()) {
+            TestSource testSource = source.get();
+            if (testSource instanceof MethodSource) {
+                return shouldRun(descriptor, (MethodSource) testSource);
+            }
+            if (testSource instanceof ClassSource) {
+                return shouldRun(descriptor, checkingParent, (ClassSource) testSource);
+            }
         }
 
-        TestSource testSource = source.get();
-        if (testSource instanceof MethodSource) {
-            return shouldRun(descriptor, (MethodSource) testSource);
+        // Source is absent or of a custom type (e.g. ArchUnit field-based tests).
+        // Walk up to the first ancestor with a class source and honor its exclude status:
+        // if that enclosing class exactly matches an exclude pattern, this descriptor is also
+        // excluded (as a member of the class). Otherwise default to included (original behavior
+        // preserved — the filter's status quo for custom sources is inclusive).
+        TestDescriptor current = descriptor.getParent().orElse(null);
+        while (current != null) {
+            Optional<String> enclosingClassName = className(current);
+            if (enclosingClassName.isPresent()) {
+                return !matcher.matchesExcludeClassExactly(enclosingClassName.get());
+            }
+            current = current.getParent().orElse(null);
         }
-
-        if (testSource instanceof ClassSource) {
-            return shouldRun(descriptor, checkingParent, (ClassSource) testSource);
-        }
-
-        Optional<TestDescriptor> parent = descriptor.getParent();
-        return parent.isPresent() && shouldRun(parent.get(), true);
+        return true;
     }
 
     private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent, ClassSource classSource) {
+        String className = classSource.getClassName();
+        if (matcher.matchesExcludeClassExactly(className)) {
+            // This class exactly matches an exclude pattern.
+            // Return immediately to prevent children from re-including the container. Ancestors that are
+            // themselves included by pattern (e.g. a test suite) are handled by classMatch.
+            return false;
+        }
         Set<? extends TestDescriptor> children = descriptor.getChildren();
         if (!checkingParent) {
             for (TestDescriptor child : children) {
@@ -81,7 +97,6 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
             }
         }
         if (children.isEmpty()) {
-            String className = classSource.getClassName();
             return matcher.matchesTest(className, null)
                 || matcher.matchesTest(className, descriptor.getLegacyReportingName());
         }
@@ -101,20 +116,50 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
             .isPresent();
     }
 
+    /**
+     * Walks up the descriptor chain looking for an ancestor class whose name matches an include
+     * pattern. An ancestor-level include may re-include a descendant, but an exclude on a nested
+     * class must not be bypassed by walking up to its enclosing class.
+     *
+     * <p>An ancestor is an <em>enclosing class</em> of the excluded class when the excluded
+     * class's fully qualified name starts with the ancestor's name followed by {@code $}
+     * (e.g. {@code SampleTest} encloses {@code SampleTest$NestedTestClass}). Re-inclusion
+     * via an enclosing ancestor is forbidden. Re-inclusion via an unrelated ancestor
+     * (e.g. a JUnit Platform suite that references a separate excluded class) is allowed.
+     *
+     * <p>This asymmetry is intentional:
+     * <ul>
+     *   <li>{@code --tests Parent} should pull in tests from {@code Parent$Nested} transitively.</li>
+     *   <li>{@code excludeTest("Parent$Nested", null)} must not be bypassed because the
+     *       enclosing class {@code Parent} happens not to match the exclude.</li>
+     *   <li>{@code excludeTestsMatching("Foo")} excludes standalone {@code Foo} tests, but
+     *       should still allow {@code Foo} tests to run when wrapped in an unrelated suite.</li>
+     * </ul>
+     */
     private boolean classMatch(TestDescriptor descriptor) {
         TestDescriptor current = descriptor;
         String methodName = null;
+        // Records the lowest-level class in the chain that matches an exclude pattern.
+        // Used to block re-inclusion via the walk-up only for enclosing-class ancestors;
+        // unrelated ancestors (e.g. test suites) can still re-include.
+        String excludedClassName = null;
         while (true) {
-
             Optional<TestDescriptor> parent = current.getParent();
             if (!parent.isPresent()) {
                 break;
             }
 
-            // If the current descriptor is a class, check if it matches the test selection criteria
             Optional<String> className = className(current);
             if (className.isPresent()) {
-                if (matcher.matchesTest(className.get(), methodName)) {
+                String name = className.get();
+                if (excludedClassName == null && matcher.matchesExcludeTest(name, methodName)) {
+                    excludedClassName = name;
+                }
+                // True when this ancestor is an enclosing class of the excluded class
+                // (same class, or a $-parent), as opposed to an unrelated ancestor.
+                boolean ancestorEnclosesExclude = excludedClassName != null
+                    && (excludedClassName.equals(name) || excludedClassName.startsWith(name + "$"));
+                if (!ancestorEnclosesExclude && matcher.matchesIncludeTest(name, methodName)) {
                     return true;
                 }
             }

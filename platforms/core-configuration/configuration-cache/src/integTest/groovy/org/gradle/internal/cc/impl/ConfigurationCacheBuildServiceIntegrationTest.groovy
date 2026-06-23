@@ -42,7 +42,7 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -456,7 +456,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         executer.inDirectory(file("plugin")).withTasks("publish").run()
     }
 
-    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
+    @Requires(TestExecutionPreconditions.NotNoDaemonExecutor)
     def "build service from included build is loaded in reused classloader"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

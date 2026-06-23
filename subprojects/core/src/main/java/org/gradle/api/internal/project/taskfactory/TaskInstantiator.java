@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -25,20 +26,26 @@ import org.gradle.model.internal.core.NamedEntityInstantiator;
 
 @ServiceScope(Scope.Project.class)
 public class TaskInstantiator implements NamedEntityInstantiator<Task> {
+
     private static final Object[] NO_PARAMS = new Object[0];
 
     private final TaskIdentityFactory taskIdentityFactory;
     private final ITaskFactory taskFactory;
     private final ProjectInternal project;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public TaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, ProjectInternal project) {
+    public TaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, ProjectInternal project, UserCodeApplicationContext userCodeApplicationContext) {
         this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         this.project = project;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
-        return taskFactory.create(taskIdentityFactory.create(name, type, project, UserCodeSource.BY_RULE), NO_PARAMS);
+        UserCodeApplicationContext.Application current = userCodeApplicationContext.current();
+        UserCodeSource userCodeSource = current != null ? current.getSource() : null;
+        return taskFactory.create(taskIdentityFactory.create(name, type, project, userCodeSource), NO_PARAMS);
     }
+
 }

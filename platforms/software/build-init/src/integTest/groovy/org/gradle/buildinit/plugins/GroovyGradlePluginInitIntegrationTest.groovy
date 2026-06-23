@@ -16,10 +16,10 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -28,11 +28,6 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
     @Override
     String subprojectName() { 'plugin' }
-
-    @Override
-    def setup() {
-        resultsTestFramework(GenericTestExecutionResult.TestFramework.SPOCK)
-    }
 
     def "defaults to Groovy build scripts"() {
         when:
@@ -44,7 +39,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
     public static final String NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON = "This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution"
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -71,7 +66,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -99,7 +94,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
@@ -123,7 +118,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "re-running check succeeds"() {
         given:
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
@@ -147,7 +142,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23298")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "running TestKit functional test in test source set succeeds"() {
         given:
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)

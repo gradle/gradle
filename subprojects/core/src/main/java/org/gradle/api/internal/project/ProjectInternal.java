@@ -39,7 +39,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.logging.StandardOutputCapture;
-import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
@@ -49,7 +49,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -72,12 +71,12 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectInternal getParent();
 
     @Nullable
-    ProjectInternal getParent(ProjectInternal referrer);
+    ProjectInternal getParent(ProjectIdentity referrer);
 
     @Override
     ProjectInternal getRootProject();
 
-    ProjectInternal getRootProject(ProjectInternal referrer);
+    ProjectInternal getRootProject(ProjectIdentity referrer);
 
     Project evaluate();
 
@@ -96,28 +95,28 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;
 
-    ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException;
+    ProjectInternal project(ProjectIdentity referrer, String path) throws UnknownProjectException;
 
-    ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction);
+    ProjectInternal project(ProjectIdentity referrer, String path, Action<? super Project> configureAction);
 
     @Override
     @Nullable
     ProjectInternal findProject(String path);
 
     @Nullable
-    ProjectInternal findProject(ProjectInternal referrer, String path);
+    ProjectInternal findProject(ProjectIdentity referrer, String path);
 
-    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
+    Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer);
 
-    void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);
+    void subprojects(ProjectIdentity referrer, Action<? super Project> configureAction);
 
-    Map<String, Project> getChildProjects(ProjectInternal referrer);
+    Map<String, Project> getChildProjects(ProjectIdentity referrer);
 
-    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
+    Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer);
 
-    void allprojects(ProjectInternal referrer, Action<? super Project> configureAction);
+    void allprojects(ProjectIdentity referrer, Action<? super Project> configureAction);
 
-    DynamicObject getInheritedScope();
+    HierarchicalDynamicObject getInheritedScope();
 
     @Override
     @UsedByScanPlugin("test-retry")
@@ -160,7 +159,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     void fireDeferredConfiguration();
 
     @Override
-    @NullMarked
     ProjectIdentity getProjectIdentity();
 
     /**
@@ -234,13 +232,27 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Object getLifecycleActionsState();
 
     /**
+     * Returns the project's properties without firing the deprecation of {@link Project#getProperties()}
+     * or the Isolated Projects violation it triggers.
+     *
+     * <p>Intended for internal callers (e.g., diagnostic tasks) that have a legitimate need to enumerate
+     * the project's properties and accept responsibility for the call.
+     *
+     * @apiNote <p><b>Deliberately named {@code collect..}</b>, a {@code get*} name would make
+     * this a Groovy bean property on {@code Project}. {@code BeanDynamicObject.getProperties()}
+     * enumerates bean properties by invoking each getter — which would recurse straight back into
+     * this method via {@code extensibleDynamicObject.getProperties()}.
+     */
+    Map<String, ? extends @Nullable Object> collectPropertiesInternal();
+
+    /**
      * Two {@link ProjectInternal} instances are considered equal if their {@link #getProjectIdentity() identity} is equal.
      *
      * @param obj the object to compare with this project
      * @return true if the given object is a {@link ProjectInternal} with the same identity as this project, false otherwise
      */
     @Override
-    boolean equals(Object obj);
+    boolean equals(@Nullable Object obj);
 
     /**
      * Returns the hash code of this project based on its {@link #getProjectIdentity() identity}.

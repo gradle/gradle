@@ -23,8 +23,6 @@ import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.io.file.StandardDeleteOption;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
@@ -792,18 +790,6 @@ public class TestFile extends File {
 
     public TestFile createFile(Object path) {
         return file(path).createFile();
-    }
-
-    public TestFile createZip(Object path) {
-        Zip zip = new Zip();
-        zip.setWhenempty((Zip.WhenEmpty) Zip.WhenEmpty.getInstance(Zip.WhenEmpty.class, "create"));
-        TestFile zipFile = file(path);
-        zip.setDestFile(zipFile);
-        zip.setBasedir(this);
-        zip.setExcludes("**");
-        zip.setProject(new Project());
-        zip.execute();
-        return zipFile;
     }
 
     public TestFile zipTo(TestFile zipFile) {

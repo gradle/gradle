@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -53,6 +54,10 @@ interface TypeDiscovery {
             }
 
             data class PropertyType(val kClass: KClass<*>, val propertyName: String) : DiscoveryTag {
+                override val isHidden = false
+            }
+
+            data class ProjectFeatureDefinition(val featureData: ProjectFeatureOrigin) : DiscoveryTag {
                 override val isHidden = false
             }
 

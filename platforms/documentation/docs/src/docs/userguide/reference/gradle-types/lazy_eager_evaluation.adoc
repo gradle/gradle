@@ -18,6 +18,7 @@
 Understanding **when** values in your build are computed is crucial for writing fast and reliable build logic.
 Gradle differentiates between *eager* and *lazy* evaluation:
 
+[[eager_evaluation]]
 == Eager Evaluation
 
 Values are computed immediately during the **configuration phase**, before tasks ever run.
@@ -29,6 +30,7 @@ Eager evaluation comes with drawbacks:
 
 Essentially, eager evaluation performs unnecessary work and reduces flexibility.
 
+[[lazy_evaluation_section]]
 == Lazy Evaluation
 
 Lazy values are computed on-demand, typically during the **execution phase**, using Gradle’s Provider API (`Provider<T>` and `Property<T>`).
@@ -40,6 +42,7 @@ This approach has key benefits:
 
 Lazy evaluation enables build features like incremental builds, build caching, and configuration cache compatibility.
 
+[[lazy_apis]]
 == Lazy APIs
 
 Lazy APIs were explicitly designed to avoid configuring tasks that aren’t going to be run, especially in large projects or Android builds where configuration overhead can be significant.

@@ -24,9 +24,9 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -45,7 +45,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
@@ -94,11 +93,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
-        InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
+        ProblemReporterInternal reporter = ((ProblemsInternal) problemsService).getInternalReporter();
+        Problem problem = reporter.internalCreate(new Action<ProblemSpecInternal>() {
             @Override
-            public void execute(InternalProblemSpec builder) {
-                InternalProblemSpec problemSpec = builder
+            public void execute(ProblemSpecInternal builder) {
+                ProblemSpecInternal problemSpec = builder
                     // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
                     .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
                     .contextualLabel(usage.getSummary())
@@ -110,9 +109,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                         public void execute(DeprecationDataSpec data) {
                             data.type(usage.getType().toDeprecationDataType());
                         }
-                    })
-                    .severity(WARNING);
-
+                    });
                 if (usage.getType() == DeprecatedFeatureUsage.Type.USER_CODE_DIRECT) {
                     builder.stackLocation();
                 }
@@ -130,7 +127,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         return createDefaultDeprecationId(usage.getProblemIdDisplayName());
     }
 
-    private static void addSolution(@Nullable String advice, InternalProblemSpec problemSpec) {
+    private static void addSolution(@Nullable String advice, ProblemSpecInternal problemSpec) {
         if (advice != null) {
             problemSpec.solution(advice);
         }

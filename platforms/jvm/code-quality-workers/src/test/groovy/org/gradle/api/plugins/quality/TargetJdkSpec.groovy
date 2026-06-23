@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality
 
+import org.gradle.internal.deprecation.DeprecationLogger
 import spock.lang.Specification
 
 class TargetJdkSpec extends Specification {
@@ -32,70 +33,75 @@ class TargetJdkSpec extends Specification {
 
     def convertsStringToVersion() {
         expect:
-        TargetJdk.toVersion("1.3") == TargetJdk.VERSION_1_3
-        TargetJdk.toVersion("1.4") == TargetJdk.VERSION_1_4
-        TargetJdk.toVersion("1.5") == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion("1.6") == TargetJdk.VERSION_1_6
-        TargetJdk.toVersion("1.7") == TargetJdk.VERSION_1_7
-        TargetJdk.toVersion("jsp") == TargetJdk.VERSION_JSP
-        TargetJdk.toVersion("JSP") == TargetJdk.VERSION_JSP
+        toVersion("1.3") == TargetJdk.VERSION_1_3
+        toVersion("1.4") == TargetJdk.VERSION_1_4
+        toVersion("1.5") == TargetJdk.VERSION_1_5
+        toVersion("1.6") == TargetJdk.VERSION_1_6
+        toVersion("1.7") == TargetJdk.VERSION_1_7
+        toVersion("jsp") == TargetJdk.VERSION_JSP
+        toVersion("JSP") == TargetJdk.VERSION_JSP
     }
 
     def failsToConvertStringToVersionForUnknownVersion() {
         expect:
-        conversionFails("1.1");
-        conversionFails("1.2");
-        conversionFails("1");
-        conversionFails("2");
+        conversionFails("1.1")
+        conversionFails("1.2")
+        conversionFails("1")
+        conversionFails("2")
 
-        conversionFails("17");
+        conversionFails("17")
 
-        conversionFails("a");
-        conversionFails("");
-        conversionFails("  ");
+        conversionFails("a")
+        conversionFails("")
+        conversionFails("  ")
 
-        conversionFails("1.54");
-        conversionFails("1.9");
-        conversionFails("1.10");
-        conversionFails("2.0");
-        conversionFails("1_4");
+        conversionFails("1.54")
+        conversionFails("1.9")
+        conversionFails("1.10")
+        conversionFails("2.0")
+        conversionFails("1_4")
     }
 
     def convertsVersionToVersion() {
         expect:
-        TargetJdk.toVersion(TargetJdk.VERSION_1_4) == TargetJdk.VERSION_1_4
+        toVersion(TargetJdk.VERSION_1_4) == TargetJdk.VERSION_1_4
     }
 
     def convertsNumberToVersion() {
         expect:
-        TargetJdk.toVersion(1.3) == TargetJdk.VERSION_1_3
-        TargetJdk.toVersion(1.4) == TargetJdk.VERSION_1_4
-        TargetJdk.toVersion(1.5) == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion(1.6) == TargetJdk.VERSION_1_6
-        TargetJdk.toVersion(1.7) == TargetJdk.VERSION_1_7
+        toVersion(1.3) == TargetJdk.VERSION_1_3
+        toVersion(1.4) == TargetJdk.VERSION_1_4
+        toVersion(1.5) == TargetJdk.VERSION_1_5
+        toVersion(1.6) == TargetJdk.VERSION_1_6
+        toVersion(1.7) == TargetJdk.VERSION_1_7
     }
 
     def failsToConvertNumberToVersionForUnknownVersion() {
         expect:
-        conversionFails(1.1);
-        conversionFails(1.2);
-        conversionFails(1);
-        conversionFails(2);
-        conversionFails(17);
-        conversionFails(1.21);
-        conversionFails(2.0);
-        conversionFails(4.2);
+        conversionFails(1.1)
+        conversionFails(1.2)
+        conversionFails(1)
+        conversionFails(2)
+        conversionFails(17)
+        conversionFails(1.21)
+        conversionFails(2.0)
+        conversionFails(4.2)
     }
 
     def convertsNullToNull() {
         expect:
-        TargetJdk.toVersion(null) == null
+        toVersion(null) == null
+    }
+
+    // toVersion fires a deprecation nag; whileDisabled keeps these tests focused on the conversion logic.
+    private static TargetJdk toVersion(Object value) {
+        DeprecationLogger.whileDisabled({ TargetJdk.toVersion(value) } as org.gradle.internal.Factory)
     }
 
     private void conversionFails(Object value) {
         try {
-            TargetJdk.toVersion(value);
-            org.junit.Assert.fail();
+            toVersion(value)
+            org.junit.Assert.fail()
         } catch (IllegalArgumentException e) {
             assert e.getMessage() == "Could not determine targetjdk from '" + value + "'."
         }

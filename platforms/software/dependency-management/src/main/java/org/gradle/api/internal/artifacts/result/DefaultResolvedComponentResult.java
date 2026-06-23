@@ -17,112 +17,88 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
-    private final ModuleVersionIdentifier moduleVersion;
-    private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
-    private final ComponentSelectionReasonInternal selectionReason;
-    private final ComponentIdentifier componentId;
-    private final ImmutableList<ResolvedVariantResult> selectedVariants;
-    private final Map<Long, ResolvedVariantResult> selectedVariantsById;
-    private final ImmutableList<ResolvedVariantResult> allVariants;
-    private final String repositoryName;
-    private Map<ResolvedVariantResult, ImmutableSet<DependencyResult>> variantDependencies = new LinkedHashMap<>();
+    private final int index;
+    private final IntList nodeIndices;
+    private final ResolvedGraphResult graph;
 
-    private @Nullable Set<DependencyResult> cachedComponentDependencies;
+    private @Nullable ImmutableList<ResolvedVariantResult> variants;
+    private @Nullable ComponentDependencies dependencies;
 
     public DefaultResolvedComponentResult(
-        ModuleVersionIdentifier moduleVersion,
-        ComponentSelectionReasonInternal selectionReason,
-        ComponentIdentifier componentId,
-        ImmutableMap<Long, ResolvedVariantResult> selectedVariants,
-        ImmutableList<ResolvedVariantResult> allVariants,
-        @Nullable String repositoryName
+        int index,
+        IntList nodeIndices,
+        ResolvedGraphResult graph
     ) {
-        this.moduleVersion = moduleVersion;
-        this.selectionReason = selectionReason;
-        this.componentId = componentId;
-        this.selectedVariantsById = selectedVariants;
-        this.selectedVariants = ImmutableList.copyOf(selectedVariants.values());
-        this.allVariants = allVariants.isEmpty() ? this.selectedVariants : allVariants;
-        this.repositoryName = repositoryName;
+        this.index = index;
+        this.nodeIndices = nodeIndices;
+        this.graph = graph;
+    }
+
+    @Override
+    public int index() {
+        return index;
+    }
+
+    @Override
+    public ResolvedGraphResult graph() {
+        return graph;
     }
 
     @Override
     public ComponentIdentifier getId() {
-        return componentId;
+        return graph.structure().components().id(index);
     }
 
     @Override
     @Deprecated
-    public String getRepositoryName() {
-        return repositoryName;
-    }
-
-    @Nullable
-    @Override
-    public String getRepositoryId() {
-        return repositoryName;
+    public @Nullable String getRepositoryName() {
+        return graph.structure().components().repositoryName(index);
     }
 
     @Override
-    public Set<DependencyResult> getDependencies() {
-        // The component's dependencies are strictly a function of the dependencies of its variants.
-        // Only calculate this value if necessary.
-        if (this.cachedComponentDependencies == null) {
-            int size = 0;
-            for (ImmutableSet<DependencyResult> dependencies : variantDependencies.values()) {
-                size += dependencies.size();
-            }
-            ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builderWithExpectedSize(size);
-            for (ImmutableSet<DependencyResult> dependencies : variantDependencies.values()) {
-                builder.addAll(dependencies);
-            }
-            this.cachedComponentDependencies = builder.build();
-        }
-        return this.cachedComponentDependencies;
+    public @Nullable String getRepositoryId() {
+        return graph.structure().components().repositoryName(index);
     }
 
     @Override
-    public Set<ResolvedDependencyResult> getDependents() {
-        return Collections.unmodifiableSet(dependents);
+    public Set<? extends DependencyResult> getDependencies() {
+        return getAllDependencies().componentDependencies();
     }
 
-    public DefaultResolvedComponentResult addDependent(ResolvedDependencyResult dependent) {
-        this.dependents.add(dependent);
-        return this;
+    @Override
+    public Set<? extends ResolvedDependencyResult> getDependents() {
+        return graph.getIncomingEdges(index);
     }
 
     @Override
     public ComponentSelectionReasonInternal getSelectionReason() {
-        return selectionReason;
+        return graph.structure().components().selectionReason(index);
     }
 
     @Override
-    @Nullable
-    public ModuleVersionIdentifier getModuleVersion() {
-        return moduleVersion;
+    public @Nullable ModuleVersionIdentifier getModuleVersion() {
+        return graph.structure().components().moduleVersionId(index);
     }
 
     @Override
@@ -131,42 +107,121 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public List<ResolvedVariantResult> getVariants() {
-        return selectedVariants;
+    public synchronized List<ResolvedVariantResult> getVariants() {
+        if (variants == null) {
+            variants = computeVariants(graph, nodeIndices);
+        }
+        return variants;
+    }
+
+    private static ImmutableList<ResolvedVariantResult> computeVariants(
+        ResolvedGraphResult graph,
+        IntList nodeIndices
+    ) {
+        int size = nodeIndices.size();
+        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(size);
+        for (int i = 0; i < size; i++) {
+            builder.add(graph.getVariant(nodeIndices.getInt(i)));
+        }
+        return builder.build();
     }
 
     @Override
     public List<ResolvedVariantResult> getAvailableVariants() {
-        return allVariants;
+        List<ResolvedVariantResult> availableVariants = graph.getAvailableVariants(index);
+        if (availableVariants == null) {
+            return getVariants();
+        }
+        return availableVariants;
     }
 
     @Override
     public List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant) {
-        if (!selectedVariants.contains(variant)) {
-            reportInvalidVariant(variant);
+        List<ResolvedVariantResult> selectedVariants = getVariants();
+        int indexInComponent = selectedVariants.indexOf(variant);
+        if (indexInComponent == -1) {
+            Optional<ResolvedVariantResult> sameName = selectedVariants.stream()
+                .filter(v -> v.getDisplayName().equals(variant.getDisplayName()))
+                .findFirst();
+            String moreInfo = sameName.isPresent()
+                ? "A variant with the same name exists but is not the same instance."
+                : "There's no resolved variant with the same name.";
+            throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
         }
-        return ImmutableList.copyOf(variantDependencies.getOrDefault(variant, ImmutableSet.of()));
+
+        return getAllDependencies().variantDependencies().get(indexInComponent);
     }
 
-    private void reportInvalidVariant(ResolvedVariantResult variant) {
-        Optional<ResolvedVariantResult> sameName = selectedVariants.stream()
-            .filter(v -> v.getDisplayName().equals(variant.getDisplayName()))
-            .findFirst();
-        String moreInfo = sameName.isPresent()
-            ? "A variant with the same name exists but is not the same instance."
-            : "There's no resolved variant with the same name.";
-        throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
+    private synchronized ComponentDependencies getAllDependencies() {
+        if (dependencies == null) {
+            dependencies = computeAllDependencies(graph, nodeIndices, this);
+        }
+        return dependencies;
     }
 
-    @Override
-    @Nullable
-    public ResolvedVariantResult getVariant(long id) {
-        return selectedVariantsById.get(id);
+    private static ComponentDependencies computeAllDependencies(
+        ResolvedGraphResult graph,
+        IntList nodeIndices,
+        ResolvedComponentResult fromComponent
+    ) {
+        ImmutableSet.Builder<DependencyResult> componentDependencies = ImmutableSet.builder();
+        ImmutableList.Builder<ImmutableList<DependencyResult>> allVariantDependencies = ImmutableList.builderWithExpectedSize(nodeIndices.size());
+        for (int i = 0; i < nodeIndices.size(); i++) {
+            int nodeIndex = nodeIndices.getInt(i);
+            ImmutableList<DependencyResult> variantDependencies = computeDependenciesForVariant(graph, fromComponent, nodeIndex);
+            allVariantDependencies.add(variantDependencies);
+            for (DependencyResult dependency : variantDependencies) {
+                componentDependencies.add(dependency);
+            }
+        }
+
+        return new ComponentDependencies(
+            componentDependencies.build(),
+            allVariantDependencies.build()
+        );
     }
 
-    public void setVariantDependencies(ResolvedVariantResult variant, ImmutableSet<DependencyResult> dependencies) {
-        this.variantDependencies.put(variant, dependencies);
+    private static ImmutableList<DependencyResult> computeDependenciesForVariant(
+        ResolvedGraphResult graph,
+        ResolvedComponentResult fromComponent,
+        int nodeIndex
+    ) {
+        GraphStructure.Edges edges = graph.structure().edges();
+
+        int start = edges.start(nodeIndex);
+        int end = edges.end(nodeIndex);
+        ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builderWithExpectedSize(end - start);
+        for (int i = start; i < end; i++) {
+            ComponentSelector selector = edges.selector(i);
+            boolean constraint = edges.constraint(i);
+            int targetNodeIndex = edges.targetNode(i);
+            if (targetNodeIndex != -1) {
+                int targetComponentIndex = graph.structure().nodes().owner(targetNodeIndex);
+                builder.add(new DefaultResolvedDependencyResult(
+                    selector,
+                    constraint,
+                    fromComponent,
+                    graph.getComponent(targetComponentIndex),
+                    graph.getVariant(targetNodeIndex)
+                ));
+            } else {
+                GraphStructure.Edges.EdgeFailure failure = edges.failure(i);
+                builder.add(new DefaultUnresolvedDependencyResult(
+                    selector,
+                    fromComponent,
+                    constraint,
+                    failure.failure(),
+                    failure.reason()
+                ));
+            }
+        }
+        return builder.build().asList();
     }
+
+    private record ComponentDependencies(
+        ImmutableSet<? extends DependencyResult> componentDependencies,
+        ImmutableList<ImmutableList<DependencyResult>> variantDependencies
+    ) { }
 
     /**
      * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.
@@ -177,6 +232,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
      * @param dependencyAction an action to be performed on each edge (dependency) in the graph
      * @param visited tracks the visited nodes during the recursive traversal
      */
+    // TODO: Internal consumers of this method should prefer to operate directly on a GraphStructure,
+    // which does not incur the performance penalities of building the ResolutionResult public API.
     public static void eachElement(
         ResolvedComponentResult start,
         Action<? super ResolvedComponentResult> moduleAction,
@@ -195,11 +252,4 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         }
     }
 
-    /**
-     * Finalize this component, making it immutable and ensuring its contents are stored in memory-efficient data structures.
-     */
-    public void complete() {
-        this.dependents = ImmutableSet.copyOf(dependents);
-        this.variantDependencies = ImmutableMap.copyOf(variantDependencies);
-    }
 }

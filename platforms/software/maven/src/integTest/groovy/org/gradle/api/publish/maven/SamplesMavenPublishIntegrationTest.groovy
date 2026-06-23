@@ -21,12 +21,13 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sampleProject = new Sample(temporaryFolder)
 
-    @UsesSample("maven-publish/quickstart")
+    @UsesSample("integration-tests/maven-publish/quickstart")
     def "quickstart publish with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -48,7 +49,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/quickstart")
+    @UsesSample("integration-tests/maven-publish/quickstart")
     def "quickstart publish local with #dsl dsl"() {
         using m2
 
@@ -75,7 +76,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/javaProject")
+    @UsesSample("integration-tests/maven-publish/javaProject")
     def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -102,7 +103,8 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/customize-identity")
+    @UsesSample("integration-tests/maven-publish/customize-identity")
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "customize publication identity with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -122,7 +124,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/conditional-publishing")
+    @UsesSample("integration-tests/maven-publish/conditional-publishing")
     def "conditional publishing with #dsl dsl"() {
         using m2
 
@@ -158,7 +160,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/conditional-publishing")
+    @UsesSample("integration-tests/maven-publish/conditional-publishing")
     def "shorthand publish to external repository with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -175,7 +177,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/conditional-publishing")
+    @UsesSample("integration-tests/maven-publish/conditional-publishing")
     def "shorthand publish for development with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -194,7 +196,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/publish-artifact")
+    @UsesSample("integration-tests/maven-publish/publish-artifact")
     def "publishes rpm artifact with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -218,7 +220,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/distribution")
+    @UsesSample("integration-tests/maven-publish/distribution")
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)

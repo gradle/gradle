@@ -22,6 +22,9 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
+
 class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
@@ -358,6 +361,186 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "Fails resolution because two constraints request conflicting attribute values"() {
+        given:
+        repository {
+            'org:test:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c1')
+                        }
+                    }
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        }
+                    }
+                }
+                conf 'org:test'
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c1'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c2'"))
+        failure.assertThatCause(not(containsString("<no value>")))
+        failure.assertThatCause(not(containsString("Possible solutions:")))
+        failure.assertHasResolution("Configure all dependencies to use the same value for the attribute 'custom'.")
+        failure.assertHasResolution("For advanced cases where different values should be treated as compatible, define a compatibility rule. See: https://docs.gradle.org/current/userguide/variant_attributes.html#sec:abm-compatibility-rules.")
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "constraint paths render correctly when conflicting constraints originate at different depths"() {
+        given:
+        settingsFile << "include 'projectB'"
+        file('projectB/build.gradle') << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+            ${repositoryDeclaration}
+            configurations {
+                dependencyScope("deps")
+                consumable("conf") {
+                    extendsFrom(deps)
+                }
+            }
+            dependencies {
+                constraints {
+                    deps('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c2') }
+                    }
+                }
+            }
+        """
+
+        repository {
+            'org:test:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf project(path: ':projectB', configuration: 'conf')
+                conf 'org:test'
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c1') }
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c1'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) --> project ':projectB' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c2'"))
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "repeated requests for the same attribute value are de-duplicated in the error message"() {
+        given:
+        settingsFile << "include 'projectB'"
+        file('projectB/build.gradle') << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+            ${repositoryDeclaration}
+            configurations {
+                dependencyScope("deps")
+                consumable("conf") {
+                    extendsFrom(deps)
+                }
+            }
+            dependencies {
+                constraints {
+                    deps('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c2') }
+                    }
+                }
+            }
+        """
+
+        repository {
+            'org:test:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf project(path: ':projectB', configuration: 'conf')
+                conf 'org:test'
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c1') }
+                    }
+                    conf('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c2') }
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2'"))
+        // c2 should not appear duplicated in the Requested values list
+        failure.assertThatCause(not(containsString("'c1', 'c2', 'c2'")))
+        failure.assertThatCause(not(containsString("'c2', 'c2'")))
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "dependency paths appear in the error message when the attribute is declared on the dependency itself"() {
+        given:
+        repository {
+            'org:test:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c2') }
+                    }
+                    conf('org:test:1.0') {
+                        attributes { attribute(CUSTOM_ATTRIBUTE, 'c3') }
+                    }
+                }
+                conf('org:test:1.0') {
+                    attributes { attribute(CUSTOM_ATTRIBUTE, 'c1') }
+                }
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot select a variant of 'org:test' because the dependency requirements request incompatible values for attribute 'custom'.")
+        failure.assertThatCause(containsString("Requested values: 'c1', 'c2', 'c3'"))
+        failure.assertThatCause(containsString("Dependency path: root project 'test' (conf) depends on 'org:test:1.0' with attribute 'custom' = 'c1'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c2'"))
+        failure.assertThatCause(containsString("Constraint path: root project 'test' (conf) requires 'org:test:1.0' with attribute 'custom' = 'c3'"))
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll("Selects variant #expectedVariant using typed attribute value #attributeValue")
     @Issue("gradle/gradle#5232")
     def "can declare typed attributes without failing serialization"() {
@@ -462,7 +645,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         failure.assertHasCause("""Could not find any version that matches org:test:[1.0,).""")
 
         and:
-        outputContains("Success for root project :")
+        outputContains("Success for root project 'test'")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")

@@ -27,7 +27,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.cc.impl.InputTrackingState
-import org.gradle.internal.cc.impl.Workarounds.canAccessConventions
+import org.gradle.internal.cc.impl.Workarounds.canAccessTaskExtensions
 import org.gradle.internal.cc.impl.isSupportedListener
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsBuildListeners
@@ -73,8 +73,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
-    override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        if (canAccessConventions(task.javaClass.name, invocationDescription)) {
+    override fun onTaskExtensionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        if (canAccessTaskExtensions(task.javaClass.name, invocationDescription)) {
             return
         }
         onTaskExecutionAccessProblem(invocationDescription, task, runningTask)

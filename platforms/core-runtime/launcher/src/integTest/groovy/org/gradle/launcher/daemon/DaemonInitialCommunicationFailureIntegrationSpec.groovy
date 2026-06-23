@@ -17,14 +17,15 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Issue
@@ -36,7 +37,7 @@ import java.nio.charset.StandardCharsets
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@Requires([IntegTestPreconditions.CanKillProcess, UnitTestPreconditions.NotAlpine])
+@Requires([TestExecutionPreconditions.CanKillProcess, OsTestPreconditions.NotAlpine])
 @LocalOnly
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 

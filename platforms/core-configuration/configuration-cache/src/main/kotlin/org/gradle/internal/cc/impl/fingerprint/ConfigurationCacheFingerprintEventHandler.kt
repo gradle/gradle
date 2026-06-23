@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.properties.GradlePropertiesListener
 import org.gradle.api.internal.properties.GradlePropertyScope
@@ -35,7 +36,6 @@ import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.impl.CoupledProjectsListener
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
-import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.execution.WorkInputListeners
@@ -66,7 +66,6 @@ internal class ConfigurationCacheFingerprintEventHandler(
 // For these listeners this class is the only "real" implementation.
 // Event sources get our instance through ServiceRegistry.
     ChangingValueDependencyResolutionListener,
-    ConfigurationCacheEnvironment.Listener,
     CoupledProjectsListener,
     FeatureFlagListener,
     FileCollectionObservationListener,
@@ -201,7 +200,7 @@ internal class ConfigurationCacheFingerprintEventHandler(
         delegate?.onChangingModuleResolve(moduleId, expiry)
     }
 
-    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+    override fun onProjectReference(referrer: ProjectIdentity, target: ProjectIdentity) {
         delegate?.onProjectReference(referrer, target)
     }
 
@@ -239,21 +238,5 @@ internal class ConfigurationCacheFingerprintEventHandler(
         snapshot: Map<String, String>
     ) {
         delegate?.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot)
-    }
-
-    override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        delegate?.systemPropertiesPrefixedBy(prefix, snapshot)
-    }
-
-    override fun systemProperty(name: String, value: String?) {
-        delegate?.systemProperty(name, value)
-    }
-
-    override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        delegate?.envVariablesPrefixedBy(prefix, snapshot)
-    }
-
-    override fun envVariable(name: String, value: String?) {
-        delegate?.envVariable(name, value)
     }
 }

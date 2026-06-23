@@ -16,15 +16,16 @@
 
 package org.gradle.integtests.fixtures.logging
 
+import org.jspecify.annotations.Nullable
 import spock.lang.Specification
 
 class DependencyInsightOutputNormalizerTest extends Specification {
 
     def normalizer = new DependencyInsightOutputNormalizer()
 
-    def 'normalizes single-digit requested JDK version in "new" dependencyInsight report'() {
+    def 'normalizes provided and requested JDK version report'() {
         given:
-        def originalOutput = '''
+        def originalOutput = """
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
@@ -33,10 +34,13 @@ class DependencyInsightOutputNormalizerTest extends Specification {
     | org.gradle.usage               | java-api | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
-    | org.gradle.jvm.version         |          | 8            |'''
+    | org.gradle.jvm.version         | ${padRight(provided, 8)} | ${padRight(requested, 12)} |"""
+
+        def expectedProvided = provided != null ? "11" : ""
+        def expectedRequested = requested != null ? "11" : ""
 
         expect:
-        normalizer.normalize(originalOutput, null) == '''
+        normalizer.normalize(originalOutput, null) == """
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.status              | release  |              |
@@ -45,6 +49,29 @@ class DependencyInsightOutputNormalizerTest extends Specification {
     | org.gradle.usage               | java-api | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
-    | org.gradle.jvm.version         |          | 11           |'''
+    | org.gradle.jvm.version         | ${expectedProvided.padRight(8)} | ${expectedRequested.padRight(12)} |"""
+
+        where:
+        provided | requested
+        null     | null
+        8        | null
+        17       | null
+        null     | 8
+        null     | 17
+        8        | 8
+        8        | 17
+        17       | 8
+        17       | 17
     }
+
+    String padRight(@Nullable Integer value, int num) {
+        String str
+        if (value == null) {
+            str = ""
+        } else {
+            str = Integer.toString(value)
+        }
+        str.padRight(num)
+    }
+
 }

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -47,7 +48,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'war' // or 'ear' or 'java'
  *     id 'eclipse-wtp'
@@ -103,7 +104,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'war'
  *     id 'eclipse-wtp'
@@ -136,7 +137,10 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *   }
  * }
  * </pre>
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public abstract class EclipseWtpComponent {
 
     private final Project project;
@@ -156,6 +160,7 @@ public abstract class EclipseWtpComponent {
 
     @Inject
     public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
+        IdeDeprecations.nagDeprecatedType(EclipseWtpComponent.class);
         this.project = project;
         this.file = file;
     }

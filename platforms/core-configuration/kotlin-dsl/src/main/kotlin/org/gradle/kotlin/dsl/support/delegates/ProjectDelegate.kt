@@ -210,6 +210,7 @@ abstract class ProjectDelegate : Project {
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
 
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun getProperties(): MutableMap<String, *> =
         delegate.properties
 

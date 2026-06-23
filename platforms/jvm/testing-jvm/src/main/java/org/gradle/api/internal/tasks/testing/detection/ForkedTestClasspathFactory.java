@@ -85,6 +85,7 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-build-operations").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-problems-api").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-wrapper-shared").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("native-platform").getImplementationClasspath().getAsURLs(),

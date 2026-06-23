@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
 
 public class DefaultModuleIdentifier implements ModuleIdentifier {
     private final String group;
@@ -28,7 +29,7 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
     private DefaultModuleIdentifier(@Nullable String group, String name) {
         this.group = group;
         this.name = name;
-        this.hashCode = Objects.hashCode(group, name);
+        this.hashCode = computeHashCode(group, name);
     }
 
     public static ModuleIdentifier newId(ModuleIdentifier other) {
@@ -67,12 +68,19 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
         }
         DefaultModuleIdentifier that = (DefaultModuleIdentifier) o;
         return hashCode == that.hashCode &&
-            Objects.equal(group, that.group) &&
-            Objects.equal(name, that.name);
+            Objects.equals(group, that.group) &&
+            Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
         return hashCode;
     }
+
+    private static int computeHashCode(@Nullable String group, String name) {
+        int result = Objects.hashCode(group);
+        result = 31 * result + name.hashCode();
+        return result;
+    }
+
 }

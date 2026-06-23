@@ -56,6 +56,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
     private volatile boolean aborted;
 
+    @SuppressWarnings("this-escape")
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
         Action<Throwable> errorHandler = new Action<Throwable>() {
             @Override

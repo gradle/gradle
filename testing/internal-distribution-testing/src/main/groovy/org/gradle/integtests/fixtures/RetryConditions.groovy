@@ -17,7 +17,8 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.GradleVersion
 import org.junit.AssumptionViolatedException
 
@@ -161,6 +162,6 @@ class RetryConditions {
     }
 
     static boolean isAffectedBySocketDisappearanceIssue() {
-        return new UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue().isSatisfied()
+        return new OsTestPreconditions.IsKnownWindowsSocketDisappearanceIssue().isSatisfied()
     }
 }

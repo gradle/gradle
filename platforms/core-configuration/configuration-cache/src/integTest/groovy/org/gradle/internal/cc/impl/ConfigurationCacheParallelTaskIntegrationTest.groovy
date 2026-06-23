@@ -19,14 +19,14 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @Requires(value = IntegTestPreconditions.NotParallelExecutor, reason = """
+    @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = """
 Don't run in parallel mode, as the expectation for the setup build are incorrect and running in parallel
 does not really make any difference to the coverage
 """)
@@ -65,7 +65,7 @@ does not really make any difference to the coverage
         }
     }
 
-    @Requires(value = IntegTestPreconditions.NotParallelExecutor, reason = """
+    @Requires(value = TestExecutionPreconditions.NotParallelExecutor, reason = """
 Don't run in parallel mode, as the expectation for the setup build are incorrect
 It could potentially be worth running this in parallel mode to demonstrate the difference between
 parallel and configuration cache
@@ -100,7 +100,7 @@ parallel and configuration cache
         }
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "finalizer task dependencies from sibling project must run after finalized task dependencies"() {
         server.start()
 
@@ -163,7 +163,7 @@ parallel and configuration cache
         configurationCache.assertStateLoaded()
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "finalizer task dependencies must run after finalized task dependencies"() {
         server.start()
 

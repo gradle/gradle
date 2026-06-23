@@ -24,6 +24,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
+    api(projects.classpath)
     api(projects.workers)
 
     api(libs.inject)
@@ -84,6 +85,4 @@ packageCycles {
     excludePatterns.add("org/gradle/language/scala/tasks/*")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

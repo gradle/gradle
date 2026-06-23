@@ -17,10 +17,10 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.internal.ToBeImplemented
+
 import spock.lang.Issue
 
-import static org.junit.Assume.assumeTrue
+
 
 abstract class AbstractSourceIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
 
@@ -520,13 +520,7 @@ sourceSets {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28916")
-    @ToBeImplemented
     def "recompiles classes on file typo rename"() {
-        // TODO: Delete this assume statement when fixed,
-        //  since for Java Cli mode it already works accidentally,
-        //  since Cli mode doesn't track file to class mapping accurately
-        assumeTrue(this.class != JavaSourceCliIncrementalCompilationIntegrationTest.class)
-
         def fileWithTypo = file("src/main/${languageName}/ATypo.${languageName}") << """
             class A {}
         """
@@ -540,10 +534,6 @@ sourceSets {
         run language.compileTaskName
 
         then:
-        // TODO: Fix this, A should be recompiled, e.g.:
-        //   outputs.hasFiles(file("A.class"))
-        //   outputs.recompiled("A")
-        outputs.deletedClasses("A")
-        outputs.noneRecompiled()
+        outputs.recompiledClasses("A")
     }
 }

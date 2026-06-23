@@ -28,19 +28,23 @@ import java.lang.annotation.Target;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
- * <p>This annotation can be used with the following annotations:</p>
+ * <p><strong>This annotation must be combined with one of the following annotations.</strong>
  *
- * <ul> <li>{@link org.gradle.api.tasks.Input}</li>
- *
+ * <ul>
+ * <li>{@link org.gradle.api.tasks.Input}</li>
  * <li>{@link org.gradle.api.tasks.InputFile}</li>
- *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li>
- *
  * <li>{@link org.gradle.api.tasks.InputFiles}</li>
- *
+ * <li>{@link org.gradle.api.tasks.Nested}</li>
  * <li>{@link org.gradle.api.tasks.OutputFile}</li>
- *
- * <li>{@link org.gradle.api.tasks.OutputDirectory}</li> </ul>
+ * <li>{@link org.gradle.api.tasks.OutputFiles}</li>
+ * <li>{@link org.gradle.api.tasks.OutputDirectory}</li>
+ * <li>{@link org.gradle.api.tasks.OutputDirectories}</li>
+ * <li>{@link org.gradle.api.services.ServiceReference}</li>
+ * </ul>
+ * <p>
+ * Using {@code @Optional} alone, without an accompanying input or output annotation, is a validation error.
+ * If you want to express that the property should not be an input or output, you should mark it with {@link Internal} which implies optionality.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

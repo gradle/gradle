@@ -26,7 +26,8 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Timeout
 
 import static org.junit.Assert.assertFalse
@@ -42,7 +43,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
         broadcast.add(listenerMock)
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "WorkerProcessBuilder handles workingDir with absolute path length #absolutePathLength"() {
         when:
         def testWorkingDir = generateTestWorkingDirectory(absolutePathLength)
@@ -53,7 +54,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
         absolutePathLength << [258, 259, 260]
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "JavaProcessBuilder handles workingDir with absolute path length #absolutePathLength"() {
         when:
         def testWorkingDir = generateTestWorkingDirectory(absolutePathLength)

@@ -157,7 +157,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
                 `java-library`
             }
 
-            val custom by configurations.creating {
+            val custom = configurations.create("custom") {
                 configurations.implementation.get().extendsFrom(this)
             }
             dependencies {
@@ -205,7 +205,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
                 `java-library`
             }
 
-            val custom by configurations.creating {
+            val custom = configurations.create("custom") {
                 configurations.implementation.get().extendsFrom(this)
             }
             dependencies {
@@ -251,7 +251,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
                 `java-library`
             }
 
-            val custom by configurations.creating {
+            val custom = configurations.create("custom") {
                 configurations.implementation.get().extendsFrom(this)
             }
             dependencies {
@@ -297,7 +297,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
                 `java-library`
             }
 
-            val custom by configurations.creating {
+            val custom = configurations.create("custom") {
                 configurations.implementation.get().extendsFrom(this)
             }
             dependencies {

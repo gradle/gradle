@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import javax.inject.Inject;
 
@@ -33,7 +34,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * More interesting examples you will find in docs for {@link EclipseWtpComponent} and {@link EclipseWtpFacet}
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'war' // or 'ear' or 'java'
  *     id 'eclipse-wtp'
@@ -56,10 +57,19 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  *
  * </pre>
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public abstract class EclipseWtp {
+
     private EclipseWtpComponent component;
     private EclipseWtpFacet facet;
+
+    @Inject
+    public EclipseWtp() {
+        IdeDeprecations.nagDeprecatedType(EclipseWtp.class);
+    }
 
     /**
      * Injects and returns an instance of {@link ObjectFactory}.

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.compileToDirectory
 import org.gradle.kotlin.dsl.support.SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME
-import org.gradle.kotlin.dsl.support.zipTo
+import org.gradle.kotlin.dsl.fixtures.zipTo
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Before
@@ -65,16 +65,16 @@ class SkipMetadataVersionCheckTest : AbstractKotlinIntegrationTest() {
         withBuildScript(
             """
                 import org.integ.test.util.Printer
-    
+
                 buildscript {
                   dependencies {
                     classpath(files("${TextUtil.normaliseFileSeparators(jarFile.canonicalPath)}"))
                   }
                 }
-    
+
                 val printer = Printer()
                 printer.print()
-    
+
                 println("Hello, from the buildfile!")
             """.trimIndent()
         )
@@ -149,7 +149,7 @@ class SkipMetadataVersionCheckTest : AbstractKotlinIntegrationTest() {
             sourceFile.appendText(
                 """
                     package $packageName
-                    
+
                     class $className {
                         fun $functionName() {
                             println("Hello, from $className.$functionName()!")

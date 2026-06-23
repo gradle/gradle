@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
@@ -43,21 +44,22 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
         def srcJar = module.artifactFile(classifier: 'sources')
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-    implementation 'commons-lang:commons-lang:2.6'
-    implementation files('lib/dep.jar')
-}
-"""
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+                implementation 'commons-lang:commons-lang:2.6'
+                implementation files('lib/dep.jar')
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -81,33 +83,34 @@ dependencies {
         module.publish()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         ExecutionResult result = runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-configurations {
-    myPlusConfig
-    myMinusConfig
-}
+            configurations {
+                myPlusConfig
+                myMinusConfig
+            }
 
-dependencies {
-    myPlusConfig("myGroup:missing-extra-artifact:1.0")
-    myPlusConfig("myGroup:filtered-artifact:1.0")
-    myMinusConfig("myGroup:filtered-artifact:1.0")
-    runtimeOnly("myGroup:missing-artifact:1.0")
-    implementation("myGroup:existing-artifact:1.0")
-    eclipse {
-        classpath {
-            plusConfigurations += [ configurations.myPlusConfig ]
-            minusConfigurations += [ configurations.myMinusConfig]
-        }
-    }
-}
-"""
+            dependencies {
+                myPlusConfig("myGroup:missing-extra-artifact:1.0")
+                myPlusConfig("myGroup:filtered-artifact:1.0")
+                myMinusConfig("myGroup:filtered-artifact:1.0")
+                runtimeOnly("myGroup:missing-artifact:1.0")
+                implementation("myGroup:existing-artifact:1.0")
+                eclipse {
+                    classpath {
+                        plusConfigurations += [ configurations.myPlusConfig ]
+                        minusConfigurations += [ configurations.myMinusConfig]
+                    }
+                }
+            }
+        """
         String expected = """Could not resolve: myGroup:missing-artifact:1.0
 Could not resolve: myGroup:missing-extra-artifact:1.0
 """
@@ -128,21 +131,22 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         def anotherJar = mavenRepo.module('coolGroup', 'another', '1.0').publish().artifactFile
 
         //when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-    implementation 'coolGroup:niceArtifact:1.0:extra'
-    testImplementation 'coolGroup:another:1.0'
-    testImplementation 'coolGroup:niceArtifact:1.0:tests'
-}
-"""
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+                implementation 'coolGroup:niceArtifact:1.0:extra'
+                testImplementation 'coolGroup:another:1.0'
+                testImplementation 'coolGroup:niceArtifact:1.0:tests'
+            }
+        """
 
         //then:
         def libraries = classpath.libs
@@ -153,6 +157,7 @@ dependencies {
         libraries[3].assertHasJar(anotherJar)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void includesTransitiveRepoFileDependencies() {
         //given
@@ -161,36 +166,38 @@ dependencies {
 
         //when
         createDirs("a", "b", "c")
-        runEclipseTask """include 'a', 'b', 'c'""", """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        runEclipseTask """
+            include 'a', 'b', 'c'""", """
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
 
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
 
-configure(project(":a")){
-    dependencies {
-        implementation 'someGroup:someOtherArtifact:1.0'
+            configure(project(":a")){
+                dependencies {
+                    implementation 'someGroup:someOtherArtifact:1.0'
 
-        implementation project(':b')
-    }
-}
+                    implementation project(':b')
+                }
+            }
 
-configure(project(":b")){
-    dependencies {
-        implementation project(':c')
-    }
-}
+            configure(project(":b")){
+                dependencies {
+                    implementation project(':c')
+                }
+            }
 
-configure(project(":c")){
-    dependencies {
-        implementation 'someGroup:someArtifact:1.0'
-    }
-}
-"""
+            configure(project(":c")){
+                dependencies {
+                    implementation 'someGroup:someArtifact:1.0'
+                }
+            }
+        """
 
         def libs = classpath("a").libs
         assert classpath("a").projects.collect { it.name } == ["b", "c"]
@@ -199,6 +206,7 @@ configure(project(":c")){
         libs[1].assertHasJar(someArtifactJar)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void includesTransitiveImplementationDependencies() {
         //given
@@ -207,38 +215,40 @@ configure(project(":c")){
 
         //when
         createDirs("a", "b", "c")
-        runEclipseTask """include 'a', 'b', 'c'""", """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        runEclipseTask """
+            include 'a', 'b', 'c'""", """
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
 
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
 
-configure(project(":a")){
-    dependencies {
-        implementation 'someGroup:someOtherArtifact:1.0'
+            configure(project(":a")){
+                dependencies {
+                    implementation 'someGroup:someOtherArtifact:1.0'
 
-        implementation project(':b')
-    }
-}
+                    implementation project(':b')
+                }
+            }
 
-configure(project(":b")){
-    apply plugin: 'java-library'
-    dependencies {
-        api project(':c')
-    }
-}
+            configure(project(":b")){
+                apply plugin: 'java-library'
+                dependencies {
+                    api project(':c')
+                }
+            }
 
-configure(project(":c")){
-    apply plugin: 'java-library'
-    dependencies {
-        implementation 'someGroup:someArtifact:1.0'
-    }
-}
-"""
+            configure(project(":c")){
+                apply plugin: 'java-library'
+                dependencies {
+                    implementation 'someGroup:someArtifact:1.0'
+                }
+            }
+        """
 
         def libs = classpath("a").libs
         assert classpath("a").projects.collect { it.name } == ["b", "c"]
@@ -247,73 +257,78 @@ configure(project(":c")){
         libs[1].assertHasJar(someArtifactJar)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void transitiveProjectDependenciesMappedAsDirectDependencies() {
         given:
         createDirs("a", "b", "c")
-        runEclipseTask """include 'a', 'b', 'c'""", """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        runEclipseTask """
+            include 'a', 'b', 'c'""", """
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
 
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
 
-configure(project(":a")){
-    dependencies {
-        implementation project(':b')
-    }
-}
+            configure(project(":a")){
+                dependencies {
+                    implementation project(':b')
+                }
+            }
 
-configure(project(":b")){
-    dependencies {
-        implementation project(':c')
-    }
-}
-
-"""
+            configure(project(":b")){
+                dependencies {
+                    implementation project(':c')
+                }
+            }
+        """
 
         then:
         def eclipseClasspath = classpath("a")
         assert eclipseClasspath.projects.collect { it.name } == ['b', 'c']
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void transitiveFileDependenciesMappedAsDirectDependencies() {
         createDirs("a", "b", "c")
-        runEclipseTask """include 'a', 'b', 'c'""", """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        runEclipseTask """
+            include 'a', 'b', 'c'""", """
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
 
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
 
-configure(project(":a")){
-    dependencies {
-        implementation files("bar.jar")
-        implementation project(':b')
-    }
-}
+            configure(project(":a")){
+                dependencies {
+                    implementation files("bar.jar")
+                    implementation project(':b')
+                }
+            }
 
-configure(project(":b")){
-    dependencies {
-        implementation project(':c')
-        implementation files("baz.jar")
+            configure(project(":b")){
+                dependencies {
+                    implementation project(':c')
+                    implementation files("baz.jar")
 
-    }
-}
+                }
+            }
 
-configure(project(":c")){
-    dependencies {
-        implementation files("foo.jar")
-    }
-}
-"""
+            configure(project(":c")){
+                dependencies {
+                    implementation files("foo.jar")
+                }
+            }
+        """
 
         def eclipseClasspath = classpath("a")
         assert eclipseClasspath.projects.collect { it.name } == ['b', 'c']
@@ -322,6 +337,7 @@ configure(project(":c")){
         eclipseClasspath.libs[2].assertHasJar(file("c/foo.jar"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
@@ -332,35 +348,36 @@ configure(project(":c")){
         settingsFile << """ include 'a', 'b'"""
         def buildFile = file("build.gradle")
         buildFile << """
-subprojects {
-    apply plugin: 'java-library'
-    apply plugin: 'eclipse'
+            subprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'eclipse'
 
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
-
-configure(project(":a")){
-    dependencies {
-        implementation ('someGroup:someLib') {
-            if (project.hasProperty("strictDeps")) {
-                version {
-                    strictly '1.0'
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
-        }
 
-        implementation project(':b')
-    }
-}
+            configure(project(":a")){
+                dependencies {
+                    implementation ('someGroup:someLib') {
+                        if (project.hasProperty("strictDeps")) {
+                            version {
+                                strictly '1.0'
+                            }
+                        }
+                    }
 
-configure(project(":b")){
-    dependencies {
-        api 'someGroup:someLib:2.0'
-    }
-}
-"""
+                    implementation project(':b')
+                }
+            }
+
+            configure(project(":b")){
+                dependencies {
+                    api 'someGroup:someLib:2.0'
+                }
+            }
+        """
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         def libs = classpath("a").libs
@@ -368,6 +385,7 @@ configure(project(":b")){
         assert libs.size() == 1
         libs[0].assertHasJar(someLib2Jar)
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withArgument("-PstrictDeps=true").withTasks("eclipse").run()
 
         libs = classpath("a").libs
@@ -386,25 +404,26 @@ configure(project(":b")){
         module.publish()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-    implementation files('lib/dep.jar')
-}
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+                implementation files('lib/dep.jar')
+            }
 
-eclipse {
-    pathVariables REPO_DIR: file('${mavenRepo.uri}')
-    pathVariables LIB_DIR: file('lib')
-    classpath.downloadJavadoc = true
-}
-"""
+            eclipse {
+                pathVariables REPO_DIR: file('${mavenRepo.uri}')
+                pathVariables LIB_DIR: file('lib')
+                classpath.downloadJavadoc = true
+            }
+        """
 
         //then
         def libraries = classpath.vars
@@ -420,43 +439,44 @@ eclipse {
     @Test
     void canCustomizeTheClasspathModel() {
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-sourceSets.main.java.srcDirs.each { it.mkdirs() }
-sourceSets.main.resources.srcDirs.each { it.mkdirs() }
+            sourceSets.main.java.srcDirs.each { it.mkdirs() }
+            sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 
-configurations {
-  someConfig
-}
+            configurations {
+              someConfig
+            }
 
-dependencies {
-  someConfig files('foo.txt')
-}
+            dependencies {
+              someConfig files('foo.txt')
+            }
 
-eclipse {
+            eclipse {
 
-  pathVariables fooPathVariable: projectDir
+              pathVariables fooPathVariable: projectDir
 
-  classpath {
-    sourceSets = []
+              classpath {
+                sourceSets = []
 
-    plusConfigurations << configurations.someConfig
+                plusConfigurations << configurations.someConfig
 
-    containers 'someFriendlyContainer', 'andYetAnotherContainer'
+                containers 'someFriendlyContainer', 'andYetAnotherContainer'
 
-    defaultOutputDir = file('build-eclipse')
+                defaultOutputDir = file('build-eclipse')
 
-    downloadSources = false
-    downloadJavadoc = true
+                downloadSources = false
+                downloadJavadoc = true
 
-    file {
-      withXml { it.asNode().appendNode('message', 'be cool') }
-    }
-  }
-}
-"""
+                file {
+                  withXml { it.asNode().appendNode('message', 'be cool') }
+                }
+              }
+            }
+        """
 
         //then
         def vars = classpath.vars
@@ -480,34 +500,35 @@ eclipse {
         def baseJar = module.artifactFile
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-sourceSets.main.java.srcDirs.each { it.mkdirs() }
-sourceSets.main.resources.srcDirs.each { it.mkdirs() }
+            sourceSets.main.java.srcDirs.each { it.mkdirs() }
+            sourceSets.main.resources.srcDirs.each { it.mkdirs() }
 
-configurations {
-  someConfig
-}
+            configurations {
+              someConfig
+            }
 
-eclipse {
+            eclipse {
 
-  classpath {
-    sourceSets = []
+              classpath {
+                sourceSets = []
 
-    plusConfigurations += [ configurations.someConfig ]
-  }
-}
+                plusConfigurations += [ configurations.someConfig ]
+              }
+            }
 
-dependencies {
-    someConfig 'coolGroup:niceArtifact:1.0'
-}
-"""
+            dependencies {
+                someConfig 'coolGroup:niceArtifact:1.0'
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -519,25 +540,26 @@ dependencies {
     @Issue("GRADLE-1487")
     void handlesPlusMinusConfigurationsForSelfResolvingDeps() {
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-configurations {
-  someConfig
-  someOtherConfig
-}
+            configurations {
+              someConfig
+              someOtherConfig
+            }
 
-dependencies {
-  someConfig files('foo.txt', 'bar.txt', 'unwanted.txt')
-  someOtherConfig files('unwanted.txt')
-}
+            dependencies {
+              someConfig files('foo.txt', 'bar.txt', 'unwanted.txt')
+              someOtherConfig files('unwanted.txt')
+            }
 
-eclipse.classpath {
-    plusConfigurations << configurations.someConfig
-    minusConfigurations << configurations.someOtherConfig
-}
-"""
+            eclipse.classpath {
+                plusConfigurations << configurations.someConfig
+                minusConfigurations << configurations.someOtherConfig
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -546,34 +568,36 @@ eclipse.classpath {
         libraries[1].assertHasJar(file("bar.txt"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void handlesPlusMinusConfigurationsForProjectDeps() {
         //when
         createDirs("foo", "bar", "unwanted")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask "include 'foo', 'bar', 'unwanted'",
             """
-allprojects {
-  apply plugin: 'java'
-  apply plugin: 'eclipse'
-}
-
-configurations {
-  someConfig
-  someOtherConfig
-}
-
-dependencies {
-  someConfig project(':foo')
-  someConfig project(':bar')
-  someConfig project(':unwanted')
-  someOtherConfig project(':unwanted')
-}
-
-eclipse.classpath {
-    plusConfigurations << configurations.someConfig
-    minusConfigurations << configurations.someOtherConfig
-}
-"""
+            allprojects {
+              apply plugin: 'java'
+              apply plugin: 'eclipse'
+            }
+            
+            configurations {
+              someConfig
+              someOtherConfig
+            }
+            
+            dependencies {
+              someConfig project(':foo')
+              someConfig project(':bar')
+              someConfig project(':unwanted')
+              someOtherConfig project(':unwanted')
+            }
+            
+            eclipse.classpath {
+                plusConfigurations << configurations.someConfig
+                minusConfigurations << configurations.someOtherConfig
+            }
+        """
 
         //then
         assert classpath.projects.collect { it.name } == ['foo', 'bar']
@@ -586,29 +610,30 @@ eclipse.classpath {
         mavenRepo.module('coolGroup', 'unwantedArtifact', '1.0').publish()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-configurations {
-  someConfig
-  someOtherConfig
-}
+            configurations {
+              someConfig
+              someOtherConfig
+            }
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-  someConfig 'coolGroup:coolArtifact:1.0'
-  someOtherConfig 'coolGroup:unwantedArtifact:1.0'
-}
+            dependencies {
+              someConfig 'coolGroup:coolArtifact:1.0'
+              someOtherConfig 'coolGroup:unwantedArtifact:1.0'
+            }
 
-eclipse.classpath {
-    plusConfigurations << configurations.someConfig
-    minusConfigurations << configurations.someOtherConfig
-}
-"""
+            eclipse.classpath {
+                plusConfigurations << configurations.someConfig
+                minusConfigurations << configurations.someOtherConfig
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -628,23 +653,24 @@ eclipse.classpath {
         def javadocJar = module.artifactFile(classifier: 'javadoc')
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-}
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+            }
 
-eclipse.classpath {
-    downloadSources = true
-    downloadJavadoc = true
-}
-"""
+            eclipse.classpath {
+                downloadSources = true
+                downloadJavadoc = true
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -664,23 +690,24 @@ eclipse.classpath {
         def jar = module.artifactFile
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-}
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+            }
 
-eclipse.classpath {
-    downloadSources = false
-    downloadJavadoc = false
-}
-"""
+            eclipse.classpath {
+                downloadSources = false
+                downloadJavadoc = false
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -704,14 +731,15 @@ eclipse.classpath {
 """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-dependencies {
-  implementation files('newDependency.jar')
-}
-"""
+            dependencies {
+              implementation files('newDependency.jar')
+            }
+        """
         //then
         assert classpath.entries.size() == 3
         def libraries = classpath.libs
@@ -724,12 +752,13 @@ dependencies {
     void canConstructAndReconstructClasspathFromJavaSourceSets() {
         given:
         def buildFile = file("build.gradle") << """
-apply plugin: 'java'
-apply plugin: 'eclipse'
-"""
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+        """
         createJavaSourceDirs(buildFile)
 
         when:
+        expectTaskDeprecations("eclipseClasspath")
         executer.withTasks('eclipseClasspath').run()
 
         then:
@@ -737,6 +766,7 @@ apply plugin: 'eclipse'
         assert classpath.sources.size() == 2
 
         when:
+        expectTaskDeprecations("eclipseClasspath")
         executer.withTasks('eclipseClasspath').run()
 
         then:
@@ -749,24 +779,25 @@ apply plugin: 'eclipse'
     void handlesExcludeOnSharedSourceFolders() {
         given:
         def buildFile = file("build.gradle") << """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']
-        }
-        resources{
-            srcDirs = ['src']
-            exclude '**/*.java'
-        }
-    }
-}
-"""
+            sourceSets {
+                main {
+                    java {
+                        srcDirs = ['src']
+                    }
+                    resources{
+                        srcDirs = ['src']
+                        exclude '**/*.java'
+                    }
+                }
+            }
+        """
         buildFile.parentFile.file("src").createDir()
 
         when:
+        expectTaskDeprecations("eclipseClasspath")
         executer.withTasks('eclipseClasspath').run()
 
         then:
@@ -776,23 +807,24 @@ sourceSets {
 
         when:
         buildFile.text = """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']
-            exclude '**/*.xml'
-        }
-        resources{
-            srcDirs = ['src']
-            exclude '**/*.xml'
-        }
-    }
-}
-"""
+            sourceSets {
+                main {
+                    java {
+                        srcDirs = ['src']
+                        exclude '**/*.xml'
+                    }
+                    resources{
+                        srcDirs = ['src']
+                        exclude '**/*.xml'
+                    }
+                }
+            }
+        """
         when:
+        expectTaskDeprecations("cleanEclipseClasspath", "eclipseClasspath")
         executer.withTasks('cleanEclipseClasspath', 'eclipseClasspath').run()
         then:
         assert classpath.entries.size() == 3
@@ -804,25 +836,26 @@ sourceSets {
     void handlesIncludesOnSharedSourceFolders() {
         given:
         def buildFile = file("build.gradle") << """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']
-            include '**/*.java'
-        }
-        resources{
-            srcDirs = ['src']
-            include '**/*.properties'
-        }
-    }
-}
-"""
+            sourceSets {
+                main {
+                    java {
+                        srcDirs = ['src']
+                        include '**/*.java'
+                    }
+                    resources{
+                        srcDirs = ['src']
+                        include '**/*.properties'
+                    }
+                }
+            }
+        """
         buildFile.parentFile.file("src").createDir()
 
         when:
+        expectTaskDeprecations("eclipseClasspath")
         executer.withTasks('eclipseClasspath').run()
 
         then:
@@ -833,24 +866,25 @@ sourceSets {
 
         when:
         buildFile.text = """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']
-            include '**/*.java'
-        }
-        resources{
-            srcDirs = ['src']
-        }
-    }
-}
-"""
+            sourceSets {
+                main {
+                    java {
+                        srcDirs = ['src']
+                        include '**/*.java'
+                    }
+                    resources{
+                        srcDirs = ['src']
+                    }
+                }
+            }
+        """
         buildFile.parentFile.file("src").createDir()
 
         when:
+        expectTaskDeprecations("cleanEclipse", "cleanEclipseClasspath", "cleanEclipseJdt", "cleanEclipseProject", "eclipseClasspath")
         executer.withTasks('cleanEclipse', 'eclipseClasspath').run()
 
         then:
@@ -863,56 +897,59 @@ sourceSets {
     void canAccessXmlModelBeforeAndAfterGeneration() {
         //given
         def classpath = getClasspathFile([:])
-        classpath << """<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="$jreContainerPath"/>
-	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
-	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
-</classpath>
-"""
+        classpath << """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <classpath>
+                <classpathentry kind="output" path="bin"/>
+                <classpathentry kind="con" path="$jreContainerPath"/>
+                <classpathentry kind="lib" path="/some/path/someDependency.jar"/>
+                <classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
+            </classpath>
+        """.strip()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-def hooks = []
+            def hooks = []
 
-dependencies {
-  implementation files('newDependency.jar')
-}
+            dependencies {
+              implementation files('newDependency.jar')
+            }
 
-eclipse {
-  classpath {
-    file {
-      beforeMerged {
-        hooks << 'beforeMerged'
-        assert it.entries.size() == 4
-        assert it.entries.any { it.path.contains('someDependency.jar') }
-        assert it.entries.any { it.path.contains('someVarDependency.jar') }
-        assert !it.entries.any { it.path.contains('newDependency.jar') }
-      }
-      whenMerged {
-        hooks << 'whenMerged'
-        assert it.entries.size() == 3
-        assert it.entries.any { it.path.contains('newDependency.jar') }
-        assert !it.entries.any { it.path.contains('someDependency.jar') }
-        assert !it.entries.any { it.path.contains('someVarDependency.jar') }
-      }
-    }
-  }
-}
+            eclipse {
+              classpath {
+                file {
+                  beforeMerged {
+                    hooks << 'beforeMerged'
+                    assert it.entries.size() == 4
+                    assert it.entries.any { it.path.contains('someDependency.jar') }
+                    assert it.entries.any { it.path.contains('someVarDependency.jar') }
+                    assert !it.entries.any { it.path.contains('newDependency.jar') }
+                  }
+                  whenMerged {
+                    hooks << 'whenMerged'
+                    assert it.entries.size() == 3
+                    assert it.entries.any { it.path.contains('newDependency.jar') }
+                    assert !it.entries.any { it.path.contains('someDependency.jar') }
+                    assert !it.entries.any { it.path.contains('someVarDependency.jar') }
+                  }
+                }
+              }
+            }
 
-eclipseClasspath.doLast() {
-  assert hooks == ['beforeMerged', 'whenMerged']
-}
-"""
+            eclipseClasspath.doLast() {
+              assert hooks == ['beforeMerged', 'whenMerged']
+            }
+        """
 
         //then no exception is thrown
     }
 
     @Issue("GRADLE-1502")
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void createsLinkedResourcesForSourceDirectoriesWhichAreNotUnderTheProjectDirectory() {
         file('someGroovySrc').mkdirs()
@@ -923,21 +960,22 @@ eclipseClasspath.doLast() {
 
         def buildFile = file('build.gradle')
         buildFile << """
-allprojects {
-  apply plugin: 'java'
-  apply plugin: 'eclipse'
-  apply plugin: 'groovy'
-}
+            allprojects {
+              apply plugin: 'java'
+              apply plugin: 'eclipse'
+              apply plugin: 'groovy'
+            }
 
-project(':api') {
-    sourceSets {
-        main {
-            groovy.srcDirs = ['../someGroovySrc']
-        }
-    }
-}
-"""
+            project(':api') {
+                sourceSets {
+                    main {
+                        groovy.srcDirs = ['../someGroovySrc']
+                    }
+                }
+            }
+        """
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks('eclipse').run()
 
         //then
@@ -958,13 +996,14 @@ project(':api') {
         testFile('build/generated/test/test.resource').createFile()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: "java"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "eclipse"
 
-sourceSets.main.output.dir "$buildDir/generated/main"
-sourceSets.test.output.dir "$buildDir/generated/test"
-'''
+            sourceSets.main.output.dir "$buildDir/generated/main"
+            sourceSets.test.output.dir "$buildDir/generated/test"
+        '''
         //then
         def libraries = classpath.libs
         assert libraries.size() == 2
@@ -975,20 +1014,22 @@ sourceSets.test.output.dir "$buildDir/generated/test"
     @Test
     void theBuiltByTaskBeExecuted() {
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         def result = runEclipseTask('''
-apply plugin: "java"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "eclipse"
 
-sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
-sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
+            sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
+            sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
 
-task generateForMain
-task generateForTest
-''')
+            task generateForMain
+            task generateForTest
+        ''')
         //then
         result.assertTasksScheduled(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
@@ -999,23 +1040,24 @@ task generateForTest
         file("settings.gradle") << "include 'someApiProject'\n"
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+            }
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-    implementation project(':someApiProject')
-    implementation 'i.dont:Exist:1.0'
-    implementation files('someDependency.jar')
-}
-"""
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+                implementation project(':someApiProject')
+                implementation 'i.dont:Exist:1.0'
+                implementation files('someDependency.jar')
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -1031,22 +1073,23 @@ dependencies {
         def otherLib = mavenRepo.module('other', 'lib', '3.0').publish().artifactFile
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'scala'
-apply plugin: 'eclipse'
+            apply plugin: 'scala'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
+            }
 
-dependencies {
-    implementation "org.scala-lang:scala-library:2.9.2"
-    runtimeOnly "org.scala-lang:scala-swing:2.9.1"
-    testImplementation "org.scala-lang:scala-dbc:2.9.0"
-    testRuntimeOnly "other:lib:3.0"
-}
-"""
+            dependencies {
+                implementation "org.scala-lang:scala-library:2.9.2"
+                runtimeOnly "org.scala-lang:scala-swing:2.9.1"
+                testImplementation "org.scala-lang:scala-dbc:2.9.0"
+                testRuntimeOnly "other:lib:3.0"
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -1067,10 +1110,11 @@ dependencies {
 """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
-"""
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+        """
         //then
         assert classpath.entries.size() == 2
         assert classpath.containers.size() == 1
@@ -1084,25 +1128,27 @@ apply plugin: 'eclipse'
         mavenRepo.module('org.gradle.test', 'testCompileOnly', '1.0').publish()
 
         // when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    compileOnly 'org.gradle.test:compileOnly:1.0'
-    testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
-}
-"""
+            dependencies {
+                compileOnly 'org.gradle.test:compileOnly:1.0'
+                testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
+            }
+        """
 
         // then
         assert classpath.libs.size() == 2
         classpath.assertHasLibs('compileOnly-1.0.jar', 'testCompileOnly-1.0.jar')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void compileOnlyDependenciesAreNotExported() {
         // given
@@ -1111,29 +1157,30 @@ dependencies {
 
         // when
         createDirs("a", "b")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask "include 'a', 'b'", """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
 
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
-}
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+            }
 
-project(':a') {
-    dependencies {
-        compileOnly 'org.gradle.test:compileOnly:1.0'
-    }
-}
+            project(':a') {
+                dependencies {
+                    compileOnly 'org.gradle.test:compileOnly:1.0'
+                }
+            }
 
-project(':b') {
-    dependencies {
-        implementation project(':a')
-        implementation 'org.gradle.test:compile:1.0'
-    }
-}
-"""
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                    implementation 'org.gradle.test:compile:1.0'
+                }
+            }
+        """
 
         // then
         def classpathA = classpath('a')
@@ -1145,6 +1192,7 @@ project(':b') {
         classpathB.assertHasLibs('compile-1.0.jar')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "test compile only dependencies mapped to classpath and not exported"() {
         // given
@@ -1153,6 +1201,7 @@ project(':b') {
 
         // when
         createDirs("a", "b")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'
@@ -1192,6 +1241,7 @@ project(':b') {
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
         // given
@@ -1200,6 +1250,7 @@ project(':b') {
 
         // when
         createDirs("a", "b")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'
@@ -1239,6 +1290,7 @@ project(':b') {
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
         // given
@@ -1247,6 +1299,7 @@ project(':b') {
 
         // when
         createDirs("a", "b")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'
@@ -1286,6 +1339,7 @@ project(':b') {
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
         // given
@@ -1294,6 +1348,7 @@ project(':b') {
 
         // when
         createDirs("a", "b")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'

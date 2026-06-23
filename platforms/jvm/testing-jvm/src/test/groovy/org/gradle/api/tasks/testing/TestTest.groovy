@@ -46,7 +46,7 @@ import org.gradle.jvm.toolchain.internal.JavaToolchainInput
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
@@ -259,7 +259,7 @@ class TestTest extends AbstractConventionTaskTest {
         javaForkOptions.getJvmArgs() == ['First', 'Second']
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "java version is determined with toolchain if set"() {
         def jdk = AvailableJavaHomes.differentVersion
 

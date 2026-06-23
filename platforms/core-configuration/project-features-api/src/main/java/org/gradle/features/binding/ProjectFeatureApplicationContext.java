@@ -17,7 +17,6 @@
 package org.gradle.features.binding;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.model.ObjectFactory;
 
 /**
  * Represents the context in which a project feature is applied and the services
@@ -29,50 +28,10 @@ import org.gradle.api.model.ObjectFactory;
 public interface ProjectFeatureApplicationContext {
 
     /**
-     * The ObjectFactory for the Project object the project feature is applied to.
-     *
-     * @since 9.5.0
-     */
-    ObjectFactory getObjectFactory();
-
-    /**
      * Allows a {@link ProjectFeatureApplyAction} or {@link ProjectTypeApplyAction} to access the build model object of a given
      * definition object.
      *
      * @since 9.5.0
      */
     <T extends Definition<V>, V extends BuildModel> V getBuildModel(T definition);
-
-    /**
-     * Creates, registers, and returns a new build model instance for the given {@code definition} instance.
-     * The build model implementation is created as a managed object of the definition's public build model type.
-     * <p>
-     * This method must only be used on nested definition objects, such as container elements, and not on a feature's primary definition object, which has its
-     * build model registered automatically.
-     * <p>
-     * A build model must be registered for a definition before {@link #getBuildModel(Definition)} is used on it.
-     *
-     * @see ProjectFeatureApplicationContext#registerBuildModel(Definition, Class) the other overload to create a build model of a specific implementation type.
-     *
-     * @throws IllegalStateException if there is already a build model instance registered for the definition.
-     *
-     * @since 9.5.0
-     */
-    <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition);
-
-    /**
-     * Creates, registers, and returns a new build model of the specific implementation type {@code implementationType} for the given {@code definition} instance.
-     * <p>
-     * This method must only be used on nested definition objects, such as container elements, and not on a feature's primary definition object, which has its
-     * build model registered automatically.
-     * <p>
-     * A build model must be registered for a definition before {@link #getBuildModel(Definition)} is used on it.
-     *
-     * @see ProjectFeatureApplicationContext#registerBuildModel(Definition, Class) the other overload to create a build model of a specific implementation type.
-     *
-     * @throws IllegalStateException if there is already a build model instance registered for the definition.
-     *
-     * @since 9.5.0
-     */
-    <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType);
 }

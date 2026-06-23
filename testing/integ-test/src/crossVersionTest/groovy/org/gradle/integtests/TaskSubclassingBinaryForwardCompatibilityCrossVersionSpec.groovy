@@ -17,14 +17,14 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
 @TargetVersions("3.0+")
 class TaskSubclassingBinaryForwardCompatibilityCrossVersionSpec extends AbstractTaskSubclassingBinaryCompatibilityCrossVersionSpec {
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "can use task subclass compiled using previous Gradle version"() {
         given:
         prepareSubclassingTest(previous.version)
@@ -34,13 +34,18 @@ class TaskSubclassingBinaryForwardCompatibilityCrossVersionSpec extends Abstract
         version current withTasks 'tasks' requireDaemon() requireIsolatedDaemons() run()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
         given:
         prepareMethodUseTest(previous.version)
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current requireDaemon() requireIsolatedDaemons() withTasks 't' run()
+        version current requireDaemon() requireIsolatedDaemons() withTasks 't' expectDocumentedDeprecationWarning(
+            "Invocation of Task.taskDependencies at execution time has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies"
+        ) run()
     }
 }

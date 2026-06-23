@@ -22,7 +22,7 @@ import org.gradle.util.internal.TextUtil
 @IntegrationTestTimeout(60)
 class WaitForCompletionWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
     String getSampleName() {
-        "workerApi/waitForCompletion"
+        "integration-tests/workerApi/waitForCompletion"
     }
 
     @Override

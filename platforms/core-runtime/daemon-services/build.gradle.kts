@@ -21,10 +21,11 @@ plugins {
 description = "Services used by the Gradle daemon to interact with the client"
 
 dependencies {
+    api(projects.classpath)
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.daemonProtocol)
+    api(projects.daemonMessaging)
     api(projects.logging)
     api(projects.serialization)
     api(projects.serviceProvider)

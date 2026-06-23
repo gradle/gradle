@@ -134,7 +134,7 @@
         // so we should not slide down to where `docs-navigation` lays.
         if (desktopMediaQuery.matches) {
             // Scroll to center of the page
-            link.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'})
+            link.scrollIntoView({ block: 'nearest' });
         }
     });
 
@@ -147,7 +147,4 @@
             return false;
         }, false);
     });
-
-    // Fix a weird issue making the initial screen always at the bottom.
-    document.querySelector(".content").scrollIntoView(true);
 </script>

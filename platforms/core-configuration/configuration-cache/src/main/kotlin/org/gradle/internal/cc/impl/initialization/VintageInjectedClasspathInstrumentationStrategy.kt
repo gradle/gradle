@@ -16,15 +16,23 @@
 
 package org.gradle.internal.cc.impl.initialization
 
-import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.instrumentation.agent.AgentStatus
+import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection.isThirdPartyAgentPresent
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
-class VintageInjectedClasspathInstrumentationStrategy(
-    problems: ProblemsListener
-) : AbstractInjectedClasspathInstrumentationStrategy(problems) {
-    override fun whenThirdPartyAgentPresent(): TransformMode {
-        // For now, disable the instrumentation
-        return TransformMode.NONE
-    }
+internal class VintageInjectedClasspathInstrumentationStrategy internal constructor(
+    private val agentStatus: AgentStatus,
+) : InjectedClasspathInstrumentationStrategy {
+
+    override fun getTransform(): TransformMode =
+        if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
+            // Without Gradle's instrumentation agent, the buildscript classpath is rewritten ahead of time;
+            // disable instrumentation so the third-party transformer observes the user's bytecode, not Gradle's.
+            // Loses Gradle's bytecode upgrades and CC-promo detection on this classpath in exchange.
+            TransformMode.NONE
+        } else {
+            TransformMode.BUILD_LOGIC
+        }
 }

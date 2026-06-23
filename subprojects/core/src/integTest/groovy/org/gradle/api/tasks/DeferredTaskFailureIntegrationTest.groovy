@@ -16,8 +16,9 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
     def "reports failure in task constructor when task realized"() {
@@ -182,6 +183,10 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         2        | "tasks.register('myTask', CustomTask, 'abc', null)"
     }
 
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "cannot execute #description during lazy task creation action execution"() {
         createDirs("nested")
         settingsFile << "include 'nested'"
@@ -200,6 +205,10 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "cannot execute #description during lazy task configuration action execution"() {
         createDirs("nested")
         settingsFile << "include 'nested'"
@@ -219,7 +228,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior"
     )
     def "cannot execute #description on another project during lazy task creation action execution"() {
@@ -243,7 +252,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior"
     )
     def "cannot execute #description on another project during lazy task configuration action execution"() {

@@ -25,7 +25,7 @@ WARNING: The Test Event Reporting API is incubating.
 Let's take a look at a quick example that defines a custom Gradle task, `CustomTest`, which demonstrates how to capture and report test events:
 
 ====
-include::sample[dir="snippets/tasks/customTest/groovy",files="src/main/java/com/example/CustomTest.java[]"]
+include::sample[dir="snippets/integration/customTest/groovy",files="src/main/java/com/example/CustomTest.java[]"]
 ====
 
 <1> The `GroupTestEventReporter` is initialized to act as the root event reporter.

@@ -16,5 +16,18 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.problems.internal.ProblemsInternal;
+
 public interface MultiRequestClient<IN, OUT> extends RequestHandler<IN, OUT>, WorkerControl {
+
+    /**
+     * Binds the given problems service for the next job executed by this client.
+     * Problems reported by the worker while bound will be routed to this service.
+     */
+    void bindProblemsService(ProblemsInternal problems);
+
+    /**
+     * Clears any previously bound problems service.
+     */
+    void clearProblemsService();
 }

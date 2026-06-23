@@ -49,10 +49,12 @@ For developing C++ projects, Gradle comes with a <<xcode_plugin.adoc#xcode_plugi
 CLion::
 JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-starts-2018-2-eap-sanitizers-gradle-db-performance/[C++ projects with Gradle].
 
+[[sec:continuous_integration_third_party]]
 == Continuous integration
 
 We have link:https://cookbook.gradle.org/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
 
+[[sec:how_to_integrate_with_gradle]]
 == How to integrate with Gradle
 
 There are two main ways to integrate a tool with Gradle:
@@ -63,6 +65,7 @@ There are two main ways to integrate a tool with Gradle:
 The former case is typically <<plugins.adoc#custom_plugins,implemented as a Gradle plugin>>.
 The latter can be accomplished by embedding Gradle through the <<tooling_api.adoc#tooling_api,Tooling API>>.
 
+[[sec:test_integration]]
 == Test integration
 
 If your platform uses an external testing suite, and you want to integrate with the <<java_testing.adoc#test_reporting,HTML Test Report>>, you can use the <<test_reporting_api.adoc#test_reporting_api,Test Reporting API>>.

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -45,16 +47,29 @@ doStuff()
     }
 
     def "produces reasonable error message when external script fails on compilation"() {
+        given:
+        enableProblemsApiCheck()
         externalScript << 'import org.gradle()'
 
         when:
         fails()
 
         then:
-        failure.assertHasDescription("Could not compile script '$externalScript'.")
-                .assertThatCause(containsString("script '${externalScript}': 1: Unexpected input: '(' @ line 1, column 18."))
+        failureDescriptionContains("Could not compile script '$externalScript'.")
+        failure.assertThatCause(containsString("script '${externalScript}': 1: Unexpected input: '(' @ line 1, column 18."))
                 .assertHasFileName("Script '$externalScript'")
                 .assertHasLineNumber(1)
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile script '$externalScript'."
+            details == null
+            definition.documentationLink == null
+            solutions == []
+            oneLocation(LineInFileLocation).path == externalScript.absolutePath
+            additionalData.asMap == [:]
+        }
     }
 
     def "reports missing script"() {

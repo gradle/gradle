@@ -31,6 +31,7 @@ Common types of tasks include:
 
 Each task is independent but can depend on other tasks to run first. Gradle uses this information to figure out the most efficient order to execute tasks — skipping anything that’s already up to date.
 
+[[sec:running_a_task]]
 == Running a task
 
 To run a task, use the Gradle Wrapper from your project’s root directory.
@@ -69,6 +70,7 @@ BUILD SUCCESSFUL in 904ms
 Gradle ran all the tasks required to execute your application, including compiling it first.
 In this example, the output of the `run` task is a `Hello World` statement printed on the console.
 
+[[sec:listing_available_tasks]]
 == Listing available tasks
 
 Gradle plugins and your build script define which tasks are available in a project.
@@ -109,6 +111,7 @@ compileJava - Compiles main Java source.
 
 You can run any of these tasks directly using the `./gradlew <task-name>` command.
 
+[[sec:task_dependencies_basics]]
 == Task dependencies
 
 Most tasks don’t run in isolation.

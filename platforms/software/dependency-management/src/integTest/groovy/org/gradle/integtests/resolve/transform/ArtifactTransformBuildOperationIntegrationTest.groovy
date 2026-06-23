@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
@@ -46,6 +47,7 @@ import java.util.function.Predicate
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
+@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     @EqualsAndHashCode
@@ -202,7 +204,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         checkExecuteTransformWorkOperations(executePlannedStepOps[0], 1)
@@ -280,7 +282,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         with(executePlannedStepOps[1].details) {
@@ -288,7 +290,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
     }
 
@@ -365,7 +367,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeRed"
 
             transformerName == "MakeRed"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         with(executePlannedStepOps[1].details) {
@@ -373,7 +375,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
     }
 
@@ -435,7 +437,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
     }
 
@@ -513,7 +515,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeRed"
 
             transformerName == "MakeRed"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         with(executePlannedStepOps[1].details) {
@@ -521,7 +523,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
     }
 
@@ -638,7 +640,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         checkExecuteTransformWorkOperations(executePlannedStepOps[0], 1)
@@ -648,7 +650,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         checkExecuteTransformWorkOperations(executePlannedStepOps[1], 2)
@@ -661,9 +663,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
 
         taskTypeWithMultipleOutputFileProperties()
-        setupBuildWithColorVariants()
 
         buildFile << """
+            ${colorVariants()}
             allprojects {
                 task producer(type: OutputFilesTask) {
                     out1.convention(layout.buildDirectory.file("\${project.name}.out1.jar"))
@@ -682,6 +684,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     files.from(view)
                 }
             }
+            ${showFileCollectionTask()}
         """
 
         buildFile << """
@@ -725,9 +728,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
-        result.groupedOutput.transform("MakeGreen", "producer.out1.jar (project :producer)")
+        result.groupedOutput.transform("MakeGreen", "producer.out1.jar (project ':producer')")
             .assertOutputContains("processing [producer.out1.jar]")
-        result.groupedOutput.transform("MakeGreen", "producer.out2.jar (project :producer)")
+        result.groupedOutput.transform("MakeGreen", "producer.out2.jar (project ':producer')")
             .assertOutputContains("processing [producer.out2.jar]")
 
         result.groupedOutput.task(":consumer:resolve")
@@ -772,12 +775,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecutePlannedStepOperation(executePlannedStepOps, expectedTransformId1, [
             transformActionClass: "MakeGreen",
             transformerName: "MakeGreen",
-            subjectName: "producer.out1.jar (project :producer)",
+            subjectName: "producer.out1.jar (project ':producer')",
         ])
         checkExecutePlannedStepOperation(executePlannedStepOps, expectedTransformId2, [
             transformActionClass: "MakeGreen",
             transformerName: "MakeGreen",
-            subjectName: "producer.out2.jar (project :producer)",
+            subjectName: "producer.out2.jar (project ':producer')",
         ])
 
         executePlannedStepOps.each {
@@ -862,12 +865,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecutePlannedStepOperation(executePlannedStepOps, expectedTransformId1, [
             transformActionClass: "MakeGreen",
             transformerName: "MakeGreen",
-            subjectName: "producer.jar (project :producer)",
+            subjectName: "producer.jar (project ':producer')",
         ])
         checkExecutePlannedStepOperation(executePlannedStepOps, expectedTransformId2, [
             transformActionClass: "MakeGreen",
             transformerName: "MakeGreen",
-            subjectName: "producer.jar (project :producer)",
+            subjectName: "producer.jar (project ':producer')",
         ])
 
         def executeWorkOps1 = buildOperations.children(executePlannedStepOps[0], ExecuteWorkBuildOperationType)
@@ -922,7 +925,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
-        result.groupedOutput.transform("MakeGreen", "producer.jar (project :producer)")
+        result.groupedOutput.transform("MakeGreen", "producer.jar (project ':producer')")
             .assertOutputContains("processing [producer.jar]")
 
 
@@ -956,7 +959,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
+            subjectName == "producer.jar (project ':producer')"
         }
 
         checkExecuteTransformWorkOperations(executePlannedStepOp, 1)
@@ -1002,10 +1005,10 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer, Task :included:nested-producer:producer])]")
         outputContains("Task-only execution plan: [PlannedTask('Task :included:nested-producer:producer', deps=[])]")
 
-        result.groupedOutput.transform("MakeGreen", "producer.jar (project :producer)")
+        result.groupedOutput.transform("MakeGreen", "producer.jar (project ':producer')")
             .assertOutputContains("processing [producer.jar]")
 
-        result.groupedOutput.transform("MakeGreen", "nested-producer.jar (project :included:nested-producer)")
+        result.groupedOutput.transform("MakeGreen", "nested-producer.jar (project ':included:nested-producer')")
             .assertOutputContains("processing [nested-producer.jar]")
 
         result.groupedOutput.task(":consumer:resolve")
@@ -1056,12 +1059,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecutePlannedStepOperation(executePlannedStepOps, expectedTransformId1, [
             transformActionClass: "MakeGreen",
             transformerName: "MakeGreen",
-            subjectName: "producer.jar (project :producer)",
+            subjectName: "producer.jar (project ':producer')",
         ])
         checkExecutePlannedStepOperation(executePlannedStepOps, expectedTransformId2, [
             transformActionClass: "MakeGreen",
             transformerName: "MakeGreen",
-            subjectName: "nested-producer.jar (project :included:nested-producer)",
+            subjectName: "nested-producer.jar (project ':included:nested-producer')",
         ])
     }
 
@@ -1105,7 +1108,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :rootConsumer', deps=[Task :included:consumer:resolve])]")
         outputContains("Task-only execution plan: [PlannedTask('Task :included:producer:producer', deps=[]), PlannedTask('Task :included:consumer:resolve', deps=[Task :included:producer:producer])]")
 
-        result.groupedOutput.transform("MakeGreen", "producer.jar (project :included:producer)")
+        result.groupedOutput.transform("MakeGreen", "producer.jar (project ':included:producer')")
             .assertOutputContains("processing [producer.jar]")
 
         result.groupedOutput.task(":included:consumer:resolve")
@@ -1143,7 +1146,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :included:producer)"
+            subjectName == "producer.jar (project ':included:producer')"
         }
     }
 

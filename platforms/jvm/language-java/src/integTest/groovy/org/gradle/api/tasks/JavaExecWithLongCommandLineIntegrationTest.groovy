@@ -23,7 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 import static org.gradle.util.Matchers.containsText
 
@@ -158,7 +158,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
     def "succeeds with long command line using Java 8 toolchain"() {
         def jdk8 = AvailableJavaHomes.getJdk8()
         buildFile << """

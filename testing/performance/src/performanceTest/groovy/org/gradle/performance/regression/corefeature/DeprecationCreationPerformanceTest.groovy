@@ -24,13 +24,25 @@ import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["generateLotsOfDeprecationWarnings"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["generateLotsOfDeprecationWarnings", "generateDiverseDeprecationWarnings", "largeJavaMultiProjectDeprecations"])
 )
 class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many deprecation warnings"() {
         given:
         runner.tasksToRun = ['help']
         runner.minimumBaseVersion = '6.3'
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    def "create many deprecation warnings with all warnings shown"() {
+        given:
+        runner.tasksToRun = ['help']
+        runner.minimumBaseVersion = '6.3'
+        runner.args = ['--warning-mode=all']
         when:
         def result = runner.run()
 

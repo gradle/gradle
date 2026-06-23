@@ -41,20 +41,6 @@ public class DefaultProjectFeatureBindingBuilder implements ProjectFeatureBindin
     DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
         String name,
         ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
-        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
-    ) {
-        return declaredProjectFeatureBindingBuilder(name, bindingTypeInformation, objectFactory -> transform);
-    }
-
-    @Override
-    public <
-        OwnDefinition extends Definition<OwnBuildModel>,
-        OwnBuildModel extends BuildModel,
-        TargetDefinition extends Definition<?>
-        >
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
-        String name,
-        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
         Class<? extends ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition>> transformClass
     ) {
         return declaredProjectFeatureBindingBuilder(name, bindingTypeInformation, objectFactory -> objectFactory.newInstance(transformClass));

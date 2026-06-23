@@ -59,7 +59,16 @@ public class ConsoleConfigureAction {
             configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
         }
 
-        registerTaskbarReset(consoleMetadata, stdout);
+        if (shouldEmitTaskbarProgress(consoleOutput, consoleMetadata)) {
+            registerTaskbarReset(consoleMetadata, stdout);
+        }
+    }
+
+    private static boolean shouldEmitTaskbarProgress(ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
+        if (consoleOutput == ConsoleOutput.Plain) {
+            return false;
+        }
+        return consoleOutput != ConsoleOutput.Auto || consoleMetadata.isStdOutATerminal();
     }
 
     private static void registerTaskbarReset(ConsoleMetaData consoleMetadata, OutputStream stdout) {

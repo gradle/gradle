@@ -95,6 +95,10 @@ class GradleInvocationSpec implements InvocationSpec {
         this.studioSandboxDir = studioSandboxDir
     }
 
+    File getProjectCheckoutDirectory() {
+        new File(workingDirectory, "project-checkout")
+    }
+
     boolean getBuildWillRunInDaemon() {
         return useDaemon || useToolingApi || useAndroidStudio
     }

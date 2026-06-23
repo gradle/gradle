@@ -18,9 +18,10 @@ package org.gradle.connectivity
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
-@Requires(UnitTestPreconditions.Online)
+
+@Requires(TestEnvironmentPreconditions.Online)
 class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {

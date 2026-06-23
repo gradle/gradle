@@ -46,6 +46,7 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run "eclipse"
 
         then:

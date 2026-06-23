@@ -20,32 +20,35 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void "external dependency substituted with project dependency"() {
         createDirs("project1", "project2")
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask("idea", "include 'project1', 'project2'", """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "idea"
-}
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "idea"
+            }
 
-project(":project2") {
-    dependencies {
-        implementation("junit:junit:4.7")
-    }
+            project(":project2") {
+                dependencies {
+                    implementation("junit:junit:4.7")
+                }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute module("junit:junit:4.7") using project(":project1")
-        }
-    }
-}
-""")
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module("junit:junit:4.7") using project(":project1")
+                    }
+                }
+            }
+        """)
 
         def dependencies = parseIml("project2/project2.iml").dependencies
         assert dependencies.libraries.size() == 0
@@ -53,34 +56,36 @@ project(":project2") {
         dependencies.assertHasModule(['COMPILE'], 'project1')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
 
         createDirs("project1", "project2")
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask("idea", "include 'project1', 'project2'", """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "idea"
-}
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "idea"
+            }
 
-project(":project2") {
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
+            project(":project2") {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
 
-    dependencies {
-        implementation "org.gradle:module1:1.0"
-    }
+                dependencies {
+                    implementation "org.gradle:module1:1.0"
+                }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute module("org.gradle:module2:1.0") using project(":project1")
-        }
-    }
-}
-""")
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module("org.gradle:module2:1.0") using project(":project1")
+                    }
+                }
+            }
+        """)
 
         def dependencies = parseIml("project2/project2.iml").dependencies
         assert dependencies.libraries.size() == 1
@@ -89,29 +94,31 @@ project(":project2") {
         dependencies.assertHasModule(['COMPILE'], 'project1')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void "project dependency substituted with external dependency"() {
         createDirs("project1", "project2")
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask("idea", "include 'project1', 'project2'", """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "idea"
-}
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "idea"
+            }
 
-project(":project2") {
-    ${mavenCentralRepository()}
+            project(":project2") {
+                ${mavenCentralRepository()}
 
-    dependencies {
-        implementation project(":project1")
-    }
+                dependencies {
+                    implementation project(":project1")
+                }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute project(":project1") using module("junit:junit:4.7")
-        }
-    }
-}
-""")
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute project(":project1") using module("junit:junit:4.7")
+                    }
+                }
+            }
+        """)
 
         def dependencies = parseIml("project2/project2.iml").dependencies
         assert dependencies.libraries.size() == 1

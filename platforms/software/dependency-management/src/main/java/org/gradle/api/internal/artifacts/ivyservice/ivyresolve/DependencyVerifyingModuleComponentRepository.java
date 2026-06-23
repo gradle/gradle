@@ -145,8 +145,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                 boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
-                                    if (artifactFile != null) {
-                                        // it's possible that the file is null if it has been removed from the cache
+                                    if (artifactFile != null && artifactFile.exists()) {
+                                        // it's possible that the file is null if it has been removed from the cache for example
                                         Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
                                         operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
                                     } else {

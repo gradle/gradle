@@ -28,7 +28,7 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.util.Path;
 
@@ -45,10 +45,10 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
-        BuildTreeState buildTree
+        BuildTreeServices buildTreeServices
     ) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        super(buildTree, buildDefinition.newInstance(), owner);
+        super(buildTreeServices, buildDefinition.newInstance(), owner);
         assert !identityPath.equals(Path.ROOT) : "An included build must not be located at the root path";
 
         this.identityPath = identityPath;

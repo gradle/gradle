@@ -17,17 +17,18 @@
 package org.gradle.workers.internal
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
@@ -101,13 +102,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         where:
-        isolationMode           | waitForResults
-        'noIsolation'           | true
-        'noIsolation'           | false
-        'processIsolation'      | true
-        'processIsolation'      | false
-        'classLoaderIsolation'  | true
-        'classLoaderIsolation'  | false
+        isolationMode << ['noIsolation', 'processIsolation', 'classLoaderIsolation']
+
+        combined:
+        waitForResults << [true, false]
     }
 
     def "multiple work items with different requirements can be executed in parallel in #isolationMode"() {
@@ -557,6 +555,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "starts dependent task in another project as soon as submitted work for current task is complete (with --parallel)"() {
         given:
         createDirs("childProject")
@@ -642,6 +641,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "does not start task in another project when a task action is executing without --parallel"() {
         given:
         createDirs("childProject")
@@ -672,6 +672,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "can start task in another project when a task submits async work without --parallel"() {
         given:
         createDirs("childProject")
@@ -702,7 +703,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
+        value = TestExecutionPreconditions.NotConfigCached,
         reason = """Assumptions about project locking do not hold.
 With CC enabled, the project is immutable so tasks run in parallel.
 This means task1-1 and task2 would be expected to run concurrently in this case.
@@ -738,7 +739,7 @@ See https://github.com/gradle/gradle/pull/25540 for details."""
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
+        value = TestExecutionPreconditions.NotConfigCached,
         reason = """Assumptions about project locking do not hold.
 With CC enabled, the project is immutable so tasks run in parallel.
 This means task1-1 and task2 would be expected to run concurrently in this case.
@@ -779,6 +780,7 @@ See https://github.com/gradle/gradle/pull/25540 for details."""
         succeeds("allTasks")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, cross-project task reference")
     def "can start task in another project when a task awaits async work (with --parallel)"() {
         given:
         createDirs("childProject")

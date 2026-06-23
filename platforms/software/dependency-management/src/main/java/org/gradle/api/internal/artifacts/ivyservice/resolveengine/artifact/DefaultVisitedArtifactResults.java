@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ResolutionStrategy;
 
 import java.util.ArrayList;
@@ -58,11 +57,11 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
 
         DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, List<ResolvedArtifactSet> resolvedArtifactsById) {
             this.resolvedArtifactsById = resolvedArtifactsById;
+            ResolvedArtifactSet artifacts = CompositeResolvedArtifactSet.of(resolvedArtifactsById);
             if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
-                this.allArtifacts = CompositeResolvedArtifactSet.of(Lists.reverse(resolvedArtifactsById));
-            } else {
-                this.allArtifacts = CompositeResolvedArtifactSet.of(resolvedArtifactsById);
+                artifacts = CompositeResolvedArtifactSet.reverse(artifacts);
             }
+            this.allArtifacts = artifacts;
         }
 
         @Override

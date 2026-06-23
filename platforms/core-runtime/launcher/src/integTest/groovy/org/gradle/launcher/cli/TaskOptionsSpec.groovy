@@ -18,9 +18,9 @@ package org.gradle.launcher.cli
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(value = IntegTestPreconditions.NotParallelOrConfigCacheExecutor, reason = "--parallel or configuration-cache options unavailable")
+@Requires(value = TestExecutionPreconditions.NotParallelOrConfigCacheExecutor, reason = "--parallel or configuration-cache options unavailable")
 class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def defineTaskWithProfileOption() {

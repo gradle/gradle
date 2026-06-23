@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+    id 'com.example.my-custom-plugin' apply false
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::expensive-plugin[]
+class ExpensivePlugin implements Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        // BAD: Makes an expensive network call at configuration time
+        def response = new URL("https://example.com/dependencies.json").text
+        def dependencies = new groovy.json.JsonSlurper().parseText(response)
+
+        dependencies.each { dep ->
+            project.dependencies.add("implementation", dep)
+        }
+    }
+}
+// end::expensive-plugin[]
+
+// tag::optimized-plugin[]
+class OptimizedPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        project.tasks.register("fetchDependencies") {
+            doLast {
+                // GOOD: Runs only when the task is executed
+                def response = new URL("https://example.com/dependencies.json").text
+                def dependencies = new groovy.json.JsonSlurper().parseText(response)
+
+                dependencies.each { dep ->
+                    project.dependencies.add("implementation", dep)
+                }
+            }
+        }
+    }
+}
+// end::optimized-plugin[]
+
+// tag::apply-selectively[]
+project(":subproject1") {
+    apply from: "$rootDir/script-a.gradle"  // Applied only where needed
+}
+
+project(":subproject2") {
+    apply from: "$rootDir/script-a.gradle"
+}
+// end::apply-selectively[]
+
+// tag::apply-custom-plugin[]
+project(":subproject1") {
+    apply plugin: 'com.example.my-custom-plugin'  // Apply only where needed
+}
+
+project(":subproject2") {
+    apply plugin: 'com.example.my-custom-plugin'
+}
+// end::apply-custom-plugin[]
+
+// tag::cache-dynamic-versions[]
+configurations.all {
+    resolutionStrategy {
+        cacheDynamicVersionsFor 4, 'hours'
+        cacheChangingModulesFor 10, 'minutes'
+    }
+}
+// end::cache-dynamic-versions[]
+
+// tag::defer-resolution[]
+task printDeps {
+    doFirst {
+        configurations.compileClasspath.files.each { println it } // Deferring Dependency Resolution
+    }
+    doLast {
+        configurations.compileClasspath.files.each { println it } // Resolving Dependencies During Configuration
+    }
+}
+// end::defer-resolution[]
+
+// tag::custom-resolution-logic[]
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == "com.example" && details.requested.name == "library") {
+            def versionInfo = new URL("https://example.com/version-check").text  // Remote call during resolution
+            details.useVersion(versionInfo.trim())  // Dynamically setting a version based on an HTTP response
+        }
+    }
+}
+// end::custom-resolution-logic[]

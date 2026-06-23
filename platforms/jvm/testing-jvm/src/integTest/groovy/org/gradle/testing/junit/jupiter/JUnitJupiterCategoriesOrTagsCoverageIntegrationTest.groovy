@@ -131,14 +131,14 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         results.assertAtLeastTestPathsExecuted('TagATests', 'TagADTests', 'MixedTests')
         results.testPath("TagATests").onlyRoot()
             .assertChildCount(4, 0)
-            .assertChildrenExecuted('tagAOk1', 'tagAOk2', 'tagAOk3', 'tagAOk4')
+            .assertChildrenExecuted('tagAOk1()', 'tagAOk2()', 'tagAOk3()', 'tagAOk4()')
         results.testPath("TagADTests").onlyRoot()
             .assertChildCount(3, 0)
-            .assertChildrenExecuted('tagAOk1', 'tagAOk2', 'tagDOk4')
+            .assertChildrenExecuted('tagAOk1()', 'tagAOk2()', 'tagDOk4()')
         results.testPath("MixedTests").onlyRoot()
             .assertChildCount(2, 0)
-            .assertChildrenExecuted('tagAOk1')
-            .assertChildrenSkipped('ignoredWithTagA')
+            .assertChildrenExecuted('tagAOk1()')
+            .assertChildrenSkipped('ignoredWithTagA()')
     }
 
     def "can combine tags with custom extension"() {
@@ -259,7 +259,7 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         def results = resultsFor(testDirectory)
         results.testPath('SomeLocaleTests').onlyRoot()
             .assertChildCount(1, 0)
-        results.testPathPreNormalized(':SomeLocaleTests:ok1(Locale)').onlyRoot()
+        results.testPath(':SomeLocaleTests:ok1(Locale)').onlyRoot()
             .assertChildCount(3, 0)
             .assertChildrenExecuted("ok1(Locale)[1]", "ok1(Locale)[2]", "ok1(Locale)[3]")
     }

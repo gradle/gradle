@@ -9,7 +9,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
-    api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildState)
@@ -18,6 +17,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonLogging)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.execution)
@@ -25,6 +25,7 @@ dependencies {
     api(projects.fileWatching)
     api(projects.files)
     api(projects.hashing)
+    api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
     api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
@@ -40,6 +41,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.startParameter)
     api(projects.time)
     api(projects.toolingApi)
 
@@ -53,6 +55,7 @@ dependencies {
 
     implementation(projects.buildProcessServices)
     implementation(projects.processServices)
+    implementation(projects.processServicesBase)
     implementation(projects.classloaders)
     implementation(projects.collections)
     implementation(projects.enterpriseOperations)
@@ -76,6 +79,7 @@ dependencies {
     }
 
     // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    // See `BootstrapMainStarter`
     manifestClasspath(projects.gradleCliMain)
 
     testImplementation(projects.internalIntegTesting)
@@ -114,6 +118,4 @@ strictCompile {
 }
 
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

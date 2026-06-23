@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -112,14 +111,13 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
-            validationContext.visitPropertyProblem(problem -> {
+            validationContext.visitPropertyError(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
                 problem
                     .forProperty(propertyName)
                     .id(MISSING_NORMALIZATION_ID.getName(), MISSING_NORMALIZATION_ID.getDisplayName(), MISSING_NORMALIZATION_ID.getGroup()) // TODO (donat) missing test coverage
                     .contextualLabel(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase(Locale.ROOT)))
-                    .severity(Severity.ERROR)
                     .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
                     .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");
             });

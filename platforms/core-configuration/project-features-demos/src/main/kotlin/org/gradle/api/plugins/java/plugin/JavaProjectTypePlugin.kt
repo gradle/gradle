@@ -20,16 +20,18 @@ import org.apache.commons.lang3.StringUtils.capitalize
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultJavaProjectType
 import org.gradle.api.plugins.java.JavaClasses
 import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
+import org.gradle.api.plugins.java.JavaLibraryModel
 import org.gradle.api.plugins.java.JavaProjectType
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.features.dsl.bindProjectType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 
@@ -46,12 +48,24 @@ class JavaProjectTypePlugin : Plugin<Project> {
      */
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("javaLibrary") { definition: JavaProjectType, model ->
-                val services = objectFactory.newInstance(Services::class.java)
+            builder.bindProjectType("javaLibrary", ApplyAction::class)
+                .withUnsafeDefinitionImplementationType(DefaultJavaProjectType::class.java)
+                .withNestedBuildModelImplementationType(JavaClasses::class.java, DefaultJavaClasses::class.java)
+                .withUnsafeApplyAction()
+        }
 
+        abstract class ApplyAction : ProjectTypeApplyAction<JavaProjectType, JavaLibraryModel> {
+            @get:Inject
+            abstract val taskRegistrar: TaskRegistrar
+
+            override fun apply(
+                context: ProjectFeatureApplicationContext,
+                definition: JavaProjectType,
+                buildModel: JavaLibraryModel
+            ) {
                 definition.sources.all { source ->
                     // Should be TaskRegistrar with some sort of an implicit namer for the context
-                    val compileTask = services.taskRegistrar.register(
+                    val compileTask = taskRegistrar.register(
                         "compile" + capitalize(source.name) + "Java",
                         JavaCompile::class.java
                     ) { task ->
@@ -60,10 +74,10 @@ class JavaProjectTypePlugin : Plugin<Project> {
                         task.source(source.sourceDirectories.asFileTree)
                     }
 
-                    val processResourcesTask = registerResourcesProcessing(source, services.taskRegistrar)
+                    val processResourcesTask = context.registerResourcesProcessing(source, taskRegistrar)
 
                     // Creates an extension on javaSources containing its classes object
-                    model.classes.add(getBuildModel(source).apply {
+                    buildModel.classes.add(context.getBuildModel(source).apply {
                         name = source.name
                         inputSources.source(source.sourceDirectories)
                         byteCodeDir.set(compileTask.map { it.destinationDirectory.get() })
@@ -71,17 +85,9 @@ class JavaProjectTypePlugin : Plugin<Project> {
                     })
                 }
 
-                val mainClasses = model.classes.named("main")
-                registerJar(mainClasses, model, services.taskRegistrar)
+                val mainClasses = buildModel.classes.named("main")
+                context.registerJar(mainClasses, buildModel, taskRegistrar)
             }
-            .withUnsafeDefinitionImplementationType(DefaultJavaProjectType::class.java)
-            .withNestedBuildModelImplementationType(JavaClasses::class.java, DefaultJavaClasses::class.java)
-            .withUnsafeApplyAction()
-        }
-
-        interface Services {
-            @get:Inject
-            val taskRegistrar: TaskRegistrar
         }
     }
 

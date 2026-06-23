@@ -30,6 +30,7 @@ import javax.inject.Inject;
 public abstract class IdeaModuleInternal extends IdeaModule {
 
     @Inject
+    @SuppressWarnings("deprecation")
     public IdeaModuleInternal(Project project, IdeaModuleIml iml) {
         super(project, iml);
     }

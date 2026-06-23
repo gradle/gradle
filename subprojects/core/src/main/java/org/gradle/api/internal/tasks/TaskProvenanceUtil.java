@@ -41,19 +41,13 @@ public final class TaskProvenanceUtil {
      */
     public static Optional<String> getProvenance(TaskInternal task) {
         TaskIdentity<?> identity = task.getTaskIdentity();
-        if (identity == null) {
-            return Optional.empty();
-        }
         UserCodeSource source = identity.getUserCodeSource();
-        if (source == null || source == UserCodeSource.UNKNOWN) {
+        if (source == null) {
             return Optional.empty();
         }
-        if (source == UserCodeSource.BY_RULE) {
-            return Optional.of("registered by Rule");
-        }
+
         String sourceDesc = source.getDisplayName().getDisplayName();
-        boolean isPluginSource = sourceDesc.contains("plugin");
-        String preposition = isPluginSource ? "by" : "in";
+        String preposition = source instanceof UserCodeSource.Binary ? "by" : "in";
         return Optional.of(String.format("registered %s %s", preposition, sourceDesc));
     }
 

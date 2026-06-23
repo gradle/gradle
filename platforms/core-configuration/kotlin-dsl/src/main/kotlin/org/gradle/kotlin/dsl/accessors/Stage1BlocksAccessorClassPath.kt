@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.Identity
@@ -29,6 +30,8 @@ import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.OutputVisitor
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -40,10 +43,12 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.provider.KotlinDslInternalOptions
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import java.io.File
+import java.util.Optional
 import javax.inject.Inject
 import kotlin.metadata.KmType
 
@@ -64,16 +69,20 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val buildState: BuildState,
+    internalOptions: InternalOptions,
 ) {
+
+    private val scriptDisabledReason = KotlinDslInternalOptions.accessorCachingDisabledReason(internalOptions)
 
     private
     val stage1BlocksAccessorClassPath by lazy {
-        val rootProject = buildState.projects.rootProject.mutableModel
-        val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-        val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-        val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-        val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-        versionCatalogAccessors + pluginSpecBuildersAccessors
+        buildState.projects.rootProject.fromMutableState { rootProject ->
+            val buildSrcClassLoaderScope = rootProject.baseClassLoaderScope
+            val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+            val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+            val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+            versionCatalogAccessors + pluginSpecBuildersAccessors
+        }
     }
 
     fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath {
@@ -83,9 +92,16 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
         return stage1BlocksAccessorClassPath
     }
 
-    private
-    fun baseClassLoaderScopeOf(rootProject: Project) =
-        (rootProject as ProjectInternal).baseClassLoaderScope
+    /**
+     * Force-computes the shared classpath on the caller's thread so later readers hit the lazy
+     * fast path. Call before fanning out parallel workers from a thread that already satisfies
+     * `fromMutableState` on the root project (holds the root lock or has uncontrolled access);
+     * otherwise a worker can enter the lazy monitor and then block on the root lock that the
+     * outer thread is still holding.
+     */
+    fun prepareForParallelAccess() {
+        stage1BlocksAccessorClassPath
+    }
 
     private
     fun generateVersionCatalogAccessors(
@@ -105,7 +121,8 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
                     classLoaderHash,
                     fileCollectionFactory,
                     inputFingerprinter,
-                    workspaceProvider
+                    workspaceProvider,
+                    scriptDisabledReason
                 )
                 executionEngine.createRequest(work)
                     .execute()
@@ -129,7 +146,8 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
             classLoaderHash,
             fileCollectionFactory,
             inputFingerprinter,
-            workspaceProvider
+            workspaceProvider,
+            scriptDisabledReason
         )
         return executionEngine.createRequest(work)
             .execute()
@@ -147,6 +165,7 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val cachingDisabledReason: CachingDisabledReason?
 ) : ImmutableUnitOfWork {
 
     companion object {
@@ -154,6 +173,8 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
+
+    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> = Optional.ofNullable(cachingDisabledReason)
 
     override fun identify(scalarInputs: MutableMap<String, ValueSnapshot>, fileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
         Identity { "$classLoaderHash-$identitySuffix" }

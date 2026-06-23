@@ -18,7 +18,6 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
@@ -33,7 +32,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
         executer.withRepositoryMirrors()
     }
 
-    @UsesSample("dependencyManagement/workingWithDependencies-iterateDependencies")
+    @UsesSample("integration-tests/dependencyManagement/workingWithDependencies-iterateDependencies")
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -48,7 +47,7 @@ commons-codec:commons-codec:1.7""")
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/workingWithDependencies-iterateArtifacts")
+    @UsesSample("integration-tests/dependencyManagement/workingWithDependencies-iterateArtifacts")
     def "can iterate over artifacts resolved for a module with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -70,8 +69,7 @@ commons-codec:commons-codec:1.7""")
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/workingWithDependencies-walkGraph")
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
+    @UsesSample("integration-tests/dependencyManagement/workingWithDependencies-walkGraph")
     def "can walk the dependency graph of a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -94,7 +92,7 @@ commons-codec:commons-codec:1.7""")
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/workingWithDependencies-accessMetadataArtifact")
+    @UsesSample("integration-tests/dependencyManagement/workingWithDependencies-accessMetadataArtifact")
     def "can accessing a module's metadata artifact with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

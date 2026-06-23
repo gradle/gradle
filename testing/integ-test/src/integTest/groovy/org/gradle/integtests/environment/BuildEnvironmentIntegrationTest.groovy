@@ -21,8 +21,12 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -39,7 +43,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Requires(UnitTestPreconditions.CaseInsensitiveFs)
+    @Requires(FileSystemTestPreconditions.CaseInsensitiveFs)
     def "canonicalizes working directory on case insensitive file system"() {
         testProject()
 
@@ -51,7 +55,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "canonicalizes working directory for short windows path"() {
         testProject()
 
@@ -86,7 +90,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         out.contains("and will be even better")
     }
 
-    @Requires(UnitTestPreconditions.WorkingDir)
+    @Requires(TestEnvironmentPreconditions.WorkingDir)
     def "build is executed with working directory set to where the build was launched from"() {
         def project1 = file("project1")
         def project2 = file("project2")
@@ -156,8 +160,8 @@ assert classesDir.directory
     }
 
     @Requires(value = [
-        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific JDK different from the current test JDK")
     def "java home from environment should be used to run build"() {
         def alternateJdk = AvailableJavaHomes.differentVersion
@@ -183,7 +187,7 @@ assert classesDir.directory
         out.contains("javaHome=" + alternateJdk.javaHome.canonicalPath)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "java home from gradle properties should be used to run build"() {
         def jvm = AvailableJavaHomes.differentVersion
         def alternateJavaHome = jvm.javaHome

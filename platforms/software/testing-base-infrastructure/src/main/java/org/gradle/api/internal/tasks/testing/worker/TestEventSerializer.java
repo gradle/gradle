@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
+import org.gradle.api.internal.tasks.testing.TestFrameworkFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
@@ -316,16 +317,28 @@ public class TestEventSerializer {
                 decoder.readBytes(actualContent);
             }
 
-            // Order is important here because a file comparison is _also_ an assertion failure
+            // framework failure
+            boolean isFrameworkFailure = decoder.readBoolean();
+
+            // Order matters:
+            //  - TestFailureSerializationException is checked first because it means the original
+            //    rawFailure couldn't be deserialized; the message/className/stacktrace strings still
+            //    describe the original (lost) exception, but the user-visible details should reflect
+            //    the wrapper's "Gradle was unable to recreate..." message regardless of how the
+            //    original failure was classified on the wire.
+            //  - File comparison is checked before assertion because a file comparison is _also_ an
+            //    assertion failure.
             final TestFailureDetails details;
-            if (isFileComparisonFailure) {
+            if (rawFailure instanceof TestFailureSerializationException) {
+                details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
+            } else if (isFileComparisonFailure) {
                 details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
             } else if (isAssertionFailure) {
                 details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
                 details = new AssumptionFailureDetails(message, className, stacktrace);
-            } else if (rawFailure instanceof TestFailureSerializationException) {
-                details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
+            } else if (isFrameworkFailure) {
+                details = new TestFrameworkFailureDetails(message, className, stacktrace);
             } else {
                 details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
@@ -392,6 +405,9 @@ public class TestEventSerializer {
                 encoder.writeInt(actualContent.length);
                 encoder.writeBytes(actualContent);
             }
+
+            // framework failure
+            encoder.writeBoolean(details.isFrameworkFailure());
         }
 
         /**

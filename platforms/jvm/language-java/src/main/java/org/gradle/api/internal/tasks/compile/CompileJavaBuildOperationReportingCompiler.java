@@ -45,53 +45,66 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
 
     @Override
     public WorkResult execute(final JavaCompileSpec spec) {
-        return buildOperationRunner.call(new CallableBuildOperation<WorkResult>() {
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                String taskIdentityPath = task.getIdentityPath().asString();
-                return BuildOperationDescriptor
-                    .displayName("Compile Java for " + taskIdentityPath)
-                    .details(new CompileJavaBuildOperationType.Details() {
+        String taskIdentityPath = task.getIdentityPath().asString();
+        return buildOperationRunner.call(new CompileOperation(this.delegate, taskIdentityPath, spec));
+    }
+
+    private static final class CompileOperation implements CallableBuildOperation<WorkResult> {
+        private final Compiler<JavaCompileSpec> delegate;
+        private final String taskIdentityPath;
+        private final JavaCompileSpec spec;
+
+        public CompileOperation(Compiler<JavaCompileSpec> delegate, String taskIdentityPath, JavaCompileSpec spec) {
+            this.delegate = delegate;
+            this.taskIdentityPath = taskIdentityPath;
+            this.spec = spec;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName("Compile Java for " + taskIdentityPath)
+                // Must not be a lambda for serialization reasons
+                .details(new CompileJavaBuildOperationType.Details() {
                     @Override
                     public String getTaskIdentityPath() {
                         return taskIdentityPath;
                     }
                 });
-            }
+        }
 
-            @Override
-            public WorkResult call(BuildOperationContext context) {
-                WorkResult result = delegate.execute(spec);
-                context.setResult(toBuildOperationResult(result));
-                return result;
-            }
+        @Override
+        public WorkResult call(BuildOperationContext context) {
+            WorkResult result = delegate.execute(spec);
+            context.setResult(toBuildOperationResult(result));
+            return result;
+        }
 
-            private Result toBuildOperationResult(WorkResult result) {
-                if (result instanceof ApiCompilerResult) {
-                    AnnotationProcessingResult annotationProcessingResult = ((ApiCompilerResult) result).getAnnotationProcessingResult();
-                    List<AnnotationProcessorDetails> details = new ArrayList<AnnotationProcessorDetails>();
-                    for (AnnotationProcessorResult processorResult : annotationProcessingResult.getAnnotationProcessorResults()) {
-                        details.add(toAnnotationProcessorDetails(processorResult));
-                    }
-                    return new Result(details);
+        private Result toBuildOperationResult(WorkResult result) {
+            if (result instanceof ApiCompilerResult) {
+                AnnotationProcessingResult annotationProcessingResult = ((ApiCompilerResult) result).getAnnotationProcessingResult();
+                List<AnnotationProcessorDetails> details = new ArrayList<>();
+                for (AnnotationProcessorResult processorResult : annotationProcessingResult.getAnnotationProcessorResults()) {
+                    details.add(toAnnotationProcessorDetails(processorResult));
                 }
-                return new Result(null);
+                return new Result(details);
             }
+            return new Result(null);
+        }
 
-            private DefaultAnnotationProcessorDetails toAnnotationProcessorDetails(AnnotationProcessorResult result) {
-                return new DefaultAnnotationProcessorDetails(result.getClassName(), toType(result.getType()), result.getExecutionTimeInMillis());
-            }
+        private DefaultAnnotationProcessorDetails toAnnotationProcessorDetails(AnnotationProcessorResult result) {
+            return new DefaultAnnotationProcessorDetails(result.getClassName(), toType(result.getType()), result.getExecutionTimeInMillis());
+        }
 
-            private AnnotationProcessorDetails.Type toType(IncrementalAnnotationProcessorType type) {
-                if (type == IncrementalAnnotationProcessorType.AGGREGATING) {
-                    return AnnotationProcessorDetails.Type.AGGREGATING;
-                }
-                if (type == IncrementalAnnotationProcessorType.ISOLATING) {
-                    return AnnotationProcessorDetails.Type.ISOLATING;
-                }
-                return AnnotationProcessorDetails.Type.UNKNOWN;
+        private AnnotationProcessorDetails.Type toType(IncrementalAnnotationProcessorType type) {
+            if (type == IncrementalAnnotationProcessorType.AGGREGATING) {
+                return AnnotationProcessorDetails.Type.AGGREGATING;
             }
-        });
+            if (type == IncrementalAnnotationProcessorType.ISOLATING) {
+                return AnnotationProcessorDetails.Type.ISOLATING;
+            }
+            return AnnotationProcessorDetails.Type.UNKNOWN;
+        }
     }
 
     private static class Result implements CompileJavaBuildOperationType.Result {

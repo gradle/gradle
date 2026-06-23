@@ -66,7 +66,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         buildKotlinFile << """
             plugins { id("$PLUGIN_ID") }
             tasks.register("verify") {
-                val pluginVersion: String by project
+                val pluginVersion = project.property("pluginVersion") as String
                 val pluginVersionValue = pluginVersion
                 doLast {
                     assert(pluginVersionValue == "2.0")

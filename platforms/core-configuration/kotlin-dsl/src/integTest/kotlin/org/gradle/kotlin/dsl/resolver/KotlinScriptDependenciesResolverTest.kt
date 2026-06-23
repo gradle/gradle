@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
@@ -114,7 +114,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `succeeds on precompiled init script`() {
 
         withKotlinBuildSrc()
@@ -126,7 +126,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `succeeds on precompiled settings script`() {
 
         withKotlinBuildSrc()
@@ -144,7 +144,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `succeeds on precompiled project script`() {
 
         withKotlinBuildSrc()
@@ -177,7 +177,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     """
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `pass environment`() {
 
         assertSucceeds(
@@ -300,7 +300,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `report file warning on runtime failure in currently edited script`() {
 
         val editedScript = withBuildScript(
@@ -320,7 +320,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
 
         withFile(

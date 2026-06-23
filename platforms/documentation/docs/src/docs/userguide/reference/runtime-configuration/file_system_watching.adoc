@@ -19,6 +19,7 @@
 Gradle maintains a Virtual File System (VFS) to calculate what needs to be rebuilt on repeat builds of a project.
 By watching the file system, Gradle keeps the VFS current between builds.
 
+[[sec:enable]]
 == Enable
 
 Gradle enables file system watching by default for supported operating systems since Gradle 7.
@@ -32,6 +33,7 @@ To force file system watching for all builds (unless disabled with `--no-watch-f
 org.gradle.vfs.watch=true
 ----
 
+[[sec:disable]]
 == Disable
 
 To disable file system watching:
@@ -39,6 +41,7 @@ To disable file system watching:
 * use the `--no-watch-fs` flag
 * set `org.gradle.vfs.watch=false` in `gradle.properties`
 
+[[sec:excluding_files_and_directories]]
 == Excluding files and directories
 
 Gradle automatically excludes some common directories (like `.git`, `.gradle`, and `build/`) from file system watching.
@@ -47,6 +50,7 @@ There is no public mechanism to configure additional file system watch excludes.
 
 To reduce unnecessary watching and re-execution, consider limiting the inputs of specific tasks using link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html#exclude(java.lang.String...)[`fileTree.exclude()`].
 
+[[sec:supported_operating_systems]]
 == Supported Operating Systems
 
 Gradle uses native operating system features to watch the file system.
@@ -61,6 +65,7 @@ Gradle supports file system watching on the following operating systems:
 ** Alpine Linux 3.20
 * macOS 12 (Monterey) or later on Intel and ARM architectures
 
+[[sec:supported_file_systems]]
 == Supported File Systems
 
 File system watching supports the following file system types:
@@ -77,6 +82,7 @@ Gradle also supports VirtualBox's shared folders.
 
 Network file systems like Samba and NFS are not supported. Microsoft Dev Drives (ReFS) are also not supported.
 
+[[sec:unsupported_file_systems]]
 == Unsupported File Systems
 
 When enabled by default, file system watching acts conservatively when it encounters content on unsupported file systems.
@@ -84,10 +90,12 @@ This can happen if you mount a project directory or subdirectory from a network 
 Gradle doesn't retain information about unsupported file systems between builds when enabled by default.
 If you explicitly enable file system watching, Gradle retains information about unsupported file systems between builds.
 
+[[symlinks]]
 === Symlinks
 
 Files and directories in your project that are accessed via symlinks do not benefit from file system-watching optimizations.
 
+[[sec:logging]]
 == Logging
 
 To view information about Virtual File System (VFS) changes at the beginning and end of a build, enable verbose VFS logging.

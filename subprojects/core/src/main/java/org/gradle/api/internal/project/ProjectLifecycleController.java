@@ -17,18 +17,19 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 
@@ -39,15 +40,19 @@ import java.io.Closeable;
 public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;
+    private final ProjectLockGuard lockGuard;
+    @Nullable
     private ProjectInternal project;
+    @Nullable
     private CloseableServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
         NotCreated, Created, Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
+    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ProjectLockGuard lockGuard, ServiceRegistry buildServices) {
         this.buildServices = buildServices;
+        this.lockGuard = lockGuard;
         controller = factory.newController(displayName, State.NotCreated);
     }
 
@@ -56,11 +61,11 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void assertConfigured() {
-        controller.assertInStateOrLater(State.Configured);
+        controller.assertHasSeenState(State.Configured);
     }
 
     public void createMutableModel(
-        ProjectDescriptorInternal descriptor,
+        ImmutableProjectDescriptor descriptor,
         BuildState build,
         ProjectState owner,
         ClassLoaderScope selfClassLoaderScope,
@@ -80,23 +85,25 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public ProjectInternal getMutableModel() {
-        controller.assertInStateOrLater(State.Created);
+        controller.assertHasSeenState(State.Created);
         return project;
     }
 
     public ProjectInternal getMutableModelEvenAfterFailure() {
-        controller.assertInStateOrLaterIgnoringFailures(State.Created);
+        controller.assertHasSeenStateIgnoringFailures(State.Created);
         return project;
     }
 
     public void ensureSelfConfigured() {
-        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
+        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> lockGuard.withProjectLock(() -> project.evaluateUnchecked()));
     }
 
     public void ensureTasksDiscovered() {
         ensureSelfConfigured();
-        project.getTasks().discoverTasks();
-        project.bindAllModelRules();
+        lockGuard.withProjectLock(() -> {
+            project.getTasks().discoverTasks();
+            project.bindAllModelRules();
+        });
     }
 
     @Override
@@ -109,5 +116,13 @@ public class ProjectLifecycleController implements Closeable {
                 projectScopeServices = null;
             }
         }
+    }
+
+    /**
+     * Runs an action while holding the owning project's state lock.
+     */
+    @FunctionalInterface
+    public interface ProjectLockGuard {
+        void withProjectLock(Runnable action);
     }
 }

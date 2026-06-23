@@ -25,10 +25,14 @@ import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionLambdaTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionParameterTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionReturnTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.GetterBasedConfiguringFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedCallable
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.isValidNestedModelType
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
@@ -36,7 +40,9 @@ import kotlin.reflect.full.isSubclassOf
 /**
  * Defines a minimal set of features for Declarative DSL evaluation.
  * The only Gradle-related customization in this component are [gradleConfigureLambdas] and NDOC & Provider type awareness in [GetterBasedConfiguringFunctionExtractor].
- * Besides, no custom Gradle APIs are considered as schema contributors.
+ *
+ * Provides type discovery via functions that return an object or configure an object accepting a lambda as the last parameter
+ * (via [org.gradle.api.Action] or a Kotlin function type, see [gradleConfigureLambdas]).
  */
 class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
     override fun propertyExtractors(): List<PropertyExtractor> =
@@ -44,6 +50,11 @@ class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas),
         GetterBasedConfiguringFunctionExtractor(::isValidNestedGradleModelType)
+    )
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
+        FunctionLambdaTypeDiscovery(gradleConfigureLambdas),
+        FunctionParameterTypeDiscovery(),
+        FunctionReturnTypeDiscovery()
     )
 }
 

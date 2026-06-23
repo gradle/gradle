@@ -41,8 +41,8 @@ First, create a custom task that generates MD5 hashes of a configurable set of f
 In a new directory, create a `buildSrc/build.gradle(.kts)` file:
 
 ====
-include::sample[dir="snippets/workerApi/md5CustomTask/kotlin",files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/unused/worker-api/md5CustomTask/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/unused/worker-api/md5CustomTask/groovy",files="buildSrc/build.gradle[]"]
 ====
 <1> Your custom task class will use https://commons.apache.org/proper/commons-codec/[Apache Commons Codec] to generate MD5 hashes.
 
@@ -52,7 +52,7 @@ You should name this class `CreateMD5`:
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/unused/worker-api/md5CustomTask/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> link:{javadocPath}/org/gradle/api/tasks/SourceTask.html[SourceTask] is a convenience type for tasks that operate on a set of source files.
 <2> The task output will go into a configured directory.
@@ -63,8 +63,8 @@ include::{snippetsPath}/workerApi/md5CustomTask/groovy/buildSrc/src/main/java/Cr
 Next, create a `build.gradle(.kts)` that registers your new `CreateMD5` task:
 
 ====
-include::sample[dir="snippets/workerApi/md5CustomTask/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/workerApi/md5CustomTask/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/unused/worker-api/md5CustomTask/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/unused/worker-api/md5CustomTask/groovy",files="build.gradle[]"]
 ====
 <1> Apply the `base` plugin so that you'll have a `clean` task to use to remove the output.
 <2> MD5 hash files will be written to `build/md5`.
@@ -76,19 +76,19 @@ Create three files in the `src` directory:
 .src/einstein.txt
 [source,text]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/einstein.txt[]
+include::{snippetsPath}/unused/worker-api/md5CustomTask/groovy/src/einstein.txt[]
 ----
 
 .src/feynman.txt
 [source,text]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/feynman.txt[]
+include::{snippetsPath}/unused/worker-api/md5CustomTask/groovy/src/feynman.txt[]
 ----
 
 .src/hawking.txt
 [source,text]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/groovy/src/hawking.txt[]
+include::{snippetsPath}/unused/worker-api/md5CustomTask/groovy/src/hawking.txt[]
 ----
 
 At this point, you can test your task by running it `./gradlew md5`:
@@ -102,7 +102,7 @@ The output should look similar to:
 
 [listing]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/tests/md5Task1.out[]
+include::{snippetsPath}/unused/worker-api/md5CustomTask/tests/md5Task1.out[]
 ----
 
 In the `build/md5` directory, you should now see corresponding files with an `md5` extension containing MD5 hashes of the files from the `src` directory.
@@ -127,7 +127,7 @@ There is no need to create a concrete implementation because Gradle will generat
 .buildSrc/src/main/java/MD5WorkParameters.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/MD5WorkParameters.java[]
+include::{snippetsPath}/unused/worker-api/md5NoIsolation/common/buildSrc/src/main/java/MD5WorkParameters.java[]
 ----
 <1> Use `Property` objects to represent the source and MD5 hash files.
 
@@ -137,7 +137,7 @@ This class is your "unit of work" implementation, and it should be an abstract c
 .buildSrc/src/main/java/GenerateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/GenerateMD5.java[]
+include::{snippetsPath}/unused/worker-api/md5NoIsolation/common/buildSrc/src/main/java/GenerateMD5.java[]
 ----
 <1> Do not implement the `getParameters()` method - Gradle will inject this at runtime.
 
@@ -147,7 +147,7 @@ link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] instea
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/unused/worker-api/md5NoIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> The link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service is required in order to submit your work.
 Create an abstract getter method annotated `javax.inject.Inject`, and Gradle will inject the service at runtime when the task is created.
@@ -160,7 +160,7 @@ At this point, you should be able to rerun your task:
 ----
 $ gradle clean md5
 
-include::{snippetsPath}/workerApi/md5NoIsolation/tests/md5Task1.out[]
+include::{snippetsPath}/unused/worker-api/md5NoIsolation/tests/md5Task1.out[]
 ----
 
 The results should look the same as before, although the MD5 hash files may be generated in a different order since the units of work are executed in parallel.
@@ -189,8 +189,8 @@ First, you must change the dependency in `buildSrc/build.gradle` to be `compileO
 This tells Gradle that it should use this dependency when building the classes, but should not put it on the build script classpath:
 
 ====
-include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/kotlin",files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/unused/worker-api/md5ClassloaderIsolation/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/unused/worker-api/md5ClassloaderIsolation/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 Next, change the `CreateMD5` task to allow the user to configure the version of the codec library that they want to use.
@@ -201,7 +201,7 @@ The `classLoaderIsolation()` method tells Gradle to run this work in a thread wi
 .buildSrc/src/main/java/CreateMD5.java
 [source, groovy]
 ----
-include::{snippetsPath}/workerApi/md5ClassloaderIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/unused/worker-api/md5ClassloaderIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> Expose an input property for the codec library classpath.
 <2> Configure the classpath on the link:{javadocPath}/org/gradle/workers/ClassLoaderWorkerSpec.html[ClassLoaderWorkerSpec] when creating the work queue.
@@ -210,8 +210,8 @@ Next, you need to configure your build so that it has a repository to look up th
 We also create a dependency to resolve our codec library from this repository:
 
 ====
-include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/workerApi/md5ClassloaderIsolation/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/unused/worker-api/md5ClassloaderIsolation/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/unused/worker-api/md5ClassloaderIsolation/groovy",files="build.gradle[]"]
 ====
 
 <1> Add a repository to resolve the codec library - this can be a different repository than the one used to build the `CreateMD5` task class.
@@ -226,7 +226,7 @@ Now, if you run your task, it should work as expected using the configured versi
 ----
 $ gradle clean md5
 
-include::{snippetsPath}/workerApi/md5ClassloaderIsolation/tests/md5Task1.out[]
+include::{snippetsPath}/unused/worker-api/md5ClassloaderIsolation/tests/md5Task1.out[]
 ----
 
 === Step 4. Create a Worker Daemon
@@ -246,7 +246,7 @@ You may also want to configure custom settings for the new process:
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5ProcessIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/unused/worker-api/md5ProcessIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> Change the isolation mode to `PROCESS`.
 <2> Set up the link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] for the new process.
@@ -257,7 +257,7 @@ Now, you should be able to run your task, and it will work as expected but using
 ----
 $ gradle clean md5
 
-include::{snippetsPath}/workerApi/md5ProcessIsolation/tests/md5Task1.out[]
+include::{snippetsPath}/unused/worker-api/md5ProcessIsolation/tests/md5Task1.out[]
 ----
 
 Note that the execution time may be high.
@@ -270,7 +270,7 @@ This is because the worker daemon(s) started during the initial build have persi
 ----
 $ gradle clean md5
 
-include::{snippetsPath}/workerApi/md5ProcessIsolation/tests/md5Task2.out[]
+include::{snippetsPath}/unused/worker-api/md5ProcessIsolation/tests/md5Task2.out[]
 ----
 
 [[isolation-modes]]
@@ -299,8 +299,8 @@ This process can be configured with different settings than the Gradle JVM using
 When using `processIsolation()`, Gradle will start a long-lived _worker daemon_ process that can be reused for future work items.
 
 ====
-include::sample[dir="snippets/workerApi/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
-include::sample[dir="snippets/workerApi/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
+include::sample[dir="snippets/unused/worker-api/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
+include::sample[dir="snippets/unused/worker-api/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
 ====
 
 When a unit of work for a worker daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.

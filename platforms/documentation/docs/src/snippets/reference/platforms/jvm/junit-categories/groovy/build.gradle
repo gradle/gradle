@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
+// tag::test-categories[]
+test {
+    useJUnit {
+        includeCategories 'org.gradle.junit.CategoryA'
+        excludeCategories 'org.gradle.junit.CategoryB'
+    }
+}
+// end::test-categories[]

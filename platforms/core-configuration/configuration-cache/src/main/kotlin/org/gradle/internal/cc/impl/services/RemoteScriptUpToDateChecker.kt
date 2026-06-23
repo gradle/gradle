@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCo
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.ResourceExceptions
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare
@@ -48,7 +49,11 @@ class RemoteScriptUpToDateChecker(
             val externalResourceName = ExternalResourceName(uri)
 
             val cached = cachedExternalResourceIndex.lookup(externalResourceName.toString())
-            val remoteMetaData = externalResourceConnector.getMetaData(externalResourceName, true)
+            val remoteMetaData = try {
+                externalResourceConnector.getMetaData(externalResourceName, true)
+            } catch (e: Exception) {
+                throw ResourceExceptions.getFailed(externalResourceName.uri, e)
+            }
 
             if (cached != null && ExternalResourceMetaDataCompare.isDefinitelyUnchanged(cached.externalResourceMetaData) { remoteMetaData }) {
                 // reset the age of the cached entry to zero

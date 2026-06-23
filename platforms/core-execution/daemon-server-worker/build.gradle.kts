@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)
+    implementation(projects.domainObjectCollections)
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.fileTemp)

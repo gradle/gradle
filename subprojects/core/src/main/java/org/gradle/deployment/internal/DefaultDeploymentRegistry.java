@@ -52,6 +52,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private boolean stopped;
     private boolean anyStarted;
 
+    @SuppressWarnings("this-escape")
     public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
         this.buildOperationRunner = buildOperationRunner;

@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathRootExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -285,10 +284,5 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         def clazz = xmlReport.testClass("com.example.ReportEntryTest")
         clazz.assertHasFileAttachments(constructorDir)
         clazz.assertTestHasFileAttachments('test(TestReporter)', beforeEachDir, testDir, afterEachDir)
-    }
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
     }
 }

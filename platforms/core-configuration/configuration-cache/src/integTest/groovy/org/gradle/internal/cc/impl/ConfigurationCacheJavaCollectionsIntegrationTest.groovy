@@ -18,13 +18,14 @@ package org.gradle.internal.cc.impl
 
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Issue
 
 class ConfigurationCacheJavaCollectionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Issue('https://github.com/gradle/gradle/issues/26942')
-    @Requires(value = UnitTestPreconditions.Jdk11OrLater)
+    @Requires(value = JdkVersionTestPreconditions.Jdk11OrLater)
     def 'restores Java 11 collections'() {
         given:
         buildFile '''

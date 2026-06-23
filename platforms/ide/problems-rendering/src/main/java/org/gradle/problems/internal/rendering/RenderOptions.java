@@ -23,16 +23,13 @@ class RenderOptions {
 
     private final String prefix;
     private final boolean renderId;
-    private final boolean renderSolutions;
 
     public RenderOptions(
         String prefix,
-        boolean renderId,
-        boolean renderSolutions
+        boolean renderId
     ) {
         this.prefix = prefix;
         this.renderId = renderId;
-        this.renderSolutions = renderSolutions;
     }
 
     /**
@@ -47,12 +44,5 @@ class RenderOptions {
      */
     public boolean isRenderId() {
         return renderId;
-    }
-
-    /**
-     * Whether to render the solutions with the problem.
-     */
-    public boolean isRenderSolutions() {
-        return renderSolutions;
     }
 }

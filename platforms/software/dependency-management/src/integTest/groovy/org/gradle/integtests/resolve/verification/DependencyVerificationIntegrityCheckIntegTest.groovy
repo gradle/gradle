@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture.getChecksum
@@ -352,8 +352,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         fails "resolve"
 
         then:
@@ -1099,7 +1097,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Issue("https://github.com/gradle/gradle/issues/18498")
     def "fails validation for local repository with cached metadata rule"() {
         def repoDir = testDirectory.createDir("repo")

@@ -28,6 +28,11 @@ class IdeaMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationTest
     String libraryPluginId = "java-library"
 
     @Override
+    protected String[] getDeprecatedTaskNames() {
+        return ["idea", "ideaModule", "ideaProject", "ideaWorkspace"]
+    }
+
+    @Override
     IdeaProjectFixture workspace(TestFile workspaceDir, String ideWorkspaceName) {
         return IdeaFixtures.parseIpr(workspaceDir.file(ideWorkspaceName + ".ipr"))
     }

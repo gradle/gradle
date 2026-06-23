@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 
@@ -26,12 +25,13 @@ public class DefaultBuildOperationsParameters implements BuildOperationsParamete
      * Whether build operations measuring resource locks should be emitted.
      * For observability purposes, potentially at the cost of some performance.
      */
-    public static final InternalOption<Boolean> VERBOSE_LOCKING_OPERATIONS_OPTION = new InternalFlag("org.gradle.internal.operations.verbose.locking", false);
+    public static final InternalOption<Boolean> VERBOSE_LOCKING_OPERATIONS_OPTION =
+        InternalOptions.ofBoolean("org.gradle.internal.operations.verbose.locking", false);
 
     private final boolean emitLockingOperations;
 
     public DefaultBuildOperationsParameters(InternalOptions internalOptions) {
-        this.emitLockingOperations = internalOptions.getOption(VERBOSE_LOCKING_OPERATIONS_OPTION).get();
+        this.emitLockingOperations = internalOptions.getBoolean(VERBOSE_LOCKING_OPERATIONS_OPTION);
     }
 
     @Override

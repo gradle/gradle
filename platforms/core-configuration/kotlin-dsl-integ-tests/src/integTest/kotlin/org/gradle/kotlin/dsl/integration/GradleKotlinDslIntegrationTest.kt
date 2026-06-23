@@ -33,8 +33,9 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -43,6 +44,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -175,7 +177,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             class DeepThoughtPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
                     project.run {
-                        task("compute") {
+                        tasks.register("compute") {
                             doLast {
                                 DeepThought().compute { answer ->
                                     println("*" + answer + "*")
@@ -208,7 +210,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Class path isolation, tested here, is not correct in embedded mode"
     )
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
@@ -469,7 +471,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier::class)
+    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier::class)
     fun `build script can use jdk8 extensions`() {
 
         withBuildScript(
@@ -700,7 +702,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             "gradle/answer.gradle.kts",
             """
 
-            val answer by extra { "42" }
+            extra["answer"] = "42"
 
             """
         )
@@ -715,7 +717,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             withBuildScript(
                 """
                 apply(from = "$remoteScriptUrl")
-                val answer: String by extra
+                val answer = extra["answer"] as String
                 println("*" + answer + "*")
                 """
             )
@@ -752,7 +754,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             "gradle/answer.gradle.kts",
             """
 
-            val answer by extra { "42" }
+            extra["answer"] = "42"
 
             """
         )
@@ -765,7 +767,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             apply(from = project.buildscript.classLoader.getResource("common.gradle.kts").toURI())
 
-            val answer: String by extra
+            val answer = extra["answer"] as String
             println("*" + answer + "*")
             """
         )
@@ -816,6 +818,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can cross configure buildscript`() {
 
@@ -964,6 +967,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         build("help")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can use kotlin java8 inline-only methods`() {
 

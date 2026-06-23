@@ -30,8 +30,8 @@ public abstract class KotlinDslReference {
     public abstract DirectoryProperty getRenderedDocumentation();
 
     /**
-     * The Dokka version to use instead the default one Dokkatoo is configured with.
-     * Will use the Dokkatoo default, if not specified.
+     * The Dokka version to use instead of the default one the Dokka Gradle Plugin is configured with.
+     * Will use the Dokka default, if not specified.
      */
     public abstract Property<String> getDokkaVersionOverride();
 

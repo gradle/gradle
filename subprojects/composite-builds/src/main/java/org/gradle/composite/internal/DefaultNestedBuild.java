@@ -26,7 +26,7 @@ import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -50,9 +50,9 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         Path identityPath,
         BuildDefinition buildDefinition,
         BuildState owner,
-        BuildTreeState buildTree
+        BuildTreeServices buildTreeServices
     ) {
-        super(buildTree, buildDefinition, owner);
+        super(buildTreeServices, buildDefinition, owner);
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;

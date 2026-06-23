@@ -18,10 +18,10 @@ package org.gradle.plugin.devel.impldeps
 
 import com.google.common.collect.Maps
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testfixtures.ProjectBuilder
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // This tests class loader isolation which is not given in embedded mode
 class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "cannot compile against classes that are not part of Gradle's public API"() {

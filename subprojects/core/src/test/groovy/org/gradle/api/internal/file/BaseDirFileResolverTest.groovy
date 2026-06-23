@@ -20,7 +20,8 @@ import org.gradle.api.PathValidation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -208,7 +209,7 @@ class BaseDirFileResolverTest {
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
-    @Requires(UnitTestPreconditions.NotWindows) // NTFS does not support colons in file names
+    @Requires(OsTestPreconditions.NotWindows) // NTFS does not support colons in file names
     @Test public void testCanResolveNonFileURI() {
         // this can be a valid path
         // % mkdir https:

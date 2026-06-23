@@ -57,9 +57,7 @@ tasks.withType<IntegrationTest>() {
     }
     jvmArgumentProviders.add(argument)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 errorprone {
     nullawayEnabled = true

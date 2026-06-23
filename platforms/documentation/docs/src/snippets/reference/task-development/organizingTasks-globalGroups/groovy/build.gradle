@@ -1,0 +1,8 @@
+// tag::global-groups[]
+def globalBuildGroup = "My global build"
+def ciBuildGroup = "My CI build"
+
+tasks.named("tasks", TaskReportTask) {
+    displayGroups = [globalBuildGroup, ciBuildGroup]
+}
+// end::global-groups[]

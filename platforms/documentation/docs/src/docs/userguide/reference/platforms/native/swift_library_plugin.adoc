@@ -22,8 +22,8 @@ In particular, a Swift library provides functionality that can be used by consum
 == Usage
 
 ====
-include::sample[dir="snippets/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
-include::sample[dir="snippets/swift/swiftLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:swift_library_build_variants]]
@@ -43,8 +43,8 @@ The linkage expresses whether a shared library or static library should be creat
 The linkage can be configured as follows:
 
 ====
-include::sample[dir="snippets/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
-include::sample[dir="snippets/swift/swiftLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
 ====
 
 Target machines - defaults to the build host::
@@ -55,8 +55,8 @@ Gradle uses the target machine to decide which tool chain to choose based on ava
 The target machine can be configured as follows:
 
 ====
-include::sample[dir="snippets/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
-include::sample[dir="snippets/swift/swiftLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:swift_library_tasks]]
@@ -193,8 +193,8 @@ The plugin exposes two configurations that can be used to declare dependencies: 
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
 ====
-include::sample[dir="snippets/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
-include::sample[dir="snippets/swift/swiftLibrary/groovy",files="build.gradle[tags=dependency-management]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
+include::sample[dir="snippets/reference/platforms/native/swiftLibrary/groovy",files="build.gradle[tags=dependency-management]"]
 ====
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile include root and link libraries of consumers.

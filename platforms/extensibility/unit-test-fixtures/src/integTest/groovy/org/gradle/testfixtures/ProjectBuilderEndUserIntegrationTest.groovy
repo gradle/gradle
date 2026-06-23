@@ -18,7 +18,6 @@ package org.gradle.testfixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -27,8 +26,10 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
@@ -37,14 +38,8 @@ import org.junit.Assume
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SPOCK
-    }
-
     def setup() {
         buildFile << """
             plugins {
@@ -103,7 +98,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         testPassed()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "using project builder on unsupported java version fails"() {
         Assume.assumeTrue("Gradle can execute tests", jdk.javaVersionMajor >= SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION)
 
@@ -132,7 +127,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
     }
 
-    @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
+    @Requires(JdkVersionTestPreconditions.DeprecatedDaemonJdkVersion)
     def "using project builder on deprecated java version emits a deprecation warning"() {
         given:
         withTest("""
@@ -148,7 +143,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         assertTestStdout(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning))
     }
 
-    @Requires(UnitTestPreconditions.NonDeprecatedDaemonJdkVersion)
+    @Requires(JdkVersionTestPreconditions.NonDeprecatedDaemonJdkVersion)
     def "using project builder on non-deprecated java version does not emit a deprecation warning"() {
         given:
         withTest("""

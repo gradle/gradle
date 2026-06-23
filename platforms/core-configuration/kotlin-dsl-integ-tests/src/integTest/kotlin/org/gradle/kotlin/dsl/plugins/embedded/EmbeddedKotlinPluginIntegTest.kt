@@ -189,7 +189,7 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
             $repositoriesBlock
 
-            val customConfiguration by configurations.creating
+            val customConfiguration = configurations.create("customConfiguration")
             customConfiguration.extendsFrom(configurations["embeddedKotlin"])
 
             configurations["customConfiguration"].files.map { println(it) }

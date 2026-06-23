@@ -19,11 +19,11 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class TestTaskDoesntFailWith21DueToValidationProblems extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "test succeeds with java 21 and JUnit Jupiter"() {
         given:
         file("src/test/java/ProjectTest.java") << """

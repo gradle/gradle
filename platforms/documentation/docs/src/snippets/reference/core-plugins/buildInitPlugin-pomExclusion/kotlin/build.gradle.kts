@@ -1,0 +1,16 @@
+plugins {
+    id("java")
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::pom-exclusion[]
+dependencies {
+    implementation("some.group:some-artifact:1.0") {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
+        exclude(group = "excluded.group", module = "excluded-artifact")
+    }
+}
+// end::pom-exclusion[]

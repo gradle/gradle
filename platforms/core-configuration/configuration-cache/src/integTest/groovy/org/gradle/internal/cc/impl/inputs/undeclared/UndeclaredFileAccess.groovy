@@ -18,9 +18,11 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import org.gradle.api.JavaVersion
 import org.junit.Assume
+import org.junit.AssumptionViolatedException
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.function.Supplier
 
@@ -38,12 +40,13 @@ abstract class UndeclaredFileAccess extends BuildInputRead {
             FileFilter.class,
             FilenameFilter.class,
             Files.class,
+            Paths.class,
             StandardCharsets.class,
             StandardOpenOption.class,
             IOException.class,
             Supplier.class,
             FileInputStream.class
-        ].collect { it.canonicalName }
+        ].collect { it.canonicalName } + ["kotlin.io.path.*"]
     }
 
     static class FileCheck extends UndeclaredFileAccess {
@@ -298,6 +301,82 @@ abstract class UndeclaredFileAccess extends BuildInputRead {
             @Override
             String getGroovyExpression() {
                 "new File(\"$filePath\").getText('UTF-8')"
+            }
+        }
+    }
+
+    static UndeclaredFileAccess pathText(String filePath) {
+        // Java & Groovy don't have an equivalent method which doesn't take an explicit encoding parameters, so we'll skip testing for those languages.
+        // Providing an explicit parameter is tested separately, no point in doing it twice.
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").readText()")
+    }
+
+    static UndeclaredFileAccess pathTextWithEncoding(String filePath) {
+        new UndeclaredFileAccess(filePath) {
+            @Override
+            String getKotlinExpression() {
+                "Paths.get(\"$filePath\").readText(StandardCharsets.UTF_8)"
+            }
+
+            @Override
+            String getJavaExpression() {
+                """
+                ((Supplier<String>) () -> {
+                    try {
+                        return kotlin.io.path.PathsKt.readText(Paths.get("$filePath"), StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).get()
+                """.stripIndent()
+            }
+
+            @Override
+            String getGroovyExpression() {
+                "kotlin.io.path.PathsKt.readText(Paths.get(\"$filePath\"), StandardCharsets.UTF_8)"
+            }
+        }
+    }
+
+    static UndeclaredFileAccess pathReadLines(String filePath) {
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").readLines().joinToString(\"\")")
+    }
+
+    static UndeclaredFileAccess pathReadBytes(String filePath) {
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").readBytes().toString(Charsets.UTF_8)")
+    }
+
+    static UndeclaredFileAccess pathReader(String filePath) {
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").reader().use { it.readText() }")
+    }
+
+    static UndeclaredFileAccess pathBufferedReader(String filePath) {
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").bufferedReader().use { it.readText() }")
+    }
+
+    static UndeclaredFileAccess pathInputStream(String filePath) {
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").inputStream().bufferedReader().use { it.readText() }")
+    }
+
+    static UndeclaredFileAccess pathUseLines(String filePath) {
+        kotlinOnlyPathAccess(filePath, "Paths.get(\"$filePath\").useLines { it.joinToString(\"\") }")
+    }
+
+    private static UndeclaredFileAccess kotlinOnlyPathAccess(String filePath, String kotlinExpression) {
+        new UndeclaredFileAccess(filePath) {
+            @Override
+            String getKotlinExpression() {
+                kotlinExpression
+            }
+
+            @Override
+            String getJavaExpression() {
+                throw new AssumptionViolatedException("Kotlin stdlib @InlineOnly Path extensions have no idiomatic Java call path")
+            }
+
+            @Override
+            String getGroovyExpression() {
+                throw new AssumptionViolatedException("Kotlin stdlib @InlineOnly Path extensions have no idiomatic Groovy call path")
             }
         }
     }

@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.plugins.ide.api.PropertiesGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
@@ -29,12 +30,16 @@ import javax.inject.Inject;
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseJdt}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     private EclipseJdt jdt;
 
+    @SuppressWarnings("this-escape")
     public GenerateEclipseJdt() {
         jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
     }
@@ -45,6 +50,15 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     }
 
     @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
+    }
+
+    @Override
     protected Jdt create() {
         return new Jdt(getTransformer());
     }
@@ -52,11 +66,13 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     @Override
     @SuppressWarnings("unchecked")
     protected void configure(Jdt jdtContent) {
-        EclipseJdt jdtModel = getJdt();
-        jdtModel.getFile().getBeforeMerged().execute(jdtContent);
-        jdtContent.setSourceCompatibility(jdtModel.getSourceCompatibility());
-        jdtContent.setTargetCompatibility(jdtModel.getTargetCompatibility());
-        jdtModel.getFile().getWhenMerged().execute(jdtContent);
+        DeprecationLogger.whileDisabled(() -> {
+            EclipseJdt jdtModel = getJdt();
+            jdtModel.getFile().getBeforeMerged().execute(jdtContent);
+            jdtContent.setSourceCompatibility(jdtModel.getSourceCompatibility());
+            jdtContent.setTargetCompatibility(jdtModel.getTargetCompatibility());
+            jdtModel.getFile().getWhenMerged().execute(jdtContent);
+        });
     }
 
     @Override
@@ -64,7 +80,7 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
         if (jdt == null) {
             return super.getTransformer();
         }
-        return jdt.getFile().getTransformer();
+        return DeprecationLogger.whileDisabled(() -> jdt.getFile().getTransformer());
     }
 
     /**

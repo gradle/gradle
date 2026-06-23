@@ -16,7 +16,11 @@
 
 package org.gradle.internal.enterprise.exceptions
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.VerificationException
 import org.gradle.execution.MultipleBuildFailures
@@ -90,8 +94,13 @@ class ExceptionMetadataHelperTest extends Specification {
     def "captures location information from TaskExecutionException"() {
         given:
         def path = ":build:the:path"
-        def task = Mock(TaskInternal)
-        _ * task.getIdentityPath() >> Path.path(path)
+        def project = Mock(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+        }
+        def task = Stub(TaskInternal) {
+            getTaskIdentity() >> TestTaskIdentities.create("name", DefaultTask.class, project)
+            getIdentityPath() >> Path.path(path)
+        }
         def te = new TaskExecutionException(task, new RuntimeException("badness"))
 
         expect:

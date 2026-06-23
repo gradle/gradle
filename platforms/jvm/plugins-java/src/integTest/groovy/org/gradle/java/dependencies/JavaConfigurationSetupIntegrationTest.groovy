@@ -17,7 +17,7 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -117,7 +117,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         then:
         !deprecated(alternatives)
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
-        !doesNotExist(alternatives) || errorOutput.contains("A dependency was declared on configuration '$configuration' of 'project :sub' but no variant with that configuration name exists.")
+        !doesNotExist(alternatives) || errorOutput.contains("A dependency was declared on configuration '$configuration' of 'project ':sub'' but no variant with that configuration name exists.")
 
         where:
         plugin         | configuration                  | alternatives

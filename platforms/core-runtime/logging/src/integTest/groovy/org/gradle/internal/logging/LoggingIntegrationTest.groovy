@@ -20,10 +20,10 @@ package org.gradle.internal.logging
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
@@ -169,7 +169,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         }
     }}
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/30771")
     def "build emits #level logging"() {
         LogLevel logLevel = logOutput."$level"
         resources.maybeCopy('LoggingIntegrationTest/logging')
@@ -240,8 +240,8 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         loggerClass << ["DeprecatedListener", "NonDeprecatedListener"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
-    @UsesSample('tutorial/logging/groovy')
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/30771", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
+    @UsesSample('integration-tests/tutorial/logging/groovy')
     def "sample emits #level logging"() {
         LogLevel logLevel = sample."$level"
 

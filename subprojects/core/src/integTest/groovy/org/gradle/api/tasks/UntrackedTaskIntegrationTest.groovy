@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 
 class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -176,7 +178,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         skipped(":mySubclassOfUntrackedTask")
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "untracked tasks can produce and consume unreadable content"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -201,7 +203,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         unreadableDir.setReadable(true)
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "tracked task producing unreadable content fails"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -231,7 +233,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         unreadableDir.setReadable(true)
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "tracked task producing named pipe fails"() {
         def rootDir = file("build/root")
         def namedPipe = rootDir.file("unreadable")
@@ -258,7 +260,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failureHasCause("java.io.IOException: Cannot snapshot ${namedPipe}: not a regular file")
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "tracked task consuming unreadable content fails"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")

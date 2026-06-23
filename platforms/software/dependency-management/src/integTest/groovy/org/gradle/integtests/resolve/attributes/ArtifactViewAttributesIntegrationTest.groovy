@@ -101,7 +101,7 @@ class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps(project)
+                deps(project())
             }
 
             def attrValue = project.objects.property(String)

@@ -25,21 +25,23 @@ public enum VersionCatalogProblemId {
 
     ACCESSOR_NAME_CLASH("Accessor name clash"),
     CATALOG_FILE_DOES_NOT_EXIST("Import of external catalog file failed"),
-    INVALID_ALIAS_NOTATION("The alias notation is invalid"),
-    RESERVED_ALIAS_NAME("The alias is reserved"),
-    INVALID_DEPENDENCY_NOTATION("The dependency notation is not valid"),
-    INVALID_PLUGIN_NOTATION("The plugin notation is not valid"),
-    INVALID_MODULE_NOTATION("The module notation is not valid"),
+    INVALID_ALIAS_NOTATION("Invalid alias notation"),
+    RESERVED_ALIAS_NAME("Reserved alias name"),
+    INVALID_DEPENDENCY_NOTATION("Invalid dependency notation"),
+    INVALID_PLUGIN_NOTATION("Invalid plugin notation"),
+    INVALID_MODULE_NOTATION("Invalid module notation"),
+    INVALID_TOML_DEFINITION("Invalid TOML definition"),
+    INVALID_VERSION_NOTATION("Invalid version notation"),
     TOO_MANY_IMPORT_FILES("Importing multiple files is not supported"),
     NO_IMPORT_FILES("No files were resolved to be imported"),
-    TOO_MANY_IMPORT_INVOCATION("The 'from' method can only be called once"),
+    TOO_MANY_IMPORT_INVOCATION("Multiple 'from' invocations"),
     TOML_SYNTAX_ERROR("TOML syntax error"),
     TOO_MANY_ENTRIES("Too many entries"),
     UNDEFINED_ALIAS_REFERENCE("Bundle declares dependency on non-existent alias"),
-    UNDEFINED_VERSION_REFERENCE("The version reference doesn't exist"),
-    UNSUPPORTED_FILE_FORMAT("The file format is not supported"),
-    UNSUPPORTED_FORMAT_VERSION("The format version is not supported"),
-    ALIAS_NOT_FINISHED("Dependency alias builder was not finished");
+    UNDEFINED_VERSION_REFERENCE("Undefined version reference"),
+    UNSUPPORTED_FILE_FORMAT("Unsupported file format"),
+    UNSUPPORTED_FORMAT_VERSION("Unsupported format version"),
+    ALIAS_NOT_FINISHED("Alias builder not finished");
 
     private final String displayName;
 

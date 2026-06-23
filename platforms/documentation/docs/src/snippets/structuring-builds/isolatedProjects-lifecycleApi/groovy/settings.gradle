@@ -1,0 +1,19 @@
+// tag::lifecycle-before-project[]
+include('sub1')
+include('sub2')
+
+def sharedGroup = 'org.example.app'
+def sharedVersion =
+    layout.settingsDirectory.file('version.txt').asFile.text
+
+gradle.lifecycle.beforeProject {
+    apply plugin: 'base'
+
+    repositories {
+        mavenCentral()
+    }
+
+    group = sharedGroup
+    version = sharedVersion
+}
+// end::lifecycle-before-project[]

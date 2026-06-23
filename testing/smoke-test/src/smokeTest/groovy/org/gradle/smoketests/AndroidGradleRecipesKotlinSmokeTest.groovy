@@ -45,9 +45,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                     classpath("com.android.tools.build:gradle:$agpVersion")
                 }
             }
-            allprojects {
-                $repositoriesBlock
-            }
+
+            $repositoriesBlock
         """
 
         file('app/build.gradle.kts') << """
@@ -92,6 +91,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                     )
                 }
             }
+
+            $repositoriesBlock
         """
 
         file('app/src/main/kotlin/org/gradle/smoketests/androidrecipes/MainActivity.kt') << '''
@@ -128,7 +129,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         and:
         def runner = mixedRunner(agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
 
         when: 'running the build for the 1st time'
@@ -144,7 +145,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
-            expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+            expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
         }.build()
 
         then:
@@ -152,7 +153,9 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         and:
         if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateLoaded()
+            if (!AGP_VERSIONS.isOld(agpVersion)) {
+                result.assertConfigurationCacheStateLoaded()
+            }
         }
 
         where:

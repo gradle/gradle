@@ -36,7 +36,7 @@ root
 If your project does not include these files, it is likely *not* a Gradle project—or the wrapper has not been set up yet.
 
 TIP: The wrapper is *not* something you download from the internet.
-You must generate it by running `gradle wrapper` from a machine with Gradle <<installation.adoc#installation,installed>>.
+You must generate it by running `gradle :wrapper` from a machine with Gradle <<installation.adoc#installation,installed>>.
 
 The wrapper provides the following benefits:
 
@@ -93,7 +93,7 @@ $ gradlew.bat build
 ----
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
+include::{snippetsPath}/fundamentals/running-builds/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
 [[sec:view_the_wrapper]]
@@ -123,13 +123,13 @@ If you want to view or update the Gradle version of your project, use the comman
 [source, bash]
 ----
 $ ./gradlew --version
-$ ./gradlew wrapper --gradle-version 7.2
+$ ./gradlew :wrapper --gradle-version 7.2
 ----
 
 [source, cmd]
 ----
 $ gradlew.bat --version
-$ gradlew.bat wrapper --gradle-version 7.2
+$ gradlew.bat :wrapper --gradle-version 7.2
 ----
 
 WARNING: Do not edit the wrapper files manually.

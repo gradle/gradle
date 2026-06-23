@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -87,7 +88,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                                     AttributesFactory attributesFactory,
                                     IsolatableFactory isolatableFactory,
                                     ComponentMetadataRuleExecutor ruleExecutor,
-                                    PlatformSupport platformSupport) {
+                                    PlatformSupport platformSupport,
+                                    Problems problems) {
         this.instantiator = instantiator;
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
@@ -95,8 +97,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
             .toComposite();
         this.ruleExecutor = ruleExecutor;
-        this.dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, stringInterner);
-        this.dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, stringInterner);
+        this.dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, stringInterner, problems);
+        this.dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, stringInterner, problems);
         this.componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create();
         this.attributesFactory = attributesFactory;
         this.isolatableFactory = isolatableFactory;
@@ -104,8 +106,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         this.platformSupport = platformSupport;
     }
 
-    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, AttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor ruleExecutor, PlatformSupport platformSupport) {
-        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory, ruleExecutor, platformSupport);
+    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, AttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor ruleExecutor, PlatformSupport platformSupport, Problems problems) {
+        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory, ruleExecutor, platformSupport, problems);
     }
 
     private DefaultComponentMetadataHandler(Instantiator instantiator,

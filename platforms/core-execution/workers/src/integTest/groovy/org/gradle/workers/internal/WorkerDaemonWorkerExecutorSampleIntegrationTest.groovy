@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 @IntegrationTestTimeout(60)
 class WorkerDaemonWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
     String getSampleName() {
-        "workerApi/workerDaemon"
+        "integration-tests/workerApi/workerDaemon"
     }
 
     @Override

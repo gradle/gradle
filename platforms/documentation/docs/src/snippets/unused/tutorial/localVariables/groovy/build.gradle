@@ -1,0 +1,6 @@
+def dest = 'dest'
+
+tasks.register('copy', Copy) {
+    from 'source'
+    into dest
+}

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.MultiJvmTestCompatibility
 import org.gradle.util.internal.VersionNumber
@@ -219,8 +219,8 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         then:
         def results = resultsFor(testDirectory)
         results.assertAtLeastTestPathsExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
-        results.testPath('org.gradle.OkTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPath('org.gradle.OtherTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath('org.gradle.OkTest', maybeParentheses('ok')).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath('org.gradle.OtherTest', maybeParentheses('ok')).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "runs all tests in the same forked jvm"() {
@@ -348,7 +348,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "incompatible user versions of classes that we also use don't affect test execution"() {
         Assume.assumeTrue(VersionNumber.parse(version) < VersionNumber.version(6)) // Vintage 6 requires Java 17
 
@@ -404,7 +404,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
 
         and:
         def results = resultsFor(testDirectory)
-        results.testPath("TestCase", "test").onlyRoot()
+        results.testPath("TestCase", maybeParentheses("test")).onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString("java.lang.VerifyError"))
             .assertFailureMessages(containsString("\$EmptyImmutableCollection"))
@@ -470,7 +470,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "test can install an irreplaceable SecurityManager"() {
         Assume.assumeTrue(VersionNumber.parse(version) < VersionNumber.version(6)) // Vintage 6 requires Java 17
 

@@ -54,5 +54,4 @@ public interface PropertyAccess {
      * Returns the properties known for this object.
      */
     Map<String, ? extends @Nullable Object> getProperties();
-
 }

@@ -17,23 +17,17 @@
 package org.gradle.testing.cucumberjvm
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
-
 class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUCUMBER
-    }
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
@@ -53,7 +47,7 @@ class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest imp
         )
     }
 
-    @Requires(value = UnitTestPreconditions.NotWindows, reason = "Cannot use ':' in file names on Windows")
+    @Requires(value = OsTestPreconditions.NotWindows, reason = "Cannot use ':' in file names on Windows")
     def junit5SuiteNameClash() {
         given:
         // Has exact same content as my_thing.feature, but with different Feature name

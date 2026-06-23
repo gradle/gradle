@@ -352,7 +352,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
                 extra["outputFile"] = file("$buildDir/output.txt")
                 outputs.files(extra["outputFile"] as File)
                 doLast {
-                    val outputFile: File by extra
+                    val outputFile = extra["outputFile"] as File
                     outputFile.writeText("")
                 }
             }

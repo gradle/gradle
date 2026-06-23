@@ -22,10 +22,9 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GeneralDataSpec;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 import org.jspecify.annotations.NonNull;
@@ -49,14 +48,14 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     protected abstract ProjectConfigurer getConfigurer();
 
     @Inject
-    protected abstract InternalProblems getProblemsService();
+    protected abstract ProblemsInternal getProblemsService();
 
     @Override
     public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
-            getConfigurer().configure(project.getMutableModel());
-            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
+            project.ensureConfigured();
+            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project)) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
             }
@@ -69,9 +68,9 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     @Override
     public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
         if (!includeSubprojects) {
-            getConfigurer().configure(targetProject.getMutableModel());
+            targetProject.ensureConfigured();
         } else {
-            getConfigurer().configureHierarchy(targetProject.getMutableModel());
+            getConfigurer().configureHierarchy(targetProject);
         }
 
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject, includeSubprojects);
@@ -111,8 +110,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().asString())));
-        spec.severity(Severity.ERROR);
+        ((ProblemSpecInternal) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().asString())));
         return spec;
     }
 

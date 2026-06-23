@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.tasks.Nested;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 
 /**
@@ -45,7 +44,6 @@ public interface PlatformDependencyModifiers {
      * @see PlatformDependencyModifiers.PlatformDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
-    @HiddenInDefinition
     PlatformDependencyModifier getPlatform();
 
     /**
@@ -78,7 +76,6 @@ public interface PlatformDependencyModifiers {
      * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
-    @HiddenInDefinition
     EnforcedPlatformDependencyModifier getEnforcedPlatform();
 
     /**

@@ -113,10 +113,10 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                     }
                     // 'Subproject_with_preferProjectModules' config DOES NOT influence this dependency
                     // and hence the higher version is picked from repo
-                    edge("project :ModuleC", "myorg:ModuleC:2.0")
+                    edge("project ':ModuleC'", "myorg:ModuleC:2.0")
                 }
                 module("myorg:ModuleB:1.0")
-                edge("project :ModuleC", "myorg:ModuleC:2.0")
+                edge("project ':ModuleC'", "myorg:ModuleC:2.0")
             }
         }
     }
@@ -175,7 +175,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                 }
                 // 'preferProjectModules()' is not inherited from 'baseConf'
                 // and hence the higher version is picked from repo
-                edge("project :ModuleC", "myorg:ModuleC:2.0")
+                edge("project ':ModuleC'", "myorg:ModuleC:2.0")
             }
         }
 
@@ -190,7 +190,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                         byConflictResolution("between versions 1.0 and 2.0")
                     }
                 }
-                project("project :ModuleC", "myorg:ModuleC:1.0") {
+                project("project ':ModuleC'", "myorg:ModuleC:1.0") {
                     noArtifacts()
                 }
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.catalog
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
@@ -37,4 +38,7 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
         executer.withPluginRepositoryMirrorDisabled() // otherwise the plugin portal fixture doesn't work!
     }
 
+    protected static String docUrlFor(String section) {
+        new DocumentationRegistry().getDocumentationFor("version_catalog_problems", section)
+    }
 }

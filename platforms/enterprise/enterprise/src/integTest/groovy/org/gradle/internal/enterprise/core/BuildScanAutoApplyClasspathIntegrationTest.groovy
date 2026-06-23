@@ -165,6 +165,9 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
     }
 
     def "transitively applied Develocity plugin disables auto-application"() {
+        given:
+        transitivePluginFixture.expectParentPropertyLookupDeprecation(executer, MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER.toString())
+
         when:
         succeeds "cacheableTask", "--scan"
 
@@ -174,6 +177,9 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
     }
 
     def "task is up-to-date when using --scan"() {
+        given:
+        transitivePluginFixture.expectParentPropertyLookupDeprecation(executer, MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER.toString())
+
         when:
         succeeds "cacheableTask"
 
@@ -183,6 +189,7 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
         executedAndNotSkipped(":cacheableTask")
 
         when:
+        transitivePluginFixture.expectParentPropertyLookupDeprecation(executer, MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER.toString())
         succeeds "cacheableTask", "--scan"
 
         then:

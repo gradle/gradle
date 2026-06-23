@@ -38,10 +38,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.concurrent.MultiProducerSingleConsumerProcessor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -120,7 +118,7 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
-    private static final InternalOption<@Nullable String> TRACE_OPTION = StringInternalOption.of(SYSPROP);
+    private static final InternalOption<@Nullable String> TRACE_OPTION = InternalOptions.ofStringOrNull(SYSPROP);
 
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
@@ -133,7 +131,7 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String FILTER_SYSPROP = SYSPROP + ".filter";
 
-    private static final InternalOption<@Nullable String> FILTER_OPTION = StringInternalOption.of(FILTER_SYSPROP);
+    private static final InternalOption<@Nullable String> FILTER_OPTION = InternalOptions.ofStringOrNull(FILTER_SYSPROP);
 
     /**
      * A flag controlling whether tree generation is enabled ({@code false} by default).
@@ -141,7 +139,7 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String TREE_SYSPROP = SYSPROP + ".tree";
 
-    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, false);
+    private static final InternalOption<Boolean> TRACE_TREE_OPTION = InternalOptions.ofBoolean(TREE_SYSPROP, false);
 
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.
@@ -179,7 +177,7 @@ public class BuildOperationTrace implements Stoppable {
             this.outputTree = false;
             this.listener = new FilteringBuildOperationListener(serializer, filter);
         } else {
-            this.outputTree = internalOptions.getOption(TRACE_TREE_OPTION).get();
+            this.outputTree = internalOptions.getBoolean(TRACE_TREE_OPTION);
             this.listener = serializer;
         }
 
@@ -188,7 +186,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
-        String basePath = internalOptions.getOption(TRACE_OPTION).get();
+        String basePath = internalOptions.getValueOrNull(TRACE_OPTION);
         if (basePath == null || basePath.equals("false")) {
             return null;
         }
@@ -199,7 +197,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Set<String> getFilter(InternalOptions internalOptions) {
-        String filterProperty = internalOptions.getOption(FILTER_OPTION).get();
+        String filterProperty = internalOptions.getValueOrNull(FILTER_OPTION);
         if (filterProperty == null) {
             return null;
         }

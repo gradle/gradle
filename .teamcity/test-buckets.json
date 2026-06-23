@@ -198,7 +198,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "code-quality",
           "java-platform",
           "language-jvm",
@@ -612,7 +611,6 @@
       },
       {
         "subprojects": [
-          "build-events",
           "core-api",
           "ivy",
           "plugins-jvm-test-fixtures",
@@ -901,7 +899,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "ear",
           "instrumentation-reporting",
           "plugins-distribution",
@@ -1288,7 +1285,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "instrumentation-reporting",
           "plugins-distribution",
           "plugins-jvm-test-suite",
@@ -1499,7 +1495,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "build-init",
           "core-api",
           "instrumentation-reporting",
@@ -1707,7 +1702,6 @@
           "build-cache-local",
           "build-cache-spi",
           "build-configuration",
-          "build-events",
           "build-profile",
           "code-quality",
           "composite-builds",
@@ -1881,7 +1875,6 @@
         "subprojects": [
           "build-cache-http",
           "build-cache-local",
-          "build-events",
           "core-api",
           "instrumentation-reporting",
           "language-jvm",
@@ -2093,7 +2086,6 @@
       {
         "subprojects": [
           "build-cache",
-          "build-events",
           "build-init",
           "declarative-dsl-core",
           "instrumentation-reporting",
@@ -2404,7 +2396,6 @@
       {
         "subprojects": [
           "build-cache",
-          "build-events",
           "instrumentation-reporting",
           "ivy",
           "persistent-cache",
@@ -2716,7 +2707,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "core-api",
           "declarative-dsl-core",
           "kotlin-dsl-integ-tests",
@@ -2915,7 +2905,6 @@
           "build-cache-local",
           "build-cache-spi",
           "build-configuration",
-          "build-events",
           "build-init",
           "build-profile",
           "composite-builds",
@@ -3090,7 +3079,6 @@
           "build-cache-local",
           "build-cache-spi",
           "build-configuration",
-          "build-events",
           "build-init",
           "build-profile",
           "composite-builds",
@@ -3372,7 +3360,6 @@
       },
       {
         "subprojects": [
-          "build-events",
           "ear",
           "language-jvm",
           "model-core",
@@ -3603,7 +3590,6 @@
       },
       {
         "subprojects": [
-          "build-events",
           "declarative-dsl-core",
           "ear",
           "instrumentation-agent-services",
@@ -3945,7 +3931,6 @@
       },
       {
         "subprojects": [
-          "build-events",
           "ear",
           "execution-e2e-tests",
           "plugins-distribution",
@@ -4135,7 +4120,6 @@
       },
       {
         "subprojects": [
-          "build-events",
           "core-api",
           "instrumentation-reporting",
           "language-jvm",
@@ -4359,7 +4343,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "jacoco",
           "model-core",
           "plugins-application",
@@ -4607,7 +4590,6 @@
           "base-diagnostics",
           "build-cache-http",
           "build-configuration",
-          "build-events",
           "core-api",
           "declarative-dsl-provider",
           "ear",
@@ -4771,7 +4753,6 @@
       {
         "subprojects": [
           "build-cache-http",
-          "build-events",
           "core-api",
           "ear",
           "instrumentation-reporting",
@@ -5095,7 +5076,6 @@
           "build-cache-local",
           "build-cache-spi",
           "build-configuration",
-          "build-events",
           "build-profile",
           "core-api",
           "declarative-dsl-provider",

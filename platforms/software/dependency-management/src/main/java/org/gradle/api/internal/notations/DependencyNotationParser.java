@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.dependencies.MinimalExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -50,9 +51,10 @@ public class DependencyNotationParser {
                                                   ClassPathRegistry classPathRegistry,
                                                   FileCollectionFactory fileCollectionFactory,
                                                   RuntimeShadedJarFactory runtimeShadedJarFactory,
-                                                  Interner<String> stringInterner) {
+                                                  Interner<String> stringInterner,
+                                                  Problems problems) {
         NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
-            new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
+            new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner, problems);
         NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
             new MinimalExternalDependencyNotationConverter(instantiator);
         MapNotationConverter<? extends ExternalModuleDependency> mapNotationConverter =

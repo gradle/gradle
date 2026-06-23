@@ -19,7 +19,7 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-public class DefaultDocLink implements InternalDocLink {
+public class DefaultDocLink implements DocLinkInternal {
 
     private final String url;
 

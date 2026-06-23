@@ -127,6 +127,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         )
     }
 
+    def setup() {
+        problems.resetRecordedProblems()
+    }
+
     def "outputs are created"() {
         def unitOfWork = builder.withOutputDirs(
             dir1: file("outDir1"),
@@ -246,9 +250,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             .withValidator { context ->
                 context
                     .forType(UnitOfWork, false)
-                    .visitPropertyProblem {
+                    .visitPropertyWarning {
                         it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
-                            .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
                     }
@@ -564,13 +567,11 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.forType(Object, true).visitTypeProblem {
-                    it
-                        .withAnnotationType(Object)
+                validationContext.forType(Object, true).visitTypeError {
+                    it.withAnnotationType(Object)
                         .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                         .documentedAt(Documentation.userManual("id", "section"))
                         .details("Test")
-                        .severity(Severity.ERROR)
                 }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
@@ -580,10 +581,17 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         execute(invalidWork)
 
         then:
-        def ex = thrown WorkValidationException
-        WorkValidationExceptionChecker.check(ex) {
-            hasProblem dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
-        }
+        thrown WorkValidationException
+        problems.assertProblemEmittedOnce({
+            it.definition.severity == Severity.ERROR
+            it.definition.id.name == 'test-problem'
+            it.definition.id.displayName == 'Validation error'
+            it.contextualLabel == null
+            it.details == 'Test'
+            it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            it.solutions == []
+            it.originLocations == []
+        })
     }
 
     def "results are loaded from identity cache"() {

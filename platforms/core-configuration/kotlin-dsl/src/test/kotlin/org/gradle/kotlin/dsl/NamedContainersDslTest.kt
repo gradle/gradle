@@ -175,10 +175,14 @@ class NamedContainersDslTest : AbstractDslTest() {
             """
         ) {
             configurations {
+
+                @Suppress("DEPRECATION")
                 val bazar by creating
                 create("cathedral") {
                     extendsFrom(bazar)
                 }
+
+                @Suppress("DEPRECATION")
                 val valley by registering
                 register("hill") {
                     extendsFrom(valley.get())

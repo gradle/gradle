@@ -37,46 +37,8 @@ NOTE: The <<base_plugin.adoc#base_plugin,Gradle `base` plugin>> defines several 
 
 We group the `build`, `check` task, and the `run` task by adding the following lines to the `app` build script:
 
-====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.build {
-    group = myBuildGroup
-}
-
-tasks.check {
-    group = myBuildGroup
-    description = "Runs checks (including tests)."
-}
-
-tasks.named("run") {
-    group = myBuildGroup
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.build {
-    group = myBuildGroup
-}
-
-tasks.check {
-    group = myBuildGroup
-    description = "Runs checks (including tests)."
-}
-
-tasks.named('run') {
-    group = myBuildGroup
-}
-----
-=====
-====
+include::sample[dir="snippets/reference/task-development/organizingTasks-appGrouping/kotlin",files="app/build.gradle.kts[tags=app-grouping]"]
+include::sample[dir="snippets/reference/task-development/organizingTasks-appGrouping/groovy",files="app/build.gradle[tags=app-grouping]"]
 
 If we now look at the `app:tasks` list, we can see the three tasks are available:
 
@@ -244,34 +206,8 @@ We'll establish two groups for our global lifecycle tasks: one for tasks relevan
 
 Once again, we narrowed down the tasks listed to our specific groups:
 
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val globalBuildGroup = "My global build"
-val ciBuildGroup = "My CI build"
-
-tasks.named<TaskReportTask>("tasks") {
-    displayGroups = listOf<String>(globalBuildGroup, ciBuildGroup)
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def globalBuildGroup = "My global build"
-def ciBuildGroup = "My CI build"
-
-tasks.named(TaskReportTask, "tasks") {
-    displayGroups = [globalBuildGroup, ciBuildGroup]
-}
-----
-=====
-====
+include::sample[dir="snippets/reference/task-development/organizingTasks-globalGroups/kotlin",files="build.gradle.kts[tags=global-groups]"]
+include::sample[dir="snippets/reference/task-development/organizingTasks-globalGroups/groovy",files="build.gradle[tags=global-groups]"]
 
 You could hide the CI tasks if you wanted to by updating `displayGroups`.
 
@@ -297,46 +233,8 @@ NOTE: In this file, we don't apply a plugin!
 Let's add a `qualityCheckApp` task to execute all code quality checks in the `app` subproject.
 Similarly, for CI purposes, we implement a `checkAll` task that runs all tests:
 
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.register("qualityCheckApp") {
-    group = globalBuildGroup
-    description = "Runs checks on app (globally)"
-    dependsOn(":app:qualityCheck" )
-}
-
-tasks.register("checkAll") {
-    group = ciBuildGroup
-    description = "Runs checks for all projects (CI)"
-    dependsOn(subprojects.map { ":${it.name}:check" })
-    dependsOn(gradle.includedBuilds.map { it.task(":checkAll") })
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-tasks.register("qualityCheckApp") {
-    group = globalBuildGroup
-    description = "Runs checks on app (globally)"
-    dependsOn(":app:qualityCheck")
-}
-
-tasks.register("checkAll") {
-    group = ciBuildGroup
-    description = "Runs checks for all projects (CI)"
-    dependsOn subprojects.collect { ":${it.name}:check" }
-    dependsOn gradle.includedBuilds.collect { it.task(":checkAll") }
-}
-----
-=====
-====
+include::sample[dir="snippets/reference/task-development/organizingTasks-globalLifecycle/kotlin",files="build.gradle.kts[tags=global-lifecycle]"]
+include::sample[dir="snippets/reference/task-development/organizingTasks-globalLifecycle/groovy",files="build.gradle[tags=global-lifecycle]"]
 
 So we can now ask Gradle to show us the tasks for the root project and, by default, it will only show us the `qualityCheckAll` task (and optionally the `checkAll` task depending on the value of `displayGroups`).
 

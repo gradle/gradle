@@ -147,10 +147,10 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         }
         def dependencies = javaLibrary.parsedPom.dependencyManagement.dependencies[0].dependency
         dependencies.size() == 1
-        dependencies[0].with {
-            assert it.groupId.text() == 'org.test'
-            assert it.artifactId.text() == 'bar'
-            assert it.version.text() == '1.1'
+        verifyAll(dependencies[0]) {
+            groupId.text() == 'org.test'
+            artifactId.text() == 'bar'
+            version.text() == '1.1'
         }
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {
@@ -234,10 +234,10 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         }
         def dependencies = javaLibrary.parsedPom.dependencyManagement.dependencies[0].dependency
         dependencies.size() == 1
-        dependencies[0].with {
-            assert it.groupId.text() == 'org.test'
-            assert it.artifactId.text() == 'bar'
-            assert it.version.text() == '[1.0, 2.0)'
+        verifyAll(dependencies[0]) {
+            groupId.text() == 'org.test'
+            artifactId.text() == 'bar'
+            version.text() == '[1.0, 2.0)'
         }
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:[1.0, 2.0[") {
@@ -315,16 +315,16 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         }
         def dependencies = javaLibrary.parsedPom.dependencyManagement.dependencies[0].dependency
         dependencies.size() == 2
-        dependencies[0].with {
-            assert it.groupId.text() == 'org.test'
-            assert it.artifactId.text() == 'bar'
-            assert it.version.text() == '1.0'
+        verifyAll(dependencies[0]) {
+            groupId.text() == 'org.test'
+            artifactId.text() == 'bar'
+            version.text() == '1.0'
         }
-        dependencies[1].with {
-            assert it.groupId.text() == 'org.test'
-            assert it.artifactId.text() == 'bar'
-            assert it.version.text() == '1.1'
-            assert it.scope.text() == 'import'
+        verifyAll(dependencies[1]) {
+            groupId.text() == 'org.test'
+            artifactId.text() == 'bar'
+            version.text() == '1.1'
+            scope.text() == 'import'
         }
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {

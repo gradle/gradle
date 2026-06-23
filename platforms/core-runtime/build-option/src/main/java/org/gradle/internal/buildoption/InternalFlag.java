@@ -19,7 +19,7 @@ package org.gradle.internal.buildoption;
 /**
  * A boolean internal option.
  */
-public class InternalFlag extends InternalOption<Boolean> {
+class InternalFlag extends InternalOption<Boolean> {
     private final boolean defaultValue;
 
     public InternalFlag(String propertyName) {

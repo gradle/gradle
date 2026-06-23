@@ -17,7 +17,7 @@ dependencies {
     api(projects.credentialsApi)
     api(projects.resourcesHttp)
 
-    implementation(projects.core)
+    implementation(projects.buildCacheCore)
     implementation(projects.logging)
     implementation(projects.resources)
 
@@ -48,6 +48,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

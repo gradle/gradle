@@ -18,11 +18,13 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5248")
 class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()

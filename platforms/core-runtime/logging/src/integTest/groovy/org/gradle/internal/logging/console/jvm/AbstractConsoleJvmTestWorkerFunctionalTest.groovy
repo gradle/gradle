@@ -19,17 +19,18 @@ package org.gradle.internal.logging.console.jvm
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.JavaTestClass
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.containsTestExecutionWorkInProgressLine
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testClass
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegrationSpec {
 
     private static final int MAX_WORKERS = 2
@@ -85,6 +86,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
         JavaTestClass.SHORTENED_TEST1 | JavaTestClass.SHORTENED_TEST2 | 'shortened'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "console output depends on cross-project execution ordering")
     def "shows test class execution #description test class name in work-in-progress area of console for multi-project build"() {
         given:
         settingsFile << "include 'project1', 'project2'"

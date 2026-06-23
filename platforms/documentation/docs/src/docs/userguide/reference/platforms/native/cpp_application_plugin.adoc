@@ -21,8 +21,8 @@ The {cpp} Application Plugin provides the tasks, configurations and conventions 
 == Usage
 
 ====
-include::sample[dir="snippets/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
-include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/platforms/native/cppApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/platforms/native/cppApplication/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:cpp_application_build_variants]]
@@ -44,8 +44,8 @@ Gradle uses the target machine to decide which tool chain to choose based on ava
 The target machine can be configured as follows:
 
 ====
-include::sample[dir="snippets/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
-include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/reference/platforms/native/cppApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/reference/platforms/native/cppApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:cpp_application_tasks]]

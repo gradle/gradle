@@ -23,7 +23,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyInitScript(File script) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply initialization script '${pathOfScript(script)}' to build"
+            return "Apply initialization script '${pathOfScript(script)}' to ${buildToString()}"
         } else {
             return "Apply script ${script.name} to build"
         }
@@ -31,10 +31,14 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyInitScriptPlugin(File script) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply script '${pathOfScript(script)}' to build"
+            return "Apply script '${pathOfScript(script)}' to ${buildToString()}"
         } else {
             return "Apply script ${script.name} to build"
         }
+    }
+
+    String buildToString() {
+        return targetVersion.baseVersion >= GradleVersion.version("9.6") ? "build ':'" : "build"
     }
 
     String applySettingsFile() {

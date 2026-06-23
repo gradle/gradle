@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.process.ShellScript
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 
 import javax.inject.Inject
@@ -36,7 +36,7 @@ abstract class AbstractDevelocityInputIgnoringServiceIntegrationTest extends Abs
 
     abstract String runIgnoringInputs(String code);
 
-    @Requires(IntegTestPreconditions.IsConfigCached)
+    @Requires(TestExecutionPreconditions.IsConfigCached)
     def "configuration inputs are can be ignored"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
@@ -60,7 +60,7 @@ abstract class AbstractDevelocityInputIgnoringServiceIntegrationTest extends Abs
         configurationCache.assertStateLoaded()
     }
 
-    @Requires(IntegTestPreconditions.IsConfigCached)
+    @Requires(TestExecutionPreconditions.IsConfigCached)
     @ToBeImplemented("https://github.com/gradle/gradle/issues/25474")
     def "value sources are can be ignored"() {
         def configurationCache = new ConfigurationCacheFixture(this)
@@ -92,7 +92,7 @@ abstract class AbstractDevelocityInputIgnoringServiceIntegrationTest extends Abs
         outputContains("backgroundJob.property = other")
     }
 
-    @Requires(IntegTestPreconditions.IsConfigCached)
+    @Requires(TestExecutionPreconditions.IsConfigCached)
     def "value sources are tracked if also accessed outside the ignored block"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 

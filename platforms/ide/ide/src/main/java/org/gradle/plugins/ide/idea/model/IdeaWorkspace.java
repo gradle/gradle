@@ -19,6 +19,9 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
+
+import javax.inject.Inject;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
@@ -27,7 +30,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * At the moment, the only practical way of manipulating the resulting content is via the withXml hook:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -37,10 +40,18 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *     provider.asNode().appendNode('gradleRocks', 'true')
  * }
  * </pre>
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public abstract class IdeaWorkspace {
 
     private XmlFileContentMerger iws;
+
+    @Inject
+    public IdeaWorkspace() {
+        IdeDeprecations.nagDeprecatedType(IdeaWorkspace.class);
+    }
 
     /**
      * Enables advanced manipulation of the output XML.

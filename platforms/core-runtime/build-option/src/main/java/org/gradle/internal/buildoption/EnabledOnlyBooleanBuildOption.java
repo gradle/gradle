@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -28,17 +29,17 @@ import java.util.Map;
  */
 public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
-    public EnabledOnlyBooleanBuildOption(String property) {
+    public EnabledOnlyBooleanBuildOption(@Nullable String property) {
         super(property, new CommandLineOptionConfiguration[] {});
     }
 
-    public EnabledOnlyBooleanBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public EnabledOnlyBooleanBuildOption(@Nullable String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(property, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        if (properties.get(property) != null) {
+        if (property != null && properties.get(property) != null) {
             applyTo(settings, Origin.forGradleProperty(property));
         }
     }

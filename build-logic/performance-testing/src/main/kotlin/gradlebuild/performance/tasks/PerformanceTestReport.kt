@@ -16,6 +16,8 @@
 
 package gradlebuild.performance.tasks
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonParser
 import gradlebuild.performance.reporter.PerformanceReporter
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -25,6 +27,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -87,8 +90,35 @@ abstract class PerformanceTestReport : DefaultTask() {
     @get:Input
     abstract val projectName: Property<String>
 
-    @get:Input
-    abstract val dependencyBuildIds: Property<String>
+    /**
+     * Comma-separated TeamCity build IDs of the upstream performance test buckets whose results
+     * are included in this report. Derived at execution time from the `teamCityBuildId` field of
+     * each `perf-results-*.json` so the report stays consistent with whichever buckets actually
+     * produced output. Failed or missing buckets are simply absent from the set.
+     */
+    @get:Internal
+    val dependencyBuildIds: Provider<String>
+        get() = providers.provider {
+            performanceResults.files.asSequence()
+                .flatMap { file ->
+                    runCatching {
+                        val root = file.bufferedReader().use { JsonParser.parseReader(it) }
+                        if (root is JsonArray) {
+                            root.asSequence().mapNotNull { element ->
+                                element.takeIf { it.isJsonObject }
+                                    ?.asJsonObject?.get("teamCityBuildId")
+                                    ?.takeIf { !it.isJsonNull }
+                                    ?.asString
+                            }
+                        } else {
+                            emptySequence()
+                        }
+                    }.getOrElse { emptySequence() }
+                }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .joinToString(",")
+        }
 
     @get:Option(option = "debug-jvm", description = "Debug the JVM started for report generation.")
     @get:Input
@@ -99,6 +129,9 @@ abstract class PerformanceTestReport : DefaultTask() {
 
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    @get:Inject
+    abstract val providers: ProviderFactory
 
     init {
         debugReportGeneration.convention(false)

@@ -41,7 +41,7 @@ class BuildOperationScriptPluginTest extends Specification {
 
         then:
         2 * scriptSource.getResource() >> scriptSourceResource
-        1 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
+        2 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
         1 * scriptSourceResource.isContentCached() >> true
         1 * scriptSourceResource.getHasEmptyContent() >> false
         3 * decoratedScriptPlugin.getSource() >> scriptSource

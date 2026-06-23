@@ -28,7 +28,7 @@ val packageCyclesExtension = extensions.create<PackageCyclesExtension>("packageC
     excludePatterns.convention(emptyList())
 }
 
-val sharedArchTestClasses by configurations.creating {
+val sharedArchTestClasses = configurations.create("sharedArchTestClasses") {
     isCanBeResolved = true
     isCanBeConsumed = false
     attributes {

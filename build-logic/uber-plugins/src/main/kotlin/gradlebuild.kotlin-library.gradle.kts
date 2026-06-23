@@ -16,6 +16,8 @@
 
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
+import gradlebuild.basics.testing.TestType
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -60,3 +62,5 @@ tasks {
         )
     }
 }
+
+configureTestSourceSetInIde(sourceSets.getByName("${TestType.INTEGRATION.prefix}Test"))

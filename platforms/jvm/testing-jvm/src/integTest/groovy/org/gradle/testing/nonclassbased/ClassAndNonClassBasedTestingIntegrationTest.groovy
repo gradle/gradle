@@ -72,7 +72,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
         then:
         if (classesPresent) {
-            resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+            resultsFor().testPath(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
         if (nonClassDefinitionsPresent) {
             nonClassBasedTestsExecuted(false)
@@ -118,7 +118,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         succeeds("test")
 
         then:
-        resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        resultsFor().testPath(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         nonClassBasedTestsExecuted(false)
     }
 
@@ -156,8 +156,8 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         then:
         if (classesPresent) {
             def results = resultsFor()
-            results.testPathPreNormalized(":SomeTest").onlyRoot().assertChildCount(1, 0)
-            results.testPathPreNormalized(":SomeTest:testMethod()").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+            results.testPath(":SomeTest").onlyRoot().assertChildCount(1, 0)
+            results.testPath(":SomeTest:testMethod()").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
         if (nonClassDefinitionsPresent) {
             nonClassBasedTestsExecuted(false)

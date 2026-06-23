@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPluginFactory
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.Description
@@ -162,7 +163,8 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
     fun outputFile(fileName: String) = outputDir.resolve(fileName)
 
     private
-    fun scriptPlugin(fileName: String, text: String) = PrecompiledScriptPlugin(newFile(fileName, text))
+    fun scriptPlugin(fileName: String, text: String) =
+        PrecompiledScriptPluginFactory().create(newFile(fileName, text))
 
     private
     fun String.replacedBySpaces() = repeat(' ', length)

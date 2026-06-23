@@ -38,6 +38,7 @@ import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -97,6 +98,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.root == uri
     }
 
+    @ExpectDeprecation("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated.")
     def "creates repository with additional artifact URLs"() {
         given:
         def uri = new URI("https://localhost:9090/repo")
@@ -122,6 +124,54 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.artifactPatterns.any { it.startsWith uri.toString() }
         repo.artifactPatterns.any { it.startsWith uri1.toString() }
         repo.artifactPatterns.any { it.startsWith uri2.toString() }
+    }
+
+    @ExpectDeprecation("The MavenArtifactRepository.setArtifactUrls(Set) method has been deprecated.")
+    def "setArtifactUrls(Set) replaces additional artifact URLs"() {
+        given:
+        def uri = new URI("https://localhost:9090/repo")
+        def uri1 = new URI("https://localhost:9090/repo1")
+        _ * resolver.resolveUri('repo-dir') >> uri
+        _ * resolver.resolveUri(uri1) >> uri1
+        transportFactory.createTransport('https', 'repo', _, _) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+        repository.setArtifactUrls([uri1] as Set)
+
+        when:
+        def repo = repository.createResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.artifactPatterns.size() == 2
+        repo.artifactPatterns.any { it.startsWith uri.toString() }
+        repo.artifactPatterns.any { it.startsWith uri1.toString() }
+    }
+
+    @ExpectDeprecation("The MavenArtifactRepository.setArtifactUrls(Iterable) method has been deprecated.")
+    def "setArtifactUrls(Iterable) replaces additional artifact URLs"() {
+        given:
+        def uri = new URI("https://localhost:9090/repo")
+        def uri1 = new URI("https://localhost:9090/repo1")
+        _ * resolver.resolveUri('repo-dir') >> uri
+        _ * resolver.resolveUri('repo1') >> uri1
+        transportFactory.createTransport('https', 'repo', _, _) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+        repository.setArtifactUrls(['repo1'])
+
+        when:
+        def repo = repository.createResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.artifactPatterns.size() == 2
+        repo.artifactPatterns.any { it.startsWith uri.toString() }
+        repo.artifactPatterns.any { it.startsWith uri1.toString() }
     }
 
     def "creates s3 repository"() {
@@ -291,6 +341,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         different.descriptor.id == repo.descriptor.id
     }
 
+    @ExpectDeprecation("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated.")
     def "repositories have the same id when artifact urls and other configuration is the same"() {
         def repo = newRepo()
         def same = newRepo()

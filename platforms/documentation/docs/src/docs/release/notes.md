@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
+<meta property="og:image" content="https://gradle.org/assets/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
@@ -8,40 +8,20 @@
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
+<meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release improves [diagnostics and reporting](#diagnostics-and-reporting-improvements) with task provenance in errors and reports, plus clearer logging when the client JVM is incompatible with daemon requirements for `--no-daemon`.
-
-[Plugin authors](#core-plugin-and-plugin-authoring-enhancements) gain type-safe Kotlin accessors for precompiled Settings convention plugins and automatic retry support for Wrapper downloads.
-
-[Build authoring](#build-authoring-improvements) is enhanced with the ability to lock Domain Object Collections and a new environment variable to specify the network address used for client-daemon communication.
-
-Other [improvements](#general-improvements) include additional `gradle init` option, easier Develocity integration, and grouped `--help` output. Finally, the [Tooling API](#tooling-and-ide-integration) now exposes help and version information.
+This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[atm1020](https://github.com/atm1020),
-[mataha](https://github.com/mataha),
-[Adam](https://github.com/aSemy),
-[Attila Kelemen](https://github.com/kelemen),
-[Benedikt Ritter](https://github.com/britter),
-[Björn Kautler](https://github.com/Vampire),
-[Caro Silva Rode](https://github.com/budindepunk),
-[CHANHAN](https://github.com/chanani),
-[Dmitry Nezavitin](https://github.com/DmitryNez),
-[Eng Zer Jun](https://github.com/Juneezee),
-[KugelLibelle](https://github.com/KugelLibelle),
-[Madalin Valceleanu](https://github.com/vmadalin),
-[Markus Gaisbauer](https://github.com/quijote),
-[Oliver Kopp](https://github.com/koppor),
-[Philip Wedemann](https://github.com/hfhbd),
-[ploober](https://github.com/ploober),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Rohit Anand](https://github.com/R0h1tAnand),
-[Suvrat Acharya](https://github.com/Suvrat1629),
-[Ujwal Suresh Vanjare](https://github.com/usv240),
-[Victor Merkulov](https://github.com/urdak)
+
+<!-- 
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
+
+THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+-->
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -50,244 +30,234 @@ Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insigh
 Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
 ```text
-./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
+./gradlew :wrapper --gradle-version=@version@ && ./gradlew :wrapper
 ```
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
 
-### Diagnostics and reporting improvements
+<!-- ================== TEMPLATE =============================
 
-Gradle provides built-in reporting tasks to help you understand and troubleshoot your build.
+Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
 
-#### Task provenance in reports and failure messages
+Find the best fitting section for your feature below, then, fill it in.
 
-When a [task](userguide/more_about_tasks.html) fails, Gradle now includes provenance information in the error message, telling you whether the task was registered by a build script, settings script, or plugin, and which one. This helps you quickly locate the source of a failing task in complex builds with many plugins and subprojects:
+### SECTION TITLE
 
-```text
-Execution failed for task ':app:compileJava' (registered by plugin 'org.gradle.api.plugins.JavaPlugin').
-```
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves.
+> EXPLAIN how the new release addresses that problem or use case.
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
+> LINK to the full documentation for more details.
 
-Provenance is omitted from failure messages for verification failures (e.g., test failures), since those are expected outcomes rather than configuration issues.
+To embed images, add the image to the `release-notes-assets` folder, then add the line below.
+![image.png](release-notes-assets/image.png)
 
-In addition, the outputs of the tasks and [help --task](userguide/command_line_interface.html#sec:show_task_details) have been enhanced with that same provenance information:
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 
-```bash
-> ./gradlew help --task processUrl
+================== END TEMPLATE ========================== -->
 
-Detailed task information for processUrl
 
-Path
-     :processUrl (registered in build file 'build.gradle')
+<!-- =========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-Type
-     UrlProcess (UrlProcess)
-```
+### Configuration Cache improvements
+Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
-The [tasks list](userguide/command_line_interface.html#sec:listing_tasks) now supports a `--provenance` option that shows where each task was registered:
+### Isolated Projects improvements
+Gradle provides [Isolated Projects](userguide/isolated_projects.html), an incubating feature that enables parallel project configuration.
 
-```bash
-> ./gradlew tasks --provenance
+#### Isolated Projects is now incubating
 
-Build tasks
------------
-assemble - Assembles the outputs of this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
-build - Assembles and tests this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
-```
-
-See [Task Provenance](userguide/more_about_tasks.html#sec:task_provenance) to learn more.
-
-#### Improved diagnostics for single-use daemon forking
-
-When Gradle forks a single-use [daemon](userguide/gradle_daemon.html) because the client JVM is incompatible with the build requirements, it now [logs](userguide/logging.html) the specific reason at the `INFO` level:
-
-```text
-Found daemon DaemonInfo{pid=32935, ...} however its context does not match the desired criteria.
-JVM is incompatible.
-Wanted: DaemonRequestContext{jvmCriteria=.../corretto-1.8.0_412/... (no Daemon JVM specified, using current Java home), ...}
-Actual: DefaultDaemonContext[javaHome=.../jdk-17.0.13+11/..., javaVersion=17, javaVendor=Eclipse Adoptium, ...]
-``` 
-
-Previously, Gradle only stated that a single-use daemon would be used without explaining why.
-
-This makes it easier to diagnose unexpected daemon forking when using [--no-daemon](userguide/gradle_daemon.html#sec:disabling_the_daemon) or investigating JVM compatibility issues.
-
-### Core plugin and plugin authoring enhancements
-
-Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
-
-#### Automatic retries for Wrapper downloads
-
-The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports automatic retries when downloading the Gradle distribution.
-This helps reduce build failures caused by unstable network connections or temporary server issues.
-By default, no retries are attempted.
-
-To enable retries, add the following properties to `gradle-wrapper.properties`:
+Isolated Projects has graduated from experimental to incubating.
+It can now be enabled with the stable `org.gradle.isolated-projects` property and the new `--isolated-projects` CLI option, dropping the `.unsafe.` segment from the previous names.
 
 ```properties
-retries=3 # Sets the maximum number of retry attempts
-retryBackOffMs=1000 # Sets the initial delay between retries (doubles on each failure)
+# gradle.properties
+org.gradle.isolated-projects=true
 ```
 
-See [Configuring Wrapper Retries](userguide/gradle_wrapper.html#sec:configuring_wrapper_retries) to learn more.
+The legacy `org.gradle.unsafe.isolated-projects` property names are now deprecated and will be removed in a future release.
+They continue to work as aliases for now.
+See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_unsafe_isolated_projects_properties) for the full list of renamed properties.
 
-#### Type-safe accessors for precompiled Kotlin Settings plugins
+#### Isolated Projects now offers three modes for handling constraint violations
 
-Gradle now generates type-safe Kotlin accessors for [precompiled Settings plugins](userguide/pre_compiled_script_plugin_advanced.html) (`*.settings.gradle.kts`), matching the experience already available for project-level precompiled script plugins.
+Builds adopting Isolated Projects typically contain [constraint violations](userguide/isolated_projects.html#sec:constraint_violations) that must be fixed over time.
+Isolated Projects now offers three modes, each suited to a different stage of that journey:
 
-Now, type-safe accessors are generated automatically, giving you IDE autocompletion and compile-time checking:
+- **Fail-fast** — the default. Project configuration runs in parallel and the build fails as soon as a violation is detected, guaranteeing reliable build results.
+- **[Diagnostics](userguide/isolated_projects.html#sec:diagnostics_mode)** (`org.gradle.isolated-projects.diagnostics`) — project configuration runs sequentially and the build continues past
+  violations, reporting all of them deterministically. Use this to discover what needs fixing during migration.
+- **[Dangerously ignore problems](userguide/isolated_projects.html#sec:dangerously_ignore_problems)** (`org.gradle.isolated-projects.dangerously-ignore-problems`) — violations are reported but
+  do not fail the build, and parallel configuration stays active. Use this to estimate the parallel build or IDE sync speedup before fixing every violation. Build outputs may be incorrect while
+  violations are ignored, so never use this mode to produce artifacts.
 
-```kotlin
-// build-logic/src/main/kotlin/my-settings-convention.settings.gradle.kts 
-plugins {
-   id("com.gradle.develocity")
-}
+The opt-in modes can also be combined, for example to complete an IDE sync that concurrency errors would otherwise interrupt:
 
-// Type-safe accessors, just like in project plugins 
-develocity {
-   buildScan {
-       publishing.onlyIf { false }
-   }
-}
+```properties
+# gradle.properties
+org.gradle.isolated-projects=true
+org.gradle.isolated-projects.diagnostics=true
+org.gradle.isolated-projects.dangerously-ignore-problems=true
 ```
 
-To enable these accessors, ensure your convention plugin build includes the `kotlin-dsl` plugin:
+In all modes, the severity of Isolated Projects violations is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
 
-```kotlin
-// build-logic/build.gradle.kts
-plugins {
-    `kotlin-dsl`
-}
+### Test reporting and execution
+Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
+
+#### Test framework initialization failures for TestNG, JUnit 4, and JUnit Platform are always logged to the console
+
+Gradle's [test logging](userguide/java_testing.html#sec:test_logging) now surfaces test-framework startup failures from TestNG, JUnit 4, and JUnit Platform even when the default granularity would otherwise hide them.
+
+Previously, when these frameworks failed to initialize (for example, when a TestNG test class threw an exception from its constructor, a JUnit 4 suite could not be started, or a Jupiter `@BeforeAll` lifecycle hook aborted a container) the failure was silently filtered out by the default granularity.
+Users would see only `> There were failing tests` and had to read the XML report to find the underlying cause:
+
+```text
+> Task :test FAILED
+
+> There were failing tests. See the report at: file:///.../build/reports/tests/test/index.html
+
+FAILURE: Build failed with an exception.
 ```
 
-Previously, when writing a precompiled script plugin for Settings, you often had to use string-based APIs to configure extensions or plugins:
+These framework-startup failures now bypass the granularity filter and are always written to the console by default:
+
+```text
+> Task :test
+
+ExampleTest > initializationError FAILED
+    framework-startup org.testng.TestNGException: Cannot instantiate class ExampleTest
+        at org.testng.internal.ObjectFactoryImpl.newInstance(...)
+        ...
+```
+
+The `testLogging.events` predicate still applies, explicitly silencing `FAILED` events is honored.
+
+The new `TestFailureDetails.isFrameworkFailure()` predicate exposes this distinction to Tooling-API and Build-Scan consumers, who may render framework-startup failures differently from ordinary test failures.
+
+See the [Test logging](userguide/java_testing.html#sec:test_logging) section in the Gradle User Manual for more details.
+
+### CLI, logging, and problem reporting
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
+
+#### Source locations for more problems
+
+To keep stack trace capture affordable, Gradle attached a source location to only the first 50 problems per build, so builds that report many problems (deprecations especially) left most of them without a file and line.
+
+Gradle now captures a source location for up to 2000 additional problems past that cap.
+The capture mechanism is far cheaper than a full stack trace, so the added coverage has negligible cost.
+As a result, the [console](userguide/command_line_interface.html), the [problems report](userguide/reporting_problems.html#sec:generated_html_report), and the [Tooling API](userguide/third_party_integration.html) show a source location for many more problems than before.
+
+![Problems report listing many problems with their source locations](release-notes-assets/problems-locations.png)
+
+Run with `--warning-mode=all` to remove the limit and capture a source location for every problem.
+Past the cap, including under `--warning-mode=all` and `fail`, the capture keeps the originating build logic down to the calling script, enough to locate the problem, rather than the full call chain.
+
+See the [CLI reference](userguide/command_line_interface.html#sec:command_line_warnings) in the Gradle User Manual for more details.
+
+### Build authoring improvements
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
+
+#### Custom timestamps for reproducible archives
+
+Gradle produces [reproducible archives](userguide/working_with_files.html#sec:reproducible_archives) by default, using fixed timestamps for all entries.
+However, some environments, such as those following the [SOURCE_DATE_EPOCH](https://reproducible-builds.org/specs/source-date-epoch/) specification, require a meaningful, verifiable timestamp rather than a fixed default.
+
+Archive tasks now support a [`reproducibleFileTimestamp`](userguide/working_with_files.html#sec:reproducible_timestamp) property that lets you set a custom timestamp for every entry in the archive:
 
 ```kotlin
-// build-logic/src/main/kotlin/my-settings-convention.settings.gradle.kts
-plugins {
-    id("com.gradle.develocity")
-}
+import java.time.Instant
 
-// No accessors, string-based API required
-extensions.configure<com.gradle.develocity.agent.gradle.DevelocityConfiguration> {
-    buildScan {
-        publishing.onlyIf { false }
+tasks.withType<AbstractArchiveTask>().configureEach {
+    reproducibleFileTimestamp = providers.environmentVariable("SOURCE_DATE_EPOCH").map {
+        Instant.ofEpochSecond(it.toLong()).toEpochMilli()
     }
 }
 ```
 
-See the [Gradle Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:accessor_applicability) to learn more.
+See the [Timestamp for files inside archives](userguide/working_with_files.html#sec:reproducible_timestamp) section in the Gradle User Manual for more details.
 
-#### Init Task supports specifying the project directory
+### Platform and toolchain management
+Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
-The gradle init task now accepts an `--into` option to specify the target directory for the new project.
-The directory is created automatically if it doesn't exist:
+#### New lazy element provider for Domain Object Collections
 
-```bash
-gradle init --type java-application --into my-new-project
-```
+[`DomainObjectCollection.getElements()`](javadoc/org/gradle/api/DomainObjectCollection.html#getElements()) returns a `Provider<? extends Collection<T>>` and acts as an important bridge between the [Domain Object Collection](userguide/collections.html) and [Provider APIs](userguide/properties_providers.html).
+This API is similar to the existing [`FileCollection.getElements()`](javadoc/org/gradle/api/file/FileCollection.html#getElements()) method.
 
-Previously, initializing a project in a new directory required creating it manually and either changing into it or using the global `--project-dir` flag:
-
-```bash
-mkdir my-new-project
-cd my-new-project
-gradle init
-```
-
-See [Build Init Plugin](userguide/build_init_plugin.html) to learn more.
-
-### Build authoring improvements
-
-Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
-
-#### Domain Object Collections can be made immutable
-
-[Domain Object Collections](userguide/collections.html#available_collections) are the typed containers Gradle uses to manage groups of related build model elements (such as tasks, configurations, source sets, and custom objects contributed by plugins).
-Plugin and build authors can now lock Domain Object Collections to prevent further modifications using the new [`disallowChanges()` method](javadoc/org/gradle/api/DomainObjectCollection.html#disallowChanges()):
-
-- Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
-- Invoking this method does not force the realization of lazy items previously added to the collection.
-- This lock applies only to the collection itself. Individual objects within the collection can still be modified.
+The returned provider carries build dependencies, meaning dependencies carried by providers added via `addLater` and `addAllLater` are reflected in the returned `elements` provider:
 
 ```kotlin
-val myCollection = objects.domainObjectContainer(MyType::class)
-val main = MyType("main")
+val container = objects.domainObjectSet(MyType::class.java)
+container.addLater(someProvider)
 
-myCollection.add(main)
-myCollection.add(MyType("test"))
+// Lazily access all elements as a Provider
+val allElements: Provider<out Collection<MyType>> = container.elements
 
-myCollection.disallowChanges()    // the collection is now immutable
-main.setFoo("bar")                // individual elements can still be modified
-
-myCollection.add(MyType("other")) // this will fail
-myCollection.remove(main)         // this will fail
+tasks.register("process") {
+    inputs.property("items", allElements)
+    doLast {
+        println(allElements.get())
+    }
+}
 ```
 
-See the [Javadocs](javadoc/org/gradle/api/DomainObjectCollection.html#disallowChanges()) to learn more.
+See the [Collections](userguide/collections.html#collection_types) section in the Gradle User Manual for more details.
 
-#### Explicit bind address for client-daemon and cross-daemon communication
+### Core plugin and plugin authoring enhancements
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
-Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for [client-daemon and cross-daemon communication](userguide/gradle_daemon.html).
-When set, Gradle skips auto-detection entirely and uses the provided address:
-
-```text
-GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
-```
-
-Previously, Gradle always attempted to auto-detect the local bind address, selecting the loopback address or falling back to the wildcard address. This could fail in environments with specific network configurations such as multiple network interfaces, multiple TCP/IP stacks, and similar setups.
-
-See [Gradle Environment Variables](userguide/build_environment.html#sec:gradle_environment_variables) to learn more.
-
-### General improvements
-
-Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
-
-#### Easier Develocity integration
-
-Gradle users with access to a [Develocity server](https://gradle.com/develocity/) can now generate a [Build Scan](https://gradle.com/scans/gradle/) without modifying their project configuration.
-
-On the CLI, passing the following option will automatically publish a Build Scan to the passed-in Develocity server:
-
-```bash
-./gradlew --develocity-url https://develocity.example.com build
-```
-
-See [Build Scan](userguide/build_scans.html#publishing_to_a_specific_develocity_server) for details.
-
-#### Grouped `--help` output
-
-`./gradlew --help` (or `./gradlew -h`) now organizes [CLI options](userguide/command_line_interface.html#sec:command_line_debugging) into logical sections rather than listing them in a single alphabetical block.
-The sections are: Built-in (help, version, status, stop), Execution, Configuration, Performance, Security, Diagnostics, Logging, and Develocity.
-
-Previously, all options were listed alphabetically with no grouping, making it hard to find related options or discover what categories of flags were available.
-The new layout makes it easier to scan for what you need.
-
-See [CLI Debugging](userguide/command_line_interface.html#sec:command_line_debugging) to learn more.
+### Security and infrastructure
+Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
 ### Tooling and IDE integration
-
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 
-#### Tooling integration improvements
+### General improvements
+Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
-[Tooling API](userguide/tooling_api.html) clients can now access Gradle help and version information directly, the same way the Gradle CLI does.
-This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
+#### Kotlin DSL accessor generation is no longer stored in the build cache
 
-For example, in IntelliJ IDEA, users can run `--help` and `--version` via the `Execute Gradle task` toolbar action.
+Generating the [type-safe Kotlin DSL accessors](userguide/kotlin_dsl.html#type-safe-accessors) for a project produces Kotlin source files.
+For some projects those files can be sizeable, but their generation is fast.
+
+Storing and fetching those files adds its own overhead when the [Build Cache](userguide/build_cache.html#build_cache) is in use.
+That overhead alone is comparable to or higher than the cost of just regenerating the accessors.
+Gradle therefore no longer stores Kotlin DSL accessor generation in the Build Cache by default.
+
+Builds that use a remote Build Cache will regenerate accessors locally instead of downloading them; in-build deduplication of accessor generation is unaffected.
+Kotlin DSL script compilation continues to be cached as before.
+
+See the [Type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) section in the Gradle User Manual for more details.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+========================================================== -->
+
+## Promoted features
+
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
+See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
+
+The following are the features that have been promoted in this Gradle release.
+
+<!--
+### Example promoted
+-->
 
 ## Documentation and training
 
-### Documentation
-
-#### User Manual
-
-The samples page has been removed.
-Code examples can now be found on their corresponding documentation pages, with links to the repository for full project files.
-For reference, you can still view the [original samples page](/9.4.1/samples/index.html) from Gradle 9.4.1.
+<!--
+Add new docs, training, and best practices here
+-->
 
 ## Fixed issues
 

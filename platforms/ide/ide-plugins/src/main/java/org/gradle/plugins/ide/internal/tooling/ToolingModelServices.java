@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -44,8 +44,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
     private static class BuildScopeToolingServices implements ServiceRegistrationProvider {
 
         @Provides
-        protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateRegistry projectRegistry) {
-            return new DefaultUniqueProjectNameProvider(projectRegistry);
+        protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateLookup projectStateLookup) {
+            return new DefaultUniqueProjectNameProvider(projectStateLookup);
         }
 
         @Provides
@@ -54,7 +54,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             final ProjectPublicationRegistry projectPublicationRegistry,
             final FileCollectionFactory fileCollectionFactory,
             final BuildStateRegistry buildStateRegistry,
-            final ProjectStateRegistry projectStateRegistry,
+            final ProjectStateLookup projectStateLookup,
             BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider,
             BuildIncludeListener failedIncludedBuildsRegistry,
@@ -69,7 +69,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     IdeaModelBuilderInternal ideaModelBuilder = createIdeaModelBuilder(isolatedProjects, gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
                     registry.register(new RunEclipseTasksBuilder());
-                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
+                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateLookup));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
                     registry.register(new GradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory));

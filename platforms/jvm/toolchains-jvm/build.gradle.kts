@@ -39,8 +39,9 @@ dependencies {
     api(projects.jvmServices)
     api(projects.native)
     api(projects.persistentCache)
-    api(projects.processServices)
+    api(projects.processServicesBase)
     api(projects.resources)
+    api(projects.startParameter)
     api(projects.toolchainsJvmShared)
 
     api(libs.inject)
@@ -49,6 +50,7 @@ dependencies {
 
     implementation(projects.baseDiagnostics)
     implementation(projects.credentialsImpl)
+    implementation(projects.domainObjectCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.modelCore)
@@ -59,6 +61,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
+    testImplementation(testFixtures(projects.languageJava))
 
     testFixturesImplementation(projects.native)
 
@@ -88,6 +91,4 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

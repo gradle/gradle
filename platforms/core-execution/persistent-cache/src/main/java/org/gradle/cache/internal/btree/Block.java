@@ -22,6 +22,7 @@ public abstract class Block {
 
     private BlockPayload payload;
 
+    @SuppressWarnings("this-escape")
     protected Block(BlockPayload payload) {
         this.payload = payload;
         payload.setBlock(this);

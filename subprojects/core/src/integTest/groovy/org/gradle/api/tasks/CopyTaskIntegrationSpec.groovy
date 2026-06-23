@@ -20,17 +20,17 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.Matchers
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -2249,7 +2249,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(
         because = "eachFile, expand, filter and rename",
-        skip = FLAKY
+        skipBecause = "flaky"
     )
     def "task output caching is disabled when #description is used"() {
         file("src.txt").createFile()
@@ -2471,7 +2471,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     // endregion duplicates in compressed files
 
     @Issue("https://github.com/gradle/gradle/issues/862")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     // NTFS does not support colons in file names
     def "can copy files with semicolons"() {
         given:

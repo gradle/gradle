@@ -36,9 +36,9 @@ import org.gradle.api.Incubating;
  * <li>{@link Finalize}</li>
  * <li>{@link Validate}</li>
  * <li>{@link Rules}</li>
- * <li>{@link org.gradle.platform.base.ComponentType}</li>
- * <li>{@link org.gradle.platform.base.ComponentBinaries}</li>
- * <li>{@link org.gradle.platform.base.BinaryTasks}</li>
+ * <li>{@code org.gradle.platform.base.ComponentType}</li>
+ * <li>{@code org.gradle.platform.base.ComponentBinaries}</li>
+ * <li>{@code org.gradle.platform.base.BinaryTasks}</li>
  * </ul>
  * <p>
  * Each annotation specifies the type of the rule, which affects when it will be executed.

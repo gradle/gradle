@@ -18,6 +18,7 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -34,7 +35,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Issue
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -77,6 +79,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(assembleAppTasks)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "rebuilds application when a single source file in library changes"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -122,7 +125,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(assembleAppAndLibTasks, ":assemble")
     }
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
@@ -239,7 +242,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale installed executable and library file when all source files for executable are removed"() {
         createDirs("app", "greeter")
@@ -295,7 +298,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         file("greeter/build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.library.alternate))
     }
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale executable file when all source files are removed"() {
         settingsFile << "rootProject.name = 'app'"
@@ -329,7 +332,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         installation("build/install/main/debug").assertNotInstalled()
     }
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale library file when all source files are removed"() {
         def lib = new IncrementalSwiftStaleLinkOutputLib()

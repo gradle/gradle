@@ -25,7 +25,9 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.normalizationApi)
     implementation(projects.processServicesApi)
+    implementation(projects.problemsRendering)
 
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
@@ -104,8 +106,6 @@ gradleModule {
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 testFilesCleanup.reportOnly = true

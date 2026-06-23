@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -31,6 +32,7 @@ public interface ProjectDescriptorInternal extends ProjectDescriptor {
     boolean isExplicitName();
 
     @Override
+    @Nullable
     ProjectDescriptorInternal getParent();
 
     Set<ProjectDescriptorInternal> children();

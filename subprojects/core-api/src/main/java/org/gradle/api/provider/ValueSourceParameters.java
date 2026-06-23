@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.internal.parameters.NoneParameters;
+
 /**
  * Marker interface for parameter objects to {@link ValueSource}s.
  *
@@ -36,7 +38,7 @@ public interface ValueSourceParameters {
      *
      * @since 6.1
      */
-    final class None implements ValueSourceParameters {
+    final class None extends NoneParameters implements ValueSourceParameters {
         private None() {
         }
     }

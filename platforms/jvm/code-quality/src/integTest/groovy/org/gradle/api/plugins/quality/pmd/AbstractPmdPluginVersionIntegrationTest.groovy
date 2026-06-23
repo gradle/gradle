@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ PmdCoverage.getSupportedVersionsByJdk() })
@@ -32,7 +33,7 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     static boolean fileLockingIssuesSolved() {
-        return TestPrecondition.satisfied(UnitTestPreconditions.Windows) || VersionNumber.parse("5.5.1") <= versionNumber
+        return TestPrecondition.satisfied(OsTestPreconditions.Windows) || VersionNumber.parse("5.5.1") <= versionNumber
     }
 
     static boolean supportIncrementalAnalysis() {

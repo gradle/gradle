@@ -28,7 +28,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         runAndAssert("myTask", expectedResult)
 
         where:
+        //  Note that cases here (and, often, the expectations) should match the lazy alternatives in the test below
         description                                     | inputType  | inputValue                               | expectedResult
+        "T = null"                                      | "MyObject" | 'null'                                   | "null"
         "T = T"                                         | "MyObject" | 'new MyObject("hello")'                  | "hello"
         "T = Provider<T>"                               | "MyObject" | 'provider { new MyObject("hello") }'     | unsupportedWithCause("Cannot cast object")
         "String = Object"                               | "String"   | 'new MyObject("hello")'                  | "hello"
@@ -38,27 +40,38 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         "File = File"                                   | "File"     | 'file("out")'                            | "out"
         "File = Provider<File>"                         | "File"     | 'provider { file("out") }'               | unsupportedWithCause("Cannot cast object")
         "File = Object"                                 | "File"     | 'new MyObject("out")'                    | unsupportedWithCause("Cannot cast object")
+        "File = String"                                 | "File"     | '"out.txt"'                              | unsupportedWithCause("Cannot cast object")
     }
 
     def "lazy object properties assignment for #description"() {
         def inputDeclaration = "abstract $inputType getInput()"
+
+        when: "works when using ="
         groovyBuildFile(inputDeclaration, inputValue, "=")
 
-        expect:
+        then:
+        runAndAssert("myTask", expectedResult)
+
+        when: "works using set()"
+        groovyBuildFile(inputDeclaration, inputValue, ".set")
+
+        then:
         runAndAssert("myTask", expectedResult)
 
         where:
-        description                                     | inputType            | inputValue                               | expectedResult
-        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
-        "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
-        "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
-        "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
-        "String = Object"                               | "Property<String>"   | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
-        "File = T extends FileSystemLocation"           | "DirectoryProperty"  | 'layout.buildDirectory.dir("out").get()' | "out"
-        "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"  | 'layout.buildDirectory.dir("out")'       | "out"
-        "File = File"                                   | "DirectoryProperty"  | 'file("out")'                            | "out"
-        "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("out") }'               | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
-        "File = Object"                                 | "DirectoryProperty"  | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+        //  Note that cases here (and, often, the expectations) should match the eager alternatives in the test above
+        description                                     | inputType             | inputValue                               | expectedResult
+        "T = null"                                      | "Property<MyObject>"  | 'null'                                   | "undefined"
+        "T = T"                                         | "Property<MyObject>"  | 'new MyObject("hello")'                  | "hello"
+        "T = provider { null }"                         | "Property<MyObject>"  | 'provider { null }'                      | "undefined"
+        "T = Provider<T>"                               | "Property<MyObject>"  | 'provider { new MyObject("hello") }'     | "hello"
+        "String = Object"                               | "Property<String>"    | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+        "File = T extends FileSystemLocation"           | "DirectoryProperty"   | 'layout.buildDirectory.dir("out").get()' | "out"
+        "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"   | 'layout.buildDirectory.dir("out")'       | "out"
+        "File = File"                                   | "DirectoryProperty"   | 'file("out")'                            | "out"
+        "File = Provider<File>"                         | "DirectoryProperty"   | 'provider { file("out") }'               | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
+        "File = Object"                                 | "DirectoryProperty"   | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+        "File = String"                                 | "RegularFileProperty" | '"out.txt"'                              | "out.txt"
     }
 
     def "lazy object properties assignment for deprecated string to enum coercion"() {
@@ -118,7 +131,10 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         where:
         description                              | operation | inputType                       | inputValue                                               | expectedResult
         "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'undefined'
-        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
+        "ListProperty<T> = T"                    | "="       | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | '[a]'
+        "SetProperty<T> = T"                     | "="       | "SetProperty<MyObject>"         | 'new MyObject("a")'                                      | '[a]'
+        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a"), new MyObject("b")] as MyObject[]'   | '[a, b]'
+        "SetProperty<T> = T[]"                   | "="       | "SetProperty<MyObject>"         | '[new MyObject("a"), new MyObject("b")] as MyObject[]'   | '[a, b]'
         "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
         "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'

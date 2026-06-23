@@ -19,7 +19,7 @@ package org.gradle.internal.buildoption;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
-public class StringInternalOption<T extends @Nullable String> extends InternalOption<String> {
+class StringInternalOption<T extends @Nullable String> extends InternalOption<String> {
     private final T defaultValue;
 
     private StringInternalOption(String propertyName, T defaultValue) {
@@ -37,11 +37,11 @@ public class StringInternalOption<T extends @Nullable String> extends InternalOp
         return Cast.uncheckedNonnullCast(value);
     }
 
-    public static InternalOption<String> of(String propertyName, String defaultValue) {
+    static InternalOption<String> of(String propertyName, String defaultValue) {
         return new StringInternalOption<>(propertyName, defaultValue);
     }
 
-    public static InternalOption<@Nullable String> of(String propertyName) {
+    static InternalOption<@Nullable String> of(String propertyName) {
         return new StringInternalOption<@Nullable String>(propertyName, null);
     }
 }

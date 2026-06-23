@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "can apply a transform to the outputs of included builds"() {
@@ -75,11 +77,12 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
 
-        outputContains("Transformed artifact: buildB-1.0.jar.xform (project :buildB)")
-        outputContains("Transformed artifact: buildC-1.0.jar.xform (project :buildC)")
+        outputContains("Transformed artifact: buildB-1.0.jar.xform (project ':buildB')")
+        outputContains("Transformed artifact: buildC-1.0.jar.xform (project ':buildC')")
         output.count("Transforming") == 2
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "cross-build dependency with transform in another build"() {
         given:
         def buildB = multiProjectBuild('buildB', ['app', 'lib'])

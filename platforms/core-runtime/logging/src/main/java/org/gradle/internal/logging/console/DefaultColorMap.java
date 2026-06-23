@@ -47,19 +47,24 @@ public class DefaultColorMap implements ColorMap {
     private static final String COLOR_DIVIDER = "-";
 
     /**
+     * Disables color, keeps emphasis.
+     */
+    private final boolean noColor;
+
+    /**
      * Maps a {@link StyledTextOutput.Style} to the default color spec (that can be overridden by system properties)
      */
-    private final Map<String, String> defaults = new HashMap<String, String>();
+    private final Map<String, String> defaults = new HashMap<>();
 
     /**
      * Maps a {@link StyledTextOutput.Style} to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
      */
-    private final Map<String, Color> colorByStyle = new HashMap<String, Color>();
+    private final Map<String, Color> colorByStyle = new HashMap<>();
 
     /**
      * Maps a color spec to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
      */
-    private final Map<String, Color> colorBySpec = new HashMap<String, Color>();
+    private final Map<String, Color> colorBySpec = new HashMap<>();
 
     private final Color noDecoration = new Color() {
         @Override
@@ -71,7 +76,12 @@ public class DefaultColorMap implements ColorMap {
         }
     };
 
-    public DefaultColorMap() {
+    DefaultColorMap() {
+        this(false);
+    }
+
+    public DefaultColorMap(boolean noColor) {
+        this.noColor = noColor;
         addDefault(Info, "yellow");
         addDefault(Error, "default");
         addDefault(Header, "bold");
@@ -115,7 +125,7 @@ public class DefaultColorMap implements ColorMap {
 
     @Override
     public Color getColourFor(Style style) {
-        List<Color> colors = new ArrayList<Color>();
+        List<Color> colors = new ArrayList<>();
         for (Style.Emphasis emphasis : style.getEmphasises()) {
             if (emphasis.equals(Style.Emphasis.BOLD)) {
                 colors.add(newBoldColor());
@@ -126,12 +136,14 @@ public class DefaultColorMap implements ColorMap {
             }
         }
 
-        if (style.getColor().equals(Style.Color.GREY)) {
-            colors.add(new BrightForegroundColor(Ansi.Color.BLACK));
-        } else {
-            Ansi.Color ansiColor = Ansi.Color.valueOf(style.getColor().name().toUpperCase(Locale.ROOT));
-            if (ansiColor != DEFAULT) {
-                colors.add(new ForegroundColor(ansiColor));
+        if (!noColor) {
+            if (style.getColor().equals(Style.Color.GREY)) {
+                colors.add(new BrightForegroundColor(Ansi.Color.BLACK));
+            } else {
+                Ansi.Color ansiColor = Ansi.Color.valueOf(style.getColor().name().toUpperCase(Locale.ROOT));
+                if (ansiColor != DEFAULT) {
+                    colors.add(new ForegroundColor(ansiColor));
+                }
             }
         }
 
@@ -186,11 +198,15 @@ public class DefaultColorMap implements ColorMap {
 
         if (colorSpec.contains("-")) {
             String[] colors = colorSpec.split("-");
-            ArrayList<Color> colorList = new ArrayList<Color>(colors.length);
+            ArrayList<Color> colorList = new ArrayList<>(colors.length);
             for (String color : colors) {
                 colorList.add(createColorFromSpec(color));
             }
             return new CompositeColor(colorList);
+        }
+
+        if (noColor) {
+            return noDecoration;
         }
 
         Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase(Locale.ROOT));

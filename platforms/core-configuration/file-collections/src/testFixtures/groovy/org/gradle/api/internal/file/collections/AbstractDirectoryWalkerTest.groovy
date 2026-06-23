@@ -22,7 +22,8 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
@@ -86,7 +87,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         }
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "symbolic links for directories are handled properly - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -111,7 +112,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         walkerInstance << walkers
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "symbolic links for files are handled properly - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -137,7 +138,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     }
 
     @Issue("GRADLE-3400")
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")

@@ -1,0 +1,21 @@
+plugins {
+    id("java")
+}
+
+configurations.create("name")
+
+// tag::lazy-config[]
+// Instead of
+configurations.all {}                           // Eagerly realizes all configurations
+
+// Use
+configurations.configureEach {}                 // Only called for realized configurations
+
+// Instead of
+configurations.getByName("name").description = "example"  // Eagerly realizes the "name" configuration
+
+// Use
+configurations.named("name").configure {
+    description = "example"                     // Only called if "name" configuration is realized
+}
+// end::lazy-config[]

@@ -33,9 +33,9 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
     @Override
     protected String tasksConfiguration() {
         """
-        val compilerMemory: String by project
-        val testRunnerMemory: String by project
-        val testForkEvery: String by project
+        val compilerMemory = project.property("compilerMemory") as String
+        val testRunnerMemory = project.property("testRunnerMemory") as String
+        val testForkEvery = project.property("testForkEvery") as String
 
         tasks.withType<JavaCompile> {
             options.isFork = true

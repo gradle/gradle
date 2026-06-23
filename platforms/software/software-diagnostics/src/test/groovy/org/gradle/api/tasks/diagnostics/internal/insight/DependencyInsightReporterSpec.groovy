@@ -17,17 +17,17 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
-import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
@@ -37,7 +37,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -193,16 +192,21 @@ class DependencyInsightReporterSpec extends Specification {
         spec()
     }
 
-    private static DefaultResolvedComponentResult component(String group, String name, String version, ComponentSelectionReason selectionReason) {
+    private ResolvedComponentResultInternal component(String group, String name, String version, ComponentSelectionReason selectionReason) {
         def moduleId = DefaultModuleIdentifier.newId(group, name)
-        def variant = defaultVariant()
-        new DefaultResolvedComponentResult(DefaultModuleVersionIdentifier.newId(moduleId, version), selectionReason, DefaultModuleComponentIdentifier.newId(moduleId, version), ImmutableMap.of(1L, variant), ImmutableList.of(variant), "repoId")
+        Mock(ResolvedComponentResultInternal) {
+            getModuleVersion() >> DefaultModuleVersionIdentifier.newId(moduleId, version)
+            getSelectionReason() >> selectionReason
+            getId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
+            getDependents() >> []
+        }
     }
 
-    private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
+    private DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
         def fromComponent = component("a", "root", "1", ComponentSelectionReasons.requested())
         def toComponent = component(group, name, selected, selectionReason)
-        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), requested), false, toComponent, toComponent.getVariant(1L), fromComponent)
+        def variant = defaultVariant()
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), requested), false, fromComponent, toComponent, variant)
     }
 
     private static DefaultResolvedVariantResult defaultVariant(String ownerGroup = 'com', String ownerModule = 'foo', String ownerVersion = '1.0') {
@@ -212,12 +216,12 @@ class DependencyInsightReporterSpec extends Specification {
         new DefaultResolvedVariantResult(ownerId, Describables.of("default"), ImmutableAttributes.EMPTY, ImmutableList.of(), null)
     }
 
-    private static DefaultResolvedDependencyResult path(String path) {
-        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
+    private DefaultResolvedDependencyResult path(String path) {
+        ResolvedComponentResult from = component("group", "root", "1", ComponentSelectionReasons.requested())
         List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
-            def (name, version) = it.split(':')
-            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
-            def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), false, componentResult, null, from)
+            def (String name, String version) = it.split(':')
+            def componentResult = component('group', name, version, ComponentSelectionReasons.requested())
+            def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), false, from, componentResult, defaultVariant())
             from = componentResult
             result
         }

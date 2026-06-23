@@ -19,6 +19,7 @@ package configurations
 import common.Os
 import common.applyDefaultSettings
 import common.setArtifactRules
+import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.ReuseBuilds
 import model.CIBuildModel
@@ -51,6 +52,13 @@ class PerformanceTestsPass(
                 param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
                 param("performance.db.username", "tcagent")
                 param("env.PERFORMANCE_CHANNEL", performanceTestSpec.channel())
+                text(
+                    "performance.baselines",
+                    type.defaultBaselines,
+                    display = ParameterDisplay.PROMPT,
+                    allowEmpty = true,
+                    description = "Baselines passed to the aggregate report. Defaults to the type's default baselines.",
+                )
             }
 
             features {
@@ -72,28 +80,22 @@ class PerformanceTestsPass(
 testing/$performanceProjectName/build/performance-test-results.zip
 """,
             )
-            if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
-                val dependencyBuildIds =
-                    performanceTestProject.performanceTests
-                        .filter { it.testProjects.isNotEmpty() }
-                        .joinToString(",") { "%dep.${it.id}.env.BUILD_ID%" }
-
-                val dependencyBaselines =
-                    performanceTestProject.performanceTests
-                        .first {
-                            it.testProjects.isNotEmpty()
-                        }.let { "%dep.${it.id}.performance.baselines%" }
-
+            val bucketedPerformanceTests = performanceTestProject.performanceTests.filter { it.testProjects.isNotEmpty() }
+            if (bucketedPerformanceTests.isNotEmpty()) {
+                // Baselines come from this build's own parameter; per-bucket TeamCity build IDs are derived inside the
+                // report task from the surviving perf-results-*.json files. The expected bucket count is passed so the
+                // verify task can fail the Trigger when fewer buckets reported than configured.
+                val verifyTaskName = "verify${taskName.replaceFirstChar { it.titlecase() }}Buckets"
                 gradleRunnerStep(
                     model,
-                    ":$performanceProjectName:$taskName",
+                    ":$performanceProjectName:$taskName :$performanceProjectName:$verifyTaskName",
                     extraParameters =
                         listOf(
                             "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                             "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                             "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-                            "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds,
-                            "-PperformanceBaselines" to dependencyBaselines,
+                            "-Porg.gradle.performance.expectedBuckets" to bucketedPerformanceTests.size.toString(),
+                            "-PperformanceBaselines" to "%performance.baselines%",
                         ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) },
                 )
             }
@@ -103,21 +105,25 @@ testing/$performanceProjectName/build/performance-test-results.zip
                     if (type == PerformanceTestType.FLAKINESS_DETECTION) {
                         reuseBuilds = ReuseBuilds.NO
                     }
+                    // Allow the Trigger to run when an upstream bucket is cancelled so the aggregate report is still produced.
+                    onDependencyCancel = FailureAction.ADD_PROBLEM
                 }
                 performanceTestProject.performanceTests.forEachIndexed { index, performanceTest ->
                     if (performanceTest.testProjects.isNotEmpty()) {
                         artifacts(performanceTest.id!!) {
                             id = "ARTIFACT_DEPENDENCY_${performanceTest.id!!}"
                             cleanDestination = true
+                            // `?:` marks the rule as optional (TeamCity 2024.03+) so a bucket with no test-results-*.zip
+                            // only logs a warning instead of blocking the Trigger from starting.
                             val perfResultArtifactRule =
-                                "results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => " +
+                                "?:results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => " +
                                     "$performanceResultsDir/${performanceTest.bucketIndex}/"
                             artifactRules =
                                 if (index == 0) {
                                     // The artifact rule report/css/*.css => performanceResultsDir is there to clean up the target directory.
                                     // If we don't clean that up there might be leftover json files from other report builds running on the same machine.
                                     """
-                                    results/performance/build/test-results-*.zip!performance-tests/report/css/*.css => $performanceResultsDir/
+                                    ?:results/performance/build/test-results-*.zip!performance-tests/report/css/*.css => $performanceResultsDir/
                                     $perfResultArtifactRule
                                     """.trimIndent()
                                 } else {

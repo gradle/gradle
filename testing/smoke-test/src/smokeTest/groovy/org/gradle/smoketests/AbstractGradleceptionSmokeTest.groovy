@@ -18,24 +18,18 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import java.text.SimpleDateFormat
 
 @Requires([
-    UnitTestPreconditions.Jdk9OrLater,
-    IntegTestPreconditions.NotConfigCached,
-    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+    TestExecutionPreconditions.NotConfigCached,
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
-    private static final String DISABLE_IP = "-Dorg.gradle.unsafe.isolated-projects=false"
+    private static final String DISABLE_IP = "-Dorg.gradle.isolated-projects=false"
     private static final List<String> GRADLE_BUILD_TEST_ARGS = [DISABLE_IP, TEST_BUILD_TIMESTAMP]
 
     private SmokeTestGradleRunner.SmokeTestBuildResult result
@@ -44,8 +38,9 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir)
 
         and:
-        def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
-        file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+        // Forward all known JDK installations so the inner gradle/gradle build can locate the daemon toolchain it requires (gradle-daemon-jvm.properties).
+        def installationPaths = AvailableJavaHomes.availableJvms.collect { it.javaHome.absolutePath.replace("\\", "/") }.join(",")
+        file("gradle.properties") << "\norg.gradle.java.installations.paths=${installationPaths}\n"
     }
 
     SmokeTestGradleRunner.SmokeTestBuildResult getResult() {

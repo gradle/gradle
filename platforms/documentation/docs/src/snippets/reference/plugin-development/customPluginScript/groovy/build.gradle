@@ -1,0 +1,18 @@
+// tag::no-script-plugin[]
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('hello') {
+            doLast {
+                println 'Hello from the GreetingPlugin'
+            }
+        }
+    }
+}
+
+// Apply the plugin
+apply plugin: GreetingPlugin
+// end::no-script-plugin[]
+
+// tag::script-plugin[]
+apply from: 'other.gradle'
+// end::script-plugin[]

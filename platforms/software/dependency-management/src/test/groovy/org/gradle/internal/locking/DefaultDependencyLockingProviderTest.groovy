@@ -66,6 +66,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     def setup() {
         context.identityPath(_) >> { String value -> Path.path(value) }
         context.getProjectPath() >> Path.path(':')
+        context.projectPath(_) >> { String value -> Path.path(":" + value) }
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
         resolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> uniqueLockFile
@@ -86,7 +87,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
         provider.buildFinished()
 
         then:
-        uniqueLockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        uniqueLockFile.text == """${expectedHeader()}
 org:bar:1.3=conf
 org:foo:1.0=conf
 empty=
@@ -268,10 +269,15 @@ empty=
         provider.buildFinished()
 
         then:
-        uniqueLockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        uniqueLockFile.text == """${expectedHeader()}
 org:foo:1.0=otherConf
 empty=
 """
+    }
+
+    private String expectedHeader() {
+        LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n') +
+            '\n# To regenerate this file, run: ./gradlew :dependencies --write-locks'
     }
 
     private DefaultDependencyLockingProvider newProvider() {

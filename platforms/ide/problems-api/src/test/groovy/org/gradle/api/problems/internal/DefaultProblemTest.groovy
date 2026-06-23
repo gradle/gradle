@@ -32,7 +32,7 @@ import spock.lang.Specification
 class DefaultProblemTest extends Specification {
     def "unbound builder result is equal to original"() {
         def additionalData = Mock(AdditionalData)
-        def problem = createTestProblem(severity, additionalData)
+        def problem = createTestProblem(additionalData)
         def newProblem = toBuilder(problem).build()
 
         expect:
@@ -46,12 +46,9 @@ class DefaultProblemTest extends Specification {
         newProblem.originLocations == problem.originLocations
 
         newProblem == problem
-
-        where:
-        severity << [Severity.WARNING, Severity.ERROR]
     }
 
-    def InternalProblemBuilder toBuilder(DefaultProblem problem) {
+    def ProblemBuilderInternal toBuilder(DefaultProblem problem) {
         problem.toBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), Mock(ProblemStream)))
     }
 
@@ -70,7 +67,6 @@ class DefaultProblemTest extends Specification {
 
         where:
         changedAspect | changeClosure
-        "severity"    | { it.severity(Severity.WARNING) }
         "locations"   | { it.fileLocation("file") }
         "details"     | { it.details("details") }
     }
@@ -93,7 +89,7 @@ class DefaultProblemTest extends Specification {
                 Mock(ProblemStream)
             )
         )
-        def problem = createTestProblem(Severity.WARNING)
+        def problem = createTestProblem()
         def builder = toBuilder(problem)
         def newProblem = builder
             .solution("solution")
@@ -118,11 +114,11 @@ class DefaultProblemTest extends Specification {
         newProblem.class == DefaultProblem
     }
 
-    private static createTestProblem(Severity severity = Severity.ERROR, AdditionalData additionalData = null) {
+    private static createTestProblem(AdditionalData additionalData = null) {
         new DefaultProblem(
             new DefaultProblemDefinition(
                 ProblemId.create('message', "displayName", ProblemGroup.create("generic", "Generic")),
-                severity,
+                Severity.ERROR,
                 Documentation.userManual('id'),
             ),
             null,

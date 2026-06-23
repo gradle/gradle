@@ -24,7 +24,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.buildtree.BuildTreeState
+import org.gradle.internal.buildtree.BuildTreeServices
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -35,7 +35,7 @@ class DefaultIncludedBuildTest extends Specification {
     def controllerFactory = Mock(BuildLifecycleControllerFactory)
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
-    def buildTree = Mock(BuildTreeState)
+    def buildTree = Mock(BuildTreeServices)
     DefaultIncludedBuild build
 
     def setup() {

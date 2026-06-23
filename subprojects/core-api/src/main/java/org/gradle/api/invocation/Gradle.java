@@ -33,6 +33,7 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -102,6 +103,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @return The root project. Never returns null.
      * @throws IllegalStateException When called before the root project is available.
      */
+    @ForExternalUse
     Project getRootProject() throws IllegalStateException;
 
     /**
@@ -315,6 +317,10 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Adds a {@link BuildListener} to this Build instance.
      *
      * The listener is notified of events which occur during the execution of the build.
+     *
+     * <p>{@link BuildListener} is not supported when the
+     * configuration cache is enabled. Check the individual
+     * methods of {@link BuildListener} for compatible replacements.
      *
      * @param buildListener The listener to add.
      */

@@ -17,7 +17,7 @@ package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -26,7 +26,7 @@ class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpe
         badCode()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires specific locale")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "requires specific locale")
     def "allows configuring tool dependencies explicitly"() {
         //Language has to be English, because the error message is localised
         defaultLocale('en')

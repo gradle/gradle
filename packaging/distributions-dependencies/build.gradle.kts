@@ -28,6 +28,12 @@ dependencies {
         providedDependencies.libraryAliases.forEach { alias ->
             api(providedDependencies.findLibrary(alias).get())
         }
+        api("org.codehaus.plexus:plexus-utils") {
+            because("Versions below 3.6.1 and 4.0.3 are vulnerable to CVE-2025-67030")
+            version {
+                reject("[3.0,3.6.1)", "[4.0,4.0.3)")
+            }
+        }
     }
 }
 

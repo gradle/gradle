@@ -795,5 +795,5 @@ class ResidualProgramCompiler(
 
     private
     fun implicitReceiverOf(template: KClass<*>) =
-        template.annotations.filterIsInstance<ImplicitReceiver>().map { it.type }.firstOrNull()
+        template.annotations.firstNotNullOfOrNull { (it as? ImplicitReceiver)?.type }
 }

@@ -36,25 +36,11 @@ public interface ResolvedGraphDependency {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Returns the simple ID of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
-     *
-     * @throws IllegalStateException if {@link #getFailure()} is not null.
-     */
-    long getTargetComponentId();
-
-    /**
      * Not null only when failure is not null.
      */
     @Nullable
     ComponentSelectionReasonInternal getReason();
 
     boolean isConstraint();
-
-    /**
-     * Returns the simple ID of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
-     *
-     * @throws IllegalStateException if {@link #getFailure()} is not null.
-     */
-    long getTargetVariantId();
 
 }

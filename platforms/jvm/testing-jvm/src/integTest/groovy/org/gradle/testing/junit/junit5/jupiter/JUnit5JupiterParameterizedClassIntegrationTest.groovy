@@ -73,15 +73,15 @@ class JUnit5JupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegr
             ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayCombinedValue(String):sayCombinedValue(String)[1]",
             ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayCombinedValue(String):sayCombinedValue(String)[2]",
         )
-        testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[1]").onlyRoot()
-            .assertDisplayName(equalTo('[1] one'))
-        testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[2]").onlyRoot()
-            .assertDisplayName(equalTo('[2] two'))
+        testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[1]").onlyRoot()
+            .assertDisplayName(equalTo("[1] one"))
+        testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[2]").onlyRoot()
+            .assertDisplayName(equalTo("[2] two"))
         for (int i = 1; i <= 2; i++) {
-            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
-                .assertDisplayName(equalTo('[1] buckle'))
-            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
-                .assertDisplayName(equalTo('[2] shoe'))
+            testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
+                .assertDisplayName(equalTo("[1] buckle"))
+            testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
+                .assertDisplayName(equalTo("[2] shoe"))
         }
         testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[1]:sayValue()").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
@@ -91,10 +91,10 @@ class JUnit5JupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegr
             .assertStdout(equalTo("Value: two\n"))
         for (int i = 1; i <= 2; i++) {
             String value = (i == 1) ? "one" : "two"
-            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
+            testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
                 .assertHasResult(TestResult.ResultType.SUCCESS)
                 .assertStdout(equalTo("Combined Value: $value buckle\n".toString()))
-            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
+            testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
                 .assertHasResult(TestResult.ResultType.SUCCESS)
                 .assertStdout(equalTo("Combined Value: $value shoe\n".toString()))
         }

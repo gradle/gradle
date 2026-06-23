@@ -552,7 +552,7 @@ ${TextUtil.indent(dependencies.collect { it.asString(dsl) }.join("\n"), "    ")}
                 from(sourceSets.test.output)
             }
             '''.stripIndent().trim())) || rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
-            val testsJar by tasks.registering(Jar::class) {
+            val testsJar = tasks.register<Jar>("testsJar") {
                 archiveClassifier = "tests"
                 from(sourceSets["test"].output)
             }

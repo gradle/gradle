@@ -98,7 +98,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
             for(int i = 0; i < 10; i++) {
                 getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                     it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "adhoc-deprecation", "The 'standard-plugin' is deprecated")}
-                        .severity(Severity.WARNING)
                         .solution("Please use 'standard-plugin-2' instead of this plugin")
                     }
             }
@@ -127,7 +126,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
                 .additionalData("aKey", "aValue")
-                .severity(Severity.WARNING)
                 .solution("try this instead")
             }
         """

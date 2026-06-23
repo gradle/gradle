@@ -19,7 +19,9 @@ package org.gradle.internal.file
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -73,7 +75,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, DIRECT)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats symlink"() {
         def file = tmpDir.file("file")
         file.text = "123"
@@ -88,7 +90,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats symlink to directory"() {
         def dir = tmpDir.createDir("dir")
         def link = tmpDir.file("link")
@@ -102,7 +104,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats broken symlink"() {
         def file = tmpDir.file("file")
         def link = tmpDir.file("link")
@@ -116,7 +118,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats symlink pointing to symlink pointing to file"() {
         def file = tmpDir.file("file")
         file.text = "123"
@@ -133,7 +135,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats symlink pointing to broken symlink"() {
         def file = tmpDir.file("file")
         def link = tmpDir.file("link")
@@ -149,7 +151,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats a symlink cycle"() {
         def first = tmpDir.file("first")
         def second = tmpDir.file("second")
@@ -166,7 +168,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "stats named pipes"() {
         def pipe = tmpDir.file("testPipe").createNamedPipe()
 
@@ -176,7 +178,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         thrown(UncheckedIOException)
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "stat a file in an unreadable directory"() {
         def unreadableDir = tmpDir.createDir("unreadableDir")
         def fileInDir = unreadableDir.createFile("inDir")
@@ -193,7 +195,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         unreadableDir.makeReadable()
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "stat an unreadable file"() {
         def unreadableFile = tmpDir.createFile("unreadable")
         unreadableFile.makeUnreadable()
@@ -209,7 +211,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         unreadableFile.makeReadable()
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "stat an unreadable directory"() {
         def unreadableDir = tmpDir.createDir("unreadable")
         unreadableDir.makeUnreadable()

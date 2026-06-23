@@ -1,0 +1,13 @@
+def taskX = tasks.register('taskX') {
+    doLast {
+        println 'taskX'
+        throw new RuntimeException()
+    }
+}
+def taskY = tasks.register('taskY') {
+    doLast {
+        println 'taskY'
+    }
+}
+
+taskX.configure { finalizedBy taskY }

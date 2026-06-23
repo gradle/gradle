@@ -18,7 +18,6 @@ package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -29,12 +28,6 @@ import static org.hamcrest.CoreMatchers.is
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
 class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     def setup() {
         buildFile << """
             apply plugin: "java"

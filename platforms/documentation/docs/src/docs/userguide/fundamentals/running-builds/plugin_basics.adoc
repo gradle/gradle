@@ -31,6 +31,7 @@ It can:
 
 Plugins are applied to build scripts using the `plugins` block (Kotlin DSL or Groovy DSL), and they bring in all the logic needed for a specific domain or workflow.
 
+[[sec:common_plugins]]
 == Common Plugins
 
 Here are some popular plugins and what they do:
@@ -73,6 +74,7 @@ This tells Gradle to:
 * Apply the built-in `java-library` plugin, which adds tasks for compiling Java, running tests, and packaging libraries.
 * Apply the community-maintained `spotless` plugin (version `6.25.0`), which adds code formatting tasks and integrates tools like `ktlint`, `prettier`, and `google-java-format`.
 
+[[sec:plugin_distribution_and_availability]]
 == Plugin Distribution and Availability
 
 Gradle plugins come from different sources, and you can choose the right type depending on your use case.

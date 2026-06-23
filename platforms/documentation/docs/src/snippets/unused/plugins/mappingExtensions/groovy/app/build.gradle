@@ -1,0 +1,34 @@
+plugins {
+    id 'application'
+}
+// tag::snippet[]
+// Extension class to capture user input
+class MyExtension {
+    @Input
+    String inputParameter = null
+}
+
+// Custom task that uses the input from the extension
+class MyCustomTask extends DefaultTask {
+    @Input
+    String inputParameter = null
+
+    @TaskAction
+    def executeTask() {
+        println("Input parameter: $inputParameter")
+    }
+}
+
+// Plugin class that configures the extension and task
+class MyPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Create and configure the extension
+        def extension = project.extensions.create("myExtension", MyExtension)
+        // Create and configure the custom task
+        project.tasks.register("myTask", MyCustomTask) {
+            group = "custom"
+            inputParameter = extension.inputParameter
+        }
+    }
+}
+// end::snippet[]

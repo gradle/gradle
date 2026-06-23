@@ -16,29 +16,21 @@
 
 package org.gradle.features.internal.binding;
 
-import groovy.lang.Closure;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
-import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * Provides a dynamic object that allows project features to be queried and applied to a target object as dynamic
- * methods.  The project features are looked up by name and if a matching feature is found, the feature is applied
- * to the target object and the configuration block applied to its public model object.
+ * Provides a dynamic object that stores and retrieves the {@link ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext}
+ * for a target object. This context is used internally to access feature metadata during feature application.
  */
 abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject {
-    private final DynamicObjectAware target;
     private final ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context;
 
     @Inject
-    public ProjectFeaturesDynamicObject(DynamicObjectAware target, ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context) {
-        this.target = target;
+    public ProjectFeaturesDynamicObject(ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context) {
         this.context = context;
     }
 
@@ -48,65 +40,12 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
     }
 
     @Override
-    public boolean hasMethod(String name, @Nullable Object... arguments) {
-        return isFeatureConfigureMethod(name, arguments);
-    }
-
-    private boolean isFeatureConfigureMethod(String name, @Nullable Object[] arguments) {
-        if (arguments == null || arguments.length != 1 || !(arguments[0] instanceof Closure)) {
-            return false;
-        }
-
-        Set<ProjectFeatureImplementation<?, ?>> candidateFeatures = getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
-        if (candidateFeatures == null) {
-            return false;
-        }
-
-        return candidateFeatures.stream().anyMatch(feature ->
-            TargetTypeInformationChecks.isValidBindingType(feature.getTargetDefinitionType(), target.getClass()));
-    }
-
-    @Override
     public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
         if (name.equals(CONTEXT_METHOD_NAME) && arguments.length == 0) {
             return DynamicInvokeResult.found(context);
         }
-        if (isFeatureConfigureMethod(name, arguments)) {
-            Set<ProjectFeatureImplementation<?, ?>> candidateFeatures = getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
-            if (candidateFeatures == null) {
-                return DynamicInvokeResult.notFound();
-            }
-            Set<ProjectFeatureImplementation<?, ?>> matchingFeatures = candidateFeatures.stream().filter(feature ->
-                TargetTypeInformationChecks.isValidBindingType(feature.getTargetDefinitionType(), target.getClass())
-            ).collect(Collectors.toSet());
-            if (matchingFeatures.isEmpty()) {
-                return DynamicInvokeResult.notFound();
-            }
-            if (matchingFeatures.size() > 1) {
-                // This should not be possible if the project feature bindings are correctly disambiguated at registration time
-                throw new IllegalStateException(String.format("Multiple project features of name '%s' match target type '%s'. Cannot disambiguate.", name, target.getClass().getName()));
-            }
-            Object definition = configureAndApplyFeature((Closure<?>) arguments[0], getProjectFeatureApplicator().registerFeatureApplicationFor(target, matchingFeatures.iterator().next()));
-            return DynamicInvokeResult.found(definition);
-        }
         return DynamicInvokeResult.notFound();
     }
-
-    private Object configureAndApplyFeature(Closure<?> configurationClosure, ProjectFeatureApplicator.FeatureApplication<?, ?> featureApplication) {
-        ConfigureUtil.configure(configurationClosure, featureApplication.getDefinitionInstance());
-        // If the feature is a project type (i.e. the outermost declarative block) we can go ahead and apply all features.
-        // Otherwise, defer application until the outermost project type is done being configured.
-        if (featureApplication.isProjectType()) {
-            getProjectFeatureApplicator().applyFeatures();
-        }
-        return featureApplication.getDefinitionInstance();
-    }
-
-    @Inject
-    abstract protected ProjectFeatureDeclarations getProjectFeatureRegistry();
-
-    @Inject
-    abstract protected ProjectFeatureApplicator getProjectFeatureApplicator();
 
     public static final String CONTEXT_METHOD_NAME = "$.projectFeatureContext";
 }

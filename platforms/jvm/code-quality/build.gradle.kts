@@ -38,6 +38,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.logging)
     implementation(projects.native)
     implementation(projects.pluginsGroovy)
     implementation(projects.serviceLookup)
@@ -79,6 +80,4 @@ gradleModule {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

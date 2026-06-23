@@ -42,6 +42,16 @@ public class FailurePrinter {
         new Job(output, listener).print(failure);
     }
 
+    /**
+     * Prints a single node: its header, own frames, and any suppressed exceptions, without descending into its causes.
+     * The node's own frames are printed as if it had no parent, so no common tail elision is applied to them.
+     */
+    public static String printNodeToString(Failure failure) {
+        StringBuilder output = new StringBuilder();
+        new Job(output, FailurePrinterListener.NO_OP).printNode(failure);
+        return output.toString();
+    }
+
     private static final class Job {
 
         private final FailurePrinterListener listener;
@@ -62,7 +72,20 @@ public class FailurePrinter {
             }
         }
 
+        public void printNode(Failure failure) {
+            try {
+                printNodeOnly("", "", null, failure);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
         private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
+            printNodeOnly(caption, prefix, parent, failure);
+            appendCauses(prefix, failure);
+        }
+
+        private void printNodeOnly(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
             builder.append(prefix)
                 .append(caption)
                 .append(failure.getHeader())
@@ -73,7 +96,6 @@ public class FailurePrinter {
             listener.afterFrames();
 
             appendSuppressed(prefix, failure);
-            appendCauses(prefix, failure);
         }
 
         private void appendSuppressed(String prefix, Failure failure) throws IOException {

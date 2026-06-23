@@ -18,17 +18,14 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.classpath.RuntimeApiInfo;
-import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -279,11 +276,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
-    }
-
-    @Provides
-    DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
     }
 
     @Provides

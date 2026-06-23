@@ -16,6 +16,8 @@
 
 package org.gradle.declarative.dsl.evaluation
 
+import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.declarative.dsl.schema.UnsafeSchemaItem
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
@@ -33,7 +35,8 @@ import java.io.Serializable
     SchemaIssue.UnsupportedNullableReadOnlyProperty::class,
     SchemaIssue.NonClassifiableType::class,
     SchemaIssue.UnitAddingFunctionWithLambda::class,
-    SchemaIssue.UnrecognizedMember::class
+    SchemaIssue.UnrecognizedMember::class,
+    SchemaIssue.UnsafeDeclarationInSafeFeatureApi::class
 ])
 interface SchemaIssue : Serializable {
     interface DeclarationBothHiddenAndVisible : SchemaIssue
@@ -85,4 +88,9 @@ interface SchemaIssue : Serializable {
     interface UnitAddingFunctionWithLambda : SchemaIssue
 
     interface UnrecognizedMember : SchemaIssue
+
+    interface UnsafeDeclarationInSafeFeatureApi : SchemaIssue {
+        val usedInSafeFeatures: List<ProjectFeatureOrigin>
+        val unsafeApiCause: UnsafeSchemaItem
+    }
 }

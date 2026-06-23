@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.unzipTo
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertFalse

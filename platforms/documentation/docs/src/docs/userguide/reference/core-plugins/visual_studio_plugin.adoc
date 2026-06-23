@@ -38,8 +38,8 @@ What exactly the `visual-studio` plugin generates depends on which other plugins
 == Usage
 
 ====
-include::sample[dir="snippets/ide/visualStudio/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
-include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/visualStudio/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/visualStudio/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 The Visual Studio Plugin adds a number of tasks to your project.
@@ -133,8 +133,8 @@ The following sections are shows the customization.
 The location of the generated solution can be configured on the root project:
 
 ====
-include::sample[dir="snippets/ide/visualStudio/kotlin",files="build.gradle.kts[tags=configure-solution-location]"]
-include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=configure-solution-location]"]
+include::sample[dir="snippets/reference/core-plugins/visualStudio/kotlin",files="build.gradle.kts[tags=configure-solution-location]"]
+include::sample[dir="snippets/reference/core-plugins/visualStudio/groovy",files="build.gradle[tags=configure-solution-location]"]
 ====
 
 [[sec:visual_studio_configure_project_location]]
@@ -143,6 +143,6 @@ include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=
 The location of the generated project files can be configured on any project:
 
 ====
-include::sample[dir="snippets/ide/visualStudio/kotlin",files="build.gradle.kts[tags=configure-project-and-filters-location]"]
-include::sample[dir="snippets/ide/visualStudio/groovy",files="build.gradle[tags=configure-project-and-filters-location]"]
+include::sample[dir="snippets/reference/core-plugins/visualStudio/kotlin",files="build.gradle.kts[tags=configure-project-and-filters-location]"]
+include::sample[dir="snippets/reference/core-plugins/visualStudio/groovy",files="build.gradle[tags=configure-project-and-filters-location]"]
 ====

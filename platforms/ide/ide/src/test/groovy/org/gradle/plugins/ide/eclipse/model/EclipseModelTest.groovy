@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -43,6 +44,7 @@ class EclipseModelTest extends Specification {
         model.classpath = TestUtil.newInstance(EclipseClasspath, project)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp). This behavior has been deprecated.")
     def "enables setting path variables even if wtp is not configured"() {
         given:
         model.wtp = null
@@ -55,6 +57,7 @@ class EclipseModelTest extends Specification {
         model.classpath.pathVariables == [one: new File('.'), two: new File('.')]
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp). This behavior has been deprecated.")
     def "enables setting path variables even if wtp component is not configured"() {
         given:
         model.wtp = TestUtil.newInstance(EclipseWtp)
@@ -68,6 +71,7 @@ class EclipseModelTest extends Specification {
         model.classpath.pathVariables == [one: new File('.')]
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp). This behavior has been deprecated.")
     def "enables setting path variables"() {
         given:
         model.wtp = TestUtil.newInstance(EclipseWtp)
@@ -133,6 +137,7 @@ class EclipseModelTest extends Specification {
         1 * xmlTransformer.addAction(xmlAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.file). This behavior has been deprecated.")
     def "can configure jdt with Actions"() {
         given:
         def propertiesTransformer = Mock(PropertiesTransformer)
@@ -159,6 +164,7 @@ class EclipseModelTest extends Specification {
         1 * propertiesTransformer.addAction(propertiesAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp). This behavior has been deprecated.")
     def "can configure wtp with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)

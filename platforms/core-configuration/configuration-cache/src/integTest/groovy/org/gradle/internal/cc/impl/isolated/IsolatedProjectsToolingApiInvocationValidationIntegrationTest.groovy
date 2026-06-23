@@ -17,6 +17,34 @@
 package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+    def "dangerously ignoring problems lets fetching a tooling model with cross-project access succeed"() {
+        given:
+        includeProjects("a", "b")
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            allprojects {
+                plugins.apply('java-library')
+            }
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        withIsolatedProjectsDangerouslyIgnoreProblems()
+        def model = fetchModel()
+
+        then:
+        model != null
+        outputContains(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
+        fixture.assertModelStoredAndDiscarded {
+            hasStoreFailure = false
+            // :a and :b not configured since they're not needed.
+            // Other tests use diagnostics mode which does configure all projects.
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
+        }
+    }
+
     def "reports cross project access from build script when fetching custom tooling model"() {
         given:
         includeProjects("a", "b")
@@ -29,23 +57,23 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
@@ -62,23 +90,23 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': Project ':' cannot access 'Project.extensions' functionality on subprojects", 2)
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': Project ':' cannot access 'Project.extensions' functionality on subprojects", 2)
         }

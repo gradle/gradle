@@ -22,14 +22,19 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.provider.ValueSourceSpec
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.process.ExecOperations
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 abstract class ValueSourceBasedSpec extends Specification {
+    def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
+    }
     def isolatableFactory = new DefaultIsolatableFactory(
-        null,
+        classLoaderHasher,
         TestUtil.managedFactoryRegistry()
     )
     def configurationTimeBarrier = Mock(ConfigurationTimeBarrier)

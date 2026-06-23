@@ -16,9 +16,14 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.util.internal.ToBeImplemented
+
 import spock.lang.Issue
 
+/**
+ * Cross-project access tests specific to Kotlin DSL.
+ * <p>
+ * For DSL-agnostic tests prefer {@link IsolatedProjectsAccessIntegrationTest}.
+ */
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -33,7 +38,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -63,7 +68,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -76,38 +81,6 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         block         | message
         "allprojects" | "subprojects via 'allprojects'"
         "subprojects" | "subprojects"
-    }
-
-    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
-    def "reports cross-project model access in project-level Gradle.#invocation"() {
-        createDirs("a", "b")
-        settingsFile << """
-            include("a")
-            include("b")
-        """
-        file("a/build.gradle.kts") << """
-            gradle.${invocation} { println(buildDir) }
-        """
-
-        when:
-        // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsFails(":a:help")
-        isolatedProjectsRun(":a:help")
-
-        then:
-        // TODO:isolated expected behavior for incremental configuration
-//        fixture.assertStateStoredAndDiscarded {
-//            projectsConfigured(":", ":a")
-//            problem("Build file 'a/build.gradle.kts': Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
-//        }
-        fixture.assertStateStored {
-            projectsConfigured(":", ":a", ":b")
-        }
-
-        where:
-        invocation      | accessedProjects
-        "beforeProject" | [":b"]
-        "afterProject"  | [":b"]
     }
 
     def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
@@ -123,7 +96,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -164,7 +137,9 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28204")
-    def "access to #description delegated property value is causing a violation"() {
+    def "child project does not walk parent's dynamic scope for project.findProperty"() {
+        // Under Isolated Projects the parent's dynamic scope is not wired up on the child,
+        // so findProperty silently returns null instead of finding the value on the parent.
         given:
         settingsFile << """
             include("a")
@@ -175,24 +150,34 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         // Requires a sub-project
         file("a/build.gradle.kts") << """
-            val myProperty: $type by project
-            println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
+            val myProperty = project.findProperty("myProperty") as String?
+            println("myProperty: " + myProperty)
+        """
+
+        expect:
+        isolatedProjectsRun("help")
+        outputContains("myProperty: null")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28204")
+    def "child project fails locally when project.property is defined only on parent"() {
+        given:
+        settingsFile << """
+            include("a")
+        """
+        buildKotlinFile << """
+            project.extensions.extraProperties["myProperty"] = "hello"
+        """
+
+        file("a/build.gradle.kts") << """
+            val myProperty = project.property("myProperty") as String
+            println("myProperty: " + myProperty)
         """
 
         when:
         isolatedProjectsFails("help")
 
         then:
-        outputContains("myProperty: hello")
-
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project ':'")
-        }
-
-        where:
-        description    | type
-        "nullable"     | "String?"
-        "non-nullable" | "String"
+        failureDescriptionContains("Could not get unknown property 'myProperty' for project ':a'")
     }
 }

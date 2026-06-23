@@ -23,18 +23,19 @@ import org.spockframework.runtime.SpockTimeoutError
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.extension.MethodInvocation
 import org.spockframework.runtime.extension.builtin.TimeoutInterceptor
+import org.spockframework.runtime.extension.builtin.TimeoutConfiguration
 import org.spockframework.runtime.model.MethodInfo
 
-import java.util.concurrent.TimeUnit
+import java.time.Duration
 
 @CompileStatic
 class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
     IntegrationTestTimeoutInterceptor(IntegrationTestTimeout timeout) {
-        super(new TimeoutAdapter(timeout))
+        super(Duration.ofNanos(timeout.unit().toNanos(timeout.value())), new TimeoutConfiguration())
     }
 
     IntegrationTestTimeoutInterceptor(int timeoutSeconds) {
-        super(new TimeoutAdapter(timeoutSeconds, TimeUnit.SECONDS))
+        super(Duration.ofSeconds(timeoutSeconds), new TimeoutConfiguration())
     }
 
     @Override
@@ -52,7 +53,7 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
     void intercept(Action<Void> action) {
         MethodInfo methodInfo = new MethodInfo()
         methodInfo.setName('MockMethod')
-        intercept(new MethodInvocation(null, null, null, null, null, methodInfo, null) {
+        intercept(new MethodInvocation(null, null, null, null, null, null, methodInfo, Collections.<org.spockframework.runtime.extension.IMethodInterceptor>emptyList(), null) {
             void proceed() throws Throwable {
                 action.execute(null)
             }

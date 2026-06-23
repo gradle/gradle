@@ -16,13 +16,14 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -31,6 +32,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "multi-project build tasks logs are grouped"() {
         server.start()
 
@@ -143,7 +145,8 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
+    @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
         server.start()

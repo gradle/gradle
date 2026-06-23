@@ -20,13 +20,14 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 import spock.lang.Timeout
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
-import static org.hamcrest.CoreMatchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
 
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, StableConfigurationCacheDeprecations {
 
@@ -116,6 +117,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
         createDirs("child1", "child2", "child1-2", "child1-2-2")
         settingsFile << "include 'child1', 'child2', 'child1-2', 'child1-2-2'"
@@ -134,6 +136,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
         createDirs("child1", "child2")
         settingsFile << "include 'child1', 'child2'"
@@ -236,7 +239,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksScheduled(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task
-            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project 'root' and its subprojects."))
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(containsString("Task 'unknown' not found in root project 'root' and its subprojects."))
         }
     }
 
@@ -344,6 +347,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21962")
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "honours mustRunAfter task ordering declared via dependency resolution"() {
         createDirs("a", "b")
         settingsFile << """
@@ -615,6 +619,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     @Issue("gradle/gradle#783")
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "executes finalizer task as soon as possible after finalized task"() {
         buildFile << """
             project(":a") {

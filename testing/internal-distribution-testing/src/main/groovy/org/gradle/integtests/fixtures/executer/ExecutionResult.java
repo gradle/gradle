@@ -107,6 +107,15 @@ public interface ExecutionResult {
     ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
+     * Asserts that this result includes a non-error log fragment matching the given regular expression.
+     * Uses {@link java.util.regex.Matcher#find()} semantics, so the pattern need not match the entire output.
+     * Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param regexPattern The regular expression to match against the build output.
+     */
+    ExecutionResult assertOutputContainsPattern(String regexPattern);
+
+    /**
      * Asserts that the given content includes the given log message.
      *
      * @param content The content to check

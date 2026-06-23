@@ -17,129 +17,15 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.cc.impl.fixtures.GradlePropertiesFixture
 import org.gradle.internal.cc.impl.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.internal.cc.impl.fixtures.SystemPropertiesCompositeBuildFixture
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.gradle.initialization.properties.GradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
-import static org.gradle.initialization.properties.GradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
-
-class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements GradlePropertiesFixture {
 
     def configurationCache = newConfigurationCacheFixture()
-
-    def "invalidates cache when set of Gradle property defining system properties changes"() {
-        given:
-        settingsFile << """
-            println(gradleProp + '!')
-        """
-
-        when:
-        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=1"
-
-        then:
-        outputContains '1!'
-        configurationCache.assertStateStored()
-
-        when:
-        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=1"
-
-        then:
-        outputDoesNotContain '1!'
-        configurationCache.assertStateLoaded()
-
-        when:
-        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=2"
-
-        then:
-        outputContains '2!'
-        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed: the value of '${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp' was changed."
-        configurationCache.assertStateStored()
-
-        when:
-        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=2", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}unusedProp=2"
-
-        then:
-        outputContains '2!'
-        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed: '${SYSTEM_PROJECT_PROPERTIES_PREFIX}unusedProp' was added."
-        configurationCache.assertStateStored()
-    }
-
-    def "invalidates cache when set of Gradle property defining system properties has multiple changes"() {
-        given:
-        settingsFile << """
-            println(forChange1 + '!')
-        """
-
-        when:
-        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange1=0", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange2=1", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove1=2", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove3=3", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove2=4"
-
-        then:
-        outputContains '0!'
-        configurationCache.assertStateStored()
-
-        when:
-        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange1=10", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange2=11", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd1=12", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd2=13"
-
-        then:
-        outputContains '10!'
-        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed: " +
-            "the values of '${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange1' and '${SYSTEM_PROJECT_PROPERTIES_PREFIX}forChange2' were changed, " +
-            "'${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd1' and '${SYSTEM_PROJECT_PROPERTIES_PREFIX}forAdd2' were added, " +
-            "and '${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove1', '${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove2', and '${SYSTEM_PROJECT_PROPERTIES_PREFIX}forRemove3' were removed."
-        configurationCache.assertStateStored()
-    }
-
-    def "invalidates cache when set of Gradle property defining environment variables changes"() {
-        given:
-        settingsFile << """
-            println(gradleProp + '!')
-        """
-
-        when:
-        executer.withEnvironmentVars([
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 1
-        ])
-        configurationCacheRun "help"
-
-        then:
-        outputContains '1!'
-        configurationCache.assertStateStored()
-
-        when:
-        executer.withEnvironmentVars([
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 1
-        ])
-        configurationCacheRun "help"
-
-        then:
-        outputDoesNotContain '1!'
-        configurationCache.assertStateLoaded()
-
-        when:
-        executer.withEnvironmentVars([
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 2
-        ])
-        configurationCacheRun "help"
-
-        then:
-        outputContains '2!'
-        outputContains "because the set of environment variables prefixed by '$ENV_PROJECT_PROPERTIES_PREFIX' has changed: the value of '${ENV_PROJECT_PROPERTIES_PREFIX}gradleProp' was changed."
-        configurationCache.assertStateStored()
-
-        when: 'the set of prefixed environment variables changes'
-        executer.withEnvironmentVars([
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'unused'): 1,
-            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 2
-        ])
-        configurationCacheRun "help"
-
-        then: 'the cache is invalidated'
-        outputContains '2!'
-        outputContains "because the set of environment variables prefixed by '${ENV_PROJECT_PROPERTIES_PREFIX}' has changed: '${ENV_PROJECT_PROPERTIES_PREFIX}unused' was added."
-        configurationCache.assertStateStored()
-    }
 
     def "detects dynamic Gradle property access in settings script"() {
         given:
@@ -333,22 +219,141 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         System.clearProperty(systemProp)
     }
 
-    def "reuses cache when unused project property changes on command-line"() {
+    @Issue("https://github.com/gradle/gradle/issues/36787")
+    def "reuses cache when unused project property changes #changeMethod"(PropertyApplication changeMethod) {
         buildFile """
-            tasks.register("some")
+            tasks.register("some") {
+                def propValue = providers.gradleProperty("foo")
+
+                doLast {
+                    println "foo = \${propValue.orNull}"
+                }
+            }
         """
 
-        when:
-        configurationCacheRun "some", "-Pfoo=one"
+        when: "running without property"
+        configurationCacheRun "some"
 
         then:
         configurationCache.assertStateStored()
+        outputContains("foo = null")
 
-        when:
-        configurationCacheRun "some", "-Pfoo=two"
+        when: "running after property added"
+        withProperties(changeMethod, foo: "one")
+        configurationCacheRun "some"
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("foo = one")
+
+        when: "running after property changed"
+        withProperties(changeMethod, foo: "two")
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("foo = two")
+
+        when: "running after property removed"
+        withProperties(changeMethod)
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("foo = null")
+
+        where:
+        changeMethod << PropertyApplication.values()
+    }
+
+    def "invalidates cache when project property changes #changeMethod if used at configuration time"(PropertyApplication changeMethod) {
+        buildFile """
+            tasks.register("some") {
+                def propValue = project.ext["foo"] ?: "null"
+
+                doLast {
+                    println ("foo = \$propValue")
+                }
+            }
+        """
+        when: "running with initial value"
+        withProperties(changeMethod, foo: "initial")
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = initial")
+
+        when: "running with changed value"
+        withProperties(changeMethod, foo: "changed")
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = changed")
+
+        where:
+        changeMethod << PropertyApplication.values()
+    }
+
+    def "invalidates cache when project property added #changeMethod if used at configuration time"(PropertyApplication changeMethod) {
+        buildFile """
+            tasks.register("some") {
+                def propValue = project.ext.has("foo") ? project.ext["foo"] : null
+
+                doLast {
+                    println ("foo = \$propValue")
+                }
+            }
+        """
+        when: "running without value"
+        withProperties(changeMethod)
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = null")
+
+        when: "running with changed value"
+        withProperties(changeMethod, foo: "changed")
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = changed")
+
+        where:
+        changeMethod << PropertyApplication.values()
+    }
+
+    def "invalidates cache when project property removed #changeMethod if used at configuration time"(PropertyApplication changeMethod) {
+        buildFile """
+            tasks.register("some") {
+                def propValue = project.ext.has("foo") ? project.ext["foo"] : null
+
+                doLast {
+                    println ("foo = \$propValue")
+                }
+            }
+        """
+        when: "running with initial value"
+        withProperties(changeMethod, foo: "initial")
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = initial")
+
+        when: "running with changed value"
+        withProperties(changeMethod)
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = null")
+
+        where:
+        changeMethod << PropertyApplication.values()
     }
 
     def "invalidates cache when project property changes on command-line, if used at configuration time via #description"() {
@@ -495,7 +500,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         outputContains("Execution: 'two'")
     }
 
-    def "reuses cache when project property changes on command-line, if looked up but unused at configuration time via gradleProperty"() {
+    def "reuses cache when project property changes , if looked up but unused at configuration time via gradleProperty"() {
         buildFile """
             providers.gradleProperty("foo")
             tasks.register("some")
@@ -591,6 +596,38 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         where:
         source << ['command-line', 'gradle.properties']
+    }
+
+    @ToBeImplemented
+    def "invalidates cache when new command-line project property is added after accessing all properties via #accessExpr"() {
+        buildFile """
+            def allProps = ${accessExpr}
+            println("props: \${allProps.keySet().sort()}")
+
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some", "-PexistingProp=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "props:"
+
+        when: "a new command-line property is added"
+        configurationCacheRun "some", "-PexistingProp=one", "-PnewProp=new"
+
+        then: "cache should be invalidated because the set of properties changed"
+        // getProperties() only tracks individual property values, not the set of properties.
+        // Adding a new property is not detected, causing a false cache hit.
+        configurationCache.assertStateLoaded()
+        // Must be:
+//        configurationCache.assertStateStored()
+
+        where:
+        accessExpr << [
+            "project.ext.properties",
+        ]
     }
 
     def "reuses cache when start parameter project property used at execution time changes"() {

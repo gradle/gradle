@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
@@ -365,6 +366,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/some-app").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a library"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -374,8 +376,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -396,6 +400,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a library when specifying multiple target machines"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -407,9 +412,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-application'
                 application {
                     targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
-                }
-                dependencies {
-                    implementation project(':hello')
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -433,6 +438,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails when dependency library does not specify the same target machines"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -463,10 +469,11 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         fails ":app:assemble"
 
         and:
-        failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:")
+        failure.assertHasCause("Could not resolve project ':greeter'")
+        failure.assertHasCause("No matching variant of project ':greeter' was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails when dependency library does not specify the same target architecture"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -498,7 +505,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         fails ":app:assemble"
 
         and:
-        failure.assertHasCause("Could not resolve project :greeter")
+        failure.assertHasCause("Could not resolve project ':greeter'")
         failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.native.architecture' with value 'foo', attribute 'org.gradle.usage' with value 'native-link' and the consumer needed attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.usage' with value 'native-runtime'")
     }
 
@@ -542,6 +549,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         succeeds "compileDebug"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a library with explicit target machine defined"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -579,6 +587,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "fails compile and link against a library with different operating system family support"() {
         createDirs("app", "hello")
         settingsFile << """
@@ -611,7 +620,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:
+        failure.assertHasCause """No matching variant of project ':hello' was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:
   - Variant 'cppApiElements':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
       - Other compatible attributes:
@@ -621,6 +630,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
           - Doesn't say anything about org.gradle.native.optimized (required 'false')"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a static library"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -630,8 +640,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -654,6 +666,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a library with both linkages defined"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -663,8 +676,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -687,6 +702,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile and link against a library with debug and release variants"() {
         createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
@@ -696,8 +712,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
                 application.binaries.get { it.optimized }.configure {
                     compileTask.get().setMacros(WITH_FEATURE: "true")
@@ -734,6 +752,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("app/build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against library with api and implementation dependencies"() {
         createDirs("app", "deck", "card", "shuffle")
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
@@ -743,15 +762,19 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':deck')
+                application {
+                    dependencies {
+                        implementation project(':deck')
+                    }
                 }
             }
             project(':deck') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
+                library {
+                    dependencies {
+                        api project(':card')
+                        implementation project(':shuffle')
+                    }
                 }
             }
             project(':card') {
@@ -779,6 +802,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against a static library with api and implementation dependencies"() {
         createDirs("app", "deck", "card", "shuffle")
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
@@ -788,16 +812,20 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':deck')
+                application {
+                    dependencies {
+                        implementation project(':deck')
+                    }
                 }
             }
             project(':deck') {
                 apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
+                library {
+                    linkage = [Linkage.STATIC]
+                    dependencies {
+                        api project(':card')
+                        implementation project(':shuffle')
+                    }
                 }
             }
             project(':card') {
@@ -827,6 +855,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "honors changes to library buildDir"() {
         createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
@@ -836,14 +865,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
             project(':lib2') {
@@ -869,6 +902,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "honors changes to library output locations"() {
         createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
@@ -878,14 +912,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
             project(':lib2') {
@@ -917,6 +955,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         file("app/build/install/main/debug/lib/lib1_debug.dll").assertIsFile()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "honors changes to library public header location"() {
         createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
@@ -926,16 +965,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
-                }
                 library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                     publicHeaders.from('include')
                 }
             }
@@ -966,6 +1007,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "multiple components can share the same source directory"() {
         createDirs("app", "greeter", "logger")
         settingsFile << "include 'app', 'greeter', 'logger'"
@@ -975,19 +1017,19 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
                 application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                     source.from '../Sources/main.cpp'
                 }
             }
             project(':greeter') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':logger')
-                }
                 library {
+                    dependencies {
+                        implementation project(':logger')
+                    }
                     source.from '../Sources/greeter.cpp'
                 }
             }

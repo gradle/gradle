@@ -24,12 +24,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
-@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+@Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     static final Jvm EXPECTED_JVM = AvailableJavaHomes.differentVersion
 
@@ -122,7 +122,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         succeeds("compileJava", "-Dorg.gradle.java.installations.auto-detect=false", "-Dorg.gradle.java.installations.auto-download=true")
     }
 
-    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    @Requires(value = [InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "toolchain download can handle different jvms with the same archive name"() {
         when:
         executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality").withToolchainDownloadEnabled()
@@ -158,7 +158,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         jdkRepository2.stop()
     }
 
-    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    @Requires(value = [InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "toolchain download can handle corrupted archive"() {
         when:
         executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality").withToolchainDownloadEnabled()

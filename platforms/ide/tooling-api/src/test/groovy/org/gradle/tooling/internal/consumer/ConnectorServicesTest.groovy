@@ -36,12 +36,12 @@ class ConnectorServicesTest extends Specification {
         connectorOne.connectionFactory.toolingImplementationLoader == connectorTwo.connectionFactory.toolingImplementationLoader
     }
 
-    def "can close services"() {
+    def "can close services and create connector again"() {
         when:
         ConnectorServices.close()
-        ConnectorServices.createConnector()
+        def connector = ConnectorServices.createConnector()
 
         then:
-        thrown(IllegalStateException)
+        connector != null
     }
 }

@@ -257,7 +257,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *                      from configurations with the same name that depend on this one.
      * @param taskName name of task to depend on
      * @return the populated TaskDependency object
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName);
 
     /**

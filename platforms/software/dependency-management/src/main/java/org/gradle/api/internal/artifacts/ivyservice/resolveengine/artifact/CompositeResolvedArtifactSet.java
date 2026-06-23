@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
+
     private final List<ResolvedArtifactSet> sets;
 
     private CompositeResolvedArtifactSet(List<ResolvedArtifactSet> sets) {
@@ -33,17 +35,32 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifactSet> sets) {
         List<ResolvedArtifactSet> filtered = new ArrayList<>(sets.size());
         for (ResolvedArtifactSet set : sets) {
-            if (set != ResolvedArtifactSet.EMPTY) {
+            if (set instanceof CompositeResolvedArtifactSet composite) {
+                filtered.addAll(composite.sets);
+            } else if (set != ResolvedArtifactSet.EMPTY) {
                 filtered.add(set);
             }
         }
+
         if (filtered.isEmpty()) {
             return EMPTY;
         }
+
         if (filtered.size() == 1) {
             return filtered.get(0);
         }
+
         return new CompositeResolvedArtifactSet(filtered);
+    }
+
+    public static ResolvedArtifactSet reverse(ResolvedArtifactSet artifacts) {
+        if (artifacts == EMPTY) {
+            return artifacts;
+        } else if (artifacts instanceof CompositeResolvedArtifactSet composite) {
+            return new CompositeResolvedArtifactSet(Lists.reverse(composite.sets));
+        } else {
+            return artifacts;
+        }
     }
 
     @Override
@@ -73,4 +90,5 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
             set.visitDependencies(context);
         }
     }
+
 }

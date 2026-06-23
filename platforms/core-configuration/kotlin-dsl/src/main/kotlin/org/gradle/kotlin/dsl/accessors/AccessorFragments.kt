@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Project
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -93,6 +94,8 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
         else -> "project feature"
     }
 
+    val calledMethod = "applyProjectFeature"
+
     className to sequenceOf(
         AccessorFragment(
             source = """
@@ -101,7 +104,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
             |         */
             |        @Incubating
             |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-            |            applyProjectType(this, "$functionName", configure)
+            |            $calledMethod(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
@@ -117,7 +120,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
                     CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applyProjectFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime(calledMethod, "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
@@ -1112,10 +1115,12 @@ fun fragmentsForModelDefault(
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, modelType) = accessorSpec
     val projectFeatureName = name.kotlinIdentifier
-    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessibleReceiverType)
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
     val deprecation = accessor.spec.type.deprecation()
     val optIns = accessor.spec.type.requiredOptIns()
+
+    val isTopLevelReceiver = accessibleReceiverType.type.value.concreteClass == SharedModelDefaults::class.java
 
     return className to sequenceOf(
         AccessorFragment(
@@ -1124,17 +1129,29 @@ fun fragmentsForModelDefault(
                 publicStaticMethod(signature) {
                     maybeWithDeprecation(deprecation)
                     maybeWithOptInRequirement(optIns)
-                    ALOAD(0)
-                    LDC(projectFeatureName)
-                    LDC(jvmPublicType)
-                    ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
-                    RETURN()
+                    if (isTopLevelReceiver) {
+                        ALOAD(0)
+                        LDC(projectFeatureName)
+                        LDC(jvmPublicType)
+                        ALOAD(1)
+                        INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                        RETURN()
+                    } else {
+                        ALOAD(0)
+                        CHECKCAST(DynamicObjectAware::class.internalName)
+                        LDC(projectFeatureName)
+                        ALOAD(1)
+                        invokeRuntime(
+                            "applyProjectFeature",
+                            "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V"
+                        )
+                        RETURN()
+                    }
                 }
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
+                    receiverType = kotlinReceiverType,
                     returnType = KotlinType.unit,
                     name = projectFeatureName,
                     valueParameters = listOf(
@@ -1150,7 +1167,7 @@ fun fragmentsForModelDefault(
             },
             signature = JvmMethodSignature(
                 name.kotlinIdentifier,
-                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
+                "(L$jvmReceiverType;Lorg/gradle/api/Action;)V"
             )
         )
     )

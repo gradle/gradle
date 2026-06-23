@@ -34,7 +34,7 @@ class LambdaOverloadResolutionTest {
             addSomething(2)
         """.trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTopLevelReceiver)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTopLevelReceiver)
         assertEquals(listOf("addSomething(1) { ... }", "addSomething(2)"), receiver.addedObjects.map { it.data })
     }
 

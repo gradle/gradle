@@ -55,14 +55,14 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             "gradle/answer.gradle.kts",
             """
             rootProject {
-                val answer by extra { "42" }
+                extra["answer"] = "42"
             }
             """
         )
 
         withBuildScript(
             """
-            val answer: String by extra
+            val answer = extra["answer"] as String
             println("*" + answer + "*")
             """
         )

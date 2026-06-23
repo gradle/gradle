@@ -104,10 +104,13 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
         final Set<File> testDefinitionDirs = testExecutionSpec.getCandidateTestDefinitionDirs();
 
-        if (testFramework.getDetector() != null) {
-            TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
-            testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
+        // When scanForTestClasses is false, the contract is that classes matching the include/exclude patterns
+        // are executed as test classes without inspecting their bytecode. Suppress the framework detector so
+        // that DefaultTestScanner falls back to a filename-only scan.
+        TestFrameworkDetector frameworkDetector = testExecutionSpec.isScanForTestClasses() ? testFramework.getDetector() : null;
+        if (frameworkDetector != null) {
+            frameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
+            frameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
         }
 
         /*
@@ -119,7 +122,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             IncubationLogger.incubatingFeatureUsed("Filtering non-class-based tests");
         }
 
-        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);
+        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, frameworkDetector, processor);
 
         // What is this?
         // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.

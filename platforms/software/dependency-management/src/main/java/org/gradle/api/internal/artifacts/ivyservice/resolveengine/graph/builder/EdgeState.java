@@ -113,11 +113,13 @@ class EdgeState implements DependencyGraphEdge {
         return false;
     }
 
-    public void clearSelector() {
+    public boolean clearSelector() {
         if (this.selector != null) {
-            this.selector.release();
+            SelectorState currentSelector = this.selector;
             this.selector = null;
+            return currentSelector.release();
         }
+        return false;
     }
 
     @Override
@@ -144,7 +146,14 @@ class EdgeState implements DependencyGraphEdge {
         if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
             return null;
         }
-        return getSelectedComponent();
+        ModuleResolveState targetModule = selector.getTargetModule();
+        if (targetModule.isInModuleConflict()) {
+            // Do not download metadata for modules in conflict, as the module might
+            // lose the conflict, and we want to avoid wasted IO.
+            return null;
+        }
+
+        return targetModule.getSelected();
     }
 
     SelectorState getSelector() {
@@ -250,6 +259,7 @@ class EdgeState implements DependencyGraphEdge {
 
             // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
+                node = node.maybeResolveReplacement();
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
                 }
@@ -286,11 +296,9 @@ class EdgeState implements DependencyGraphEdge {
         }
 
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
-            NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
-            while (targetNodeState.getReplacement() != null) {
-                targetNodeState = targetNodeState.getReplacement();
-            }
-            this.targetNodes.add(targetNodeState);
+            NodeState requestedNode = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
+            NodeState resolvedNode = requestedNode.maybeResolveReplacement();
+            this.targetNodes.add(resolvedNode);
         }
     }
 
@@ -401,11 +409,6 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public boolean contributesArtifacts() {
-        return !isConstraint;
-    }
-
-    @Override
     public ComponentSelector getRequested() {
         return resolveState.desugarSelector(dependencyState.getRequested());
     }
@@ -419,7 +422,7 @@ class EdgeState implements DependencyGraphEdge {
         if (selectorFailure != null) {
             return selectorFailure;
         }
-        ComponentState selectedComponent = getSelectedComponent();
+        ComponentState selectedComponent = selector.getTargetModule().getSelected();
         if (selectedComponent == null) {
             ModuleSelectors<SelectorState> selectors = selector.getTargetModule().getSelectors();
             for (SelectorState state : selectors) {
@@ -434,33 +437,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public long getTargetComponentId() {
-        NodeState targetNode = getFirstTargetNode();
-        if (targetNode != null) {
-            return targetNode.getComponent().getResultId();
-        }
-        throw new IllegalStateException("No target component for edge " + this);
-    }
-
-    @Override
-    public boolean isTargetVirtualPlatform() {
-        NodeState targetNode = getFirstTargetNode();
-        if (targetNode != null) {
-            return targetNode.getComponent().getModule().isVirtualPlatform();
-        }
-        return false;
-    }
-
-    @Override
-    public long getTargetVariantId() {
-        NodeState targetNode = getFirstTargetNode();
-        if (targetNode != null) {
-            return targetNode.getNodeId();
-        }
-        throw new IllegalStateException("No target variant for edge " + this);
-    }
-
-    public Collection<NodeState> getTargetNodes() {
+    public List<NodeState> getTargetNodes() {
         return targetNodes;
     }
 
@@ -518,11 +495,6 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public boolean isConstraint() {
         return isConstraint;
-    }
-
-    @Nullable
-    private ComponentState getSelectedComponent() {
-        return selector.getTargetModule().getSelected();
     }
 
     DependencyState getDependencyState() {

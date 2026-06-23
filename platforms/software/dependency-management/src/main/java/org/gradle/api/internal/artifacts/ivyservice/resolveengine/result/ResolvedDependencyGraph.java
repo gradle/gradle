@@ -16,42 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.Nullable;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
- * Representation of a fully resolved dependency graph.
+ * State captured from a resolved dependency graph necessary to reconstruct it
+ * later when exporting the results to public APIs.
+ *
+ * @param requestAttributes The original request attributes used to build the graph.
+ * @param graphSource A supplier of the graph structure, which deserializes the graph on-demand.
+ * @param availableVariantsByComponent Additional data captured when {@link ResolutionStrategyInternal#getIncludeAllSelectableVariantResults()} is enabled.
  */
-public class ResolvedDependencyGraph {
-
-    private final long rootComponentId;
-    private final long rootVariantId;
-    private final ImmutableMap<Long, DefaultResolvedComponentResult> components;
-
-    public ResolvedDependencyGraph(
-        long rootComponentId,
-        long rootVariantId,
-        ImmutableMap<Long, DefaultResolvedComponentResult> components
-    ) {
-        this.rootComponentId = rootComponentId;
-        this.rootVariantId = rootVariantId;
-        this.components = components;
-    }
-
-    /**
-     * The root component of the dependency graph.
-     */
-    public ResolvedComponentResult getRootComponent() {
-        return components.get(rootComponentId);
-    }
-
-    /**
-     * The root variant of the dependency graph.
-     */
-    public ResolvedVariantResult getRootVariant() {
-        return components.get(rootComponentId).getVariant(rootVariantId);
-    }
-
-}
+public record ResolvedDependencyGraph(
+    ImmutableAttributes requestAttributes,
+    Supplier<GraphStructure> graphSource,
+    @Nullable List<List<ResolvedVariantResult>> availableVariantsByComponent
+) { }

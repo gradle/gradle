@@ -31,12 +31,11 @@ import org.gradle.kotlin.dsl.fixtures.bytecode.publicMethod
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
-import org.gradle.kotlin.dsl.support.zipTo
+import org.gradle.kotlin.dsl.fixtures.zipTo
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
-import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -54,11 +53,13 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import spock.lang.Issue
 import java.io.File
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
+    @ToBeFixedForIsolatedProjects(because = "precompiled script plugins cross-project")
     @Test
     fun `cannot use type-safe accessors for extensions contributed in afterEvaluate`() {
         withFolders {
@@ -105,7 +106,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         buildAndFail("compileKotlin").apply {
             assertHasCause("Compilation error.")
-            assertHasErrorOutput("Unresolved reference 'after'.")
+            assertOutputContainsPattern("""Unresolved reference 'after'\.\s+Location: .*?consumer\.plugin\.gradle\.kts line 4""")
         }
     }
 
@@ -465,7 +466,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode"
     )
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {

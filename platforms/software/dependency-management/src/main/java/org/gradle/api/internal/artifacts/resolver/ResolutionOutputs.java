@@ -19,9 +19,8 @@ package org.gradle.api.internal.artifacts.resolver;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -34,9 +33,10 @@ import org.gradle.internal.HasInternalProtocol;
 public interface ResolutionOutputs {
 
     /**
-     * Returns the resolved dependency graph as a reference to the root variant.
+     * Get a representation of the resolved dependency graph without resolving
+     * any artifacts.
      */
-    Provider<ResolvedVariantResult> getRootVariant();
+    ResolutionResult getResolutionResult();
 
     /**
      * A {@link FileCollection} containing all resolved files. The returned collection

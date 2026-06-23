@@ -1,0 +1,47 @@
+// tag::apply-plugin[]
+plugins {
+    id 'cpp'
+}
+// end::apply-plugin[]
+
+// tag::libraries[]
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    preCompiledHeader "pch.h"
+                }
+            }
+        }
+    }
+}
+// end::libraries[]
+
+// tag::executables[]
+model {
+    components {
+        main(NativeExecutableSpec) {
+// tag::source-library[]
+            sources {
+                cpp {
+                    lib library: "hello"
+                }
+            }
+// end::source-library[]
+        }
+    }
+}
+
+// end::executables[]
+
+// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
+    }
+}

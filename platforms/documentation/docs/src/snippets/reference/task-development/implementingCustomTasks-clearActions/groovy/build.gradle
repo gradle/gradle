@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+// tag::clear-actions[]
+tasks.compileJava {
+    // Clear existing actions
+    actions.clear()
+
+    // Add a new action
+    doLast {
+        println("Custom action: Compiling Java classes...")
+    }
+}
+// end::clear-actions[]

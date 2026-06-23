@@ -63,7 +63,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         // Force configuration of the containing build
         Try<Void> buildConfiguration = configureBuild();
         // Try to get the default project, but it may not be available if settings failed to load
-        Try<ProjectState> defaultProject = Try.ofFailable(() -> buildState.getMutableModel().getDefaultProject().getOwner());
+        Try<ProjectState> defaultProject = Try.ofFailable(() -> buildState.getMutableModel().getDefaultProjectState());
 
         // Locate a builder for the default project
         Try<ToolingModelScope> toolingModelScope = defaultProject

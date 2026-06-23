@@ -96,7 +96,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
                 ${ProblemsApiGroovyScriptUtils.additionalData(targetVersion, 'aKey', 'aValue')}
-                .severity(Severity.WARNING)
                 .solution("try this instead")
             }
         """
@@ -149,7 +148,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
                 ${ProblemsApiGroovyScriptUtils.additionalData(targetVersion, 'aKey', 'aValue')}
-                .severity(Severity.WARNING)
                 .solution("try this instead")
             }
         """

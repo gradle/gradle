@@ -19,12 +19,13 @@ package org.gradle.internal.problems.failure;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -86,6 +87,10 @@ public class DefaultFailureFactory implements FailureFactory {
         }
 
         private Failure convertRecursively(Throwable failure) {
+            // InvocationTargetException carries no information of its own beyond the wrapped target.
+            while (failure instanceof InvocationTargetException && failure.getCause() != null && seen.add(failure)) {
+                failure = failure.getCause();
+            }
             if (!seen.add(failure)) {
                 Throwable replacement = new Throwable("[CIRCULAR REFERENCE: " + failure + "]");
                 replacement.setStackTrace(failure.getStackTrace());
@@ -97,7 +102,7 @@ public class DefaultFailureFactory implements FailureFactory {
             SuppressedAndCauses suppressedAndCauses = getSuppressedAndCauses(failure);
             List<Failure> suppressed = convertSuppressed(suppressedAndCauses);
             List<Failure> causes = convertCauses(suppressedAndCauses);
-            List<InternalProblem> problems = ImmutableList.copyOf(problemLocator.findAll(failure));
+            List<ProblemInternal> problems = ImmutableList.copyOf(problemLocator.findAll(failure));
             return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes, problems);
         }
 

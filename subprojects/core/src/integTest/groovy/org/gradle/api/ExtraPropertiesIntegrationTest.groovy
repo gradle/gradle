@@ -17,8 +17,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -27,6 +27,10 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def 'extra properties are inherited to child and grandchild projects'() {
         given:
         extraPropertiesMultiBuild()
+        expectParentPropertyAccessDeprecation('testProp', ':a', "root project 'extra-properties'")
+        expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
+        // The property is declared on the root project only, so the grandchild's lookup is attributed to the root
+        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "root project 'extra-properties'")
 
         expect:
         succeeds checkTestPropTasks()
@@ -43,9 +47,19 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
             """.stripIndent()
         }
+        expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
+        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "project ':a'")
 
         expect:
         succeeds checkTestPropTasks()
+    }
+
+    private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName) {
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Property '${propertyName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }
 
     BuildTestFile extraPropertiesMultiBuild(Map expectedPropPerProject = [:], @DelegatesTo(BuildTestFile) Closure configuration = {}) {

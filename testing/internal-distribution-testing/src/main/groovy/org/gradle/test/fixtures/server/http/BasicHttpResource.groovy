@@ -34,7 +34,7 @@ class BasicHttpResource extends HttpResource {
     }
 
     @Override
-    protected String getPath() {
+    String getPath() {
         return path
     }
 }

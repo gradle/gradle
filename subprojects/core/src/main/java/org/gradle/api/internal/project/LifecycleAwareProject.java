@@ -35,7 +35,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     public static ProjectInternal wrap(
         ProjectInternal target,
-        ProjectInternal referrer,
+        ProjectIdentity referrer,
         Instantiator instantiator,
         GradleLifecycleActionExecutor lifecycleActionExecutor
     ) {
@@ -50,7 +50,7 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     public LifecycleAwareProject(
         ProjectInternal delegate,
-        ProjectInternal referrer,
+        ProjectIdentity referrer,
         GradleLifecycleActionExecutor gradleLifecycleActionExecutor
     ) {
         super(delegate, referrer);

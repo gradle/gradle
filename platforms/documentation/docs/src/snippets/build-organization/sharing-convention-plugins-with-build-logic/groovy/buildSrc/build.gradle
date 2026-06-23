@@ -1,6 +1,0 @@
-// tag::plugins[]
-plugins {
-    id 'myproject.java-conventions'
-    id 'groovy-gradle-plugin'
-}
-// end::plugins[]

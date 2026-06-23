@@ -18,7 +18,8 @@ package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,7 +36,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
-    @Requires(UnitTestPreconditions.Unix) // all forbidden characters are illegal on Windows
+    @Requires(OsTestPreconditions.Unix) // all forbidden characters are illegal on Windows
     def "subproject names must not contain forbidden characters"() {
         given:
         createDirs("folder", "folder/name|with|pipes")
@@ -101,7 +102,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
-    @Requires(UnitTestPreconditions.Unix) // all forbidden characters are illegal on Windows
+    @Requires(OsTestPreconditions.Unix) // all forbidden characters are illegal on Windows
     def "does not fail when project name overrides an invalid folder name"() {
         given:
         def buildFolder = file(".folder: name")
@@ -116,7 +117,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         output.contains("customName")
     }
 
-    @Requires(UnitTestPreconditions.Unix) // all forbidden characters are illegal on Windows
+    @Requires(OsTestPreconditions.Unix) // all forbidden characters are illegal on Windows
     def "does not assign an invalid project name from folder names"() {
         given:
         def buildFolder = file(".folder: name.")

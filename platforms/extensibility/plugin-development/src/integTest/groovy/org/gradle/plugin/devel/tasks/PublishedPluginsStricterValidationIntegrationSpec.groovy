@@ -47,12 +47,11 @@ class PublishedPluginsStricterValidationIntegrationSpec extends AbstractIntegrat
         """
 
         then:
-        assertValidationFailsWith([
-            error(missingNormalizationStrategyConfig { type('MyTask').property('fileProp').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
-        ])
+        assertValidationFailsWith(1)
 
         and:
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'fileProp\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
@@ -61,6 +60,7 @@ class PublishedPluginsStricterValidationIntegrationSpec extends AbstractIntegrat
                 'typeName': 'MyTask',
                 'propertyName': 'fileProp',
             ]
+            originLocations == []
         }
 
         where:

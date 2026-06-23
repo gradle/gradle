@@ -3,8 +3,6 @@ package org.gradle.kotlin.dsl.fixtures
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
-import org.gradle.kotlin.dsl.support.zipTo
-
 import org.junit.Rule
 
 import java.io.File

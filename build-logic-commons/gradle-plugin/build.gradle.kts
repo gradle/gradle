@@ -13,6 +13,7 @@ dependencies {
 
     api(platform(projects.buildPlatform))
 
+    implementation("gradlebuild:build-platform-plugin")
     implementation(projects.basics)
     implementation(projects.moduleIdentity)
 
@@ -21,5 +22,7 @@ dependencies {
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion")
     implementation(buildLibs.kgp)
     implementation(buildLibs.testRetryPlugin)
-    implementation(buildLibs.detektPlugin)
+    implementation(buildLibs.detektPlugin) {
+        exclude(group = "org.gradle.experimental", module = "gradle-public-api")
+    }
 }

@@ -18,11 +18,11 @@ package org.gradle.internal.id
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class ConfigurationCacheableIdFactoryIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def "unable to create new configuration-cacheable ids after load"() {
         buildFile << """
             def factory = gradle.services.get(${ConfigurationCacheableIdFactory.name})

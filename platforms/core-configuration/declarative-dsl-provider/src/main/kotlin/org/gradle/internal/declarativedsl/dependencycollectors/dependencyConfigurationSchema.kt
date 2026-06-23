@@ -17,9 +17,7 @@
 package org.gradle.internal.declarativedsl.dependencycollectors
 
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
-import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
@@ -67,14 +65,7 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
     )
 
     override fun typeDiscovery(): List<TypeDiscovery> {
-        // External Dependency is used by the runtime PlatformDependencyModifiers function resolver, and isn't added otherwise
         return listOf(
-            FixedTypeDiscovery(
-                PlatformDependencyModifiers::class,
-                listOf(
-                    TypeDiscovery.DiscoveredClass(ProjectDependency::class, TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))
-                )
-            ),
             FixedTypeDiscovery(
                 DependencyCollector::class,
                 listOf(

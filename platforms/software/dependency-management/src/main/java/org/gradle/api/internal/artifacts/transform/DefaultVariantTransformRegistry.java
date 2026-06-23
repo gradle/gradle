@@ -49,7 +49,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class) TransformAction.class, TransformParameters.class, TransformParameters.None.class);
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultVariantTransformRegistry(
@@ -83,8 +83,8 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         TypedRegistration<T> registration = null;
         try {
-            Class<T> parameterType = isolationScheme.parameterTypeForOrNull(actionType);
-            T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
+            Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
+            T parameterObject = isolationScheme.instantiateParameters(parameterType, parametersInstantiationScheme.withServices(services).instantiator()::newInstance);
             registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient(services).newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);
             registration.validateAttributes();
@@ -134,7 +134,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         @Inject
         protected abstract DocumentationRegistry getDocumentationRegistry();
 
-        public TypedRegistration(@Nullable T parameterObject, AttributesFactory attributesFactory) {
+        public TypedRegistration(T parameterObject, AttributesFactory attributesFactory) {
             this.parameterObject = parameterObject;
             this.from = attributesFactory.mutable();
             this.to = attributesFactory.mutable();
@@ -152,17 +152,11 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public T getParameters() {
-            if (parameterObject == null) {
-                throw new IllegalStateException("Cannot query parameters for artifact transform without parameters.");
-            }
             return parameterObject;
         }
 
         @Override
         public void parameters(Action<? super T> action) {
-            if (parameterObject == null) {
-                throw new IllegalStateException("Cannot configure parameters for artifact transform without parameters.");
-            }
             action.execute(parameterObject);
         }
 

@@ -27,7 +27,22 @@ interface InvocationSpec {
 
     List<String> getArgs()
 
+    /**
+     * A directory for any files associated with the Gradle Profiler invocation.
+     * <p>
+     * The project-under-test will be checked out into a {@link #getProjectCheckoutDirectory() subdirectory}.
+     * Other necessary files can be stored in this working directory or other dedicated subdirectories.
+     */
     File getWorkingDirectory()
+
+    /**
+     * A directory under the working directory, into which the project-under-test will be checked out.
+     * <p>
+     * This directory should contain only the project-under-test files.
+     * Everything else, like dedicated Gradle User Home or profiler logs, should live in the working directory
+     * to avoid artificially incurred VFS overhead and indexing by IDE in the sync tests.
+     */
+    File getProjectCheckoutDirectory()
 
     boolean isExpectFailure()
 

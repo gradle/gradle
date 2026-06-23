@@ -20,7 +20,9 @@ import net.rubygrapefruit.platform.NativeException
 import net.rubygrapefruit.platform.terminal.Terminals
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
@@ -52,7 +54,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console == null
     }
 
-    @Requires(UnitTestPreconditions.SmartTerminalAvailable)
+    @Requires(TestEnvironmentPreconditions.SmartTerminalAvailable)
     def "returns metadata when stdout and stderr are attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> true
@@ -64,7 +66,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console.stdErrATerminal
     }
 
-    @Requires(UnitTestPreconditions.SmartTerminalAvailable)
+    @Requires(TestEnvironmentPreconditions.SmartTerminalAvailable)
     def "returns metadata when only stdout is attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> true
@@ -76,7 +78,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         !detector.console.stdErrATerminal
     }
 
-    @Requires(UnitTestPreconditions.SmartTerminalAvailable)
+    @Requires(TestEnvironmentPreconditions.SmartTerminalAvailable)
     def "returns metadata when only stderr is attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> false
@@ -88,7 +90,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console.stdErrATerminal
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "returns null when TERM is not set"() {
         given:
         env.removeEnvironmentVariable('TERM')

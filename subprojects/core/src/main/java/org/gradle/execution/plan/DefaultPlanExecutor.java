@@ -24,7 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -60,7 +60,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 @NullMarked
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
-    public static final InternalFlag STATS = new InternalFlag("org.gradle.internal.executor.stats");
+    public static final InternalOption<Boolean> STATS = InternalOptions.ofBoolean("org.gradle.internal.executor.stats", false);
     private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
     private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
@@ -83,7 +83,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
         this.workerLeaseService = workerLeaseService;
-        this.stats = internalOptions.getOption(STATS).get() ? new CollectingExecutorStats(state) : state;
+        this.stats = internalOptions.getBoolean(STATS) ? new CollectingExecutorStats(state) : state;
         this.queue = new MergedQueues(coordinationService, false);
         this.executor = executorFactory.create("Execution worker");
     }

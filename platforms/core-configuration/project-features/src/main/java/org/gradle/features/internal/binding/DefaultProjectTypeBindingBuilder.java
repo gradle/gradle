@@ -40,29 +40,6 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
         String name,
         Class<OwnDefinition> definitionClass,
         Class<OwnBuildModel> buildModelClass,
-        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
-    ) {
-        // This needs to be an anonymous class for configuration cache compatibility
-        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object> applyActionFactory = new ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object>() {
-            @Override
-            public ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Object> create(ObjectFactory objectFactory) {
-                return new ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Object>() {
-                    @Override
-                    public void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, Object parentDefinition) {
-                        transform.apply(context, definition, buildModel);
-                    }
-                };
-            }
-        };
-
-        return declaredProjectFeatureBindingBuilder(name, definitionClass, buildModelClass, applyActionFactory);
-    }
-
-    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
-        String name,
-        Class<OwnDefinition> definitionClass,
-        Class<OwnBuildModel> buildModelClass,
         Class<? extends ProjectTypeApplyAction<OwnDefinition, OwnBuildModel>> transformClass
     ) {
         // This needs to be an anonymous class for configuration cache compatibility
@@ -98,16 +75,6 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
 
         bindings.add(builder);
         return builder;
-    }
-
-    @Override
-    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
-        String name,
-        Class<OwnDefinition> definitionClass,
-        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
-    ) {
-        return bindProjectType(name, definitionClass, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
     }
 
     @Override

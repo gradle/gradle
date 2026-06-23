@@ -2,9 +2,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.internal.classpath.ClassPath
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 
@@ -38,40 +36,6 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
             ),
             equalTo(inaccessible(internalType, InaccessibilityReason.NonPublic(internalType.kotlinString)))
         )
-    }
-
-    @Test
-    fun `class names from type strings`() {
-
-        classNamesFromTypeString("String").apply {
-            assertTrue(all.isEmpty())
-            assertTrue(leaves.isEmpty())
-        }
-
-        classNamesFromTypeString("CustomTask").apply {
-            assertThat(all, hasItems("CustomTask"))
-            assertThat(leaves, hasItems("CustomTask"))
-        }
-
-        classNamesFromTypeString("java.util.List<String>").apply {
-            assertThat(all, hasItems("java.util.List"))
-            assertTrue(leaves.isEmpty())
-        }
-
-        classNamesFromTypeString("org.gradle.api.NamedDomainObjectContainer<Extension>").apply {
-            assertThat(all, hasItems("org.gradle.api.NamedDomainObjectContainer", "Extension"))
-            assertThat(leaves, hasItems("Extension"))
-        }
-
-        classNamesFromTypeString("java.lang.String").apply {
-            assertThat(all, hasItems("java.lang.String"))
-            assertThat(leaves, hasItems("java.lang.String"))
-        }
-
-        classNamesFromTypeString("java.util.Map<java.util.List, java.util.Set>").apply {
-            assertThat(all, hasItems("java.util.Map", "java.util.List", "java.util.Set"))
-            assertThat(leaves, hasItems("java.util.List", "java.util.Set"))
-        }
     }
 
     private

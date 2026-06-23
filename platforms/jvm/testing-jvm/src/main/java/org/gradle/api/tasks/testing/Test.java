@@ -191,6 +191,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
+    @SuppressWarnings("this-escape")
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
@@ -718,7 +719,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private Set<String> getPreviousFailedTestClasses() {
         SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
-        if (store.hasResults()) {
+        // We ignore if we can't read the old results file, as this is just an optimization.
+        if (store.hasResultsSafe()) {
             final Set<String> previousFailedTestClasses = new HashSet<>();
             try {
                 store.forEachResult((id, parentId, result, ranges) -> {

@@ -103,14 +103,14 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         then:
         def result = resultsFor(testDirectory)
 
-        result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
+        result.testPath(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
             .assertChildCount(4, 0)
-        result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
+        result.testPath(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
             .assertChildrenExecuted("passingTest()", "enabledParameterizedTest(String)")
             .assertChildrenSkipped("disabledTest()", "disabledParameterizedTest(String)")
-        result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest:enabledParameterizedTest(String)").onlyRoot()
+        result.testPath(":TestSuite:PassingWithDisabledParameterizedTest:enabledParameterizedTest(String)").onlyRoot()
             .assertChildrenExecuted("enabledParameterizedTest(String)[1]", "enabledParameterizedTest(String)[2]")
-        result.testPathPreNormalized(":TestSuite:OnlyDisabledParameterizedTest").onlyRoot()
+        result.testPath(":TestSuite:OnlyDisabledParameterizedTest").onlyRoot()
             .assertChildCount(2, 0)
             .assertChildrenSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
     }
@@ -148,10 +148,10 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         then:
         def result = resultsFor(testDirectory)
         result.assertAtLeastTestPathsExecuted("FailingTest", "WithParameterizedTest")
-        result.testPathPreNormalized(":FailingTest:failingTest()").onlyRoot()
+        result.testPath(":FailingTest:failingTest()").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(CoreMatchers.anything())
-        result.testPathPreNormalized(":WithParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[1]").onlyRoot()
+        result.testPath(":WithParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[1]").onlyRoot()
             .assertHasResult(TestResult.ResultType.SKIPPED)
     }
 }

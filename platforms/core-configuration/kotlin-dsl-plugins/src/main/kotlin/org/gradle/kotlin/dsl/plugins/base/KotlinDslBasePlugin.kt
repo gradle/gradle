@@ -51,8 +51,10 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addGradleKotlinDslDependencyTo(configurations: List<String>) =
+    fun Project.addGradleKotlinDslDependencyTo(configurations: List<String>) {
+        val gradleKotlinDsl = gradleKotlinDsl()
         configurations.forEach {
-            dependencies.add(it, gradleKotlinDsl())
+            dependencies.add(it, gradleKotlinDsl)
         }
+    }
 }

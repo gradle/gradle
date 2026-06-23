@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import org.gradle.internal.Describables
-import org.gradle.internal.code.DefaultUserCodeSource
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -26,10 +26,10 @@ import org.gradle.problems.Location
 import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -103,6 +103,29 @@ class ConfigurationCacheProblemsSummaryTest {
             summary.totalProblemCount,
             equalTo(3)
         )
+    }
+
+    @Test
+    fun `tracks isolated deferred problems as a subset of deferred problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "cc failure"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem("a/build.gradle.kts", "ip failure"), ProblemSeverity.Deferred, forIsolatedProjects = true)
+
+        val summary = subject.get()
+        assertThat(summary.deferredProblemCount, equalTo(2))
+        assertThat(summary.deferredIsolatedProjectsProblemCount, equalTo(1))
+    }
+
+    @Test
+    fun `isolated flag only counts deferred problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "suppressed"), ProblemSeverity.Suppressed, forIsolatedProjects = true)
+
+        val summary = subject.get()
+        assertThat(summary.deferredProblemCount, equalTo(0))
+        assertThat(summary.deferredIsolatedProjectsProblemCount, equalTo(0))
     }
 
     @Test
@@ -437,7 +460,7 @@ See the complete report at $REPORT_URL
 
     private
     fun buildLogicUserCodeSourceTrace(displayName: String): PropertyTrace.BuildLogic =
-        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(displayName), null))
+        PropertyTrace.BuildLogic(UserCodeSource.Script(Describables.of(displayName), null))
 
     private
     fun buildLogicLocationTrace(displayName: String, lineNumber: Int): PropertyTrace.BuildLogic =

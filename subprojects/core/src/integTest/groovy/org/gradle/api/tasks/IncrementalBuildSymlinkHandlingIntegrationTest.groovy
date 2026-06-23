@@ -19,15 +19,16 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 @Requires(value = [
-    UnitTestPreconditions.Symlinks,
-    IntegTestPreconditions.NotEmbeddedExecutor,
+    FileSystemTestPreconditions.Symlinks,
+    TestExecutionPreconditions.NotEmbeddedExecutor,
 ], reason = "requires isolated daemons for symlink data cleanup between builds")
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
@@ -136,19 +137,23 @@ task work {
     }
 
     def "symlink may not reference missing input file"() {
+        enableProblemsApiCheck()
         file("in-dir").createDir()
         def link = file("in.txt")
         link.createLink("other")
         assert !link.exists()
 
-        expect:
+        when:
         fails("work")
+
+        then:
         failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
-        failureDescriptionContains(inputDoesNotExist {
-            property('$1')
-                .file(link)
-                .includeLink()
-        })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:input-file-does-not-exist'
+            definition.id.displayName == 'Input file does not exist'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#input_file_does_not_exist"
+        }
     }
 
     def "can replace input file with symlink to file with same content"() {

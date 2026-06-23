@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -192,9 +193,13 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {
                     executionsForNameRs = testExecutions;
                     List<CrossBuildPerformanceResults> results = new ArrayList<>();
+                    Set<Long> seenExecutionIds = new HashSet<>();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
+                        if (!seenExecutionIds.add(id)) {
+                            continue;
+                        }
                         CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
                         performanceResults.setTestClass(experiment.getScenario().getClassName());
                         performanceResults.setTestId(experiment.getScenario().getTestName());

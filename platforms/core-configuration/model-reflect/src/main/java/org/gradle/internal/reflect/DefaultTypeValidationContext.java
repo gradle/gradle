@@ -17,34 +17,29 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-import static java.util.stream.Collectors.toList;
-
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemInternal> errors = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemInternal> warnings = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, ProblemsInternal problems) {
         return new DefaultTypeValidationContext(rootType, cacheable, problems);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, InternalProblems problems) {
+    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, ProblemsInternal problems) {
         return new DefaultTypeValidationContext(null, reportCacheabilityProblems, problems);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, ProblemsInternal problems) {
         super(rootType, Optional::empty, problems);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
@@ -57,31 +52,23 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
 
     @Override
-    protected void recordProblem(InternalProblem problem) {
+    protected void recordError(ProblemInternal problem) {
         if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
             return;
         }
-        problems.add(problem);
+        errors.add(problem);
     }
 
-    public ImmutableList<InternalProblem> getProblems() {
-        return problems.build();
+    @Override
+    protected void recordWarning(ProblemInternal problem) {
+        warnings.add(problem);
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<InternalProblem> validationMessages) {
-        if (!validationMessages.isEmpty()) {
-            String formatString = validationMessages.size() == 1
-                ? "A problem was found with the configuration of %s."
-                : "Some problems were found with the configuration of %s.";
-            throw new DefaultMultiCauseException(
-                String.format(formatString, ModelType.of(implementation).getDisplayName()),
-                validationMessages.stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toList())
-            );
-        }
+    public ImmutableList<ProblemInternal> getErrors() {
+        return errors.build();
     }
 
+    public ImmutableList<ProblemInternal> getWarnings() {
+        return warnings.build();
+    }
 }

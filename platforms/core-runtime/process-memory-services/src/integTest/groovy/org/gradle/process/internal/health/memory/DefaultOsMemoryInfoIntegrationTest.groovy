@@ -17,7 +17,8 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -40,7 +41,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "gets OS virtual memory on a Windows system"() {
         when:
         def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
@@ -50,7 +51,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     }
 
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "reports unknown OS virtual memory on a non-Windows system"() {
         when:
         def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()

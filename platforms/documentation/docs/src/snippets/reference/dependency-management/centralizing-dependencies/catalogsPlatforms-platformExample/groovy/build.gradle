@@ -1,0 +1,11 @@
+// tag::platform-example[]
+plugins {
+    id 'java-platform'
+}
+
+dependencies {
+    constraints {
+        api 'com.example:mylib:2.0.0'
+    }
+}
+// end::platform-example[]

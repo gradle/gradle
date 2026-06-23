@@ -1,0 +1,6 @@
+[versions]
+errorprone = "2.26.1"
+
+[libraries]
+errorprone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorprone" }
+jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2" }

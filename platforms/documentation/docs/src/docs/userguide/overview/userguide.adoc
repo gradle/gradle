@@ -29,6 +29,7 @@ Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, 
 
 image::userguide-languages.png[]
 
+[[compatible_ides]]
 == Compatible IDEs
 
 All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
@@ -37,23 +38,28 @@ image::userguide-ides.png[]
 
 You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
 
+[[releases]]
 == Releases
 
 Information on Gradle releases is found on the link:https://gradle.org/releases/[Release page].
 
+[[installing_gradle]]
 == Installing Gradle
 
 Most projects will start with an existing Gradle build which does not require the installation of Gradle.
 However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
 
+[[dpe_university]]
 == DPE University
 
 Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at link:https://dpeuniversity.gradle.com/[DPE University].
 
+[[for_software_engineers_and_developers]]
 == For Software Engineers and Developers
 
 For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
 
+[[learn_to_run_gradle_builds]]
 === 1. Learn how to run Gradle Builds
 
 [sidebar]
@@ -62,6 +68,7 @@ _Training level_: **Beginner** +
 _Reading time_: **25 minutes** +
 <<gradle_basics.adoc#gradle,-> Read Beginner Concepts >>
 
+[[beginner_tutorial_link]]
 === 2. Beginner Tutorial
 
 [sidebar]
@@ -70,10 +77,12 @@ _Training level_: **Beginner** +
 _Training time_: **45 minutes** +
 <<part1_gradle_init.adoc#part1_begin,-> Start the Tutorial >>
 
+[[for_build_engineers]]
 == For Build Engineers
 
 Build engineers that are ready to configure custom build logic should start here:
 
+[[learn_to_write_gradle_scripts]]
 === 1. Learn how to write Gradle scripts
 
 [sidebar]
@@ -82,6 +91,7 @@ _Training level_: **Intermediate** +
 _Reading time_: **35 minutes** +
 <<gradle_directories_intermediate.adoc#gradle_directories,-> Read Intermediate Concepts >>
 
+[[intermediate_tutorial_link]]
 === 2. Intermediate Tutorial
 
 [sidebar]
@@ -90,10 +100,12 @@ _Training level_: **Intermediate** +
 _Training time_: **55 minutes** +
 <<part1_gradle_init_project.adoc#part1_begin,-> Start the Tutorial >>
 
+[[for_plugin_developers]]
 == For Plugin Developers
 
 Plugin authors that are ready to develop and publish their own plugins should start here:
 
+[[learn_to_develop_gradle_plugins]]
 === 1. Learn how to develop Gradle Plugins
 
 [sidebar]
@@ -102,6 +114,7 @@ _Training level_: **Advanced** +
 _Reading time_: **35 minutes** +
 <<plugin_introduction_advanced.adoc#plugin_introduction_advanced,-> Read Advanced Concepts >>
 
+[[advanced_tutorial_link]]
 === 2. Advanced Tutorial
 
 [sidebar]
@@ -110,17 +123,20 @@ _Training level_: **Advanced** +
 _Training time_: **55 minutes** +
 <<part1_gradle_init_plugin.adoc#part1_begin,-> Start the Tutorial >>
 
+[[support]]
 == Support
 
 * **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
 * **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
 
+[[licenses_section]]
 == Licenses
 
 [.legalnotice]
 Gradle Build Tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 Gradle user manual and DSL reference manual are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
 
+[[copyright]]
 == Copyright
 
 © 2025 Gradle, Inc. Gradle®, Develocity®, Build Scan®, and the Gradlephant logo are registered trademarks of Gradle, Inc. On this resource, "Gradle" typically means "Gradle Build Tool" and does not reference Gradle, Inc. and/or its subsidiaries.

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.external.model.ivy.DefaultIvyComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
@@ -25,22 +24,23 @@ import org.gradle.internal.component.model.DefaultExternalModuleComponentGraphRe
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.inject.Inject;
+
 @ServiceScope(Scope.BuildTree.class)
 public class ModuleComponentGraphResolveStateFactory {
-    private final ComponentIdGenerator idGenerator;
-    private final AttributeDesugaring attributeDesugaring;
 
-    public ModuleComponentGraphResolveStateFactory(ComponentIdGenerator idFactory, AttributeDesugaring attributeDesugaring) {
+    private final ComponentIdGenerator idGenerator;
+
+    @Inject
+    public ModuleComponentGraphResolveStateFactory(ComponentIdGenerator idFactory) {
         this.idGenerator = idFactory;
-        this.attributeDesugaring = attributeDesugaring;
     }
 
     public ExternalModuleComponentGraphResolveState stateFor(ModuleComponentResolveMetadata metadata) {
-        if (metadata instanceof IvyModuleResolveMetadata) {
-            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-            return new DefaultIvyComponentGraphResolveState(idGenerator.nextComponentId(), ivyMetadata, attributeDesugaring, idGenerator);
+        if (metadata instanceof IvyModuleResolveMetadata ivyMetadata) {
+            return new DefaultIvyComponentGraphResolveState(idGenerator.nextComponentId(), ivyMetadata, idGenerator);
         } else if (metadata instanceof MavenModuleResolveMetadata) {
-            return new DefaultExternalModuleComponentGraphResolveState<>(idGenerator.nextComponentId(), metadata, metadata, attributeDesugaring, idGenerator);
+            return new DefaultExternalModuleComponentGraphResolveState<>(idGenerator.nextComponentId(), metadata, metadata, idGenerator);
         }
 
         throw new IllegalArgumentException("Unsupported module component metadata type: " + metadata);

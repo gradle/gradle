@@ -22,7 +22,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.tooling.events.ProgressListener
 import spock.lang.Ignore
 
@@ -37,7 +38,7 @@ class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslTo
         settingsFile.delete() //we are using a declarative settings file
     }
 
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
     def 'model can be used for evaluation'() {
         given:
         file("settings.gradle.dcl") <<

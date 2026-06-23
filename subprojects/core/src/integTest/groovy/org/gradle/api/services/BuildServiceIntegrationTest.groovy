@@ -25,6 +25,7 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -42,23 +43,21 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import javax.inject.Inject
-
-import static org.hamcrest.CoreMatchers.containsString
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -104,7 +103,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -153,7 +152,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/156")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -527,14 +526,24 @@ service: closed with value 10001
             task missingRequiredService(type: Consumer) {}
         """
         enableServiceUsageDeclaration()
+        enableProblemsApiCheck()
 
         when:
         fails 'missingRequiredService'
 
         then:
         failureDescriptionContains("A problem was found with the configuration of task ':missingRequiredService' (type 'Consumer').")
-        failureDescriptionContains("- Type 'Consumer' property 'counter' doesn't have a configured value.")
-        failureDescriptionContains("Reason: This property isn't marked as optional and no value has been configured.")
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            details == "This property isn't marked as optional and no value has been configured"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+            additionalData.asMap == [
+                'typeName': 'Consumer',
+                'propertyName': 'counter',
+            ]
+        }
     }
 
     def "injection by name does not fail validation if service is not found but property marked as @Optional"() {
@@ -606,14 +615,18 @@ service: closed with value 10001
             task invalidServiceType(type: Consumer) {}
         """
         enableServiceUsageDeclaration()
+        enableProblemsApiCheck()
 
         when:
         fails 'invalidServiceType'
 
         then:
-        failure.assertThatDescription(containsString(
-            "Type 'Consumer' property 'counter' has @ServiceReference annotation used on property of type 'CountingService' which is not a build service implementation."
-        ))
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:service-reference-must-be-a-build-service'
+            definition.id.displayName == 'Property has @ServiceReference annotation'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#service_reference_must_be_a_build_service"
+        }
     }
 
     def "service is created once per build on first use and stopped at the end of the build"() {
@@ -778,7 +791,7 @@ service: closed with value 10001
         outputContains("service: closed with value 12")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
@@ -825,7 +838,7 @@ service: closed with value 10001
         outputContains("service: closed with value 11")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC behavior")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "already covers CC behavior")
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
@@ -882,7 +895,7 @@ service: closed with value 10001
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/17559")
     // Test assumes sequential configuration :subproject1 :subproject2
-    @Requires(IntegTestPreconditions.NotIsolatedProjects)
+    @Requires(TestExecutionPreconditions.NotIsolatedProjects)
     def "service provided by a plugin cannot be shared by subprojects with different classloaders"() {
         createDirs("plugin1", "plugin2", "subproject1", "subproject2")
         settingsFile """
@@ -1144,6 +1157,7 @@ Hello, subproject1
         outputContains("service: closed with value 13")
     }
 
+    @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Project access to gradle.sharedServices.registrations is unsupported with IP")
     def "plugin can apply conventions to shared services of a given type"() {
         serviceImplementation()
         buildFile << """
@@ -1283,6 +1297,38 @@ Hello, subproject1
         outputContains("service: created with value = 0")
         outputContains("service: value is 1")
         outputContains("service: value is 2")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30182")
+    def "service with no parameters can access None parameters"() {
+        buildFile << """
+            abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
+                CountingService() {
+                    println("service: parameters = " + getParameters())
+                }
+            }
+
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
+
+            task check {
+                doFirst {
+                    provider.get()
+                }
+            }
+        """
+
+        when:
+        run("check")
+
+        then:
+        outputContains("Spec parameters: BuildServiceParameters.None")
+        outputContains("Configure closure parameters: BuildServiceParameters.None")
+        outputContains("service: parameters = BuildServiceParameters.None")
     }
 
     def "service can be registered without action"() {
@@ -1872,6 +1918,21 @@ Hello, subproject1
         succeeds("hello")
     }
 
+    def "can call registrations.findByName"() {
+        serviceImplementation()
+        buildFile("""
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+            assert gradle.sharedServices.registrations.findByName('counter') != null
+            assert gradle.sharedServices.registrations.findByName('foo') == null
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
     private void enableServiceUsageDeclaration() {
         settingsFile '''
             enableFeaturePreview "${org.gradle.api.internal.FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE}"
@@ -2047,4 +2108,5 @@ Hello, subproject1
             }
         """
     }
+
 }

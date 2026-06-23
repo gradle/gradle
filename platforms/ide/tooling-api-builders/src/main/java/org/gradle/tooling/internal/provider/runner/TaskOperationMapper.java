@@ -27,22 +27,27 @@ import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.types.AbstractTaskResult;
+import org.gradle.internal.build.event.types.DefaultBinaryPluginIdentifier;
 import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultScriptPluginIdentifier;
 import org.gradle.internal.build.event.types.DefaultTaskDescriptor;
 import org.gradle.internal.build.event.types.DefaultTaskFailureResult;
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTaskSkippedResult;
 import org.gradle.internal.build.event.types.DefaultTaskStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -57,12 +62,10 @@ import static java.util.Collections.singletonList;
 class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperationDetails, DefaultTaskDescriptor>, OperationDependencyLookup {
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
     private final PostProcessors operationResultPostProcessor;
-    private final TaskOriginTracker taskOriginTracker;
     private final OperationDependenciesResolver operationDependenciesResolver;
 
-    TaskOperationMapper(List<OperationResultPostProcessor> operationResultPostProcessors, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
+    TaskOperationMapper(List<OperationResultPostProcessor> operationResultPostProcessors, OperationDependenciesResolver operationDependenciesResolver) {
         this.operationResultPostProcessor = new PostProcessors(operationResultPostProcessors);
-        this.taskOriginTracker = taskOriginTracker;
         this.operationDependenciesResolver = operationDependenciesResolver;
     }
 
@@ -78,7 +81,7 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
 
     @Override
     public List<? extends BuildOperationTracker> getTrackers() {
-        return ImmutableList.of(taskOriginTracker, operationResultPostProcessor);
+        return ImmutableList.of(operationResultPostProcessor);
     }
 
     @Override
@@ -97,11 +100,38 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         String displayName = buildOperation.getDisplayName();
         String taskPath = details.getTask().getIdentityPath().asString();
         Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTaskNode());
-        InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(details.getTask().getTaskIdentity());
+        InternalPluginIdentifier originPlugin = toInternalPluginId(details.getTask().getTaskIdentity().getUserCodeSource());
         DefaultTaskDescriptor descriptor = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, dependencies, originPlugin);
         DefaultTaskDescriptor descriptorWithoutDependencies = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, emptySet(), originPlugin);
         descriptors.put(details.getTask().getTaskIdentity(), descriptorWithoutDependencies);
         return descriptor;
+    }
+
+    private static @Nullable InternalPluginIdentifier toInternalPluginId(@Nullable UserCodeSource source) {
+        if (source instanceof UserCodeSource.Binary binary) {
+            return toBinaryPluginIdentifier(binary);
+        } else if (source instanceof UserCodeSource.Script scriptSource) {
+            if (scriptSource.getUri() != null) {
+                return toScriptPluginIdentifier(scriptSource);
+            }
+        }
+
+        return null;
+    }
+
+    private static InternalBinaryPluginIdentifier toBinaryPluginIdentifier(UserCodeSource.Binary source) {
+        return new DefaultBinaryPluginIdentifier(
+            source.getDisplayName().getDisplayName(),
+            source.getClassName(),
+            source.getPluginId()
+        );
+    }
+
+    private static InternalScriptPluginIdentifier toScriptPluginIdentifier(UserCodeSource.Script source) {
+        return new DefaultScriptPluginIdentifier(
+            source.getDisplayName().getDisplayName(),
+            source.getUri()
+        );
     }
 
     @Override

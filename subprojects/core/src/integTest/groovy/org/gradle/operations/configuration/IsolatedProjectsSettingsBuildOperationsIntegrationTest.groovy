@@ -21,10 +21,10 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @Requires(
-    value = IntegTestPreconditions.NotIsolatedProjects,
+    value = TestExecutionPreconditions.NotIsolatedProjects,
     reason = "Test controls IP enablement"
 )
 class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
@@ -48,14 +48,14 @@ class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractInt
         file("buildSrc/src/main/java/Thing.java") << "class Thing {}"
 
         when:
-        succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
+        succeeds("help", "-Dorg.gradle.isolated-projects=$enabled")
         then:
         isolatedProjectsEvents().enabled == [enabled]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]
 
         // Ensure events are produced on CC hit as well
         when:
-        succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
+        succeeds("help", "-Dorg.gradle.isolated-projects=$enabled")
         then:
         isolatedProjectsEvents().enabled == [enabled]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]

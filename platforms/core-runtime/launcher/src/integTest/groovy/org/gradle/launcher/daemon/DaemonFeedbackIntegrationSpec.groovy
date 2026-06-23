@@ -23,7 +23,9 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -171,7 +173,7 @@ task sleep {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8833")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "daemon log restricts permissions to owner"() {
         given:
         file("build.gradle") << """
@@ -190,7 +192,7 @@ task sleep {
     }
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier)
     def "foreground daemon log honors log levels for logging"() {
         given:
         buildFile """

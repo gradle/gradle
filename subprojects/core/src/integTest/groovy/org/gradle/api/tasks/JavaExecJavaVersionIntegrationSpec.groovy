@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -55,7 +55,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         jdk << AvailableJavaHomes.allJdkVersions
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     @Issue("https://github.com/gradle/gradle/issues/6694")
     def "not up-to-date when executing JavaExec task twice in a row with a different java versions"() {
         given:

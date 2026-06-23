@@ -11,6 +11,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.logging)
@@ -81,6 +82,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

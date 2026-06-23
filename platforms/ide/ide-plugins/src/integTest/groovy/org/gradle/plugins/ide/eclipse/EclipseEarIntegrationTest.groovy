@@ -22,10 +22,11 @@ class EclipseEarIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void configuresEarWithoutJavaPlugin() {
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-apply plugin: 'ear'
-apply plugin: 'eclipse'
-"""
+            apply plugin: 'ear'
+            apply plugin: 'eclipse'
+        """
 
         //then
         assert file('.project').exists()

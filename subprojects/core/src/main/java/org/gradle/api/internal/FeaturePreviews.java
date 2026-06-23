@@ -39,6 +39,14 @@ public class FeaturePreviews {
          */
         INTERNAL_BUILD_SERVICE_USAGE(true, null),
         /**
+         * When enabled, child projects do not implicitly resolve properties or methods
+         * from their parent projects. Opts the build into the Gradle 10 behavior early.
+         * The deprecation warning that fires for implicit lookups from parent projects in
+         * Vintage mode will be silent under this preview because the lookup is disabled
+         * at the source.
+         */
+        NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS(true, null),
+        /**
          * This exists to test inactive feature previews
          */
         ALWAYS_INACTIVE(false, null);

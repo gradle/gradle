@@ -17,7 +17,6 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 
 import static org.hamcrest.Matchers.equalTo
@@ -26,11 +25,6 @@ class DynamicNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTe
     @Override
     List<TestEngines> getEnginesToSetup() {
         return [TestEngines.BASIC_RESOURCE_BASED_DYNAMIC]
-    }
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUSTOM
     }
 
     def "dynamic resource-based test engine detects and executes test definitions"() {

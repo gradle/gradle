@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -34,7 +33,7 @@ import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
@@ -47,7 +46,6 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
 
-import java.io.File;
 import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState {
@@ -57,10 +55,10 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     DefaultRootBuildState(
         BuildDefinition buildDefinition,
-        BuildTreeState buildTree,
+        BuildTreeServices buildTreeServices,
         ListenerManager listenerManager
     ) {
-        super(buildTree, buildDefinition, null);
+        super(buildTreeServices, buildDefinition, null);
         this.listenerManager = listenerManager;
 
         CloseableServiceRegistry buildScopeServices = getBuildServices();
@@ -92,11 +90,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
-    }
-
-    @Override
-    public File getBuildRootDir() {
-        return getBuildServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override

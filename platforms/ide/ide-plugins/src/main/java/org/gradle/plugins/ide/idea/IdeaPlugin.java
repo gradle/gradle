@@ -48,6 +48,7 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
@@ -139,6 +140,11 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     @Override
+    protected boolean shouldDeprecateLifecycleTask() {
+        return true;
+    }
+
+    @Override
     protected void onApply(final Project project) {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
         getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());
@@ -156,9 +162,15 @@ public abstract class IdeaPlugin extends IdePlugin {
         linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaWorkspace(final Project project) {
-        final IdeaWorkspace workspace = getObjectFactory().newInstance(IdeaWorkspace.class);
-        ideaModel.setWorkspace(workspace);
+        final IdeaWorkspace workspace = DeprecationLogger.whileDisabled(
+            () -> {
+                IdeaWorkspace iw = getObjectFactory().newInstance(IdeaWorkspace.class);
+                ideaModel.setWorkspace(iw);
+                return iw;
+            }
+        );
 
         if (isRoot()) {
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
@@ -175,6 +187,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
             XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
@@ -268,10 +281,12 @@ public abstract class IdeaPlugin extends IdePlugin {
         return allJavaProjects;
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaModule(final ProjectInternal project) {
-        IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
-        final IdeaModule module = getObjectFactory().newInstance(IdeaModuleInternal.class, project, iml);
+        final IdeaModule module = DeprecationLogger.whileDisabled(() ->
+            getObjectFactory().newInstance(IdeaModuleInternal.class, project, new IdeaModuleIml(new XmlTransformer(), project.getProjectDir()))
+        );
 
         final TaskProvider<GenerateIdeaModule> task = project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
         task.configure(new Action<GenerateIdeaModule>() {
@@ -362,6 +377,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaModuleForJava(final Project project) {
         JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
@@ -458,6 +474,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaModuleForWar(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
@@ -532,6 +549,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {

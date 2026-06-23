@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.inject.Inject;
 import java.io.File;
 
-public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> implements ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> {
+public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> implements ArtifactIdentifierFileStore {
 
     private static final int NUMBER_OF_GROUPING_DIRS = 3;
     public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = NUMBER_OF_GROUPING_DIRS + NUMBER_OF_CHECKSUM_DIRS;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.sink;
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -69,6 +70,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
     private final GlobalUserInputReceiver userInput;
+    private final TemporaryFileProvider temporaryFileProvider;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final OutputEventTransformer transformer = new OutputEventTransformer(formatters.getSource(), lock);
 
@@ -82,9 +84,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
     private ListenerBroadcast<StandardOutputListener> userStderrListeners;
 
-    public OutputEventRenderer(final Clock clock, GlobalUserInputReceiver userInput) {
+    public OutputEventRenderer(Clock clock, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider) {
         this.clock = clock;
         this.userInput = userInput;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -128,10 +131,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     public ColorMap getColourMap() {
         synchronized (lock) {
             if (colourMap == null) {
-                colourMap = new DefaultColorMap();
+                colourMap = new DefaultColorMap(isNoColorRequested());
             }
         }
         return colourMap;
+    }
+
+    /**
+     * Returns true when the NO_COLOR environment variable is present and non-empty,
+     * following the <a href="https://no-color.org/">no-color.org</a> convention.
+     */
+    private static boolean isNoColorRequested() {
+        String noColor = System.getenv("NO_COLOR");
+        return noColor != null && !noColor.isEmpty();
     }
 
     @Override
@@ -329,7 +341,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 ),
                 console.getStatusBar(), console, consoleMetaData),
             console,
-            userInput);
+            userInput,
+            temporaryFileProvider);
     }
 
     private UserInputStandardOutputRenderer getInputStandardOutputRenderer(OutputEventListener outputListener, boolean verbose) {
@@ -341,7 +354,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     verbose
                 )
             ),
-            userInput
+            userInput,
+            temporaryFileProvider
         );
     }
 

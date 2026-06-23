@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenVariantAttributesFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributeValueIsolator;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -59,11 +59,7 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
         registration.add(ImmutableAttributesSchemaFactory.class);
         registration.add(ImmutableArtifactTypeRegistryFactory.class);
         registration.add(AttributeSchemaServices.class);
-    }
-
-    @Provides
-    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
-        return new CachingComponentSelectionDescriptorFactory();
+        registration.add(ComponentSelectionDescriptorFactory.class, CachingComponentSelectionDescriptorFactory.class);
     }
 
     @Provides

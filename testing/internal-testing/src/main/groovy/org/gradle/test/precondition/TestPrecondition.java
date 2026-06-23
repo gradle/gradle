@@ -16,13 +16,18 @@
 package org.gradle.test.precondition;
 
 /**
- * Usage:
+ * A condition that must be satisfied for a test to run. Used with {@link Requires @Requires} annotations
+ * to conditionally skip tests based on environment requirements.
+ *
  * <pre>
- * <code>@</code>Requires(TestPrecondition.JDK17_OR_LATER)
+ * <code>@</code>Requires(JdkVersionTestPreconditions.Jdk17OrLater)
  * def "test with environment expectations"() {
  *     // the test is executed with Java 17 or later
  * }
  * </pre>
+ *
+ * <p>See the {@link org.gradle.test.precondition package documentation} for a summary of all
+ * available precondition classes and their organization.</p>
  *
  * @see Requires
  */

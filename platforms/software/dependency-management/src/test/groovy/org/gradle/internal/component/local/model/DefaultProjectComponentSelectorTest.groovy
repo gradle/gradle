@@ -41,8 +41,8 @@ class DefaultProjectComponentSelectorTest extends Specification {
         then:
         defaultBuildComponentSelector.projectPath == ":path"
         defaultBuildComponentSelector.projectIdentity == id
-        defaultBuildComponentSelector.displayName == "project :build:path"
-        defaultBuildComponentSelector.toString() == "project :build:path"
+        defaultBuildComponentSelector.displayName == "project ':build:path'"
+        defaultBuildComponentSelector.toString() == "project ':build:path'"
     }
 
     def "can compare with other instance (#projectPath)"() {

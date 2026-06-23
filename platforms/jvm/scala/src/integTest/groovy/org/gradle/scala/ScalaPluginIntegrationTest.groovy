@@ -19,8 +19,9 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
@@ -45,6 +46,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6558")
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "can build in parallel with lazy tasks"() {
         createDirs("a", "b", "c", "d")
         settingsFile << """
@@ -89,6 +91,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6735")
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "can depend on the source set of another Java project"() {
         createDirs("java", "scala")
         settingsFile << """
@@ -122,6 +125,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6750")
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "can depend on Scala project from other project"() {
         createDirs("other", "scala")
         settingsFile << """
@@ -164,6 +168,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7014")
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
     def "can use Scala with war and ear plugins"() {
         createDirs("war", "ear")
         settingsFile << """
@@ -272,7 +277,44 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
         Integer.valueOf(matcher.group(1)) >= 16
     }
 
-    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
+    @Issue("https://github.com/gradle/gradle/issues/6854")
+    @ToBeFixedForIsolatedProjects(because = "allprojects/subprojects, configure projects from root")
+    def "dependencies task does not show FAILED entries for incremental Scala analysis configurations"() {
+        given:
+        createDirs("producer", "consumer")
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+        buildFile << """
+            allprojects {
+                ${mavenCentralRepository()}
+            }
+            project(":producer") {
+                apply plugin: 'scala'
+                dependencies {
+                    implementation "${scalaDependency(version.toString())}"
+                }
+            }
+            project(":consumer") {
+                apply plugin: 'scala'
+                dependencies {
+                    implementation "${scalaDependency(version.toString())}"
+                    implementation project(":producer")
+                    implementation "org.apache.commons:commons-lang3:3.12.0"
+                }
+            }
+        """
+        file("producer/src/main/scala/Producer.scala") << 'class Producer'
+        file("consumer/src/main/scala/Consumer.scala") << 'class Consumer extends Producer'
+
+        when:
+        succeeds(":consumer:dependencies")
+
+        then:
+        !output.contains("FAILED")
+    }
+
+    @Requires(TestExecutionPreconditions.NotNoDaemonExecutor)
     def "Scala compiler daemon respects keepalive option"() {
         buildFile << """
             plugins {

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -41,18 +40,15 @@ import java.util.function.Consumer;
 @ServiceScope(Scope.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
 
-    private final AttributeDesugaring attributeDesugaring;
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public LocalComponentGraphResolveStateFactory(
-        AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -138,7 +134,6 @@ public class LocalComponentGraphResolveStateFactory {
         return new DefaultLocalComponentGraphResolveState(
             instanceId,
             metadata,
-            attributeDesugaring,
             adHoc,
             variantsFactory,
             calculatedValueContainerFactory

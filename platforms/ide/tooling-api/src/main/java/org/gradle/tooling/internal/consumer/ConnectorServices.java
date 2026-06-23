@@ -41,18 +41,40 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class ConnectorServices {
 
-    private static GradleConnectorFactory sharedConnectorFactory = createConnectorFactory();
+    private static GradleConnectorFactory sharedConnectorFactory;
+    private static int activeConnectors;
 
     public static CancellationTokenSource createCancellationTokenSource() {
         return new DefaultCancellationTokenSource();
     }
 
-    public static GradleConnector createConnector() {
+    public static synchronized GradleConnector createConnector() {
+        if (sharedConnectorFactory == null) {
+            sharedConnectorFactory = createConnectorFactory();
+        }
+        activeConnectors++;
         return sharedConnectorFactory.createConnector();
     }
 
-    public static void close() {
-        sharedConnectorFactory.close();
+    public static synchronized void close() {
+        if (sharedConnectorFactory != null) {
+            sharedConnectorFactory.close();
+            sharedConnectorFactory = null;
+        }
+    }
+
+    /**
+     * Called when a connector is disconnected. When the last active connector is gone,
+     * closes the shared services so non-daemon resources (e.g. the file lock request
+     * listener thread) don't keep the JVM alive.
+     */
+    static synchronized void connectorDisconnected() {
+        if (activeConnectors > 0) {
+            activeConnectors--;
+        }
+        if (activeConnectors == 0) {
+            close();
+        }
     }
 
     /**
@@ -61,9 +83,9 @@ public class ConnectorServices {
      * Used for cross-version testing of the lifecycle of the connector services.
      */
     @VisibleForTesting
-    public static void reset() {
+    public static synchronized void reset() {
         close();
-        sharedConnectorFactory = createConnectorFactory();
+        activeConnectors = 0;
     }
 
     /**

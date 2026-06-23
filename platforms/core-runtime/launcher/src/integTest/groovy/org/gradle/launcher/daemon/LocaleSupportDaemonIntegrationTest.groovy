@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon
 import org.apache.commons.lang3.LocaleUtils
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Issue
@@ -35,7 +35,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         it != Locale.default
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
     def "custom locale is applied to daemon"() {
 
         buildFile """

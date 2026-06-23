@@ -1,0 +1,12 @@
+// tag::add-build[]
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'running-tutorial-groovy'
+
+include('app')
+include('lib')
+
+includeBuild('gradle/license-plugin')
+// end::add-build[]

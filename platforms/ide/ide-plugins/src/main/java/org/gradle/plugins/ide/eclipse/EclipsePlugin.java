@@ -47,6 +47,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -116,6 +117,11 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     @Override
+    protected boolean shouldDeprecateLifecycleTask() {
+        return true;
+    }
+
+    @Override
     protected void onApply(Project project) {
         getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
         getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());
@@ -144,6 +150,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
         final EclipseProject projectModel = model.getProject();
 
@@ -214,6 +221,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         artifactRegistry.registerIdeProject(new EclipseProjectMetadata(model, project.getProjectDir(), task));
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
         EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
         classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
@@ -255,7 +263,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     public void execute(Project p) {
                         // keep the ordering we had in earlier gradle versions
                         Set<String> containers = new LinkedHashSet<>();
-                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
+                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + DeprecationLogger.whileDisabled(() -> model.getJdt().getJavaRuntimeName()) + "/");
                         containers.addAll(model.getClasspath().getContainers());
                         model.getClasspath().setContainers(containers);
                     }
@@ -268,6 +276,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model, Collection<SourceSet> testSourceSetsConvention, Collection<Configuration> testConfigurationsConvention) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
@@ -395,6 +404,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseJdt(final Project project, final EclipseModel model) {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override

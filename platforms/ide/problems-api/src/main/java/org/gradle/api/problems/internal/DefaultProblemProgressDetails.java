@@ -25,15 +25,15 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
-    private final InternalProblem problem;
+    private final ProblemInternal problem;
     private final BuildOperationProblem buildOperationProblem;
 
-    public DefaultProblemProgressDetails(InternalProblem problem) {
+    public DefaultProblemProgressDetails(ProblemInternal problem) {
         this.problem = problem;
         this.buildOperationProblem = new BuildOperationProblem(problem);
     }
 
-    public InternalProblem getProblem() {
+    public ProblemInternal getProblem() {
         return problem;
     }
 
