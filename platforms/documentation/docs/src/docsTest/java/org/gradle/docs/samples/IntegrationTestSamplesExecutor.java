@@ -33,6 +33,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,6 +107,23 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             //    Our operation:
             //    Lock file: /mnt/tcagent1/work/b6cfc23ab10332e6/intTestHomeDir/distributions-full/caches/build-cache-1/build-cache-1.lock
             executer.withGradleUserHomeDir(new File(workingDir, "user-home"));
+        } else {
+            // Snippet samples run in parallel across docsTest workers, each forking its own Gradle daemon.
+            // When those daemons share a single Gradle user home they contend on - and can deadlock on - the
+            // cross-process file lock of its shared dependency/build caches (LockOnDemandCrossProcessCacheAccess),
+            // which hangs :docs:docsTest until the build times out. Give each worker its own writable user home so
+            // parallel workers never share a cache. A worker runs its samples sequentially, so it still reuses that
+            // worker's daemon and warm caches.
+            File sharedUserHome = IntegrationTestBuildContext.INSTANCE.getGradleUserHomeDir();
+            String workerKey = ManagementFactory.getRuntimeMXBean().getName().replaceAll("[^A-Za-z0-9]", "_");
+            executer.withGradleUserHomeDir(new File(sharedUserHome.getParentFile(), sharedUserHome.getName() + "-sample-worker-" + workerKey));
+            // If a shared dependency cache is already populated, serve it read-only so the isolated workers don't
+            // each re-resolve everything. Only set it when the modules cache actually exists, otherwise Gradle
+            // disables the read-only cache and prints a warning that pollutes the sample's asserted output.
+            File sharedCaches = new File(sharedUserHome, "caches");
+            if (new File(sharedCaches, "modules-2").isDirectory()) {
+                executer.withReadOnlyCacheDir(sharedCaches);
+            }
         }
 
         if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {
