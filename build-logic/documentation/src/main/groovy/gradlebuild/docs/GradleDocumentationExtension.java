@@ -139,4 +139,10 @@ public abstract class GradleDocumentationExtension {
      *
      */
     public abstract Property<Boolean> getQuickFeedback();
+
+    /**
+     * The Gradle version this documentation describes. Used in Asciidoctor attributes
+     * (e.g. {@code gradleVersion} and the {@code https://docs.gradle.org/<version>} URLs).
+     */
+    public abstract Property<String> getGradleVersion();
 }

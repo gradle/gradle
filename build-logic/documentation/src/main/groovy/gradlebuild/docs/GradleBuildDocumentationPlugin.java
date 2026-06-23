@@ -59,6 +59,7 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         applyConventions(project, tasks, objects, layout, extension);
 
         extension.getQuickFeedback().convention(getProviders().gradleProperty("quickDocs").map(x -> true).orElse(false));
+        extension.getGradleVersion().convention(project.provider(() -> project.getVersion().toString()));
 
         project.apply(target -> target.plugin("org.asciidoctor.jvm.convert"));
 

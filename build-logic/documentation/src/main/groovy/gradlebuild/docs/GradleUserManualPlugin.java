@@ -167,8 +167,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
 
-            // TODO: This breaks if the version is changed later.
-            attributes.put("gradleVersion", project.getVersion().toString());
+            attributes.put("gradleVersion", (Callable<String>) () -> extension.getGradleVersion().get());
             attributes.put("gradleVersion8", "8.14.5");
             attributes.put("snippetsPath", "snippets");
             task.attributes(attributes);
@@ -213,7 +212,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         TaskProvider<AsciidoctorTask> userguideSinglePageHtml = tasks.register("userguideSinglePageHtml", AsciidoctorTask.class, task -> {
             task.setDescription("Generates HTML single-page user manual.");
-            configureForUserGuideSinglePage(task, extension, project);
+            configureForUserGuideSinglePage(task, extension);
             task.outputOptions(options -> options.setBackends(singletonList("html5")));
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
@@ -275,7 +274,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
+    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
         task.onlyIf(t -> !extension.getQuickFeedback().get());
@@ -289,11 +288,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
-        // TODO: This breaks if version is changed later
-        String versionUrl = DOCS_GRADLE_ORG + project.getVersion();
-        attributes.put("groovyDslPath", versionUrl + "/dsl");
-        attributes.put("javadocPath", versionUrl + "/javadoc");
-        attributes.put("kotlinDslPath", versionUrl + "/kotlin-dsl");
+        attributes.put("groovyDslPath", (Callable<String>) () -> DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/dsl");
+        attributes.put("javadocPath", (Callable<String>) () -> DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/javadoc");
+        attributes.put("kotlinDslPath", (Callable<String>) () -> DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/kotlin-dsl");
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
         attributes.put("samples-dir", (Callable<File>) () -> extension.getUserManual().getStagedDocumentation().get().getAsFile());
         task.attributes(attributes);

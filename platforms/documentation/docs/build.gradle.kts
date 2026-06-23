@@ -98,6 +98,7 @@ jvmCompile {
 }
 
 gradleDocumentation {
+    gradleVersion = project.version.toString()
     javadocs {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
