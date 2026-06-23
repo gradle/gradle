@@ -192,6 +192,7 @@ public abstract class War extends Jar {
      */
     public void setWebXml(@Nullable File webXml) {
         getWebXmlFile().set(webXml);
+        getWebXmlFile().convention(getObjectFactory().fileProperty().fileValue(webXml));
     }
 
     /**

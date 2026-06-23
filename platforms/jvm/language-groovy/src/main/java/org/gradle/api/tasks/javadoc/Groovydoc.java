@@ -24,6 +24,7 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.internal.tasks.GroovydocParameters;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
@@ -90,6 +91,9 @@ public abstract class Groovydoc extends SourceTask {
 
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     @TaskAction
     protected void generate() {
@@ -185,6 +189,7 @@ public abstract class Groovydoc extends SourceTask {
      */
     public void setDestinationDir(File destinationDir) {
         getDestinationDirectory().set(destinationDir);
+        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
 
     /**

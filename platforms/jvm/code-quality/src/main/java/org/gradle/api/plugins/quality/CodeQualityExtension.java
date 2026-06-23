@@ -17,11 +17,13 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
@@ -105,5 +107,9 @@ public abstract class CodeQualityExtension {
      */
     public void setReportsDir(File reportsDir) {
         getReportsDirectory().set(reportsDir);
+        getReportsDirectory().convention(getObjectFactory().directoryProperty().fileValue(reportsDir));
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 }

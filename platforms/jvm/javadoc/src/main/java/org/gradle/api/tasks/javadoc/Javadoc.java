@@ -276,6 +276,7 @@ public abstract class Javadoc extends SourceTask {
      */
     public void setDestinationDir(@Nullable File destinationDir) {
         getDestinationDirectory().set(destinationDir);
+        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
 
     /**

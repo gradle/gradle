@@ -88,6 +88,7 @@ public abstract class ScalaDoc extends SourceTask {
 
     public void setDestinationDir(File destinationDir) {
         getDestinationDirectory().set(destinationDir);
+        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
 
     /**

@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
@@ -51,6 +52,9 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     @Inject
     protected abstract PathToFileResolver getFileResolver();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * The module descriptor metadata.
@@ -96,6 +100,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      */
     public void setDestination(File destination) {
         getDestinationFile().fileValue(destination);
+        getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(destination));
     }
 
     /**
@@ -106,7 +111,9 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * @param destination The file the descriptor will be written to.
      */
     public void setDestination(Object destination) {
-        getDestinationFile().fileValue(getFileResolver().resolve(destination));
+        File resolved = getFileResolver().resolve(destination);
+        getDestinationFile().fileValue(resolved);
+        getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(resolved));
     }
 
     @TaskAction

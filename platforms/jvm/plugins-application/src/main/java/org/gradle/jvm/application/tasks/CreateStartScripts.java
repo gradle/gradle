@@ -265,6 +265,7 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     public void setOutputDir(@Nullable File outputDir) {
         getOutputDirectory().set(outputDir);
+        getOutputDirectory().convention(getObjectFactory().directoryProperty().fileValue(outputDir));
     }
 
     /**

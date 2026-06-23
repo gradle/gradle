@@ -214,6 +214,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      */
     public void setConfigurationScript(@Nullable File configurationFile) {
         getConfigurationScriptFile().set(configurationFile);
+        getConfigurationScriptFile().convention(getObjectFactory().fileProperty().fileValue(configurationFile));
     }
 
     /**
@@ -347,6 +348,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      */
     public void setStubDir(File stubDir) {
         getStubDirectory().set(stubDir);
+        getStubDirectory().convention(getObjectFactory().directoryProperty().fileValue(stubDir));
     }
 
     /**
