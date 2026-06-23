@@ -63,6 +63,7 @@ val expectedKotlinDslPluginsVersion: String
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -80,7 +81,7 @@ val embeddedKotlinVersion = "$embeddedKotlinVersion"
  *
  * @param module simple name of the Kotlin module, for example "reflect".
  */
-fun DependencyHandler.embeddedKotlin(module: String): String =
+fun DependencyHandler.embeddedKotlin(module: String): Dependency =
     kotlin(module, embeddedKotlinVersion)
 
 
@@ -90,8 +91,8 @@ fun DependencyHandler.embeddedKotlin(module: String): String =
  * @param module simple name of the Kotlin module, for example "reflect".
  * @param version optional desired version, unspecified if null.
  */
-fun DependencyHandler.kotlin(module: String, version: String? = null): String =
-    "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}"
+fun DependencyHandler.kotlin(module: String, version: String? = null): Dependency =
+    create("org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}")
 
 
 /**
