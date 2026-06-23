@@ -29,9 +29,6 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
         // captured names an execution-time read of the build's start parameter would observe an empty
         // list. The task reads the live build start parameter (injected, not via project access).
         buildFile """
-            import javax.inject.Inject
-            import org.gradle.StartParameter
-
             abstract class PrintRequestedTasks extends DefaultTask {
                 @Inject abstract StartParameter getStartParameter()
                 @TaskAction void printIt() {

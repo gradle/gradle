@@ -112,10 +112,14 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
     ]
 
     // Mutators that deliberately do not notify, plus the listener-wiring infrastructure.
-    private static final List<String> NOT_NOTIFYING = [
+    private static final List<String> TASK_REQUEST_MODIFIER = [
         // Tooling model builders legitimately replace the requested tasks while the build runs.
         "setTaskNames(Iterable)",
         "setTaskRequests(Iterable)",
+    ]
+    // Mutators that deliberately do not notify, plus the listener-wiring infrastructure.
+
+    private static final List<String> NOT_NOTIFYING = TASK_REQUEST_MODIFIER + [
         // Listener wiring, not tracked state.
         "setMutationListener(Consumer)",
         "clearMutationListener()",
@@ -255,11 +259,53 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         def bySignature = declaredMethods().collectEntries { [signature(it), it] }
 
         expect:
-        ["setTaskNames(Iterable)", "setTaskRequests(Iterable)"].each { sig ->
+        TASK_REQUEST_MODIFIER.each { sig ->
             def method = bySignature[sig] as Method
             notified.clear()
             method.invoke(parameter, argumentsFor(method))
             assert notified.isEmpty(): "$sig is exempt but notified a mutation"
+        }
+    }
+
+    def "mutating a returned intercepting collection notifies through its view"() {
+        given:
+        def notified = []
+        def parameter = new StartParameterInternal()
+        parameter.setMutationListener { notified << it }
+        def bySignature = declaredMethods().collectEntries { [signature(it), it] }
+
+        expect:
+        INTERCEPTING_COLLECTIONS.each { getterSig ->
+            def getter = bySignature[getterSig] as Method
+            def view = getter.invoke(parameter)
+            notified.clear()
+            try {
+                view.clear()
+            } catch (RuntimeException ignored) {
+                // The backing collection may reject the mutation (some default to an empty immutable
+                // collection); the contract is "notify first, then mutate", so it still notifies.
+            }
+            assert notified == [getterSig + ".clear()"]: "mutating the $getterSig view did not notify"
+        }
+    }
+
+    def "reads do not notify"() {
+        given:
+        def notified = []
+        def parameter = new StartParameterInternal()
+        parameter.setMutationListener { notified << it }
+        def bySignature = declaredMethods().collectEntries { [signature(it), it] }
+
+        expect:
+        READS.each { sig ->
+            def method = bySignature[sig] as Method
+            notified.clear()
+            try {
+                method.invoke(parameter, argumentsFor(method))
+            } catch (InvocationTargetException ignored) {
+                // A read may reject its sample argument; we only care that it does not notify.
+            }
+            assert notified.isEmpty(): "$sig is listed as a read but notified a mutation"
         }
     }
 

@@ -222,19 +222,14 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         "taskRequests.clear()"                                                            | "getTaskRequests().clear()"
     }
 
-    // Exhaustive end-to-end coverage: every notifying mutator of StartParameter and
-    // StartParameterInternal is exercised through a real build and asserted to be reported, so a change
-    // in behavior for any single method is caught here, not only by the instrumentation unit test. One
-    // build per method keeps every case independent and the assertion trivial (a single problem).
-    // setTaskNames/setTaskRequests are intentionally absent: they are exempt (see "replacing the
-    // requested tasks ..."). Each invocation uses a value matching the current/default state so the
-    // build still completes configuration in diagnostics mode.
     def "every mutating method of StartParameter is reported (#signature)"() {
         buildFile("""
             gradle.startParameter.$invocation
         """)
 
         when:
+        // Diagnostics mode lets configuration finish so the state is stored then discarded on the
+        // violation; FAIL_FAST would abort before the store, leaving nothing for assertStateStoredAndDiscarded.
         isolatedProjectsDiagnosticsFails("help")
 
         then:
