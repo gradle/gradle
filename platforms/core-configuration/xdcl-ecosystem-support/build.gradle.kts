@@ -1,0 +1,28 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id("gradlebuild.distribution.implementation-java")
+}
+
+description = "Shared imperative build logic for the built-in XDCL ecosystem carriers: wiring the common HasDependencies/HasRepositories capability traits (dependency scopes + repositories) onto a project. Used by the JVM and Groovy carriers so the logic lives once; distribution-only, not published (prototype)"
+
+// Distribution-only carrier glue (has internal-Gradle deps), so it is NOT a published library. The
+// helpers operate on the common capability-trait facades and configure a live project.
+dependencies {
+    api(projects.coreApi)                // Project, Configuration(Container), Usage, FileCollection, Provider
+    api(projects.xdclCommonEcosystem)    // the common facades in the helper signatures (HasDependencies/HasRepositories/Repository/Dependencies)
+}

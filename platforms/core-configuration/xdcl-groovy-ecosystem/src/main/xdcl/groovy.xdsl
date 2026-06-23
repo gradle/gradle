@@ -1,0 +1,32 @@
+package org.gradle.demos.groovy.dsl
+
+import org.gradle.demos.common.dsl
+
+// Shares Dependencies/Repository/NamedRepository with the Java demo via the common fragment
+// (package-import form). Only the Groovy-specific source record and the trait live here.
+
+/// Capability contract for the Groovy project type.
+trait GroovyComponent {
+  /// Groovy compiler/runtime version (e.g. "4.0.3"), resolved as `org.apache.groovy:groovy:<version>`
+  /// into the mandatory groovyClasspath of every GroovyCompile.
+  groovyVersion: String?
+  /// JVM source/target bytecode version. e.g. 8, 17, 21.
+  javaVersion: Int = 17
+  /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
+  /// the whole list to add more.
+  sources: [GroovySource]?
+}
+
+/// One named source set.
+record GroovySource with HasDependencies {
+  /// Identifies the source set (e.g. `main`, `test`); drives task and configuration names.
+  name: String
+  groovyDirs: [String]?
+  resourceDirs: [String]?
+}
+
+/// Top-level Groovy library project type.
+template GroovyLibrary with GroovyComponent & HasRepositories & HasDependencies {
+  groovyLibrary {
+  }
+}

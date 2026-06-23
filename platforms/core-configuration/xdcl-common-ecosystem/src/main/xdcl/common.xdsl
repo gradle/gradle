@@ -1,0 +1,37 @@
+package org.gradle.demos.common.dsl
+
+/// Library dependencies, mirroring the four JVM dependency scopes. Each is a list of coordinate
+/// notations (e.g. "group:name:version"). Shared by every JVM project type in the demo (Java, Groovy)
+/// so the wiring is declared once; both `java.xdsl` and `groovy.xdsl` `import org.gradle.demos.common.dsl`.
+record Dependencies {
+  api: [String]?
+  implementation: [String]?
+  runtimeOnly: [String]?
+  compileOnly: [String]?
+}
+
+/// A repository: a builtin marker symbol, or a String read as a maven repository URL. Declared under
+/// the demo's own names (not the settings bootstrap's) so the `:mavenCentral`/`:gradlePluginPortal`
+/// symbols resolve to compilable facades in this package rather than colliding with the unshipped
+/// bootstrap types of the same simple name.
+type Repository = NamedRepository | String
+type NamedRepository = Symbol where it in [:gradlePluginPortal, :mavenCentral]
+
+/// Capability trait for project types that configure project repositories. Composed by every JVM
+/// project-type template (`with … & HasRepositories`) so the repository surface is declared once and
+/// the wiring lives in common build logic that accepts this trait's facade (see
+/// `org.gradle.demos.common.Repositories`).
+trait HasRepositories {
+  /// Repositories the reaction configures on the project so `dependencies` (and, for Groovy, the
+  /// groovy library) resolve.
+  repositories: [Repository]?
+}
+
+/// Capability trait for anything carrying library dependencies, by scope. Composed both at the
+/// project-type level (every JVM template is `with … & HasDependencies`) and per source set (each
+/// source record is `with HasDependencies`), so the shared scope/resolvable wiring in
+/// `org.gradle.demos.common.DependencyScopes` accepts either facade uniformly.
+trait HasDependencies {
+  /// Library dependencies, by scope.
+  dependencies: Dependencies?
+}
