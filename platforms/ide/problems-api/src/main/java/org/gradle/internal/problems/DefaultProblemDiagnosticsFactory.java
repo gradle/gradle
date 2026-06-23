@@ -34,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
 
@@ -47,13 +46,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
-
-    private static final Supplier<Throwable> EXCEPTION_FACTORY = new Supplier<Throwable>() {
-        @Override
-        public Throwable get() {
-            return new Exception();
-        }
-    };
 
     private static final int MAX_STACKTRACE_COUNT = 50;
     private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
@@ -103,14 +95,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     @Override
     public ProblemStream newStream() {
-        return new DefaultProblemStream();
+        return new DefaultProblemStream(maxStackTraces, maxBoundedCaptures);
     }
 
     @Override
     public ProblemStream newUnlimitedStream() {
-        DefaultProblemStream defaultProblemStream = new DefaultProblemStream();
-        defaultProblemStream.remainingStackTraces.set(Integer.MAX_VALUE);
-        return defaultProblemStream;
+        return new DefaultProblemStream(maxStackTraces, Integer.MAX_VALUE);
     }
 
     @Override
@@ -140,12 +130,10 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     @NullMarked
     private class DefaultProblemStream implements ProblemStream {
-        private final AtomicInteger remainingStackTraces = new AtomicInteger();
-        private final AtomicInteger remainingBoundedCaptures = new AtomicInteger();
+        private final StackTraceCapturer capturer;
 
-        public DefaultProblemStream() {
-            remainingStackTraces.set(maxStackTraces);
-            remainingBoundedCaptures.set(maxBoundedCaptures);
+        public DefaultProblemStream(int fullBudget, int boundedBudget) {
+            this.capturer = new StackTraceCapturer(fullBudget, boundedBudget, boundedCallerStackCapturer);
         }
 
         @Override
@@ -174,22 +162,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Nullable
         private Throwable getImplicitCallerThrowable() {
-            if (remainingStackTraces.getAndDecrement() > 0) {
-                return EXCEPTION_FACTORY.get();
-            }
-            if (remainingBoundedCaptures.getAndDecrement() > 0) {
-                return boundedCallerStackCapturer.captureCallerStack();
-            }
-            return null;
+            return capturer.captureCaller();
         }
 
         @Nullable
         private Throwable getImplicitThrowable(Supplier<? extends Throwable> factory) {
-            if (remainingStackTraces.getAndDecrement() > 0) {
-                return factory.get();
-            } else {
-                return null;
-            }
+            return capturer.captureSupplied(factory);
         }
     }
 

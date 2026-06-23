@@ -189,7 +189,7 @@ It’s a central place to review issues and complements the console and Build Sc
 [NOTE]
 ====
 To keep stack trace capture affordable, Gradle infers a source location for only a limited number of problems per build, so very large builds may list some problems without a file and line.
-Run with `--warning-mode=all` to lift the limit and infer a location for every problem.
+Run with `--warning-mode=all` or `--warning-mode=fail` to infer a location for every problem; past the cap, the trace is reduced to the originating build logic and calling script.
 ====
 
 - The report is skipped if no problems are found.

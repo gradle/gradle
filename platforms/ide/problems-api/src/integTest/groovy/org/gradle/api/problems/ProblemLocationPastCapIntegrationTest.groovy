@@ -25,9 +25,10 @@ import spock.lang.Issue
 
 /**
  * Past the stack-capture cap, locations are inferred from a cheap bounded caller-stack capture rather than
- * a full stack. This pins that path end to end: it must run (a capping warning mode, so the cap actually
- * applies, the dedicated test must not use {@code --warning-mode=all}, which lifts it), resolve the location
- * to the calling script by seeing through a build-logic helper, and keep that helper frame as context.
+ * a full stack. This pins that path end to end across warning modes: {@code summary} keeps the default
+ * bounded budget, {@code all} lifts it, but both keep the full-stack cap at 50, so problems past it take the
+ * bounded path either way. The location must resolve to the calling script by seeing through a build-logic
+ * helper, keeping that helper frame as context.
  */
 @Issue("https://github.com/gradle/gradle/issues/32362")
 class ProblemLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
@@ -35,7 +36,7 @@ class ProblemLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     @ToBeFixedForIsolatedProjects(because = "under Isolated Projects the stack-capture cap is 5000, so the problems fired here stay within it and never reach the bounded path")
-    def "problems past the stack-capture cap resolve to the calling script and keep the build-logic frame"() {
+    def "problems past the stack-capture cap resolve to the calling script and keep the build-logic frame for warning mode #warningMode"() {
         given:
         // A compiled helper (build logic, not a script) reports the problem. The bounded capture must see
         // through it to the calling script for the location, and keep the helper frame above it.
@@ -61,8 +62,8 @@ class ProblemLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        // Capping mode (not --warning-mode=all) so problems past the cap go through the bounded capture.
-        executer.withWarningMode(WarningMode.Summary)
+        // Both modes keep the full cap at 50; problems past it take the bounded path (all lifts only the bounded budget).
+        executer.withWarningMode(warningMode)
         succeeds 'help'
 
         then:
@@ -94,5 +95,8 @@ class ProblemLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
         and:
         // Each call site resolves to its own line; without a cache nothing can be conflated to one location.
         bounded.collect { it.fileLocation.line }.unique().size() == bounded.size()
+
+        where:
+        warningMode << [WarningMode.Summary, WarningMode.All]
     }
 }

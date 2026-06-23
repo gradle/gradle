@@ -23,49 +23,28 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
-/**
- * Expect the test to fail or skip it when running with Isolated Projects enabled.
- * <p>
- * Use this annotation when the intention is to fix either the test itself or the underlying feature,
- * making it compatible with Isolated Projects. If the intention is to not support the tested feature
- * with Isolated Projects, use {@link UnsupportedWithIsolatedProjects} instead.
- * <p>
- * The expectation of failure essentially flips the test result.
- * A specific failure is not verified, and we only confirm that the test is not passing.
- * <p>
- * Instead of expecting failure, you can skip the test in case the test doesn't fail consistently
- * or has other undesirable effects, such as timeouts.
- * Set {@link #skipBecause()} to a non-empty reason to skip the test.
- */
+/// Under Isolated Projects, expect this test (or all tests in this spec) to fail.
+/// The specific failure is not asserted; an unexpected success fails the test.
+///
+/// Set [#skipBecause()] to skip instead of expecting failure (e.g. flaky, hangs).
+/// Use [UnsupportedWithIsolatedProjects] when the feature is not meant to be supported.
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-@ExtensionAnnotation(ToBeFixedForIsolatedProjectsExtension.class)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@ExtensionAnnotation(GradleModeTestingExtension.ToBeFixedForIP.class)
 public @interface ToBeFixedForIsolatedProjects {
 
+    /// Why this test is expected to fail under Isolated Projects.
     String because() default "";
 
-    /**
-     * Reason for skipping the annotated test instead of expecting it to fail.
-     * Empty (the default) means expect-failure; any non-empty value skips the test with that reason.
-     */
+    /// Non-empty reason to skip instead of expecting failure.
     String skipBecause() default "";
 
-    /**
-     * Link to the issue tracking the incompatibility addressed by this annotation.
-     * Distinct from {@code @spock.lang.Issue}, which links the test itself to its tracking issue.
-     */
+    /// Link to the issue tracking the incompatibility. Distinct from `@spock.lang.Issue`.
     String issue() default "";
 
-    /**
-     * Declare to which bottom spec this annotation should be applied.
-     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
-     */
+    /// Limit to specific leaf specs by simple class name. Empty means all subclasses.
     String[] bottomSpecs() default {};
 
-    /**
-     * Declare regular expressions matching the iteration name.
-     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
-     */
+    /// Regexes matched against parameterized iteration display names. Empty means all iterations.
     String[] iterationMatchers() default {};
 }
