@@ -218,9 +218,9 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         "systemPropertiesArgs.put('p', 'v')"                                              | "getSystemPropertiesArgs().put(Object, Object)"
         "writeDependencyVerifications.add('x')"                                           | "getWriteDependencyVerifications().add(Object)"
         "lockedDependenciesToUpdate.add('x')"                                             | "getLockedDependenciesToUpdate().add(Object)"
-        // setTaskNames/setTaskRequests are exempt because tooling legitimately replaces the requested
-        // tasks while the build runs, but there is no known use case for mutating the taskRequests list
-        // directly, so it is reported like the other collection views.
+        // Mutating the taskRequests list view directly has no known use case, so it is reported like the
+        // other views — unlike the setTaskNames/setTaskRequests setters, which are exempt (see
+        // "replacing the requested tasks from a build script is currently allowed").
         "taskRequests.clear()"                                                            | "getTaskRequests().clear()"
     }
 
