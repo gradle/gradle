@@ -5,6 +5,7 @@ plugins {
 
 java {
     toolchain {
+        // Choose your project's required version
         languageVersion = JavaLanguageVersion.of(21) // <1>
     }
 }

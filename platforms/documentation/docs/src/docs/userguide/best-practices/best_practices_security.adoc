@@ -133,19 +133,19 @@ This ensures that even if a malicious script runs, it cannot access your files.
 [[builds_should_be_reproducible]]
 == Build Output Should Be Byte-for-Byte Reproducible
 
-A build is reproducible when running it from the same source code, on any machine, at any time, produces byte-for-byte identical output files.
+A build is reproducible when the same source code produces byte-for-byte identical output files, on any machine, at any time.
 
 === Explanation
 
 Reproducibility matters far beyond the publishing flow.
-If binaries remain identical, then downstream consumers can verify that your they match the source.
-Build systems typically assert on artifact checksums; non-determinism in artifact bytes defeats caches and deduplication logic without providing any benefit.
+If binaries remain identical, then downstream consumers can verify that they match the source.
+Build systems typically verify artifact checksums; non-determinism in artifact bytes defeats caches and deduplication logic without providing any benefit.
 
-With this strong form of reproducibility, "Did my change actually change anything?" becomes quickly answerable by simply comparing output hashes.
+With this strong form of reproducibility, the question "Did my change actually change anything?" is easy to answer: compare the output hashes.
 Gradle's own up-to-date checks and <<build_cache.adoc#build_cache,remote build cache>> also rely on stable inputs producing stable outputs.
 
 Some common sources of non-determinism in builds are file timestamps inside archives, the order of entries inside archives, and the SDK used to compile classes.
-For JVM builds, keeping wall-clock timestamps on `.class` files inside a `.jar`, or letting archive entries be ordered by the filesystem's directory-iteration order, mean two clean builds of the same source produce slightly different artifacts with different checksums even though the output is functionally identical.
+For JVM builds, keeping wall-clock timestamps on `.class` files inside a `.jar`, or letting archive entries follow the filesystem's directory-iteration order, means that two clean builds of the same source produce slightly different artifacts with different checksums even though the output is functionally identical.
 
 === Example
 
@@ -156,21 +156,11 @@ include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/kotlin",fil
 include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
-<1> No `java { toolchain { ... } }` block is declared — Gradle has no default toolchain, so the JDK used to compile falls back to whichever `JAVA_HOME` happens to be active. Different machines (and even different JDK patch releases on the same machine) emit different bytecode.
-<2> Overrides the Gradle 9.0+ default of `false`. Stamps every entry inside the jar with the build's wall-clock time, so the same source produces a different jar on every build.
-<3> Overrides the Gradle 9.0+ default of `true`. Lets archive entries be ordered by the filesystem's directory-iteration order, which varies by OS and filesystem.
+<1> No `java { toolchain { ... } }` block is declared. Gradle has no default toolchain, so the JDK used for compilation falls back to whichever `JAVA_HOME` is active. Different machines (and even different JDK patch releases on the same machine) emit different bytecode.
+<2> Sets `preserveFileTimestamps` to `true`, overriding the Gradle 9.0+ default of `false`. Every entry inside the jar is stamped with the build's wall-clock time, so the same source produces a different jar on every build.
+<3> Sets `reproducibleFileOrder` to `false`, overriding the Gradle 9.0+ default of `true`. Archive entries are ordered by the filesystem's directory-iteration order, which varies by OS and filesystem.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/reproducibleBuilds-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/reproducibleBuilds-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -198,28 +188,28 @@ When publishing, ensure that artifacts are built in a trusted, reproducible way 
 === Explanation
 
 A project's published artifacts should be <<#builds_should_be_reproducible,byte-for-byte reproducible>>; reproducibility is a precondition for everything below.
-Without it, none of the additional safeguards described here buy you anything verifiable.
+Without it, the additional safeguards described here provide no verifiable assurance.
 
 When preparing a project for publishing, also use a secure and isolated build process.
-This both prevents potential security risks and ensures that the published artifact is a direct and verifiable result of the source code.
+This both prevents security risks and ensures that the published artifact is a direct and verifiable result of the source code.
 
 ==== Don't Do This
 
 Do not use incremental, local, or cached builds when publishing.
-These methods rely on the outputs of previous builds, which can introduce a security vector.
+These methods rely on the outputs of previous builds, which can opan an attack vector.
 An incremental build might use a leftover artifact from an older, potentially compromised, build.
 Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact.
-The build output could then be dependent on the state of the machine it was run on, undermining the integrity of your software.
+The build output could then depend on the state of the machine where it ran, undermining the integrity of your software.
 
 ==== Do This Instead
 
 Published artifacts should always be built in a trusted, pristine environment.
-The best way to achieve this is by using a fresh, isolated, and temporary CI machine.
+The best way to achieve this is to use a fresh, isolated, temporary CI machine.
 This approach, often referred to as *Ephemeral CI*, guarantees that the build starts from a clean slate every time, with no lingering artifacts, caches, or other external state.
 
 NOTE: This guidance is specific to builds that produce published artifacts.
-Gradle's <<build_cache.adoc#build_cache,build cache>> and <<configuration_cache.adoc#config_cache,configuration cache>> are safe and deterministic when configured correctly, and non-publishing builds should continue to take full advantage of them.
-Avoiding caching for publishing builds is an extra layer of paranoia and certainty, not a statement that caches are inherently unsafe.
+Gradle's <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> are safe and deterministic when configured correctly, and non-publishing builds should continue to take full advantage of them.
+Avoiding caching for publishing builds is an extra layer of certainty, not a statement that caches are inherently unsafe.
 
 === Tags
 
