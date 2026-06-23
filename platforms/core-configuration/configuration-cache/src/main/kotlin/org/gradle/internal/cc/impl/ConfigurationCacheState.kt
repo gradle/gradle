@@ -83,6 +83,7 @@ import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readStringsSet
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withDebugFrame
@@ -692,6 +693,7 @@ class ConfigurationCacheState(
     fun WriteContext.writeGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
+            writeStartParameterOf(gradle)
             writeChildBuilds(gradle)
         }
     }
@@ -703,8 +705,24 @@ class ConfigurationCacheState(
         val gradle = build.gradle
         return withGradleIsolate(gradle, userTypesCodec) {
             // per build
+            readStartParameterOf(gradle)
             readChildBuilds()
         }
+    }
+
+    private
+    fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
+        writeStrings(gradle.startParameter.taskNames)
+    }
+
+    private
+    fun ReadContext.readStartParameterOf(gradle: GradleInternal) {
+        // Restore the requested task names captured during configuration. The cached work graph already
+        // drives what executes on a cache hit, so this is not needed to run the build. It keeps
+        // gradle.startParameter.taskNames consistent on a hit for internal consumers that read it (build
+        // operations, problem reports, build scans), since scheduling -- which resolves and populates the
+        // names on a store run -- does not run on a hit.
+        gradle.startParameter.setTaskNames(readStrings())
     }
 
     private

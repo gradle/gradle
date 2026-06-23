@@ -74,6 +74,12 @@ public class StartParameterInternal extends StartParameter {
         super(layoutParameters);
     }
 
+    /**
+     * Sets the listener invoked on every subsequent mutating call (see {@link #onMutableCall}). It is set
+     * once a build's settings have been evaluated, so that later mutations of that build's start parameter
+     * are reported as Isolated Projects violations. At most one listener may be set; setting another throws,
+     * which guards against a listener leaking from an earlier build into a reused start parameter.
+     */
     public void setMutationListener(Consumer<String> mutationListener) {
         if (this.mutationListener != null) {
             throw new IllegalStateException("Mutation listener already set on StartParameterInternal");
@@ -81,6 +87,10 @@ public class StartParameterInternal extends StartParameter {
         this.mutationListener = mutationListener;
     }
 
+    /**
+     * Clears the listener, so the start parameter is mutable again without reporting. Used when a start
+     * parameter outlives the build that set it, e.g. across iterations of a continuous build.
+     */
     public void clearMutationListener() {
         this.mutationListener = null;
     }
