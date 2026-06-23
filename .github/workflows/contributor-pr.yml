@@ -70,7 +70,7 @@ jobs:
       fail-fast: false
       matrix:
         jdk:
-          - { name: "17.0.0", distribution: microsoft, version: "17.0.0" }
+          - { name: "17.0.1", distribution: microsoft, version: "17.0.1" }
           - { name: "21.0.0", distribution: microsoft, version: "21.0.0" }
           - { name: "25.0.0", distribution: microsoft, version: "25.0.0" }
     defaults:
