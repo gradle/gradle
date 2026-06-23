@@ -28,6 +28,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.specs.Spec
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -42,6 +43,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
@@ -117,6 +119,7 @@ class TaskNodeCodec(
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
                     writeRequiredServices(task)
+                    writeTaskLoggingListeners(task)
                 }
             }
         }
@@ -156,6 +159,7 @@ class TaskNodeCodec(
             readDestroyablesOf(task)
             readLocalStateOf(task)
             readRequiredServices(task)
+            readTaskLoggingListeners(task)
         }
 
         return task
@@ -294,6 +298,30 @@ class TaskNodeCodec(
             task.localState.register(readNonNull<FileCollection>())
         }
     }
+
+    private
+    suspend fun WriteContext.writeTaskLoggingListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
+            val loggingManager = task.loggingManagerIfCreated
+            writeCollection(loggingManager?.standardOutputListeners ?: emptyList<StandardOutputListener>())
+            writeCollection(loggingManager?.standardErrorListeners ?: emptyList<StandardOutputListener>())
+        }
+    }
+
+    private
+    suspend fun ReadContext.readTaskLoggingListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
+            val stdoutListeners = ArrayList<StandardOutputListener>()
+            readCollection { stdoutListeners.add(readNonNull()) }
+            val stderrListeners = ArrayList<StandardOutputListener>()
+            readCollection { stderrListeners.add(readNonNull()) }
+            if (stdoutListeners.isNotEmpty() || stderrListeners.isNotEmpty()) {
+                val loggingManager = task.logging as LoggingManagerInternal
+                stdoutListeners.forEach { loggingManager.addStandardOutputListener(it) }
+                stderrListeners.forEach { loggingManager.addStandardErrorListener(it) }
+            }
+        }
+    }
 }
 
 
@@ -321,6 +349,7 @@ enum class TaskVirtualProperty(val traceName: String) {
     ACTIONS("actions"),
     CACHE_IF("cacheIf specs"),
     DO_NOT_CACHE_IF("doNotCacheIf specs"),
+    LOGGING_LISTENERS("logging listeners"),
     ONLY_IF("onlyIf specs"),
     UP_TO_DATE("upToDate specs"),
 }

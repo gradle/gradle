@@ -544,11 +544,12 @@ class DefaultLoggingManagerTest extends Specification {
     }
 
     public void "returned listener collections are independent copies of internal state"() {
+        given:
         def out1 = Mock(StandardOutputListener)
-
-        when:
         loggingManager.addStandardOutputListener(out1)
         def snapshot = loggingManager.standardOutputListeners as List
+
+        when:
         loggingManager.removeStandardOutputListener(out1)
 
         then:
