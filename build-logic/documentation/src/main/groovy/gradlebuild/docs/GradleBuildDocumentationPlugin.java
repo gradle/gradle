@@ -39,9 +39,11 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> {
@@ -185,8 +187,9 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
             task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
 
             task.getInputs().property("systemProperties", Collections.emptyMap());
-            // TODO: This breaks the provider
-            task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
+            task.getJvmArgumentProviders().add((CommandLineArgumentProvider) () -> List.of(
+                "-Dorg.gradle.docs.releasenotes.rendered=" + extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile()
+            ));
         });
     }
 }
