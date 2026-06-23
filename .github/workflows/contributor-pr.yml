@@ -145,4 +145,23 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      # DEBUG (bz-debug-windows-arm-timeout): reassemble the locally-built, patched Gradle distribution
+      # (committed split into <100MB parts under .local-dist/) and run the build with it as the bootstrap
+      # distribution, so the patched DefaultBuildEventsListenerRegistry shutdown diagnostics are exercised.
+      - name: Reassemble patched Gradle distribution
+        run: |
+          $out = [System.IO.File]::Create("gradle/wrapper/patched-gradle-bin.zip")
+          Get-ChildItem .local-dist/gradle-bin.zip.part-* | Sort-Object Name | ForEach-Object {
+            $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
+            $out.Write($bytes, 0, $bytes.Length)
+          }
+          $out.Close()
+          Write-Host "Reassembled $((Get-Item gradle/wrapper/patched-gradle-bin.zip).Length) bytes"
+      - name: Point wrapper at patched distribution
+        run: |
+          (Get-Content gradle/wrapper/gradle-wrapper.properties) `
+            -replace '^distributionUrl=.*', 'distributionUrl=patched-gradle-bin.zip' `
+            -replace '^validateDistributionUrl=.*', 'validateDistributionUrl=false' |
+            Set-Content gradle/wrapper/gradle-wrapper.properties
+          Get-Content gradle/wrapper/gradle-wrapper.properties
       - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
