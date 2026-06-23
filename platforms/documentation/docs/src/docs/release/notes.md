@@ -246,6 +246,11 @@ tasks.withType<AbstractArchiveTask>().configureEach {
 }
 ```
 
+#### New APIs on `ResolvedArtifactResult`
+
+The [`ResolvedArtifactResult.getAttributes()`](javadoc/org/gradle/api/artifacts/result/ResolvedArtifactResult.html#getAttributes()) and [`ResolvedArtifactResult.getCapabilities()`](javadoc/org/gradle/api/artifacts/result/ResolvedArtifactResult.html#getCapabilities()) methods have been introduced to provide access to the attributes and capabilities of a resolved artifact without going through the [`ResolvedArtifactResult.getVariant()`](javadoc/org/gradle/api/artifacts/result/ResolvedArtifactResult.html#getVariant()) method.
+`ResolvedArtifactResult.getVariant()` is still available, but will be deprecated in a future release.
+
 See the [Timestamp for files inside archives](userguide/working_with_files.html#sec:reproducible_timestamp) section in the Gradle User Manual for more details.
 
 #### New `getInputStream()` method on `BuildCacheEntryWriter`

@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
@@ -221,6 +223,16 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             @Override
             public ComponentArtifactIdentifier getId() {
                 return artifact.getId();
+            }
+
+            @Override
+            public AttributeContainer getAttributes() {
+                return artifact.getAttributes();
+            }
+
+            @Override
+            public Collection<? extends Capability> getCapabilities() {
+                return artifact.getCapabilities();
             }
 
             @Override

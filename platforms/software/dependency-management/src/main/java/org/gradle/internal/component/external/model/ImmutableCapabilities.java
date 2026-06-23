@@ -16,26 +16,24 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
 
+import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * A deeply immutable implementation of {@link CapabilitiesMetadata}.
+ * A deeply immutable collection of {@link Capability capabilities}.
  *
  * This type will ensure that all contents are immutable upon construction,
  * in order to allow instances of this type to be safely reused whenever possible
  * to avoid unnecessary memory allocations.
- *
- * Note that while this class is not itself {@code final}, all fields are private, so
- * subclassing should not break the immutability contract.
  */
-public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
+public final class ImmutableCapabilities extends AbstractCollection<ImmutableCapability> {
+
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableSet.of());
 
     private final ImmutableSet<ImmutableCapability> capabilities;
@@ -67,6 +65,7 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
         return new ImmutableCapabilities(builder.build());
     }
 
+    // Avoid this method if possible. ImmutableCapabilitie is already a Collection.
     public ImmutableSet<ImmutableCapability> asSet() {
         return capabilities;
     }
@@ -80,8 +79,9 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
         return capabilities.iterator();
     }
 
-    public boolean isEmpty() {
-        return capabilities.isEmpty();
+    @Override
+    public int size() {
+        return capabilities.size();
     }
 
     /**
@@ -100,7 +100,7 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -115,4 +115,5 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
     public int hashCode() {
         return capabilities.hashCode();
     }
+
 }
