@@ -37,10 +37,12 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.ysb33r.grolifant.api.core.jvm.ExecutionMode;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -141,8 +143,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: Break the paths assumed here
             Map<String, Object> attributes = new HashMap<>();
-            // TODO: This breaks the provider
-            attributes.put("stylesdir", stylesDir.get().getAsFile().getAbsolutePath());
+            attributes.put("stylesdir", (Callable<String>) () -> stylesDir.get().getAsFile().getAbsolutePath());
             attributes.put("stylesheet", "manual.css");
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
@@ -157,10 +158,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("encoding", "utf-8");
             attributes.put("idprefix", "");
             attributes.put("website", "https://gradle.org");
-            // TODO: This breaks the provider
-            attributes.put("javaApi", extension.getJavadocs().getJavaApi().get().toString());
+            attributes.put("javaApi", (Callable<String>) () -> extension.getJavadocs().getJavaApi().get().toString());
             attributes.put("jdkDownloadUrl", "https://jdk.java.net/");
-            attributes.put("javadocReferenceUrl", extension.getJavadocs().getJavadocReferenceUrl().get().toString());
+            attributes.put("javadocReferenceUrl", (Callable<String>) () -> extension.getJavadocs().getJavadocReferenceUrl().get().toString());
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
             attributes.put("minJdkVersion", "17");
 
@@ -246,8 +246,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "../kotlin-dsl");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            // TODO: This breaks the provider
-            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
+            attributes.put("samples-dir", (Callable<File>) () -> extension.getUserManual().getStagedDocumentation().get().getAsFile());
             task.attributes(attributes);
         });
 
@@ -296,8 +295,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         attributes.put("javadocPath", versionUrl + "/javadoc");
         attributes.put("kotlinDslPath", versionUrl + "/kotlin-dsl");
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-        // TODO: This breaks the provider
-        attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
+        attributes.put("samples-dir", (Callable<File>) () -> extension.getUserManual().getStagedDocumentation().get().getAsFile());
         task.attributes(attributes);
     }
 
