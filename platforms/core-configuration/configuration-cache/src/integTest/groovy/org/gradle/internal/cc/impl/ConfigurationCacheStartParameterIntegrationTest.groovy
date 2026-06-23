@@ -24,10 +24,6 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
 
     def "resolved default task names are restored on the build start parameter for a configuration cache hit"() {
         given:
-        // On the store run the scheduler resolves the configured default tasks into
-        // startParameter.taskNames. On a cache hit the scheduler does not run, so without restoring the
-        // captured names an execution-time read of the build's start parameter would observe an empty
-        // list. The task reads the live build start parameter (injected, not via project access).
         buildFile """
             abstract class PrintRequestedTasks extends DefaultTask {
                 @Inject abstract StartParameter getStartParameter()
