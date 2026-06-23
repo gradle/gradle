@@ -143,6 +143,7 @@ val core = platform("core") {
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
+        subproject("xdcl-demos")
         subproject("xdcl-integ-tests")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
