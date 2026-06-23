@@ -237,6 +237,15 @@ Kotlin DSL script compilation continues to be cached as before.
 
 See the [Type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) section in the Gradle User Manual for more details.
 
+#### File system watching now works with a custom project cache directory
+
+Previously, using a custom project cache directory (`--project-cache-dir`) together with [file system watching](userguide/file_system_watching.html) was unsupported: combining it with `--watch-fs` failed the build, and otherwise watching was silently disabled.
+
+Gradle no longer watches project cache directory.
+As a result, file system watching now works together with `--project-cache-dir`, and the project cache directory can live on a separate file system — even one that does not support watching.
+
+See [Enable file system watching](userguide/file_system_watching.html) for more details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ========================================================== -->
