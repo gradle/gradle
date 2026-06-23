@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import static org.gradle.internal.cc.impl.isolated.AbstractIsolatedProjectsIntegrationTest.IsolatedProjectsMode.FAIL_FAST
+
 class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "mutating StartParameter after settings evaluation is a violation (#location)"() {
@@ -198,10 +200,10 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         // proceeds into the delegate, and some backing collections (e.g. the project properties
         // populated by the CLI converter) are immutable in real distributions, so the build would
         // additionally fail with an UnsupportedOperationException there.
-        isolatedProjectsFailsUsing(IsolatedProjectsMode.FAIL_FAST, "help", "-Pseed=value")
+        isolatedProjectsFailsUsing(FAIL_FAST, "help", "-Pseed=value")
 
         then:
-        fixture.assertIsolatedProjectsProblems(IsolatedProjectsMode.FAIL_FAST) {
+        fixture.assertIsolatedProjectsProblems(FAIL_FAST) {
             projectsConfigured(":")
             problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. The mutation occurred via '${signature}' call.")
         }
@@ -228,12 +230,10 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         """)
 
         when:
-        // Diagnostics mode lets configuration finish so the state is stored then discarded on the
-        // violation; FAIL_FAST would abort before the store, leaving nothing for assertStateStoredAndDiscarded.
-        isolatedProjectsDiagnosticsFails("help")
+        isolatedProjectsFailsUsing(FAIL_FAST, "help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(FAIL_FAST) {
             projectsConfigured(":")
             problem("Build file 'build.gradle': line 2: The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. The mutation occurred via '$signature' call.")
         }
@@ -242,8 +242,8 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         [invocation, signature] << PUBLIC_MUTATORS + INTERNAL_MUTATORS
     }
 
-    // Every notifying public mutator of StartParameter, with an invocation whose value matches the
-    // current/default state so the build completes in diagnostics mode.
+    // Every notifying public mutator of StartParameter, each with a representative invocation. The value
+    // is irrelevant under fail-fast: the violation is thrown before the setter applies it.
     private static final List<List<String>> PUBLIC_MUTATORS = [
         ["setLogLevel(org.gradle.api.logging.LogLevel.LIFECYCLE)", "setLogLevel(LogLevel)"],
         ["setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.INTERNAL_EXCEPTIONS)", "setShowStacktrace(ShowStacktrace)"],
