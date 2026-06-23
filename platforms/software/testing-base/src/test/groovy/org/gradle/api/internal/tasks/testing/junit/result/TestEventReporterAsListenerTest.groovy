@@ -32,9 +32,9 @@ class TestEventReporterAsListenerTest extends Specification {
      * is registered as composite from the start, so the parent-slot reporter is always
      * a GroupTestEventReporterInternal. If that producer-side invariant is ever broken
      * (a future change emits a non-composite parent slot) the cast will throw
-     * ClassCastException — and this test goes red as the canary.
+     * IllegalStateException — and this test goes red as the canary.
      */
-    def "throws ClassCastException when fed a non-composite parent"() {
+    def "throws IllegalStateException when fed a non-composite parent"() {
         given:
         def rootGroupReporter = Mock(GroupTestEventReporterInternal)
         def specClassReporter = Mock(TestEventReporter)
@@ -67,8 +67,11 @@ class TestEventReporterAsListenerTest extends Specification {
         when: "a synthetic child descriptor is started under the (now-leaf) spec-class"
         listener.started(classMethod, new TestStartEvent(0L))
 
-        then: "the unguarded cast throws ClassCastException naming GroupTestEventReporterInternal"
-        def e = thrown(ClassCastException)
-        e.message.contains("GroupTestEventReporterInternal")
+        then: "the guarded cast throws IllegalStateException with a ClassCastException cause naming GroupTestEventReporterInternal"
+        def e = thrown(IllegalStateException)
+        e.message == "An internal test structure error occurred. Please file a new issue on https://github.com/gradle/gradle/issues, and if possible include the test class causing this failure."
+        def cause = e.cause
+        cause instanceof ClassCastException
+        cause.message.contains("GroupTestEventReporterInternal")
     }
 }
