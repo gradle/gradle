@@ -52,6 +52,7 @@ import java.util.TreeSet;
 public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final String projectName;
 
+    @SuppressWarnings("this-escape")
     public GenerateSwiftPackageManagerManifest() {
         projectName = getProject().getName();
     }

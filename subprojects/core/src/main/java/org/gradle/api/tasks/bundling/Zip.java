@@ -43,6 +43,7 @@ public abstract class Zip extends AbstractArchiveTask {
     private boolean allowZip64;
     private String metadataCharset;
 
+    @SuppressWarnings("this-escape")
     public Zip() {
         getArchiveExtension().set(ZIP_EXTENSION);
         allowZip64 = false;
@@ -63,7 +64,7 @@ public abstract class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps());
+        return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps(), getReproducibleFileTimestamp());
     }
 
     /**

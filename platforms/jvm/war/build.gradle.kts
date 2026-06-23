@@ -66,6 +66,4 @@ gradleModule {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/internal/*")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

@@ -97,7 +97,7 @@ public abstract class TestFailure {
     }
 
     /**
-     * Creates a new TestFailure instance from a test framework failure.
+     * Creates a new {@link TestFailure} instance from a test framework failure.
      *
      * @param failure the failure
      * @param causes the list of cause failures; can be {@code null}
@@ -105,5 +105,18 @@ public abstract class TestFailure {
      */
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromTestFrameworkFailure(failure, causes);
+    }
+
+    /**
+     * Creates a new {@link TestFailure} instance representing a failure occurring during the execution of a test method.
+     *
+     * @param failure the failure
+     * @return the new instance
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    public static TestFailure fromTestMethodFailure(Throwable failure) {
+        return DefaultTestFailure.fromTestMethodFailure(failure);
     }
 }

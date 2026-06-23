@@ -22,6 +22,7 @@ import org.gradle.internal.dispatch.MethodInvocation;
 public class AnonymousListenerBroadcast<T> extends ListenerBroadcast<T> {
     private final Dispatch<MethodInvocation> forwardingDispatch;
 
+    @SuppressWarnings("this-escape")
     public AnonymousListenerBroadcast(Class<T> type, Dispatch<MethodInvocation> forwardingDispatch) {
         super(type);
         this.forwardingDispatch = forwardingDispatch;

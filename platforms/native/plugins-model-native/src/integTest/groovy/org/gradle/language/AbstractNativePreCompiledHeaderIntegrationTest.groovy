@@ -18,7 +18,7 @@ package org.gradle.language
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.precondition.Requires

@@ -24,6 +24,7 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -365,6 +366,7 @@ abstract class Resolve extends Copy {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "cannot register a transform from a custom classloader"() {
         createDirs("producer", "consumer")
         settingsFile << """
@@ -397,6 +399,6 @@ abstract class Resolve extends Copy {
         fails ':consumer:resolve'
         then:
         failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered in build file 'build.gradle').")
-        failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
+        failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters TransformParameters.None of artifact transform MakeGreen")
     }
 }

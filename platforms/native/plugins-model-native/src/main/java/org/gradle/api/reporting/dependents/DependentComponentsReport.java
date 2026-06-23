@@ -55,6 +55,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
     private boolean showTestSuites;
     private List<String> components;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DependentComponentsReport() {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");

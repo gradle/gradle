@@ -100,6 +100,18 @@ public interface BuildModelParameters {
     boolean isIsolatedProjectsDiagnostics();
 
     /**
+     * Whether the IP "dangerously ignore problems" mode is enabled.
+     * <p>
+     * In this mode, IP violations are reported but do not fail the build, so it can be timed to
+     * estimate the speedup before the violations are fixed. Outputs may be incorrect and the build
+     * may crash. It can be set alongside IP Diagnostics mode, which may
+     * be useful for testing IDE sync.
+     * <p>
+     * Implies {@link #isIsolatedProjects()}.
+     */
+    boolean isIsolatedProjectsDangerouslyIgnoreProblems();
+
+    /**
      * Whether projects should be configured in parallel.
      * <p>
      * This should only take effect if {@link #isConfigureOnDemand() configure-on-demand}
@@ -152,13 +164,6 @@ public interface BuildModelParameters {
      * Always false for Vintage and CC.
      */
     boolean isCachingModelBuilding();
-
-    /**
-     * Returns true if the model building is resilient so some failures in model building.
-     *
-     * @return true if the model building is resilient, false otherwise
-     */
-    boolean isResilientModelBuilding();
 
     /**
      * Collects all properties and their values in a map for logging and testing purposes.

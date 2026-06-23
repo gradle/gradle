@@ -108,6 +108,10 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=authenticated-maven-repo]"]
 ====
 
+NOTE: When the <<configuration_cache.adoc#config_cache, Configuration Cache>> is enabled, credentials passed to a repository may be consumed at configuration time and become part of the cached build configuration.
+The resolved values are captured in the encrypted cache entry on disk.
+See <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Credentials and Secrets>> for the implications and recommended ways to store sensitive values.
+
 [[sec:digest_authentication]]
 ==== Digest Authentication
 

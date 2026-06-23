@@ -406,7 +406,7 @@ include::sample[dir="snippets/best-practices/avoidResolvingConfigurationsManuall
 <1> *Write to a file in the output directory*: This is the same.
 <2> *Declare input files property as ConfigurableFileCollection*: This lazy collection type will track task dependencies.
 <3> *Dependency artifacts are resolved to calculate digest*: The classpath will be resolved at execution time to calculate the digest.
-<4> *Configuration is passed to input property directly*: Using `from` causes the configuration to be lazily wired to the input proeprty.
+<4> *Configuration is passed to input property directly*: Using `from` causes the configuration to be lazily wired to the input property.
 The configuration will be resolved when necessary, preserving task dependencies.
 The output reveals that the `lib` project is now built when the `:app:goodClasspathPrinter` task is run because of the implicit task dependency, and the `lib.jar` file is found when calculating the digest.
 
@@ -557,6 +557,143 @@ include::sample[dir="snippets/best-practices/uniqueOutputs-do/groovy",files="bui
 <4> *Wire `greeterA` to consumer*: Makes sure that `greeterA` produces the output file before it is used by `consumer` by wiring task inputs to outputs directly.
 
 Now when running `consumer` task, then `greeterB`, the `consumer` task remains `UP-TO-DATE` as Gradle knows that it is not using the output from `greeterB`, since `greeterA` and `greeterB` _produce and consume distinct files_ (that happen to be in created in the same directory).
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
+
+[[dont_hardcode_task_names]]
+== Don't hardcode Task names unless they are documented as Public API
+
+Hardcoding task names can make a build fragile when upgrading Gradle or third-party plugins.
+
+=== Explanation
+
+Some task names in Gradle are part of the <<public_apis.adoc#public_gradle_apis,Gradle public API>> and are stable.
+Most other task names in Gradle and third-party plugins are internal implementation details. They may be renamed or removed in future versions and should not be relied upon.
+Task types are also not guaranteed to remain stable; plugin authors may refactor them.
+
+In practice, configuring tasks by type is usually more robust than depending on specific names, especially in ecosystems like Android or Kotlin where many tasks are generated dynamically.
+
+Prefer, in order:
+
+1. *Plugin DSL* - Configure tasks via extension blocks provided by a plugin that are automatically wired to the tasks that plugin creates.  This is the most future-proof and stable option.
+2. *Task types* - More robust than names in many cases, but can still change across plugin versions, depending on the plugin's backwards compatibility policies.
+3. *Task names* - Use only when they are explicitly documented as <<public_apis.adoc#public_gradle_apis,public API>>.
+
+As a plugin author, provide a DSL extension for users to configure behavior declaratively. Internally wire the configuration into your tasks. Avoid exposing task names as part of your public API unless you are prepared to maintain them with deprecation cycles.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> Looking up `compileJava` by name: This relies on the hardcoded `"compileJava"` string.
+<2> Using `tasks.named` to get the `generatePomFileForMavenPublication` task: This unnecessarily relies on this task's name, even though it's the only `GenerateMavenPom` task that needs configuring.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidHardcodingTaskNames-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+A better option for the `compileJava` configuration is to use a public constant — this task name is part of <<public_apis.adoc#public_gradle_apis,public API>>, so referencing it via the constant is safe:
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=ok]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=ok]"]
+====
+
+<1> Using `tasks.named` with `JavaPlugin.COMPILE_JAVA_TASK_NAME`: Replaces the hardcoded string with a public constant.
+
+The best option is to use the plugin DSL where possible — this avoids referring to tasks by name or type at all:
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=best]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=best]"]
+====
+
+<1> Using Java DSL: Entirely avoids implementation details of `java-library` plugin and sets `sourceCompatibility` for all `JavaCompile` tasks.
+<2> Using publishing DSL: Avoids hardcoding task names and ensures that the generated POM has the expected URL.
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:upgrades,#upgrades>>`
+
+[[dont_access_project_instance_inside_task]]
+== Don't access a `Project` instance during Task Execution
+
+Do not access a `Project` instance inside a task action or task property.
+
+=== Explanation
+
+Accessing the `Project` instance during task execution is not compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and should be avoided.
+Alternatives exist for almost every use case involving data or operations from the `Project` object:
+
+- Specify the data you were previously retrieving from the `Project` instance as an explicit task input.
+- Use similar functionality already exposed through the `Task` object (e.g., `Task.getLogger()` instead of `Project.getLogger()`).
+- Capture `Project` values in a local variable during task configuration, which can then be referenced during execution.
+
+NOTE: Accessing the `Project` instance during _task configuration_ is expected and safe — this is how you wire task input properties to project properties.
+The problem arises when `Project` is accessed during _task execution_ (e.g., inside `@TaskAction` or `doLast`).
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Reading `project.version` in a task action*: Inside the task's action, the `Project` instance is accessed to read the `version` property.
+
+There are two main problems with this setup:
+
+1. Accessing the `Project` instance during task execution will cause Configuration Cache failures.
+2. Because the version is not declared as a task input, Gradle cannot track it. This leads to incorrect up-to-date results if the project version changes.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/dontAccessProject-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/dontAccessProject-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+To ensure compatibility, avoid accessing the `Project` instance during task execution.
+Instead, tasks should explicitly declare all required inputs.
+
+====
+include::sample[dir="snippets/bestPractices/dontAccessProject-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/dontAccessProject-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Declare the version as an input property*: This allows Gradle to track the version string for up-to-date checks.
+<2> *Assign the version during configuration*: It is safe to read `project.version` during the configuration phase to assign it to a task input.
+<3> *Set the output location*: Use `project.layout` during configuration to define the task's output directory.
+
+Now, when running the task, there are no "hidden inputs" that Gradle cannot track.
+This ensures that up-to-date checks accurately determine when a task needs to run again.
+Additionally, because the `Project` object is not accessed after configuration, the Configuration Cache will function correctly.
+
+=== References
+
+- <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,Configuration Cache Requirements>>
 
 === Tags
 

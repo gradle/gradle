@@ -46,6 +46,7 @@ import java.util.Set;
  * this will have no effect.
  */
 @DisableCachingByDefault(because = "Deletion cannot be cached")
+@SuppressWarnings("this-escape")
 public abstract class Delete extends ConventionTask implements DeleteSpec {
     private ConfigurableFileCollection paths = getProject().getObjects().fileCollection();
 

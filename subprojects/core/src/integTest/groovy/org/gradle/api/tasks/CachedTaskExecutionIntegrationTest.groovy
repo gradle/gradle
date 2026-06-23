@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggi
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -417,7 +417,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         noneSkipped()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Custom actions flag is not restored, https://github.com/gradle/gradle/issues/37246")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37246",
+        because = "Custom actions flag is not restored"
+    )
     def "task with custom actions gets logged"() {
         when:
         withBuildCache().run "compileJava", "--info"

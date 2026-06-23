@@ -271,7 +271,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("Execution of dummyTask")
     }
 
-    def "can ignore problems and cache custom model"() {
+    def "dangerously ignoring problems stores and discards a custom model entry"() {
         given:
         includeProjects("a", "b")
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -283,24 +283,30 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjectsDangerouslyIgnoreProblems()
         def model = fetchModel()
 
         then:
         model.message == "It works from project :"
-        fixture.assertModelStoredWithProblems {
+        fixture.assertModelStoredAndDiscarded {
+            hasStoreFailure = false
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
 
-        when:
-        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
+        when: "running again"
+        withIsolatedProjectsDangerouslyIgnoreProblems()
         def model2 = fetchModel()
 
-        then:
+        then: "the entry was not reused, so projects are reconfigured and the violation is reported again"
         model2.message == "It works from project :"
-        fixture.assertModelLoaded()
+        fixture.assertModelStoredAndDiscarded {
+            hasStoreFailure = false
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
+        }
     }
 
     def "caches calculation of GradleBuild model"() {

@@ -19,6 +19,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.collections)
     implementation(projects.logging)
     implementation(projects.inputTracking)
     implementation(projects.internalInstrumentationApi)

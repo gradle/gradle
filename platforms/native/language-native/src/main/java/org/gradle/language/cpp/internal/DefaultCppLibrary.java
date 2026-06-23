@@ -51,6 +51,7 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
     private final MainLibraryVariant mainVariant;
     private final DefaultLibraryDependencies dependencies;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultCppLibrary(String name, RoleBasedConfigurationContainerInternal configurations, AttributesFactory attributesFactory) {
         super(name);

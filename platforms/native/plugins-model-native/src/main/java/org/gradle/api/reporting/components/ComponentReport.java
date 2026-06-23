@@ -60,6 +60,7 @@ public abstract class ComponentReport extends DefaultTask {
     @Inject
     protected abstract TypeAwareBinaryRenderer getBinaryRenderer();
 
+    @SuppressWarnings("this-escape")
     @Inject
     public ComponentReport() {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");

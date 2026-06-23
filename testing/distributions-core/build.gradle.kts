@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.packaging")
+    id("gradlebuild.public-api-jar")
 }
 
 description = "The collector project for the 'core' portion of the Gradle distribution"
@@ -47,5 +48,8 @@ dependencies {
     }
     pluginsRuntimeOnly(projects.isolatedActionServices) {
         because("This is required for IsolatedProjectEvaluationListenerProvider service implementation.")
+    }
+    pluginsRuntimeOnly(projects.problemsImpl) {
+        because("This provides the daemon-only Problems API service implementations.")
     }
 }

@@ -53,14 +53,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
-    "groups" : [ {
-      "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
     "groups" : [ {
       "testProject" : "nowInAndroidBuild",
@@ -320,7 +312,35 @@
   }, {
     "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings",
     "groups" : [ {
+      "testProject" : "generateDiverseDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "generateLotsOfDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectDeprecations",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings with all warnings shown",
+    "groups" : [ {
+      "testProject" : "generateDiverseDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "generateLotsOfDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectDeprecations",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
@@ -854,6 +874,14 @@
       "testProject" : "largeMonolithicJavaProject",
       "coverage" : {
         "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.kotlindsl.KotlinDslAccessorsPerformanceTest.generate accessors",
+    "groups" : [ {
+      "testProject" : "kotlinDslManyAccessors",
+      "coverage" : {
+        "per_day" : [ "linux" ]
       }
     } ]
   }, {

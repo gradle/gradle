@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
@@ -45,6 +46,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         withProcessor(writingResourcesTo(StandardLocation.CLASS_OUTPUT.toString()))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files are recompiled when any annotated file changes"() {
         def a = java "@Service class A {}"
         java "@Service class B {}"
@@ -61,6 +63,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         serviceRegistryReferences("A", "B")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "incremental processing works on subsequent incremental compilations after failure"() {
         def a = java "@Service class A {}"
         java "@Service class B {}"
@@ -93,6 +96,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "incremental processing works when new aggregating type is added on subsequent incremental compilations after failure"() {
         def a = java "@Service class A {}"
         java "@Service class B {}"
@@ -123,6 +127,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         serviceRegistryReferences("A", "B", "C")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "unrelated files are not recompiled when annotated file changes"() {
         def a = java "@Service class A {}"
         java "class Unrelated {}"
@@ -137,6 +142,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "annotated files are reprocessed when an unrelated file changes"() {
         java "@Service class A {}"
         def unrelated = java "class Unrelated {}"
@@ -151,6 +157,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledFiles("Unrelated", "ServiceRegistry", "ServiceRegistryResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "annotated files are reprocessed when a new file is added"() {
         java "@Service class A {}"
         java "class Unrelated {}"
@@ -166,6 +173,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         serviceRegistryReferences("A", "B")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "annotated files are reprocessed when a file is deleted"() {
         def a = java "@Service class A {}"
         java "@Service class B {}"
@@ -185,6 +193,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13767")
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files with annotations are not reprocessed when a file is added (#label)"() {
         def fixture = new AnnotatedGeneratedClassProcessorFixture()
         if (generateClass) {
@@ -220,6 +229,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17572")
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "can have an aggregating annotation processor for package info"() {
         def fixture = new PackageInfoGeneratedClassProcessorFixture()
         withProcessor(fixture)
@@ -266,6 +276,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files with annotations are reprocessed when a file is deleted (#label)"() {
         def fixture = new AnnotatedGeneratedClassProcessorFixture()
         if (generateClass) {
@@ -303,6 +314,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         true          | "generate class files"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "classes depending on generated file are recompiled when source file changes"() {
         given:
         def a = java "@Service class A {}"
@@ -321,6 +333,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt", "Dependent")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "classes files of generated sources are deleted when annotated file is deleted"() {
         given:
         def a = java "@Service class A {}"
@@ -336,6 +349,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.deletedFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files are deleted when annotated file is deleted"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -358,6 +372,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         !file("build/generated/sources/annotationProcessor/java/main/ServiceRegistryResource.txt").exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "generated files and classes are deleted when processor is removed"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -382,6 +397,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.deletedClasses("ServiceRegistry")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "processors can generate identical resources in different locations"() {
         given:
         def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
@@ -408,6 +424,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         !file("build/classes/java/main/A.txt").exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "an isolating processor is also a valid aggregating processor"() {
         given:
         withProcessor(new HelperProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
@@ -417,6 +434,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "processors can provide multiple originating elements"() {
         given:
         java "@Service class A {}"
@@ -426,6 +444,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "aggregating processor do not work with source retention"() {
         given:
         annotationProjectDir.file("src/main/java/Service.java").text = """
@@ -449,6 +468,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputContains("Full recompilation is required because '@Service' has source retention. Aggregating annotation processors require class or runtime retention.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "reports aggregating processor in build operation"() {
         java "class Irrelevant {}"
 
@@ -463,6 +483,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "annotation processing across projects")
     def "updating an unrelated file doesn't delete generated resources built by an aggregating processor"() {
         def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
         withProcessor(new ResourceGeneratingProcessorFixture().withOutputLocations(locations).withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
@@ -489,6 +510,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18840")
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "a class can be aggregated with a type that it generated"() {
         given:
         withProcessor(new AnnotatedGeneratedClassProcessorFixture())
@@ -503,6 +525,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     @Issue("https://github.com/micronaut-projects/micronaut-core/issues/6536")
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "does not reprocess if nothing in the current sourceSet changed"() {
         given:
         withProcessor(new AnnotatedGeneratedClassProcessorFixture())
@@ -520,6 +543,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "module-info.java does not cause exception in annotation processor handling"() {
         given:
         withProcessor(new AnnotationProcessorFixture("foo", "FooAnnotation", true).withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))

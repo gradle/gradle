@@ -60,6 +60,7 @@ public abstract class ModelReport extends DefaultTask {
     private boolean showHidden;
     private Format format = Format.FULL;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public ModelReport() {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");

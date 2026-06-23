@@ -18,12 +18,14 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "project1", "1.0"))
     def project2 = javaLibrary(mavenRepo.module("org.gradle.test", "project2", "2.0"))
     def project3 = javaLibrary(mavenRepo.module("org.gradle.test", "project3", "3.0"))
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "project dependency correctly reflected in POM"() {
         createBuildScripts()
 
@@ -34,6 +36,7 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
         projectsCorrectlyPublished()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "project dependencies reference publication identity of dependent project (version mapping: #mapping)"() {
         def project3 = javaLibrary(mavenRepo.module("changed.group", "changed-artifact-id", "changed"))
 
@@ -87,6 +90,7 @@ project(":project1") {
         mapping << [false, true]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "reports failure when project dependency references a project with multiple conflicting publications"() {
         createBuildScripts("""
 project(":project2") {
@@ -119,6 +123,7 @@ Found the following publications in project ':project2':
   - Maven publication 'extra' with coordinates extra.group:extra:extra"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "referenced project can have additional non-component publications"() {
         createBuildScripts("""
 project(":project3") {
@@ -138,6 +143,7 @@ project(":project3") {
         succeeds "publish"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
         createBuildScripts("""
 // TODO - replace this with a public API when available
@@ -176,6 +182,7 @@ project(":project3") {
         project1.assertApiDependencies("org.gradle.test:project2:2.0", "custom:custom3:456")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
         createBuildScripts("""
 project(":project2") {
@@ -294,6 +301,7 @@ project(":project2") {
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

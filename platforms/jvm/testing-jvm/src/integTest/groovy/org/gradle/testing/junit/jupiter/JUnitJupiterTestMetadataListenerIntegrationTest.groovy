@@ -18,13 +18,11 @@ package org.gradle.testing.junit.jupiter
 
 import org.gradle.api.tasks.testing.TestMetadataListener
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Ignore
-
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 /**
  * Integration tests for using {@link TestMetadataListener} with JUnit Jupiter tests.

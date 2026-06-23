@@ -108,6 +108,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * }
  * </pre>
  */
+@SuppressWarnings("this-escape")
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
@@ -127,6 +128,7 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     private String executable;
 
+    @SuppressWarnings("this-escape")
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         PropertyFactory propertyFactory = getPropertyFactory();

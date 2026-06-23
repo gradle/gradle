@@ -26,7 +26,7 @@ import spock.lang.Issue
  * For DSL-agnostic tests prefer {@link IsolatedProjectsAccessIntegrationTest}.
  */
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    def "reports problem when build script uses #block block to apply plugins to another project"() {
+    def "reports problem when build script uses #block block to apply plugins to another project [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -39,10 +39,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsDiagnosticsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on $message", 2)
         }
@@ -51,31 +51,33 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         block         | message
         "allprojects" | "subprojects via 'allprojects'"
         "subprojects" | "subprojects"
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports problem when build script uses #block block to access dynamically added elements"() {
+    def "reports problem when build script uses #block block to access dynamically added elements via '#statement' [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
             include("b")
+            gradle.lifecycle.beforeProject {
+                plugins.apply('java-library')
+            }
         """
         buildFile << """
             $block {
-                plugins.apply('java-library')
-                java { }
-                java.sourceCompatibility
+                $statement
             }
         """
 
         when:
-        isolatedProjectsDiagnosticsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on $message", 2)
-            problem("Build file 'build.gradle': line 4: Project ':' cannot access 'java' extension on $message", 2)
-            problem("Build file 'build.gradle': line 5: Project ':' cannot access 'java' extension on $message", 2)
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'java' extension on $message", 2)
         }
 
         where:
@@ -83,9 +85,15 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "allprojects"                       | "subprojects via 'allprojects'"
         "subprojects"                       | "subprojects"
         "configure(childProjects.values())" | "child projects"
+
+        combined:
+        statement << ["java { }", "java.sourceCompatibility"]
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports problem when build script uses #property property to apply plugins to another project"() {
+    def "reports problem when build script uses #property property to apply plugins to another project [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -98,10 +106,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsDiagnosticsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on $message", 2)
         }
@@ -111,6 +119,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "allprojects"            | "subprojects via 'allprojects'"
         "subprojects"            | "subprojects"
         "childProjects.values()" | "child projects"
+
+        combined:
+        mode << ALL_MODES
     }
 
     def "reports problem when build script uses project() block to apply plugins to another project"() {
@@ -126,16 +137,19 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on another project ':a'")
         }
+
+        where:
+        mode << ALL_MODES
     }
 
-    def "reports problem when root project build script uses #expression method to apply plugins to another project"() {
+    def "reports problem when root project build script uses #expression method to apply plugins to another project [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -146,10 +160,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': line 2: Project ':' cannot access 'Project.plugins' functionality on another project ':a'")
         }
@@ -158,9 +172,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         expression          | _
         "project(':a')"     | _
         "findProject(':a')" | _
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports problem when child project build script uses #expression method to apply plugins to sibling project"() {
+    def "reports problem when child project build script uses #expression method to apply plugins to sibling project [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -171,10 +188,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access 'Project.plugins' functionality on another project '$target'")
         }
@@ -185,9 +202,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject(':b')" | ":b"
         "rootProject"       | ":"
         "parent"            | ":"
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports problem when root project build script uses chain of methods #chain { } to apply plugins to other projects"() {
+    def "reports problem when root project build script uses chain of methods #chain { } to apply plugins to other projects [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -198,10 +218,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsDiagnosticsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': line 2: Project ':' cannot access 'Project.plugins' functionality on $message", 2)
         }
@@ -217,9 +237,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "project('b').project(':').allprojects.each"    | "subprojects via 'allprojects'"
         "project('b').project(':').subprojects.each"    | "subprojects"
         "findProject('b').findProject(':').subprojects" | "subprojects"
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports problem when project build script uses chain of methods #chain { } to apply plugins to other projects"() {
+    def "reports problem when project build script uses chain of methods #chain { } to apply plugins to other projects [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -230,10 +253,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access 'Project.plugins' functionality on $message")
         }
@@ -248,9 +271,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "project(':b').parent.subprojects"       | "subprojects of project ':'"
         "project(':').project('b')"              | "another project ':b'"
         "findProject(':').findProject('b').with" | "another project ':b'"
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports problem when project build script uses chain of methods #chain { } to apply plugins to all projects"() {
+    def "reports problem when project build script uses chain of methods #chain { } to apply plugins to all projects [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -261,10 +287,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsDiagnosticsFails("assemble")
+        isolatedProjectsFailsUsing(mode, "assemble")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access 'Project.plugins' functionality on subprojects of project ':'", 2)
         }
@@ -273,9 +299,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         chain                           | _
         "project(':').allprojects"      | _
         "project(':').allprojects.each" | _
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "reports cross-project model access in Gradle.#invocation"() {
+    def "reports cross-project model access in Gradle.#invocation [#mode]"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -288,10 +317,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
+        isolatedProjectsFailsUsing(mode, ":a:help", ":b:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access 'Project.buildDir' functionality on $message", accessedProjects)
         }
@@ -304,10 +333,13 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         // TODO:isolated fix expectations for parallel configuration
 //        "beforeProject"          | 1                | "another project ':b'"
 //        "afterProject"           | 1                | "another project ':b'"
+
+        combined:
+        mode << ALL_MODES
     }
 
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
-    def "reports cross-project model access in composite build access to Gradle.#invocation"() {
+    def "reports cross-project model access in composite build access to Gradle.#invocation [#mode]"() {
         createDirs("a", "include")
         settingsFile << """
             include("a")
@@ -318,10 +350,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":include:help")
+        isolatedProjectsFailsUsing(mode, ":include:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":include", ":", ":a")
             // TODO:isolated expected behavior for incremental configuration
 //            projectsConfigured(":include")
@@ -332,6 +364,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         invocation | _
         "parent"   | _
         "root"     | _
+
+        combined:
+        mode << ALL_MODES
     }
 
     def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
@@ -347,86 +382,19 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
+        isolatedProjectsFailsUsing(mode, ":a:help", ":b:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access 'Project.buildDir' functionality on subprojects of project ':'", 2)
         }
-    }
-
-    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
-    def "reports cross-project model from ProjectEvaluationListener registered in Gradle.#invocation"() {
-        createDirs("a", "b")
-        settingsFile << """
-            include("a")
-            include("b")
-        """
-        file("a/build.gradle") << """
-            class MyListener implements ProjectEvaluationListener {
-                void beforeEvaluate(Project project) { }
-                void afterEvaluate(Project project, ProjectState projectState) {
-                    println project.buildDir
-                }
-            }
-            gradle.$invocation(new MyListener())
-        """
-
-        when:
-        // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
-        isolatedProjectsRun(":a:help", ":b:help")
-
-        then:
-        fixture.assertStateStored {
-            projectsConfigured(":", ":a", ":b")
-        }
-        // TODO:isolated expected behavior for incremental configuration
-//        fixture.assertStateStoredAndDiscarded {
-//            projectsConfigured(":", ":a", ":b")
-//            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
-//        }
 
         where:
-        invocation                     | _
-        "addListener"                  | _
-        "addProjectEvaluationListener" | _
+        mode << ALL_MODES
     }
 
-    def "listener removal works properly in Gradle.#add + Gradle.#remove"() {
-        createDirs("a", "b")
-        settingsFile << """
-            include("a")
-            include("b")
-        """
-        file("a/build.gradle") << """
-            class MyListener implements ProjectEvaluationListener {
-                void beforeEvaluate(Project project) { }
-                void afterEvaluate(Project project, ProjectState projectState) {
-                    println project.buildDir
-                }
-            }
-            def listener = new MyListener()
-            gradle.$add(listener)
-            gradle.$remove(listener)
-        """
-
-        when:
-        isolatedProjectsRun(":a:help", ":b:help")
-
-        then:
-        fixture.assertStateStored {
-            projectsConfigured(":", ":a", ":b")
-        }
-
-        where:
-        add                            | remove
-        "addListener"                  | "removeListener"
-        "addProjectEvaluationListener" | "removeProjectEvaluationListener"
-    }
-
-    def "task graph should track cross-project model access in listeners with `#statement`"() {
+    def "task graph should track cross-project model access in listeners with `#statement` [#mode]"() {
         createDirs("a")
         file("settings.gradle") << "include('a')"
         file("build.gradle") << """
@@ -439,22 +407,34 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":help", ":a:help")
+        isolatedProjectsFailsUsing(mode, ":help", ":a:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a")
             problem("Build file 'build.gradle': line $line: Project ':' cannot access the tasks in the task graph that were created by other projects")
-            failureCauseContains("Project ':' cannot access the tasks in the task graph that were created by other projects; tried to access ':x:unknown'")
+        }
+
+        and:
+        // Fail-fast throws the violation directly, so the enriched message is the failure
+        // description; diagnostics defers it as a cause of the end-of-build CC failure.
+        def enrichedViolation = "Project ':' cannot access the tasks in the task graph that were created by other projects; tried to access ':x:unknown'"
+        if (mode == IsolatedProjectsMode.FAIL_FAST) {
+            failureDescriptionContains(enrichedViolation)
+        } else {
+            failureCauseContains(enrichedViolation)
         }
 
         where:
         statement                                                             | line
         "gradle.taskGraph.whenReady { graph -> graph.hasTask(':x:unknown') }" | 7
         "gradle.taskGraph.addTaskExecutionGraphListener(new MyListener())"    | 4
+
+        combined:
+        mode << ALL_MODES
     }
 
-    def "checking cross-project model access in task graph call `#statement` with #tasksToRun, should succeed: #shouldSucceed"() {
+    def "checking cross-project model access in task graph call `#statement` with #tasksToRun, should succeed: #shouldSucceed [#mode]"() {
         createDirs("b")
         settingsFile << """
             include("b")
@@ -481,7 +461,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         if (shouldSucceed) {
             isolatedProjectsRun(*tasksToRun)
         } else {
-            isolatedProjectsFails(*tasksToRun)
+            isolatedProjectsFailsUsing(mode, *tasksToRun)
         }
 
         then:
@@ -490,7 +470,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
                 projectsConfigured(":", ":b")
             }
         } else {
-            fixture.assertStateStoredAndDiscarded {
+            fixture.assertIsolatedProjectsProblems(mode) {
                 projectsConfigured(":", ":b")
                 problem("Build file 'b/build.gradle': line 10: Project ':b' cannot access the tasks in the task graph that were created by other projects")
             }
@@ -508,6 +488,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "graph.getDependencies(compileJava)" | [":b:compileJava"]               | false
         "graph.filteredTasks"                | [":b:compileJava"]               | false
         "graph.filteredTasks"                | [":b:compileJava", "-x:classes"] | false
+
+        combined:
+        mode << ALL_MODES
     }
 
     def "child project does not walk the parent's dynamic scope when looking up a missing property via `#expr`"() {
@@ -577,7 +560,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         failureCauseContains("Could not find method foo() for arguments [] on project ':a'")
     }
 
-    def "reports problem when build script uses #expr on its own project"() {
+    def "reports problem when build script uses #expr on its own project [#mode]"() {
         file("build.gradle") << """
             println($expr)
         """
@@ -589,10 +572,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
 
-        isolatedProjectsFails("help")
+        isolatedProjectsFailsUsing(mode, "help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":")
             problem("Build file 'build.gradle': line 2: use of 'Project.getProperties()' is not allowed with Isolated Projects")
         }
@@ -601,6 +584,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         expr                 | deprecation
         "properties"         | "Dynamically calling getProperties() on a script has been deprecated. "
         "project.properties" | "The Project.getProperties method has been deprecated. "
+
+        combined:
+        mode << ALL_MODES
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22949")
@@ -768,7 +754,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         outputContains("project name = b")
     }
 
-    def "reports problem on #expr buildDependencies.getDependencies(...)"() {
+    def "reports problem on #expr buildDependencies.getDependencies(...) [#mode]"() {
         given:
         buildFile << """
             $setup
@@ -778,10 +764,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":help")
+        isolatedProjectsFailsUsing(mode, ":help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":")
             problem("Build file 'build.gradle': line 5: Project ':' cannot access task dependencies directly")
         }
@@ -804,6 +790,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "testing.suites.test"                                 | "plugins { id('java'); id('jvm-test-suite') }"
         "testing.suites.test.targets.toList()[0]"             | "plugins { id('java'); id('jvm-test-suite') }"
         "publishing.publications.maven.artifacts.toList()[0]" | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
+
+        combined:
+        mode << ALL_MODES
     }
 
     def "mentions the specific project and build file in getDependencies(...) problems"() {
@@ -819,13 +808,16 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:b:help")
+        isolatedProjectsFailsUsing(mode, ":a:b:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a", ":a:b")
             problem("Build file 'a/b/build.gradle': line 3: Project ':a:b' cannot access task dependencies directly")
         }
+
+        where:
+        mode << ALL_MODES
     }
 
     def "project can access itself"() {
@@ -866,11 +858,11 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             String foo(){ 'configured' }
         """
 
-        when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        when: "the cross-project access fails the build fast"
+        isolatedProjectsFails 'help'
 
         then:
-        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':a:sub' of type org.gradle.api.Project")
+        failure.assertHasCause("Project ':a' cannot access 'foo' extension on another project ':a:sub'")
         problems.assertResultHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':a:sub'")
         }
@@ -900,11 +892,11 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             myExtension.foo.set('configured')
         """
 
-        when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        when: "the cross-project access fails the build fast"
+        isolatedProjectsFails 'help'
 
         then:
-        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':a:sub' of type org.gradle.api.Project")
+        failure.assertHasCause("Project ':a' cannot access 'myExtension' extension on another project ':a:sub'")
         problems.assertResultHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':a:sub'")
         }
@@ -929,7 +921,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    def "can use #api(Closure) API added by runtime decoration"() {
+    def "can use #api(Closure) API added by runtime decoration [#mode]"() {
         settingsFile << """
             include ':a'
         """
@@ -941,10 +933,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails 'help'
+        isolatedProjectsFailsUsing mode, 'help'
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.$api' functionality on another project ':a'", 1)
         }
@@ -953,6 +945,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         api                 | invocation
         "normalization"     | "normalization { runtimeClasspath{} }"
         "dependencyLocking" | "dependencyLocking { lockAllConfigurations() }"
+
+        combined:
+        mode << ALL_MODES
     }
 
     def 'child project access preserves a referrer'() {

@@ -60,7 +60,7 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "help", "-Dorg.gradle.unsafe.isolated-projects=true"
+        configurationCacheRun "help", "-Dorg.gradle.isolated-projects=true"
         then:
         configurationCache.assertStateStored()
         isolatedProjects.assertStateStored {
@@ -74,7 +74,7 @@ class ConfigurationCacheKeyIntegrationTest extends AbstractConfigurationCacheInt
         configurationCache.assertStateLoaded()
 
         when:
-        configurationCacheRun "help", "-Dorg.gradle.unsafe.isolated-projects=true"
+        configurationCacheRun "help", "-Dorg.gradle.isolated-projects=true"
         then:
         configurationCache.assertStateLoaded()
         isolatedProjects.assertStateLoaded()

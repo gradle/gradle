@@ -1342,7 +1342,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     @Nullable
-    private static Failure toFailure(InternalFailure origFailure) {
+    private static Failure toFailure(@Nullable InternalFailure origFailure) {
         if (origFailure == null) {
             return null;
         }
@@ -1393,11 +1393,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 ((InternalTestFrameworkFailure) origFailure).getStacktrace()
             );
         }
-        return new DefaultFailure(
-            origFailure.getMessage(),
-            origFailure.getDescription(),
-            toFailures(origFailure.getCauses()),
-            clientProblems);
+        List<Failure> causes = toFailures(origFailure.getCauses());
+        try {
+            return DefaultFailure.fromOwnDescription(origFailure.getMessage(), origFailure.getOwnDescription(), causes, clientProblems);
+        } catch (NoSuchMethodError | AbstractMethodError ignore) {
+            // Older Gradle versions don't have the own description; fall back to the full description
+            return new DefaultFailure(origFailure.getMessage(), origFailure.getDescription(), causes, clientProblems);
+        }
     }
 
     private static @Nullable List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {

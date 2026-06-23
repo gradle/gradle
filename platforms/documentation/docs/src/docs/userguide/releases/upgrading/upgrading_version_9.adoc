@@ -41,6 +41,20 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 2.4.0
+
+The embedded Kotlin has been upgraded from 2.3.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0[Kotlin 2.4.0].
+
+Starting with Kotlin `2.4.0`, the compiler no longer supports `-language-version=1.9`, which means the K1 compiler is gone entirely.
+`2.0` is the new minimum compile target (and is itself deprecated, pointing at `2.2`).
+
+From the `2.4.0` release notes:
+
+- KGP requires a minimum Gradle version of `7.6.3`, fully tested through `9.5.0`.
+- Support for Java `26` has been added.
+
+Oldest supported `kotlin-dsl` plugin version is now `6.2.0`, which can be used to build precompiled-script plugins targeting a language level as old as `1.8`. Oldest supported KGP version is `1.9.22` which can be used to write Kotlin plugins targeting language levels as old as `1.4` and be used in Gradle versions as old as `7.2`.
+
 [[kotlin_dsl_impldep_compilation]]
 ==== Kotlin DSL scripts can no longer reference relocated internal dependencies
 
@@ -69,6 +83,50 @@ buildscript {
 
 NOTE: This change does not affect plugin projects that have `gradleApi()` or `gradleKotlinDsl()` among their dependencies. Those continue to use the full generated Gradle API JAR as before.
 
+[[parameters_none_changes]]
+==== Behavior and contract changes for `*Parameters.None`
+
+The marker types used to declare a parameterless action — link:{javadocPath}/org/gradle/workers/WorkParameters.None.html[`WorkParameters.None`], link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.None.html[`TransformParameters.None`], link:{javadocPath}/org/gradle/api/services/BuildServiceParameters.None.html[`BuildServiceParameters.None`], link:{javadocPath}/org/gradle/api/provider/ValueSourceParameters.None.html[`ValueSourceParameters.None`], link:{javadocPath}/org/gradle/api/flow/FlowParameters.None.html[`FlowParameters.None`] and `JvmTestToolchainParameters.None` — have been standardized.
+
+1. **The configuration `Action` is now invoked even when the action declares `None` as its parameters type.**
+Calls like `WorkQueue.submit(MyAction.class, p -> ...)`, `FlowActionSpec.parameters { ... }`, `ValueSourceSpec.parameters { ... }`, `BuildServiceSpec.parameters { ... }` and `TransformSpec.parameters { ... }` now always run the configuration block.
+When the parameters type is `None`, the block receives the `None` singleton instead of being skipped.
+Existing blocks that just configured properties on a real parameters type are unaffected; any code that relied on the block being silently skipped for `None` will now run.
+
+2. **`getParameters()` returns the `None` singleton instead of `null` for parameterless actions.**
+Inside a `WorkAction`, `TransformAction`, `BuildService`, `ValueSource` or `FlowAction` that declares `None` as its parameters type, `getParameters()` now returns the `None` singleton.
+Previously it could return `null`.
+Null-checks against the result are no longer required.
+
+No source change is needed in typical builds.
+If you have custom code that branched on `getParameters() == null` to detect a parameterless action, replace it with `getParameters() instanceof WorkParameters.None` (or the equivalent `None` type).
+
+=== Deprecations
+
+[[deprecated_unsafe_isolated_projects_properties]]
+==== Deprecation of `org.gradle.unsafe.isolated-projects*` property names
+
+The Isolated Projects feature can now be enabled with stable property names that drop the `.unsafe.` segment, alongside a new incubating CLI option `--isolated-projects` / `--no-isolated-projects`:
+
+|===
+| Legacy name | New name
+
+| `org.gradle.unsafe.isolated-projects`
+| `org.gradle.isolated-projects`
+
+| `org.gradle.unsafe.isolated-projects.diagnostics`
+| `org.gradle.isolated-projects.diagnostics`
+
+| `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`
+| `org.gradle.isolated-projects.dangerously-ignore-problems`
+|===
+
+The legacy `org.gradle.unsafe.*` names are now deprecated and will be removed in a future release.
+They continue to be accepted as aliases for now and currently emit no warning.
+Update your `gradle.properties` and command-line invocations to the new names.
+
+See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
@@ -76,12 +134,14 @@ NOTE: This change does not affect plugin projects that have `gradleApi()` or `gr
 === Potential breaking changes
 
 [[agp_8x_incompatible]]
-==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
+==== Plugins relying on removed Problems API internals are no longer compatible with Gradle 9.6
 
-Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
-Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
+Several internal classes of the Problems API, such as `org.gradle.api.problems.internal.InternalProblems`, have been removed in Gradle 9.6.
+Plugins that bound to these internal classes directly fail at build time with an error mentioning the removed type.
 
+The most common case is Android Gradle Plugin (AGP) 8.x, which relied on these internal classes.
 To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+If the failure comes from another plugin, update it to a version that no longer uses Gradle internal APIs, or stay on Gradle 9.5 until such a version is available.
 
 [[concurrency_primitives_prohibited_by_cc]]
 ==== Concurrency primitives can no longer be serialized by the Configuration Cache
@@ -126,10 +186,10 @@ Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelo
 [[v9_deprecations_9_6]]
 === Deprecations
 
-[[deprecated_implicit_project_hierarchy_lookup]]
-==== Deprecation of implicit lookup of properties and methods in the project hierarchy
+[[deprecated_implicit_lookup_in_parent_projects]]
+==== Deprecation of implicit lookup of properties and methods in parent projects
 
-In Gradle's Groovy and Kotlin DSLs, when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match:
+In Gradle's Groovy and Kotlin DSLs, when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the parent projects looking for a match:
 
 ====
 [.multi-language-sample]
@@ -205,7 +265,7 @@ It will also affect the output of the `properties` task when invoked for subproj
 [[deprecated_develocity_plugin_pre_4_0]]
 ==== Deprecation of Develocity plugin versions before 4.0
 
-Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_project_hierarchy_lookup,deprecated>> and will be removed in Gradle 10.
+Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_lookup_in_parent_projects,deprecated>> and will be removed in Gradle 10.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
 See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.

@@ -130,6 +130,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         this(new JavadocOptionFile());
     }
 
+    @SuppressWarnings("this-escape")
     public StandardJavadocDocletOptions(JavadocOptionFile javadocOptionFile) {
         super(javadocOptionFile);
 
@@ -218,6 +219,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         knownStandardOptionNames = original.knownStandardOptionNames;
     }
 
+    @SuppressWarnings("this-escape")
     public StandardJavadocDocletOptions(MinimalJavadocOptions original) {
         this();
 

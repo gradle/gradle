@@ -74,6 +74,7 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
  * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")
+@SuppressWarnings("this-escape")
 public abstract class InstrumentationAnalysisTransform implements TransformAction<InstrumentationAnalysisTransform.Parameters> {
 
     private static boolean isTypeAccepted(String type) {

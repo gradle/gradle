@@ -22,6 +22,7 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
@@ -38,6 +39,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void canCreateAndDeleteMetaData() {
         when:

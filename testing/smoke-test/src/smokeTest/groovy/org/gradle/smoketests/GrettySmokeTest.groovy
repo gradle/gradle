@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
@@ -83,6 +83,16 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
         [
             'org.gretty': Versions.of(grettyConfigForCurrentJavaVersion().collect { it.version } as String[])
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "gretty {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('gretty')]
     }
 
     static def grettyConfigForCurrentJavaVersion() {

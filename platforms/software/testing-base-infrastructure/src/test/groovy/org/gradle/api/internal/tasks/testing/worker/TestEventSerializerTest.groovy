@@ -17,13 +17,14 @@
 package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestFrameworkFailureDetails
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestOutputEvent
@@ -196,6 +197,22 @@ class TestEventSerializerTest extends SerializerSpec {
         result.details.expected == 'expectedValue'
         result.details.actual == 'actualValue'
         result.details.stacktrace.contains('java.lang.RuntimeException: cause')
+    }
+
+    def "serializes framework-failure TestFailure preserving subtype"() {
+        TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException("boom"))
+
+        when:
+        TestFailure result = serialize(failure, TestFailure)
+
+        then:
+        result.details instanceof TestFrameworkFailureDetails
+        result.details.frameworkFailure == true
+        !result.details.assertionFailure
+        !result.details.assumptionFailure
+        !result.details.fileComparisonFailure
+        result.details.message == 'boom'
+        result.details.stacktrace.contains('java.lang.RuntimeException: boom')
     }
 
     Object serialize(Object source, Class type = source.getClass()) {

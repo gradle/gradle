@@ -45,6 +45,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.4
  */
+@SuppressWarnings("this-escape")
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public abstract class GenerateMavenPom extends DefaultTask {
 

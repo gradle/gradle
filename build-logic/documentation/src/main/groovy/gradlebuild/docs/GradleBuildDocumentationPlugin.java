@@ -27,13 +27,13 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import javax.inject.Inject;
@@ -61,7 +61,7 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
-        addUtilityTasks(tasks, extension);
+        addUtilityTasks(project, tasks, extension);
 
         checkDocumentation(tasks, extension);
     }
@@ -126,18 +126,18 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         }));
     }
 
-    private void addUtilityTasks(TaskContainer tasks, GradleDocumentationExtension extension) {
+    private void addUtilityTasks(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
+        JavaToolchainService javaToolchains = project.getExtensions().getByType(JavaToolchainService.class);
+        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+
         tasks.register("serveDocs", ServeDocs.class, task -> {
             task.setDescription("Runs a local webserver to serve generated documentation.");
             task.setGroup("documentation");
 
             int webserverPort = 8000;
-            task.getJavaLauncher().set(
-                task.getProject().getExtensions().getByType(JavaToolchainService.class)
-                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(21)))
-            );
             task.getDocsDirectory().convention(extension.getDocumentationRenderedRoot());
             task.getPort().convention(webserverPort);
+            task.getJavaLauncher().convention(javaToolchains.launcherFor(javaPluginExtension.getToolchain()));
 
             task.dependsOn(extension.getRenderedDocumentation());
         });

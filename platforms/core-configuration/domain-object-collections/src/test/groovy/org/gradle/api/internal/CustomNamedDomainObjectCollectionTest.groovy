@@ -56,6 +56,11 @@ class MyNamedDomainObjectCollection<T> implements NamedDomainObjectCollection<T>
     }
 
     @Override
+    Provider<? extends Collection<T>> getElements() {
+        return null
+    }
+
+    @Override
     <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         return null
     }

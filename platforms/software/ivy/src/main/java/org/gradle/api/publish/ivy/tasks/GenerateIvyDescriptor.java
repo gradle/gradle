@@ -44,6 +44,7 @@ import java.io.File;
  *
  * @since 1.4
  */
+@SuppressWarnings("this-escape")
 @UntrackedTask(because = "Gradle doesn't understand the data structures")
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 

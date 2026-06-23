@@ -55,6 +55,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.4
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();

@@ -57,6 +57,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
 
     private final ConfigurableFileCollection source;
 
+    @SuppressWarnings("this-escape")
     public CreateStaticLibrary() {
         this.source = getProject().files();
     }

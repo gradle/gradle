@@ -65,10 +65,13 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
     private List<File> accessorsClassPathFor(File buildFile) {
         return classPathFor(projectDir, buildFile)
             .tap { println(it) }
-            .findAll { isAccessorsDir(it) }
+            .findAll { isAccessorsPath(it) }
     }
 
-    private static boolean isAccessorsDir(File dir) {
-        return dir.isDirectory() && dir.path.contains("accessors")
+    private static boolean isAccessorsPath(File file) {
+        if (!file.path.contains("accessors")) {
+            return false
+        }
+        return file.isDirectory() || (file.isFile() && file.name.endsWith(".jar"))
     }
 }

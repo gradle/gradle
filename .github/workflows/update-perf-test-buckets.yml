@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -35,7 +35,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Update performance-test-durations.json

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -94,6 +95,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         out
     }
 
+    @ToBeFixedForIsolatedProjects(because = "annotation processing across projects")
     def "explicit -processor option overrides automatic detection"() {
         buildFile << """
             compileJava.options.compilerArgs << "-processor" << "unknown.Processor"
@@ -105,6 +107,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         failure.assertHasCause("Annotation processor 'unknown.Processor' not found")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "recompiles when a resource changes"() {
         given:
         buildFile << """
@@ -125,6 +128,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         outputs.recompiledClasses("A", "B")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "recompiles when a resource is removed"() {
         given:
         buildFile << """
@@ -145,6 +149,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         outputs.recompiledClasses("A", "B")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "annotation processing across projects")
     def "compilation is incremental when an empty directory is added"() {
         given:
         def a = java("class A {}")

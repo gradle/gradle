@@ -77,6 +77,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)
+    implementation(libs.kotlinBuildToolsApi)
     implementation(libs.kotlinReflect)
     implementation(libs.slf4jApi)
 
@@ -239,9 +240,7 @@ testFilesCleanup.reportOnly = true
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 // Do not publish into the Gradle API ABI JAR
 configurations.remove(configurations.apiStubElements.get())

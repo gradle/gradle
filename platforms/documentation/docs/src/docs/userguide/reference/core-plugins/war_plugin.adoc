@@ -24,8 +24,8 @@ It disables the default JAR archive generation of the Java plugin and adds a def
 To use the War plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/core-plugins/quickstart/kotlin",files="build.gradle.kts[tags=use-war-plugin]"]
-include::sample[dir="snippets/reference/core-plugins/quickstart/groovy",files="build.gradle[tags=use-war-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/webApplication/kotlin",files="build.gradle.kts[tags=use-war-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/webApplication/groovy",files="build.gradle[tags=use-war-plugin]"]
 ====
 
 [[sec:war_project_layout]]

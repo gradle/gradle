@@ -29,14 +29,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - id: setup-matrix
         run: echo "matrix=$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)" >> $GITHUB_OUTPUT
       - name: setup java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - id: determine-sys-prop-args
         uses: actions/github-script@v9
         with:
@@ -68,12 +68,12 @@ jobs:
     needs: build
     steps:
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
@@ -102,12 +102,12 @@ jobs:
       fail-fast: false
     steps:
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
@@ -131,12 +131,12 @@ jobs:
       - name: Enable Git long paths
         run: git config --system core.longpaths true
       - name: git clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup java
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft #because that's what is available on ARM windows. zulu would also be an option.
-          java-version: 17
+          distribution: microsoft # no temurin available
+          java-version: 25
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties

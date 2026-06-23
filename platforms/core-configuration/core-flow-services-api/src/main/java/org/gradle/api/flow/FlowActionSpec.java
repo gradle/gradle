@@ -31,6 +31,9 @@ public interface FlowActionSpec<P extends FlowParameters> {
     /**
      * Returns the parameters defined by the configured {@link FlowAction dataflow action}.
      *
+     * <p>When the action declares {@link FlowParameters.None} as its parameters type,
+     * this returns the {@link FlowParameters.None} singleton.</p>
+     *
      * @return mutable parameters object, never null.
      * @since 8.1
      */
@@ -38,6 +41,9 @@ public interface FlowActionSpec<P extends FlowParameters> {
 
     /**
      * Configures the {@link P parameters} for the {@link FlowAction flow action}.
+     *
+     * <p>The action is invoked even when the flow action declares {@link FlowParameters.None} as its
+     * parameters type; in that case it receives the {@link FlowParameters.None} singleton.</p>
      *
      * @since 8.7
      */

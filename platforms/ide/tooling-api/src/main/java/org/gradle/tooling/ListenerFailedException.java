@@ -27,6 +27,7 @@ import java.util.List;
 public class ListenerFailedException extends GradleConnectionException {
     private final List<? extends Throwable> listenerFailures;
 
+    @SuppressWarnings("this-escape")
     public ListenerFailedException(String message, List<? extends Throwable> failures) {
         super(message);
         listenerFailures = failures;

@@ -233,19 +233,32 @@ tasks.register<GenerateClasspathModuleProperties>("generateAgentsRuntimeModulePr
     outputDir = layout.buildDirectory.dir("classpathProperties/$name")
 }
 
-// Distributions that don't include an API variant jar (anything other than :distributions-full)
-// get an empty output directory — the task tolerates an empty resolved configuration.
+// The jar's file name is read from the resolved ABI classpath; :distributions-full resolves it from
+// :public-api, the smaller distros from their own locally produced jar (see the block below).
 val generatePublicAbiModuleProperties = tasks.register<GenerateSingleModuleProperties>("generatePublicAbiModuleProperties") {
     moduleName = PublicApiVariants.LEGACY_MODULE_NAME
     artifactFileName = gradlePublicAbiClasspath.incoming.artifacts.resolvedArtifacts.map { artifacts ->
         when (artifacts.size) {
-            0 -> null // No API variant jar in this distribution (anything other than :distributions-full)
             1 -> artifacts.single().file.name
-            else -> error("Expected at most one public API ABI jar, but resolved ${artifacts.size}: ${artifacts.map { it.file.name }}")
+            else -> error("Expected a single public API ABI jar, but resolved ${artifacts.size}: ${artifacts.map { it.file.name }}")
         }
     }
     configureDependenciesFrom(gradlePublicAbiRuntimeClasspath, excludingProjectName = "public-api")
     outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+// A distribution applying gradlebuild.public-api-jar produces its own ABI jar scoped to its own
+// runtime modules, instead of consuming :public-api's full-surface jar. Feeding the jar through
+// publicAbiOnly keeps the lib/api packaging and file-name wiring identical to :distributions-full;
+// only the recorded module dependencies differ, coming from this distribution's runtime classpath.
+pluginManager.withPlugin("gradlebuild.public-api-jar") {
+    configurations.named("distribution") {
+        extendsFrom(coreRuntimeOnly, pluginsRuntimeOnly)
+    }
+    publicAbiOnly.dependencies.add(dependencies.create(files(tasks.named("jarGradleApiLegacy"))))
+    generatePublicAbiModuleProperties.configure {
+        configureDependenciesFrom(runtimeClasspath)
+    }
 }
 
 // Generate the component license section for the distribution LICENSE file.
@@ -275,9 +288,8 @@ val generateLicenseFile = tasks.register<GenerateLicenseFile>("generateLicenseFi
 }
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
-    configureKotlinCompilerForGradleBuild()
+    configureKotlinCompilerForGradleBuild("gradle-kotlin-dsl-extensions")
     multiPlatformEnabled = false
-    compilerOptions.moduleName = "gradle-kotlin-dsl-extensions"
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")

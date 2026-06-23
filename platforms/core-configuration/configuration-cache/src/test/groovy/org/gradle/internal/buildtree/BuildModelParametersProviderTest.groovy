@@ -40,6 +40,7 @@ class BuildModelParametersProviderTest extends Specification {
 
             isolatedProjects: false,
             isolatedProjectsDiagnostics: false,
+            isolatedProjectsDangerouslyIgnoreProblems: false,
             parallelProjectConfiguration: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
@@ -47,7 +48,6 @@ class BuildModelParametersProviderTest extends Specification {
             modelBuilding: false,
             parallelModelBuilding: false,
             cachingModelBuilding: false,
-            resilientModelBuilding: false,
         ]
     }
 
@@ -403,6 +403,60 @@ class BuildModelParametersProviderTest extends Specification {
         true  | true
 
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "parameters when isolated projects dangerously-ignore-problems is enabled for #description"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            setIsolatedProjectsDangerouslyIgnoreProblems(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), isolatedProjectsDefaults() + [
+            isolatedProjectsDangerouslyIgnoreProblems: true,
+            modelBuilding: models,
+            parallelModelBuilding: models,
+            modelAsProjectDependency: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+
+        description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "dangerously-ignore-problems can be combined with isolated projects diagnostics"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            isolatedProjects = Option.Value.value(true)
+            setIsolatedProjectsDiagnostics(true)
+            setIsolatedProjectsDangerouslyIgnoreProblems(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), isolatedProjectsDefaults() + [
+            isolatedProjectsDiagnostics: true,
+            isolatedProjectsDangerouslyIgnoreProblems: true,
+            parallelProjectExecution: false,
+            configurationCacheParallelStore: false,
+            parallelProjectConfiguration: false,
+            parallelModelBuilding: false,
+            configureOnDemand: false,
+        ])
+    }
+
+    def "dangerously-ignore-problems has no effect without isolated projects"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            setIsolatedProjectsDangerouslyIgnoreProblems(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), vintageDefaults())
     }
 
     def "parameters when isolated projects are enabled for #description with caching-ip=#ipCaching"() {
