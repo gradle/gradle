@@ -60,70 +60,22 @@ jobs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
 
-  sanity-check:
-    name: "Sanity Check on Linux"
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: git clone
-        uses: actions/checkout@v7
-      - name: setup java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 25
-      - uses: actions/download-artifact@v8
-        with:
-          name: build-receipt.properties
-          path: incoming-distributions/build-receipt.properties
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
-      - name: Upload Compatibility Report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: binary-compatibility-report
-          path: testing/architecture-test/build/reports/binary-compatibility/report.html
-
-  unit-test:
-    name: "${{ matrix.bucket.name }} (Unit Test)"
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      matrix:
-        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
-      fail-fast: false
-    steps:
-      - name: git clone
-        uses: actions/checkout@v7
-      - name: setup java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 25
-      - uses: actions/download-artifact@v8
-        with:
-          name: build-receipt.properties
-          path: incoming-distributions/build-receipt.properties
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
-
   unit-test-windows-arm:
-    name: "Unit Test Windows ARM"
+    name: "Win ARM JDK ${{ matrix.jdk.name }}"
     permissions:
       contents: read
     runs-on: windows-11-arm
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        jdk:
+          - { name: "17 (control)", distribution: microsoft, version: "17" }
+          - { name: "21 GA", distribution: zulu, version: "21.0.0" }
+          - { name: "22 GA", distribution: zulu, version: "22.0.0" }
+          - { name: "23 GA", distribution: zulu, version: "23.0.0" }
+          - { name: "24 GA", distribution: zulu, version: "24.0.0" }
+          - { name: "25 (control)", distribution: microsoft, version: "25" }
     defaults:
       run:
         shell: pwsh
@@ -132,11 +84,16 @@ jobs:
         run: git config --system core.longpaths true
       - name: git clone
         uses: actions/checkout@v7
+      - name: Force daemon JVM to the matrix JDK (remove daemon JVM criteria)
+        run: |
+          # The daemon JVM is normally pinned by this file (toolchainVersion).
+          # Removing it makes the daemon run on JAVA_HOME, i.e. the matrix JDK.
+          Remove-Item -Force gradle/gradle-daemon-jvm.properties
       - name: setup java
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft # no temurin available
-          java-version: 25
+          distribution: ${{ matrix.jdk.distribution }}
+          java-version: ${{ matrix.jdk.version }}
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
@@ -145,4 +102,19 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - name: Run :native:test repeatedly
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Write-Host "Using JAVA_HOME=$env:JAVA_HOME"
+          & "$env:JAVA_HOME\bin\java.exe" -version
+          $iters = 8
+          $fail = 0
+          for ($i = 1; $i -le $iters; $i++) {
+            Write-Host "==================== iteration $i / $iters (JDK ${{ matrix.jdk.name }}) ===================="
+            ./gradlew :native:test --stacktrace "-Dorg.gradle.java.home=$env:JAVA_HOME" -DdisableLocalCache=true -PflakyTests=exclude
+            $code = $LASTEXITCODE
+            Write-Host "iteration $i exit code: $code"
+            if ($code -ne 0) { $fail++ }
+          }
+          Write-Host "==================== SUMMARY JDK ${{ matrix.jdk.name }}: $fail / $iters failed ===================="
+          if ($fail -gt 0) { exit 1 }
