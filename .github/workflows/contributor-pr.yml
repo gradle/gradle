@@ -87,4 +87,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew :native:test --% --stacktrace --info -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew :native:test --% --stacktrace --info -PrerunAllTests -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
