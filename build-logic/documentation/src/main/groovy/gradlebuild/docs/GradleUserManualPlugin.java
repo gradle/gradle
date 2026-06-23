@@ -214,8 +214,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setDescription("Generates HTML single-page user manual.");
             configureForUserGuideSinglePage(task, extension);
             task.outputOptions(options -> options.setBackends(singletonList("html5")));
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
+            task.getOutputDirProperty().set(extension.getUserManual().getStagingRoot().dir("render-single-html"));
         });
 
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
@@ -231,10 +230,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 patternSet.exclude("snippets/**/*.adoc");
             });
 
-            // TODO: This breaks the provider
-            task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-multi").get().getAsFile());
+            task.getSourceDirProperty().set(extension.getUserManual().getStagedDocumentation());
+            task.getOutputDirProperty().set(extension.getUserManual().getStagingRoot().dir("render-multi"));
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
@@ -281,8 +278,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         task.sources(patternSet -> patternSet.include("userguide_single.adoc"));
 
-        // TODO: This breaks the provider
-        task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
+        task.getSourceDirProperty().set(extension.getUserManual().getStagedDocumentation());
 
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("toc", "macro");
