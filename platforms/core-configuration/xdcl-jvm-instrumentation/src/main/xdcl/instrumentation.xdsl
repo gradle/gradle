@@ -1,0 +1,16 @@
+package org.gradle.demos.instrumentation.dsl
+
+import org.gradle.demos.java.dsl
+
+/// Per-source-set bytecode instrumentation, declared as `instrument { }` on a source set. Its reaction
+/// registers an `instrument<Name>Classes` task that consumes the source set's compiled bytecode.
+extension Instrument for HasJavaSources {
+  instrument {
+    /// Output directory for the instrumented classes, relative to the project. Optional: when absent the
+    /// task writes to the conventional `build/instrumented/<name>` (mirrors `InstrumentClassesDefinition.destinationDirectory`).
+    destinationDir: String?
+    /// Optional path to an instrumentation configuration file, relative to the project, wired as an
+    /// optional task input (mirrors `InstrumentClassesDefinition.configFile`).
+    configFile: String?
+  }
+}

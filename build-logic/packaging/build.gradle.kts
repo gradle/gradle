@@ -22,4 +22,8 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.maven3Model)
 
+    // The org.xdcl XDCL codegen plugin, substituted from the included xdcl-scripting-language build, so
+    // the XDCL ecosystem conventions can apply `id("xdcl-gradle-plugin")` on behalf of the modules.
+    implementation("org.xdcl:xdcl-gradle-plugin:0.1.0-SNAPSHOT")
+
 }

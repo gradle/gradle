@@ -1,0 +1,39 @@
+package org.gradle.demos.checkstyle.dsl
+
+import org.gradle.demos.java.dsl
+
+// The checkstyle demo splits across two extensions that share the `checkstyle { }` keyword but bind to
+// different hosts:
+//
+//   * `CheckstyleTool` binds to the `JavaLibrary` template and owns the project-wide tool `version`.
+//     Its reaction resolves the version to a single shared Checkstyle classpath and publishes it on a
+//     `CheckstyleModel` project extension.
+//   * `Checkstyle` binds to the per-source-set `HasJavaSources` trait and owns the per-task knobs
+//     (`configFile`, `ignoreFailures`). Its reaction registers a `check<Name>Checkstyle` task and reads
+//     the shared classpath back off the `CheckstyleModel` the higher-level reaction published.
+//
+
+/// Project-wide Checkstyle tool configuration, declared as `checkstyle { }` on a `javaLibrary`. Its
+/// reaction resolves `checkstyleVersion` to the shared Checkstyle classpath.
+extension CheckstyleTool for JavaComponent {
+  checkstyle {
+    /// The Checkstyle tool version, resolved as `com.puppycrawl.tools:checkstyle:<version>`. Defaults
+    /// inline (an xdcl schema default, like `JavaComponent.javaVersion`) so a bare `checkstyle { }`
+    /// resolves the classpath at the shipped version.
+    checkstyleVersion: String = "10.24.0"
+  }
+}
+
+/// Per-source-set checkstyle configuration, declared as `checkstyle { }` on a source set. Its reaction
+/// registers the source set's Checkstyle task, sourcing the shared tool classpath from the
+/// `CheckstyleTool` extension above.
+extension Checkstyle for HasJavaSources {
+  checkstyle {
+    /// Whether Checkstyle violations are reported but do not fail the build (mirrors
+    /// `CheckstyleDefinition.ignoreFailures`).
+    ignoreFailures: Bool = false
+    /// Path to the Checkstyle configuration XML, relative to the project. Defaults to the conventional
+    /// `config/checkstyle/checkstyle.xml`.
+    configFile: String = "config/checkstyle/checkstyle.xml"
+  }
+}
