@@ -18,6 +18,7 @@ package gradlebuild.docs;
 
 import gradlebuild.buildutils.tasks.AbstractCheckOrUpdateContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.CheckContributorsInReleaseNotes;
+import gradlebuild.buildutils.tasks.PreparePatchReleaseNotes;
 import gradlebuild.buildutils.tasks.UpdateContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.UpdateFixedIssuesInReleaseNotes;
 import gradlebuild.identity.extension.GradleModuleExtension;
@@ -93,6 +94,15 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getGithubToken().set(project.getProviders().environmentVariable("GITHUB_TOKEN"));
             task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
             task.getMilestone().convention(project.getProviders().fileContents(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
+        });
+
+        tasks.register("preparePatchReleaseNotes", PreparePatchReleaseNotes.class, task -> {
+            task.setGroup("release notes");
+            task.setDescription("Rewrites the release notes intro for a patch release, ready for updateFixedIssuesInReleaseNotes.");
+            task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
+            task.getVersionFile().set(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt"));
+            // version.txt must already hold the bumped patch version when this runs.
+            task.mustRunAfter(":bumpVersionForPatchRelease");
         });
 
         tasks.register("updateFixedIssuesInReleaseNotes", UpdateFixedIssuesInReleaseNotes.class, task -> {
