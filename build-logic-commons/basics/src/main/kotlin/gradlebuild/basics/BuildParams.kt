@@ -302,12 +302,6 @@ val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
 val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
 
-/**
- * The TeamCity build IDs of the performance test buckets that this pipeline actually triggered, comma-separated.
- * Passed authoritatively by the Trigger build from the TeamCity dependency graph (not derived from the result
- * JSONs, whose `teamCityBuildId` is baked into the cacheable bucket task output and therefore points at the
- * original producing build on a build-cache hit). Empty when not running on CI.
- */
 val Project.performanceDependencyBuildIds: Provider<String>
     get() = gradleProperty(PERFORMANCE_DEPENDENCY_BUILD_IDS).orElse("")
 
