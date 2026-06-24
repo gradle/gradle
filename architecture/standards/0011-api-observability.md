@@ -51,7 +51,6 @@ The remainder of this ADR sets a standard that would have prevented the setter s
 ## Decision
 
 This ADR applies to every public configuration API in Gradle: a public type, or public method on a public type, whose purpose is to let users configure how some Gradle behavior runs.
-It does not apply to internal types, to behavior-free data carriers, or to identity (see [ADR-0006](0006-use-of-provider-apis-in-gradle.md) on identity information).
 
 The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
@@ -73,7 +72,6 @@ That question — whether and how registered callbacks should be observable, and
 
 * **Configuration API** — a public type or public method on a public type whose purpose is to let users tell Gradle how to behave.
   Tasks, extensions, domain objects, and types like `ResolutionStrategy` all qualify.
-  Pure data carriers and identity getters do not.
 * **Observer** — a public read API that returns the currently configured value of some piece of behavior.
   A `Property<T>` / `Provider<T>` getter is the canonical shape; a plain getter or a documented query method are acceptable alternatives.
 
