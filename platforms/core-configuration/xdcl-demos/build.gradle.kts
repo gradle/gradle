@@ -30,6 +30,7 @@ dependencies {
     // Real task types the reaction registers live in distinct subprojects (bundled via implementation,
     // matching project-features-demos — implementation deps are not packed into the jar):
     implementation(projects.core)         // Copy, project internals
+    implementation(projects.codeQuality)   // org.gradle.api.plugins.quality.Checkstyle task + reports
     implementation(projects.languageJava)  // JavaCompile
     implementation(projects.languageGroovy) // GroovyCompile
     implementation(projects.languageJvm)   // AbstractCompile source/target compatibility

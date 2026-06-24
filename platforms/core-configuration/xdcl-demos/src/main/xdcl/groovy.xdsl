@@ -17,7 +17,11 @@ trait GroovyComponent {
   /// JVM source/target bytecode version. e.g. 8, 17, 21. Kept for parity with the Java demo.
   javaVersion: Int = 17
   /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
-  /// the whole map to add more.
+  /// the whole map to add more. Kept as a `[String: GroovySource]` map (unlike the Java demo, which
+  /// uses a `[JavaSource]` list of named records): the list form there exists only so each source set
+  /// composes `HasJavaSources` and the checkstyle demo can bind `extension Checkstyle for HasJavaSources`
+  /// per source set and recover the name; the Groovy demo has no such per-source extension, so the
+  /// simpler map form stays.
   sources: [String: GroovySource]?
 }
 

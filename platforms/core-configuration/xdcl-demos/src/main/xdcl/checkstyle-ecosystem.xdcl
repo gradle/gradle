@@ -1,0 +1,3 @@
+plugin {
+  reactions [ :org.gradle.demos.checkstyle.CheckstyleReaction ]
+}

@@ -76,10 +76,12 @@ class XdclJavaLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
                 implementation [ "com.example:shared-impl:1.0" ]
               }
               sources [
-                main: {
+                {
+                  name "main"
                   dependencies { implementation [ "com.example:main-impl:2.0" ] }
                 },
-                test: {
+                {
+                  name "test"
                   dependencies { api [ "com.example:test-api:3.0" ] }
                 },
               ]
@@ -129,8 +131,9 @@ class XdclJavaLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.xdcl') << """
             javaLibrary {
               sources [
-                main: {},
-                test: {
+                { name "main" },
+                {
+                  name "test"
                   dependencies { implementation [ "junit:junit:4.13.2" ] }
                 },
               ]
@@ -170,9 +173,9 @@ class XdclJavaLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.xdcl') << '''
             javaLibrary {
               sources [
-                main: {},
-                test: {},
-                feature: {},
+                { name "main" },
+                { name "test" },
+                { name "feature" },
               ]
             }
         '''

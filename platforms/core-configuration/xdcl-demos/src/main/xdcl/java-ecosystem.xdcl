@@ -2,7 +2,7 @@ plugin {
   reactions [ :org.gradle.demos.java.JavaLibraryReaction ]
   defaults {
     for JavaComponent {
-      sources [ main: {}, test: {} ]
+      sources [ { name "main" }, { name "test" } ]
     }
   }
 }
