@@ -22,7 +22,7 @@ We recommend upgrading to Gradle @version@.
 
 This release improves [Configuration Cache](#configuration-cache-improvements) hit rates by precisely tracking project properties supplied through system properties and environment variables.
 
-The [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting) gains a `--non-interactive` option to disable interactive prompts when running Gradle in automated environments, support for the `NO_COLOR` environment variable to suppress color output, and sortable columns in HTML test reports.
+The [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting) gains a `--no-interactive` option (and `org.gradle.console.interactive` property) to disable interactive prompts when running Gradle in automated environments, support for the `NO_COLOR` environment variable to suppress color output, and sortable columns in HTML test reports.
 
 [Build authoring](#build-authoring-improvements) includes an important deprecation: implicit property and method lookup in parent projects now emits a warning and will be removed in Gradle 10. A new `NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS` feature preview lets you adopt the Gradle 10 behavior early once related deprecations are addressed.
 
@@ -135,7 +135,7 @@ See the [Reading System Properties and Environment Variables](userguide/configur
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
 #### Non-interactive mode
-Gradle now supports a `--non-interactive` [command-line](userguide/command_line_interface.html) option to disable all interactive console prompting.
+Gradle now supports a `--no-interactive` [command-line](userguide/command_line_interface.html) option, and a corresponding `org.gradle.console.interactive` [Gradle property](userguide/build_environment.html#sec:gradle_configuration_properties), to disable all interactive console prompting.
 This is useful for running Gradle in automated environments such as CI pipelines, scripts, and AI agents where no user input is available.
 
 See the [Non-interactive mode](userguide/command_line_interface.html#sec:non_interactive) section in the Gradle User Manual for more information.
