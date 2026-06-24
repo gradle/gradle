@@ -132,6 +132,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     public MetaClassAdapter determineDelegate(Object bean) {
         if (bean instanceof Class) {
             return new ClassAdapter((Class<?>) bean);

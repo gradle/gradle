@@ -55,6 +55,7 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "EnumOrdinal", // This violation is ubiquitous, though most are benign.
         "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
         "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
+        "ReferenceEquality", // evaluate again in future EP versions https://github.com/gradle/gradle/pull/38269#pullrequestreview-4568989259
 
         // NEVER
         "AssignmentExpression", // Not using it is more a matter of taste.

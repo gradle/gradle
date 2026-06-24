@@ -42,7 +42,9 @@ import java.util.Map;
 public class DependencyVerificationReportWriter {
     private static final Logger LOGGER = Logging.getLogger(DependencyVerificationReportWriter.class);
 
+    @SuppressWarnings("BoxingComparator")
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
+    @SuppressWarnings("BoxingComparator")
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
     public static final String VERBOSE_CONSOLE = "org.gradle.dependency.verification.console";

@@ -191,6 +191,7 @@ public class TomlCatalogFileParser {
         }
     }
 
+    @SuppressWarnings("BoxingComparator")
     private void parseLibraries(@Nullable TomlTable librariesTable, StrictVersionParser strictVersionParser) {
         if (librariesTable == null) {
             return;
@@ -201,6 +202,7 @@ public class TomlCatalogFileParser {
             .forEach(alias -> parseLibrary(alias, librariesTable, versionCatalogBuilder, strictVersionParser));
     }
 
+    @SuppressWarnings("BoxingComparator")
     private void parsePlugins(@Nullable TomlTable pluginsTable, StrictVersionParser strictVersionParser) {
         if (pluginsTable == null) {
             return;
@@ -211,6 +213,7 @@ public class TomlCatalogFileParser {
             .forEach(alias -> parsePlugin(alias, pluginsTable, versionCatalogBuilder, strictVersionParser));
     }
 
+    @SuppressWarnings("BoxingComparator")
     private void parseVersions(@Nullable TomlTable versionsTable, StrictVersionParser strictVersionParser) {
         if (versionsTable == null) {
             return;

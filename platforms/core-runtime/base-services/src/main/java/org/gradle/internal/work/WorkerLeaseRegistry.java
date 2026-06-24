@@ -35,7 +35,7 @@ public interface WorkerLeaseRegistry {
     /**
      * Creates a new {@link ResourceLock} that can be used to reserve a worker lease.  Note that this does not actually reserve a lease,
      * it simply creates a {@link ResourceLock} representing the worker lease.  The worker lease can be reserved only when
-     * {@link ResourceLock#tryLock()} is called from a {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}
+     * {@link ResourceLock#tryLock()} is called from a {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock}
      * transform.
      */
     WorkerLease newWorkerLease();

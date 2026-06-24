@@ -26,7 +26,7 @@ import static org.gradle.internal.collect.ChampNode.nodeIndex;
 /// and [PersistentMapTrie], when `payload == 1`.
 final class ChampLookup {
 
-    @SuppressWarnings({"BoxedPrimitiveEquality", "ReferenceEquality"})
+    @SuppressWarnings("BoxedPrimitiveEquality")
     static <K> boolean containsKey(ChampNode<K> node, K key, int payload) {
         return lookup(node, key, payload, Boolean.FALSE, (content, index) -> Boolean.TRUE) == Boolean.TRUE;
     }

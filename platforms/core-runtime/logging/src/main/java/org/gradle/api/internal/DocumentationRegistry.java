@@ -89,6 +89,7 @@ public class DocumentationRegistry {
         return BASE_URL + "/samples";
     }
 
+    @SuppressWarnings("FormatStringShouldUsePlaceholders")
     public String getSampleFor(String id) {
         return String.format(getSampleIndex() + "/sample_%s.html", id);
     }

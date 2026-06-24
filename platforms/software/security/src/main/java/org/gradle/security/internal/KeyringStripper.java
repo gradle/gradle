@@ -59,7 +59,7 @@ public class KeyringStripper {
         return new PGPPublicKeyRing(strippedKeys);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "BoxingComparator"})
     private static PGPPublicKey stripKey(PGPPublicKey key, KeyFingerPrintCalculator fingerprintCalculator) {
         PGPPublicKey stripped;
         try {

@@ -119,6 +119,7 @@ public final class IvyDescriptorFileGenerator {
         private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
         private final Model model;
 
+        @SuppressWarnings("ExposedPrivateType")
         public ModelWriter(Model model) {
             this.model = model;
         }
@@ -325,6 +326,7 @@ public final class IvyDescriptorFileGenerator {
         private final Model model;
         private final XmlTransformer xmlTransformer;
 
+        @SuppressWarnings("ExposedPrivateType")
         public DescriptorFileSpec(Model model, XmlTransformer xmlTransformer) {
             this.model = model;
             this.xmlTransformer = xmlTransformer;

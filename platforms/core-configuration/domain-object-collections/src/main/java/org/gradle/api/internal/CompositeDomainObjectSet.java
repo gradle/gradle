@@ -100,7 +100,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         return (DefaultDomainObjectSet<T>) super.getDelegate();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ExposedPrivateType"})
     protected DomainObjectCompositeCollection<T> getStore() {
         return (DomainObjectCompositeCollection) getDelegate().getStore();
     }
