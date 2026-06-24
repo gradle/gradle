@@ -14,18 +14,36 @@ trait JavaComponent {
   /// JDK source/target version. e.g. 8, 17, 21.
   javaVersion: Int = 17
   /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
-  /// the whole map to add more. Optional map-of-records — exercises the codegen fix for nested
-  /// extractor lambdas.
-  sources: [String: JavaSource]?
+  /// the whole list to add more. A list of named records (rather than a `[String: JavaSource]` map)
+  /// so each source set carries its own `name` on the facade — build logic (and the checkstyle demo's
+  /// per-source `extension Checkstyle for HasJavaSources` reaction) can identify a source set, which a
+  /// map key cannot do since xdcl never exposes the key to the value record.
+  sources: [JavaSource]?
 }
 
-/// One named source set. Directories are optional overrides; the reaction falls back to the
-/// conventional `src/<name>/java` and `src/<name>/resources`. Its `dependencies` map to
-/// per-source-set configurations (`<name>Api`, `<name>Implementation`, …) that extend the matching
-/// top-level configurations.
-record JavaSource with HasDependencies {
+/// Capability trait for something that carries Java sources to analyse: exposes the source set's
+/// `name` and the source/resource directories it provides (`javaDirs` / `resourceDirs`). It is the
+/// binding surface for source-set-level xdcl extensions — `extension X for HasJavaSources` attaches to
+/// any record that composes it; the reaction recovers the source-set name via
+/// `scope.ancestor(HasJavaSources.class)` and reads the directories to analyse straight off the host
+/// facade (rather than deriving them from the name). An `extension` host must be a trait or template
+/// (never a bare record), so the per-source-set checkstyle demo binds to this trait rather than to the
+/// `JavaSource` record directly. Mirrors the project-features `HasJavaSources` capability.
+trait HasJavaSources {
+  /// Identifies the source set (e.g. `main`, `test`); drives task and configuration names.
+  name: String
+  /// The Java source directories the source set provides. The reaction falls back to the conventional
+  /// `src/<name>/java` only where it owns the convention (the compile wiring); consumers that read the
+  /// facade (e.g. checkstyle) see exactly what is declared here.
   javaDirs: [String]?
+  /// The resource directories the source set provides (conventionally `src/<name>/resources`).
   resourceDirs: [String]?
+}
+
+/// One named source set: a `HasJavaSources` (name + the source/resource directories it provides) that
+/// also carries `dependencies` (from `HasDependencies`), which map to per-source-set configurations
+/// (`<name>Api`, `<name>Implementation`, …) that extend the matching top-level configurations.
+record JavaSource with HasJavaSources & HasDependencies {
 }
 
 /// Top-level Java library project type.

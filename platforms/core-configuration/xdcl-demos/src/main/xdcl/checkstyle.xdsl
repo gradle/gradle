@@ -1,0 +1,29 @@
+package org.gradle.demos.checkstyle.dsl
+
+import org.gradle.demos.java.dsl
+
+// Binds the checkstyle demo to the xdcl Java ecosystem at the source-set level: an xdcl `extension`
+// attaches a `checkstyle { }` block to every element that composes `HasJavaSources` (the form proven by
+// the xdcl test corpus, e.g. `extension Checkstyle for HasName`). An extension host must be a trait or
+// template, never a bare record — hence binding to the `HasJavaSources` trait that `JavaSource`
+// composes rather than to `JavaSource` itself. The block emits a standalone `Checkstyle` ExtensionFacade
+// nested under its host source set; `CheckstyleReaction` (Project context) fires once per source set
+// that declares the block and reaches its host via `scope.ancestor(HasJavaSources.class)` to recover
+// the source-set name — the per-source identity a `[String: JavaSource]` map could not provide.
+
+/// Per-source-set checkstyle configuration. The reaction resolves `checkstyleVersion` to a tool
+/// classpath and registers a `check<Name>Checkstyle` task that analyses the source set's Java sources.
+extension Checkstyle for HasJavaSources {
+  checkstyle {
+    /// The Checkstyle tool version, resolved as `com.puppycrawl.tools:checkstyle:<version>`. Defaults
+    /// inline (an xdcl schema default, like `JavaComponent.javaVersion`) so a bare `checkstyle { }`
+    /// opts in at the shipped version.
+    checkstyleVersion: String = "10.24.0"
+    /// Whether Checkstyle violations are reported but do not fail the build (mirrors
+    /// `CheckstyleDefinition.ignoreFailures`).
+    ignoreFailures: Bool = false
+    /// Path to the Checkstyle configuration XML, relative to the project. Defaults to the conventional
+    /// `config/checkstyle/checkstyle.xml` (mirrors `CheckstyleDefinition.configFile`).
+    configFile: String = "config/checkstyle/checkstyle.xml"
+  }
+}
