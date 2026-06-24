@@ -99,13 +99,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
 
-            // Force configuration of the target project to ensure all builders have been registered.
-            // For a regular per-project model, we configure the target project itself so it is associated
-            // only with its own configuration failure (the failure of the nearest failing project in its
-            // path from the root) instead of the aggregate of every project failure in the build. This
-            // matches what configure-on-demand reports per project.
-            // Build-scoped models (e.g. the Kotlin DSL scripts model) instead collect failures from every
-            // script in the build, so they keep reporting the whole-build configuration result.
+            // Configuring the target project itself scopes the failure to that project rather than the whole-build aggregate, which is what we want for per-project models.
             Try<Void> projectConfiguration = canRunEvenIfProjectNotFullyConfigured && !ownerBuildConfiguration.isSuccessful()
                 ? ownerBuildConfiguration
                 : tryRunConfiguration(targetProject::ensureConfigured);
