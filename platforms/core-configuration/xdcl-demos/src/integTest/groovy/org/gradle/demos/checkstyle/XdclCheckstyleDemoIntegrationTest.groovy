@@ -43,17 +43,18 @@ class XdclCheckstyleDemoIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "registers a per-source-set checkstyle task with the shipped default version, only where the block opts in"() {
+    def "resolves the tool at the shipped default version and registers a task only where a source opts in"() {
         given:
         applyEcosystems()
         file('build.gradle.xdcl') << '''
             javaLibrary {
+              checkstyle {}
               sources [
                 {
                   name "main"
                   checkstyle {}
                 },
-                { name "test" },
+                { name "test" }
               ]
             }
         '''
@@ -61,9 +62,12 @@ class XdclCheckstyleDemoIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks", "--all")
 
-        then: 'the main source set opted in, so its checkstyle task is registered at the inline-default version'
+        then: 'the javaLibrary-level checkstyle block resolved the shared classpath at the inline-default version'
+        outputContains("checkstyle version=10.24.0")
+
+        and: 'the main source set opted in, so its checkstyle task is registered'
         outputContains("checkMainCheckstyle")
-        outputContains("checkstyle[main] version=10.24.0")
+        outputContains("checkstyle[main]")
 
         and: 'the test source set did not declare checkstyle { }, so the reaction skipped it (opt-in)'
         outputDoesNotContain("checkTestCheckstyle")
@@ -97,6 +101,7 @@ class XdclCheckstyleDemoIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.xdcl') << """
             javaLibrary {
               repositories [ "${RepoScriptBlockUtil.mavenCentralMirrorUrl}" ]
+              checkstyle {}
               sources [
                 {
                   name "main"
@@ -143,6 +148,7 @@ class XdclCheckstyleDemoIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.xdcl') << """
             javaLibrary {
               repositories [ "${RepoScriptBlockUtil.mavenCentralMirrorUrl}" ]
+              checkstyle {}
               sources [
                 {
                   name "main"
@@ -165,5 +171,46 @@ class XdclCheckstyleDemoIntegrationTest extends AbstractIntegrationSpec {
         report.assertExists()
         report.text.contains("Bad.java")
         report.text.contains("FinalParameters")
+    }
+
+    def "fails with a clear error when a source opts into checkstyle but the javaLibrary declares no checkstyle block"() {
+        given:
+        applyEcosystems("demo")
+        // A valid config + source so the task is not NO-SOURCE and the only failing input is the
+        // (unresolvable) tool classpath the missing javaLibrary-level block would have published.
+        file('config/checkstyle/checkstyle.xml') << '''<?xml version="1.0"?>
+            <!DOCTYPE module PUBLIC
+                "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+                "https://checkstyle.org/dtds/configuration_1_3.dtd">
+            <module name="Checker">
+              <module name="TreeWalker">
+                <module name="FinalParameters"/>
+              </module>
+            </module>
+        '''
+        file('custom-src/com/example/Ok.java') << '''
+            package com.example;
+            public class Ok {
+                public String greeting() {
+                    return "hello";
+                }
+            }
+        '''
+        file('build.gradle.xdcl') << """
+            javaLibrary {
+              repositories [ "${RepoScriptBlockUtil.mavenCentralMirrorUrl}" ]
+              sources [
+                {
+                  name "main"
+                  javaDirs [ "custom-src" ]
+                  checkstyle {}
+                },
+              ]
+            }
+        """
+
+        expect: 'the task fails resolving its classpath, with a message pointing at the missing block'
+        fails("checkMainCheckstyle")
+        failure.assertHasCause("Source set 'main' opted into checkstyle, but the javaLibrary declares no checkstyle { } block to set the Checkstyle version.")
     }
 }
