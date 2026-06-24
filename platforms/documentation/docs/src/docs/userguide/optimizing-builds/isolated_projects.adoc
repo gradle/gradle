@@ -250,6 +250,26 @@ The current implementation of Isolated Projects has a number of limitations that
 * Changes to included builds invalidate all cached results, even unrelated ones.
 * Tooling model caching is local only: no sharing across checkouts or remote caching.
 
+[[sec:evaluating]]
+== Evaluating Isolated Projects for your build
+
+The benefit Isolated Projects brings depends on the size and shape of your build, your hardware, and your workflow (see <<sec:performance,performance benefits and limitations>>).
+Rather than predicting the gain from the structure of your build, the most reliable approach is to measure it directly:
+
+. Enable the feature
++
+Make the build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, then enable Isolated Projects.
+
+. Get an early estimate before completing the migration
++
+You don't have to fix every <<sec:constraint_violations,violation>> before measuring.
+Use the <<sec:dangerously_ignore_problems,_dangerously ignore problems_ mode>> to gauge the speed-up for your actual workflows — both running tasks and IDE sync — while violations are still present.
+
+. Compare configuration-phase times
++
+Measure the configuration phase with and without the feature using a <<inspect.adoc#inspecting_build_scans,Build Scan or profile report>>.
+Keep the ceiling in mind: Isolated Projects can only speed up the <<build_lifecycle.adoc#configuration,configuration phase>>, so its upper bound is the share of build time that phase represents.
+
 [[sec:constraints]]
 == Isolated Projects constraints
 
