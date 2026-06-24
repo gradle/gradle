@@ -22,7 +22,8 @@ Isolated Projects is an incubating feature aimed at improving Gradle scalability
 
 When the Isolated Projects feature is enabled, the projects in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>> are "isolated" from each other.
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of other projects.
-This constraint unlocks two things: parallel project configuration and finer-grained caching of configuration results.
+This constraint allows safely running project configuration in parallel, improving performance.
+Further optimizations, such as finer-grained caching of configuration results, are possible but are not yet available.
 
 You can enable the feature by setting `org.gradle.isolated-projects` to `true` in `gradle.properties`,
 or passing the `--isolated-projects` flag on the command line:
