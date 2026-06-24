@@ -339,8 +339,7 @@ tasks.named<Test>("docsTest") {
 
 configurations {
     named("gradleFullDocsElements") {
-        // TODO: This breaks the provider
-        outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot.get().asFile) {
+        outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot) {
             builtBy(tasks.named("docs"))
         }
     }
