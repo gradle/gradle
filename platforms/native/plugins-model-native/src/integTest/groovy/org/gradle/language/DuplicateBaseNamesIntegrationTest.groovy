@@ -17,7 +17,7 @@
 package org.gradle.language
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCppBaseNamesTestApp

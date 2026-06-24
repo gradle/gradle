@@ -51,6 +51,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         this(executor, null, MAX_QUEUE_SIZE);
     }
 
+    @SuppressWarnings("this-escape")
     public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch, int maxQueueSize) {
         this.executor = executor;
         this.maxQueueSize = maxQueueSize;

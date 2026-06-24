@@ -445,6 +445,37 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("guava")
     }
 
+    def 'exception thrown from flow action fails the build'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+
+            class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                @Inject FlowActionPlugin(FlowScope flowScope) {
+                    this.flowScope = flowScope
+                }
+                void apply(Project target) {
+                    flowScope.always(ThrowingAction) {}
+                }
+            }
+
+            class ThrowingAction implements FlowAction<FlowParameters.None> {
+                void execute(FlowParameters.None parameters) {
+                    throw new RuntimeException("flow action failed on purpose")
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasDescription('flow action failed on purpose')
+    }
+
     enum ScriptTarget {
         SETTINGS,
         PROJECT;

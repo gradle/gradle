@@ -86,6 +86,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.U
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
+@SuppressWarnings("this-escape")
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 
     private enum AliasType {

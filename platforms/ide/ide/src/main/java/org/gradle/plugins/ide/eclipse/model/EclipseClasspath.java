@@ -163,6 +163,7 @@ public abstract class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;

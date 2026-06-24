@@ -85,6 +85,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     private final FileCollection stableSources;
     private File previousCompilationDataFile;
 
+    @SuppressWarnings("this-escape")
     public GroovyCompile() {
         this.stableSources = getObjectFactory().fileCollection().from((Callable<FileTree>) this::getSource);
 

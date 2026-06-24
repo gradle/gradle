@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputAppWithLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
@@ -78,6 +79,7 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "removes stale installed executable and library file when all source files for executable are removed"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"

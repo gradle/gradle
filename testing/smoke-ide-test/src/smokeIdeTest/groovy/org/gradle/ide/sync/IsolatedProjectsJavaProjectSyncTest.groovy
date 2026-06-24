@@ -40,7 +40,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
         """
 
         projectFile("gradle.properties") << """
-            org.gradle.unsafe.isolated-projects=true
+            org.gradle.isolated-projects=true
         """
 
         projectFile("app/build.gradle") << """

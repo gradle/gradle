@@ -11,9 +11,7 @@ import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.killProcessStep
 import common.performanceTestCommandLine
-import common.removeSubstDirOnWindows
 import common.setArtifactRules
-import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.ParametrizedWithType
@@ -103,7 +101,6 @@ abstract class AdHocPerformanceScenario(
         val buildTypeThis = this
         steps {
             killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
-            substDirOnWindows(os)
             gradleWrapper {
                 name = "GRADLE_RUNNER"
                 workingDir = os.perfTestWorkingDir
@@ -120,7 +117,6 @@ abstract class AdHocPerformanceScenario(
                         ) + buildToolGradleParameters(isContinue = false)
                     ).joinToString(separator = " ")
             }
-            removeSubstDirOnWindows(os)
             checkCleanM2AndAndroidUserHome(os)
         }
     })

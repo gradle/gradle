@@ -102,7 +102,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
+        succeeds("t", "-Dorg.gradle.isolated-projects=true")
 
         then:
         output.contains("present: ${supported}")

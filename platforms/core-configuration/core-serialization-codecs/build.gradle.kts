@@ -73,11 +73,3 @@ gradleModule {
         daemon = true
     }
 }
-
-jvmCompile {
-    compilations {
-        named("main") {
-            usesFutureStdlib = true
-        }
-    }
-}

@@ -42,6 +42,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
 
+    @SuppressWarnings("this-escape")
     public SourceTask() {
         patternSet = getPatternSetFactory().createPatternSet();
     }

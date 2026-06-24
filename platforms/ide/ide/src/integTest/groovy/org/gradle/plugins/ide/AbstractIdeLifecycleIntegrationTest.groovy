@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectIntegrationTest {
     abstract String[] getGenerationTaskNames(String projectPath)
 
@@ -27,6 +29,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "lifecycle task is added and generates metadata"() {
         when:
         expectTaskDeprecations(deprecatedTaskNames)
@@ -44,6 +47,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         projectName("foo/bar") == "bar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDE plugin cross-project configuration")
     def "clean tasks always run before generation tasks when specified on the command line"() {
         when:
         expectTaskDeprecations(deprecatedTaskNames + deprecatedCleanTaskNames)
@@ -60,6 +64,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         assertGenerationTasksRunBeforeCleanTasks()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root, IDE plugin aggregates subprojects")
     def "clean tasks always run before generation tasks when modeled as a dependency"() {
         given:
         buildFile << """

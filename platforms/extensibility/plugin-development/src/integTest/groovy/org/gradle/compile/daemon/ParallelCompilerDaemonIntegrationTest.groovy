@@ -18,10 +18,12 @@ package org.gradle.compile.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ParallelCompilerDaemonIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
+    @ToBeFixedForIsolatedProjects(because = "compile daemon cross-project configuration")
     def "daemon compiler can handle --parallel"() {
         generateProjects(10, 10, 10)
 

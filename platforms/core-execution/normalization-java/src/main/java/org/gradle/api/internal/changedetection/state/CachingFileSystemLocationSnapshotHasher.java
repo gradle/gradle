@@ -30,6 +30,7 @@ public class CachingFileSystemLocationSnapshotHasher implements FileSystemLocati
     private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;
     private final HashCode delegateConfigurationHash;
 
+    @SuppressWarnings("this-escape")
     public CachingFileSystemLocationSnapshotHasher(FileSystemLocationSnapshotHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;

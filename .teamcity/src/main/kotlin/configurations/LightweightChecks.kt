@@ -1,12 +1,7 @@
 package configurations
 
-import common.BuildToolBuildJvm
-import common.DefaultJvm
-import common.JvmVendor
-import common.JvmVersion
 import common.Os
 import common.applyDefaultSettings
-import common.javaHome
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
@@ -36,17 +31,13 @@ class LightweightChecks(
             name = "Lightweight Checks"
             description = "Lightweight checks that don't depend on other builds"
 
-            val os = os
-            val defaultJavaBinary = "${javaHome(BuildToolBuildJvm, os)}/bin/java"
-
             applyDefaultSettings(artifactRuleOverride = "")
 
             params {
                 // Disable jdk-provider-plugin, otherwise the JAVA_HOME will be overwritten
                 // https://github.com/gradle/teamcity-jdk-provider-plugin/blob/main/teamcity-jdk-provider-plugin-agent/src/main/kotlin/org/gradle/teamcity_jdk_provider_plugin/JdkProviderAgentLifecycleListener.kt#L22
                 param("JdkProviderEnabled", "false")
-                // should be the same version we run TeamCity with
-                param("env.JAVA_HOME", javaHome(DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK), os))
+                param("env.JAVA_HOME", "%teamcity.agent.jvm.java.home%")
             }
 
             steps {
@@ -55,8 +46,8 @@ class LightweightChecks(
                     scriptContent =
                         """
                         set -eu
-                        "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                        "$defaultJavaBinary" .teamcity/scripts/CheckWrapper.java
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckWrapper.java
                         """.trimIndent()
 
                     conditions {
@@ -70,8 +61,8 @@ class LightweightChecks(
                             """
                             set -eu
 
-                            "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                            "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java
+                            "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                            "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckBadMerge.java
                             """.trimIndent()
                     }
                 }
@@ -80,7 +71,7 @@ class LightweightChecks(
                     scriptContent =
                         """
                         set -eu
-                        "$defaultJavaBinary" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
                         """.trimIndent()
                 }
                 script {

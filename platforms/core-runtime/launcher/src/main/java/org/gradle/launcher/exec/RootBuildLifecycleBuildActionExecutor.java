@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -49,7 +49,6 @@ public class RootBuildLifecycleBuildActionExecutor {
     private final BuildTreeLifecycleListener lifecycleListener;
     private final ProblemsInternal problemsService;
     private final BuildOperationProgressEventEmitter eventEmitter;
-    private final StartParameter startParameter;
     private final ProblemStream problemsStream;
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
@@ -62,7 +61,6 @@ public class RootBuildLifecycleBuildActionExecutor {
         BuildTreeLifecycleListener lifecycleListener,
         ProblemsInternal problemsService,
         BuildOperationProgressEventEmitter eventEmitter,
-        StartParameter startParameter,
         ProblemStream problemsStream,
         BuildStateRegistry buildStateRegistry,
         BuildActionRunner buildActionRunner
@@ -72,7 +70,6 @@ public class RootBuildLifecycleBuildActionExecutor {
         this.lifecycleListener = lifecycleListener;
         this.problemsService = problemsService;
         this.eventEmitter = eventEmitter;
-        this.startParameter = startParameter;
         this.problemsStream = problemsStream;
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
@@ -92,12 +89,15 @@ public class RootBuildLifecycleBuildActionExecutor {
         projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
         try {
             lifecycleListener.afterStart();
+            StartParameterInternal startParameter = action.getStartParameter();
             try {
-                initDeprecationLogging();
+                initDeprecationLogging(startParameter);
                 maybeNagOnDeprecatedJavaRuntimeVersion();
-                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
+                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
+                // Since continuous builds reuse the same StartParameter for multiple build trees.
+                startParameter.clearMutationListener();
                 lifecycleListener.beforeStop();
             }
         } finally {
@@ -105,7 +105,7 @@ public class RootBuildLifecycleBuildActionExecutor {
         }
     }
 
-    private void initDeprecationLogging() {
+    private void initDeprecationLogging(StartParameterInternal startParameter) {
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
         DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);

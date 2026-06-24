@@ -46,6 +46,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 6.9
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
@@ -65,6 +66,7 @@ public abstract class ConventionReportTask extends ConventionTask {
     @Internal
     public abstract DirectoryProperty getProjectReportDirectory();
 
+    @SuppressWarnings("this-escape")
     protected ConventionReportTask() {
         doNotTrackState("Uses the whole project state as an input");
     }

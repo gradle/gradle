@@ -188,12 +188,13 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(files)
                 doFirst {
-                    assert files*.name == ["file2.txt"]
+                    println files*.name
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("[file2.txt]")
     }
 }

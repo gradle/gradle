@@ -628,6 +628,9 @@ Set to `fail` to report problems and fail the build if there are any problems.
 `--configure-on-demand`, `--no-configure-on-demand` incubating-label:[]::
 Toggles configure-on-demand. Only relevant projects are configured in this build run. _Default is off_.
 
+`--isolated-projects`, `--no-isolated-projects` incubating-label:[]::
+Toggles <<isolated_projects.adoc#isolated_projects,Isolated Projects>>. Projects are configured in parallel. Implies `--configuration-cache`. _Default is off_.
+
 `--max-workers`::
 Sets the maximum number of workers that Gradle may use. _Default is number of processors_.
 
@@ -756,6 +759,9 @@ Set to `fail` to log all warnings and fail the build if there are any warnings.
 Set to `summary` to suppress all warnings and log a summary at the end of the build.
 +
 Set to `none` to suppress all warnings, including the summary at the end of the build.
++
+In `all` and `fail` modes, Gradle infers a source location for every problem rather than only the first ones.
+Past the stack-capture cap (50 problems by default, 5000 under <<isolated_projects.adoc#isolated_projects,Isolated Projects>>), the trace is reduced to the originating build logic and the calling script (enough to locate the problem) rather than the full call chain.
 
 [[sec:rich_console]]
 === Rich console

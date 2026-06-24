@@ -16,7 +16,13 @@
 
 package org.gradle.api
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
+
 abstract class MutationFailureFromRegisterDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "cannot execute mutation method #mutationMethod.key from register"() {
         buildFile << """
             testContainer.register("a") {

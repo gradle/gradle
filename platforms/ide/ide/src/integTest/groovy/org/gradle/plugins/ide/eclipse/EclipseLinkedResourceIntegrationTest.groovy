@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 class EclipseLinkedResourceIntegrationTest extends AbstractEclipseIntegrationSpec {
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def "can reference linked resources as source folders"() {
         given:
         multiProjectWithSiblingSourceFolders()

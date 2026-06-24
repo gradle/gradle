@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -142,6 +143,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12636")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "can use work actions from multiple projects when running with --parallel"() {
         createDirs("project1", "project2", "project3", "project4", "project5")
         settingsFile << """

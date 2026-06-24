@@ -41,6 +41,7 @@ public abstract class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBin
     private final ConfigurationContainer configurations;
     private final DefaultLibraryDependencies dependencies;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultSwiftLibrary(String name, ConfigurationContainer configurations) {
         super(name);

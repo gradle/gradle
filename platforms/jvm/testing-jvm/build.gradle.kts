@@ -92,6 +92,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

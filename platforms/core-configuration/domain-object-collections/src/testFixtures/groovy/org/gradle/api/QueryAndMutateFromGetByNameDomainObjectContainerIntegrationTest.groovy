@@ -16,7 +16,13 @@
 
 package org.gradle.api
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
+
 abstract class QueryAndMutateFromGetByNameDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    @UnsupportedWithIsolatedProjects(
+        because = "These methods cannot be used at project scope with Isolated Projects",
+        iterationMatchers = [".*Gradle#beforeProject.*", ".*Gradle#afterProject.*"]
+    )
     def "can execute query and mutation methods #method.key from getByName"() {
         buildFile << """
             testContainer.getByName("realized") {

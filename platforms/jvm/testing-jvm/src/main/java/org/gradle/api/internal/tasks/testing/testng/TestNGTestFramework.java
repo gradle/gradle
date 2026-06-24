@@ -45,6 +45,7 @@ public abstract class TestNGTestFramework implements TestFramework {
     private final Provider<Boolean> dryRun;
     private final DirectoryReport html;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public TestNGTestFramework(DefaultTestFilter filter, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun, DirectoryReport html) {
         this.filter = filter;

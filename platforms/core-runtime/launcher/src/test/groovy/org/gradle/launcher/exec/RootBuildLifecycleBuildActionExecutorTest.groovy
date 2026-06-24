@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.exec
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
@@ -43,7 +43,9 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
     def "fires events before and after build action is run"() {
         def listener = Mock(BuildTreeLifecycleListener)
         def buildActionRunner = Mock(BuildActionRunner)
-        def buildAction = Stub(BuildAction)
+        def buildAction = Stub(BuildAction) {
+            getStartParameter() >> Stub(StartParameterInternal)
+        }
 
         def executor = new RootBuildLifecycleBuildActionExecutor(
             Stub(BuildModelParameters),
@@ -51,7 +53,6 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             listener,
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
-            Stub(StartParameter),
             Stub(ProblemStream),
             buildStateRegistry,
             buildActionRunner
@@ -77,13 +78,14 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             Stub(BuildTreeLifecycleListener),
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
-            Stub(StartParameter),
             Stub(ProblemStream),
             buildStateRegistry,
             Mock(BuildActionRunner)
         )
 
-        executor.execute(Stub(BuildAction))
+        executor.execute(Stub(BuildAction) {
+            getStartParameter() >> Stub(StartParameterInternal)
+        })
 
         when:
         executor.execute(Stub(BuildAction))

@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SwiftPackageManagerSwiftBuildExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
@@ -67,6 +68,7 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "produces manifest for multi-project Swift build"() {
         given:
         createDirs("hello", "log")
@@ -240,6 +242,7 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "honors customizations to Swift module name"() {
         given:
         createDirs("lib1", "lib2")

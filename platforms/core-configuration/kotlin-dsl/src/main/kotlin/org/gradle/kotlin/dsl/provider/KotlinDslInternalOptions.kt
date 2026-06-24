@@ -22,8 +22,30 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 
 internal object KotlinDslInternalOptions {
-    val CACHING_DISABLED_PROPERTY: InternalOption<Boolean> =
+    // Disables build caching for both Kotlin script compilation AND accessor generation
+    private val CACHING_DISABLED_PROPERTY: InternalOption<Boolean> =
         InternalOptions.ofBoolean("org.gradle.internal.kotlin-script-caching-disabled", false)
-    val CACHING_DISABLED_REASON: CachingDisabledReason =
+    private val CACHING_DISABLED_REASON: CachingDisabledReason =
         CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation and Kotlin DSL accessors generation disabled by property")
+
+    // Disables build caching only for accessor generation (overridden by CACHING_DISABLED_PROPERTY)
+    private val ACCESSOR_CACHING_DISABLED_PROPERTY: InternalOption<Boolean> =
+        InternalOptions.ofBoolean("org.gradle.internal.kotlin-script-accessors-caching-disabled", true)
+    private val ACCESSOR_CACHING_DISABLED_REASON: CachingDisabledReason =
+        CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Build caching of Kotlin script accessor generation disabled by property")
+
+    /**
+     * Returns a reason why the script and accessor generation caching is disabled, or `null` if there is none
+     */
+    fun cachingDisabledReason(internalOptions: InternalOptions): CachingDisabledReason? =
+        if (internalOptions.getBoolean(CACHING_DISABLED_PROPERTY)) CACHING_DISABLED_REASON else null
+
+    /**
+     * Returns a reason why specifically the accessor generation is disabled, or `null` if there is none
+     */
+    fun accessorCachingDisabledReason(internalOptions: InternalOptions): CachingDisabledReason? = when {
+        internalOptions.getBoolean(CACHING_DISABLED_PROPERTY) -> CACHING_DISABLED_REASON
+        internalOptions.getBoolean(ACCESSOR_CACHING_DISABLED_PROPERTY) -> ACCESSOR_CACHING_DISABLED_REASON
+        else -> null
+    }
 }

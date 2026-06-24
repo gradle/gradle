@@ -56,7 +56,7 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
 
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectDeprecations', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {
@@ -103,6 +103,11 @@ performanceTest.registerTestProject("createLotsOfTasks", JvmProjectGeneratorTask
 }
 
 performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
+performanceTest.registerTestProject("generateDiverseDeprecationWarnings", Copy) {
     into "build/$name"
     from "src/templates/$name"
 }

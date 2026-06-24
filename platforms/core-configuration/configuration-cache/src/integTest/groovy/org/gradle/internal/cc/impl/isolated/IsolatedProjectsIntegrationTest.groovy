@@ -21,6 +21,132 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
+
+    def "disabled by default"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus"
+
+        then:
+        outputContains("isolatedProjects.requested=null")
+        outputContains("isolatedProjects.active=false")
+    }
+
+    def "can enable via property"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "-Dorg.gradle.isolated-projects=true"
+
+        then:
+        outputContains("isolatedProjects.requested=true")
+        outputContains("isolatedProjects.active=true")
+    }
+
+    def "can enable via deprecated property"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "-Dorg.gradle.unsafe.isolated-projects=true"
+
+        then:
+        outputContains("isolatedProjects.requested=true")
+        outputContains("isolatedProjects.active=true")
+    }
+
+    def "can enable via gradle.properties"() {
+        given:
+        withIpStatusTask()
+        file("gradle.properties") << "org.gradle.isolated-projects=true"
+
+        when:
+        run "ipStatus"
+
+        then:
+        outputContains("isolatedProjects.requested=true")
+        outputContains("isolatedProjects.active=true")
+    }
+
+    def "can enable via --isolated-projects"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "--isolated-projects"
+
+        then:
+        outputContains("isolatedProjects.requested=true")
+        outputContains("isolatedProjects.active=true")
+    }
+
+    def "can disable via --no-isolated-projects"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "--no-isolated-projects"
+
+        then:
+        outputContains("isolatedProjects.requested=false")
+        outputContains("isolatedProjects.active=false")
+    }
+
+    def "build option takes precedence over property when disabling"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "--no-isolated-projects", "-Dorg.gradle.isolated-projects=true"
+
+        then:
+        outputContains("isolatedProjects.requested=false")
+        outputContains("isolatedProjects.active=false")
+    }
+
+    def "build option takes precedence over property when enabling"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "--isolated-projects", "-Dorg.gradle.isolated-projects=false"
+
+        then:
+        outputContains("isolatedProjects.requested=true")
+        outputContains("isolatedProjects.active=true")
+    }
+
+    def "diagnostics option is accepted under both property names"() {
+        when:
+        run "help", "-q",
+            "-Dorg.gradle.internal.operations.verbose.parameters=true",
+            "-Dorg.gradle.isolated-projects=true",
+            "-D${propertyName}=true"
+
+        then:
+        result.getOutputLineThatContains("Operational build model parameters:").contains("isolatedProjectsDiagnostics=true")
+
+        where:
+        propertyName << ["org.gradle.isolated-projects.diagnostics", "org.gradle.unsafe.isolated-projects.diagnostics"]
+    }
+
+    def "dangerously-ignore-problems option is accepted under both property names"() {
+        when:
+        run "help", "-q",
+            "-Dorg.gradle.internal.operations.verbose.parameters=true",
+            "-Dorg.gradle.isolated-projects=true",
+            "-D${propertyName}=true"
+
+        then:
+        result.getOutputLineThatContains("Operational build model parameters:").contains("isolatedProjectsDangerouslyIgnoreProblems=true")
+
+        where:
+        propertyName << ["org.gradle.isolated-projects.dangerously-ignore-problems", "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems"]
+    }
+
     def "option also enables configuration cache"() {
         settingsFile << """
             println "configuring settings"
@@ -156,5 +282,18 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
             }
         """
         return buildFile
+    }
+
+    void withIpStatusTask() {
+        //noinspection UnnecessaryQualifiedReference
+        buildFile """
+            def buildFeatures = gradle.services.get(org.gradle.api.configuration.BuildFeatures)
+            tasks.register("ipStatus") {
+                doLast {
+                    println "isolatedProjects.requested=" + buildFeatures.isolatedProjects.requested.getOrNull()
+                    println "isolatedProjects.active=" + buildFeatures.isolatedProjects.active.get()
+                }
+            }
+        """
     }
 }

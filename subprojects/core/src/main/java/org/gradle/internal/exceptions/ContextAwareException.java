@@ -30,6 +30,7 @@ import org.gradle.api.GradleException;
  */
 public class ContextAwareException extends GradleException {
 
+    @SuppressWarnings("this-escape")
     public ContextAwareException(Throwable t) {
         initCause(t);
     }

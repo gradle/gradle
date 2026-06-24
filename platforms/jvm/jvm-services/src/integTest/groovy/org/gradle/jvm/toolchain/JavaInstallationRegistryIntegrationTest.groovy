@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -134,6 +135,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains(otherJvm)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "toolchain registry queries cross-project state")
     def "relative file paths are resolved relative to root dir"() {
         def javaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
 

@@ -19,8 +19,8 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.fixtures.SimpleKeyRing
@@ -1571,7 +1571,10 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "ArtifactResolutionQuery APIs should be deprecated: https://github.com/gradle/gradle/issues/26365")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/26365",
+        because = "ArtifactResolutionQuery APIs should be deprecated"
+    )
     def "dependency verification should work correctly with artifact queries"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)

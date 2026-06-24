@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -24,6 +25,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void dealsWithDuplicatedModuleNames() {
       /*
@@ -107,6 +109,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert deps.contains("/shared-api")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectName() {
         //use case from the mailing list
@@ -155,6 +158,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         assert deps.contains("/nonEclipse")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
         createDirs("api", "shared", "shared/model")

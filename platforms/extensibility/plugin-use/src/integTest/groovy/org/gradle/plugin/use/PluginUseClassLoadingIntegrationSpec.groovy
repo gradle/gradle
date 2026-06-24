@@ -18,10 +18,12 @@ package org.gradle.plugin.use
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 @LeaksFileHandles
 class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
 
+    @ToBeFixedForIsolatedProjects(because = "plugin use cross-project classloading")
     def "plugin classes are reused if possible"() {
         given:
         publishPlugin()

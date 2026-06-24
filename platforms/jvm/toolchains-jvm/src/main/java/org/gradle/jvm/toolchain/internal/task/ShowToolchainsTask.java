@@ -49,6 +49,7 @@ public abstract class ShowToolchainsTask extends DefaultTask {
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
 
+    @SuppressWarnings("this-escape")
     public ShowToolchainsTask() {
         getOutputs().upToDateWhen(spec(element -> false));
     }

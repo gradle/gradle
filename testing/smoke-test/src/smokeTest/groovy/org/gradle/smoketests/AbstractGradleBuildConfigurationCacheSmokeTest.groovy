@@ -23,17 +23,12 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
-import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
 
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  **/
 @Requires([
-    JdkVersionTestPreconditions.Jdk9OrLater,
     TestExecutionPreconditions.NotConfigCached,
-    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
 abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
     def setup() {

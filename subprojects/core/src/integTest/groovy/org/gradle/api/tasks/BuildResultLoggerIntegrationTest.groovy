@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -96,7 +96,10 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "1 actionable task: 1 executed"
     }
 
-    @ToBeFixedForConfigurationCache(because = "CC doesn't save/load excluded tasks, causing noActions task to appear skipped, https://github.com/gradle/gradle/issues/37241")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37241",
+        because = "CC doesn't save/load excluded tasks, causing noActions task to appear skipped"
+    )
     def "skipped tasks are not counted"() {
         given:
         executer.withArguments "-x", "executedTask"
@@ -110,7 +113,10 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertNotOutput("actionable tasks")
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildSrc tasks are not executed when loaded from cache, https://github.com/gradle/gradle/issues/37241")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37241",
+        because = "buildSrc tasks are not executed when loaded from cache"
+    )
     def "reports tasks from buildSrc"() {
         file("buildSrc/src/main/java/Thing.java") << """
             public class Thing {
@@ -154,7 +160,10 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "2 actionable tasks: 2 executed"
     }
 
-    @ToBeFixedForConfigurationCache(because = "build logic tasks are not executed when loaded from cache, https://github.com/gradle/gradle/issues/37241")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37241",
+        because = "build logic tasks are not executed when loaded from cache"
+    )
     def "reports tasks from included builds that provide project plugins"() {
         settingsFile << """
             includeBuild("plugins")

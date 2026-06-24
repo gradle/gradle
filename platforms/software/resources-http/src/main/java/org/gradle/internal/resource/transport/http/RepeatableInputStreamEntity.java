@@ -29,6 +29,7 @@ import java.io.OutputStream;
 public class RepeatableInputStreamEntity extends AbstractHttpEntity {
     private final ReadableContent source;
 
+    @SuppressWarnings("this-escape")
     public RepeatableInputStreamEntity(ReadableContent source, ContentType contentType) {
         super();
         this.source = source;

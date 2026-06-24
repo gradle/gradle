@@ -613,19 +613,17 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
             file("other-2.0.jar").createNewFile()
 
-            configurations {
-                consumable("elements") {
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "first"))
-                    }
-                    outgoing {
-                        artifact(file("other-2.0.jar"))
-                    }
+            def elements = configurations.consumable("elements") {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "first"))
+                }
+                outgoing {
+                    artifact(file("other-2.0.jar"))
                 }
             }
 
             def component = publishing.softwareComponentFactory.adhoc("component")
-            component.addVariantsFromConfiguration(configurations.elements) {
+            component.addVariantsFromConfiguration(elements) {
                 mapToMavenScope('runtime')
             }
 

@@ -40,6 +40,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultCppComponent(String name) {
         this.name = name;

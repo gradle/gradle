@@ -16,6 +16,9 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
+@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     def setup() {
         buildFile << """

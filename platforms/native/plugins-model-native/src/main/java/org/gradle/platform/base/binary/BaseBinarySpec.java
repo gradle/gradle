@@ -92,6 +92,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         }
     }
 
+    @SuppressWarnings("this-escape")
     public BaseBinarySpec() {
         this(NEXT_BINARY_INFO.get());
     }

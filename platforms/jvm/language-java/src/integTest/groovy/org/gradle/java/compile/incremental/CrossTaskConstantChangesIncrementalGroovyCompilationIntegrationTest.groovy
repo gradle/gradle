@@ -17,7 +17,9 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
+@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
 

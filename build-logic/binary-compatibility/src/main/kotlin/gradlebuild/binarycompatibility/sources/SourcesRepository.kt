@@ -65,10 +65,7 @@ internal
 class SourcesRepository(
 
     private
-    val sourceRoots: List<File>,
-
-    private
-    val compilationClasspath: List<File>
+    val sourceRoots: List<File>
 
 ) : AutoCloseable {
 
@@ -90,8 +87,7 @@ class SourcesRepository(
             openKotlinCompilationUnitsByRoot
                 .computeIfAbsent(apiSourceFile.currentSourceRoot) {
                     KotlinSourceParser().parseSourceRoots(
-                        listOf(apiSourceFile.currentSourceRoot),
-                        compilationClasspath
+                        listOf(apiSourceFile.currentSourceRoot)
                     )
                 }
                 .ktFiles

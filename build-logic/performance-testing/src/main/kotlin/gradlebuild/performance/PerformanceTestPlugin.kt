@@ -323,6 +323,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             commitBaseline = determineBaselines.flatMap { it.determinedBaselines }
             commitDistribution = buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version.zip") }
             commitDistributionToolingApiJar = buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version-tooling-api.jar") }
+            javaInstallationsPaths = project.toolchainInstallationPaths
         }
 
         tasks.withType<PerformanceTest>().configureEach {

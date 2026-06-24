@@ -20,7 +20,7 @@ Gradle provides types for maintaining collections of objects, intended to work w
 [[collection_hierarchy]]
 == Collection hierarchy
 
-All Gradle collection types extend from link:{javadocPath}/org/gradle/api/DomainObjectCollection.html[`DomainObjectCollection<T>`], which defines the core contract for live collections — including methods like `configureEach()`, `withType()`, `matching()`, `all()`, `whenObjectAdded()`, and `addLater()`.
+All Gradle collection types extend from link:{javadocPath}/org/gradle/api/DomainObjectCollection.html[`DomainObjectCollection<T>`], which defines the core contract for live collections — including methods like `configureEach()`, `withType()`, `matching()`, `all()`, `whenObjectAdded()`, `addLater()`, and `getElements()`.
 
 [source,text]
 ----

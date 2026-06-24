@@ -18,11 +18,13 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "external dependency substituted with project dependency"() {
         createDirs("project1", "project2")
@@ -51,6 +53,7 @@ class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegr
         assert classpath.libs == []
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
@@ -87,6 +90,7 @@ class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegr
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "project dependency substituted with external dependency"() {
         createDirs("project1", "project2")

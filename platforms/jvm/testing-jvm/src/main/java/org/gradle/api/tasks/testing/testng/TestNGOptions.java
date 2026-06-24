@@ -99,6 +99,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     private final File projectDir;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public TestNGOptions(ProjectLayout projectLayout) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();

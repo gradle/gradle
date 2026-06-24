@@ -22,6 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
@@ -174,6 +175,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         inTestDirectory().withTasks("hello").run();
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     @Test
     public void inheritsClassPathOfParentProject() {
         ArtifactBuilder builder = artifactBuilder();

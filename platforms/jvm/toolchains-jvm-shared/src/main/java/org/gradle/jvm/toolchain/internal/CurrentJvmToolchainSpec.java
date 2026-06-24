@@ -27,6 +27,7 @@ import javax.inject.Inject;
 @ServiceScope(Scope.Global.class)
 public abstract class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
 
+    @SuppressWarnings("this-escape")
     @Inject
     public CurrentJvmToolchainSpec(PropertyFactory propertyFactory, Jvm currentJvm) {
         super(propertyFactory);

@@ -52,6 +52,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final DefaultInstantiationScheme decoratingLenientScheme;
     private final ManagedFactory managedFactory;
 
+    @SuppressWarnings("this-escape")
     public DefaultInstantiatorFactory(ClassCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler) {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = injectHandlers;

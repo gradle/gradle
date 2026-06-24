@@ -46,6 +46,7 @@ import javax.inject.Inject;
  *
  * @since 8.13
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class ArtifactTransformsReportTask extends DefaultTask {

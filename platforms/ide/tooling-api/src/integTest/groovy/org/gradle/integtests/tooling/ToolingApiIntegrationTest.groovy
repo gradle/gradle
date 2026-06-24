@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.OtherGradleVersionFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -143,6 +144,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements Other
         notThrown(Throwable)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects { task ... } in generated root script")
     def "tooling api searches up from the project directory to find the wrapper properties"() {
         settingsFile << "include 'child'"
         buildFile << """

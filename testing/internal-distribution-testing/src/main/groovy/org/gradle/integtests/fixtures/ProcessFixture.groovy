@@ -155,7 +155,11 @@ class ProcessFixture {
         if (pid == null) {
             throw new RuntimeException("Unable to wait for process to finish because provided pid is null!")
         }
-        if (OperatingSystem.current().unix) {
+        if (JavaVersion.current().isJava9Compatible()) {
+            ConcurrentTestUtil.poll(timeoutInSeconds) {
+                assert !isAlive() : "Process $pid is still running after waiting ${timeoutInSeconds}s for it to finish"
+            }
+        } else if (OperatingSystem.current().unix) {
             ConcurrentTestUtil.poll(timeoutInSeconds) {
                 assert bash("ps -o pid= -p $pid; exit 0").trim() == "" : "Process $pid is still running after waiting ${timeoutInSeconds}s for it to finish"
             }

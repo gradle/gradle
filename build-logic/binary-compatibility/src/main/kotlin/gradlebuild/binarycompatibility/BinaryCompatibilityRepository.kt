@@ -44,8 +44,8 @@ class BinaryCompatibilityRepository internal constructor(
     companion object {
 
         @JvmStatic
-        fun openRepositoryFor(sourceRoots: List<File>, compilationClasspath: List<File>) =
-            BinaryCompatibilityRepository(SourcesRepository(sourceRoots, compilationClasspath))
+        fun openRepositoryFor(sourceRoots: List<File>) =
+            BinaryCompatibilityRepository(SourcesRepository(sourceRoots))
     }
 
     @VisibleForTesting

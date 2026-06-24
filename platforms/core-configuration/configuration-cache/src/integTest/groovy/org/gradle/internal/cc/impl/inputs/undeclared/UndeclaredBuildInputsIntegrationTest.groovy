@@ -22,9 +22,8 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue

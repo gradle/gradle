@@ -60,7 +60,7 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
             invocation {
                 args(
                     // ensure IP is disabled for sensible comparison for projects that already enabled it
-                    "-Dorg.gradle.unsafe.isolated-projects=false",
+                    "-Dorg.gradle.isolated-projects=false",
 
                     "-Dorg.gradle.parallel=true",
                     "-Dorg.gradle.configuration-cache=true",
@@ -74,7 +74,7 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
             displayName("ip")
             invocation {
                 args(
-                    "-Dorg.gradle.unsafe.isolated-projects=true"
+                    "-Dorg.gradle.isolated-projects=true"
                 )
             }
         }

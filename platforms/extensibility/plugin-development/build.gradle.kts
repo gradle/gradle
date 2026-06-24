@@ -106,8 +106,6 @@ gradleModule {
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 testFilesCleanup.reportOnly = true

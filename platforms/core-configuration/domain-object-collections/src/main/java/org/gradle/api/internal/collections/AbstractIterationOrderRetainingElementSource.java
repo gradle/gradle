@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
@@ -34,6 +35,8 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
@@ -47,7 +50,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
+abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T>, TaskDependencyContainer {
+
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
     private final List<Element<T>> inserted = new ArrayList<>();
@@ -158,17 +162,17 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), this::doAddRealized);
+        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> clearCachedElement(element));
+            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> clearCachedElement(element)));
         }
         return element;
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), this::doAddRealized);
+        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> clearCachedElement(element));
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> clearCachedElement(element)));
         }
         return element;
     }
@@ -226,6 +230,13 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             element.clearCache();
         }
         return added;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        for (Element<T> element : inserted) {
+            context.add(element.getProducer());
+        }
     }
 
     @Override
@@ -447,4 +458,5 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return index;
         }
     }
+
 }

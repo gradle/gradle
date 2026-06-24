@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
@@ -121,5 +122,75 @@ class TestEventLoggerTest extends Specification {
     def "allows empty event set"() {
         expect:
         testLogging.setEvents(Collections.emptySet())
+    }
+
+    def "framework failure on composite descriptor bypasses default granularity via the framework-failure flag"() {
+        // Default granularity: minGranularity = -1 (leaves only).
+        // outerSuiteDescriptor is composite, so under default granularity it would be filtered.
+        // The framework-failure flag on the attached TestFailure triggers the bypass — this test
+        // exercises hasFrameworkFailure, distinct from the structural branch covered below.
+        def cause = new RuntimeException("framework boom")
+        testLogging.events(TestLogEvent.FAILED)
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = [TestFailure.fromTestFrameworkFailure(cause)]
+        result.exceptions = [cause]
+        exceptionFormatter.format(*_) >> "formatted framework exception"
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 1
+        textOutputFactory.output.contains("formatted framework exception")
+    }
+
+    def "composite descriptor failed only because of a child failure is still filtered by default granularity"() {
+        // The bypass fires when the composite has its OWN failures, not when it's merely
+        // FAILURE because some child test failed. In the failed-child case, the user already
+        // sees the failing leaf event(s); the aggregated composite event would be noise.
+        testLogging.events(TestLogEvent.FAILED)
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = []
+        exceptionFormatter.format(*_) >> "formatted regular exception"
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 0
+    }
+
+    def "composite descriptor with own non-framework failure bypasses default granularity via the structural branch"() {
+        // The structural branch of the bypass: any failure attached directly to a composite
+        // descriptor has no leaf to surface it at, so it bypasses granularity even when the
+        // failure is not classified as a framework failure. Using an assertion-classified
+        // failure here keeps the framework-failure flag off, isolating the hasOwnFailureOnComposite
+        // branch from hasFrameworkFailure.
+        testLogging.events(TestLogEvent.FAILED)
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = [TestFailure.fromTestAssertionFailure(new AssertionError("composite own failure"), null, null)]
+        result.exceptions = [new AssertionError("composite own failure")]
+        exceptionFormatter.format(*_) >> "formatted own exception"
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 1
+        textOutputFactory.output.contains("formatted own exception")
+    }
+
+    def "framework failure does not bypass events-set filter"() {
+        // The granularity bypass must NOT also override the events-set predicate.
+        // If FAILED is not in the events set, the user has explicitly silenced it.
+        testLogging.setEvents(Collections.emptySet())
+        result.resultType = TestResult.ResultType.FAILURE
+        result.failures = [TestFailure.fromTestFrameworkFailure(new RuntimeException("framework boom"))]
+
+        when:
+        eventLogger.afterSuite(outerSuiteDescriptor, result)
+
+        then:
+        textOutputFactory.output.count("FAILED") == 0
     }
 }

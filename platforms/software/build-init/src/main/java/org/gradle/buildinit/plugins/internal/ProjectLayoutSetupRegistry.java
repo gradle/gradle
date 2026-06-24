@@ -32,6 +32,7 @@ public class ProjectLayoutSetupRegistry {
     private final BuildConverter converter;
     private final TemplateOperationFactory templateOperationFactory;
 
+    @SuppressWarnings("this-escape")
     public ProjectLayoutSetupRegistry(BuildGenerator defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
         this.defaultType = defaultType;
         this.converter = converter;

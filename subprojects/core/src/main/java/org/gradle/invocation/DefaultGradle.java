@@ -101,6 +101,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private @Nullable ProjectState defaultProject;
     private boolean projectsLoaded;
 
+    @SuppressWarnings("this-escape")
     public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
         this.buildState = buildState;
         this.startParameter = startParameter;

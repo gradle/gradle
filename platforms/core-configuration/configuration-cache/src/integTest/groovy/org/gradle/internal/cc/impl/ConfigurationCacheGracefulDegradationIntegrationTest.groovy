@@ -141,7 +141,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         where:
         mode               | args
         ""                 | []
-        " with IP enabled" | ["-Dorg.gradle.unsafe.isolated-projects=true"]
+        " with IP enabled" | ["-Dorg.gradle.isolated-projects=true"]
     }
 
     def "a task can require CC degradation for multiple reasons"() {

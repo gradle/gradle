@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserCodeException
 
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.plugins.DslObject
+import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.kotlin.dsl.support.uncheckedCast
 
@@ -61,15 +62,32 @@ fun dynamicObjectFor(target: Any): DynamicObject =
 
 @Suppress("DEPRECATION")
 private
+inline fun <T> withKotlinDelegationContext(owner: DynamicObject, action: () -> T): T {
+    if (owner !is ExtensibleDynamicObject) {
+        return action()
+    }
+    val previous = owner.callerContext
+    owner.callerContext = ExtensibleDynamicObject.CallerContext.Instances.KOTLIN_DELEGATION
+    try {
+        return action()
+    } finally {
+        owner.callerContext = previous
+    }
+}
+
+
+@Suppress("DEPRECATION")
+private
 class NullableDynamicPropertyDelegate(
     private val owner: DynamicObject,
     private val name: String
 ) : PropertyDelegate {
 
-    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T {
-        val result = owner.tryGetProperty(name)
-        return uncheckedCast(if (result.isFound) result.value else null)
-    }
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
+        withKotlinDelegationContext(owner) {
+            val result = owner.tryGetProperty(name)
+            uncheckedCast(if (result.isFound) result.value else null)
+        }
 }
 
 
@@ -82,8 +100,10 @@ class NonNullDynamicPropertyDelegate(
 ) : PropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        owner.tryGetProperty(name).run {
-            if (isFound && value != null) uncheckedCast<T>(value)
-            else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
+        withKotlinDelegationContext(owner) {
+            owner.tryGetProperty(name).run {
+                if (isFound && value != null) uncheckedCast<T>(value)
+                else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
+            }
         }
 }

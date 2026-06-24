@@ -61,6 +61,7 @@ public abstract class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private String title;
 
+    @SuppressWarnings("this-escape")
     public ScalaDoc() {
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         getJavaLauncher().convention(javaToolchainService.launcherFor(it -> {}));

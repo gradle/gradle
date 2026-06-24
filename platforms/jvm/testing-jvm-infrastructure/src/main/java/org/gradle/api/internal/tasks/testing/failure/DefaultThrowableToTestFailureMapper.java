@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 @NullMarked
 public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailureMapper {
@@ -35,7 +36,15 @@ public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailu
     }
 
     @Override
-    public TestFailure createFailure(Throwable throwable) {
+    public TestFailure createFailure(Throwable throwable, boolean isFailureDuringTest) {
+        if (isFailureDuringTest) {
+            return tryMapFailure(throwable).orElse(TestFailure.fromTestMethodFailure(throwable));
+        } else {
+            return TestFailure.fromTestFrameworkFailure(throwable);
+        }
+    }
+
+    private Optional<TestFailure> tryMapFailure(Throwable throwable) {
         Throwable currentThrowable = throwable;
 
         // We recursively dig down through the chain of causes, trying to find a Throwable which we can map to a proper test failure
@@ -43,7 +52,7 @@ public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailu
             for (TestFailureMapper mapper : mappers) {
                 if (mapper.supports(currentThrowable.getClass())) {
                     try {
-                        return mapper.map(currentThrowable, this);
+                        return Optional.of(mapper.map(currentThrowable, this));
                     } catch (Exception ex) {
                         LOGGER.error("Failed to map supported failure '{}' with mapper '{}': {}", currentThrowable, mapper, ex.getMessage());
                     }
@@ -51,7 +60,6 @@ public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailu
             }
             currentThrowable = currentThrowable.getCause();
         }
-
-        return TestFailure.fromTestFrameworkFailure(throwable);
+        return Optional.empty();
     }
 }

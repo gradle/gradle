@@ -89,6 +89,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

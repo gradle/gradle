@@ -17,8 +17,10 @@
 package org.gradle.language
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
+@ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
 abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec  {
     def setup() {
         settingsFile << """

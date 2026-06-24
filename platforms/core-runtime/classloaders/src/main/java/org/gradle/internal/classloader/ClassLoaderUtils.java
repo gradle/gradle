@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -61,7 +62,7 @@ public abstract class ClassLoaderUtils {
         // Changes to jar files won't be noticed in all cases when caching is enabled.
         // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
         try {
-            URL url = new URL("jar:file://valid_jar_url_syntax.jar!/");
+            URL url = URI.create("jar:file://valid_jar_url_syntax.jar!/").toURL();
             URLConnection urlConnection = url.openConnection();
             urlConnection.setDefaultUseCaches(false);
         } catch (IOException e) {
@@ -159,6 +160,7 @@ public abstract class ClassLoaderUtils {
 
         private MethodHandles.Lookup getLookupForClassLoader(ClassLoader classLoader) throws IllegalAccessException {
             try {
+                // FUTURE-STDLIB: MethodHandles.privateLookupIn is JDK 9+; only reachable via LookupClassDefiner, which is selected by the isJava9Compatible() gate when CLASS_DEFINER is initialized.
                 return MethodHandles.privateLookupIn(classLoader.getClass(), baseLookup);
             } catch (IllegalAccessException e) {
                 // Fallback to ClassLoader's lookup
@@ -197,6 +199,7 @@ public abstract class ClassLoaderUtils {
                 // Lookup.defineClass can only define a class into same classloader as the lookup object.
                 // We have to use the fallback defineClass() if they're not same, which is the case of ManagedProxyClassGenerator
                 if (decoratedClass.getClassLoader() == classLoader) {
+                    // FUTURE-STDLIB: MethodHandles.privateLookupIn and Lookup.defineClass are JDK 9+; only reachable via LookupClassDefiner, which is selected by the isJava9Compatible() gate when CLASS_DEFINER is initialized.
                     MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(decoratedClass, baseLookup);
                     return (Class) lookup.defineClass(classBytes);
                 } else {

@@ -64,10 +64,6 @@ object BuildModelParametersProvider {
     val isolatedProjectsCaching =
         InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.NONE)
 
-    private
-    val resilientModelBuilding =
-        InternalOptions.ofBoolean("org.gradle.internal.resilient-model-building", false)
-
     /**
      * A public *system property* that allows removing the implication that
      * `org.gradle.parallel` also controls parallel model building for Vintage.
@@ -94,17 +90,17 @@ object BuildModelParametersProvider {
         val ccDisabledReason = getConfigurationCacheDisabledReason(startParameter)
         return when {
             // TODO:isolated should this also disable IP?
-            ccDisabledReason != null -> vintageMode(requirements, startParameter, options, ccDisabledReason)
+            ccDisabledReason != null -> vintageMode(requirements, startParameter, ccDisabledReason)
             startParameter.isolatedProjects.get() -> isolatedProjectsMode(requirements, startParameter, options)
             startParameter.configurationCache.get() ->
                 if (requirements.isCreatesModel) {
                     // CC by itself does not yet support caching models or caching of the work graph that runs before model building
-                    vintageMode(requirements, startParameter, options)
+                    vintageMode(requirements, startParameter)
                 } else {
                     configurationCacheTasksOnlyMode(requirements, startParameter, options)
                 }
 
-            else -> vintageMode(requirements, startParameter, options)
+            else -> vintageMode(requirements, startParameter)
         }
     }
 
@@ -122,8 +118,7 @@ object BuildModelParametersProvider {
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = null,
-            parallelModelBuilding = false,
-            resilientModelBuilding = false
+            parallelModelBuilding = false
         )
     }
 
@@ -131,7 +126,6 @@ object BuildModelParametersProvider {
     fun vintageMode(
         requirements: BuildActionModelRequirements,
         startParameter: StartParameterInternal,
-        options: InternalOptions,
         ccDisabledReason: String? = null
     ): GradleVintageMode {
 
@@ -144,7 +138,6 @@ object BuildModelParametersProvider {
                 configureOnDemand = false,
                 configurationCacheDisabledReason = ccDisabledReason,
                 parallelModelBuilding = parallelModelBuilding,
-                resilientModelBuilding = options[resilientModelBuilding],
             )
         } else {
             GradleVintageMode(
@@ -153,7 +146,6 @@ object BuildModelParametersProvider {
                 configureOnDemand = startParameter.isConfigureOnDemand,
                 configurationCacheDisabledReason = ccDisabledReason,
                 parallelModelBuilding = false,
-                resilientModelBuilding = false,
             )
         }
     }
@@ -221,8 +213,7 @@ object BuildModelParametersProvider {
                 cachingModelBuilding = !diagnostics && options[isolatedProjectsCaching].buildingModels,
                 parallelModelBuilding = parallelIsolatedProjects,
                 invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = options[modelProjectDependencies],
-                resilientModelBuilding = options[resilientModelBuilding]
+                modelAsProjectDependency = options[modelProjectDependencies]
             )
         } else {
             GradleIsolatedProjectsMode(
@@ -236,8 +227,7 @@ object BuildModelParametersProvider {
                 cachingModelBuilding = false,
                 parallelModelBuilding = false,
                 invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = false,
-                resilientModelBuilding = false
+                modelAsProjectDependency = false
             )
         }
     }

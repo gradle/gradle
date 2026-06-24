@@ -24,24 +24,38 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Under Isolated Projects, parent-project lookup is disabled entirely (see IsolatedProjectsAccessFromGroovyDslIntegrationTest); no deprecation fires")
 class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String DEPRECATION_DOC_URL = "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects"
+    private static final String COMMON_DEPRECATION_PART = "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects"
 
-    private static final String PROPERTY_DEPRECATION = propertyDeprecation("foo", "project ':a'", "root project 'root'")
+    private static String implicitPropertyDeprecation(String name) {
+        propertyDeprecation(name, "project ':a'", "root project 'root'")
+    }
 
-    private static final String METHOD_DEPRECATION = methodDeprecation("someMethod", "project ':a'", "root project 'root'")
+    private static String implicitMethodDeprecation(String name) {
+        methodDeprecation(name, "project ':a'", "root project 'root'")
+    }
+
+    private static String explicitApiDeprecation(String apiName, String name) {
+        "Implicit lookup of properties in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Property '$name' was not declared in project ':a' and was resolved from root project 'root'. " +
+            "This lookup was initiated by '$apiName'. " +
+            "$COMMON_DEPRECATION_PART"
+    }
 
     private static String propertyDeprecation(String name, String lookupProject, String declaringProject) {
         "Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
-            "Consult the upgrading guide for further information: $DEPRECATION_DOC_URL"
+            "This lookup was initiated by a dynamic invocation in the build script. " +
+            "$COMMON_DEPRECATION_PART"
     }
 
     private static String methodDeprecation(String name, String lookupProject, String declaringProject) {
         "Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '$name' was not declared in $lookupProject and was resolved from $declaringProject. " +
-            "Consult the upgrading guide for further information: $DEPRECATION_DOC_URL"
+            "This lookup was initiated by a dynamic invocation in the build script. " +
+            "$COMMON_DEPRECATION_PART"
     }
 
     def setup() {
@@ -61,79 +75,35 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("foo"))
 
         then:
         succeeds("help")
         outputContains("foo: hello")
     }
 
-    def "explicit findProperty(String) on the child project is deprecated when resolved from parent"() {
+    def "explicit #api on the child project is deprecated when resolved from parent"() {
         given:
         buildFile << """
             ext.foo = "hello"
         """
         file("a/build.gradle") << """
-            println("foo: " + findProperty("foo"))
+            println("result: " + $invocation)
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(deprecation)
 
         then:
         succeeds("help")
-        outputContains("foo: hello")
-    }
+        outputContains("result: $expected")
 
-    def "explicit property(String) on the child project is deprecated when resolved from parent"() {
-        given:
-        buildFile << """
-            ext.foo = "hello"
-        """
-        file("a/build.gradle") << """
-            println("foo: " + property("foo"))
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
-
-        then:
-        succeeds("help")
-        outputContains("foo: hello")
-    }
-
-    def "explicit getProperty(String) on the child project is deprecated when resolved from parent"() {
-        given:
-        buildFile << """
-            ext.foo = "hello"
-        """
-        file("a/build.gradle") << """
-            println("foo: " + getProperty("foo"))
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
-
-        then:
-        succeeds("help")
-        outputContains("foo: hello")
-    }
-
-    def "explicit hasProperty(String) on the child project is deprecated when resolved from parent"() {
-        given:
-        buildFile << """
-            ext.foo = "hello"
-        """
-        file("a/build.gradle") << """
-            println("hasFoo: " + hasProperty("foo"))
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
-
-        then:
-        succeeds("help")
-        outputContains("hasFoo: true")
+        where:
+        api              | invocation             | expected | deprecation
+        "findProperty()" | 'findProperty("foo")'  | "hello"  | explicitApiDeprecation("findProperty()", "foo")
+        "property()"     | 'property("foo")'      | "hello"  | explicitApiDeprecation("property()", "foo")
+        "getProperty()"  | 'getProperty("foo")'   | "hello"  | implicitPropertyDeprecation("foo")
+        "hasProperty()"  | 'hasProperty("foo")'   | "true"   | implicitPropertyDeprecation("foo")
     }
 
     def "implicit method invocation from a child project is deprecated"() {
@@ -146,7 +116,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(METHOD_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(implicitMethodDeprecation("someMethod"))
 
         then:
         succeeds("help")

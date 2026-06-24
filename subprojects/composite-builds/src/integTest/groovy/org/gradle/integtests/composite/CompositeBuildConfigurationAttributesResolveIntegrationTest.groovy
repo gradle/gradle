@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.internal.ToBeImplemented
 
@@ -30,6 +31,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         using m2
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels to transitive dependencies"() {
         given:
         createDirs("a", "b", "includedBuild")
@@ -132,6 +134,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels to transitive dependencies via external components (Maven)"() {
         given:
         mavenRepo.module('com.acme.external', 'external', '1.2')
@@ -244,6 +247,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels to transitive dependencies via external components (Ivy)"() {
         given:
         ivyRepo.module('com.acme.external', 'external', '1.2')
@@ -356,6 +360,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "attribute values are matched across builds - #type"() {
         given:
         createDirs("a", "b", "includedBuild")
@@ -695,6 +700,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 //        }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "reports failure to resolve due to incompatible attribute values"() {
         given:
         createDirs("a", "b", "includedBuild")
@@ -801,6 +807,7 @@ All of them match the consumer attributes:
   - Variant 'foo' capability 'com.acme.external:external:2.0-SNAPSHOT' declares attribute 'flavor' with value 'red'""")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration")
     def "context travels down to transitive dependencies with typed attributes using plugin"() {
         def resolve = new ResolveTestFixture(testDirectory)
 

@@ -59,6 +59,4 @@ gradleModule {
 }
 
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

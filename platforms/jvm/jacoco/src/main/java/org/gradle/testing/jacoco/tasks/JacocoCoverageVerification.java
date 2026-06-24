@@ -44,6 +44,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
 
+    @SuppressWarnings("this-escape")
     public JacocoCoverageVerification() {
         super();
         Instantiator instantiator = getInstantiator();

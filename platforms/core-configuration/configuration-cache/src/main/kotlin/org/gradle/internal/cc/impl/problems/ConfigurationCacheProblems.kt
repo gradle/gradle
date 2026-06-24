@@ -67,22 +67,33 @@ import java.io.IOException
 
 
 /**
- * Banner shown at the start and end of every build running with the Isolated Projects
- * "dangerously ignore problems" mode enabled (see
+ * Warning shown when the Isolated Projects "dangerously ignore problems" mode is enabled (see
  * [org.gradle.internal.buildtree.BuildModelParameters.isIsolatedProjectsDangerouslyIgnoreProblems]).
+ * Rendered as a console banner at the start and end of every such build, and joined with spaces
+ * as the message of the Problem reported through the Problems API.
  */
 private
-fun isolatedProjectsDangerouslyIgnoreProblemsBanner(): String = """
+val isolatedProjectsDangerouslyIgnoreProblemsSentences = listOf(
+    "Isolated Projects dangerously-ignore-problems is ENABLED.",
+    "Isolated Projects violations are being ignored.",
+    "Build outputs may be incorrect and the build may crash unexpectedly.",
+    "Use this only to evaluate performance.",
+    "Do not use this to produce artifacts."
+)
 
-==============================================================================
-Isolated Projects: dangerously-ignore-problems is ENABLED. Isolated Projects
-violations are being ignored, so build outputs may be incorrect and the build
-may crash unexpectedly. Use this only to evaluate performance.
-Do not use this to produce artifacts.
-See ${Documentation.userManual("isolated_projects", "sec:dangerously_ignore_problems").url}
-==============================================================================
 
-"""
+private
+val isolatedProjectsDangerouslyIgnoreProblemsDocumentation =
+    Documentation.userManual("isolated_projects", "sec:dangerously_ignore_problems")
+
+
+private
+fun isolatedProjectsDangerouslyIgnoreProblemsBanner(): String {
+    val lines = isolatedProjectsDangerouslyIgnoreProblemsSentences +
+        "See ${isolatedProjectsDangerouslyIgnoreProblemsDocumentation.url}"
+    val fence = "=".repeat(lines.maxOf { it.length })
+    return (listOf("", fence) + lines + listOf(fence, "")).joinToString("\n", prefix = "\n", postfix = "\n")
+}
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -337,6 +348,22 @@ class ConfigurationCacheProblems(
     }
 
     private
+    fun reportDangerouslyIgnoringProblems() {
+        val message = isolatedProjectsDangerouslyIgnoreProblemsSentences.joinToString(" ")
+        problemsService.internalReporter.internalCreate {
+            id(
+                "isolated-projects-dangerously-ignoring-problems",
+                "Isolated Projects problems are dangerously ignored",
+                configCacheValidation
+            )
+            contextualLabel(message)
+            documentedAt(isolatedProjectsDangerouslyIgnoreProblemsDocumentation.url)
+        }.also {
+            problemsService.internalReporter.report(it)
+        }
+    }
+
+    private
     fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
         problem.documentationSection?.let {
             documentedAt(Documentation.userManual(it.page, it.anchor).url)
@@ -468,6 +495,7 @@ class ConfigurationCacheProblems(
         override fun afterStart() {
             if (isIsolatedProjectsDangerouslyIgnoreProblems) {
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
+                reportDangerouslyIgnoringProblems()
             }
         }
 

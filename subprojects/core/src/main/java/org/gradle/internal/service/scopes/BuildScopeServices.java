@@ -176,6 +176,7 @@ import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcesso
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.internal.settings.StartParameterMutationReportingSettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
@@ -626,25 +627,29 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
         TextFileResourceLoader textFileResourceLoader,
-        BuildIncludeListener buildIncludeListener
+        BuildIncludeListener buildIncludeListener,
+        IsolatedProjectsProblemsReporter isolatedProjectsProblemsReporter,
+        BuildModelParameters buildModelParameters
     ) {
+        SettingsProcessor settingsProcessor = new SettingsEvaluatedCallbackFiringSettingsProcessor(
+            new ScriptEvaluatingSettingsProcessor(
+                scriptPluginFactory,
+                new SettingsFactory(
+                    instantiator,
+                    buildScopeServices,
+                    scriptHandlerFactory
+                ),
+                gradleProperties,
+                textFileResourceLoader,
+                buildIncludeListener
+            )
+        );
+        if (buildModelParameters.isIsolatedProjects()) {
+            settingsProcessor = new StartParameterMutationReportingSettingsProcessor(settingsProcessor, isolatedProjectsProblemsReporter);
+        }
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
-                new SharedModelDefaultsSettingsProcessor(
-                    new SettingsEvaluatedCallbackFiringSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                            scriptPluginFactory,
-                            new SettingsFactory(
-                                instantiator,
-                                buildScopeServices,
-                                scriptHandlerFactory
-                            ),
-                            gradleProperties,
-                            textFileResourceLoader,
-                            buildIncludeListener
-                        )
-                    )
-                )
+                new SharedModelDefaultsSettingsProcessor(settingsProcessor)
             ),
             buildOperationRunner
         );

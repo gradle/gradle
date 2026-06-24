@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.attributes
 
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.

@@ -38,6 +38,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
         this((ApiCompilerResult) null);
     }
 
+    @SuppressWarnings("this-escape")
     public CompilationFailedException(int exitCode) {
         super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
         this.compilerPartialResult = null;
@@ -45,6 +46,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
         shortMessage = getMessage();
     }
 
+    @SuppressWarnings("this-escape")
     public CompilationFailedException(Throwable cause) {
         super(cause);
         this.compilerPartialResult = null;
@@ -52,6 +54,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
         shortMessage = getMessage();
     }
 
+    @SuppressWarnings("this-escape")
     public CompilationFailedException(@Nullable ApiCompilerResult result) {
         super(COMPILATION_FAILED_DETAILS_ABOVE);
         this.compilerPartialResult = result;

@@ -36,6 +36,7 @@ import javax.inject.Inject;
 public abstract class DefaultSwiftApplication extends DefaultSwiftComponent<SwiftBinary> implements SwiftApplication {
     private final DefaultComponentDependencies dependencies;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultSwiftApplication(String name) {
         super(name);

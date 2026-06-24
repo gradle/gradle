@@ -13,7 +13,7 @@ plugins {
 }
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(25)
 }
 
 tasks.withType<UpdateReleasedVersions>().configureEach {

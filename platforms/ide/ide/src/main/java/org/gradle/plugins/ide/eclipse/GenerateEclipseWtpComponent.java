@@ -40,6 +40,7 @@ public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpCo
 
     private EclipseWtpComponent component;
 
+    @SuppressWarnings("this-escape")
     public GenerateEclipseWtpComponent() {
         DeprecationLogger.whileDisabled(() -> {
             getXmlTransformer().setIndentation("\t");

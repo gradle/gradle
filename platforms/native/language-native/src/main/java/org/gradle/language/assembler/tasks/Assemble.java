@@ -61,6 +61,7 @@ public abstract class Assemble extends DefaultTask {
     private File objectFileDir;
     private List<String> assemblerArgs;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public Assemble() {
         source = getProject().files();

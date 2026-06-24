@@ -59,6 +59,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private String executable;
     private File workingDir;
 
+    @SuppressWarnings("this-escape")
     public DefaultClientExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;

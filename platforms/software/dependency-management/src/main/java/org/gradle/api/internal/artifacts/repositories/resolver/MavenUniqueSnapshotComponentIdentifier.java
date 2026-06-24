@@ -28,12 +28,14 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
     private final String timestamp;
     private final int hashCode;
 
+    @SuppressWarnings("this-escape")
     public MavenUniqueSnapshotComponentIdentifier(ModuleIdentifier module, String version, String timestamp) {
         super(module, version);
         this.timestamp = timestamp;
         this.hashCode = super.hashCode() + timestamp.hashCode();
     }
 
+    @SuppressWarnings("this-escape")
     public MavenUniqueSnapshotComponentIdentifier(ModuleComponentIdentifier baseIdentifier, String timestamp) {
         super(baseIdentifier.getModuleIdentifier(), baseIdentifier.getVersion());
         this.timestamp = timestamp;

@@ -37,6 +37,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("this-escape")
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 

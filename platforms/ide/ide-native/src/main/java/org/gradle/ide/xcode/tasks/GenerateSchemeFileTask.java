@@ -44,6 +44,7 @@ import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
  * @see org.gradle.ide.xcode.XcodeProject
  * @since 4.2
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {

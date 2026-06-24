@@ -406,7 +406,7 @@ include::sample[dir="snippets/best-practices/avoidResolvingConfigurationsManuall
 <1> *Write to a file in the output directory*: This is the same.
 <2> *Declare input files property as ConfigurableFileCollection*: This lazy collection type will track task dependencies.
 <3> *Dependency artifacts are resolved to calculate digest*: The classpath will be resolved at execution time to calculate the digest.
-<4> *Configuration is passed to input property directly*: Using `from` causes the configuration to be lazily wired to the input proeprty.
+<4> *Configuration is passed to input property directly*: Using `from` causes the configuration to be lazily wired to the input property.
 The configuration will be resolved when necessary, preserving task dependencies.
 The output reveals that the `lib` project is now built when the `:app:goodClasspathPrinter` task is run because of the implicit task dependency, and the `lib.jar` file is found when calculating the digest.
 

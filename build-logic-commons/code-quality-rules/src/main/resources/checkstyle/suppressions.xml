@@ -182,6 +182,10 @@
     <suppress checks="ConstantName"
               files=".*[/\\]internal-architecture-testing[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\].+" />
 
+    <!-- AccessTrackingProperties must override clone() to fix delegate sharing bug (gradle/gradle#17344) -->
+    <suppress checks="NoClone"
+              files=".*[/\\]input-tracking[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]internal[/\\]configuration[/\\]inputs[/\\]AccessTrackingProperties.java"/>
+
     <!-- Ignore all checks for the generated sources of org.gradle.samples plugin -->
     <suppress checks=".*" files=".*[/\\]docs[/\\]build[/\\]generated-source-sets[/\\].+" />
     <suppress checks=".*" files=".*[/\\].*[/\\]groovy-dsl-plugins[/\\].+" />

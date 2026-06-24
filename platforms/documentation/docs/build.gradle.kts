@@ -100,12 +100,6 @@ jvmCompile {
     addCompilationFrom(sourceSets.docsTest)
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
-
 asciidoctorj {
     setVersion(buildLibs.versions.asciidoctor.get())
     modules.pdf.setVersion("2.3.23")

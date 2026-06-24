@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.archive;
 
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -34,9 +35,30 @@ public class ZipEntryConstants {
      * Moreover, parsing happens via `new Date(millis)` in {@code java.util.zip.ZipUtils#javaToDosTime()} so we
      * must use default timezone and locale.
      *
-     * The date is 1980 February 1st CET.
+     * The value is 1980 February 1st in the JVM's default (local) time zone, because zip stores entry times in the
+     * local time zone (as MS-DOS date/time). Use {@link #MINIMUM_TIME_FOR_ZIP_ENTRIES_UTC} when comparing against a raw (UTC) timestamp instead.
      */
     public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
+
+    /**
+     * The minimum timestamp that can be stored in a zip entry, as a UTC instant.
+     * <p>
+     * MS-DOS date/time cannot represent dates before 1980, so smaller values are raised to this minimum.
+     * This is the UTC-instant form of {@link #CONSTANT_TIME_FOR_ZIP_ENTRIES}: once adjusted to the default
+     * time zone for storage it produces the same 1980-02-01 entry date, independent of the build time zone.
+     */
+    public static final long MINIMUM_TIME_FOR_ZIP_ENTRIES_UTC = Instant.parse("1980-02-01T00:00:00Z").toEpochMilli();
+
+    /**
+     * The maximum timestamp that can be stored in a zip entry, as a UTC instant.
+     * <p>
+     * Commons-compress can store timestamps only up to 128 * 365 days from the Unix epoch (2097-11-30T00:00:00Z)
+     * as MS-DOS date/time, and silently adds an NTFS extra field for anything larger. The NTFS field stores an
+     * absolute instant, so the archive bytes would then depend on the build time zone; larger values fail instead.
+     * The margin to that limit ensures the timestamp stays storable as MS-DOS date/time once adjusted to the
+     * default time zone for storage.
+     */
+    public static final long MAXIMUM_TIME_FOR_ZIP_ENTRIES_UTC = Instant.parse("2097-11-01T00:00:00Z").toEpochMilli();
 
     private ZipEntryConstants() {}
 

@@ -25,6 +25,7 @@ import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 /**
  * Tests for bugfixes to maven publishing scenarios
@@ -112,6 +113,7 @@ publishing {
     }
 
     @Issue("GRADLE-2837")
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "project is properly configured when it is the target of a project dependency"() {
         given:
         mavenRepo.module("org.gradle", "dep", "1.1").publish()
@@ -218,6 +220,7 @@ subprojects {
     }
 
     @Issue("GRADLE-3318")
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "can reference rule-source tasks from sub-projects"() {
         given:
         using m2

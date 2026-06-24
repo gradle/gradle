@@ -52,7 +52,6 @@ enum class Os(
         "Windows",
         androidHome = """C:\Program Files\android\sdk""",
         jprofilerHome = """C:\Program Files\jprofiler\jprofiler11.1.4""",
-        perfTestWorkingDir = "P:/",
     ),
     MACOS(
         "Mac",

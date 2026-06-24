@@ -66,6 +66,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         this(parent, name, dir, projectDescriptorRegistry, fileResolver, null, problemReporter);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultProjectDescriptor(
         @Nullable ProjectDescriptorInternal parent,
         String name,

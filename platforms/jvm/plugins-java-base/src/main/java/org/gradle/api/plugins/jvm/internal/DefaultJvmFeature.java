@@ -73,6 +73,7 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * source set would normally create. Additionally, this extension feature is able to create the
  * sources and javadoc variants that the main feature would also conditionally create.</p>
  */
+@SuppressWarnings("this-escape")
 public class DefaultJvmFeature implements JvmFeatureInternal {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";

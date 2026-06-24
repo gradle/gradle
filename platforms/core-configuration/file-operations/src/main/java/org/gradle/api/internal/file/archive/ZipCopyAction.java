@@ -25,13 +25,20 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
+import org.gradle.api.internal.file.copy.CopyActionUtil;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.IoActions;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.OptionalLong;
 
 public class ZipCopyAction implements CopyAction {
 
@@ -39,14 +46,32 @@ public class ZipCopyAction implements CopyAction {
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;
     private final String encoding;
-    private final boolean preserveFileTimestamps;
+    private final OptionalLong reproducibleFileTimestampMs;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps, Provider<Long> reproducibleFileTimestamp) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
         this.encoding = encoding;
-        this.preserveFileTimestamps = preserveFileTimestamps;
+        this.reproducibleFileTimestampMs = CopyActionUtil.computeReproducibleTimestamp(
+            preserveFileTimestamps,
+            reproducibleFileTimestamp,
+            ZipCopyAction::normalizeTimezone,
+            ZipEntryConstants.MINIMUM_TIME_FOR_ZIP_ENTRIES_UTC,
+            ZipEntryConstants.MAXIMUM_TIME_FOR_ZIP_ENTRIES_UTC
+        );
+    }
+
+    /**
+     * Zip stores entry times as MS-DOS date/time rendered in the default time zone (see ZipUtil.toDosTime),
+     * so shift the timestamp to make the stored fields equal its UTC wall clock, independent of the zone.
+     */
+    private static long normalizeTimezone(long timestampMillis) {
+        Instant utcTime = Instant.ofEpochMilli(timestampMillis);
+        return LocalDateTime.ofInstant(utcTime, ZoneOffset.UTC)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli();
     }
 
     @Override
@@ -124,6 +149,6 @@ public class ZipCopyAction implements CopyAction {
     }
 
     private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES;
+        return reproducibleFileTimestampMs.orElseGet(details::getLastModified);
     }
 }

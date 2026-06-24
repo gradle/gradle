@@ -33,8 +33,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.process.ExecOperations
 import org.gradle.util.GradleVersion
 import java.io.ByteArrayOutputStream
@@ -63,7 +61,6 @@ val oldWrapperMissingErrorRegex = """\Qjava.io.FileNotFoundException:\E.*/distri
 abstract class BuildCommitDistribution @Inject internal constructor(
     private val fsOps: FileSystemOperations,
     private val execOps: ExecOperations,
-    private val javaToolchainService: JavaToolchainService
 ) : DefaultTask() {
 
     @get:Internal
@@ -81,6 +78,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
     @get:OutputFile
     abstract val commitDistributionToolingApiJar: RegularFileProperty
+
+    @get:Input
+    @get:Optional
+    abstract val javaInstallationsPaths: Property<String>
 
     init {
         onlyIf { commitBaseline.getOrElse("").matches(commitVersionRegex) }
@@ -182,11 +183,6 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     }
 
     private
-    fun getJavaHomeFor(version: Int): String {
-        return javaToolchainService.launcherFor { languageVersion.set(JavaLanguageVersion.of(version)) }.get().metadata.installationPath.asFile.absolutePath
-    }
-
-    private
     fun getBuildCommands(checkoutDir: File): List<String> {
         val mirrorInitScript = temporaryDir.resolve("mirroring-init-script.gradle")
         BuildCommitDistribution::class.java.getResource("/mirroring-init-script.gradle")?.let { mirrorInitScript.writeText(it.readText()) }
@@ -207,10 +203,9 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             ":distributions-full:binDistributionZip",
             ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
-            "-Dorg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
-            "-Porg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
+            javaInstallationsPaths.orNull?.takeIf { it.isNotBlank() }?.let { "-Dorg.gradle.java.installations.paths=$it" },
+            javaInstallationsPaths.orNull?.takeIf { it.isNotBlank() }?.let { "-Porg.gradle.java.installations.paths=$it" },
             "-PbuildCommitDistribution=true",
-            "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
     }
 

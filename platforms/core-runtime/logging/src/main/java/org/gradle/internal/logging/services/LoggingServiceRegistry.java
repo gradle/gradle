@@ -64,6 +64,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
     private TextStreamOutputEventListener stdoutListener;
 
     private final DefaultUserInputReceiver userInput = new DefaultUserInputReceiver();
+    @SuppressWarnings("this-escape")
     protected final OutputEventRenderer renderer = makeOutputEventRenderer();
     protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
 

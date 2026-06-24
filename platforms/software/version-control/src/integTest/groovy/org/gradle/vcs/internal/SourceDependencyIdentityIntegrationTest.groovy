@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -110,6 +111,7 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects { apply plugin: 'java-library' } in included build")
     def "includes build identifier in dependency resolution results with #display"() {
         repo.file("a/.gitkeepdir").touch()
         repo.file("settings.gradle") << """

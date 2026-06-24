@@ -17,7 +17,7 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -34,7 +34,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         return new Sample(testDirectoryProvider, "integration-tests/native-binaries/${name}/groovy", name)
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36854")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36854")
     def "visual studio"() {
         given:
         sample visualStudio
@@ -56,7 +56,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
     }
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36854")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36854")
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4488")
     def "build generated visual studio solution"() {
         useMsbuildTool()

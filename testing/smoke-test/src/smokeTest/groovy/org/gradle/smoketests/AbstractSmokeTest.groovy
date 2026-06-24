@@ -89,7 +89,7 @@ abstract class AbstractSmokeTest extends Specification {
         static micronaut = SMOKE_TESTED_PLUGINS.get("io.micronaut.application")
         static gradleGitProperties = SMOKE_TESTED_PLUGINS.get("com.gorylenko.gradle-git-properties")
         static flyway = SMOKE_TESTED_PLUGINS.get("org.flywaydb.flyway")
-        static detekt = SMOKE_TESTED_PLUGINS.get("io.gitlab.arturbosch.detekt")
+        static detekt = SMOKE_TESTED_PLUGINS.get("dev.detekt")
         static spotless = SMOKE_TESTED_PLUGINS.get("com.diffplug.spotless")
         static jib = SMOKE_TESTED_PLUGINS.get("com.google.cloud.tools.jib")
         static lombok = SMOKE_TESTED_PLUGINS.get("io.freefair.lombok")

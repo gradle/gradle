@@ -28,6 +28,7 @@ public class PlaceholderAssertionError extends AssertionError implements Placeho
     private final String toString;
     private final Throwable toStringRuntimeEx;
 
+    @SuppressWarnings("this-escape")
     public PlaceholderAssertionError(String exceptionClassName,
                                      @Nullable String message,
                                      @Nullable Throwable getMessageException,

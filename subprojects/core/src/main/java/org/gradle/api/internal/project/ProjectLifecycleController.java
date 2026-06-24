@@ -29,7 +29,6 @@ import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.work.Synchronizer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -41,6 +40,7 @@ import java.io.Closeable;
 public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;
+    private final ProjectLockGuard lockGuard;
     @Nullable
     private ProjectInternal project;
     @Nullable
@@ -50,9 +50,10 @@ public class ProjectLifecycleController implements Closeable {
         NotCreated, Created, Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, Synchronizer synchronizer, ServiceRegistry buildServices) {
+    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ProjectLockGuard lockGuard, ServiceRegistry buildServices) {
         this.buildServices = buildServices;
-        controller = factory.newController(displayName, State.NotCreated, synchronizer);
+        this.lockGuard = lockGuard;
+        controller = factory.newController(displayName, State.NotCreated);
     }
 
     public boolean isCreated() {
@@ -94,19 +95,15 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void ensureSelfConfigured() {
-        // Avoid taking the controller lock if already configured, to avoid contention and deadlocks.
-        // ProjectState#ensureConfigured tries to configure parent projects, and child projects shouldn't
-        // need to all take the lock if the parent project(s) are already configured.
-        if (controller.hasSeenState(State.Configured)) {
-            return;
-        }
-        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
+        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> lockGuard.withProjectLock(() -> project.evaluateUnchecked()));
     }
 
     public void ensureTasksDiscovered() {
         ensureSelfConfigured();
-        project.getTasks().discoverTasks();
-        project.bindAllModelRules();
+        lockGuard.withProjectLock(() -> {
+            project.getTasks().discoverTasks();
+            project.bindAllModelRules();
+        });
     }
 
     @Override
@@ -119,5 +116,13 @@ public class ProjectLifecycleController implements Closeable {
                 projectScopeServices = null;
             }
         }
+    }
+
+    /**
+     * Runs an action while holding the owning project's state lock.
+     */
+    @FunctionalInterface
+    public interface ProjectLockGuard {
+        void withProjectLock(Runnable action);
     }
 }

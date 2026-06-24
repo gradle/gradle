@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
@@ -44,6 +45,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 """
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "produces reasonable error message when referenced library #label"() {
         given:
         def app = new CppHelloWorldApp()
@@ -180,6 +182,7 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "can use map notation to reference library in different project"() {
         given:
         def app = new CppHelloWorldApp()
@@ -217,6 +220,7 @@ project(":lib") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "can use map notation to reference library in different project with configure-on-demand"() {
         given:
         def app = new CppHelloWorldApp()
@@ -255,6 +259,7 @@ project(":lib") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "can use map notation to transitively reference libraries in different projects"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -302,6 +307,7 @@ project(":greet") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "can have component graph with project dependency cycle"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()

@@ -1627,20 +1627,20 @@ parentFirst
                 def files3 = configurations.conf3
                 def files4 = configurations.conf4
                 doLast {
-                    def files = files1*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
-                    files = files2*.name.sort()
-                    assert files == ['a-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
-                    files = files3*.name.sort()
-                    assert files == ['b-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
-                    files = files4*.name.sort()
-                    assert files == ['b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'leaf-8.jar']
+                    println "conf: \${files1*.name.sort()}"
+                    println "conf2: \${files2*.name.sort()}"
+                    println "conf3: \${files3*.name.sort()}"
+                    println "conf4: \${files4*.name.sort()}"
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("conf: [a-1.0.jar, b-1.0.jar, leaf-6.jar]")
+        outputContains("conf2: [a-1.0.jar, c-1.0.jar, leaf-5.jar]")
+        outputContains("conf3: [b-1.0.jar, c-1.0.jar, leaf-5.jar]")
+        outputContains("conf4: [b-1.0.jar, c-1.0.jar, d-1.0.jar, leaf-8.jar]")
     }
 
     def "conflict resolution on different dependencies are handled separately"() {

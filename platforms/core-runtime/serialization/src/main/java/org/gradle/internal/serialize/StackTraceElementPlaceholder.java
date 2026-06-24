@@ -34,6 +34,7 @@ public class StackTraceElementPlaceholder implements Serializable {
     @SuppressWarnings("Since15")
     public StackTraceElementPlaceholder(StackTraceElement ste) {
         if (JavaVersion.current().isJava9Compatible()) {
+            // FUTURE-STDLIB: StackTraceElement.getClassLoaderName/getModuleName/getModuleVersion are JDK 9+; gated above.
             classLoaderName = ste.getClassLoaderName();
             moduleName = ste.getModuleName();
             moduleVersion = ste.getModuleVersion();
@@ -50,6 +51,7 @@ public class StackTraceElementPlaceholder implements Serializable {
 
     public StackTraceElement toStackTraceElement() {
         if (JavaVersion.current().isJava9Compatible()) {
+            // FUTURE-STDLIB: the 7-arg StackTraceElement constructor is JDK 9+; gated above.
             return new StackTraceElement(classLoaderName, moduleName, moduleVersion, declaringClass, methodName, fileName, lineNumber);
         } else {
             return new StackTraceElement(declaringClass, methodName, fileName, lineNumber);

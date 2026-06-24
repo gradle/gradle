@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "root of a composite build cannot refer to own subprojects by GA coordinates by default"() {
         given:
         def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {
@@ -44,6 +46,7 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         failure.assertHasCause("Cannot resolve external dependency org.test:buildB because no repositories are defined.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "root of a composite build can refer to own subprojects by GA coordinates when including itself"() {
         given:
         def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {

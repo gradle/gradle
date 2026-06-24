@@ -34,6 +34,7 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultExecSpec(PathToFileResolver resolver) {
         super(resolver);
     }

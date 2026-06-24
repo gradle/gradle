@@ -166,13 +166,6 @@ public interface BuildModelParameters {
     boolean isCachingModelBuilding();
 
     /**
-     * Returns true if the model building is resilient so some failures in model building.
-     *
-     * @return true if the model building is resilient, false otherwise
-     */
-    boolean isResilientModelBuilding();
-
-    /**
      * Collects all properties and their values in a map for logging and testing purposes.
      */
     Map<String, ? extends @Nullable Object> toDisplayMap();

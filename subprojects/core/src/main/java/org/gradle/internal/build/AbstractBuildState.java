@@ -44,6 +44,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
     private final Lazy<BuildWorkGraphController> workGraphController;
 
+    @SuppressWarnings("this-escape")
     public AbstractBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, @Nullable BuildState parent) {
         this.parent = parent;
 

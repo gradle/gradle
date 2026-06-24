@@ -52,6 +52,8 @@ import java.net.URI
  */
 @CacheableTask
 abstract class AnalyzeClassDependenciesTask : DefaultTask() {
+    private
+    val projectPath = project.path
 
     /**
      * A comma-separated list of Fully Qualified Class Names (FQCNs) to start the analysis from.
@@ -173,7 +175,7 @@ abstract class AnalyzeClassDependenciesTask : DefaultTask() {
 
         // 7. Build top-level output
         val json = AnalysisJson(
-            projectPath = project.path,
+            projectPath = projectPath,
             roots = expandedRoots.sorted(),
             subprojectDependencies = subprojectPaths.toList(),
             projectClasses = projectClassEntries

@@ -119,15 +119,15 @@ configurations { compile }
 dependencies { compile 'org:child:1.0' }
 task libs {
     inputs.files(configurations.compile)
-    doLast {
-        assert inputs.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar', 'typed_dep-1.8.bar', 'classified_dep-1.9-classy.jar', 'fq_dep-2.1-classy.bar']
-    }
+    doLast { println inputs.files*.name }
 }
 """
 
         expect:
         succeeds 'libs'
+        outputContains("[child-1.0.jar, child_dep-1.7.jar, typed_dep-1.8.bar, classified_dep-1.9-classy.jar, fq_dep-2.1-classy.bar]")
         succeeds 'libs'
+        outputContains("[child-1.0.jar, child_dep-1.7.jar, typed_dep-1.8.bar, classified_dep-1.9-classy.jar, fq_dep-2.1-classy.bar]")
     }
 
     @Issue("GRADLE-2641")
@@ -437,9 +437,7 @@ task retrieve(type: Sync) {
             }
             task libs {
                 inputs.files(configurations.compile)
-                doLast {
-                    assert inputs.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.1.jar']
-                }
+                doLast { println inputs.files.collect { it.name } }
             }
         """
 
@@ -453,7 +451,9 @@ task retrieve(type: Sync) {
         expect:
         // have to run twice to trigger the failure, to parse the descriptor from the cache
         succeeds ":libs"
+        outputContains("[artifact-1.0.jar, myartifact-1.1.jar]")
         succeeds ":libs"
+        outputContains("[artifact-1.0.jar, myartifact-1.1.jar]")
     }
 
     def "dependency with same group ID and artifact ID defined in child and parent is used from child"() {
@@ -474,9 +474,7 @@ task retrieve(type: Sync) {
             }
             task libs {
                 inputs.files(configurations.compile)
-                doLast {
-                    assert inputs.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.3.jar']
-                }
+                doLast { println inputs.files.collect { it.name } }
             }
         """
 
@@ -490,6 +488,8 @@ task retrieve(type: Sync) {
         expect:
         // have to run twice to trigger the failure, to parse the descriptor from the cache
         succeeds ":libs"
+        outputContains("[artifact-1.0.jar, myartifact-1.3.jar]")
         succeeds ":libs"
+        outputContains("[artifact-1.0.jar, myartifact-1.3.jar]")
     }
 }

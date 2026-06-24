@@ -144,6 +144,4 @@ tasks.jar {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

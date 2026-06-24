@@ -35,6 +35,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
     private final TrackingReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
     private final TrackingReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
 
+    @SuppressWarnings("this-escape")
     public ComponentReportRenderer(FileResolver fileResolver, TypeAwareBinaryRenderer binaryRenderer) {
         setFileResolver(fileResolver);
         this.sourceSetRenderer = new TrackingReportRenderer<>(new SourceSetRenderer());

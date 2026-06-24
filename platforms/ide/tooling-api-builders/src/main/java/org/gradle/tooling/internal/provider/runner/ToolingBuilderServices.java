@@ -29,6 +29,7 @@ public class ToolingBuilderServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.add(FetchFailureConverter.class);
         registration.add(BuildControllerFactory.class);
         registration.add(BuildActionRunner.class, BuildModelActionRunner.class);
         registration.add(BuildActionRunner.class, TestExecutionRequestActionRunner.class);

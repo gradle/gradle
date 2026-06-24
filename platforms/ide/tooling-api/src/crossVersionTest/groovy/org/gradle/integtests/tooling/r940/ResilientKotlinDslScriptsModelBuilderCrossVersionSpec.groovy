@@ -754,9 +754,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
         when:
         def model = succeeds {
-            def args = ["-Dorg.gradle.internal.resilient-model-building=true"] + extraGradleProperties
             action(new KotlinModelOnNullTargetAction())
-                .withArguments(*args)
+                .withArguments(*extraGradleProperties)
                 .run()
         }
 
@@ -780,9 +779,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
         when:
         def model = succeeds {
-            def args = ["-Dorg.gradle.internal.resilient-model-building=true"] + extraGradleProperties
             action(new KotlinModelOnNullTargetAction())
-                .withArguments(*args)
+                .withArguments(*extraGradleProperties)
                 .run()
         }
 
@@ -942,9 +940,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def model = null
 
         Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
-        if (resilient) {
-            arguments += "-Dorg.gradle.internal.resilient-model-building=true"
-        }
         arguments += extraGradleProperties
 
         conn.action()

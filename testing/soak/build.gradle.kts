@@ -36,9 +36,7 @@ tasks.register("soakTest") {
     group = "CI Lifecycle"
     dependsOn(":soak:forkingIntegTest")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 errorprone {
     nullawayEnabled = true

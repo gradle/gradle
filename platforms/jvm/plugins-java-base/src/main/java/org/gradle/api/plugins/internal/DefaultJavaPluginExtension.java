@@ -82,6 +82,7 @@ abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionI
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
         this.project = project;

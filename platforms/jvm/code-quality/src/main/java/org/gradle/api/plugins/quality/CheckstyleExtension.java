@@ -43,6 +43,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
+    @SuppressWarnings("this-escape")
     public CheckstyleExtension(Project project) {
         this.project = project;
         getEnableExternalDtdLoad().convention(false);

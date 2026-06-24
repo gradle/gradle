@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
@@ -195,6 +196,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'mavenLocal'. The publications 'main' in root project 'duplicate-publications' and 'other' in root project 'duplicate-publications' will overwrite each other!")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "warns when publications in different projects share the same coordinates"() {
         given:
         createDirs("projectA", "projectB")

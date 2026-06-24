@@ -23,8 +23,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
-import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 
 /**
@@ -35,9 +33,7 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
  * major version bump. Either by having the external plugins been fixed or by switching to different plugins.
  */
 @Requires([
-    JdkVersionTestPreconditions.Jdk9OrLater,
     TestExecutionPreconditions.NotConfigCached,
-    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 

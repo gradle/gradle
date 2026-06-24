@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -134,6 +135,7 @@ Required by:
         "rootProject.name='someLib'" | "buildC"  | "someLib"      | "configured root project name"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects in nested included build")
     def "includes build identifier in dependency resolution results with #display"() {
         repoC.file("a/.gitkeepdir").touch()
         repoC.file("settings.gradle") << """

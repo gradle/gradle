@@ -20,11 +20,13 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void "external dependency substituted with project dependency"() {
         createDirs("project1", "project2")
@@ -54,6 +56,7 @@ class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTe
         dependencies.assertHasModule(['COMPILE'], 'project1')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
@@ -91,6 +94,7 @@ class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTe
         dependencies.assertHasModule(['COMPILE'], 'project1')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     @Test
     void "project dependency substituted with external dependency"() {
         createDirs("project1", "project2")

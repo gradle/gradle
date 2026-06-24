@@ -37,6 +37,7 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         this(writer, null, null);
     }
 
+    @SuppressWarnings("this-escape")
     public SimpleHtmlWriter(Writer writer, Path htmlDirectory, String indent) throws IOException {
         super(writer, indent);
         this.htmlDirectory = htmlDirectory;

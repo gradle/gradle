@@ -100,6 +100,4 @@ sourceSets.main {
     output.dir(layout.buildDirectory.file("generated-resources/report-resources"))
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

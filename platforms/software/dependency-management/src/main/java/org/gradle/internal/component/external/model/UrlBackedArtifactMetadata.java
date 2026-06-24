@@ -35,6 +35,7 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
 
     private IvyArtifactName ivyArtifactName;
 
+    @SuppressWarnings("this-escape")
     public UrlBackedArtifactMetadata(ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
         this.componentIdentifier = componentIdentifier;
         this.fileName = fileName;

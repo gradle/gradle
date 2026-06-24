@@ -77,6 +77,7 @@ trait WithPluginValidation {
             def failsValidation = validations.any { !it.messages.isEmpty() }
             def validation = owner.runner([
                 "--init-script", "validate-external-gradle-plugin.gradle.kts",
+                "--stacktrace",
                 "validateExternalPlugins",
                 "--continue",
                 *extraParameters] as String[])

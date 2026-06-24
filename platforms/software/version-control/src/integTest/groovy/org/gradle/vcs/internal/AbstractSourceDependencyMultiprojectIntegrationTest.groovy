@@ -17,11 +17,13 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 
+@ToBeFixedForIsolatedProjects(because = "included build uses allprojects { apply plugin: 'java' }")
 abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     BlockingHttpServer httpServer = new BlockingHttpServer()

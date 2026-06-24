@@ -43,7 +43,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException("Could not start " + suiteDescriptor + ".", t);
-            resultProcessor.failure(suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
 

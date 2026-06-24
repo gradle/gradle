@@ -44,6 +44,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -817,6 +818,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can cross configure buildscript`() {
 
@@ -965,6 +967,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         build("help")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can use kotlin java8 inline-only methods`() {
 

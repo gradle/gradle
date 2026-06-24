@@ -164,7 +164,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             plugins {
                 id 'java'
-                id 'org.gradle.test-retry' version '1.6.4'
+                id 'org.gradle.test-retry' version '1.6.5'
             }
 
             ${mavenCentralRepository()}

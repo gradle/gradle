@@ -1,6 +1,10 @@
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.dsl.DependencyConstraintFactory
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.invocation.BuildInvocationDetails
+import java.util.Date
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
@@ -247,3 +251,62 @@ class OrtModelPlugin(private val registry: ToolingModelBuilderRegistry) : Plugin
     }
 }
 // end::tooling-model[]
+
+// tag::build-invocation-details-inject[]
+abstract class ReportBuildStartTask
+@Inject constructor(private var invocationDetails: BuildInvocationDetails) : DefaultTask() {
+
+    @TaskAction
+    fun report() {
+        val started = Date(invocationDetails.buildStartedTime)
+        println("Build started at $started")
+    }
+}
+
+tasks.register("reportBuildStart", ReportBuildStartTask::class) {}
+// end::build-invocation-details-inject[]
+
+// tag::dependency-constraint-factory-inject[]
+abstract class CreateConstraintTask
+@Inject constructor(private var factory: DependencyConstraintFactory) : DefaultTask() {
+
+    @TaskAction
+    fun create() {
+        val constraint = factory.create("com.example:lib:1.2.3")
+        println("Created constraint: ${constraint.group}:${constraint.name}:${constraint.version}")
+    }
+}
+
+tasks.register("createConstraint", CreateConstraintTask::class) {}
+// end::dependency-constraint-factory-inject[]
+
+// tag::software-component-factory-inject[]
+// A plugin that uses SoftwareComponentFactory to create an adhoc software
+// component, suitable for publishing custom variants. The factory is only
+// available via @Inject — there is no project-level accessor.
+class CustomComponentPlugin
+@Inject constructor(private val componentFactory: SoftwareComponentFactory) : Plugin<Project> {
+
+    override fun apply(project: Project) {
+        val component = componentFactory.adhoc("custom")
+        project.components.add(component)
+    }
+}
+// end::software-component-factory-inject[]
+
+// tag::clean-temp-inject[]
+abstract class CleanTempTask
+@Inject constructor(private val fs: FileSystemOperations) : DefaultTask() {
+
+    @TaskAction
+    fun run() {
+        fs.delete { delete("build/tmp") }
+    }
+}
+
+tasks.register("cleanTemp", CleanTempTask::class) {}
+// end::clean-temp-inject[]
+
+// Also exercise the Java implementation that lives in buildSrc, so the snippets
+// integration test compiles and instantiates org.example.CleanTempTask.
+tasks.register<org.example.CleanTempTask>("cleanTempJava") {}

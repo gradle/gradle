@@ -55,6 +55,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private final BuildDashboardReports reports;
 
+    @SuppressWarnings("this-escape")
     public GenerateBuildDashboard() {
         ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
         reports = getObjectFactory().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));

@@ -72,7 +72,7 @@ class PublicAPIRulesTest extends Specification {
         overrideAnnotation.fullyQualifiedName >> Override.name
         injectAnnotation.fullyQualifiedName >> Inject.name
 
-        repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.absolutePath)], [])
+        repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.absolutePath)])
     }
 
     def cleanup() {

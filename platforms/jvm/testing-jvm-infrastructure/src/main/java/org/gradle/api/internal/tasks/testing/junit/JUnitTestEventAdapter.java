@@ -337,7 +337,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void reportFailure(Object descriptorId, Throwable throwable) {
-        TestFailure failure = FAILURE_MAPPER.createFailure(throwable);
+        TestFailure failure = FAILURE_MAPPER.createFailure(throwable, testsStarted);
         resultProcessor.failure(descriptorId, failure);
     }
 

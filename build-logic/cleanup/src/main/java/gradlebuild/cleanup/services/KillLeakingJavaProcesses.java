@@ -16,9 +16,6 @@
 
 package gradlebuild.cleanup.services;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.regex.Pattern.quote;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,6 +37,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.regex.Pattern.quote;
 
 /**
  * NOTICE: this class is invoked via java command line, so we must NOT DEPEND ON ANY 3RD-PARTY LIBRARIES except JDK 11.
@@ -160,9 +160,14 @@ public class KillLeakingJavaProcesses {
     }
 
     static void pkill(String pid) {
-        ExecResult execResult = run(isWindows() ? new String[]{"taskkill.exe", "/F", "/T", "/PID", pid} : new String[]{"kill", "-9", pid});
-        if (execResult.code != 0) {
-            System.out.println("Failed to kill daemon process " + pid + ". Maybe already killed?\nStdout:\n" + execResult.stdout + "\nStderr:\n" + execResult.stderr);
+        boolean killed = ProcessHandle.of(Long.parseLong(pid))
+            .map(handle -> {
+                handle.descendants().forEach(ProcessHandle::destroyForcibly);
+                return handle.destroyForcibly();
+            })
+            .orElse(false);
+        if (!killed) {
+            System.out.println("Failed to kill daemon process " + pid + ". Maybe already killed?");
         }
     }
 
@@ -187,31 +192,38 @@ public class KillLeakingJavaProcesses {
     }
 
     private static List<String> ps() {
-        return run(determinePsCommand()).assertZeroExit().stdout.lines().collect(Collectors.toList());
+        // ProcessHandle.Info.commandLine() is reliable on Unix but frequently empty on Windows (so the
+        // leak patterns could not match there). On Unix use the JDK process API - it also avoids spawning
+        // `ps`, which some sandboxes forbid - and fall back to PowerShell on Windows.
+        if (isWindows()) {
+            return run(windowsPsCommand()).assertZeroExit().stdout.lines().collect(Collectors.toList());
+        }
+        return listProcessesViaProcessHandle();
     }
 
-    private static String[] determinePsCommand() {
-        if (isWindows()) {
-            return new String[]{"powershell", "-Command", "\"Get-CimInstance Win32_Process | ForEach-Object { \\\"$($_.CommandLine) $($_.ProcessId)\\\" }\""};
-        } else if (isMacOS()) {
-            return new String[]{"ps", "x", "-o", "pid,command"};
-        } else if (isAlpine()) {
-            return new String[]{"ps", "x", "-o", "pid,args"};
-        } else {
-            return new String[]{"ps", "x", "-o", "pid,cmd"};
-        }
+    /**
+     * Lists running processes as "pid command-line" lines, matching the format produced by
+     * {@code ps -o pid,command}, so the same {@link #UNIX_PID_PATTERN} and command-line patterns apply.
+     * Used on Unix in place of spawning {@code ps}. Processes with no readable command line (owned by
+     * another user, kernel threads, zombies) are skipped, as they can never match the Gradle leak patterns.
+     */
+    private static List<String> listProcessesViaProcessHandle() {
+        return ProcessHandle.allProcesses()
+            .map(handle -> {
+                String commandLine = handle.info().commandLine().orElse("");
+                return commandLine.isEmpty() ? "" : handle.pid() + " " + commandLine;
+            })
+            .filter(line -> !line.isEmpty())
+            .collect(Collectors.toList());
+    }
+
+    private static String[] windowsPsCommand() {
+        // Windows is the only platform that still lists processes via an external command; Unix uses ProcessHandle (see ps()).
+        return new String[]{"powershell", "-Command", "\"Get-CimInstance Win32_Process | ForEach-Object { \\\"$($_.CommandLine) $($_.ProcessId)\\\" }\""};
     }
 
     private static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows");
-    }
-
-    private static boolean isMacOS() {
-        return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac");
-    }
-
-    private static boolean isAlpine() {
-        return System.getProperty("java.vm.vendor").toLowerCase(Locale.ROOT).contains("alpine");
     }
 
     private static class ExecResult {

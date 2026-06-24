@@ -66,9 +66,7 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 packageCycles {
     // Needed for the factory methods in the interface since the implementation is in an internal package

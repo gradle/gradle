@@ -23,7 +23,8 @@ repositories {
             includeGroup("org.gradle.fileevents")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
-            includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
+            // The root multiplatform module plus the -jvm module its GMM redirects to.
+            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm)?")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter-scenarios")
         }

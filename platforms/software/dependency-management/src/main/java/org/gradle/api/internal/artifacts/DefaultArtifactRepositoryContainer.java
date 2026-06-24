@@ -37,6 +37,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
 
     private final Action<ArtifactRepository> addLastAction = DefaultArtifactRepositoryContainer.super::add;
 
+    @SuppressWarnings("this-escape")
     public DefaultArtifactRepositoryContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer(), callbackActionDecorator);
         whenObjectAdded((InternalAction<ArtifactRepository>) artifactRepository -> {

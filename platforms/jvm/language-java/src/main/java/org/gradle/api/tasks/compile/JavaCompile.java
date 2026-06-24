@@ -99,6 +99,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
 
+    @SuppressWarnings("this-escape")
     public JavaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         this.stableSources = objectFactory.fileCollection().from((Callable<FileTree>) this::getSource);

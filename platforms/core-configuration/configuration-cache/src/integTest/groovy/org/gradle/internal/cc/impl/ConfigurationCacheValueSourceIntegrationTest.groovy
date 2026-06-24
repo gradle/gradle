@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.process.ShellScript
 import spock.lang.Issue
 

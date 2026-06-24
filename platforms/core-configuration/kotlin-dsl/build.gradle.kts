@@ -240,9 +240,7 @@ testFilesCleanup.reportOnly = true
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 // Do not publish into the Gradle API ABI JAR
 configurations.remove(configurations.apiStubElements.get())

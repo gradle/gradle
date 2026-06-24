@@ -98,6 +98,7 @@ import java.util.function.Supplier;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
+@SuppressWarnings("this-escape")
 public class DefaultTransform implements Transform {
 
     private final Class<? extends TransformAction<?>> implementationClass;

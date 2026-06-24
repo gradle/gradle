@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
@@ -56,6 +57,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         includeBuild(buildB)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -76,6 +78,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         notExecuted ":buildB:jar", ":buildB:b1:jar", ":buildB:b2:jar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with substituted subproject dependencies"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -89,6 +92,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "b1", "b2"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with substituted dependency from same build"() {
         given:
         dependency('org.test:buildB:1.0')
@@ -102,6 +106,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies(buildB, "b1")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with substituted subproject dependency that has transitive dependencies"() {
         given:
         def transitive1 = mavenRepo.module("org.test", "transitive1").publish()
@@ -118,6 +123,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar", ])
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with substituted subproject dependency that has transitive project dependency"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -135,6 +141,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB", "b1"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with transitive substitutions"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -156,6 +163,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB", "buildC"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with substituted transitive dependency"() {
         given:
         mavenRepo.module("org.external", "external-dep", '1.0').dependsOn("org.test", "buildB", "1.0").publish()
@@ -169,6 +177,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies(["buildB"], ["external-dep-1.0.jar"])
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with dependency cycle between substituted projects in a multiproject build"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -199,6 +208,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB", "b1", "b2"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata with dependency cycle between substituted participants in a composite build"() {
         given:
         dependency(buildA, "org.test:buildB:1.0")
@@ -220,6 +230,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata in composite containing participants with same root directory name"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -246,6 +257,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB", "buildC"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "generated IDEA project references modules for all projects in composite"() {
         given:
 
@@ -274,6 +286,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         notExecuted ":buildC:jar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "generated IDEA metadata respects idea plugin configuration"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -293,6 +306,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "b1-renamed", "b2"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA when one participant does not have IDEA plugin applied"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -314,6 +328,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB", "buildC"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "builds IDEA metadata when not all projects have IDEA plugin applied"() {
         given:
         dependency "org.test:b1:1.0"
@@ -345,6 +360,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "b1", "buildC", "c2"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "de-duplicates module names for included builds"() {
         given:
         dependency "org.test:b1:1.0"
@@ -386,6 +402,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
         imlHasDependencies "buildB-b1", "buildC-b1", "buildA-b1"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "de-duplicates module names between including and included builds"() {
         given:
         buildA.buildFile << """
@@ -438,6 +455,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIdeIntegrationSpe
 
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/2526")
+    @ToBeFixedForIsolatedProjects(because = "IDEA plugin uses allprojects/subprojects")
     def "de-duplicates module names when not all projects have IDEA plugin applied"() {
         given:
         dependency "org.test:b1:1.0"

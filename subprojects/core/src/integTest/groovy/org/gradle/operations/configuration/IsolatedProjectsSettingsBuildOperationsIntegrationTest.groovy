@@ -48,14 +48,14 @@ class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractInt
         file("buildSrc/src/main/java/Thing.java") << "class Thing {}"
 
         when:
-        succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
+        succeeds("help", "-Dorg.gradle.isolated-projects=$enabled")
         then:
         isolatedProjectsEvents().enabled == [enabled]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]
 
         // Ensure events are produced on CC hit as well
         when:
-        succeeds("help", "-Dorg.gradle.unsafe.isolated-projects=$enabled")
+        succeeds("help", "-Dorg.gradle.isolated-projects=$enabled")
         then:
         isolatedProjectsEvents().enabled == [enabled]
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache || enabled]

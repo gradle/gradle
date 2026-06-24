@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("this-escape")
 public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode {
 
     protected final TransformStep transformStep;

@@ -304,7 +304,11 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         def model = null
 
         Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
-        arguments += "-Dorg.gradle.internal.resilient-model-building=$resilient"
+        if (targetVersion < GradleVersion.version("9.4.0")) {
+            // In Gradle 9.4+, resilient model fetching is enabled by default for all "fetch" actions.
+            // For earlier versions, we explicitly enable it with the flag to ensure consistent behavior.
+            arguments += "-Dorg.gradle.internal.resilient-model-building=$resilient"
+        }
 
         conn.action()
             .buildFinished(new GradleBuildAction(resilient)) {

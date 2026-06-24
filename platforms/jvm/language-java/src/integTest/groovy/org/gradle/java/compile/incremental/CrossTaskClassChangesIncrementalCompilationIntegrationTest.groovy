@@ -18,7 +18,9 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
+@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
 
     def "detects changed class in an upstream project"() {

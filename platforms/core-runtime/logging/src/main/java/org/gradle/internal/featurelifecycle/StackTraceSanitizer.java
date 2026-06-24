@@ -30,7 +30,7 @@ class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
 
     @Override
     public List<StackTraceElement> transform(StackTraceElement[] originalStack) {
-        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
+        List<StackTraceElement> result = new ArrayList<StackTraceElement>(originalStack.length);
         final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;

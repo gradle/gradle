@@ -107,6 +107,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.dirPermissions = propertyFactory.property(ConfigurableFilePermissions.class);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
         this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);

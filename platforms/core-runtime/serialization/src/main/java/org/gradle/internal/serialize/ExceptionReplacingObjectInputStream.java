@@ -31,6 +31,7 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
         }
     };
 
+    @SuppressWarnings("this-escape")
     public ExceptionReplacingObjectInputStream(InputStream inputSteam, ClassLoader classLoader) throws IOException {
         super(inputSteam, classLoader);
         enableResolveObject(true);

@@ -16,7 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -42,7 +42,7 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsState process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameter startParameter) {
+    public SettingsState process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameterInternal startParameter) {
         return buildOperationRunner.call(new CallableBuildOperation<SettingsState>() {
             @Override
             public SettingsState call(BuildOperationContext context) {

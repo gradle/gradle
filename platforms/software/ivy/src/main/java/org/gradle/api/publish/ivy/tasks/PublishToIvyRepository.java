@@ -61,12 +61,14 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.3
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToIvyRepository extends DefaultTask {
     private final Transient.Var<IvyPublicationInternal> publication = varOf();
     private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
 
+    @SuppressWarnings("this-escape")
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build

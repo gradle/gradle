@@ -63,6 +63,7 @@ import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import java.io.File;
 import java.util.List;
 
+@SuppressWarnings("this-escape")
 public class DependencyManagementValueSnapshotterSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
 
     private static final List<Class<?>> SUPPORTED_TYPES = ImmutableList.of(

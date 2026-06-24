@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import org.gradle.util.GradleVersion
 
@@ -1443,6 +1444,7 @@ org:leaf:[1.5,2.0] FAILED
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     void "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
         createDirs("A", "B", "C")
@@ -1539,6 +1541,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "deals with dependency cycle to root"() {
         given:
         createDirs("impl")
@@ -1599,6 +1602,7 @@ root project 'root'
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "selects a module component dependency with a given name"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1656,6 +1660,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "selects a project component dependency with a given project path"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1710,6 +1715,7 @@ project ':impl'
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "selects a module component dependency with a given name with dependency command line option"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1827,6 +1833,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "selects a project component dependency with a given name with dependency command line option"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1930,6 +1937,7 @@ project ':some:deeply:nested'
 """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "renders tree with a mix of project and external dependencies"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()

@@ -18,8 +18,8 @@ package org.gradle.integtests.samples.files
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
 
@@ -284,7 +284,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("integration-tests/files/copy")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22536")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/13121")
     def "can use copy method in task with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -303,7 +303,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("integration-tests/files/copy")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22536")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/13121")
     def "can use copy method in task with outputs with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

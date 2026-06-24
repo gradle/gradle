@@ -48,6 +48,7 @@ import static java.util.Collections.singleton;
  *
  * @since 2.10
  */
+@SuppressWarnings("this-escape")
 @UntrackedTask(because = "Produces only non-cacheable console output")
 public abstract class BuildEnvironmentReportTask extends DefaultTask {
 

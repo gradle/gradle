@@ -57,6 +57,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
                 try {
                     writer.write("${format.format(timestamp)} - ${prettyPrint(e)}\n\n")
                 } catch (e: Exception) {
+                    @Suppress("detekt:PrintStackTrace")
                     e.printStackTrace(PrintWriter(writer))
                 } finally {
                     writer.flush()
