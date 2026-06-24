@@ -571,6 +571,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private class ConfigurationResolutionAccess implements ResolutionAccess {
 
         @Override
+        public Path getIdentityPath() {
+            return identityPath;
+        }
+
+        @Override
         public ResolutionHost getHost() {
             return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), configurationServices.getExceptionMapper());
         }
