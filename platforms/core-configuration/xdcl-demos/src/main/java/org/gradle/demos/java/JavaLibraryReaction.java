@@ -17,22 +17,17 @@
 package org.gradle.demos.java;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.xdcl.Reaction;
 import org.gradle.api.xdcl.ReactionScope;
-import org.gradle.demos.java.dsl.Dependencies;
+import org.gradle.demos.common.DependencyScopes;
+import org.gradle.demos.common.Repositories;
 import org.gradle.demos.java.dsl.JavaLibrary;
 import org.gradle.demos.java.dsl.JavaSource;
-import org.gradle.demos.java.dsl.NamedRepository;
-import org.gradle.demos.java.dsl.Repository;
 import org.gradle.jvm.tasks.Jar;
 
 import java.util.List;
@@ -50,9 +45,6 @@ import java.util.concurrent.Callable;
  */
 public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
 
-    /** The dependency scopes, in the order the demo wires them. */
-    private static final List<String> SCOPES = List.of("api", "implementation", "compileOnly", "runtimeOnly");
-
     /** The conventional name of the test source set. */
     private static final String TEST_SOURCE = "test";
 
@@ -63,8 +55,8 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
         }
         JavaLibraryModel model = project.getExtensions().create("javaLibraryModel", JavaLibraryModel.class);
 
-        configureRepositories(data, project);
-        createSharedDependencyScopes(data, project);
+        Repositories.configure(data, project);
+        DependencyScopes.createShared(data, project);
 
         int javaVersion = data.javaVersion().get();
         Map<String, JavaSource> sources = data.sources().getOrElse(Map.of());
@@ -83,7 +75,7 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
             JavaSource source = entry.getValue();
             String cap = capitalize(name);
 
-            FileCollection sourceClasspath = configureSourceDependencies(project, name, source);
+            FileCollection sourceClasspath = DependencyScopes.configureSource(project, name, source);
             FileCollection compileClasspath = TEST_SOURCE.equals(name) ? sourceClasspath.plus(productionClasses) : sourceClasspath;
 
             Object javaSrc = orConvention(source.javaDirs().getOrElse(List.of()), "src/" + name + "/java");
@@ -132,87 +124,6 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
         registerTestTask(project, model, mainClasses, productionClasses);
 
         project.getLogger().lifecycle("javaLibrary[" + project.getName() + "] javaVersion=" + javaVersion + " sources=" + sources.keySet());
-    }
-
-    /**
-     * Configure the project's repositories from the declared notations: a {@code :mavenCentral} /
-     * {@code :gradlePluginPortal} builtin symbol maps to the matching builtin repository; a String is
-     * a maven repository URL.
-     */
-    private static void configureRepositories(JavaLibrary data, Project project) {
-        for (Repository repository : data.repositories().getOrElse(List.of())) {
-            if (repository instanceof NamedRepository named) {
-                String symbol = named.value().get();
-                switch (symbol) {
-                    case "mavenCentral" -> project.getRepositories().mavenCentral();
-                    case "gradlePluginPortal" -> project.getRepositories().gradlePluginPortal();
-                    default -> throw new IllegalArgumentException("unknown builtin repository: " + symbol);
-                }
-            } else if (repository instanceof Repository.StringValue url) {
-                project.getRepositories().maven(repo -> repo.setUrl(url.value().get()));
-            }
-        }
-    }
-
-    /**
-     * Create the four shared (top-level) dependency-scope configurations and add the project-wide
-     * {@code dependencies} to them. Each source set's own scopes extend these (see
-     * {@link #configureSourceDependencies}). Hand-rolls the slice of {@code JavaBasePlugin} the demo needs.
-     */
-    private static void createSharedDependencyScopes(JavaLibrary data, Project project) {
-        ConfigurationContainer configurations = project.getConfigurations();
-        for (String scope : SCOPES) {
-            configurations.dependencyScope(scope);
-        }
-        data.dependencies().ifPresent(dependencies -> addScopes(project, "", dependencies));
-    }
-
-    /**
-     * Create a source set's own dependency-scope configurations ({@code <name>Api}, {@code <name>Implementation},
-     * …), each extending the matching top-level scope; add the source's {@code dependencies}; and return its
-     * resolvable compile classpath (a {@code <name>RuntimeClasspath} is also created for the runtime/test path).
-     */
-    private static FileCollection configureSourceDependencies(Project project, String name, JavaSource source) {
-        ConfigurationContainer configurations = project.getConfigurations();
-        for (String scope : SCOPES) {
-            configurations.dependencyScope(scopeName(name, scope), c -> c.extendsFrom(configurations.getByName(scope)));
-        }
-        source.dependencies().ifPresent(dependencies -> addScopes(project, name, dependencies));
-
-        Configuration compileClasspath = configurations.resolvable(name + "CompileClasspath", c -> {
-            c.extendsFrom(
-                configurations.getByName(scopeName(name, "api")),
-                configurations.getByName(scopeName(name, "implementation")),
-                configurations.getByName(scopeName(name, "compileOnly")));
-            c.attributes(a -> a.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_API)));
-        }).get();
-        configurations.resolvable(name + "RuntimeClasspath", c -> {
-            c.extendsFrom(
-                configurations.getByName(scopeName(name, "api")),
-                configurations.getByName(scopeName(name, "implementation")),
-                configurations.getByName(scopeName(name, "runtimeOnly")));
-            c.attributes(a -> a.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME)));
-        });
-        return compileClasspath;
-    }
-
-    /** Add a {@link Dependencies} block's coordinates to the scope configurations under [prefix] ("" = top level). */
-    private static void addScopes(Project project, String prefix, Dependencies dependencies) {
-        addAll(project, scopeName(prefix, "api"), dependencies.api());
-        addAll(project, scopeName(prefix, "implementation"), dependencies.implementation());
-        addAll(project, scopeName(prefix, "runtimeOnly"), dependencies.runtimeOnly());
-        addAll(project, scopeName(prefix, "compileOnly"), dependencies.compileOnly());
-    }
-
-    /** The configuration name for a dependency scope: bare at the top level, {@code <prefix><Scope>} per source. */
-    private static String scopeName(String prefix, String scope) {
-        return prefix.isEmpty() ? scope : prefix + capitalize(scope);
-    }
-
-    private static void addAll(Project project, String configuration, Provider<List<String>> notations) {
-        for (String notation : notations.getOrElse(List.of())) {
-            project.getDependencies().add(configuration, notation);
-        }
     }
 
     /**

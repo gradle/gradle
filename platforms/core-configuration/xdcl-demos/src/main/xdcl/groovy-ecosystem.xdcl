@@ -1,0 +1,9 @@
+plugin {
+  reactions [ :org.gradle.demos.groovy.GroovyLibraryReaction ]
+  defaults {
+    for GroovyComponent {
+      groovyVersion "4.0.3"
+      sources [ main: {}, test: {} ]
+    }
+  }
+}
