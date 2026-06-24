@@ -143,7 +143,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: Break the paths assumed here
             Map<String, Object> attributes = new HashMap<>();
-            attributes.put("stylesdir", (Callable<String>) () -> stylesDir.get().getAsFile().getAbsolutePath());
+            attributes.put("stylesdir", (Callable<String>) stylesDir.map(d -> d.getAsFile().getAbsolutePath())::get);
             attributes.put("stylesheet", "manual.css");
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
@@ -158,15 +158,15 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("encoding", "utf-8");
             attributes.put("idprefix", "");
             attributes.put("website", "https://gradle.org");
-            attributes.put("javaApi", (Callable<String>) () -> extension.getJavadocs().getJavaApi().get().toString());
+            attributes.put("javaApi", (Callable<String>) extension.getJavadocs().getJavaApi().map(uri -> uri.toString())::get);
             attributes.put("jdkDownloadUrl", "https://jdk.java.net/");
-            attributes.put("javadocReferenceUrl", (Callable<String>) () -> extension.getJavadocs().getJavadocReferenceUrl().get().toString());
-            attributes.put("minJdkVersion", (Callable<String>) () -> extension.getJavadocs().getMinJdkVersion().get().toString());
+            attributes.put("javadocReferenceUrl", (Callable<String>) extension.getJavadocs().getJavadocReferenceUrl().map(uri -> uri.toString())::get);
+            attributes.put("minJdkVersion", (Callable<String>) extension.getJavadocs().getMinJdkVersion().map(v -> v.toString())::get);
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
 
-            attributes.put("gradleVersion", (Callable<String>) () -> extension.getGradleVersion().get());
+            attributes.put("gradleVersion", (Callable<String>) extension.getGradleVersion()::get);
             attributes.put("snippetsPath", "snippets");
             task.attributes(attributes);
         });
@@ -240,7 +240,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "../kotlin-dsl");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            attributes.put("samples-dir", (Callable<File>) () -> extension.getUserManual().getStagedDocumentation().get().getAsFile());
+            attributes.put("samples-dir", (Callable<File>) extension.getUserManual().getStagedDocumentation().getAsFile()::get);
             task.attributes(attributes);
         });
 
@@ -282,11 +282,11 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
-        attributes.put("groovyDslPath", (Callable<String>) () -> DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/dsl");
-        attributes.put("javadocPath", (Callable<String>) () -> DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/javadoc");
-        attributes.put("kotlinDslPath", (Callable<String>) () -> DOCS_GRADLE_ORG + extension.getGradleVersion().get() + "/kotlin-dsl");
+        attributes.put("groovyDslPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/dsl")::get);
+        attributes.put("javadocPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/javadoc")::get);
+        attributes.put("kotlinDslPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/kotlin-dsl")::get);
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-        attributes.put("samples-dir", (Callable<File>) () -> extension.getUserManual().getStagedDocumentation().get().getAsFile());
+        attributes.put("samples-dir", (Callable<File>) extension.getUserManual().getStagedDocumentation().getAsFile()::get);
         task.attributes(attributes);
     }
 
