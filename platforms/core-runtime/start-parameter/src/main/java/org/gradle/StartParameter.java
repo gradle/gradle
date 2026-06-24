@@ -182,16 +182,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * {@inheritDoc}
      */
     @Override
-    public boolean isNonInteractive() {
-        return loggingConfiguration.isNonInteractive();
+    public boolean isInteractive() {
+        return loggingConfiguration.isInteractive();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setNonInteractive(boolean nonInteractive) {
-        this.loggingConfiguration.setNonInteractive(nonInteractive);
+    public void setInteractive(boolean interactive) {
+        this.loggingConfiguration.setInteractive(interactive);
     }
 
     /**
