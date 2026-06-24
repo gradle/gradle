@@ -86,9 +86,11 @@ public class DirectInstantiator implements Instantiator {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("ExposedPrivateType") // CachedConstructor is an implementation detail used only within DirectInstantiator
     public static class ConstructorCache extends ReflectionCache<CachedConstructor> {
 
         @Override
+        @SuppressWarnings("ExposedPrivateType") // CachedConstructor is an implementation detail used only within DirectInstantiator
         protected CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
             Constructor<?>[] constructors = receiver.getConstructors();
             Constructor<?> match = null;

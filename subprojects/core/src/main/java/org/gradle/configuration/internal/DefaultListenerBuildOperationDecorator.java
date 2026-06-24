@@ -234,6 +234,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the proxy instance in equals
         public Object invoke(Object proxy, final Method method, final Object[] args) throws Throwable {
             final String methodName = method.getName();
             if (methodName.equals("toString") && (args == null || args.length == 0)) {

@@ -76,6 +76,7 @@ public class CapabilityConflictResolver {
      * @param name The name of the capability in conflict.
      * @param nodes The nodes that provide the capability in conflict.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeState instances
     public void resolve(String group, String name, Collection<NodeState> nodes) {
         // Candidates that are no longer selected are filtered out before this resolver is executed.
         // If there is only one candidate at the beginning of conflict resolution, select that candidate.

@@ -228,6 +228,7 @@ public class ValidationProblemSerialization {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect circular cause chain
         private static boolean shouldWriteCause(Throwable throwable) {
             Throwable cause = throwable.getCause();
             if (cause == null || cause.getMessage() == null || cause == throwable) {

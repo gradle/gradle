@@ -60,6 +60,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // standard identity short-circuit in an equals-style comparison
     protected boolean isSameSnapshot(@Nullable Object o) {
         if (this == o) {
             return true;

@@ -95,6 +95,7 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged object
     public void apply(Object objectParam, List<String> parameterValues) {
         if (objectParam != object) {
             throw new AssertionError(String.format("Object %s not applyable. Expecting %s", objectParam, object));

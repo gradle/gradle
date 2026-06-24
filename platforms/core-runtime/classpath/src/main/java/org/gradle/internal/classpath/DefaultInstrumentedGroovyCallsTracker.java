@@ -74,6 +74,7 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the call site stack entry
     public void leaveCall(EntryPointCallSite entryPoint) {
         if (callSiteStack.isEmpty()) {
             throwMismatchedLeaveCallException(entryPoint);

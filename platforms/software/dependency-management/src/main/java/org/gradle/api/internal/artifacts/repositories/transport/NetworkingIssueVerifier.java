@@ -39,6 +39,7 @@ public class NetworkingIssueVerifier {
      * <li>on rate limiting</li>
      * </ul>
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity check to detect a self-referential cause
     public static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
         if (failure instanceof SocketException || failure instanceof SocketTimeoutException || failure instanceof NoHttpResponseException || failure instanceof ConnectionClosedException) {
             return true;

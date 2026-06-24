@@ -94,6 +94,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.value = initialValue;
     }
 
+    @SuppressWarnings("ExposedPrivateType") // Configurer is an implementation detail used only within DefaultConfigurableFileCollection
     protected void withActualValue(Action<Configurer> action) {
         setToConventionIfUnset();
         action.execute(getConfigurer());
@@ -201,6 +202,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the value instance
     public void setFromAnyValue(Object object) {
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
@@ -210,6 +212,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Don't allow a += b or a = (a + b), this is not support
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect self-reference
             public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
                     throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
@@ -243,6 +246,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     // We don't support 'a -= b' in Groovy DSL due to the inherent self-referencing.
     // At the same time, Groovy always rewrites that as 'a = a - b'
     // and at runtime all these options look the same as 'a = a.minus(b)', and we can't distinguish
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect self-reference
     private void throwOnSelfSubtraction(FileCollectionInternal fileCollection) {
         if (fileCollection instanceof SubtractingFileCollection) {
             SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
@@ -374,12 +378,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the value instance
     public ConfigurableFileCollection from(Object... paths) {
         withActualValue(it -> it.from(paths));
         return this;
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect self-reference
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
         if (original == this) {
             return supplier.get();
@@ -686,6 +692,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Nullable
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged element
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(items.size());
             boolean hasChanges = false;

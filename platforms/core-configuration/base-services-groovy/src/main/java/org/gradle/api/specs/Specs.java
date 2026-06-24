@@ -80,6 +80,7 @@ public class Specs {
         return doIntersect(specs);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the SATISFIES_ALL/SATISFIES_NONE sentinels
     private static <T> Spec<T> doIntersect(Collection<? extends Spec<? super T>> specs) {
         List<Spec<? super T>> filtered = new ArrayList<>(specs.size());
         for (Spec<? super T> spec : specs) {
@@ -124,6 +125,7 @@ public class Specs {
         return doUnion(specs);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the SATISFIES_ALL/SATISFIES_NONE sentinels
     private static <T> Spec<T> doUnion(Collection<? extends Spec<? super T>> specs) {
         List<Spec<? super T>> filtered = new ArrayList<Spec<? super T>>(specs.size());
         for (Spec<? super T> spec : specs) {
@@ -147,6 +149,7 @@ public class Specs {
     /**
      * Returns a spec that selects everything that is not selected by the given spec.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the SATISFIES_ALL/SATISFIES_NONE sentinels
     public static <T> Spec<T> negate(Spec<? super T> spec) {
         if (spec == SATISFIES_ALL) {
             return satisfyNone();

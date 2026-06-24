@@ -193,7 +193,7 @@ public abstract class ClassLoaderUtils {
         private MethodType defineClassMethodType = MethodType.methodType(Class.class, new Class<?>[]{String.class, byte[].class, int.class, int.class});
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "ReferenceEquality"}) // intentional identity comparison of classloader instances
         public <T> Class<T> defineDecoratorClass(Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes) {
             try {
                 // Lookup.defineClass can only define a class into same classloader as the lookup object.

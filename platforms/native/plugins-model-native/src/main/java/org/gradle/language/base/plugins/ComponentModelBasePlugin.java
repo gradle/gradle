@@ -99,6 +99,7 @@ import static com.google.common.base.Strings.emptyToNull;
 public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Project instances
     public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);

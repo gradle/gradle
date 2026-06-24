@@ -175,6 +175,7 @@ public class ExternalModuleComponentResolverFactory {
         return moduleResolver;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Actions.doNothing() sentinel
     private static ModuleComponentRepository<ExternalModuleComponentGraphResolveState> filterRepository(
         ResolutionAwareRepository repository,
         ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository

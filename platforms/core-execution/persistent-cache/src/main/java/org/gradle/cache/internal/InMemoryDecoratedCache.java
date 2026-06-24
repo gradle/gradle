@@ -50,6 +50,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NULL sentinel
     public V get(final K key) {
         Object value;
         try {
@@ -68,6 +69,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NULL sentinel
     public V get(final K key, final Function<? super K, ? extends V> producer, final Runnable completion) {
         final AtomicReference<Runnable> completionRef = new AtomicReference<>(completion);
         Object value;

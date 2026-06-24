@@ -68,6 +68,7 @@ public class ToPlannedNodeConverterRegistry {
      * Returns a converter for the given node, or null if there is no converter for the node.
      */
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the MISSING_MARKER sentinel
     public ToPlannedNodeConverter getConverter(Node node) {
         Class<? extends Node> nodeType = node.getClass();
         ToPlannedNodeConverter converter = convertersByNodeType.computeIfAbsent(nodeType, this::findConverter);

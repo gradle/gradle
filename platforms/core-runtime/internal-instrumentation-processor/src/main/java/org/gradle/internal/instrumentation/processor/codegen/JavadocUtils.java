@@ -42,6 +42,7 @@ public class JavadocUtils {
                         kind == CallableKindInfo.GROOVY_PROPERTY_SETTER ? "Groovy property setter" : null;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity check for the last parameter in the list
     public static CodeBlock interceptedCallableLink(CallInterceptionRequest request) {
         CodeBlock.Builder result = CodeBlock.builder();
         CallableInfo interceptedCallable = request.getInterceptedCallable();
@@ -64,6 +65,7 @@ public class JavadocUtils {
         return result.build();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity check for the last parameter in the list
     public static CodeBlock interceptorImplementationLink(CallInterceptionRequest request) {
         CodeBlock.Builder result = CodeBlock.builder();
         List<ParameterInfo> params = request.getInterceptedCallable().getParameters();

@@ -123,7 +123,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
 
-    @SuppressWarnings("this-escape")
+    @SuppressWarnings({"this-escape", "ReferenceEquality"}) // intentional identity comparison against the UNKNOWN sentinel
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);

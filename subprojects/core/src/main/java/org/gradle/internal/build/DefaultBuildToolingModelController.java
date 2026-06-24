@@ -76,6 +76,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of BuildState instances
     public ToolingModelScope locateBuilderForTarget(ProjectState target, ToolingModelRequestContext toolingModelContext) {
         if (target.getOwner() != buildState) {
             throw new IllegalArgumentException("Project has unexpected owner.");
@@ -150,6 +151,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType") // AbstractToolingScope is an implementation detail
     protected static class ProjectToolingScope extends AbstractToolingScope {
         protected final ProjectState targetProject;
         protected final String modelName;

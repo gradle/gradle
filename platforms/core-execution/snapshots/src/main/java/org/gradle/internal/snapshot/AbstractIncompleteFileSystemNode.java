@@ -36,6 +36,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged child map
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemNode, FileSystemNode>() {
             @Override
@@ -67,6 +68,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged child map
     public FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         ChildMap<FileSystemNode> newChildren = children.store(targetPath, caseSensitivity, new ChildMap.StoreHandler<FileSystemNode>() {
             @Override

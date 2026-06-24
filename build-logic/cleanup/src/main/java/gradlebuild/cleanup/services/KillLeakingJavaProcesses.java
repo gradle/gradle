@@ -267,6 +267,7 @@ public class KillLeakingJavaProcesses {
         }
     }
 
+    @SuppressWarnings("CatchAndPrintStackTrace") // best-effort stream pump on a daemon thread; printing the failure is sufficient
     private static ByteArrayOutputStream connectStream(InputStream forkedProcessOutput, CountDownLatch latch) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(os, true);

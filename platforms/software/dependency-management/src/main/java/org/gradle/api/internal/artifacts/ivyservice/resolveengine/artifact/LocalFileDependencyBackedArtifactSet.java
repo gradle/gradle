@@ -297,6 +297,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity check to detect an unchanged object
         public ResolvedArtifactSet transformCandidate(ResolvedVariant sourceVariant, VariantDefinition variantDefinition) {
             assert sourceVariant == this;
             return new TransformedLocalFileArtifactSet(this, sourceVariantId, variantDefinition.getTargetAttributes(), variantDefinition.getTransformChain(), calculatedValueContainerFactory);

@@ -192,6 +192,7 @@ class RuleBindings {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ModelNode instances
         public void removeNode(ModelNodeInternal node) {
             nodes.remove(node);
             for (PredicateMatches matches : types.values()) {

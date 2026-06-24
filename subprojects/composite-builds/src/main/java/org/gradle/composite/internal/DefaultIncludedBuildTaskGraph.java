@@ -254,6 +254,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
         private void assertIsOwner() {
             if (Thread.currentThread() != owner) {
                 throw new IllegalStateException("Current thread is not the owner of this work graph.");

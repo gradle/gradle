@@ -103,6 +103,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 }
 
                 @Override
+                @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the backing ModelNode
                 public boolean equals(Object obj) {
                     if (obj == this) {
                         return true;

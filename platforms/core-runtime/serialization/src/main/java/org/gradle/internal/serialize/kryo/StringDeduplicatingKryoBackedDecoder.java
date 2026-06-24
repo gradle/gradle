@@ -218,6 +218,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         return string;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the INITIAL_CAPACITY_MARKER sentinel
     private static String[] growStringArray(String[] strings) {
         String[] grow = new String[strings == INITIAL_CAPACITY_MARKER ? INITIAL_CAPACITY : strings.length * 3 / 2];
         System.arraycopy(strings, 0, grow, 0, strings.length);

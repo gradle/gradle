@@ -47,6 +47,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
         this.timeProvider = timeProvider;
     }
 
+    @SuppressWarnings("ExposedPrivateType") // ArtifactAtRepositoryKeySerializer is an implementation detail
     protected static ArtifactAtRepositoryKeySerializer keySerializer() {
         DefaultSerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         serializerRegistry.register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());

@@ -45,6 +45,7 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of TestDescriptorInternal instances
     public DefaultTestEventReporter reportTestDirectly(TestDescriptorInternal testDescriptor) {
         if (testDescriptor.getParent() != this.testDescriptor) {
             throw new IllegalArgumentException("Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
@@ -67,6 +68,7 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of TestDescriptorInternal instances
     public DefaultGroupTestEventReporter reportTestGroupDirectly(TestDescriptorInternal testDescriptor) {
         if (testDescriptor.getParent() != this.testDescriptor) {
             throw new IllegalArgumentException("Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);

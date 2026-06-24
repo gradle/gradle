@@ -116,6 +116,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
                 ));
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the content cache instance
         private void assertStoredIn(IndexedCache<HashCode, V> store) {
             if (this.contentCache != store) {
                 throw new IllegalStateException("Cache " + name + " cannot be recreated with different parameters");

@@ -42,6 +42,7 @@ public class DefaultTestAssertionFailure extends AbstractTestFailure implements 
         return actual;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect a self-referential cause
     public static DefaultTestAssertionFailure create(Throwable t, String message, String className, String stacktrace, String expected, String actual, List<InternalFailure> causes) {
         List<InternalFailure> causeFailure;
         if (causes.isEmpty()) {

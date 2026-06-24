@@ -86,12 +86,14 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     @Override
+    @SuppressWarnings("AnnotateFormatMethod") // delegating override of java.io.PrintStream; cannot change the signature
     public PrintStream format(String format, Object... args) {
         getStream().format(format, args);
         return this;
     }
 
     @Override
+    @SuppressWarnings("AnnotateFormatMethod") // delegating override of java.io.PrintStream; cannot change the signature
     public PrintStream format(Locale l, String format, Object... args) {
         getStream().format(l, format, args);
         return this;
@@ -143,12 +145,14 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     @Override
+    @SuppressWarnings("AnnotateFormatMethod") // delegating override of java.io.PrintStream; cannot change the signature
     public PrintStream printf(String format, Object... args) {
         getStream().printf(format, args);
         return this;
     }
 
     @Override
+    @SuppressWarnings("AnnotateFormatMethod") // delegating override of java.io.PrintStream; cannot change the signature
     public PrintStream printf(Locale l, String format, Object... args) {
         getStream().printf(l, format, args);
         return this;

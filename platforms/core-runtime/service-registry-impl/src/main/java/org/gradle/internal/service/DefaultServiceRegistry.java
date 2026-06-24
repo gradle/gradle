@@ -616,6 +616,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of owning registries
         private boolean fromSameRegistry(ServiceProvider serviceProvider) {
             return serviceProvider instanceof ManagedObjectServiceProvider && ((ManagedObjectServiceProvider) serviceProvider).owner == owner;
         }
@@ -810,6 +811,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
             return result;
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NO_DEPENDENTS sentinel
         private Object[] assembleParameters() {
             if (paramServices == null) {
                 throw new IllegalStateException(String.format("Factory %s is not bound or the instance has been created already", getFactoryDisplayName()));
@@ -834,6 +836,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
             } else {
                 return new Visitor() {
                     @Override
+                    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the decorated service
                     public void visit(Service service) {
                         // Ignore the decorated service
                         if (service != decorates) {

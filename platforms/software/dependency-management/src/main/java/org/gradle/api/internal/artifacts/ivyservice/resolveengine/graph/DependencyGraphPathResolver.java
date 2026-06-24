@@ -61,6 +61,7 @@ public class DependencyGraphPathResolver {
         return paths;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of DependencyGraphComponent instances
     private static @Nullable List<Describable> shortestPathToRoot(
         DependencyGraphComponent start,
         DependencyGraphComponent root,

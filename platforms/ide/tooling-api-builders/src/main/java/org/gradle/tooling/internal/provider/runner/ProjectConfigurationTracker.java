@@ -95,6 +95,7 @@ class ProjectConfigurationTracker implements BuildOperationTracker {
                 .increment(duration);
         }
 
+        @SuppressWarnings("BoxingComparator") // intentional comparison of boxed values
         List<InternalPluginApplicationResult> toInternalPluginApplicationResults() {
             return pluginApplicationResults.values().stream()
                 .sorted(comparing(PluginApplicationResult::getFirstApplicationId))

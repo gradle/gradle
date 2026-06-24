@@ -74,6 +74,7 @@ public abstract class PmdInvoker extends AntWorkAction<PmdActionParameters> {
         }
     }
 
+    @SuppressWarnings("FormatStringShouldUsePlaceholders") // format string is intentional here
     private static void runPmd(AntBuilderDelegate ant, PmdActionParameters parameters) {
         VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader());
 

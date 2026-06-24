@@ -115,6 +115,7 @@ public abstract class Node {
         return group;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeGroup instances
     public void setGroup(NodeGroup group) {
         if (this.group != group) {
             this.group.removeMember(this);
@@ -131,6 +132,7 @@ public abstract class Node {
     /**
      * Potentially update the ordinal group of this node when it is reachable from the given group.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of group instances
     public void maybeInheritOrdinalAsDependency(@Nullable OrdinalGroup candidateOrdinal) {
         if (group == candidateOrdinal || candidateOrdinal == null) {
             // Ignore candidate groups that have no ordinal value
@@ -148,6 +150,7 @@ public abstract class Node {
      *
      * <p>When this method is called, the group of each node that depends on this node has been updated.</p>
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of group instances
     public void maybeInheritFinalizerGroups() {
         NodeGroup newGroup = group;
         for (Node predecessor : getDependencyPredecessors()) {
@@ -160,6 +163,7 @@ public abstract class Node {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of group instances
     private static HasFinalizers maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
         if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
             return finalizers;
@@ -176,6 +180,7 @@ public abstract class Node {
      *
      * That way we can ensure that the node is executed after all its dependencies, and we get rid of potential cycles.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of group instances
     public void maybeUpdateOrdinalGroup() {
         OrdinalGroup ordinal = getGroup().asOrdinal();
         OrdinalGroup newOrdinal = ordinal;

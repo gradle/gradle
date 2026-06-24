@@ -342,6 +342,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
         public void onReuse() {
             if (scriptClass != null) {
                 // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope exists

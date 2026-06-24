@@ -61,6 +61,7 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged collection
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
         ImmutableSet.Builder<FileCollectionInternal> newSource = ImmutableSet.builderWithExpectedSize(source.size());
         boolean hasChanges = false;

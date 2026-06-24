@@ -35,6 +35,7 @@ public class PreferenceCleaningGroovySystemLoader implements GroovySystemLoader 
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     public void shutdown() {
         try {
             Preferences groovyNode = Preferences.userRoot().node("/org/codehaus/groovy/tools/shell");

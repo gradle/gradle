@@ -63,6 +63,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged root
     public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
         newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
@@ -94,6 +95,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged root
     public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentBeforeBuildFinished(
             root,
@@ -110,6 +112,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged root
     public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
             root,

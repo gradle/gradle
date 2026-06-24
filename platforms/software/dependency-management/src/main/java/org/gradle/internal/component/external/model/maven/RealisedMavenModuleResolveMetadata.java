@@ -275,6 +275,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of VariantDerivationStrategy instances
     public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
         if (getVariantDerivationStrategy() == derivationStrategy) {
             return this;

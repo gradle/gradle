@@ -212,6 +212,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
      * @param specs the initial set of elements to simplify
      * @return the fixed point set where another full simplification pass yields the same set
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of PersistentSet instances
     private static PersistentSet<ExcludeSpec> fixedPointOf(Simplification function, PersistentSet<ExcludeSpec> specs) {
         PersistentSet<ExcludeSpec> current = specs;
         while (current.size() > 1) {
@@ -224,6 +225,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         return current;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ExcludeSpec and PersistentSet instances
     private static PersistentSet<ExcludeSpec> simplifyOnce(Simplification function, PersistentSet<ExcludeSpec> specs) {
         for (ExcludeSpec left : specs) {
             for (ExcludeSpec right : specs) {

@@ -34,6 +34,7 @@ public class BlockingResultHandler<T> implements ResultHandler<T> {
         this.resultType = resultType;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NULL sentinel
     public T getResult() {
         Object result;
         try {

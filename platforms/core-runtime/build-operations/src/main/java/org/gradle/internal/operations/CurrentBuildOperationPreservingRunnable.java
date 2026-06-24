@@ -22,6 +22,7 @@ public class CurrentBuildOperationPreservingRunnable implements Runnable {
         return wrapIfNeeded(delegate, CurrentBuildOperationRef.instance());
     }
 
+    @SuppressWarnings("ReferenceEquality")
     static Runnable wrapIfNeeded(Runnable delegate, CurrentBuildOperationRef ref) {
         if (delegate instanceof CurrentBuildOperationPreservingRunnable && ((CurrentBuildOperationPreservingRunnable) delegate).ref == ref) {
             // Even if the build operation of the delegate would be different, it would override a new wrapper anyway,

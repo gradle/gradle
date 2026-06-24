@@ -396,6 +396,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private DescribingAndSpec<Task> createNewOnlyIfSpec() {
         return new DescribingAndSpec<>(new Spec<Task>() {
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect the specific task instance
             public boolean isSatisfiedBy(Task element) {
                 return element == AbstractTask.this && enabled;
             }

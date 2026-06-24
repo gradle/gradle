@@ -79,6 +79,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         dependencies = metadata.getDependencies();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of VariantDerivationStrategy instances
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);
         this.objectInstantiator = metadata.objectInstantiator;
@@ -200,6 +201,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of VariantDerivationStrategy instances
     public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
         if (getVariantDerivationStrategy() == derivationStrategy) {
             return this;

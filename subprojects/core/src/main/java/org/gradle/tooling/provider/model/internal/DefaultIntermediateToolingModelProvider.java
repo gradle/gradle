@@ -131,6 +131,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return actionRunner.run(fetchActions);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of BuildState instances
     private static BuildState extractSingleBuildState(List<ProjectState> targets) {
         if (targets.isEmpty()) {
             throw new IllegalStateException("Cannot find build state without target projects");

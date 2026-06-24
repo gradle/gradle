@@ -280,6 +280,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
      * Waits until the current thread can take ownership.
      * Must be called while holding the lock.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     private void takeOwnership() {
         while (owner != null && owner != Thread.currentThread()) {
             try {
@@ -296,6 +297,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
      * Takes ownership of the cache, asserting that this can be done without waiting.
      * Must be called while holding the lock.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     private void takeOwnershipNow() {
         if (owner != null && owner != Thread.currentThread()) {
             throw new IllegalStateException(String.format("Cannot take ownership of %s as it is currently being used by another thread.", cacheDisplayName));
@@ -381,6 +383,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     /**
      * Called just before the file lock is about to be released.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the FileLock instance
     private void beforeLockRelease(FileLock fileLock) {
         assert this.fileLock == fileLock;
         try {
@@ -427,6 +430,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         return true;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     private FileLock getFileLock() {
         stateLock.lock();
         try {

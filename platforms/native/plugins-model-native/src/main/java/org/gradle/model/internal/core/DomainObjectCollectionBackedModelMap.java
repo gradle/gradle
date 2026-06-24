@@ -235,6 +235,7 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     public void named(final String name, Action<? super T> configAction) {
         collection.matching(new Spec<T>() {
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison of model map elements
             public boolean isSatisfiedBy(T element) {
                 return get(name) == element;
             }

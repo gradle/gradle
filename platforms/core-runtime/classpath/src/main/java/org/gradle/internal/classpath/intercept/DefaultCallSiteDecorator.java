@@ -270,6 +270,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged receiver/args
         private Object invokeDefaultGroovyCallSiteImplementation(Object receiver, @Nullable Object[] args, CallStrategy callStrategy) throws Throwable {
             assert groovyDefaultCallSite != this;
             switch (callStrategy) {
@@ -324,6 +325,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
          * To fix that, we store the optimized call site that the Groovy runtime created (and we delegate to it in subsequent calls), and we put a reference to our
          * decorated call site back into the call site array.
          */
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the call site array entry
         private void restoreCallSiteArrayEntry() {
             CallSite callSiteInArrayAfterCall = array.array[index];
             if (callSiteInArrayAfterCall != this) {

@@ -245,6 +245,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         return methodResult;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of TestTreeModel instances
     private static TestTreeModel findGroupingNode(
         Map<org.gradle.util.Path, TestTreeModel> parentOfPath, TestTreeModel leaf, @Nullable String className
     ) {

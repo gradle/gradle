@@ -85,6 +85,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged rootNode
     public SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         if (relativePath.isEmpty()) {

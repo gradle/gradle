@@ -26,6 +26,7 @@ public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     protected boolean acquireLock() {
         Thread currentThread = Thread.currentThread();
         if (owner == currentThread) {
@@ -48,6 +49,7 @@ public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     protected boolean doIsLockedByCurrentThread() {
         return owner == Thread.currentThread();
     }

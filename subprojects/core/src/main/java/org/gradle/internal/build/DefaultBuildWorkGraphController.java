@@ -82,6 +82,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     public BuildWorkGraph newWorkGraph() {
         synchronized (lock) {
             while (currentOwner != null && currentOwner != Thread.currentThread()) {
@@ -123,6 +124,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
         public void stop() {
             if (plan != null) {
                 plan.stop();
@@ -138,6 +140,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ExportedTaskNode instances
         public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
             assertIsOwner();
             List<Task> tasks = new ArrayList<>();
@@ -228,6 +231,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
         private void assertIsOwner() {
             if (Thread.currentThread() != owner) {
                 throw new IllegalStateException("Current thread is not the owner of this work graph.");

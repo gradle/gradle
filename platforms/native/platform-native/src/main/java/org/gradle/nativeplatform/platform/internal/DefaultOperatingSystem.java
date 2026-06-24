@@ -67,6 +67,7 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the CURRENT_OS sentinel
     public boolean isCurrent() {
         return internalOs == CURRENT_OS;
     }
@@ -87,11 +88,13 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the OperatingSystem.SOLARIS sentinel
     public boolean isSolaris() {
         return internalOs == OperatingSystem.SOLARIS;
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the OperatingSystem.FREE_BSD sentinel
     public boolean isFreeBSD() {
         return internalOs == OperatingSystem.FREE_BSD;
     }

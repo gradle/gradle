@@ -94,6 +94,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeState instances
     private boolean registerCapability(NodeState node, CapabilityInternal capability) {
         ConflictedNodesTracker tracker = capabilityWithoutVersionToTracker.computeIfAbsent(capability.getCapabilityId(), k -> new ConflictedNodesTracker(capability));
         tracker.removeDeselectedCandidates();
@@ -209,6 +210,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.isRejectedForCapabilityConflict());
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeState instances
         private static Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
             HashMap<NodeState, Set<NodeState>> nodeToDependents = new HashMap<>();
             for (NodeState node : nodes) {

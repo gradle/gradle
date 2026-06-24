@@ -70,6 +70,7 @@ public class ClasspathInferer {
     /**
      * Locates the classpath required by the given target class. Traverses the dependency graph of classes used by the specified class and collects the result in the given collection.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the platform class loader sentinel
     private void find(Class<?> target, Collection<Class<?>> visited, Collection<URI> dest) {
         ClassLoader targetClassLoader = target.getClassLoader();
         if (targetClassLoader == null || targetClassLoader == ClassLoaderUtils.getPlatformClassLoader()) {

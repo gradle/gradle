@@ -27,6 +27,7 @@ class AllProjectsLock extends ExclusiveAccessResourceLock {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of this "all projects" lock instance
     protected boolean canAcquire() {
         for (ProjectLock projectLock : cachedProjectLocks.get()) {
             if (projectLock.getAllProjectsLock() != this) {

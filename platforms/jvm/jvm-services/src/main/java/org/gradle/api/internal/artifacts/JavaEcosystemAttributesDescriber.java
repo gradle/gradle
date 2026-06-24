@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
         return describableAttributes;
     }
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "AlreadyChecked"}) // redundant null re-check kept for readability of the branch structure
     @Override
     public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
         Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);

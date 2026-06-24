@@ -66,6 +66,7 @@ public class ProxyDispatchAdapter<T> {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the method declaring type
         public Object invoke(Object target, Method method, Object[] parameters) {
             switch (method.getName()) {
                 case "equals":
@@ -91,6 +92,7 @@ public class ProxyDispatchAdapter<T> {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     private static <T> ClassLoader selectClassLoader(Class<T> type, Class<?> extraType) {
         ClassLoader typeClassLoader = type.getClassLoader();
         ClassLoader candidate = extraType.getClassLoader();

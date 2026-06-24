@@ -177,6 +177,7 @@ public class LifecycleAwareBuildCacheControllerFactory {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NoOpBuildCacheController.INSTANCE sentinel
         public void configurationAvailable(BuildCacheConfigurationInternal configuration) {
             BuildCacheController rootController = this.rootController.getDelegate();
             if (rootController != NoOpBuildCacheController.INSTANCE) {
@@ -188,6 +189,7 @@ public class LifecycleAwareBuildCacheControllerFactory {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NoOpBuildCacheController.INSTANCE sentinel
         protected BuildCacheController getDelegate() {
             BuildCacheController rootController = this.rootController.getDelegate();
             if (rootController != NoOpBuildCacheController.INSTANCE) {

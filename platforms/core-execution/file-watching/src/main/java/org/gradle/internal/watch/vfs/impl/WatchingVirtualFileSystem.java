@@ -116,6 +116,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         reasonForNotWatchingFiles = null;
         updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged root
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchMode.isEnabled()) {
                     SnapshotHierarchy newRoot;

@@ -82,6 +82,7 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
         });
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of BuildState instances
     private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : getDependenciesForInternalUse(classpath)) {

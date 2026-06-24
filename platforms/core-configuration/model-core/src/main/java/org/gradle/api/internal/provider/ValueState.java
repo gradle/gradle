@@ -128,6 +128,7 @@ public abstract class ValueState<S> {
 
     public abstract ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer);
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the FINALIZED_VALUE sentinel
     public boolean isFinalized() {
         return this == FINALIZED_VALUE;
     }

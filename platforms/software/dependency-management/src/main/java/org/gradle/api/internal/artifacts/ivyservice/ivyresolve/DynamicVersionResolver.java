@@ -218,6 +218,7 @@ public class DynamicVersionResolver {
     }
 
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged component metadata object
     private RepositoryChainModuleResolution chooseBest(@Nullable RepositoryChainModuleResolution one, @Nullable RepositoryChainModuleResolution two) {
         if (one == null || two == null) {
             return two == null ? one : two;

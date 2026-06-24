@@ -200,6 +200,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of binary instances
         public void configure(final Action<? super S> action) {
             configureEach(t -> {
                 if (match == t) {
@@ -209,6 +210,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of binary instances
         public void whenFinalized(final Action<? super S> action) {
             whenElementFinalized(t -> {
                 if (match == t) {

@@ -47,6 +47,7 @@ public class AttributeBasedFileVisitDetailsFactory {
      * @param fileSystem for Chmod and Stat
      * @return FileVisitDetails
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the OperatingSystem singleton
     public static FileVisitDetails getRootFileVisitDetails(
         Path path,
         RelativePath relativePath,

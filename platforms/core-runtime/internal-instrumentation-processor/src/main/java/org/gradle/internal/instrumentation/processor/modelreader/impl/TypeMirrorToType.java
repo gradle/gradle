@@ -87,6 +87,7 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity check against the last element of typeNesting
     public Type visitDeclared(DeclaredType t, Void unused) {
         List<Element> typeNesting = new ArrayList<>();
         Element current = t.asElement();

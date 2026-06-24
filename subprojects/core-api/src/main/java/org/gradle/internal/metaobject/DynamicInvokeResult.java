@@ -51,6 +51,7 @@ public class DynamicInvokeResult {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NO_VALUE sentinel
     public boolean isFound() {
         return value != NO_VALUE;
     }

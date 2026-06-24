@@ -117,6 +117,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ServiceRegistry instances
     public void release(ServiceRegistry registry) {
         lock.lock();
         try {

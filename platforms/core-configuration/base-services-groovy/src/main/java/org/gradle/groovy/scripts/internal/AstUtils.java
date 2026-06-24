@@ -85,6 +85,7 @@ public abstract class AstUtils {
         declaringClass.getDeclaredMethods(methodNode.getName()).clear();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged statement
     public static void filterAndTransformStatements(SourceUnit source, StatementTransformer transformer) {
         ListIterator<Statement> statementIterator = source.getAST().getStatementBlock().getStatements().listIterator();
         while (statementIterator.hasNext()) {

@@ -49,6 +49,7 @@ class DefaultSynchronizer implements Synchronizer {
     }
 
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     private Thread takeOwnership() {
         final Thread currentThread = Thread.currentThread();
         if (!workerLeaseService.isWorkerThread()) {

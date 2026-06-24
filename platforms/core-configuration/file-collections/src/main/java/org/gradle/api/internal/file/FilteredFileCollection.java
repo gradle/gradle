@@ -39,6 +39,7 @@ public class FilteredFileCollection extends AbstractFileCollection {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged collection
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
         AbstractFileCollection newCollection = (AbstractFileCollection) collection.replace(original, supplier);
         if (newCollection == collection) {

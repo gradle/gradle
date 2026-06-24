@@ -85,6 +85,7 @@ public class MavenNormalizedPublication {
         return mainArtifact;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of MavenArtifact instances
     public Set<MavenArtifact> getAdditionalArtifacts() {
         return allArtifacts.stream()
                 .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)

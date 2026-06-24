@@ -38,6 +38,7 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
     private final GarbageCollectorMonitoringStrategy gcStrategy;
     private final ScheduledExecutorService pollingExecutor;
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the UNKNOWN sentinel
     public DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {
         this.pollingExecutor = pollingExecutor;
         this.gcStrategy = gcStrategy;

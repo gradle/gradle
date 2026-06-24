@@ -66,6 +66,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         this.extraAttributes = metadata.getExtraAttributes();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of VariantDerivationStrategy instances
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy variantDerivationStrategy) {
         super(metadata, sources, variantDerivationStrategy);
         this.configurationDefinitions = metadata.configurationDefinitions;
@@ -117,6 +118,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
 
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of VariantDerivationStrategy instances
     public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
         if (getVariantDerivationStrategy() == derivationStrategy) {
             return this;

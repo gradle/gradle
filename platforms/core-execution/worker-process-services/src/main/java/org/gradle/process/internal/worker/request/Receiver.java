@@ -73,6 +73,7 @@ public class Receiver implements ResponseProtocol, WorkerProblemServiceManager, 
         problemServiceManager.clearProblemsService();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the END_OF_STREAM/result sentinel
     public boolean awaitNextResult() {
         try {
             if (next == null) {
@@ -85,6 +86,7 @@ public class Receiver implements ResponseProtocol, WorkerProblemServiceManager, 
     }
 
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the END_OF_STREAM/result sentinel
     public Object getNextResult() {
         awaitNextResult();
         Object next = this.next;

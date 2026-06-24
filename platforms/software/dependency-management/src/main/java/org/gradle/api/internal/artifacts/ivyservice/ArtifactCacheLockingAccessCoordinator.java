@@ -33,5 +33,6 @@ public interface ArtifactCacheLockingAccessCoordinator extends ExclusiveCacheAcc
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
+    @SuppressWarnings("InvalidLink") // pre-existing javadoc link
     <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 }

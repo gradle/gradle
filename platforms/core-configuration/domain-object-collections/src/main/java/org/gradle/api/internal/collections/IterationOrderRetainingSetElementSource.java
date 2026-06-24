@@ -41,6 +41,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
      */
     private Set<T> nonProvidedValues = Collections.emptySet();
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the Collections.EMPTY_SET sentinel
     private void ensureNonProviderValuesMutable() {
         if (nonProvidedValues == Collections.EMPTY_SET) {
             nonProvidedValues = new HashSet<T>();

@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.Comparator;
 
 abstract class VerificationEntry implements Comparable<VerificationEntry> {
+    @SuppressWarnings("BoxingComparator") // intentional comparison of boxed values
     private static final Comparator<VerificationEntry> ENTRY_COMPARATOR = Comparator.comparing(VerificationEntry::getGroup)
         .thenComparing(VerificationEntry::getModule)
         .thenComparing(VerificationEntry::getVersion)

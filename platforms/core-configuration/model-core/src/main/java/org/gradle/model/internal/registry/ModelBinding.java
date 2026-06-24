@@ -83,6 +83,7 @@ abstract class ModelBinding {
         // Do nothing by default
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the bound ModelNode instance
     public void onUnbind(ModelNodeInternal node) {
         if (node == boundTo) {
             boundTo = null;

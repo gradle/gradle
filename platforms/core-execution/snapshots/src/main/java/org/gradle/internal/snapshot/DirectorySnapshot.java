@@ -173,6 +173,7 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to skip the invalidated child
     public Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         ChildMap<FileSystemNode> newChildren = children.invalidate(targetPath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemLocationSnapshot, FileSystemNode>() {
             @Override

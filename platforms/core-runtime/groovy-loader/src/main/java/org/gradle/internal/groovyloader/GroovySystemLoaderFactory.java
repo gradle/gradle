@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 public class GroovySystemLoaderFactory {
     private static final NoOpGroovySystemLoader NO_OP = new NoOpGroovySystemLoader();
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     public GroovySystemLoader forClassLoader(ClassLoader classLoader) {
         try {
             Class<?> groovySystem = getGroovySystem(classLoader);

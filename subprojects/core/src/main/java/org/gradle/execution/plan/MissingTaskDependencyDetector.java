@@ -122,6 +122,7 @@ public class MissingTaskDependencyDetector {
         return missesDependency(producerNode, consumerNode) && missesDependency(consumerNode, producerNode);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Node instances
     private static boolean missesDependency(Node producer, Node consumer) {
         if (consumer == producer) {
             return false;

@@ -91,6 +91,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged resolver
     public FileCollectionFactory withResolver(PathToFileResolver fileResolver) {
         if (fileResolver == this.fileResolver) {
             return this;

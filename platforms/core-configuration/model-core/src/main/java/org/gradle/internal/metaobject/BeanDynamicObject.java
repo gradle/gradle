@@ -132,6 +132,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType") // MetaClassAdapter is an implementation detail used only within BeanDynamicObject
     public MetaClassAdapter determineDelegate(Object bean) {
         if (bean instanceof Class) {
             return new ClassAdapter((Class<?>) bean);
@@ -576,6 +577,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return classes;
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect untransformed arguments
         public DynamicInvokeResult invokeMethod(String name, Object... arguments) {
             maybeAddCallInterceptionHooksToMetaclass(name);
 

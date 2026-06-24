@@ -213,6 +213,7 @@ class DetermineExecutionPlanAction {
         return scheduledNodes.build();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Node instances
     private void addFinalizerToQueue(int visitingSegmentCounter, Node finalizer) {
         int insertPosition = 1;
         int pos = 0;

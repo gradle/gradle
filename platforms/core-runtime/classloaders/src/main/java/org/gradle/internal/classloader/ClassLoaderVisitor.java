@@ -40,6 +40,7 @@ public class ClassLoaderVisitor {
         this.stopAt = stopAt;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of classloader instances
     public void visit(ClassLoader classLoader) {
         if (classLoader == stopAt) {
             visitSpec(SystemClassLoaderSpec.INSTANCE);

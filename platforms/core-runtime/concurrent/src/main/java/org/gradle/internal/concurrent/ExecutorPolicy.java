@@ -80,6 +80,7 @@ public interface ExecutorPolicy {
             }
         }
 
+        @SuppressWarnings("NullAway") // AtomicReference.compareAndSet permits a null update value
         public void onFailure(String message, Throwable throwable) {
             // Capture or log all failures
             if (!failure.compareAndSet(null, throwable)) {
@@ -88,6 +89,7 @@ public interface ExecutorPolicy {
         }
 
         @Override
+        @SuppressWarnings("NullAway") // AtomicReference.getAndSet permits a null update value
         public void onStop() {
             // Rethrow the first failure
             Throwable failure = this.failure.getAndSet(null);

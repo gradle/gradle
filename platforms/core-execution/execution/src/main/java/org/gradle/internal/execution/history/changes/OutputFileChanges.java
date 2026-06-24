@@ -63,6 +63,7 @@ public class OutputFileChanges implements ChangeContainer {
         });
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of snapshots and against the EMPTY sentinel
     public boolean visitChangesSince(FileSystemSnapshot previous, FileSystemSnapshot current, String propertyTitle, ChangeVisitor visitor) {
         if (previous == current) {
             return true;

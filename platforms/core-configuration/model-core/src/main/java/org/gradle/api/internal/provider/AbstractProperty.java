@@ -127,6 +127,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the producer ModelObject
     public void attachProducer(ModelObject owner) {
         if (this.producer == null) {
             this.producer = owner;

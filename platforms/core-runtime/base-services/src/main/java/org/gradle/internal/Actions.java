@@ -221,6 +221,7 @@ public abstract class Actions {
         return ImmutableActionSet.of(actions);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the DO_NOTHING sentinel
     private static boolean doesSomething(Action<?> action) {
         return action != DO_NOTHING;
     }

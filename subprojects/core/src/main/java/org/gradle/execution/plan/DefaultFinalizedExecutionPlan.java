@@ -482,6 +482,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         return false;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Node instances
     private boolean doesConsumerDependOnDestroyer(Node consumer, Node destroyer) {
         if (consumer == destroyer) {
             return true;

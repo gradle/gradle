@@ -33,6 +33,7 @@ public class DefaultLease extends AbstractTrackedResourceLock {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     protected boolean doIsLockedByCurrentThread() {
         return Thread.currentThread() == ownerThread;
     }
@@ -55,6 +56,7 @@ public class DefaultLease extends AbstractTrackedResourceLock {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     protected void releaseLock() {
         if (Thread.currentThread() != ownerThread) {
             // Not implemented - not yet required. Please implement if required

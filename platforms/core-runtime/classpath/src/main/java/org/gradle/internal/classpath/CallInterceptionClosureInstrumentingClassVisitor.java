@@ -260,6 +260,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     boolean inClosureImplementation = false;
     String className = null;
+    @SuppressWarnings("ExposedPrivateType") // MethodInstrumentationStrategy is an implementation detail used only within CallInterceptionClosureInstrumentingClassVisitor
     EnumSet<MethodInstrumentationStrategy> usedStrategies = EnumSet.noneOf(MethodInstrumentationStrategy.class);
 
     private static final Type CLOSURE_TYPE = getType(Closure.class);

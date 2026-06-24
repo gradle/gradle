@@ -34,6 +34,7 @@ public class ListValueSnapshot extends AbstractListSnapshot<ValueSnapshot> imple
         return processList(value, snapshotter);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged element snapshot
     private ValueSnapshot processList(Object value, ValueSnapshotter snapshotter) {
         if (!(value instanceof List)) {
             return snapshotter.snapshot(value);

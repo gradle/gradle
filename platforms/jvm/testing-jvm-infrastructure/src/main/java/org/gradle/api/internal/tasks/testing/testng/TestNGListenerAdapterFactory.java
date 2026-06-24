@@ -106,6 +106,7 @@ class TestNGListenerAdapterFactory {
             return javaMethod.invoke(listenerCast, args);
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity short-circuit before equals
         private boolean proxyEquals(Object proxy, Object other) {
             if (other == null) {
                 return false;

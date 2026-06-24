@@ -352,6 +352,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of IvyArtifact instances
     public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, DerivedArtifact fileProvider) {
         DerivedArtifact effectiveFileProvider = originalArtifact == gradleModuleDescriptorArtifact
             ? new GradleModuleDescriptorDerivedArtifact(fileProvider, gradleModuleDescriptorArtifact)
@@ -419,6 +420,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             .map(DefaultIvyPublication::normalizedArtifactFor);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of IvyArtifact instances
     private boolean isPublishableArtifact(IvyArtifact element) {
         if (!((PublicationArtifactInternal) element).shouldBePublished()) {
             return false;

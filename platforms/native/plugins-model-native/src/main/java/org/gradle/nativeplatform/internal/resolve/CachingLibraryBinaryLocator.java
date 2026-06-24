@@ -39,6 +39,7 @@ public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
 
     @Nullable
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the nullResult sentinel
     public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
         DomainObjectSet<NativeLibraryBinary> libraryBinaries = libraries.get(library);
         if (libraryBinaries == null) {

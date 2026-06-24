@@ -598,6 +598,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Project instances
     public void prepareForExecution(Task task) {
         assert task.getProject() == project;
         if (modelNode != null && modelNode.hasLink(task.getName())) {

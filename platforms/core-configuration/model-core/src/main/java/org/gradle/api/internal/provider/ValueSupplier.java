@@ -73,6 +73,7 @@ public interface ValueSupplier {
             visitProducerTasks(visitor);
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NO_PRODUCER sentinel and this producer
         default ValueProducer plus(ValueProducer producer) {
             if (this == NO_PRODUCER) {
                 return producer;

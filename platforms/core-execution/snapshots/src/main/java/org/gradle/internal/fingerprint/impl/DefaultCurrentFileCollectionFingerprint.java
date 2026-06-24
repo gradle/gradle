@@ -42,6 +42,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final HashCode strategyConfigurationHash;
     private HashCode hash;
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the FileSystemSnapshot.EMPTY sentinel
     public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable  FileCollectionFingerprint candidate) {
         if (roots == FileSystemSnapshot.EMPTY) {
             return strategy.getEmptyFingerprint();

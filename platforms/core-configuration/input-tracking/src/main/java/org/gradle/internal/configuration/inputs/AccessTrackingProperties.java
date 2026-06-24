@@ -552,6 +552,7 @@ public class AccessTrackingProperties extends Properties {
      * @param rhs the second object (can be {@code null})
      * @return {@code true} if the objects are equal in the sense described above
      */
+    @SuppressWarnings("ReferenceEquality")
     private static boolean simpleOrRefEquals(@Nullable Object lhs, @Nullable Object rhs) {
         if (lhs == rhs) {
             return true;

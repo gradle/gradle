@@ -146,6 +146,7 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of interned ImmutableAttributes instances
         public boolean equals(Object o) {
             if (this == o) {
                 return true;

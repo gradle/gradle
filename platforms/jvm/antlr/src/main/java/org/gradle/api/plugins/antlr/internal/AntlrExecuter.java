@@ -169,6 +169,7 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
     }
 
+    @SuppressWarnings("ExposedPrivateType") // AntlrTool is an implementation detail
     static class Antlr4Tool extends AntlrTool {
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {

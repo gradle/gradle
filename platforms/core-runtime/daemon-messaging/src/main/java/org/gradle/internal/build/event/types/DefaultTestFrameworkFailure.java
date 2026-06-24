@@ -28,6 +28,7 @@ public class DefaultTestFrameworkFailure extends AbstractTestFailure implements 
         super(message, description, cause, className, stacktrace);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect a self-referential cause
     public static DefaultTestFrameworkFailure create(Throwable t, String message, String className, String stacktrace) {
         Throwable cause = t.getCause();
         List<InternalFailure> causeFailure = cause != null && cause != t ? Collections.singletonList(DefaultFailure.fromThrowable(cause)) : Collections.emptyList();

@@ -213,6 +213,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             return registrationPoint;
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the END sentinel
         private void run() {
             while (true) {
                 Object next;

@@ -151,7 +151,7 @@ public class InMemoryCacheFactory {
         }
 
         @Override
-        @SuppressWarnings({"EqualsWhichDoesntCheckParameterClass", "EqualsUnsafeCast"})
+        @SuppressWarnings({"EqualsWhichDoesntCheckParameterClass", "EqualsUnsafeCast", "ReferenceEquality"}) // intentional identity comparison of cache key values
         public boolean equals(Object obj) {
             return ((IdentityKey<?>) obj).value == value;
         }

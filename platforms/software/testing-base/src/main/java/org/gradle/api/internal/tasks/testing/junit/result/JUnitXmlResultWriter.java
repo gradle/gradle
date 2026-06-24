@@ -161,6 +161,7 @@ public class JUnitXmlResultWriter {
     private Iterable<TestCaseExecution> mergeRerunExecutions(final boolean allFailed, final List<TestMethodResult> groupedExecution, final TestMethodResult firstExecution, final long classId) {
         return Iterables.concat(Iterables.transform(groupedExecution, new Function<TestMethodResult, Iterable<? extends TestCaseExecution>>() {
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison of TestMethodResult instances
             public Iterable<? extends TestCaseExecution> apply(final TestMethodResult execution) {
                 switch (execution.getResultType()) {
                     case SUCCESS:
@@ -425,6 +426,7 @@ public class JUnitXmlResultWriter {
         final SerializableFailure firstFailure = failures.get(0);
         return Iterables.transform(failures, new Function<SerializableFailure, TestCaseExecution>() {
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison of SerializableFailure instances
             public TestCaseExecution apply(final SerializableFailure failure) {
                 boolean isFirst = failure == firstFailure;
                 OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;

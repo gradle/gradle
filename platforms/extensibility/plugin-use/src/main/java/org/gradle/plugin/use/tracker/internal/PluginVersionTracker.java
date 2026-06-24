@@ -43,6 +43,7 @@ public class PluginVersionTracker {
     }
 
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect root scope (scope == parent)
     public String findPluginVersionAt(ClassLoaderScope scope, String pluginId) {
         while (scope != null) {
             String pluginVersion = pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);

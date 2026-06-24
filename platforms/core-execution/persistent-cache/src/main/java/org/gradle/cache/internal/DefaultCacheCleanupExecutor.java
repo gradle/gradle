@@ -71,6 +71,7 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NO_CLEANUP sentinel
     private Optional<Instant> getLastCleanupTime() {
         // If the cleanup strategy is NO_CLEANUP, we don't need to do anything
         if (cacheCleanupStrategy == CacheCleanupStrategy.NO_CLEANUP) {

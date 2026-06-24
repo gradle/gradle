@@ -454,6 +454,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the END sentinel
         public Object take(long timeoutValue, TimeUnit timeoutUnits) {
             Object result;
             try {

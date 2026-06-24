@@ -111,6 +111,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
+    @SuppressWarnings("ExposedPrivateType") // DefaultWorkerLease is an implementation detail used only within DefaultWorkerLeaseService
     public DefaultWorkerLease newWorkerLease() {
         return workerLeaseLockRegistry.newResourceLock();
     }
@@ -131,6 +132,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
+    @SuppressWarnings("NullAway") // Factories.toFactory yields a Factory<@Nullable Void>; the action returns no value
     public void runAsWorkerThread(Runnable action) {
         runAsWorkerThread(Factories.<Void>toFactory(action));
     }
@@ -471,6 +473,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of WorkerThreadPool instances
     public void setOwningThreadPool(@Nullable WorkerThreadPool threadPool) {
         WorkerThreadPool existing = OWNING_WORKER_THREAD_POOL.get();
         // Allow clearing the thread pool or setting to the same value, but not going directly from one thread pool to another.
@@ -589,8 +592,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         }
     }
 
+    @SuppressWarnings("this-escape") // root field initializer calls getMaxWorkerCount() during construction; intentional
     private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {
-        @SuppressWarnings("this-escape")
         private final LeaseHolder root = new LeaseHolder(getMaxWorkerCount());
 
         WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {

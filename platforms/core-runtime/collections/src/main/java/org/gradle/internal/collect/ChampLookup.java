@@ -31,7 +31,7 @@ final class ChampLookup {
         return lookup(node, key, payload, Boolean.FALSE, (content, index) -> Boolean.TRUE) == Boolean.TRUE;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ReferenceEquality"}) // intentional identity fast-path before the slower equals() comparison
     static <K, V extends @Nullable Object> V lookup(ChampNode<K> trie, K key, int payload, V defaultValue, LookupResult<V> result) {
         int shift = 0;
         int hash = key.hashCode();

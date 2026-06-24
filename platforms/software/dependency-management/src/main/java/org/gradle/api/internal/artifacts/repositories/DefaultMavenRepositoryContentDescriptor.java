@@ -46,6 +46,7 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the doNothing() sentinel
     public Action<? super ArtifactResolutionDetails> toContentFilter() {
         Action<? super ArtifactResolutionDetails> filter = super.toContentFilter();
         if (!snapshots || !releases) {

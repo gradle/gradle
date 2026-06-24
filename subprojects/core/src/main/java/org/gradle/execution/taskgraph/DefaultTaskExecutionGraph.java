@@ -135,6 +135,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of FinalizedExecutionPlan instances
     private void assertIsThisGraphsPlan(FinalizedExecutionPlan plan) {
         if (plan != executionPlan) {
             // Temporarily handle only a single plan

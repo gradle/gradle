@@ -34,6 +34,7 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
         this.actualContent = actualContent;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect a self-referential cause
     public static DefaultFileComparisonTestAssertionFailure create(
         Throwable t,
         String message,

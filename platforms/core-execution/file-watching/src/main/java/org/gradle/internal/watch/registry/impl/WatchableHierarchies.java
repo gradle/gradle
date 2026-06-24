@@ -200,6 +200,7 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect an unchanged root
     private static SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, List<File> unsupportedFileSystems, Invalidator invalidator) {
         if (unsupportedFileSystems.isEmpty()) {
             return root;

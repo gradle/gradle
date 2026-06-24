@@ -242,6 +242,7 @@ public class StreamByteBuffer {
         return nextBuf != null && nextBuf.hasRemaining();
     }
 
+    @SuppressWarnings("ReferenceEquality")
     public int totalBytesUnread() {
         int total = totalBytesUnreadInList;
         if (currentReadChunk != null) {
@@ -266,6 +267,7 @@ public class StreamByteBuffer {
         return spaceLeft;
     }
 
+    @SuppressWarnings("ReferenceEquality")
     protected int prepareRead() {
         int bytesUnread = (currentReadChunk != null) ? currentReadChunk.bytesUnread() : 0;
         if (bytesUnread == 0) {

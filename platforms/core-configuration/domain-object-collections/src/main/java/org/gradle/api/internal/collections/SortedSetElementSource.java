@@ -184,6 +184,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         return added;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the Collections.EMPTY_SET sentinel
     private void ensurePendingIsMutable() {
         if (pending == Collections.EMPTY_SET) {
             pending = new LinkedHashSet<>();

@@ -324,6 +324,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         });
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of BuildLifecycleController instances
     private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
         DefaultBuildWorkPlan workPlan = (DefaultBuildWorkPlan) plan;
         if (workPlan.owner != this) {

@@ -662,6 +662,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return eq(a, b);
             }
 
+            @SuppressWarnings("ReferenceEquality") // intentional identity short-circuit before equals
             private static boolean eq(Object a, Object b) {
                 if (a == b) {
                     return true;

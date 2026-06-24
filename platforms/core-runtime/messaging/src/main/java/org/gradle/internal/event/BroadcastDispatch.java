@@ -383,6 +383,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity short-circuit before equals
     private static boolean sameOrEquals(Object x, Object y) {
         return x == y || x.equals(y);
     }

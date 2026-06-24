@@ -149,6 +149,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against snapshot sentinel constants
     public void write(Encoder encoder, ValueSnapshot snapshot) throws Exception {
         if (snapshot == NullValueSnapshot.INSTANCE) {
             encoder.writeSmallInt(NULL_SNAPSHOT);

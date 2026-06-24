@@ -951,6 +951,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the configured element instance
         public void configure(final Action<? super I> action) {
             assertEagerContext("NamedDomainObjectProvider.configure(Action)");
 

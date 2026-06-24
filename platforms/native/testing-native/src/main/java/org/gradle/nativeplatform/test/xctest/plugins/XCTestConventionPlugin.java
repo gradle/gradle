@@ -256,6 +256,7 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of binary instances
     private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project, final DefaultSwiftXCTestSuite testSuite, final DefaultSwiftXCTestBinary testExecutable) {
         SwiftComponent target = testSuite.getTestedComponent().getOrNull();
         if (!(target instanceof ProductionSwiftComponent)) {

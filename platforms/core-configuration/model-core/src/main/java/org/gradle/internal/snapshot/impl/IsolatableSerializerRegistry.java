@@ -533,6 +533,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     }
 
 
+    @SuppressWarnings("ExposedPrivateType") // IsolatableSerializer is an implementation detail used only within IsolatableSerializerRegistry
     public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
 
         @Override

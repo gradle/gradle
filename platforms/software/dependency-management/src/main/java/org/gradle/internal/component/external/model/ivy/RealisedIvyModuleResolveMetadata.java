@@ -269,6 +269,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of VariantDerivationStrategy instances
     public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
         if (getVariantDerivationStrategy() == derivationStrategy) {
             return this;

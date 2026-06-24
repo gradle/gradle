@@ -57,7 +57,7 @@ public class GradleWrapperMain {
 
         Map<String, String> commandLineSystemProperties = converter.convert(options, new HashMap<String, String>());
         Map<String, String> projectSystemProperties = PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties"));
-        /// If the Gradle system properties may define a custom Gradle home, which needs to be set before loading user gradle.properties
+        // If the Gradle system properties may define a custom Gradle home, which needs to be set before loading user gradle.properties
         maybeAddGradleUserHomeSystemProperty(projectSystemProperties, commandLineSystemProperties);
         File gradleUserHome = gradleUserHome(options);
         File userGradleProperties = new File(gradleUserHome, "gradle.properties");

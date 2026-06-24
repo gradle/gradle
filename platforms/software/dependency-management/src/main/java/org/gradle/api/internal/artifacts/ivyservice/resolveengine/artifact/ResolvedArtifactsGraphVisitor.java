@@ -62,6 +62,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public void visitEdges(DependencyGraphNode node) {
         boolean hasTransitiveIncomingEdge = false;
         ImmutableList.Builder<ArtifactSet> builder = null;

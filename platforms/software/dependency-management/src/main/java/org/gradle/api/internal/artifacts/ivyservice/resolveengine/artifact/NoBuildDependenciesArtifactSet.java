@@ -27,6 +27,7 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public ResolvedArtifactSet select(ArtifactSelectionServices consumerServices, ArtifactSelectionSpec spec) {
         final ResolvedArtifactSet selectedArtifacts = set.select(consumerServices, spec);
         if (selectedArtifacts == ResolvedArtifactSet.EMPTY) {

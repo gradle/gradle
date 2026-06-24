@@ -97,6 +97,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of BuildState instances
     public Collection<IncludedBuildState> getIncludedBuildsForPluginResolution() {
         BuildState thisBuild = gradle.getOwner();
         return buildRegistry.getIncludedBuilds().stream().filter(build ->

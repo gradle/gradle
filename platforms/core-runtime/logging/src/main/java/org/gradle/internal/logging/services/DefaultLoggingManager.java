@@ -435,6 +435,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of stream/metadata instances
         public boolean equals(Object o) {
             if (this == o) {
                 return true;

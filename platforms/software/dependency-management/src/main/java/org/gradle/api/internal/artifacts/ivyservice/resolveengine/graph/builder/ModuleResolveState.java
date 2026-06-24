@@ -424,6 +424,7 @@ public class ModuleResolveState implements CandidateModule {
         unattachedEdges.clear();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeState instances
     private void disconnectIncomingConstraint(NodeState removalSource, EdgeState incomingEdge) {
         // Since we are back to pending, any edges targeting this module must be a constraint.
         assert incomingEdge.getDependencyMetadata().isConstraint();

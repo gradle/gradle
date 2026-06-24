@@ -502,6 +502,7 @@ abstract class BuildOperationAwareLogger implements Logger {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the Logging marker sentinels
     static LogLevel toLogLevel(@Nullable Marker marker) {
         if (marker == null) {
             return LogLevel.INFO;

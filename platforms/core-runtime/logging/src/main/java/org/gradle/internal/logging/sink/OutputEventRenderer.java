@@ -99,6 +99,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the console instance
     public void restore(Snapshot state) {
         synchronized (lock) {
             SnapshotImpl snapshot = (SnapshotImpl) state;

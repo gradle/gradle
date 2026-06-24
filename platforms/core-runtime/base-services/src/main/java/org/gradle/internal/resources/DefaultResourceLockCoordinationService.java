@@ -91,6 +91,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
+    @SuppressWarnings("InterruptedInCatchBlock") // interrupt is the intentional retry signal; the flag is deliberately cleared to retry
     public boolean withStateLock(Function<ResourceLockState, ResourceLockState.Disposition> stateLockAction) {
         synchronized (lock) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
@@ -134,6 +135,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     private @Nullable DefaultResourceLockState startOperation(DefaultResourceLockState newState) {
         if (currentOwner == null) {
             currentOwner = Thread.currentThread();
@@ -145,6 +147,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         return previousState;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     private void finishOperation(@Nullable DefaultResourceLockState previous) {
         if (currentOwner != Thread.currentThread()) {
             throw new IllegalStateException("Another thread holds the state lock.");
@@ -156,6 +159,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Thread instances
     public @Nullable ResourceLockState getCurrent() {
         synchronized (lock) {
             if (currentOwner != Thread.currentThread()) {

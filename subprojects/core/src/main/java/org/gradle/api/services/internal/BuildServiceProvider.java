@@ -101,6 +101,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
      *
      * This method does not distinguish between consumed/registered providers.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity short-circuit of provider instances
     public static boolean isSameService(Provider<? extends BuildService<?>> thisProvider, Provider<? extends BuildService<?>> anotherProvider) {
         if (thisProvider == anotherProvider) {
             return true;

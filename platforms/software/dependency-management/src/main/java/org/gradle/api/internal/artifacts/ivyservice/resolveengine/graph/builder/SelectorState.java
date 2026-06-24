@@ -388,6 +388,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return forced || (versionConstraint != null && versionConstraint.isStrict());
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of DependencyState instances
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
             if (!forced && dependencyState.isForced()) {

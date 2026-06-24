@@ -361,6 +361,7 @@ class MultipleCandidateMatcher {
      *
      * @return A new set containing all compatible values for some attribute.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of candidate attribute values for fast deduplication
     private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<@Nullable E> candidateValueFetcher) {
         // It's often the case that all the candidate values are the same. In this case, we avoid
         // the creation of a set, and just iterate until we find a different value. Then, only in

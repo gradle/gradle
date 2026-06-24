@@ -224,6 +224,7 @@ public class GraphVariantSelector {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the Collections.EMPTY_LIST sentinel
     private static List<VariantGraphResolveState> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveState> matches, String classifier) {
         List<VariantGraphResolveState> sameClassifier = Collections.emptyList();
         // let's see if we can find a single variant which has exactly the requested artifacts

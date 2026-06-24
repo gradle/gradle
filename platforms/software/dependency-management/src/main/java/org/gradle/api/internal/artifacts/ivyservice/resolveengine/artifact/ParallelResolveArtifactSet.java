@@ -36,6 +36,7 @@ public abstract class ParallelResolveArtifactSet {
 
     public abstract void visit(ArtifactVisitor visitor);
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
         if (artifacts == ResolvedArtifactSet.EMPTY) {
             return EMPTY;

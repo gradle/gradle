@@ -32,6 +32,7 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         this.sets = sets;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifactSet> sets) {
         List<ResolvedArtifactSet> filtered = new ArrayList<>(sets.size());
         for (ResolvedArtifactSet set : sets) {
@@ -53,6 +54,7 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         return new CompositeResolvedArtifactSet(filtered);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public static ResolvedArtifactSet reverse(ResolvedArtifactSet artifacts) {
         if (artifacts == EMPTY) {
             return artifacts;

@@ -635,6 +635,7 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the nothing() sentinel and ComponentSelector instances
     private boolean isExcluded(ExcludeSpec excludeSpec, EdgeState edgeState) {
         DependencyMetadata dependency = edgeState.getDependencyMetadata();
         if (!resolveState.getEdgeFilter().isSatisfiedBy(dependency)) {
@@ -727,6 +728,7 @@ public class NodeState implements DependencyGraphNode {
      * of the source node need to be re-processed in order to ensure they handle the updated
      * endorsed strict versions from their parent.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeState instances
     private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
             NodeState sourceNode = incomingEdge.getFrom();
@@ -899,6 +901,7 @@ public class NodeState implements DependencyGraphNode {
         return computeModuleExclusionsManyEdges(incomingEdges, nodeExclusions, incomingEdgeCount);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the nothing() sentinel and ExcludeSpec instances
     private ExcludeSpec computeModuleExclusionsManyEdges(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions, int incomingEdgeCount) {
         ExcludeSpec nothing = moduleExclusions.nothing();
         ExcludeSpec edgeExclusions = null;
@@ -951,6 +954,7 @@ public class NodeState implements DependencyGraphNode {
         return result;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the nothing sentinel
     private static PersistentSet<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing) {
         // Constraint: only consider explicit exclusions declared for this constraint
         ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
@@ -971,6 +975,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the nothing() sentinel
     private ExcludeSpec intersectEdgeExclusions(@Nullable ExcludeSpec edgeExclusions, PersistentSet<ExcludeSpec> excludedByBoth) {
         if (edgeExclusions == moduleExclusions.nothing()) {
             return edgeExclusions;
@@ -1252,6 +1257,7 @@ public class NodeState implements DependencyGraphNode {
      * legitimate incoming edges from other modules. Those edges re-attach to this node after
      * retargeting, so the node may still have incoming edges when this method returns.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of NodeState and ModuleResolveState instances
     void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);

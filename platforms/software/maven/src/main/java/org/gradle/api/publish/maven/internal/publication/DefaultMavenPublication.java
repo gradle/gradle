@@ -420,6 +420,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         return new SerializableMavenArtifact(artifact);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of MavenArtifact instances
     private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
         return CompositeDomainObjectSet.create(
             MavenArtifact.class,

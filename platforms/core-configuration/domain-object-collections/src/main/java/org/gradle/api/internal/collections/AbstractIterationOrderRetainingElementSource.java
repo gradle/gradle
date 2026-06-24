@@ -409,6 +409,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return duplicates.contains(index);
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the IntSets.EMPTY_SET sentinel
         void setDuplicate(int index) {
             if (duplicates == IntSets.EMPTY_SET) {
                 duplicates = new IntOpenHashSet(1);

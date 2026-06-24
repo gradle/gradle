@@ -41,6 +41,7 @@ public class TasksFromDependentProjects implements TaskDependencyContainerIntern
         this(taskName, configurationName, new TaskDependencyChecker(), taskDependencyFactory);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Task instances
     public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyChecker checker, TaskDependencyFactory taskDependencyFactory) {
         this.taskName = taskName;
         this.configurationName = configurationName;

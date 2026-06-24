@@ -29,6 +29,7 @@ public class EffectiveClassPath extends DefaultClassPath {
         super(ImmutableUniqueList.of(findAvailableClasspathFiles(classLoader)));
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     private static List<File> findAvailableClasspathFiles(ClassLoader classLoader) {
         List<File> fileClasspath = ClasspathUtil.getClasspath(classLoader).getAsFiles();
         List<File> classpathFiles = new ArrayList<File>();

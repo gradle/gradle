@@ -115,6 +115,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
          * @return the result of the prompt, or null if interrupted
          */
         @Nullable
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the END_OF_INPUT sentinel
         private <T> T prompt(PromptOutputEvent prompt, Transformer<T, String> parser) {
             if (interrupted.get()) {
                 return null;

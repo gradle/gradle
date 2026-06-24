@@ -100,7 +100,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         return (DefaultDomainObjectSet<T>) super.getDelegate();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ExposedPrivateType"}) // DomainObjectCompositeCollection is an implementation detail used only within CompositeDomainObjectSet
     protected DomainObjectCompositeCollection<T> getStore() {
         return (DomainObjectCompositeCollection) getDelegate().getStore();
     }
@@ -264,6 +264,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the stored collection instance
         public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
             return store.stream()
                 .filter(it -> it instanceof RealizedCollection)
@@ -271,6 +272,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
                 .anyMatch(stored -> stored == collection);
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the stored provider instance
         public boolean containsCollectionProvider(Provider<?> collectionProvider) {
             return store.stream()
                 .filter(it -> it instanceof ProvidedCollection)
@@ -345,6 +347,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             this.store.add(new ProvidedCollection<>(collectionProvider, onRealization));
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the stored collection instance
         public void removeComposited(DomainObjectCollection<? extends T> collection) {
             Iterator<StoredCollection<T>> iterator = store.iterator();
             while (iterator.hasNext()) {
@@ -356,6 +359,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the stored provider instance
         public void removeComposited(Provider<DomainObjectCollection<? extends T>> collectionProvider, Action<DomainObjectCollection<? extends T>> onRealized) {
             Iterator<StoredCollection<T>> iterator = store.iterator();
             while (iterator.hasNext()) {

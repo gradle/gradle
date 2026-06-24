@@ -436,6 +436,7 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the FileLockOutcome sentinel constants
         private LockTimeoutException timeoutException(String lockDisplayName, String thisOperation, File lockFile, String thisProcessPid, FileLockOutcome fileLockOutcome, LockInfo lockInfo) {
             if (fileLockOutcome == FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS) {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by another process.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);

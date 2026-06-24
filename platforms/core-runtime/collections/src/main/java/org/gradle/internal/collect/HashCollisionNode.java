@@ -69,6 +69,7 @@ final class HashCollisionNode {
         return indexOf(key, payload) >= 0;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity fast-path before the slower equals() comparison
     public <K> int indexOf(K key, int payload) {
         int step = 1 + payload;
         Object[] content = this.content;

@@ -55,6 +55,7 @@ public class ImmutableFilteredList<T> extends AbstractList<T> {
      * <p>
      * This method assumes that this list and {@code other} share the same source list.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison asserting the two lists share the same source
     public ImmutableFilteredList<T> withoutIndexFrom(int index, ImmutableFilteredList<T> other) {
         assert other.source == source;
 

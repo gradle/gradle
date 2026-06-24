@@ -67,6 +67,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
      * Starts a new node with the given text.
      */
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of node instances
     public TreeFormatter node(String text) {
         if (current.state == State.TraverseChildren) {
             // First child node

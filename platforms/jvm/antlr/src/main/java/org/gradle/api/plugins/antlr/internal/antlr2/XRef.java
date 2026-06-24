@@ -44,6 +44,7 @@ public class XRef {
      *
      * @param grammarFileMetadata The grammar file to add (and to be cross referenced).
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of GrammarFileMetadata instances
     void addGrammarFile(GrammarFileMetadata grammarFileMetadata) {
         filesByPath.put(grammarFileMetadata.getFilePath().getPath(), grammarFileMetadata);
         for (GrammarMetadata grammarMetadata : grammarFileMetadata.getGrammars()) {

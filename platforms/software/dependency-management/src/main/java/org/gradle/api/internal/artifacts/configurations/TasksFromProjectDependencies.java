@@ -50,6 +50,7 @@ public class TasksFromProjectDependencies implements TaskDependencyContainerInte
         taskDependencyDelegate.visitDependencies(context);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Task instances
     private static void resolveProjectDependencies(
         TaskDependencyResolveContext context,
         Set<ProjectDependency> projectDependencies,

@@ -66,6 +66,7 @@ public class DependencyGraphsRenderer {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NO_OP sentinel
     private void renderRoot(final RenderableDependency root) {
         if (root instanceof UnresolvableConfigurationResult) {
             legendRenderer.setHasUnresolvableConfigurations(true);

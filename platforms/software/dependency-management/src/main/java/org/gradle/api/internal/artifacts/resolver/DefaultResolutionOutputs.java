@@ -240,6 +240,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the SATISFIES_ALL sentinel
         public ArtifactView.ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
             if (this.componentFilter != Specs.SATISFIES_ALL) {
                 throw new IllegalStateException("The component filter can only be set once before the view was computed");

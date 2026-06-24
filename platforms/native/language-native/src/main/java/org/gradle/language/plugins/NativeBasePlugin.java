@@ -164,6 +164,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of binary instances
     private void addLifecycleTasks(final Project project, final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, component -> {
             // Register each child of each component

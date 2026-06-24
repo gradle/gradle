@@ -151,6 +151,7 @@ class DelegatingProblemBuilder implements ProblemBuilderInternal {
         return delegate.diagnostics(diagnostics);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison asserting the builder returned 'this'
     private <T> T validateDelegate(T newDelegate) {
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");

@@ -160,6 +160,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
         if (fallback == ImmutableAttributes.EMPTY) {
             return primary;
@@ -179,6 +180,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
         if (attributes1 == ImmutableAttributes.EMPTY) {
             return attributes2;

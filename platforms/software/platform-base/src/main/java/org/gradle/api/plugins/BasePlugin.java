@@ -59,6 +59,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         extension.getDistsDirectory().convention(project.getLayout().getBuildDirectory().dir("distributions"));
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the DEFAULT_VERSION sentinel
     private void configureArchiveDefaults(final Project project, final BasePluginExtension extension) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(task -> {
             task.getDestinationDirectory().convention(extension.getDistsDirectory());

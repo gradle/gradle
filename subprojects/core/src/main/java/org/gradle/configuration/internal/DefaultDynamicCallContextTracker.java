@@ -39,6 +39,7 @@ public class DefaultDynamicCallContextTracker implements DynamicCallContextTrack
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the entry point stack token
     public void leaveDynamicCall(@NonNull Object entryPoint) {
         Stack<Object> entryPointsStack = currentEntryPointStack();
         Object top = entryPointsStack.peek();

@@ -50,6 +50,7 @@ public class OutputEventListenerManager {
         other = listener;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to remove the exact listener instance
     public void removeListener(OutputEventListener listener) {
         if (other == listener) {
             other = null;

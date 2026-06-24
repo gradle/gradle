@@ -139,6 +139,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // standard identity short-circuit in an equals-style comparison
     public boolean mark(Object o) {
         if (mark == o) {
             return false;

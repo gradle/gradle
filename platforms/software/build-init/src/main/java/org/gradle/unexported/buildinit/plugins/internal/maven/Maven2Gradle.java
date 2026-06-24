@@ -268,6 +268,7 @@ public class Maven2Gradle {
         return buffer.toString();
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of MavenProject module identifier instances
     private void generateFqn(MavenProject project, Set<MavenProject> allProjects, StringBuilder buffer) {
         String artifactId = project.getArtifactId();
         buffer.insert(0, ":" + artifactId);

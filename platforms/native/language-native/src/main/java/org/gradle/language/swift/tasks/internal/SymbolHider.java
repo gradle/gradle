@@ -29,6 +29,7 @@ import java.util.Arrays;
  * here: https://docs.microsoft.com/en-us/windows/desktop/debug/pe-format
  */
 public class SymbolHider {
+    @SuppressWarnings("ExposedPrivateType") // DataReader is an implementation detail
     DataReader data;
     private byte[] objectBytes;
 

@@ -388,6 +388,7 @@ public class ModelRuleExtractor {
     static abstract class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
         private final List<ExtractedRuleDetails> rules;
 
+        @SuppressWarnings("ExposedPrivateType") // ExtractedRuleDetails is an implementation detail used only within ModelRuleExtractor
         public DefaultExtractedRuleSource(List<ExtractedRuleDetails> rules) {
             this.rules = rules;
         }

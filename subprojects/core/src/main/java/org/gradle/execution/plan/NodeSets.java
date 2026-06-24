@@ -179,6 +179,7 @@ public final class NodeSets {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity lookup of the element instance
         private int indexOf(Object o) {
             for (int i = size - 1; i >= 0; i--) {
                 if (array[i] == o) {

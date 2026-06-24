@@ -53,6 +53,7 @@ abstract class SecurityManagerRef {
         private final SecurityManager reference = System.getSecurityManager();
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of SecurityManager instances
         public void reinstall(Logger logger) {
             if (System.getSecurityManager() != reference) {
                 try {

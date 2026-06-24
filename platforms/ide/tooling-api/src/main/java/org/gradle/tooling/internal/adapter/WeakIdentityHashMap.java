@@ -84,7 +84,7 @@ class WeakIdentityHashMap<K, V> {
         }
 
         @Override
-        @SuppressWarnings("SuperCallToObjectMethod")
+        @SuppressWarnings({"SuperCallToObjectMethod", "ReferenceEquality"}) // intentional identity comparison of weakly-held referents
         public boolean equals(Object obj) {
             if (this == obj) {
                 return true;

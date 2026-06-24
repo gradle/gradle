@@ -84,6 +84,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the EMPTY sentinel
     public void add(Object dependency) {
         Preconditions.checkNotNull(dependency);
         if (dependency == TaskDependencyContainer.EMPTY) {

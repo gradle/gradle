@@ -191,6 +191,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the resolved getter instance
     private List<CallInterceptionRequest> createGroovyPropertyInterceptionRequests(List<AccessorSpec> accessors, ExecutableElement method) {
         List<CallInterceptionRequest> requests = new ArrayList<>();
 

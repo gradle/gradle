@@ -32,6 +32,7 @@ public class DefaultUserInputReader implements UserInputReader {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the END_OF_INPUT sentinel
     public void putInput(UserInput input) {
         synchronized (lock) {
             if (input == END_OF_INPUT) {

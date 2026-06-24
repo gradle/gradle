@@ -167,7 +167,7 @@ public class DependencyInsightReporter {
         return formatter.toString();
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings({"NonApiType", "ReferenceEquality"}) //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864) // intentional identity comparison of Throwable cause instances
     private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors, LinkedHashSet<String> uniqueResolutions) {
         if (alreadyReportedErrors.add(failure)) {
             formatter.node(failure.getMessage());

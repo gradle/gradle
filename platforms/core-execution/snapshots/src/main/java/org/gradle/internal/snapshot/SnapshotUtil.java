@@ -101,6 +101,7 @@ public class SnapshotUtil {
         });
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the FileSystemSnapshot.EMPTY sentinel
     public static ImmutableListMultimap<String, HashCode> getRootHashes(FileSystemSnapshot roots) {
         if (roots == FileSystemSnapshot.EMPTY) {
             return ImmutableListMultimap.of();

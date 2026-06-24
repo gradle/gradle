@@ -74,6 +74,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
         return jvmImplementation == JvmImplementation.J9;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the DefaultJvmVendorSpec.any() sentinel
     private boolean isJ9RequestedViaVendor() {
         return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }

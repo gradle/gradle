@@ -169,6 +169,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NOT_DEFINED sentinel
     protected boolean isDefaultConvention() {
         return getConventionSupplier() == NOT_DEFINED;
     }

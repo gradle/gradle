@@ -119,6 +119,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             return new StyledTextOutputEvent(timestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Arrays.asList(spans));
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of this operation instance
         private void doOutput(RenderableOutputEvent event) {
             for (Operation pending : operations.values()) {
                 if (pending == this) {

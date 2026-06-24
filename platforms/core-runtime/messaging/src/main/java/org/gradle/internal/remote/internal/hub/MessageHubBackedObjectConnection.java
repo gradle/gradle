@@ -89,6 +89,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     public <T> void addIncoming(Class<T> type, final T instance) {
         if (connection != null) {
             throw new GradleException("Cannot add incoming message handler after connection established.");

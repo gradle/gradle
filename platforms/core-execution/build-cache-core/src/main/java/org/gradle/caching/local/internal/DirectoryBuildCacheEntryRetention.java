@@ -32,6 +32,7 @@ public class DirectoryBuildCacheEntryRetention {
     private final String retentionDescription;
     private final boolean cleanupDisabled;
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the Cleanup.DISABLED sentinel
     public DirectoryBuildCacheEntryRetention(CacheConfigurationsInternal cacheConfigurations) {
         this.cleanupDisabled = cacheConfigurations.getCleanup().get() == Cleanup.DISABLED;
         CacheResourceConfigurationInternal buildCacheConfig = cacheConfigurations.getBuildCache();

@@ -52,6 +52,7 @@ public class StateTransitionController<T extends StateTransitionController.State
      * Do not use this result to operate on shared mutable state, as that will not occur under synchronization.
      * Use one of the methods that take an action to perform the operation while synchronizing on the state.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
     public void assertNotInState(T forbidden) {
         if (state.state == forbidden) {
             throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
@@ -398,6 +399,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public void assertInState(T expected) {
             if (state != expected) {
                 throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + expected + " but is in state " + state + ".");
@@ -405,6 +407,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public void assertNotInState(T forbidden) {
             if (state == forbidden) {
                 throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
@@ -417,6 +420,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public void assertCanTransition(T fromState, T toState, boolean ignoreFailures) {
             if (state != fromState) {
                 throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from state " + fromState + " however it is currently in state " + state + ".");
@@ -431,6 +435,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public boolean inStateAndNotTransitioning(T toState) {
             return state == toState;
         }
@@ -441,6 +446,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public boolean hasSeenStateAndNotTransitioning(T toState) {
             if (state == toState) {
                 return true;
@@ -457,6 +463,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
             if (state == toState) {
                 return true;
@@ -492,6 +499,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         public boolean inStateOrTransitioningTo(T toState) {
             if (targetState == toState) {
                 return true;
@@ -524,6 +532,7 @@ public class StateTransitionController<T extends StateTransitionController.State
             failDueToTransition(toState);
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of state token instances
         private void failDueToTransition(T toState) {
             if (targetState == toState) {
                 throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state " + toState + " as already transitioning to this state.");

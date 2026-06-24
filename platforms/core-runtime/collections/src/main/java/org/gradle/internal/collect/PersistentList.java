@@ -141,6 +141,7 @@ public abstract class PersistentList<T> implements Iterable<T> {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // NIL is a unique sentinel instance, compared by identity intentionally
         public String toString() {
             return tail == NIL ? head.toString() : head + " : " + tail;
         }

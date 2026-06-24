@@ -71,6 +71,7 @@ public class CurrentBuildPlatform {
         throw new GradleException("Unhandled system architecture: " + architecture);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the OperatingSystem singleton constants
     public static OperatingSystem getOperatingSystem(org.gradle.internal.os.OperatingSystem operatingSystem) {
         if (org.gradle.internal.os.OperatingSystem.LINUX == operatingSystem) {
             return OperatingSystem.LINUX;

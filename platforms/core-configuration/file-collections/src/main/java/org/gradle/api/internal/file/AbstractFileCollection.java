@@ -109,6 +109,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect this collection as the replacement target
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
         if (original == this) {
             return supplier.get();

@@ -44,7 +44,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     /**
      * Creates an action set.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "ReferenceEquality"}) // intentional identity comparison against the DO_NOTHING sentinel
     public static <T> ImmutableActionSet<T> of(Action<? super T>... actions) {
         if (actions.length == 0) {
             return empty();
@@ -75,6 +75,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     /**
      * Creates a new set that runs the actions of this set plus the given action.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the DO_NOTHING sentinel and this set
     public ImmutableActionSet<T> add(Action<? super T> action) {
         if (action == Actions.DO_NOTHING || action instanceof EmptySet || action == this) {
             return this;
@@ -126,6 +127,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     /**
      * Creates a new set that includes the actions from this set plus the actions from the given set.
      */
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of this set against the sibling
     public ImmutableActionSet<T> mergeFrom(ImmutableActionSet<? super T> sibling) {
         if (sibling == this) {
             return this;
@@ -144,8 +146,10 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
      */
     public abstract boolean isEmpty();
 
+    @SuppressWarnings("ExposedPrivateType") // SetWithFewActions is an implementation detail used only within ImmutableActionSet
     abstract ImmutableActionSet<T> addAll(SetWithFewActions<T> source);
 
+    @SuppressWarnings("ExposedPrivateType") // SetWithManyActions is an implementation detail used only within ImmutableActionSet
     abstract ImmutableActionSet<T> addAll(SetWithManyActions<T> source);
 
     abstract ImmutableActionSet<T> addOne(Action<? super T> action);

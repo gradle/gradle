@@ -77,6 +77,7 @@ public class FileUtils {
      * Returns the result of {@link Path#toFile()} if that will not throw an exception, null otherwise.
      */
     @Nullable
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the default FileSystem singleton
     private static File toFileIfAvailable(Path path) {
         if (path.getFileSystem() == FileSystems.getDefault()) {
             return path.toFile();

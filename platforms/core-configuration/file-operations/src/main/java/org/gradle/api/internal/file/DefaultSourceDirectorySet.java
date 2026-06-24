@@ -199,6 +199,7 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
     public abstract DirectoryProperty getClassesDirectory();
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the compile task provider
     public <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping) {
         this.compileTaskProvider = taskProvider;
         taskProvider.configure(task -> {

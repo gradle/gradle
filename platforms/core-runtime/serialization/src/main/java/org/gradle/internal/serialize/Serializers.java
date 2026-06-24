@@ -57,6 +57,7 @@ public class Serializers {
             }
 
             @Override
+            @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the constant instance
             public void write(Encoder encoder, T value) {
                 if (value != instance) {
                     throw new IllegalArgumentException("Cannot serialize constant value: " + value);

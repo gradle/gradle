@@ -130,6 +130,7 @@ public abstract class FileHierarchySet {
             this.rootNode = new Node(path);
         }
 
+        @SuppressWarnings("ExposedPrivateType") // Node is an implementation detail used only within FileHierarchySet
         PrefixFileSet(Node rootNode) {
             this.rootNode = rootNode;
         }

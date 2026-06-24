@@ -98,6 +98,7 @@ public class DefaultFailure implements Failure {
         return problems;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect a self-referential cause
     public static DefaultFailure fromThrowable(Throwable t) {
         StringWriter out = new StringWriter();
         PrintWriter wrt = new PrintWriter(out);

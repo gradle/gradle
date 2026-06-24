@@ -100,6 +100,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the NOT_FOUND_IN_ANY_BUILD sentinel
         public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
             PluginResult resolutionResult = results.computeIfAbsent(pluginRequest.getId(), this::doResolve);
             if (resolutionResult == PluginResult.NOT_FOUND_IN_ANY_BUILD) {

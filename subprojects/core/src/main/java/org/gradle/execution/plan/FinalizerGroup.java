@@ -330,6 +330,7 @@ public class FinalizerGroup extends HasFinalizers {
         return reachableGroups.get(fromGroup);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of Node instances
     private boolean isFinalizerNode(Node node) {
         return node == this.node;
     }

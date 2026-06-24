@@ -108,6 +108,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             }
         }
 
+        @SuppressWarnings("ReferenceEquality") // intentional identity comparison of BuildState instances
         private void addAllImportableBuilds(BuildState targetBuild, GradleInternal gradle, DefaultGradleBuild model) {
             if (gradle.getParent() == null) {
                 List<DefaultGradleBuild> allBuilds = new ArrayList<>();

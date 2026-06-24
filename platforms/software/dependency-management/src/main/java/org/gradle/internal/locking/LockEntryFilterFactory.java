@@ -85,6 +85,7 @@ class LockEntryFilterFactory {
 
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the FILTERS_NONE and FILTERS_ALL sentinels
     public static LockEntryFilter combine(LockEntryFilter firstFilter, LockEntryFilter secondFilter) {
         if (firstFilter == FILTERS_NONE) {
             return secondFilter;

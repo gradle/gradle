@@ -71,6 +71,7 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     public void shutdown() {
         if (leakingLoader == getClass().getClassLoader()) {
             throw new IllegalStateException("Cannot shut down the main Groovy loader.");
@@ -95,6 +96,7 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of ClassLoader instances
     public void discardTypesFrom(ClassLoader classLoader) {
         if (classLoader == leakingLoader) {
             throw new IllegalStateException("Cannot remove own types from Groovy loader.");

@@ -45,6 +45,7 @@ public class CachingClassLoader extends ClassLoader implements DelegatingClassLo
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the MISSING sentinel
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         Object cachedValue = loadedClasses.get(name);
         if (cachedValue instanceof Class) {
@@ -65,6 +66,7 @@ public class CachingClassLoader extends ClassLoader implements DelegatingClassLo
 
     @Nullable
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison against the MISSING sentinel
     public URL getResource(String name) {
         Object cachedValue = resources.get(name);
         if (cachedValue == MISSING) {

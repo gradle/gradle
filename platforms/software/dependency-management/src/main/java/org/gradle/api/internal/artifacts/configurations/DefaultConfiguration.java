@@ -456,6 +456,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return result;
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison to detect a cycle
     private void collectSuperConfigs(Configuration configuration, Set<Configuration> result) {
         for (Configuration superConfig : configuration.getExtendsFrom()) {
             // The result is an ordered set - so seeing the same value a second time pushes further down
@@ -995,6 +996,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") // intentional identity check to detect an unchanged object
     public void markAsObserved(String reason) {
         if (isObserved()) {
             return;
@@ -1423,7 +1425,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         usageCanBeMutated = false;
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "ReferenceEquality"}) // intentional identity comparison against the ConfigurationRoles.ALL sentinel
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
             // Don't print role message for configurations with all usages - users might not have actively chosen this role
@@ -1514,7 +1516,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return isDetached;
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "ReferenceEquality"}) // intentional identity comparison against the ConfigurationRoles.ALL sentinel
     private boolean hasAllUsages() {
         return roleAtCreation == ConfigurationRoles.ALL;
     }

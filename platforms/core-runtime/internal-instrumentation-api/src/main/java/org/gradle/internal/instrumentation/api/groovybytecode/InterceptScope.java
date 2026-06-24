@@ -37,6 +37,7 @@ public abstract class InterceptScope {
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType") // CallType is an implementation detail shared only with subclasses in this file
     protected final CallType callType;
 
     private InterceptScope(CallType callType) {

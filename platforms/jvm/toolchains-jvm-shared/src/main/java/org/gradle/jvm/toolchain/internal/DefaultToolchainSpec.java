@@ -119,7 +119,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         return getLanguageVersion().isPresent();
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "ReferenceEquality"}) // intentional identity comparison against the UNKNOWN sentinel
     @Override
     public boolean isValid() {
         return (getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged()) && getLanguageVersion().getOrNull() != DefaultJavaLanguageVersion.UNKNOWN;

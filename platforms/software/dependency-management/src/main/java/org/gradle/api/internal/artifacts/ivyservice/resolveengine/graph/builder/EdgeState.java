@@ -100,6 +100,7 @@ class EdgeState implements DependencyGraphEdge {
         this.dependencyState = new DependencyState(metadata, requested, ruleDescriptors, resolveFailure);
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of SelectorState instances
     boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
         boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
         SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);

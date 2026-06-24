@@ -118,6 +118,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") // intentional identity comparison of the PrintStream instance
     private void install() {
         if (original == null) {
             PrintStream originalStream = get();
