@@ -31,7 +31,6 @@ import org.gradle.demos.java.dsl.JavaSource;
 import org.gradle.jvm.tasks.Jar;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -59,7 +58,7 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
         DependencyScopes.createShared(data, project);
 
         int javaVersion = data.javaVersion().get();
-        Map<String, JavaSource> sources = data.sources().getOrElse(Map.of());
+        List<JavaSource> sources = data.sources().getOrElse(List.of());
 
         // The compiled bytecode of every non-test source set — the "production" classpath the test
         // source set compiles and runs against, so a test can exercise the other sources. Lazy: the
@@ -70,9 +69,8 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
                 .map(JavaClasses::getByteCodeDir)
                 .toList());
 
-        for (Map.Entry<String, JavaSource> entry : sources.entrySet()) {
-            String name = entry.getKey();
-            JavaSource source = entry.getValue();
+        for (JavaSource source : sources) {
+            String name = source.name().get();
             String cap = capitalize(name);
 
             FileCollection sourceClasspath = DependencyScopes.configureSource(project, name, source);
@@ -123,7 +121,8 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
 
         registerTestTask(project, model, mainClasses, productionClasses);
 
-        project.getLogger().lifecycle("javaLibrary[" + project.getName() + "] javaVersion=" + javaVersion + " sources=" + sources.keySet());
+        List<String> sourceNames = sources.stream().map(s -> s.name().get()).toList();
+        project.getLogger().lifecycle("javaLibrary[" + project.getName() + "] javaVersion=" + javaVersion + " sources=" + sourceNames);
     }
 
     /**
