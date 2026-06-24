@@ -18,6 +18,56 @@ All file paths in this guide are relative to the `docs` project directory unless
 
 ---
 
+## Build Logic
+
+The documentation build is driven by plugins in [`build-logic/documentation/`](../../../build-logic/documentation/).
+The root plugin `gradlebuild.documentation` is applied in [`build.gradle.kts`](build.gradle.kts) and applies the per-document-type sub-plugins below.
+
+### Plugins
+
+| Plugin                           | Responsibility                                                                                                                                                  |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GradleBuildDocumentationPlugin` | Root plugin. Creates the `gradleDocumentation` extension, configures the Asciidoctor toolchain, and applies the sub-plugins.                                    |
+| `GradleReleaseNotesPlugin`       | Converts `notes.md` to HTML.                                                                                                                                    |
+| `GradleUserManualPlugin`         | Registers Asciidoctor tasks for the multi-page and single-page user manual. Also generates the default-imports and API-mapping files used by the DSL reference. |
+| `GradleDslReferencePlugin`       | Generates the Groovy DSL reference from Docbook sources and extracted code doc comments.                                                                        |
+| `GradleKotlinDslReferencePlugin` | Runs Dokka to produce the Kotlin DSL reference.                                                                                                                 |
+| `GradleJavadocsPlugin`           | Generates Javadoc for the full Gradle distribution.                                                                                                             |
+
+### The `gradleDocumentation` extension
+
+The extension is the configuration surface used by `build.gradle.kts`.
+
+Top-level properties:
+
+| Property                    | Purpose                                                                                      |
+|-----------------------------|----------------------------------------------------------------------------------------------|
+| `sourceRoot`                | Root directory of all documentation inputs (defaults to `src/docs`).                         |
+| `stagingRoot`               | Working directory for in-flight rendered output (defaults to `build/working`).               |
+| `documentationRenderedRoot` | Final location of all rendered documentation (defaults to `build/docs`).                     |
+| `gradleVersion`             | Gradle version embedded in the documentation.                                                |
+| `quickFeedback`             | When `true` (via `-PquickDocs`), slow tasks (single-page manual, DSL reference) are skipped. |
+
+The extension also exposes nested configurations for each documentation type:
+
+| Configuration                | Configures                                                                                    |
+|------------------------------|-----------------------------------------------------------------------------------------------|
+| `releaseNotes { ... }`       | Release-notes source and rendered output locations.                                           |
+| `userManual { ... }`         | Staging directories, snippet sources, raw and rendered output paths.                          |
+| `dslReference { ... }`       | Generated metadata file, rendered output location.                                            |
+| `javadocs { ... }`           | `javaApi`, `javadocReferenceUrl`, `minJdkVersion`, `groovyApi`, package-list paths, CSS file. |
+| `kotlinDslReference { ... }` | Dokka configuration and rendered output.                                                      |
+
+### Build flow
+
+1. **Source** — Each documentation type reads from a subdirectory of `src/docs/` (or from generated metadata such as the DSL meta-data file).
+2. **Stage** — The user manual stages flattened `.adoc` sources, snippets, images, and CSS into `build/working/usermanual/raw/` via the `stageUserguideSource` task.
+3. **Render** — Asciidoctor (`userguideMultiPage`, `userguideSinglePageHtml`) and Dokka render the staged sources into `build/working/<doc-type>/render-*/`.
+4. **Publish** — `stageDocs` collects every rendered output into `build/docs/` (multi-page manual under `userguide/`, DSL under `dsl/`, Javadoc under `javadoc/`, Kotlin DSL under `kotlin-dsl/`).
+5. **Consume** — The `gradleFullDocsElements` configuration exposes `build/docs/` as an outgoing artifact for downstream packaging (distribution zips, the `docs.gradle.org` deploy).
+
+---
+
 ## Release Notes
 
 **Source file:** `src/docs/release/notes.md` - authored in [Markdown](https://www.markdownguide.org/)
