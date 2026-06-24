@@ -97,17 +97,24 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
-            // Force configuration of the target project to ensure all builders have been registered
-            Try<Void> projectConfiguration = ownerBuildConfiguration.isSuccessful()
-                ? tryRunConfiguration(targetProject::ensureConfigured)
-                : ownerBuildConfiguration;
+            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
+
+            // Force configuration of the target project to ensure all builders have been registered.
+            // For a regular per-project model, we configure the target project itself so it is associated
+            // only with its own configuration failure (the failure of the nearest failing project in its
+            // path from the root) instead of the aggregate of every project failure in the build. This
+            // matches what configure-on-demand reports per project.
+            // Build-scoped models (e.g. the Kotlin DSL scripts model) instead collect failures from every
+            // script in the build, so they keep reporting the whole-build configuration result.
+            Try<Void> projectConfiguration = canRunEvenIfProjectNotFullyConfigured && !ownerBuildConfiguration.isSuccessful()
+                ? ownerBuildConfiguration
+                : tryRunConfiguration(targetProject::ensureConfigured);
 
             // We need to query the delegate builder lazily, since builders may not be registered if project configuration fails
             ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
 
             Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, targetProject, project);
-            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
             return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
         }
     }
