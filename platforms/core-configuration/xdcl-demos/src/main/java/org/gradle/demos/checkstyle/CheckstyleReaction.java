@@ -16,14 +16,9 @@
 
 package org.gradle.demos.checkstyle;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.TargetJvmEnvironment;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.xdcl.Reaction;
 import org.gradle.api.xdcl.ReactionScope;
 import org.gradle.demos.checkstyle.dsl.Checkstyle;
@@ -32,32 +27,31 @@ import org.gradle.demos.java.JavaLibraryModel;
 import org.gradle.demos.java.dsl.HasJavaSources;
 
 import java.io.File;
-import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
- * The XDCL analog of the project-features {@code CheckstyleProjectFeaturePlugin}: reacts to a
- * {@code checkstyle { }} block declared on a Java source set by resolving the requested
- * Checkstyle tool version to a classpath and registering a {@code check<Name>Checkstyle} task that
- * analyses that source set's Java sources.
+ * The per-source-set half of the checkstyle demo: reacts to a {@code checkstyle { }} block declared on
+ * a Java source set and registers a {@code check<Name>Checkstyle} task. It owns only the per-task
+ * configuration — {@code configFile} and {@code ignoreFailures} (mirroring {@code CheckstyleDefinition})
+ * — and the wiring of the task; the shared tool classpath comes from the project-wide
+ * {@link CheckstyleToolReaction} via the {@link CheckstyleModel} it publishes.
  *
  * <p>The reaction's data is the {@link Checkstyle} <em>facade</em> (the schema type); the analysed task
  * type {@code org.gradle.api.plugins.quality.Checkstyle} shares the simple name and is referenced
- * fully-qualified throughout to avoid an import collision.
+ * fully-qualified to avoid an import collision.
  *
- * <p>It fires once per source set that opts in (the block is opt-in, like the original feature), and
- * recovers the host source-set name through {@link ReactionScope#ancestor(Class)} — the binding host is
- * the {@link HasJavaSources} trait the source set composes (an extension host must be a trait or
- * template, not a bare record), and {@code name} is the per-source identity a {@code [String:
- * JavaSource]} map could not expose. The Java sources to analyse come from the {@link JavaClasses}
- * entry the Java reaction publishes on its {@link JavaLibraryModel} (its {@code inputSources}), looked
- * up by that name — the original's {@code context.getBuildModel(parentDefinition).inputSources}.
- * Stateless per the {@link Reaction} contract; idempotent via the registered task's presence (reactions
- * may run more than once).
+ * <p>It fires once per source set that opts in, recovering the host source-set name through
+ * {@link ReactionScope#ancestor(Class)} — the binding host is the {@link HasJavaSources} trait the
+ * source set composes. The Java sources to analyse come from the {@link JavaClasses} entry the Java
+ * reaction publishes on its {@link JavaLibraryModel} (its {@code inputSources}), looked up by that name.
  *
- * <p>Divergence from the original: alongside the original's {@code configFile} and
- * {@code ignoreFailures}, the demo adds a tool {@code checkstyleVersion} and resolves the tool classpath
- * itself — adapting {@code AbstractCodeQualityPlugin.createConfigurations} — because there is no
- * {@code CheckstylePlugin} in the XDCL world to supply it.
+ * <p>Ordering: a record's properties are walked before its own extensions, so this per-source reaction
+ * fires <em>before</em> the {@code javaLibrary}-level {@link CheckstyleToolReaction}. The shared
+ * classpath is therefore wired <em>lazily</em> (a {@code Callable}-backed file collection) and read at
+ * task execution, by which point the tool reaction has published the model — or, if no
+ * {@code checkstyle { }} block was declared on the {@code javaLibrary}, a clear error is raised.
+ *
+ * <p>Stateless per the {@link Reaction} contract; idempotent via the registered task's presence.
  */
 public class CheckstyleReaction implements Reaction<Checkstyle, Project> {
 
@@ -73,55 +67,26 @@ public class CheckstyleReaction implements Reaction<Checkstyle, Project> {
             return; // already configured for this source set — reactions may run more than once
         }
 
-        String version = data.checkstyleVersion().get();
-
-        // The Checkstyle tool classpath, split into the two configuration roles (as DependencyScopes
-        // does for the demo's compile/runtime paths) — a resolvable cannot have dependencies declared
-        // against it. A dependency-scope configuration carries the requested tool version; a resolvable
-        // configuration extends it (runtime usage, runtime-provided libraries excluded — mirroring
-        // AbstractCodeQualityPlugin.createConfigurations) and is wired into the task. Resolved lazily at
-        // task execution, so it does not matter that the project repositories are configured by a
-        // different (Java) reaction.
-        String librariesName = name + "Checkstyle";
-        project.getConfigurations().dependencyScope(librariesName, configuration ->
-            configuration.setDescription("The Checkstyle libraries to use for the " + name + " source set."));
-        project.getDependencies().add(librariesName, "com.puppycrawl.tools:checkstyle:" + version);
-
-        ObjectFactory objects = project.getObjects();
-        Configuration checkstyleClasspath = project.getConfigurations().resolvable(name + "CheckstyleClasspath", configuration -> {
-            configuration.setDescription("The resolved Checkstyle classpath for the " + name + " source set.");
-            configuration.extendsFrom(project.getConfigurations().getByName(librariesName));
-            // The runtime-classpath attribute set (what JvmPluginServices.configureAsRuntimeClasspath
-            // would apply): Usage alone is ambiguous for modules that publish both a standard-JVM and an
-            // Android runtime variant (e.g. Guava), so TargetJvmEnvironment=standard-jvm disambiguates.
-            configuration.attributes(attributes -> {
-                attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY));
-                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.JAR));
-                attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.class, Bundling.EXTERNAL));
-                attributes.attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment.class, TargetJvmEnvironment.STANDARD_JVM));
-            });
-            // Don't need these things, they're provided by the runtime.
-            configuration.exclude(excludeProperties("ant", "ant"));
-            configuration.exclude(excludeProperties("org.apache.ant", "ant"));
-            configuration.exclude(excludeProperties("org.apache.ant", "ant-launcher"));
-            configuration.exclude(excludeProperties("org.slf4j", "slf4j-api"));
-            configuration.exclude(excludeProperties("org.slf4j", "jcl-over-slf4j"));
-            configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"));
-            configuration.exclude(excludeProperties("commons-logging", "commons-logging"));
-            configuration.exclude(excludeProperties("log4j", "log4j"));
-        }).get();
-
         // Analyse the source set's input sources from the JavaClasses build model the Java reaction
-        // published (mirrors the original's context.getBuildModel(parentDefinition).inputSources) — not a
-        // location derived from the source-set name. The root template reaction dispatches before this
-        // extension reaction, so the model and its per-source-set entry already exist.
+        // published (mirrors the original's context.getBuildModel(parentDefinition).inputSources).
         JavaClasses classes = project.getExtensions().getByType(JavaLibraryModel.class).getClasses().getByName(name);
 
         // The declared (or conventional) config file; its parent is the config directory checkstyle
         // resolves config_loc-relative resources against.
         File configFile = project.file(data.configFile().get());
         boolean ignoreFailures = data.ignoreFailures().get();
+
+        // The shared tool classpath is published by the javaLibrary-level CheckstyleToolReaction, which
+        // fires AFTER this one, so read it lazily — resolved at task execution. A missing CheckstyleModel
+        // means no checkstyle { } block set the version on the javaLibrary; fail with a clear message.
+        FileCollection checkstyleClasspath = project.files((Callable<Object>) () -> {
+            CheckstyleModel model = project.getExtensions().findByType(CheckstyleModel.class);
+            if (model == null) {
+                throw new GradleException("Source set '" + name + "' opted into checkstyle, but the javaLibrary "
+                    + "declares no checkstyle { } block to set the Checkstyle version.");
+            }
+            return model.getCheckstyleClasspath();
+        });
 
         project.getTasks().register(taskName, org.gradle.api.plugins.quality.Checkstyle.class, task -> {
             task.setGroup("verification");
@@ -144,11 +109,7 @@ public class CheckstyleReaction implements Reaction<Checkstyle, Project> {
                 .set(project.getLayout().getBuildDirectory().file("reports/checkstyle/" + name + ".html"));
         });
 
-        project.getLogger().lifecycle("checkstyle[" + name + "] version=" + version);
-    }
-
-    private static Map<String, String> excludeProperties(String group, String module) {
-        return Map.of("group", group, "module", module);
+        project.getLogger().lifecycle("checkstyle[" + name + "]");
     }
 
     private static String capitalize(String name) {
