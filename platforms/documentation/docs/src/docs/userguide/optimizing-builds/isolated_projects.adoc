@@ -816,3 +816,20 @@ Instead, all projects are configured in parallel unless the entire configuration
 
 The Configure on Demand flag is _ignored_ when Isolated Projects is enabled.
 
+[[sec:faq]]
+== Frequently asked questions
+
+Common questions about adopting Isolated Projects.
+
+[[sec:faq_project_dependencies]]
+=== Does a complex project dependency graph limit the benefit of Isolated Projects?
+
+No.
+A common misconception is that Isolated Projects optimizes builds by following dependencies between projects, so that a deep or highly-connected dependency graph would limit the benefit.
+
+The benefit comes from <<sec:performance,parallelizing the configuration phase>>.
+It is driven by the number of projects and the cost of configuring them.
+All projects are always configured regardless of how they depend on each other, and the configuration parallelism is bounded by the project hierarchy (see <<sec:current_limitations,current limitations>>).
+
+The benefit varies from build to build, so the best way to find out what you'll gain is to <<sec:evaluating,measure it for your build>>.
+
