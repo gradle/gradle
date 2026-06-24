@@ -149,6 +149,15 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         return types;
     }
 
+    @Override
+    public Set<Class<?>> getOwnServiceTypes() {
+        // Only this registry's own services - no parent traversal. For a project-scoped registry this
+        // is exactly the project-scoped services. Reads type metadata only; no service is realized.
+        Set<Class<?>> types = new HashSet<Class<?>>();
+        ownServices.collectServiceTypes(types);
+        return types;
+    }
+
     private static ServiceProvider toParentServices(ServiceRegistry serviceRegistry) {
         if (serviceRegistry instanceof AbstractServiceRegistry) {
             return new ParentServices(((AbstractServiceRegistry) serviceRegistry).asServiceProvider());

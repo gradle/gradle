@@ -39,4 +39,15 @@ public interface ServiceRegistryIntrospection {
      * Only type metadata is read; no service instances are realized.
      */
     Set<Class<?>> getAllServiceTypes();
+
+    /**
+     * Returns the types provided by <em>this</em> registry's own services only, excluding anything inherited
+     * from ancestor registries. For the per-project registry returned by {@code ProjectInternal.getServices()},
+     * this is the set of <em>project-scoped</em> services (including services declared at multiple scopes that
+     * have a project-scoped registration, e.g. {@code {Build, Project}} ones); {@link #getAllServiceTypes()}
+     * minus this set is what is inherited from build/global scope.
+     * <p>
+     * Only type metadata is read; no service instances are realized.
+     */
+    Set<Class<?>> getOwnServiceTypes();
 }
