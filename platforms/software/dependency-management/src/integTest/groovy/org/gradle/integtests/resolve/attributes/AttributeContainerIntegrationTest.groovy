@@ -75,7 +75,7 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
         "List"     | "['string']"
         "Flavor"   | "objects.named(Flavor, 'abc')"
         "Named"    | "objects.named(Named, 'abc')"
-        "Number[]" | "[1, 1.2] as Number[]"
+        "Number[]" | "[1, 1.3] as Number[]"
     }
 
     def "attribute value is isolated from original value"() {
