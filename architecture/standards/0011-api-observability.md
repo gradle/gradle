@@ -40,7 +40,7 @@ Acknowledging the partial prior art on this same interface:
 
 * `getForcedModules()` at `ResolutionStrategy.java:245` does return the configured set, so `force(...)` is at least observable.
   The shape is inconsistent with everything around it — one observer, surrounded by write-only setters — which is exactly the cost of not having a standard.
-* `getUseGlobalDependencySubstitutionRules()` at `ResolutionStrategy.java:389` is a `Property<Boolean>`, and reads exactly the way ADR-0006 prescribes.
+* `getUseGlobalDependencySubstitutionRules()` at `ResolutionStrategy.java:389` is a `Property<Boolean>`, and reads exactly the way [ADR-0006](0006-use-of-provider-apis-in-gradle.md) prescribes.
   The contrast with `preferProjectModules()` on the same interface is striking: both are boolean-shaped, but only one is fit to compose with.
 
 The same interface also carries action-based mutators — `eachDependency` at `ResolutionStrategy.java:277`, `dependencySubstitution` at `ResolutionStrategy.java:375`, `componentSelection` at `ResolutionStrategy.java:344`, and `capabilitiesResolution` at `ResolutionStrategy.java:414` — where behavior is either registered to run later or used to configure a container.
@@ -51,9 +51,9 @@ The remainder of this ADR sets a standard that would have prevented the setter s
 ## Decision
 
 This ADR applies to every public configuration API in Gradle: a public type, or public method on a public type, whose purpose is to let users configure how some Gradle behavior runs.
-It does not apply to internal types, to behavior-free data carriers, or to identity (see ADR-0006 on identity information).
+It does not apply to internal types, to behavior-free data carriers, or to identity (see [ADR-0006](0006-use-of-provider-apis-in-gradle.md) on identity information).
 
-The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in RFC 2119.
+The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
 1. **Every public setter MUST have an observer.**
    For every public setter — whether spelled `setX(...)`, `x(...)`, or a fluent verb like `failOnVersionConflict()` — the same API MUST expose a way to read the currently configured value.
@@ -79,7 +79,7 @@ That question — whether and how registered callbacks should be observable, and
 
 ## Consequences
 
-* **For new APIs.** Reviewers gain a concrete checklist, on the same footing as ADR-0003 (Groovy types), ADR-0006 (Provider APIs), ADR-0008 (NullAway) and ADR-0009 (American English).
+* **For new APIs.** Reviewers gain a concrete checklist, on the same footing as [ADR-0003](0003-avoid-introducing-Groovy-types-to-public-api.md) (Groovy types), [ADR-0006](0006-use-of-provider-apis-in-gradle.md) (Provider APIs), [ADR-0008](0008-use-nullaway.md) (NullAway) and [ADR-0009](0009-use-american-english.md) (American English).
   For each public setter proposed in a PR, the review asks: is there an observer?
   A PR that adds a public setter without an observer SHOULD be sent back for revision.
   In most cases the answer is "use `Property<T>` per ADR-0006", which already satisfies this requirement; this ADR mostly makes that expectation enforceable beyond the cases ADR-0006 explicitly covers.
