@@ -145,10 +145,4 @@ public abstract class GradleDocumentationExtension {
      * (e.g. {@code gradleVersion} and the {@code https://docs.gradle.org/<version>} URLs).
      */
     public abstract Property<String> getGradleVersion();
-
-    /**
-     * The latest Gradle 8.x version referenced from the documentation. Used as the
-     * {@code gradleVersion8} Asciidoctor attribute for back-references to the 8.x line.
-     */
-    public abstract Property<String> getGradleVersion8();
 }

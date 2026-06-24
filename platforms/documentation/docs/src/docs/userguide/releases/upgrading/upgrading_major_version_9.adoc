@@ -16,7 +16,7 @@
 
 = Upgrading to Gradle 9.0.0
 
-This chapter provides the information you need to migrate your Gradle {gradleVersion8} builds to Gradle 9.0.0.
+This chapter provides the information you need to migrate your Gradle 8.14.5 builds to Gradle 9.0.0.
 For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
 
 We recommend the following steps for all users:
