@@ -271,14 +271,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 } catch (Throwable t) {
                     addFailure(t);
                 } finally {
-                    if (token != null) {
-                        lock.lock();
-                        try {
-                            token.invalidateIfNeeded();
-                        } finally {
-                            lock.unlock();
-                        }
-                    }
+                    invalidateIfNeeded();
                 }
             });
         }
@@ -317,16 +310,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             if (queueState != QueueState.Working && helper.isQueueEmpty()) {
                 return true;
             }
-            return tryRetireIfExtraWorker();
-        }
-
-        @GuardedBy("lock")
-        private boolean tryRetireIfExtraWorker() {
-            // The main thread (token == null) never retires: it's the only worker guaranteed to run,
-            // so it must keep draining in case no spawned worker ever starts.
-            if (token != null && helper.isExtraWorker()) {
-                // Invalidate now so the worker count drops immediately, not when runOperations() ends.
-                token.invalidateIfNeeded();
+            if (helper.isExtraWorker()) {
+                if (token != null) {
+                    token.invalidateIfNeeded();
+                }
                 return true;
             }
             return false;
@@ -392,7 +379,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 T operation;
                 lock.lock();
                 try {
-                    if (tryRetireIfExtraWorker()) {
+                    if (helper.isExtraWorker()) {
+                        // We should exit, immediately invalidate our token to ensure the count goes down now.
+                        invalidateIfNeeded();
                         break;
                     }
                     operation = helper.pollWork();
@@ -419,5 +408,15 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
+        private void invalidateIfNeeded() {
+            lock.lock();
+            try {
+                if (token != null) {
+                    token.invalidateIfNeeded();
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
     }
 }
