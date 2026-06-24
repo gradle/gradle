@@ -26,6 +26,14 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.check
 
 class KotlinDslModelChecker {
 
+    static void checkScriptModelEditorReportsArePositioned(Map<File, KotlinDslScriptModel> scriptModels, String scriptFileName) {
+        // Anchor the match to a path-segment boundary: a bare endsWith("a/build.gradle.kts") also matches a
+        // root build script under a temp dir that happens to end in 'a' (e.g. ".../todga/build.gradle.kts").
+        def script = scriptModels.keySet().find { it.path == scriptFileName || it.path.endsWith(File.separator + scriptFileName) }
+        assert script != null: "no script model found ending with '$scriptFileName'"
+        assert scriptModels[script].editorReports.any { it.position != null }: "no positioned editor report on '$scriptFileName'"
+    }
+
     static void checkBuildTreeScriptsModels(Map<String, KotlinDslScriptsModel> actual, Map<String, KotlinDslScriptsModel> expected) {
         assert actual.keySet() == expected.keySet()
         actual.each { build, actualModel ->
@@ -44,10 +52,30 @@ class KotlinDslModelChecker {
             { withNormalizedAccessorHash(it.classPath) },
             { withNormalizedAccessorHash(it.sourcePath) },
             { it.implicitImports },
-            // TODO:isolated support editor reports
-//            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
-            { it.exceptions },
+            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
+            // Stack-trace strings legitimately differ between IP and non-IP runs
+            // (different call stacks during script evaluation). Compare only the
+            // exception class + message line, which is stable across the two modes.
+            { it.exceptions.collect { normalizeExceptionSummary(it) } },
         ])
+    }
+
+    private static String normalizeExceptionSummary(String exceptionString) {
+        // Drop stack-frame lines (start with whitespace: "\tat ..." or "\t... N more").
+        // This yields the exception class + message and any "Caused by:" headers,
+        // which are stable across IP and non-IP runs.
+        exceptionString.readLines()
+            .findAll { !it.matches(/\s+.*/) }
+            .collect { normalizeCompilerTempPath(it) }
+            .join("\n")
+    }
+
+    // A compile error's ScriptCompilationException reports its 'location' in a throwaway file, not the real
+    // script: the Kotlin DSL compiles generated "residual program" fragments written to a fresh
+    // "gradle-kotlin-dsl-<random>" temp dir (see TemporaryScriptFiles.withTemporaryScriptFileFor). IP and
+    // non-IP get different <random> values, so scrub it — otherwise it's the one field that breaks parity.
+    private static String normalizeCompilerTempPath(String line) {
+        line.replaceAll(/gradle-kotlin-dsl-\d+\.tmp/, "gradle-kotlin-dsl-<tmp>.tmp")
     }
 
     private static void checkEditorReport(actual, expected) {
