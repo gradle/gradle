@@ -47,6 +47,17 @@ class FindBrokenInternalLinksTest extends Specification {
             org.jetbrains.dokka.experimental.gradle.pluginMode.noWarn=true
         """.stripIndent()
 
+        new File(projectDir, "settings.gradle") << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create('buildLibs') {
+                        version('asciidoctor', '3.0.1')
+                        version('asciidoctorPdf', '2.3.23')
+                    }
+                }
+            }
+        """.stripIndent()
+
         new File(projectDir, "src/docs/javaPackageList/8").mkdirs()
         new File(projectDir, "src/docs/javaPackageList/8/package-list") << """
         java.lang

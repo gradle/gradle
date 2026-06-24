@@ -16,11 +16,17 @@
 
 package gradlebuild.docs;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import gradlebuild.basics.PublicApi;
 import gradlebuild.basics.PublicKotlinDslApi;
+import org.asciidoctor.gradle.jvm.AsciidoctorJExtension;
+import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.VersionCatalog;
+import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
@@ -35,9 +41,12 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
@@ -54,6 +63,14 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         applyConventions(project, tasks, objects, layout, extension);
 
         extension.getQuickFeedback().convention(getProviders().gradleProperty("quickDocs").map(x -> true).orElse(false));
+        extension.getGradleVersion().convention(project.provider(() -> project.getVersion().toString()));
+        extension.getGradleVersion8().convention(
+            getProviders().fileContents(project.getRootProject().getLayout().getProjectDirectory().file("released-versions.json"))
+                .getAsText()
+                .map(GradleBuildDocumentationPlugin::findLatestGradle8Version)
+        );
+
+        project.apply(target -> target.plugin("org.asciidoctor.jvm.convert"));
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
@@ -61,9 +78,42 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
+        configureAsciidoctorJ(project, tasks);
+
         addUtilityTasks(project, tasks, extension);
 
         checkDocumentation(tasks, extension);
+    }
+
+    private static String findLatestGradle8Version(String releasedVersionsJson) {
+        JsonObject root = JsonParser.parseString(releasedVersionsJson).getAsJsonObject();
+        for (var element : root.getAsJsonArray("finalReleases")) {
+            String version = element.getAsJsonObject().get("version").getAsString();
+            if (version.startsWith("8.")) {
+                return version;
+            }
+        }
+        throw new IllegalStateException("No 8.x release found in released-versions.json");
+    }
+
+    private void configureAsciidoctorJ(Project project, TaskContainer tasks) {
+        VersionCatalog buildLibs = project.getExtensions().getByType(VersionCatalogsExtension.class).named("buildLibs");
+        AsciidoctorJExtension asciidoctorj = project.getExtensions().getByType(AsciidoctorJExtension.class);
+        asciidoctorj.setVersion(buildLibs.findVersion("asciidoctor").get().getRequiredVersion());
+        asciidoctorj.getModules().getPdf().setVersion(buildLibs.findVersion("asciidoctorPdf").get().getRequiredVersion());
+        // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
+        // TODO: tables are not handled properly in pdfs
+        asciidoctorj.getFatalWarnings().add(Pattern.compile(
+            "^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*"
+        ));
+
+        tasks.withType(AsciidoctorTask.class).configureEach(task -> {
+            AsciidoctorJExtension taskDoctorj = task.getExtensions().getByType(AsciidoctorJExtension.class);
+            taskDoctorj.docExtensions(
+                project.getDependencies().create(project.project(":docs-asciidoctor-extensions")),
+                project.getDependencies().create(project.files("src/main/resources"))
+            );
+        });
     }
 
     private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
@@ -154,8 +204,9 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
             task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
 
             task.getInputs().property("systemProperties", Collections.emptyMap());
-            // TODO: This breaks the provider
-            task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
+            task.getJvmArgumentProviders().add((CommandLineArgumentProvider) () -> List.of(
+                "-Dorg.gradle.docs.releasenotes.rendered=" + extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile()
+            ));
         });
     }
 }
