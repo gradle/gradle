@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
@@ -146,6 +147,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'can aggregate unit test results from dependent projects'() {
         given:
         file('application/build.gradle') << '''
@@ -174,6 +176,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'multiple test suites create multiple aggregation tasks'() {
         given:
         file("transitive/build.gradle") << """
@@ -280,6 +283,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedIntegTestResults.assertAtLeastTestPathsExecuted('transitive.ModTest', 'application.DivTest')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'can aggregate tests from root project'() {
         given:
         buildFile << '''
@@ -317,6 +321,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'can aggregate tests from root project with different overall statuses'() {
         given:
         buildFile << '''
@@ -410,6 +415,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'can aggregate tests from root project when subproject does not have tests'() {
         given:
         buildFile << '''
@@ -439,6 +445,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedTestResults.assertAtLeastTestPathsExecuted('application.AdderTest', 'direct.MultiplierTest')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'test verification failure prevents creation of aggregated report'() {
         given:file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -468,6 +475,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'test verification failure creates aggregated report with --continue flag'() {
         given:file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -508,6 +516,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'test aggregated report can be put into a custom location'() {
         given:
         // Reordering the plugins so that Java is applied later
@@ -535,6 +544,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def 'catastrophic failure of single test prevents creation of aggregated report'() {
         given:
         file("application/build.gradle") << """
@@ -604,6 +614,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29820")
+    @ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
     def "can aggregate when a jar file dependency is used"() {
         buildFile("application/build.gradle", """
             apply plugin: 'org.gradle.test-report-aggregation'

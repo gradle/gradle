@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
@@ -32,6 +33,7 @@ import spock.lang.Issue
  * all files to be added to the jacoco report to ensure none are zip), this test will fail.
  */
 @Issue("https://github.com/gradle/gradle/issues/20532")
+@ToBeFixedForIsolatedProjects(because = "aggregation plugin resolves subproject artifacts at config time")
 class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
     def kotlinVersion = new KotlinGradlePluginVersions().latestStableOrRC

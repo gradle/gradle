@@ -20,7 +20,7 @@ package org.gradle.testing
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 class TestEventsIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "tests listener behaviour")

@@ -17,10 +17,13 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collectors;
@@ -159,10 +162,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public boolean addPending(final ProviderInternal<? extends T> provider) {
         ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
+            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> {
                 values.remove(previousValue);
                 pending.add(collectorFromProvider(provider));
-            });
+            }));
         }
         Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
 
@@ -212,12 +215,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> {
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> {
                 for (T value : previousValues) {
                     values.remove(value);
                 }
                 pending.add(collectorFromCollectionProvider(provider));
-            });
+            }));
         }
         Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
 
@@ -243,6 +246,25 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         return removeByProvider(provider);
+    }
+
+    @Override
+    public ProviderInternal<Set<T>> getElements() {
+        return new BuildableBackedProvider<>(
+            context -> {
+                // TODO: As this is implemented, the returned provider will "lose" build
+                // dependencies if elements are realized early. To fix this, we would need
+                // to retain the pending elements for the lifetime of this element source.
+                for (Collectors.TypedCollector<T> collector : pending) {
+                    context.add(collector.getProducer());
+                }
+            },
+            Cast.uncheckedCast(Set.class),
+            SerializableLambdas.factory(() -> {
+                realizePending();
+                return ImmutableSet.copyOf(values);
+            })
+        );
     }
 
     @Override

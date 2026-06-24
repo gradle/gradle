@@ -48,7 +48,6 @@ class BuildModelParametersProviderTest extends Specification {
             modelBuilding: false,
             parallelModelBuilding: false,
             cachingModelBuilding: false,
-            resilientModelBuilding: false,
         ]
     }
 

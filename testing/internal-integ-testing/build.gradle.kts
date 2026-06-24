@@ -48,7 +48,6 @@ dependencies {
     api(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
-    api(libs.jspecify)
     api(libs.jsr305)
     api(testLibs.junit) {
         because("Part of the public API, used by spock AST transformer")
@@ -130,6 +129,7 @@ dependencies {
     implementation(libs.sshdSftp)
     implementation(platform(libs.sshdSftp))
 
+    compileOnly(libs.jspecify)
     compileOnly(libs.kotlinStdlib) {
         because("""Fixes:
             compiler message file broken: key=compiler.misc.msg.bug arguments=11.0.21, {1}, {2}, {3}, {4}, {5}, {6}, {7}

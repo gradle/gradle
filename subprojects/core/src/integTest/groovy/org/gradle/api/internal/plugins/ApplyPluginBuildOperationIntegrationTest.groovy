@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 

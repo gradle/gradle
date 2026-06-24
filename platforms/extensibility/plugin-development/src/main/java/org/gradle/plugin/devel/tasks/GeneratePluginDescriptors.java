@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 public abstract class GeneratePluginDescriptors extends DefaultTask {
     private final Provider<Map<String, String>> implementationClassById;
 
+    @SuppressWarnings("this-escape")
     public GeneratePluginDescriptors() {
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
             .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> b, LinkedHashMap::new))

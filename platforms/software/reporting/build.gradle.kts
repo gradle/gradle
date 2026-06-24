@@ -52,6 +52,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/internal/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

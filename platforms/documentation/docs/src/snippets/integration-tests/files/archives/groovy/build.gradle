@@ -56,3 +56,14 @@ tasks.withType(AbstractArchiveTask).configureEach {
 }
 // end::revert-reproducible[]
 
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false // Reset to the default value
+}
+
+// tag::reproducible-timestamp[]
+tasks.withType(AbstractArchiveTask).configureEach {
+    reproducibleFileTimestamp = providers.environmentVariable('SOURCE_DATE_EPOCH').map {
+        java.time.Instant.ofEpochSecond(it.toLong()).toEpochMilli()
+    }
+}
+// end::reproducible-timestamp[]

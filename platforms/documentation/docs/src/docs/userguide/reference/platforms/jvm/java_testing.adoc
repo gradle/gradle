@@ -387,6 +387,10 @@ Test logging can be modified on a per-log-level basis by adjusting the appropria
 For example, to adjust the `INFO` level test logging configuration, modify the
 link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html#getInfo--[TestLoggingContainer.getInfo()] property.
 
+NOTE: Test-framework startup failures (for example, a TestNG test class whose constructor throws, a JUnit 4 suite that fails to initialize, or a Jupiter `@BeforeAll` lifecycle hook that aborts a container) bypass the granularity filter and are always written to the console.
+This ensures that initialization failures are not silently dropped, which would otherwise leave the build reporting only `> There were failing tests` with no underlying cause.
+The `testLogging.events` predicate still applies: explicitly silencing `FAILED` events is honored.
+
 [[test_grouping]]
 == Test grouping
 

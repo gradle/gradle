@@ -17,7 +17,7 @@
 package org.gradle.execution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 import spock.lang.Timeout
 

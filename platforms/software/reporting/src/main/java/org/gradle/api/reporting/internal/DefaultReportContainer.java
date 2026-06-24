@@ -41,6 +41,7 @@ import java.util.Map;
  *
  * @param <T> The type of report held by this container.
  */
+@SuppressWarnings("this-escape")
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
 
     /**

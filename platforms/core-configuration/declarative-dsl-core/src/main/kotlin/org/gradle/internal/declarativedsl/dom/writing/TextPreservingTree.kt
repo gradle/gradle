@@ -82,10 +82,10 @@ class TextPreservingTreeBuilder {
             completeIntervalsWithTextRanges(
                 document.sourceData.indexRange,
                 document.sourceData.lineRange,
-                document.content.mapIndexed { index, it ->
+                document.content.mapIndexed { index, node ->
                     SubTreeData(
-                        ChildTag.BlockElement(index, it),
-                        nodeForDocumentNode(it)
+                        ChildTag.BlockElement(index, node),
+                        nodeForDocumentNode(node)
                     )
                 }
             )
@@ -97,8 +97,8 @@ class TextPreservingTreeBuilder {
         val meaningfulSubtrees = when (node) {
             is DeclarativeDocument.DocumentNode.ElementNode -> {
                 listOf(SubTreeData(ChildTag.Name, TextTreeNode(node.sourceData.nameRange(node.name), node.lines, emptyList()))) +
-                    node.elementValues.mapIndexed { index, it -> SubTreeData(ChildTag.CallArgument(index, it), nodeForValueNode(it)) } +
-                    node.content.mapIndexed { index, it -> SubTreeData(ChildTag.BlockElement(index, it), nodeForDocumentNode(it)) }
+                    node.elementValues.mapIndexed { index, value -> SubTreeData(ChildTag.CallArgument(index, value), nodeForValueNode(value)) } +
+                    node.content.mapIndexed { index, child -> SubTreeData(ChildTag.BlockElement(index, child), nodeForDocumentNode(child)) }
             }
 
             is DeclarativeDocument.DocumentNode.PropertyNode -> {
@@ -119,7 +119,7 @@ class TextPreservingTreeBuilder {
         val meaningfulSubtrees = when (node) {
             is DeclarativeDocument.ValueNode.ValueFactoryNode -> listOf(
                 SubTreeData(ChildTag.Name, TextTreeNode(node.sourceData.nameRange(node.factoryName), node.sourceData.nameLines(node.factoryName), emptyList())),
-            ) + node.values.mapIndexed { index, it -> SubTreeData(ChildTag.CallArgument(index, it), nodeForValueNode(it)) }
+            ) + node.values.mapIndexed { index, value -> SubTreeData(ChildTag.CallArgument(index, value), nodeForValueNode(value)) }
 
             is DeclarativeDocument.ValueNode.NamedReferenceNode,
             is DeclarativeDocument.ValueNode.LiteralValueNode -> listOf(SubTreeData(ChildTag.UnstructuredText, TextTreeNode(node.range, node.lines, emptyList())))

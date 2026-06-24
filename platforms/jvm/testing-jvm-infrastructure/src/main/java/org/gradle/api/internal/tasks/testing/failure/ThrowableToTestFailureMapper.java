@@ -26,7 +26,16 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 public interface ThrowableToTestFailureMapper {
+    default TestFailure createFailure(Throwable throwable) {
+        return createFailure(throwable, true);
+    }
 
-    TestFailure createFailure(Throwable throwable);
-
+    /**
+     * Creates a {@link TestFailure} from the given {@link Throwable}.
+     *
+     * @param throwable the throwable to create a {@link TestFailure} from
+     * @param isFailureDuringTest whether the throwable was thrown while executing a test (vs. other testing framework failures)
+     * @return the resulting failure
+     */
+    TestFailure createFailure(Throwable throwable, boolean isFailureDuringTest);
 }

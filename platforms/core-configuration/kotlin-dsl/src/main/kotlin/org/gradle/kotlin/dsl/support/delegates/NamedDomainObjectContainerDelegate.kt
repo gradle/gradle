@@ -74,6 +74,9 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun addAllLater(provider: Provider<out Iterable<T>>) =
         delegate.addAllLater(provider)
 
+    override fun getElements(): Provider<out Collection<T>> =
+        delegate.elements
+
     override fun create(name: String): T =
         delegate.create(name)
 

@@ -50,6 +50,12 @@ gradleModule {
 jvmCompile {
     compilations {
         named("main") {
+            // usesFutureStdlib opts this module out of `--release N` because
+            // ClassLoaderUtils.LookupClassDefiner references MethodHandles.privateLookupIn(...)
+            // and Lookup.defineClass(...) (both JDK 9+). LookupClassDefiner is only
+            // instantiated behind a JavaVersion.current().isJava9Compatible() gate in
+            // ClassLoaderUtils, so the calls are safe on a JDK 8 runtime, but their
+            // symbols must still resolve at compile time.
             usesFutureStdlib = true
         }
     }

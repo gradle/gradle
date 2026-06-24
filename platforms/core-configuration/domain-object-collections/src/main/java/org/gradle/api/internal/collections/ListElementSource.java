@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +31,7 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> implements IndexedElementSource<T> {
+
     private static final Spec<ValuePointer<?>> ALWAYS_ACCEPT = pointer -> true;
 
     @Override
@@ -95,6 +100,19 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         modCount++;
         return addPendingElement(cachingElement(provider));
+    }
+
+    @Override
+    public ProviderInternal<List<T>> getElements() {
+        return new BuildableBackedProvider<>(
+            this,
+            Cast.uncheckedCast(List.class),
+            SerializableLambdas.factory(() -> {
+                ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(estimatedSize());
+                builder.addAll(iterator());
+                return builder.build();
+            })
+        );
     }
 
     private ListIterator<T> iteratorAt(int index) {

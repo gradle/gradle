@@ -28,9 +28,7 @@ import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.killProcessStep
 import common.performanceTestCommandLine
-import common.removeSubstDirOnWindows
 import common.setArtifactRules
-import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
@@ -90,7 +88,6 @@ class PerformanceTest(
                 steps {
                     preBuildSteps()
                     killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
-                    substDirOnWindows(os)
 
                     repeat(if (performanceTestBuildSpec.type == PerformanceTestType.FLAKINESS_DETECTION) 2 else 1) { repeatIndex: Int ->
                         gradleWrapper {
@@ -117,7 +114,6 @@ class PerformanceTest(
                                 ).joinToString(separator = " ")
                         }
                     }
-                    removeSubstDirOnWindows(os)
                     killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
                     checkCleanM2AndAndroidUserHome(os)
                     cleanupPerformanceTestSplits(os)()

@@ -139,6 +139,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
+    @SuppressWarnings("this-escape")
     public CreateStartScripts() {
         getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);

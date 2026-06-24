@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import org.codehaus.groovy.vmplugin.VMPluginFactory
 import org.gradle.api.Describable
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -183,6 +184,28 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = computeIfAbsent(path, ::ProjectInvalidationState)
 
+    /**
+     * Forces Groovy's runtime to initialize before we replay configuration-time removals of
+     * system properties (see the [ConfigurationCacheFingerprint.SystemPropertyRemoved] and
+     * [ConfigurationCacheFingerprint.SystemPropertiesCleared] branches of [check]).
+     *
+     * Replaying those side effects mutates the live `System.getProperties()` of the process that is
+     * loading the cache entry. Removing or clearing JVM-standard properties such as `file.encoding`
+     * or `java.home` breaks the static initializer of any class that reads them lazily. In
+     * particular, Groovy's `VMPluginFactory` is initialized the first time the cached project model
+     * is realized (when a `DefaultProject` is created); with `file.encoding` gone its initialization
+     * fails with "Null charset name", leaving the class permanently unusable ("Could not initialize
+     * class org.codehaus.groovy.vmplugin.VMPluginFactory").
+     *
+     * A non-cached build never hits this because executing the Groovy build scripts initializes the
+     * Groovy runtime before any such mutation runs; we mirror that ordering here. This only matters
+     * in a fresh JVM (e.g. `--no-daemon`); with a reused daemon the runtime is already initialized.
+     */
+    private
+    fun ensureGroovyRuntimeInitialized() {
+        VMPluginFactory.getPlugin()
+    }
+
     @Suppress("CyclomaticComplexMethod", "LongMethod")
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? = structuredMessageOrNull {
@@ -236,11 +259,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.SystemPropertyRemoved -> input.run {
+                ensureGroovyRuntimeInitialized()
                 System.getProperties().remove(key)
                 null
             }
 
             is ConfigurationCacheFingerprint.SystemPropertiesCleared -> input.run {
+                ensureGroovyRuntimeInitialized()
                 System.getProperties().clear()
                 null
             }

@@ -16,7 +16,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
+@ToBeFixedForIsolatedProjects(because = "configure projects from root")
 class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
     def "project can use classes from WAR project"() {
         given:

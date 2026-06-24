@@ -17,7 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -95,7 +95,10 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32591")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/32591",
+        iterationMatchers = [".*dir\\(.*", ".*file\\(.*", ".*files\\(<string>\\).*"]
+    )
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
             include("sub")
@@ -354,15 +357,15 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         run ":sub:foo"
 
         then:
-        outputContains("Effective file: ${ testDirectory.file(expectedDir) }")
-        outputContains("Effective fileTree: ${ directoryContents.toSorted() }")
+        outputContains("Effective file: ${testDirectory.file(expectedDir)}")
+        outputContains("Effective fileTree: ${directoryContents.toSorted()}")
 
         where:
-        method                      | expression                                                        | expectedDir
-        "systemProperty"            | "providers.systemProperty('foo.bar').map { new File(it) }"        | "sub/subDir/sysprop"
-        "environmentVariable"       | "providers.environmentVariable('FOO').map { new File(it) }"       | "sub/subDir/env"
-        "gradleProperty"            | "providers.gradleProperty('bar').map { new File(it) }"            | "sub/subDir/gradleProp"
-        "fileContents"              | "providers.fileContents(fooBarTxt).asText.map { new File(it) }"   | "sub/subDir/fileContent"
+        method                | expression                                                      | expectedDir
+        "systemProperty"      | "providers.systemProperty('foo.bar').map { new File(it) }"      | "sub/subDir/sysprop"
+        "environmentVariable" | "providers.environmentVariable('FOO').map { new File(it) }"     | "sub/subDir/env"
+        "gradleProperty"      | "providers.gradleProperty('bar').map { new File(it) }"          | "sub/subDir/gradleProp"
+        "fileContents"        | "providers.fileContents(fooBarTxt).asText.map { new File(it) }" | "sub/subDir/fileContent"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32992")
@@ -393,13 +396,13 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         run ":sub:foo"
 
         then:
-        outputContains("Effective file: ${ testDirectory.file(expectedFile) }")
+        outputContains("Effective file: ${testDirectory.file(expectedFile)}")
 
         where:
-        method                      | expression                                                        | expectedFile
-        "systemProperty"            | "providers.systemProperty('foo.bar').map { new File(it) }"        | "sub/subDir/sysprop"
-        "environmentVariable"       | "providers.environmentVariable('FOO').map { new File(it) }"       | "sub/subDir/env"
-        "gradleProperty"            | "providers.gradleProperty('bar').map { new File(it) }"            | "sub/subDir/gradleProp"
-        "fileContents"              | "providers.fileContents(fooTxt).asText.map { new File(it) }"      | "sub/subDir/fileContent"
+        method                | expression                                                   | expectedFile
+        "systemProperty"      | "providers.systemProperty('foo.bar').map { new File(it) }"   | "sub/subDir/sysprop"
+        "environmentVariable" | "providers.environmentVariable('FOO').map { new File(it) }"  | "sub/subDir/env"
+        "gradleProperty"      | "providers.gradleProperty('bar').map { new File(it) }"       | "sub/subDir/gradleProp"
+        "fileContents"        | "providers.fileContents(fooTxt).asText.map { new File(it) }" | "sub/subDir/fileContent"
     }
 }

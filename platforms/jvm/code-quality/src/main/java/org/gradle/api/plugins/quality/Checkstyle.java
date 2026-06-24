@@ -66,6 +66,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
+    @SuppressWarnings("this-escape")
     public Checkstyle() {
         super();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));

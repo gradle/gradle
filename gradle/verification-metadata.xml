@@ -166,6 +166,10 @@
          </trusted-key>
          <trusted-key id="2E3A1AFFE42B5F53AF19F780BCF4173966770193" group="org.jetbrains" name="annotations"/>
          <trusted-key id="2E92113263FC31C74CCBAAB20E91C2DE43B72BB1" group="org.ec4j.core" name="ec4j-core"/>
+         <trusted-key id="2FC53E6B1F681184F4CCD637F5C81DE10A0B8ECC">
+            <trusting group="org.snakeyaml" name="snakeyaml-engine"/>
+            <trusting group="org.yaml" name="snakeyaml"/>
+         </trusted-key>
          <trusted-key id="314FE82E5A4C5377BCA2EDEC5208812E1E4A6DB0">
             <trusting group="net.rubygrapefruit"/>
             <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
@@ -177,7 +181,10 @@
             <trusting group="org.codehaus.plexus" name="plexus-xml"/>
          </trusted-key>
          <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
-         <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF" group="org.jetbrains" name="annotations"/>
+         <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF">
+            <trusting group="org.jetbrains" name="annotations"/>
+            <trusting group="org.jetbrains.intellij.deps.kotlinx" name="kotlinx-coroutines-core-jvm"/>
+         </trusted-key>
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B">
             <trusting group="org.apache.groovy"/>
             <trusting group="org.apache.groovy" name="groovy"/>
@@ -250,7 +257,7 @@
             <trusting group="net.sourceforge.htmlunit"/>
          </trusted-key>
          <trusted-key id="5F55943E13D49059D3F342777186B06E1ED139E7" group="org.apache.lucene"/>
-         <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="io.gitlab.arturbosch.detekt"/>
+         <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="dev.detekt"/>
          <trusted-key id="600EA202B1EC682F4A788E5AAC7A514BC9F9BB70" group="io.opencensus"/>
          <trusted-key id="60200AC4AE761F1614D6C46766D68DAA073BE985">
             <trusting group="ch.qos.logback"/>
@@ -587,6 +594,11 @@
             <sha256 value="f518445fc8a2defc443aac1c53ca60d07cd991a20063c275a322f1668acd67c4" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="com.android.tools" name="r8" version="8.5.35">
+         <artifact name="r8-8.5.35.jar">
+            <sha256 value="4733945987ee0a840fafc34080b135259e01678412e07212b23f706334290294" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="com.android.tools" name="repository" version="26.0.0">
          <artifact name="repository-26.0.0.jar">
             <sha256 value="d808bba7658fc4b6ddd720b4758bda51fb02ad94d21f237f3394dbb534ed0215" reason="Artifact is not signed"/>
@@ -878,44 +890,9 @@
             <sha256 value="843245599385e906a4133fed1765c4d9f2e697b0091bb681cffd71dc426ff76b" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle" name="test-retry-gradle-plugin" version="1.5.2">
-         <artifact name="test-retry-gradle-plugin-1.5.2.jar">
-            <sha256 value="9d83780b9df3d7d704c7f9c0feed2bfb5a295833392a666250db7f4cf91bda5a" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.buildtool.internal" name="gradle-ide-starter-scenarios" version="0.8.6">
          <artifact name="gradle-ide-starter-scenarios-0.8.6.jar">
             <sha256 value="5b8f84f082ee8fa872e63d0616a84b65e7d24cf57aafcdd080e74926e9dbe3ae" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="common" version="0.63">
-         <artifact name="common-0.63.jar">
-            <sha256 value="1cbecb45b99d98523a62f9ead6a248b95e295d5db186d09222e6ae1ea6ce0292" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="common" version="0.74">
-         <artifact name="common-0.74.jar">
-            <sha256 value="c9e7a770270510d50ad4c7b9df04fc4fa88a60011e610822d653a9b25791bef7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="github-client" version="0.74">
-         <artifact name="github-client-0.74.jar">
-            <sha256 value="5bb1ef363623fdf76ca64a07abbd4c69d3b915876f87538d031791add35f2683" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="gradle-build-tag-plugin" version="0.74">
-         <artifact name="gradle-build-tag-plugin-0.74.jar">
-            <sha256 value="4824afdf33200a96ad995ed9f4b6c9cbac98168cbda53642e7f8664cb7331556" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="tagging" version="0.74">
-         <artifact name="tagging-0.74.jar">
-            <sha256 value="5c5db6b64345396574d4527f44623a449753aeb308ab8adf1ad717795ec708b7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="teamcity-client" version="0.74">
-         <artifact name="teamcity-client-0.74.jar">
-            <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.25.0">

@@ -22,6 +22,7 @@ public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, Proj
     private final boolean parallelEnabled;
     private final LockCache<Path, AllProjectsLock> allProjectsLocks;
 
+    @SuppressWarnings("this-escape")
     public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
         super(coordinationService);
         this.parallelEnabled = parallelEnabled;

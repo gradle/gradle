@@ -90,14 +90,14 @@ class CanonicalCodeGenerator {
             }
         }
 
-        nodes.nodes.forEachIndexed { index, it ->
+        nodes.nodes.forEachIndexed { index, node ->
             if (index > 0) {
                 appendLine()
-                if (isTopLevel && (nodes.nodes[index - 1] is DocumentNode.ElementNode || it is DocumentNode.ElementNode)) {
+                if (isTopLevel && (nodes.nodes[index - 1] is DocumentNode.ElementNode || node is DocumentNode.ElementNode)) {
                     appendLine()
                 }
             }
-            visitNode(it)
+            visitNode(node)
         }
     }
 }

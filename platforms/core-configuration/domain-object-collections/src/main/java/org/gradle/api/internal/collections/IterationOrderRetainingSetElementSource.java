@@ -17,9 +17,13 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
+
     private static final Spec<ValuePointer<?>> NO_DUPLICATES = pointer -> !pointer.getElement().isDuplicate(pointer.getIndex());
 
     /**
@@ -135,4 +140,18 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
             return false;
         }
     }
+
+    @Override
+    public ProviderInternal<Set<T>> getElements() {
+        return new BuildableBackedProvider<>(
+            this,
+            Cast.uncheckedCast(Set.class),
+            SerializableLambdas.factory(() -> {
+                ImmutableSet.Builder<T> builder = ImmutableSet.builderWithExpectedSize(estimatedSize());
+                builder.addAll(iterator());
+                return builder.build();
+            })
+        );
+    }
+
 }

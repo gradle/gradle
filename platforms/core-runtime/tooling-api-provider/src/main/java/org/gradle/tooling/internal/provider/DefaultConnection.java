@@ -76,7 +76,6 @@ import java.util.List;
  *
  * @see org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader
  */
-@SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
     ConfigurableConnection, InternalCancellableConnection, InternalParameterAcceptingConnection,
     StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalInvalidatableVirtualFileSystemConnection, InternalStopWhenIdleConnection {
@@ -164,7 +163,8 @@ public class DefaultConnection implements ConnectionVersion4,
      * This is used by consumers 2.1-rc-1 to 4.3
      */
     @Override
-    public <T> BuildResult<T> run(org.gradle.tooling.internal.protocol.InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+    @SuppressWarnings("deprecation")
+    public <T> BuildResult<T> run(@SuppressWarnings("deprecation") org.gradle.tooling.internal.protocol.InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
@@ -176,6 +176,7 @@ public class DefaultConnection implements ConnectionVersion4,
      * This is used by consumers 4.4 and later
      */
     @Override
+    @SuppressWarnings("overloads")
     public <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);

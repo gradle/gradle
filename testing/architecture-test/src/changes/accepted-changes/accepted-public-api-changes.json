@@ -1,3 +1,26 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.onMutableCall(java.lang.String)",
+            "acceptation": "We don't want to advertise this new API. It can only be used if you derive from it and the only accepted derived class is \"StartParameterInternal\"",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationContainerScope",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationContainerScope.getDelegate$kotlin_dsl()",
+            "acceptation": "Not a public API: this is the JVM name of an internal Kotlin member, which encodes the compiler module name as a mangling suffix. Kotlin changed how the default module name is computed (https://youtrack.jetbrains.com/issue/KT-69701), so this suffix is no longer generated.",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationContainerScope",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationContainerScope.getDelegate$org_gradle_kotlin_dsl()",
+            "acceptation": "Not a public API: this is the JVM name of an internal Kotlin member, which encodes the compiler module name as a mangling suffix. Kotlin changed how the default module name is computed (https://youtrack.jetbrains.com/issue/KT-69701), so this is the newly generated suffix.",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }

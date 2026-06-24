@@ -78,6 +78,7 @@ import java.util.Set;
 
 import static java.util.Collections.unmodifiableSet;
 
+@SuppressWarnings("this-escape")
 public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository<IvyRepositoryDescriptor> implements IvyArtifactRepository, ResolutionAwareRepository {
     private volatile Set<String> schemes;
     private AbstractRepositoryLayout layout;

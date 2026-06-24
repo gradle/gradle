@@ -28,7 +28,8 @@ import spock.lang.Specification
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
-    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2)
+    def boundedCallerStackCapturer = Mock(BoundedCallerStackCapturer)
+    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2, Integer.MAX_VALUE, boundedCallerStackCapturer)
 
     def "uses caller's stack trace to calculate problem location"() {
         given:
@@ -101,6 +102,33 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics5 = stream.forCurrentCaller(supplier)
         diagnostics5.exception == null
         diagnostics5.stack.empty
+    }
+
+    def "stops capturing bounded stacks once the bounded budget is spent"() {
+        given:
+        // 2 full captures, then a bounded budget of 3, then no capture at all.
+        def cappedFactory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2, 3, boundedCallerStackCapturer)
+        def stream = cappedFactory.newStream()
+
+        when:
+        6.times { stream.forCurrentCaller() }
+
+        then:
+        3 * boundedCallerStackCapturer.captureCallerStack() >> null
+    }
+
+    def "unlimited stream caps full captures and uses bounded captures past the cap"() {
+        given:
+        def boundedThrowable = new Exception()
+        def stream = factory.newUnlimitedStream()
+
+        when:
+        def diagnostics = (1..5).collect { stream.forCurrentCaller() }
+
+        then:
+        !diagnostics[0].stack.empty
+        !diagnostics[1].stack.empty
+        3 * boundedCallerStackCapturer.captureCallerStack() >> boundedThrowable
     }
 
     def "each stream has an independent stack trace limit"() {

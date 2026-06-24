@@ -49,17 +49,9 @@ kotlin {
     }
 }
 
-val kotlinModuleName = project.name
-// Pin the module name temporarily because it changed between Kotlin 2.4.0-Beta2 and 2.4.0-RC
-// see: https://youtrack.jetbrains.com/issue/KT-69701
-// It is a problem while transitioning from one embedded version to another, because
-// we can't make the architecture tests work both on the build and in dogfooding tests.
-// Once the wrapper will embed 2.4.0-RC or later, we can remove this and just go with the default
-// (adjust architecture tests accordingly).
-
 tasks {
     withType<KotlinCompile>().configureEach {
-        configureKotlinCompilerForGradleBuild(kotlinModuleName)
+        configureKotlinCompilerForGradleBuild()
     }
 
     withType<Test>().configureEach {

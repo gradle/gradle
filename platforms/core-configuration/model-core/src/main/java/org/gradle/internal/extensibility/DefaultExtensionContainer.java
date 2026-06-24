@@ -45,6 +45,7 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final InstanceGenerator instanceGenerator;
 
+    @SuppressWarnings("this-escape")
     public DefaultExtensionContainer(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
