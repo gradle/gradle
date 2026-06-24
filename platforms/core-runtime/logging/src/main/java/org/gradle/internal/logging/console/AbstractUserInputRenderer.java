@@ -121,7 +121,7 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         }
         try {
             if (overflowEncoder == null) {
-                overflowFile = temporaryFileProvider.createTemporaryFile("user-input-overflow-", ".bin");
+                overflowFile = temporaryFileProvider.createOwnerOnlyTemporaryFile("user-input-overflow-", ".bin");
                 overflowFile.deleteOnExit();
                 overflowEncoder = new KryoBackedEncoder(Files.newOutputStream(overflowFile.toPath()));
             }
