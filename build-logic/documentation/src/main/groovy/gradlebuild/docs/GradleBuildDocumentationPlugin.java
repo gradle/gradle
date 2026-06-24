@@ -16,6 +16,8 @@
 
 package gradlebuild.docs;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import gradlebuild.basics.PublicApi;
 import gradlebuild.basics.PublicKotlinDslApi;
 import org.asciidoctor.gradle.jvm.AsciidoctorJExtension;
@@ -62,6 +64,11 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
 
         extension.getQuickFeedback().convention(getProviders().gradleProperty("quickDocs").map(x -> true).orElse(false));
         extension.getGradleVersion().convention(project.provider(() -> project.getVersion().toString()));
+        extension.getGradleVersion8().convention(
+            getProviders().fileContents(project.getRootProject().getLayout().getProjectDirectory().file("released-versions.json"))
+                .getAsText()
+                .map(GradleBuildDocumentationPlugin::findLatestGradle8Version)
+        );
 
         project.apply(target -> target.plugin("org.asciidoctor.jvm.convert"));
 
@@ -76,6 +83,17 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         addUtilityTasks(project, tasks, extension);
 
         checkDocumentation(tasks, extension);
+    }
+
+    private static String findLatestGradle8Version(String releasedVersionsJson) {
+        JsonObject root = JsonParser.parseString(releasedVersionsJson).getAsJsonObject();
+        for (var element : root.getAsJsonArray("finalReleases")) {
+            String version = element.getAsJsonObject().get("version").getAsString();
+            if (version.startsWith("8.")) {
+                return version;
+            }
+        }
+        throw new IllegalStateException("No 8.x release found in released-versions.json");
     }
 
     private void configureAsciidoctorJ(Project project, TaskContainer tasks) {

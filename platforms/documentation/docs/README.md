@@ -46,6 +46,7 @@ Top-level properties:
 | `stagingRoot`               | Working directory for in-flight rendered output (defaults to `build/working`).               |
 | `documentationRenderedRoot` | Final location of all rendered documentation (defaults to `build/docs`).                     |
 | `gradleVersion`             | Gradle version embedded in the documentation.                                                |
+| `gradleVersion8`            | Latest Gradle 8.x patch version, auto-derived from `released-versions.json`.                 |
 | `quickFeedback`             | When `true` (via `-PquickDocs`), slow tasks (single-page manual, DSL reference) are skipped. |
 
 The extension also exposes nested configurations for each documentation type:

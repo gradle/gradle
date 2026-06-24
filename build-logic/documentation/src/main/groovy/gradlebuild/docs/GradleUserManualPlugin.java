@@ -167,6 +167,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("docsUrl", "https://docs.gradle.org");
 
             attributes.put("gradleVersion", (Callable<String>) extension.getGradleVersion()::get);
+            attributes.put("gradleVersion8", (Callable<String>) extension.getGradleVersion8()::get);
             attributes.put("snippetsPath", "snippets");
             task.attributes(attributes);
         });
