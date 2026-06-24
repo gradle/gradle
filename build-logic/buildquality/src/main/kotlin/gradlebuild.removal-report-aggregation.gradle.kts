@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.repoRoot
+import gradlebuild.removal.action.UpstreamCommitValueSource
 import gradlebuild.removal.action.nextMajorGradleVersion
 import gradlebuild.removal.tasks.NextMajorRemovalAggregateReportTask
 
@@ -26,6 +26,11 @@ plugins {
 
 // The report targets the next major version, derived from the current version (e.g. 9.7.0 -> 10).
 val nextMajor = providers.fileContents(repoRoot().file("version.txt")).asText.map { nextMajorGradleVersion(it) }
+
+// A commit known to exist on gradle/gradle, so source links don't 404 for local-only branch commits.
+val sourceCommit = providers.of(UpstreamCommitValueSource::class) {
+    parameters.workingDir = repoRoot()
+}
 
 // Distinct config name from the incubation aggregation plugin ("reports"), since both plugins are
 // applied to the same project.
@@ -40,7 +45,7 @@ val allNextMajorRemovalReports = tasks.register<NextMajorRemovalAggregateReportT
     reports.from(resolver("txt"))
     htmlReportFile = project.layout.buildDirectory.file("reports/removal/all-next-major-removals.html")
     csvReportFile = project.layout.buildDirectory.file("reports/removal/all-next-major-removals.csv")
-    currentCommit = project.buildCommitId
+    currentCommit = sourceCommit
     targetMajorVersion = nextMajor
 }
 
