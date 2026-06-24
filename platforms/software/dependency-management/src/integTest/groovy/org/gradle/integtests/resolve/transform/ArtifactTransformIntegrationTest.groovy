@@ -3005,7 +3005,7 @@ Found the following transformation chains:
         if (configurationCache) {
             failure.assertHasCause("Could not resolve all files for configuration ':sizes'.")
             failure.assertThatCause(matchesRegexp("Failed to transform lib\\.jar \\(project ':lib'\\) to match attributes \\{.*\\}\\."))
-            failure.assertHasCause("Could not access project :lib. No task declared :lib as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
+            failure.assertHasCause("Could not access project ':lib'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
             failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
             failure.assertHasResolution("Consult the upgrading guide for further information: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_9", "undeclared_artifact_transform_input"))
         } else {
@@ -3086,7 +3086,7 @@ Found the following transformation chains:
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':sizes'.")
-        failure.assertHasCause("Could not access project :lib-build:producer. No task declared :lib-build:producer as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
+        failure.assertHasCause("Could not access project ':lib-build:producer'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
         failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
         failure.assertHasResolution("Consult the upgrading guide for further information: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_9", "undeclared_artifact_transform_input"))
     }

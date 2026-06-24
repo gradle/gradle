@@ -52,9 +52,8 @@ public final class UnknownProjectStateException extends IllegalArgumentException
     }
 
     private static String buildMessage(ProjectComponentIdentifier identifier) {
-        String path = identifier.getBuildTreePath();
-        return "Could not access project " + path + ". "
-            + "No task declared " + path + " as part of an input, so it was not scheduled. "
+        return "Could not access " + identifier.getDisplayName() + ". "
+            + "No task declared this project as part of an input, so it was not scheduled. "
             + "Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.";
     }
 

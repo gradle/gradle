@@ -26,15 +26,15 @@ class UnknownProjectStateExceptionTest extends Specification {
     def "message names the project and points at the missing input declaration"() {
         given:
         def identifier = Stub(ProjectComponentIdentifier) {
-            getBuildTreePath() >> ":lib"
+            getDisplayName() >> "project ':lib'"
         }
 
         when:
         def exception = new UnknownProjectStateException(identifier)
 
         then:
-        exception.message == "Could not access project :lib. " +
-            "No task declared :lib as part of an input, so it was not scheduled. " +
+        exception.message == "Could not access project ':lib'. " +
+            "No task declared this project as part of an input, so it was not scheduled. " +
             "Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution."
     }
 
@@ -64,15 +64,15 @@ class UnknownProjectStateExceptionTest extends Specification {
     def "uses build tree path so composite-build paths are unambiguous"() {
         given:
         def identifier = Stub(ProjectComponentIdentifier) {
-            getBuildTreePath() >> ":includedBuild:lib"
+            getDisplayName() >> "project ':includedBuild:lib'"
         }
 
         when:
         def exception = new UnknownProjectStateException(identifier)
 
         then:
-        exception.message.contains("Could not access project :includedBuild:lib.")
-        exception.message.contains("No task declared :includedBuild:lib as part of an input")
+        exception.message.contains("Could not access project ':includedBuild:lib'.")
+        exception.message.contains("No task declared this project as part of an input")
     }
 
     def "provides two actionable resolutions including the upgrading-guide URL"() {
