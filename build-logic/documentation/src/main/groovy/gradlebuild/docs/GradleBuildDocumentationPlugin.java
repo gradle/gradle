@@ -23,7 +23,6 @@ import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
@@ -79,9 +78,13 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
     }
 
     private void configureAsciidoctorJ(Project project, TaskContainer tasks) {
-        VersionCatalog buildLibs = project.getExtensions().getByType(VersionCatalogsExtension.class).named("buildLibs");
         AsciidoctorJExtension asciidoctorj = project.getExtensions().getByType(AsciidoctorJExtension.class);
-        asciidoctorj.setVersion(buildLibs.findVersion("asciidoctor").get().getRequiredVersion());
+        VersionCatalogsExtension catalogs = project.getExtensions().findByType(VersionCatalogsExtension.class);
+        if (catalogs != null) {
+            catalogs.find("buildLibs")
+                .flatMap(catalog -> catalog.findVersion("asciidoctor"))
+                .ifPresent(version -> asciidoctorj.setVersion(version.getRequiredVersion()));
+        }
         asciidoctorj.getModules().getPdf().setVersion("2.3.23");
         // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
         // TODO: tables are not handled properly in pdfs
