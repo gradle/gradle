@@ -20,6 +20,7 @@ tasks.withType<Javadoc>().configureEach {
 
 dependencies {
     api(projects.coreApi)
+    api(projects.baseServices) // Named, Describable, capitalize and other base API the facades/model expose
 
     // org.gradle.api.xdcl.* (Reaction, ReactionScope, Facade, ConfigurationNode, ...) is part of the
     // Gradle API in the distribution-under-test at runtime; at build time it must be on the compile
@@ -28,14 +29,16 @@ dependencies {
 
     // Real task types the reaction registers live in distinct subprojects (bundled via implementation,
     // matching project-features-demos — implementation deps are not packed into the jar):
-    implementation(projects.core)        // Copy, project internals
-    implementation(projects.languageJava) // JavaCompile
-    implementation(projects.platformJvm)  // org.gradle.jvm.tasks.Jar
-    implementation(projects.testingJvm)   // org.gradle.api.tasks.testing.Test
-    implementation(projects.platformBase) // Usage/LibraryElements attributes
-    implementation(projects.modelCore)    // managed types / ObjectFactory plumbing
+    implementation(projects.core)         // Copy, project internals
+    implementation(projects.languageJava)  // JavaCompile
+    implementation(projects.languageGroovy) // GroovyCompile
+    implementation(projects.languageJvm)   // AbstractCompile source/target compatibility
+    implementation(projects.platformJvm)   // org.gradle.jvm.tasks.Jar
+    implementation(projects.testingJvm)    // org.gradle.api.tasks.testing.Test
+    implementation(projects.testingBase)   // Test report containers
+    implementation(projects.reporting)     // DirectoryReport output locations
+    implementation(projects.loggingApi)    // project.getLogger()
 
-    integTestImplementation(projects.baseServices)
     integTestImplementation(projects.coreApi)
     integTestImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)

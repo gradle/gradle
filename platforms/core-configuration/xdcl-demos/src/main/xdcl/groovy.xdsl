@@ -1,0 +1,37 @@
+package org.gradle.demos.groovy.dsl
+
+import org.gradle.demos.common.dsl
+
+// Shares Dependencies/Repository/NamedRepository with the Java demo via the common fragment
+// (package-import form). Only the Groovy-specific source record and the trait live here.
+
+/// Capability contract for the Groovy project type, mirroring the Java demo's JavaComponent. Carries
+/// what the reaction reads to wire a Groovy component: the Groovy compiler/runtime version, the JVM
+/// bytecode target, and its named source sets. Dependencies and repositories come from the shared
+/// `HasDependencies`/`HasRepositories` traits the template composes.
+trait GroovyComponent {
+  /// Groovy compiler/runtime version (e.g. "4.0.3"), resolved as `org.apache.groovy:groovy:<version>`
+  /// into the mandatory groovyClasspath of every GroovyCompile. No inline default: it is supplied by
+  /// the plugin-shipped ecosystem default (a SCALAR shipped default, vs. the map default for sources).
+  groovyVersion: String?
+  /// JVM source/target bytecode version. e.g. 8, 17, 21. Kept for parity with the Java demo.
+  javaVersion: Int = 17
+  /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
+  /// the whole map to add more.
+  sources: [String: GroovySource]?
+}
+
+/// One named source set. Directories are optional overrides; the reaction falls back to the
+/// conventional `src/<name>/groovy` and `src/<name>/resources`. Its `dependencies` (from
+/// `HasDependencies`) map to per-source-set configurations (`<name>Api`, `<name>Implementation`, …)
+/// that extend the matching top-level configurations.
+record GroovySource with HasDependencies {
+  groovyDirs: [String]?
+  resourceDirs: [String]?
+}
+
+/// Top-level Groovy library project type.
+template GroovyLibrary with GroovyComponent & HasRepositories & HasDependencies {
+  groovyLibrary {
+  }
+}
