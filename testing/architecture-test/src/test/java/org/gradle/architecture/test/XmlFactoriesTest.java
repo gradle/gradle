@@ -62,9 +62,15 @@ public class XmlFactoriesTest {
         noClasses()
             .that(doNot(belongToAnyOf(XmlFactories.class)))
             .should()
-            .callMethodWhere(describe("static XML factories", methodCall ->
-                xmlFactoryClasses.stream().anyMatch(clazz -> methodCall.getTarget().getOwner().isAssignableFrom(clazz)) &&
-                    methodCall.getTarget().resolveMember().get().getModifiers().contains(JavaModifier.STATIC)
-            ))
+            .callMethodWhere(describe("static XML factories", methodCall -> {
+                var resolveMember = methodCall.getTarget().resolveMember();
+                if (resolveMember.isEmpty()) {
+                    return false;
+                }
+                var owner = methodCall.getTarget().getOwner();
+
+                return resolveMember.get().getModifiers().contains(JavaModifier.STATIC) &&
+                    xmlFactoryClasses.stream().anyMatch(owner::isAssignableFrom);
+            }))
             .because(RATIONALE);
 }
