@@ -147,6 +147,12 @@ Gradle's own up-to-date checks and <<build_cache.adoc#build_cache,remote build c
 Some common sources of non-determinism in builds are file timestamps inside archives, the order of entries inside archives, and the SDK used to compile classes.
 For JVM builds, keeping wall-clock timestamps on `.class` files inside a `.jar`, or letting archive entries follow the filesystem's directory-iteration order, means that two clean builds of the same source produce slightly different artifacts with different checksums even though the output is functionally identical.
 
+NOTE: Since Gradle 9.0.0, archive artifacts are set to be link:https://docs.gradle.org/9.0.0/release-notes.html#archive-tasks-produce-reproducible-archives-by-default[reproducible by default].
+
+This is list of examples is *not exhaustive*.
+There are other ways to introduce non-reproducibility in your project.
+One good test to confirm reproducibility is to try re-building an older version on a different machine, and comparing the output to the published binary.
+
 === Example
 
 ==== Don't Do This
@@ -196,7 +202,7 @@ This both prevents security risks and ensures that the published artifact is a d
 ==== Don't Do This
 
 Do not use incremental, local, or cached builds when publishing.
-These methods rely on the outputs of previous builds, which can opan an attack vector.
+These methods rely on the outputs of previous builds, which can open an attack vector.
 An incremental build might use a leftover artifact from an older, potentially compromised, build.
 Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact.
 The build output could then depend on the state of the machine where it ran, undermining the integrity of your software.
