@@ -186,37 +186,3 @@ include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/groovy",files=
 
 <<tags_reference.adoc#tag:publishing,`#publishing`>>, <<tags_reference.adoc#tag:tasks,`#tasks`>>
 
-[[build-published-artifacts-securely]]
-== Build your Published Artifacts Securely
-
-When publishing, ensure that artifacts are built in a trusted, reproducible way to protect your link:https://slsa.dev/[software supply chain].
-
-=== Explanation
-
-A project's published artifacts should be <<#builds_should_be_reproducible,byte-for-byte reproducible>>; reproducibility is a precondition for everything below.
-Without it, the additional safeguards described here provide no verifiable assurance.
-
-When preparing a project for publishing, also use a secure and isolated build process.
-This both prevents security risks and ensures that the published artifact is a direct and verifiable result of the source code.
-
-==== Don't Do This
-
-Do not use incremental, local, or cached builds when publishing.
-These methods rely on the outputs of previous builds, which can open an attack vector.
-An incremental build might use a leftover artifact from an older, potentially compromised, build.
-Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact.
-The build output could then depend on the state of the machine where it ran, undermining the integrity of your software.
-
-==== Do This Instead
-
-Published artifacts should always be built in a trusted, pristine environment.
-The best way to achieve this is to use a fresh, isolated, temporary CI machine.
-This approach, often referred to as *Ephemeral CI*, guarantees that the build starts from a clean slate every time, with no lingering artifacts, caches, or other external state.
-
-NOTE: This guidance is specific to builds that produce published artifacts.
-Gradle's <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> are safe and deterministic when configured correctly, and non-publishing builds should continue to take full advantage of them.
-Avoiding caching for publishing builds is an extra layer of certainty, not a statement that caches are inherently unsafe.
-
-=== Tags
-
-<<tags_reference.adoc#tag:publishing,`#publishing`>>
