@@ -2,23 +2,37 @@ package org.gradle.demos.checkstyle.dsl
 
 import org.gradle.demos.java.dsl
 
-// Binds the checkstyle demo to the xdcl Java ecosystem at the source-set level: an xdcl `extension`
-// attaches a `checkstyle { }` block to every element that composes `HasJavaSources` (the form proven by
-// the xdcl test corpus, e.g. `extension Checkstyle for HasName`). An extension host must be a trait or
-// template, never a bare record — hence binding to the `HasJavaSources` trait that `JavaSource`
-// composes rather than to `JavaSource` itself. The block emits a standalone `Checkstyle` ExtensionFacade
-// nested under its host source set; `CheckstyleReaction` (Project context) fires once per source set
-// that declares the block and reaches its host via `scope.ancestor(HasJavaSources.class)` to recover
-// the source-set name — the per-source identity a `[String: JavaSource]` map could not provide.
+// The checkstyle demo splits across two extensions that share the `checkstyle { }` keyword but bind to
+// different hosts (the registry indexes extensions by root name as a list, disambiguated by host type;
+// JavaLibrary and HasJavaSources are disjoint, so a `checkstyle { }` block resolves unambiguously by
+// where it is written):
+//
+//   * `CheckstyleTool` binds to the `JavaLibrary` template and owns the project-wide tool `version`.
+//     Its reaction resolves the version to a single shared Checkstyle classpath and publishes it on a
+//     `CheckstyleModel` project extension. (Mirrors the real `checkstyle { toolVersion }`.)
+//   * `Checkstyle` binds to the per-source-set `HasJavaSources` trait and owns the per-task knobs
+//     (`configFile`, `ignoreFailures`). Its reaction registers a `check<Name>Checkstyle` task and reads
+//     the shared classpath back off the `CheckstyleModel` the higher-level reaction published.
+//
+// An extension host must be a trait or template, never a bare record — hence binding to `JavaLibrary`
+// and to the `HasJavaSources` trait rather than to the `JavaSource` record.
 
-/// Per-source-set checkstyle configuration. The reaction resolves `checkstyleVersion` to a tool
-/// classpath and registers a `check<Name>Checkstyle` task that analyses the source set's Java sources.
-extension Checkstyle for HasJavaSources {
+/// Project-wide Checkstyle tool configuration, declared as `checkstyle { }` on a `javaLibrary`. Its
+/// reaction resolves `checkstyleVersion` to the shared Checkstyle classpath.
+extension CheckstyleTool for JavaLibrary {
   checkstyle {
     /// The Checkstyle tool version, resolved as `com.puppycrawl.tools:checkstyle:<version>`. Defaults
     /// inline (an xdcl schema default, like `JavaComponent.javaVersion`) so a bare `checkstyle { }`
-    /// opts in at the shipped version.
+    /// resolves the classpath at the shipped version.
     checkstyleVersion: String = "10.24.0"
+  }
+}
+
+/// Per-source-set checkstyle configuration, declared as `checkstyle { }` on a source set. Its reaction
+/// registers the source set's Checkstyle task, sourcing the shared tool classpath from the
+/// `CheckstyleTool` extension above.
+extension Checkstyle for HasJavaSources {
+  checkstyle {
     /// Whether Checkstyle violations are reported but do not fail the build (mirrors
     /// `CheckstyleDefinition.ignoreFailures`).
     ignoreFailures: Bool = false
