@@ -78,6 +78,7 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
         this.dirs = new FileCollectionAdapter(new SourceDirectories(), taskDependencyFactory);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultSourceDirectorySet(SourceDirectorySet sourceSet, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         if (!(sourceSet instanceof DefaultSourceDirectorySet)) {

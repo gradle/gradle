@@ -365,13 +365,7 @@ fun BuildSteps.killProcessStep(
         name = mode.toString()
         this.executionMode = executionMode
         scriptContent =
-            "\"${
-                javaHome(
-                    BuildToolBuildJvm,
-                    os,
-                    arch,
-                )
-            }/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
+            "\"$AGENT_JAVA_BINARY\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
             if (os ==
                 Os.WINDOWS
             ) {

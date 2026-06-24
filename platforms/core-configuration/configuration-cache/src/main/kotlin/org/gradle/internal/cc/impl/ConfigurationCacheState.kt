@@ -712,16 +712,17 @@ class ConfigurationCacheState(
 
     private
     fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        val startParameterTaskNames = gradle.startParameter.taskNames
-        writeStrings(startParameterTaskNames)
+        writeStrings(gradle.startParameter.taskNames)
     }
 
     private
     fun ReadContext.readStartParameterOf(gradle: GradleInternal) {
-        // Restore startParameter.taskNames to enable `gradle.startParameter.setTaskNames(...)` idiom in included build scripts
-        // See org/gradle/caching/configuration/internal/BuildCacheCompositeConfigurationIntegrationTest.groovy:134
-        val startParameterTaskNames = readStrings()
-        gradle.startParameter.setTaskNames(startParameterTaskNames)
+        // Restore the requested task names captured during configuration. The cached work graph already
+        // drives what executes on a cache hit, so this is not needed to run the build. It keeps
+        // gradle.startParameter.taskNames consistent on a hit for internal consumers that read it (build
+        // operations, problem reports, build scans), since scheduling -- which resolves and populates the
+        // names on a store run -- does not run on a hit.
+        gradle.startParameter.setTaskNames(readStrings())
     }
 
     private

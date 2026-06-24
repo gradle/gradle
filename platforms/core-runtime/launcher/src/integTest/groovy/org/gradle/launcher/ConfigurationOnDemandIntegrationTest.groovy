@@ -19,6 +19,7 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,6 +32,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "launcher cross-project configuration")
     def "can be enabled from command line and start parameter informs about it, too"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
 

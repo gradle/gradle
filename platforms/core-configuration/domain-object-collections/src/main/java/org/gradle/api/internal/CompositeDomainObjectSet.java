@@ -15,17 +15,19 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.EventSubscriptionVerifier;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -281,11 +283,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             if (store.isEmpty()) {
                 return Collections.emptySet();
             }
-            Set<T> tmp = Sets.newLinkedHashSetWithExpectedSize(estimatedSize());
+            ImmutableSet.Builder<T> tmp = ImmutableSet.builderWithExpectedSize(estimatedSize());
             for (StoredCollection<T> collection : store) {
                 tmp.addAll(collection.get());
             }
-            return tmp;
+            return tmp.build();
         }
 
         @Override
@@ -416,6 +418,19 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         @Override
         public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ProviderInternal<Set<T>> getElements() {
+            return new BuildableBackedProvider<>(
+                context -> {
+                    for (StoredCollection<T> collection : store) {
+                        context.add(collection.get().getElements());
+                    }
+                },
+                Cast.uncheckedCast(Set.class),
+                this::collect
+            );
         }
 
         @Override

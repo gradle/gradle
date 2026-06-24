@@ -98,6 +98,8 @@ public interface ElementSource<T> extends Iterable<T> {
 
     void realizeExternal(ProviderInternal<? extends T> provider);
 
+    ProviderInternal<? extends Collection<T>> getElements();
+
     /**
      * Adds an action to be executed when a value from a pending element is concretely added.
      * The provided action is only called when a pending value is realized and the value is not

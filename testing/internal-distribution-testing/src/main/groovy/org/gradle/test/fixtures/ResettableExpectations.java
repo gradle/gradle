@@ -17,7 +17,7 @@
 package org.gradle.test.fixtures;
 
 /**
- * Allows {@link org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension} to verify
+ * Allows {@link org.gradle.integtests.fixtures.modes.GradleModeTestingExtension} to verify
  * test expectations before cleanup so they can be silenced if necessary.
  */
 public interface ResettableExpectations {

@@ -24,7 +24,6 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -151,14 +150,13 @@ public class ClasspathUtil {
         try {
             return url.toURI();
         } catch (URISyntaxException e) {
-            try {
-                return new URL(url.getProtocol(),
-                               url.getHost(),
-                               url.getPort(),
-                               url.getFile().replace(" ", "%20")).toURI();
-            } catch (MalformedURLException e1) {
-                throw UncheckedException.throwAsUncheckedException(e1);
-            }
+            // Some callers (notably JVM `URLClassLoader`s built via the deprecated `File.toURL()`
+            // path) hand us URLs with raw spaces in the file portion. The 7-arg `URI(...)`
+            // constructor escapes the file segment but, on JDK 25, no longer round-trips spaces
+            // identically to the legacy `new URL(...).toURI()` form, which broke when the
+            // distribution's path itself contained whitespace. Stringifying the URL and pre-escaping
+            // the only character we know can show up unescaped restores the original semantics.
+            return new URI(url.toString().replace(" ", "%20"));
         }
     }
 

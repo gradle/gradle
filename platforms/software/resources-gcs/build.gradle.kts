@@ -54,6 +54,4 @@ gradleModule {
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

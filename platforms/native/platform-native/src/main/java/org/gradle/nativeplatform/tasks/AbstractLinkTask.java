@@ -64,6 +64,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private final ConfigurableFileCollection libs;
     private final Property<Boolean> debuggable;
 
+    @SuppressWarnings("this-escape")
     public AbstractLinkTask() {
         final ObjectFactory objectFactory = getProject().getObjects();
         this.libs = getProject().files();

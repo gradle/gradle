@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("this-escape")
 public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet, PublicationArtifactSet<MavenArtifact> {
     private final String publicationName;
     private final FileCollection files;

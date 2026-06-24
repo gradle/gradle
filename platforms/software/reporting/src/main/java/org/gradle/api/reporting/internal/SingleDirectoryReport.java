@@ -30,6 +30,7 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
     @Nullable
     private final String relativeEntryPath;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public SingleDirectoryReport(String name, Describable owner, @Nullable String relativeEntryPath) {
         super(name, Describables.of(name, "report for", owner), OutputType.DIRECTORY);

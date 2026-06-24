@@ -18,12 +18,12 @@ package org.gradle.api
 
 import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -175,7 +175,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":api", ':impl')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "follows project dependencies when run in subproject"() {
         createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
@@ -507,8 +507,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29154")
-    @ToBeFixedForIsolatedProjects(because = "-x is not IP compatible")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
         createDirs("a", "b", "c", "c/child")
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
@@ -548,8 +547,7 @@ project(':b') {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29154")
-    @ToBeFixedForIsolatedProjects(because = "-x is not IP compatible")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "configures all subprojects of default project when excluded task path is not qualified and an exact match not found in default project"() {
         createDirs("a", "b", "c", "c/child")
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
@@ -587,8 +585,7 @@ allprojects {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/29154")
-    @ToBeFixedForIsolatedProjects(because = "-x is not IP compatible")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "configures all subprojects of default projects when excluded task path is not qualified and uses camel case matching"() {
         createDirs("a", "b", "b/child", "c")
         settingsFile << "include 'a', 'b', 'b:child', 'c'"
@@ -634,6 +631,7 @@ allprojects {
         executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property 'foo' was not declared in project ':a:child' and was resolved from project ':a'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 

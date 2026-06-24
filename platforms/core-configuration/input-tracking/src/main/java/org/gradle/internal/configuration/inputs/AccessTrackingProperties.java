@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -484,6 +485,20 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public synchronized Object clone() {
+        Properties clonedDelegate = (Properties) delegate.clone();
+        // Continue tracking individual property access on the clone, not reporting aggregate access.
+        // Cloning alone doesn't mean the caller will read all properties — they may only access specific ones.
+        // Mutations on the clone must NOT be reported: they only affect the clone's delegate, not the real system properties.
+        // Reads of mutated properties are not reported as well.
+        // When cloning a clone, snapshot the parent's mutation state into the child so that subsequent
+        // mutations on either instance are isolated
+        // See https://github.com/gradle/gradle/issues/17344
+        return new AccessTrackingProperties(clonedDelegate, ReadUnchangedListener.forClone(listener));
+    }
+
+    @Override
     public String toString() {
         return delegate.toString();
     }
@@ -647,6 +662,64 @@ public class AccessTrackingProperties extends Properties {
             listener.onAccess(getKey(), oldValue);
             reportChange(getKey(), value);
             return oldValue;
+        }
+    }
+
+    /**
+     * A listener wrapper that forwards only read access notifications
+     * for keys that have not been mutated on this cloned instance.
+     * Used by {@link #clone()} so that reads on the cloned properties are still tracked
+     * as fingerprint inputs, but writes to the clone don't affect the original properties'
+     * fingerprint or get replayed onto real {@code System.getProperties()} on cache hit.
+     */
+    private static class ReadUnchangedListener implements Listener {
+        private final Listener delegate;
+        private final Set<Object> mutatedKeys = ConcurrentHashMap.newKeySet();
+        private volatile boolean cleared;
+
+        private ReadUnchangedListener(Listener delegate) {
+            this.delegate = delegate;
+        }
+
+        static ReadUnchangedListener forClone(Listener parentListener) {
+            ReadUnchangedListener instance;
+            if (parentListener instanceof ReadUnchangedListener) {
+                ReadUnchangedListener parent = (ReadUnchangedListener) parentListener;
+                instance = new ReadUnchangedListener(parent.delegate);
+                instance.mutatedKeys.addAll(parent.mutatedKeys);
+                instance.cleared = parent.cleared;
+            } else {
+                instance = new ReadUnchangedListener(parentListener);
+            }
+            return instance;
+        }
+
+        @Override
+        public void onAccess(Object key, @Nullable Object value) {
+            if (cleared || mutatedKeys.contains(key)) {
+                return;
+            }
+            delegate.onAccess(key, value);
+        }
+
+        @Override
+        public void onChange(Object key, Object newValue) {
+            if (!cleared) {
+                mutatedKeys.add(key);
+            }
+        }
+
+        @Override
+        public void onRemove(Object key) {
+            if (!cleared) {
+                mutatedKeys.add(key);
+            }
+        }
+
+        @Override
+        public void onClear() {
+            cleared = true;
+            mutatedKeys.clear();
         }
     }
 }

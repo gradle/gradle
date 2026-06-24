@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
@@ -103,6 +104,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("integration-tests/maven-publish/customize-identity")
+    @ToBeFixedForIsolatedProjects(because = "publishing plugin accesses subproject state at config time")
     def "customize publication identity with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)

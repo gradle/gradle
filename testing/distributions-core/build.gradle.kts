@@ -49,4 +49,7 @@ dependencies {
     pluginsRuntimeOnly(projects.isolatedActionServices) {
         because("This is required for IsolatedProjectEvaluationListenerProvider service implementation.")
     }
+    pluginsRuntimeOnly(projects.problemsImpl) {
+        because("This provides the daemon-only Problems API service implementations.")
+    }
 }

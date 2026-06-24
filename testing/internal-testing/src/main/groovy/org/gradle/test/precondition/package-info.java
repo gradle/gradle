@@ -40,7 +40,6 @@
  *     <li>{@code NativeTestPreconditions} &mdash; native toolchain availability</li>
  *     <li>{@code SigningTestPreconditions} &mdash; GPG availability</li>
  *     <li>{@code TestKitTestPreconditions} &mdash; TestKit version availability</li>
- *     <li>{@code SmokeTestPreconditions} &mdash; smoke test JVM spec</li>
  * </ul>
  *
  * <p>All precondition classes live in the {@code org.gradle.test.preconditions} package.</p>

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
@@ -115,6 +116,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         javaClassFile("Foo.class").exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "don't implicitly compile source files from classpath"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -277,6 +279,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         javaClassFile("com/example/Foo.class").assertDoesNotExist()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "incremental compilation across projects")
     def "implementation dependencies should not leak into compile classpath of consumer"() {
         mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'other', '1.0').publish()

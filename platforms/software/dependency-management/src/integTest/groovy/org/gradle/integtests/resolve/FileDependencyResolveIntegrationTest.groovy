@@ -143,7 +143,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             task checkFiles {
                 def files = configurations.compile
                 doLast {
-                    assert files.files == [jarFile] as Set
+                    println files.files*.name
                 }
             }
         '''
@@ -159,6 +159,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         output.count("FILES REQUESTED") == 1
+        outputContains("[jar-1.jar]")
     }
 
     def "files referenced by file dependency are included when there is a cycle in the dependency graph"() {

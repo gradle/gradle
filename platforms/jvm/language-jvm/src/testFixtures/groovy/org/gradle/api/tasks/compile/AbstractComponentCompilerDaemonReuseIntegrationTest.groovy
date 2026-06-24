@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
 
 @UnsupportedWithConfigurationCache(because = "software model")

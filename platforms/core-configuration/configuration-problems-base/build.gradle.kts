@@ -21,24 +21,6 @@ plugins {
 
 description = "Base utilities and services to report and track configuration problems"
 
-val configurationCacheReportPath = configurations.create("configurationCacheReportPath") {
-    isCanBeConsumed = false
-    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
-}
-
-// You can have a faster feedback loop by running `configuration-cache-report` as an included build
-// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
-dependencies {
-    configurationCacheReportPath(libs.configurationCacheReport)
-}
-
-tasks.processResources {
-    from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
-        into("org/gradle/internal/configuration/problems")
-        exclude("META-INF/**")
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOption)
@@ -57,6 +39,13 @@ dependencies {
 
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
+
+    // Carries the report HTML template as a resource (org/gradle/internal/configuration/problems/
+    // configuration-cache-report.html), loaded at runtime by CommonReport.
+    // As there is no code in the jar yet, it is a runtimeOnly dependency so the dependency analysis doesn't complain.
+    // You can have a faster feedback loop by running `configuration-cache-report` as an included build.
+    // See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
+    runtimeOnly(libs.configurationCacheReport)
 }
 
 gradleModule {

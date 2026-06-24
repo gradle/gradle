@@ -47,11 +47,10 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     private void gradle() {
         new TestFile("build/gradleSources").copyTo(projectDirectory)
+        def installationPaths = AvailableJavaHomes.availableJvms.collect { it.javaHome.absolutePath.replace("\\", "/") }.join(",")
         projectFile("gradle.properties") << """
-            # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
-            # However, on CI JDK's installed not in the default location, and Gradle can't find appropriate toolchain to run.
-            # So we need to specify required JDK explicitly.
-            org.gradle.java.installations.paths=$AvailableJavaHomes.jdk17.javaHome.absolutePath
+            # Forward all known JDK installations so the inner gradle/gradle build can locate the daemon toolchain it requires (gradle-daemon-jvm.properties).
+            org.gradle.java.installations.paths=$installationPaths
 
             # we don't want to publish scans
             systemProp.scan.dump=true

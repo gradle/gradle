@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.hamcrest.CoreMatchers
 
 import static org.gradle.util.Matchers.containsText
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements CppTaskNames {
 
@@ -348,6 +349,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against implementation and api libraries"() {
         createDirs("lib1", "lib2", "lib3")
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
@@ -393,6 +395,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("lib3/build/lib/main/release/lib3").strippedRuntimeFile.assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can compile and link against static implementation and api libraries"() {
         createDirs("lib1", "lib2", "lib3")
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
@@ -438,6 +441,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("lib1/build/lib/main/release/lib1").strippedRuntimeFile.assertExists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "private headers are not visible to consumer"() {
         def lib = new CppLib()
 
@@ -478,6 +482,7 @@ project(':greeter') {
         succeeds(":consumer:compileDebugCpp")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "implementation dependencies are not visible to consumer"() {
         def app = new CppAppWithLibraries()
 
@@ -515,6 +520,7 @@ project(':greeter') {
         succeeds(":consumer:compileDebugCpp")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can change default base name and successfully link against library"() {
         createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"

@@ -25,6 +25,7 @@ public class DefaultConfigurableUserClassFilePermissions extends AbstractUserCla
     private boolean execute = false;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultConfigurableUserClassFilePermissions(int unixNumeric) {
         setRead(isRead(unixNumeric));
         setWrite(isWrite(unixNumeric));

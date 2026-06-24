@@ -37,6 +37,7 @@ public abstract class InjectedInstrumentationServices {
         () -> new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), getClasspathWalker())
     );
 
+    @SuppressWarnings("this-escape")
     public InjectedInstrumentationServices() {
         // Needed to generate a class
     }

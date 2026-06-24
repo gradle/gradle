@@ -28,6 +28,8 @@ import org.gradle.internal.Try
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptor
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
+import org.gradle.kotlin.dsl.resolver.internal.SourceDistributionResolutionCache
+import org.gradle.kotlin.dsl.support.serviceOf
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
 
@@ -47,18 +49,16 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     private val repoLocator = GradleDistRepoDescriptorLocator(project)
 
     override fun sourceDirs(): Collection<File> =
-        try {
-            sourceDirs
-        } catch (ex: Exception) {
-            project.logger.warn("Could not resolve Gradle distribution sources. See debug logs for details.")
-            project.logger.debug("Gradle distribution sources resolution failure", ex)
-            emptyList()
+        // Cached for the duration of the build so the resolution, and its failure warning, happen at most once
+        project.serviceOf<SourceDistributionResolutionCache>().computeIfAbsent {
+            try {
+                resolveSourceDirsFromRepositories(candidateRepositories())
+            } catch (ex: Exception) {
+                project.logger.warn("Could not resolve Gradle distribution sources. See debug logs for details.")
+                project.logger.debug("Gradle distribution sources resolution failure", ex)
+                emptyList()
+            }
         }
-
-    private
-    val sourceDirs by lazy {
-        resolveSourceDirsFromRepositories(candidateRepositories())
-    }
 
     private
     fun candidateRepositories() =

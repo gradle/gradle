@@ -24,7 +24,9 @@ import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
+import org.gradle.api.internal.file.copy.CopyActionUtil;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.ErroringAction;
@@ -32,6 +34,8 @@ import org.gradle.internal.IoActions;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.OptionalLong;
+import java.util.function.LongUnaryOperator;
 
 public class TarCopyAction implements CopyAction {
     /**
@@ -46,12 +50,18 @@ public class TarCopyAction implements CopyAction {
 
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
-    private final boolean preserveFileTimestamps;
+    private final OptionalLong reproducibleFileTimestampMs;
 
-    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, boolean preserveFileTimestamps) {
+    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, boolean preserveFileTimestamps, Provider<Long> reproducibleFileTimestamp) {
         this.tarFile = tarFile;
         this.compressor = compressor;
-        this.preserveFileTimestamps = preserveFileTimestamps;
+        this.reproducibleFileTimestampMs = CopyActionUtil.computeReproducibleTimestamp(
+            preserveFileTimestamps,
+            reproducibleFileTimestamp,
+            LongUnaryOperator.identity(),
+            CONSTANT_TIME_FOR_TAR_ENTRIES,
+            Long.MAX_VALUE
+        );
     }
 
     @Override
@@ -133,6 +143,6 @@ public class TarCopyAction implements CopyAction {
     }
 
     private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_TAR_ENTRIES;
+        return reproducibleFileTimestampMs.orElseGet(details::getLastModified);
     }
 }

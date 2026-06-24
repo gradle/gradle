@@ -36,6 +36,7 @@ public abstract class DefaultCppApplication extends DefaultCppComponent implemen
     private final MainExecutableVariant mainVariant;
     private final DefaultComponentDependencies dependencies;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultCppApplication(String name) {
         super(name);

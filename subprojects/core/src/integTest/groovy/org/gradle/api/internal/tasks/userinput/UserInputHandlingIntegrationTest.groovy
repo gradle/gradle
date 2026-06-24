@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.userinput
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions

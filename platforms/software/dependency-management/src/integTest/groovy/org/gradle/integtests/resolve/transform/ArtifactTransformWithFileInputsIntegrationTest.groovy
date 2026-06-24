@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
@@ -534,7 +534,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized, https://github.com/gradle/gradle/issues/37156")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/37156",
+        because = "classpath normalization configuration is not serialized"
+    )
     def "can use classpath normalization for parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """

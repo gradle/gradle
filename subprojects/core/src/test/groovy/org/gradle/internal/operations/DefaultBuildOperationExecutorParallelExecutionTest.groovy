@@ -17,6 +17,11 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ExecutorPolicy
+import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ManagedExecutorImpl
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -25,9 +30,13 @@ import org.gradle.internal.work.NoAvailableWorkerLeaseException
 import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Issue
 import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec {
     WorkerLeaseService workerRegistry
@@ -347,6 +356,97 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
         then:
         thrown(NoAvailableWorkerLeaseException)
+    }
+
+    @Issue("https://github.com/gradle/gradle-private/issues/5272")
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    def "main thread drains queued work even when blocking work has left the pool over-subscribed"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def setupDone = new CountDownLatch(1)
+        def releaseBlockingWorker = new CountDownLatch(1)
+        def opForMainRanOnMain = new AtomicBoolean()
+
+        // Limit 2 so the main thread and exactly one spawned worker can hold the leases. The
+        // executor has a single thread, which the first worker holds while it parks below. The
+        // compensating worker that blocking() spawns is queued behind that parked thread, so it
+        // stays counted but never starts to drain the queue. That is what leaves the main thread
+        // looking like an "extra" worker.
+        def workerLimits = new DefaultWorkerLimits(2)
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
+        workerRegistry.startProjectExecution(true)
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits)
+            .withWorkerLeaseService(workerRegistry)
+            .withExecutorFactory(new SingleThreadExecutorFactory())
+            .build()
+
+        // The op on the first worker.
+        def blockingOperation = runnableOperation("blocking") {
+            // Block to spawn a compensating worker that will never run
+            workerRegistry.blocking({} as Runnable)
+            // Stop blocking to decrement the max worker count to 1, but keep the worker count at 2.
+
+            // Signal that the compensating worker has been spawned and we're ready to execute the problematic behavior.
+            setupDone.countDown()
+            // Wait for the end of the test, holding this worker thread to keep the worker count at 2.
+            releaseBlockingWorker.await(30, TimeUnit.SECONDS)
+        }
+        // The op that should run on the main thread, as the first worker is blocked and the compensating worker never starts.
+        def opForMain = runnableOperation("opForMain") {
+            opForMainRanOnMain.set(Thread.currentThread() === mainThread)
+            releaseBlockingWorker.countDown()
+        }
+
+        when:
+        workerRegistry.runAsWorkerThread {
+            buildOperationExecutor.runAll({ queue ->
+                queue.add(blockingOperation)
+                queue.add(opForMain)
+                // Wait until the spawned worker has done its blocking work and is parked, so the
+                // main thread only starts draining once it is already "extra" with work queued.
+                setupDone.await(10, TimeUnit.SECONDS)
+
+                // On return we will start draining the queue on the main thread, which should run opForMain() despite the worker count being too high.
+                // If the bug is present, it will never run and the test will time out.
+            }, BuildOperationConstraint.MAX_WORKERS)
+        }
+
+        then:
+        // Ensure that the main op really executed on the main thread, and not on the spawned worker that was blocked and never started.
+        opForMainRanOnMain.get()
+    }
+
+    private static RunnableBuildOperation runnableOperation(String name, Closure body) {
+        return new RunnableBuildOperation() {
+            @Override
+            void run(BuildOperationContext context) {
+                body.call()
+            }
+
+            @Override
+            BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(name)
+            }
+        }
+    }
+
+    /**
+     * Creates single-threaded executors, so that a second worker submitted while the first is
+     * still running is queued behind it rather than run concurrently.
+     */
+    static class SingleThreadExecutorFactory implements ExecutorFactory {
+        @Delegate
+        private final ExecutorFactory delegate = new DefaultExecutorFactory()
+
+        @Override
+        ManagedExecutor create(String displayName) {
+            return new ManagedExecutorImpl(Executors.newSingleThreadExecutor(), new ExecutorPolicy.CatchAndRecordFailures())
+        }
+
+        @Override
+        ManagedExecutor create(String displayName, int fixedSize) {
+            return new ManagedExecutorImpl(Executors.newSingleThreadExecutor(), new ExecutorPolicy.CatchAndRecordFailures())
+        }
     }
 
     def workerThread(Closure cl) {

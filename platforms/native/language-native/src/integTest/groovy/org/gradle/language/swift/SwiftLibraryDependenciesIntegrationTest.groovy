@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.AbstractNativeLibraryDependenciesIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -25,6 +26,7 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest {
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile against a library with implementation dependencies"() {
         createDirs("lib1", "lib2")
         settingsFile << """
@@ -70,6 +72,7 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
         result.assertTasksScheduled([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "can compile against a library with binary-specific implementation dependencies"() {
         createDirs("lib1", "lib2")
         settingsFile << """

@@ -17,8 +17,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
@@ -278,6 +278,7 @@ println project.path + " ok"
         executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }

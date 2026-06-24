@@ -30,6 +30,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -37,8 +38,8 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
 
     @Test
     @Requires(
-        value = [JdkVersionTestPreconditions.Jdk21OrEarlier::class],
-        reason = "detekt does not support 22+. See https://github.com/detekt/detekt?tab=readme-ov-file#requirements"
+        value = [JdkVersionTestPreconditions.Jdk25OrEarlier::class],
+        reason = "detekt 2.x supports up to JDK 25. See https://github.com/detekt/detekt?tab=readme-ov-file#requirements"
     )
     // TODO: Convert this into a smoke test
     fun `generated code follows kotlin-dsl coding conventions`() {
@@ -46,7 +47,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins {
                 `kotlin-dsl`
-                id("io.gitlab.arturbosch.detekt") version "1.23.8"
+                id("dev.detekt") version "2.0.0-alpha.4"
             }
 
             $repositoriesBlock
@@ -79,7 +80,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
-        executer.expectDocumentedDeprecationWarning("The ReportingExtension.file(String) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getBaseDirectory().file(String) or getBaseDirectory().dir(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#reporting_extension_file")
         build("generateScriptPluginAdapters", "detekt")
     }
 
@@ -167,6 +167,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
     }
 
 
+    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `applied precompiled script plugin is reloaded upon change`() {
         // given:

@@ -84,6 +84,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
