@@ -255,20 +255,23 @@ class CrossProjectConfigurationReportingGradle(
 
     @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun buildFinished(action: Action<in BuildResult>) {
-        // see `addListener`
-        onMutableStateAccess("buildFinished")
+        // Intentionally not reported as a cross-project access problem: registering a `buildFinished` callback
+        // is already a deferred Configuration Cache problem, which fails the build at the end of the configuration phase.
+        // The callback only runs at execution time, and since IP implies CC the build never reaches execution,
+        // so the callback can never run under Isolated Projects.
         delegate.buildFinished(action)
     }
 
     @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun buildFinished(closure: Closure<*>) {
-        // see `addListener`
-        onMutableStateAccess("buildFinished")
+        // see `buildFinished`
         delegate.buildFinished(closure)
     }
 
     override fun addBuildListener(buildListener: BuildListener) {
-        // see `addListener`
+        // `BuildListener` has a `projectsEvaluated` method, which fires at configuration time and
+        // hands out the unwrapped `Gradle`. Its other methods are either never called when registered at
+        // project scope, or confined to execution time like `buildFinished`.
         onMutableStateAccess("addBuildListener")
         delegate.addBuildListener(buildListener)
     }
@@ -276,7 +279,10 @@ class CrossProjectConfigurationReportingGradle(
     @Suppress("DEPRECATION")
     @Deprecated("Deprecated in Java")
     override fun useLogger(logger: Any) {
-        // see `addListener`
+        // Like `addListener`, the logger may implement listeners broadcast during configuration
+        // (e.g. ProjectEvaluationListener, TaskExecutionGraphListener). Unlike `buildFinished`, the effect
+        // is not confined to execution time, so it can couple projects before the build fails - hence we report it.
+        // It also replaces the per-type logger last-writer-wins, mutating build-scope state.
         onMutableStateAccess("useLogger")
         delegate.useLogger(logger)
     }

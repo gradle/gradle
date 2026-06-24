@@ -146,8 +146,6 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         combined:
         invocation                                          | expectedProblems
         "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "addListener") }
-        "buildFinished({})"                                 | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "buildFinished") }
-        "buildFinished({} as Action)"                       | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "buildFinished") }
         "addBuildListener(${buildListener()})"              | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "addBuildListener") }
         "useLogger(new Object())"                           | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "useLogger") }
         "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }

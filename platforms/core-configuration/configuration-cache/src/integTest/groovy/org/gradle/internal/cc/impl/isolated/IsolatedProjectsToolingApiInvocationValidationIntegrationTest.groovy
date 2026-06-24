@@ -124,26 +124,24 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjectsDiagnostics()
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Project ':' cannot access Gradle.buildFinished")
             problem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
 
         when:
-        withIsolatedProjectsDiagnostics()
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Project ':' cannot access Gradle.buildFinished")
             problem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
@@ -161,26 +159,24 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjectsDiagnostics()
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Project ':' cannot access Gradle.buildFinished")
             problem("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
 
         when:
-        withIsolatedProjectsDiagnostics()
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Project ':' cannot access Gradle.buildFinished")
             problem("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
