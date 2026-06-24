@@ -18,6 +18,7 @@ package gradlebuild.docs;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import gradlebuild.basics.BuildEnvironmentKt;
 import gradlebuild.basics.PublicApi;
 import gradlebuild.basics.PublicKotlinDslApi;
 import org.asciidoctor.gradle.jvm.AsciidoctorJExtension;
@@ -65,7 +66,7 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         extension.getQuickFeedback().convention(getProviders().gradleProperty("quickDocs").map(x -> true).orElse(false));
         extension.getGradleVersion().convention(project.provider(() -> project.getVersion().toString()));
         extension.getGradleVersion8().convention(
-            getProviders().fileContents(project.getRootProject().getLayout().getProjectDirectory().file("released-versions.json"))
+            getProviders().fileContents(BuildEnvironmentKt.releasedVersionsFile(project))
                 .getAsText()
                 .map(GradleBuildDocumentationPlugin::findLatestGradle8Version)
         );
