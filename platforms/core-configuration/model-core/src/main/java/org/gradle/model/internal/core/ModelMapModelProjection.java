@@ -16,19 +16,14 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -58,29 +53,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         this.baseItemModelType = baseItemModelType;
         this.managed = managed;
         this.creatorStrategyAccessor = creatorStrategyAccessor;
-    }
-
-    private Collection<? extends Class<?>> getCreatableTypes() {
-        return Collections.singleton(baseItemModelType.getConcreteClass());
-    }
-
-    private String getContainerTypeDescription(Class<?> containerType, Collection<? extends Class<?>> creatableTypes) {
-        StringBuilder sb = new StringBuilder(containerType.getName());
-        if (creatableTypes.size() == 1) {
-            @SuppressWarnings("ConstantConditions")
-            String onlyType = Iterables.getFirst(creatableTypes, null).getName();
-            sb.append("<").append(onlyType).append(">");
-        } else {
-            sb.append("<T>; where T is one of [");
-            Joiner.on(", ").appendTo(sb, CollectionUtils.sort(Iterables.transform(creatableTypes, new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    return input.getName();
-                }
-            })));
-            sb.append("]");
-        }
-        return sb.toString();
     }
 
     private ModelType<? extends I> itemType(ModelType<?> targetType) {
@@ -140,8 +112,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     @Override
     public Iterable<String> getTypeDescriptions(MutableModelNode node) {
-        final Collection<? extends Class<?>> creatableTypes = getCreatableTypes();
-        return Collections.singleton(getContainerTypeDescription(ModelMap.class, creatableTypes));
+        return Collections.singleton(ModelMap.class.getName() + "<" + baseItemModelType.getConcreteClass().getName() + ">");
     }
 
     @Override
