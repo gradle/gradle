@@ -468,6 +468,18 @@ The examples below use a generic `container` placeholder; replace it with `tasks
 |`val x = provider.get()`
 |===
 
+When a container holds exactly one element of a given type, you can look it up by type instead of by name.
+This is useful for plugin-contributed tasks whose names are not part of a public contract:
+
+[source,kotlin]
+----
+// Eagerly resolves the single task of type MyTaskType, regardless of its name.
+val myTask = rootProject.tasks.withType<MyTaskType>().single()
+----
+
+NOTE: `withType(...).single()` is eager. The task must already exist when this line runs.
+For lazy configuration, use `tasks.withType<MyTaskType>().configureEach { ... }` instead.
+
 **Property, extra, and value delegates:**
 
 [cols="1,1"]
