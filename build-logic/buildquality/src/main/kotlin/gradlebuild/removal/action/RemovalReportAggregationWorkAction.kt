@@ -31,22 +31,29 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
         val LOGGER: Logger = LoggerFactory.getLogger(RemovalReportAggregationWorkAction::class.java.name) as Logger
         const val GITHUB_BASE_URL = "https://github.com/gradle/gradle/blob"
 
-        // Client-side Project filter: hides non-matching rows and any marker-block/group/section that
-        // ends up empty, and keeps the (count) badges in the headings/notes in sync with what's shown.
+        /** Pseudo-team used in the Team column/filter for paths with no CODEOWNERS owner. */
+        const val UNOWNED = "(unowned)"
+
+        // Client-side Platform-team + Project filters (both must match): hides non-matching rows and any
+        // marker-block/group that ends up empty, and keeps the (count) badges in the headings/notes in sync.
         private val FILTER_SCRIPT = """
     <script>
         (function () {
-            var sel = document.getElementById('filter-project');
+            var teamSel = document.getElementById('filter-team');
+            var projectSel = document.getElementById('filter-project');
             var empty = document.getElementById('empty');
             function apply() {
-                var p = sel.value;
+                var team = teamSel.value;
+                var project = projectSel.value;
                 var totalVisible = 0;
                 document.querySelectorAll('section.group').forEach(function (group) {
                     var groupVisible = 0;
                     group.querySelectorAll('.marker-block').forEach(function (block) {
                         var blockVisible = 0;
                         block.querySelectorAll('tr[data-project]').forEach(function (tr) {
-                            var show = !p || tr.getAttribute('data-project') === p;
+                            var matchProject = !project || tr.getAttribute('data-project') === project;
+                            var matchTeam = !team || tr.getAttribute('data-teams').split(' ').indexOf(team) !== -1;
+                            var show = matchProject && matchTeam;
                             tr.style.display = show ? '' : 'none';
                             if (show) { blockVisible++; }
                         });
@@ -62,7 +69,8 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
                 });
                 if (empty) { empty.hidden = totalVisible !== 0; }
             }
-            sel.addEventListener('change', apply);
+            teamSel.addEventListener('change', apply);
+            projectSel.addEventListener('change', apply);
             apply();
         })();
     </script>
@@ -71,6 +79,7 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
 
     override fun execute() {
         val currentCommit = parameters.currentCommit.get()
+        val codeOwners = CodeOwners.parse(parameters.codeownersFile.get().asFile)
         val entries = mutableListOf<Entry>()
         parameters.reports.files.sorted().forEach { file ->
             val project = file.nameWithoutExtension
@@ -85,6 +94,7 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
                             guideMajor = record.guideMajor,
                             guideSection = record.guideSection,
                             project = project,
+                            teams = codeOwners.teamsFor(record.relativePath),
                             url = githubUrl(record.relativePath, record.lineNumber, currentCommit)
                         )
                     )
@@ -131,6 +141,10 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
         val csvFileName = parameters.csvReportFile.get().asFile.name
         val projectOptions = entries.map { it.project }.distinct().sorted()
             .joinToString("\n") { "                <option value=\"${it.escape()}\">${it.escape()}</option>" }
+        // "(unowned)" sorts last so the real teams stay together at the top of the dropdown.
+        val teamOptions = entries.flatMap { it.teamTokens() }.distinct()
+            .sortedWith(compareBy({ it == UNOWNED }, { it }))
+            .joinToString("\n") { "                <option value=\"${it.escape()}\">${it.escape()}</option>" }
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
             writer.println(
                 """<!DOCTYPE html>
@@ -163,6 +177,12 @@ abstract class RemovalReportAggregationWorkAction : WorkAction<RemovalReportAggr
     <h1>Gradle $targetMajor removals</h1>
     <p class="meta">${entries.size} deprecation call site(s) across the build &middot; source commit <code>${currentCommit.take(10)}</code> &middot; data: <a href="$csvFileName">$csvFileName</a></p>
     <div class="filters">
+        <label>Platform team
+            <select id="filter-team">
+                <option value="">all teams</option>
+$teamOptions
+            </select>
+        </label>
         <label>Project
             <select id="filter-project">
                 <option value="">all projects</option>
@@ -170,7 +190,7 @@ $projectOptions
             </select>
         </label>
     </div>
-    <p class="empty" id="empty" hidden>No deprecations for the selected project.</p>
+    <p class="empty" id="empty" hidden>No deprecations for the selected filters.</p>
 """
             )
             // One table per marker. Within a single-marker table the marker is constant, so it moves to a
@@ -185,18 +205,10 @@ $projectOptions
                     if (markerEntries.isEmpty()) return@forEach
                     writer.println("<div class=\"marker-block\">")
                     writer.println("<p class=\"marker-note\">Marker <code>${marker.method(targetMajor)}</code> — ${marker.description(targetMajor)} (<span class=\"count\">${markerEntries.size}</span>)</p>")
-                    writer.println("<table><thead><tr><th>Deprecated symbol</th><th>Kind</th><th>Upgrade guide</th><th>Project</th><th>Source</th></tr></thead><tbody>")
+                    writer.println("<table><thead><tr><th>Deprecated symbol</th><th>Kind</th><th>Upgrade guide</th><th>Platform team</th><th>Project</th><th>Source</th></tr></thead><tbody>")
                     markerEntries
                         .sortedWith(compareBy({ it.guideSection ?: "~" }, { it.project }, { it.symbol }))
-                        .forEach { e ->
-                            val symbolCell = if (e.symbol.startsWith("<dynamic")) "<span class=\"dynamic\">${e.symbol.escape()}</span>" else "<code>${e.symbol.escape()}</code>"
-                            val guideCell = if (e.guideSection != null && e.guideMajor != null) {
-                                "<a href=\"${upgradeGuideUrl(e.guideMajor, e.guideSection)}\">${e.guideMajor}: ${e.guideSection.escape()}</a>"
-                            } else {
-                                "<span class=\"nogu\">none</span>"
-                            }
-                            writer.println("<tr data-project=\"${e.project.escape()}\"><td>$symbolCell</td><td>${e.kind.name.lowercase()}</td><td>$guideCell</td><td>${e.project.escape()}</td><td><a href=\"${e.url}\">source</a></td></tr>")
-                        }
+                        .forEach { writer.println(renderRow(it)) }
                     writer.println("</tbody></table>")
                     writer.println("</div>")
                 }
@@ -208,11 +220,33 @@ $projectOptions
     }
 
     private
+    fun renderRow(e: Entry): String {
+        val symbolCell = if (e.symbol.startsWith("<dynamic")) {
+            "<span class=\"dynamic\">${e.symbol.escape()}</span>"
+        } else {
+            "<code>${e.symbol.escape()}</code>"
+        }
+        val guideCell = if (e.guideSection != null && e.guideMajor != null) {
+            "<a href=\"${upgradeGuideUrl(e.guideMajor, e.guideSection)}\">${e.guideMajor}: ${e.guideSection.escape()}</a>"
+        } else {
+            "<span class=\"nogu\">none</span>"
+        }
+        val tokens = e.teamTokens()
+        val teamCell = if (e.teams.isEmpty()) "<span class=\"nogu\">$UNOWNED</span>" else tokens.joinToString(", ") { it.escape() }
+        val project = e.project.escape()
+        val dataTeams = tokens.joinToString(" ") { it.escape() }
+        return "<tr data-project=\"$project\" data-teams=\"$dataTeams\">" +
+            "<td>$symbolCell</td><td>${e.kind.name.lowercase()}</td>" +
+            "<td>$guideCell</td><td>$teamCell</td><td>$project</td>" +
+            "<td><a href=\"${e.url}\">source</a></td></tr>"
+    }
+
+    private
     fun generateCsvReport(entries: List<Entry>, targetMajor: Int) {
         val outputFile = parameters.csvReportFile.get().asFile
         outputFile.parentFile.mkdirs()
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
-            writer.println("Group;Marker;Kind;Symbol;UpgradeGuideMajor;UpgradeGuideSection;Project;Link")
+            writer.println("Group;Marker;Kind;Symbol;UpgradeGuideMajor;UpgradeGuideSection;PlatformTeams;Project;Link")
             entries
                 .sortedWith(compareBy({ it.timeline.group.ordinal }, { it.guideSection ?: "~" }, { it.project }, { it.symbol }))
                 .forEach { e ->
@@ -224,6 +258,7 @@ $projectOptions
                             "\"${e.symbol.replace("\"", "\"\"")}\"",
                             e.guideMajor?.toString() ?: "",
                             e.guideSection ?: "",
+                            e.teamTokens().joinToString(" "),
                             e.project,
                             e.url
                         ).joinToString(";")
@@ -231,6 +266,9 @@ $projectOptions
                 }
         }
     }
+
+    private
+    fun Entry.teamTokens(): List<String> = teams.ifEmpty { listOf(UNOWNED) }
 
     private
     fun String.escape() = replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -257,5 +295,6 @@ data class Entry(
     val guideMajor: Int?,
     val guideSection: String?,
     val project: String,
+    val teams: List<String>,
     val url: String
 )

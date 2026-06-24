@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -48,6 +49,11 @@ abstract class NextMajorRemovalAggregateReportTask : DefaultTask() {
     @get:Input
     abstract val targetMajorVersion: Property<Int>
 
+    /** `.github/CODEOWNERS`, used to map source paths to owning platform teams. */
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val codeownersFile: RegularFileProperty
+
     @get:OutputFile
     abstract val htmlReportFile: RegularFileProperty
 
@@ -64,5 +70,6 @@ abstract class NextMajorRemovalAggregateReportTask : DefaultTask() {
         csvReportFile = this@NextMajorRemovalAggregateReportTask.csvReportFile
         currentCommit = this@NextMajorRemovalAggregateReportTask.currentCommit
         targetMajorVersion = this@NextMajorRemovalAggregateReportTask.targetMajorVersion
+        codeownersFile = this@NextMajorRemovalAggregateReportTask.codeownersFile
     }
 }

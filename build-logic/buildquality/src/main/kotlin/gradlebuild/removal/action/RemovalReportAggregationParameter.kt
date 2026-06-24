@@ -30,4 +30,7 @@ interface RemovalReportAggregationParameter : WorkParameters {
 
     /** The next major Gradle version the report targets (e.g. 10 while developing 9.x). */
     val targetMajorVersion: Property<Int>
+
+    /** `.github/CODEOWNERS`, used to map each source path to its owning platform team(s). */
+    val codeownersFile: RegularFileProperty
 }

@@ -47,6 +47,7 @@ val allNextMajorRemovalReports = tasks.register<NextMajorRemovalAggregateReportT
     csvReportFile = project.layout.buildDirectory.file("reports/removal/all-next-major-removals.csv")
     currentCommit = sourceCommit
     targetMajorVersion = nextMajor
+    codeownersFile = repoRoot().file(".github/CODEOWNERS")
 }
 
 tasks.register<Zip>("allNextMajorRemovalReportsZip") {
