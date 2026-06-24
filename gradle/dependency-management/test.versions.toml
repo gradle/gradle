@@ -2,7 +2,7 @@
 [versions]
 aircompressor = "2.0.3!!" # CVE-2025-67721
 ansiControl = "0.3!!"
-archunit = "1.4.1!!"
+archunit = "1.4.2!!"
 assertj = "3.23.1!!"
 awaitility = "3.1.6!!"
 bytebuddy = "1.18.8!!"
