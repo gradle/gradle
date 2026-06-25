@@ -33,6 +33,14 @@ public interface JavaClasses extends Named {
 
     ConfigurableFileCollection getInputSources();
 
+    /** The raw compiler output for this source set (where the {@code compile<Name>Java} task writes). */
+    DirectoryProperty getClassesDir();
+
+    /**
+     * The canonical bytecode downstream consumers (the {@code jar} and {@code test} tasks) read for this
+     * source set. By convention it is {@link #getClassesDir()} — the raw compiler output — but a
+     * post-processing reaction (e.g. instrumentation) may override it to point at its own output.
+     */
     DirectoryProperty getByteCodeDir();
 
     DirectoryProperty getProcessedResourcesDir();
