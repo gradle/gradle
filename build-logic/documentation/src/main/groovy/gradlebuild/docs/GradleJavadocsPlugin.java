@@ -93,7 +93,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
-            task.setTitle("Gradle API " + extension.getGradleVersion().get());
+            // TODO: This breaks if version is changed later
+            task.setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
             options.setEncoding("utf-8");
@@ -131,6 +132,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             generatedJavadocDirectory.set(layout.getBuildDirectory().dir("javadoc"));
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
+            // TODO: This breaks the provider
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
         });
 
