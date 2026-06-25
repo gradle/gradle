@@ -315,4 +315,87 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         ["org:foo", "org:bar"]  | "with capabilities ['org:bar', 'org:foo']"
     }
 
+    def "requireCapability() narrows otherwise-ambiguous variants when capability differs in group or name"() {
+        given:
+        setupVariantsDistinguishedByCapability("org.example:c1:1.0", "org.example:c2:1.0")
+
+        expect:
+        succeeds "forceResolution"
+    }
+
+    def "requireCapability() does not narrow when notations differ only in the version segment, and the error message surfaces the effective selector"() {
+        given:
+        setupVariantsDistinguishedByCapability("org:example:c1", "org:example:c2")
+
+        when:
+        fails "forceResolution"
+
+        then: "the ambiguity is reported with the effective (version-stripped) capability"
+        failure.assertHasErrorOutput("The consumer was configured to find attribute 'custom' with value 'a1' and capability 'org:example'. However we cannot choose between the following variants of project ':producer':")
+
+        and: "the trailer indicates required capability was considered"
+        failure.assertHasErrorOutput("All of them match the consumer attributes and required capability:")
+    }
+
+    private void setupVariantsDistinguishedByCapability(String c1Notation, String c2Notation) {
+        settingsFile << """
+            include("producer")
+        """
+
+        file("producer/build.gradle") << """
+            group = "org.example"
+            version = "1.0"
+
+            def custom = Attribute.of("custom", String)
+
+            configurations {
+                consumable("v1") {
+                    attributes {
+                        attribute(custom, "a1")
+                    }
+                    outgoing {
+                        capability("${c1Notation}")
+                    }
+                }
+                consumable("v2") {
+                    attributes {
+                        attribute(custom, "a1")
+                    }
+                    outgoing {
+                        capability("${c2Notation}")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def custom = Attribute.of("custom", String)
+
+            configurations {
+                dependencyScope("myDependencies")
+                resolvable("resolveMe") {
+                    extendsFrom(myDependencies)
+                }
+            }
+
+            dependencies {
+                myDependencies(project(":producer")) {
+                    attributes {
+                        attribute(custom, "a1")
+                    }
+                    capabilities {
+                        requireCapability("${c1Notation}")
+                    }
+                }
+            }
+
+            task forceResolution {
+                def files = configurations.resolveMe.incoming.files
+                doLast {
+                    files.each { println(it) }
+                }
+            }
+        """
+    }
+
 }
