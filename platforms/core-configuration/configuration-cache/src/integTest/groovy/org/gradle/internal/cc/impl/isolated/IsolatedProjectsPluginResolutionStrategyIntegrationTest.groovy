@@ -25,17 +25,17 @@ package org.gradle.internal.cc.impl.isolated
  */
 class IsolatedProjectsPluginResolutionStrategyIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    private static final String SET_DEFAULT_VERSION_DURING_CONFIGURATION = '''
+    private static final String SET_DEFAULT_VERSION_DURING_CONFIGURATION = """
         def strategy = (gradle as org.gradle.api.internal.GradleInternal).services
             .get(org.gradle.plugin.management.internal.PluginResolutionStrategyInternal)
         strategy.setDefaultPluginVersion(org.gradle.plugin.use.internal.DefaultPluginId.of("com.example.foo"), "1.0")
-    '''
+    """
 
     private static final String EXPECTED_VIOLATION = "Cannot set a default plugin version after projects have been loaded when Isolated Projects is enabled. The default version for plugin 'com.example.foo' was set too late."
 
     def "reports a violation when a default plugin version is set after projects are loaded"() {
         given:
-        buildFile SET_DEFAULT_VERSION_DURING_CONFIGURATION
+        buildFile(SET_DEFAULT_VERSION_DURING_CONFIGURATION)
 
         when:
         isolatedProjectsFails("help")
@@ -46,7 +46,7 @@ class IsolatedProjectsPluginResolutionStrategyIntegrationTest extends AbstractIs
 
     def "the late call is allowed without Isolated Projects"() {
         given:
-        buildFile SET_DEFAULT_VERSION_DURING_CONFIGURATION
+        buildFile(SET_DEFAULT_VERSION_DURING_CONFIGURATION)
 
         expect:
         succeeds("help")
@@ -54,12 +54,12 @@ class IsolatedProjectsPluginResolutionStrategyIntegrationTest extends AbstractIs
 
     def "reports a violation when a captured plugin management spec sets a version after projects are loaded"() {
         given:
-        settingsFile '''
+        settingsFile("""
             def pluginManagementSpec = pluginManagement
             gradle.projectsLoaded {
                 pluginManagementSpec.plugins.id("com.example.foo").version("1.0")
             }
-        '''
+        """)
 
         when:
         isolatedProjectsFails("help")
