@@ -37,8 +37,12 @@ import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectEncoder
+import org.gradle.internal.cc.impl.serialize.EncoderRollback
 import org.gradle.internal.cc.impl.serialize.ParallelStringDecoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder
+import org.gradle.internal.cc.impl.serialize.SpillingOutputStream
+import org.gradle.internal.cc.impl.serialize.SpoolStore
+import org.gradle.internal.cc.impl.serialize.TempFileSpoolStore
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
@@ -74,6 +78,7 @@ import org.gradle.internal.serialize.graph.StringDecoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.WriteRollback
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
@@ -389,7 +394,17 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         specialEncoders: SpecialEncoders,
         profile: () -> String
-    ) = writeContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::outputStream, profile, specialEncoders)
+    ): Pair<CloseableWriteContext, ConfigurationCacheCodecs> =
+        rollbackableEncoderFor(stateFile.stateType, stateFile::outputStream, spoolStoreFor(stateFile)).let { (encoder, rollback) ->
+            writeContextFor(
+                stateFile.stateFile.name,
+                encoder,
+                loggingTracerFor(profile, encoder),
+                codecs,
+                specialEncoders,
+                rollbackSupport = rollback
+            ) to codecs
+        }
 
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
@@ -418,6 +433,44 @@ class DefaultConfigurationCacheIO internal constructor(
             if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedEncoder(stream)
             else KryoBackedEncoder(stream)
         }
+
+    /**
+     * Like [encoderFor], but interposes a [SpillingOutputStream] so the resulting context can revert
+     * writes via [WriteContext.beginRollbackScope].
+     *
+     * Rollback is offered only for the plain [KryoBackedEncoder]: the sequential string-dedup
+     * encoder keeps an inline string table that is not currently revertible, so it is left without
+     * a rollback handle.
+     */
+    private
+    fun rollbackableEncoderFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        spoolStore: SpoolStore
+    ): Pair<PositionAwareEncoder, WriteRollback?> =
+        outputStreamFor(stateType, outputStream).let { main ->
+            if (isUsingSequentialStringDeduplicationStrategy(stateType)) {
+                StringDeduplicatingKryoBackedEncoder(main) to null
+            } else {
+                val spilling = SpillingOutputStream(main, spoolStore)
+                val encoder = KryoBackedEncoder(spilling)
+                encoder to EncoderRollback(encoder, spilling)
+            }
+        }
+
+    /**
+     * Spools rolled-back-region overflow into a temporary file next to [stateFile], encrypted to
+     * match the main stream so plaintext never reaches disk.
+     */
+    private
+    fun spoolStoreFor(stateFile: ConfigurationCacheStateFile): SpoolStore {
+        val encryptable = stateFile.stateType.encryptable
+        return TempFileSpoolStore(
+            stateFile.stateFile.file,
+            { if (encryptable) encryptionService.outputStream(it) else it },
+            { if (encryptable) encryptionService.inputStream(it) else it }
+        )
+    }
 
     override fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
         inputStreamFor(stateType, inputStream).let { stream ->
@@ -570,7 +623,8 @@ class DefaultConfigurationCacheIO internal constructor(
         tracer: Tracer?,
         codecs: ConfigurationCacheCodecs,
         specialEncoders: SpecialEncoders = SpecialEncoders(),
-        customClassEncoder: ClassEncoder? = null
+        customClassEncoder: ClassEncoder? = null,
+        rollbackSupport: WriteRollback? = null
     ): CloseableWriteContext = DefaultWriteContext(
         name,
         codecs.userTypesCodec(),
@@ -581,7 +635,8 @@ class DefaultConfigurationCacheIO internal constructor(
         tracer,
         problems,
         customClassEncoder ?: classEncoder(),
-        specialEncoders = specialEncoders
+        specialEncoders = specialEncoders,
+        rollbackSupport = rollbackSupport
     )
 
     private

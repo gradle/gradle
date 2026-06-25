@@ -709,7 +709,7 @@
   {
     "name": "graph-serialization",
     "path": "platforms/core-configuration/graph-serialization",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

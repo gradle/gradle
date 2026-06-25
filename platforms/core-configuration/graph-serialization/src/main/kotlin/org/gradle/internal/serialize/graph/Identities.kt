@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 
@@ -27,6 +28,13 @@ class WriteIdentities {
     val instanceIds = Reference2IntOpenHashMap<Any>()
 
     /**
+     * Records the instances registered since [mark] so they can be removed by [restoreToMark].
+     * Non-null only while a rollback scope is active. Nesting is not supported.
+     */
+    private
+    var journal: ObjectArrayList<Any>? = null
+
+    /**
      * Returns `-1` when the instance cannot be found to avoid boxing.
      */
     fun getId(instance: Any): Int =
@@ -35,7 +43,40 @@ class WriteIdentities {
     fun putInstance(instance: Any): Int {
         val id = instanceIds.size
         instanceIds.put(instance, id)
+        journal?.add(instance)
         return id
+    }
+
+    /**
+     * Starts recording newly registered instances so a later [restoreToMark] can undo them.
+     * Must be paired with exactly one [discardMark] (commit) or [restoreToMark] (rollback).
+     */
+    fun mark() {
+        require(journal == null) { "WriteIdentities is already marked; nested rollback scopes are not supported." }
+        journal = ObjectArrayList()
+    }
+
+    /**
+     * Keeps all instances registered since [mark] and stops recording (commit).
+     */
+    fun discardMark() {
+        require(journal != null) { "WriteIdentities is not marked." }
+        journal = null
+    }
+
+    /**
+     * Removes every instance registered since [mark] and stops recording (rollback).
+     *
+     * Ids are assigned densely from [instanceIds]`.size`, so removing exactly the instances added
+     * since the mark restores both the contents and the next id to their state at [mark].
+     */
+    fun restoreToMark() {
+        val recorded = journal
+        require(recorded != null) { "WriteIdentities is not marked." }
+        for (i in recorded.indices.reversed()) {
+            instanceIds.removeInt(recorded[i])
+        }
+        journal = null
     }
 }
 
