@@ -409,10 +409,12 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                         reportItem(reason, "ignored-key", "info");
                         break;
                     case MISSING_KEY:
+                        // Coordinates aren't HTML-significant, so the note is embedded like the surrounding text.
+                        String otherTrustedKeysNote = svf.otherTrustedKeysNote();
                         if (useKeyServers) {
-                            reason = warning("Key " + keyInfo + " couldn't be found in local key file or remote key servers so verification couldn't be performed.");
+                            reason = warning("Key " + keyInfo + " couldn't be found in local key file or remote key servers so verification couldn't be performed." + otherTrustedKeysNote);
                         } else {
-                            reason = warning("Key " + keyInfo + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys.");
+                            reason = warning("Key " + keyInfo + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys." + otherTrustedKeysNote);
                         }
                         reportItem(reason, "missing-key", "warning");
                         hasMissingKeys = true;
