@@ -267,58 +267,21 @@ tasks.named<Test>("docsTest") {
             }
         }
 
+        // Individual snippets excluded when docsTest runs with the configCache executer.
+        // The categories (unsupported / third-party / not-yet-supported / to-be-fixed) are
+        // documented as comment headers in the file. All entries are treated identically here.
+        // Opt in to run them with -PrunBrokenConfigurationCacheDocsTests=true.
+        val brokenTests = providers.fileContents(
+            layout.projectDirectory.file("src/main/resources/broken-config-cache-snippets.txt")
+        ).asText.map { text ->
+            text.lines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+        }.get()
+
         filter {
             configCacheExcludedTestGroups.forEach { excludeTestsMatching("*${it}*") }
 
-            // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
-            val testsForUnsupportedFeatures = listOf(
-                "snippet-reference-other-topics-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget",
-                "snippet-reference-other-topics-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget",
-                "snippet-reference-other-topics-depends-on-ant-target_groovy_dependsOnAntTarget",
-                "snippet-reference-other-topics-depends-on-ant-target_kotlin_dependsOnAntTarget",
-                "snippet-reference-other-topics-depends-on-task_groovy_dependsOnTask",
-                "snippet-reference-other-topics-depends-on-task_kotlin_dependsOnTask",
-                "snippet-reference-other-topics-hello_groovy_antHello",
-                "snippet-reference-other-topics-hello_kotlin_antHello",
-                "snippet-reference-other-topics-rename-task_groovy_renameAntDelegate",
-                "snippet-reference-other-topics-rename-task_kotlin_renameAntDelegate",
-                "snippet-reference-other-topics-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig",
-                "snippet-reference-other-topics-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig",
-                "snippet-reference-other-topics-ant-logging_groovy_antLogging",
-                "snippet-reference-other-topics-ant-logging_kotlin_antLogging",
-                "snippet-reference-runtime-configuration-custom-logger_groovy_customLogger.groovy",
-                "snippet-reference-runtime-configuration-custom-logger_kotlin_customLogger.kotlin",
-                "snippet-reference-platforms-native-cpp_groovy_nativeComponentReport",
-                "snippet-reference-platforms-native-cunit_groovy_assembleDependentComponents",
-                "snippet-reference-platforms-native-cunit_groovy_assembleDependentComponentsReport",
-                "snippet-reference-platforms-native-cunit_groovy_buildDependentComponents",
-                "snippet-reference-platforms-native-cunit_groovy_buildDependentComponentsReport",
-                "snippet-reference-platforms-native-cunit_groovy_completeCUnitExample",
-                "snippet-reference-platforms-native-cunit_groovy_dependentComponentsReport",
-                "snippet-reference-platforms-native-cunit_groovy_dependentComponentsReportAll",
-            )
-
-            // These tests use third-party plugins at versions that may not support the configuration cache properly.
-            // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
-            val testsWithThirdPartyFailures = listOf<String>(
-            )
-
-            // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
-            // The tests should be removed from this list when the feature becomes supported.
-            val testsForNotYetSupportedFeatures = listOf(
-                // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
-                "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod",
-                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod",
-            )
-
-            // Tests that can and has to be fixed to run with the configuration cache enabled.
-            // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
-            val testsToBeFixedForConfigurationCache = listOf(
-                "snippet-optimizing-builds-build-cache-configure-task_groovy_configureTask",
-                "snippet-optimizing-builds-build-cache-configure-task_kotlin_configureTask",
-            )
-
-            val brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
             brokenTests.forEach { testName ->
                 val testMask = "org.gradle.docs.samples.*.$testName"
                 if (project.runBrokenForConfigurationCacheDocsTests) {

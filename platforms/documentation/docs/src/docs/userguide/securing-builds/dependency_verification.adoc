@@ -671,6 +671,17 @@ Without trusted keys configured, the build will fail:
     - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '8756c4f765c9ac3cb6b85d62379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
 ----
 
+A different failure occurs when the signing key cannot be located on any key server at all:
+
+[source,text]
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for module 'org:foo'; 3 other keys are already trusted for group 'org')
+----
+
+The trailing parenthetical reports how many other keys you already trust for the failing artifact, distinguishing keys trusted for the specific `group:module` from keys trusted for the whole `group`.
+A non-zero count is a strong signal that the signing key has been rotated, rather than this being a brand-new module or group you are trusting for the first time.
+
 WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef035068ec1139cc29579f18fa8fd93b`) for `pgp` and `trusted-key` elements, not short or long IDs. This minimizes the risk of collision attacks. For `ignored-key` elements, you can use either fingerprints or long (64-bit) IDs.
 
 NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them—if a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
