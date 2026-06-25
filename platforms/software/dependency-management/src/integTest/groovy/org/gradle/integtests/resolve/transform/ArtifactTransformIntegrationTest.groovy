@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
@@ -3004,7 +3004,7 @@ Found the following transformation chains:
         then:
         if (configurationCache) {
             failure.assertHasCause("Could not resolve all files for configuration ':sizes'.")
-            failure.assertHasCause("Failed to transform lib.jar (project ':lib') to match attributes {artifactType=txt, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.jvm.version=17, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}.")
+            failure.assertThatCause(matchesRegexp("Failed to transform lib\\.jar \\(project ':lib'\\) to match attributes \\{artifactType=txt, org\\.gradle\\.category=library, org\\.gradle\\.dependency\\.bundling=external, org\\.gradle\\.jvm\\.version=\\d+, org\\.gradle\\.libraryelements=jar, org\\.gradle\\.usage=java-runtime\\}\\."))
             failure.assertHasCause("Could not access project ':lib'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
             failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
             failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input")
@@ -3088,7 +3088,7 @@ Found the following transformation chains:
         failure.assertHasCause("Could not resolve all files for configuration ':sizes'.")
         failure.assertHasCause("Could not access project ':lib-build:producer'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
         failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
-        failure.assertHasResolution("Consult the upgrading guide for further information: " + new DocumentationRegistry().getDocumentationFor("upgrading_version_9", "undeclared_artifact_transform_input"))
+        failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input")
     }
 
     def declareTransform(String transformImplementation) {
