@@ -56,7 +56,7 @@ class XdclGroovyLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks", "--all")
 
-        then: 'main and test came from the plugin-shipped whole-map default, with no sources declared'
+        then: 'main and test came from the plugin-shipped whole-list default, with no sources declared'
         outputContains("sources=[main, test]")
 
         and: 'groovyVersion came from the plugin-shipped scalar default (not declared in the build)'
@@ -81,10 +81,12 @@ class XdclGroovyLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
                 implementation [ "com.example:shared-impl:1.0" ]
               }
               sources [
-                main: {
+                {
+                  name "main"
                   dependencies { implementation [ "com.example:main-impl:2.0" ] }
                 },
-                test: {
+                {
+                  name "test"
                   dependencies { api [ "com.example:test-api:3.0" ] }
                 },
               ]
@@ -134,8 +136,9 @@ class XdclGroovyLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.xdcl') << """
             groovyLibrary {
               sources [
-                main: {},
-                test: {
+                { name "main" },
+                {
+                  name "test"
                   dependencies { implementation [ "junit:junit:4.13.2" ] }
                 },
               ]
@@ -175,9 +178,9 @@ class XdclGroovyLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.xdcl') << """
             groovyLibrary {
               sources [
-                main: {},
-                test: {},
-                feature: {},
+                { name "main" },
+                { name "test" },
+                { name "feature" },
               ]
               repositories [ "${RepoScriptBlockUtil.mavenCentralMirrorUrl}" ]
             }
