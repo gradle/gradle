@@ -20,6 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.WARN
+import org.gradle.api.problems.Severity
 
 
 class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -61,6 +62,30 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         then:
         fixture.assertStateLoaded()
+    }
+
+    def "configuration cache warn mode is reported through the Problems API"() {
+        given:
+        buildFile "task ok {}"
+        enableProblemsApiCheck()
+
+        when:
+        run("ok", "--configuration-cache", "--configuration-cache-problems=warn")
+
+        then:
+        receivedProblems.size() == 1
+
+        verifyAll(receivedProblem) {
+            fqid == 'validation:configuration-cache:configuration-cache-warn-mode'
+
+            contextualLabel == 'Configuration Cache warn mode is ENABLED. ' +
+                'Configuration Cache problems are being ignored. ' +
+                'Build outputs may be incorrect and the build may crash unexpectedly. ' +
+                'Use this only to discover configuration cache problems. ' +
+                'Do not use this to produce artifacts.'
+
+            definition.severity == Severity.WARNING
+        }
     }
 
     def "can enable with a property in gradle user home gradle.properties"() {
