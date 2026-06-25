@@ -19,8 +19,7 @@ package org.gradle.demos.groovy;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- * The test report locations of the Groovy build model, mirroring {@link org.gradle.demos.java.TestReports}.
- * Populated by {@link GroovyLibraryReaction} from the registered {@code test} task.
+ * The test report locations of the Groovy build model.
  */
 public interface TestReports {
 

@@ -32,13 +32,9 @@ import java.util.concurrent.Callable;
 /**
  * The per-source-set half of the checkstyle demo: reacts to a {@code checkstyle { }} block declared on
  * a Java source set and registers a {@code check<Name>Checkstyle} task. It owns only the per-task
- * configuration — {@code configFile} and {@code ignoreFailures} (mirroring {@code CheckstyleDefinition})
- * — and the wiring of the task; the shared tool classpath comes from the project-wide
- * {@link CheckstyleToolReaction} via the {@link CheckstyleModel} it publishes.
- *
- * <p>The reaction's data is the {@link Checkstyle} <em>facade</em> (the schema type); the analysed task
- * type {@code org.gradle.api.plugins.quality.Checkstyle} shares the simple name and is referenced
- * fully-qualified to avoid an import collision.
+ * configuration — {@code configFile} and {@code ignoreFailures} — and the wiring of the task; the
+ * shared tool classpath comes from the project-wide {@link CheckstyleToolReaction} via the
+ * {@link CheckstyleModel} it publishes.
  *
  * <p>It fires once per source set that opts in, recovering the host source-set name through
  * {@link ReactionScope#ancestor(Class)} — the binding host is the {@link HasJavaSources} trait the
@@ -50,8 +46,6 @@ import java.util.concurrent.Callable;
  * classpath is therefore wired <em>lazily</em> (a {@code Callable}-backed file collection) and read at
  * task execution, by which point the tool reaction has published the model — or, if no
  * {@code checkstyle { }} block was declared on the {@code javaLibrary}, a clear error is raised.
- *
- * <p>Stateless per the {@link Reaction} contract; idempotent via the registered task's presence.
  */
 public class CheckstyleReaction implements Reaction<Checkstyle, Project> {
 
@@ -76,9 +70,9 @@ public class CheckstyleReaction implements Reaction<Checkstyle, Project> {
         File configFile = project.file(data.configFile().get());
         boolean ignoreFailures = data.ignoreFailures().get();
 
-        // The shared tool classpath is published by the javaLibrary-level CheckstyleToolReaction, which
-        // fires AFTER this one, so read it lazily — resolved at task execution. A missing CheckstyleModel
-        // means no checkstyle { } block set the version on the javaLibrary; fail with a clear message.
+        // The shared tool classpath is published by the javaLibrary-level CheckstyleToolReaction, so read
+        // it lazily — resolved at task execution. A missing CheckstyleModel means no checkstyle { } block
+        // set the version on the javaLibrary; fail with a clear message.
         FileCollection checkstyleClasspath = project.files((Callable<Object>) () -> {
             CheckstyleModel model = project.getExtensions().findByType(CheckstyleModel.class);
             if (model == null) {
