@@ -719,30 +719,40 @@ fun Hasher.putConfigurationEntries(configurations: List<ConfigurationEntry<Strin
 
 private
 fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
+    // Sort before hashing so the identity is independent of schema collection order.
+    // Task entries come from DefaultTaskCollection.getCollectionSchema() as
+    // realized-then-pending, so a task realized under one mode but not another (e.g. `test`
+    // realized by IP's project-metadata serialization) reorders the list. See gradle/gradle#37719.
     putInt(entries.size)
-    entries.forEach { entry ->
-        putString(entry.target.kotlinString)
-        putString(entry.name)
-        putString(entry.type.kotlinString)
-    }
+    entries
+        .sortedWith(compareBy({ it.target.kotlinString }, { it.name }, { it.type.kotlinString }))
+        .forEach { entry ->
+            putString(entry.target.kotlinString)
+            putString(entry.name)
+            putString(entry.type.kotlinString)
+        }
 }
 
 private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElementFactoryEntry<SchemaType>>) {
     putInt(entries.size)
-    entries.forEach { entry ->
-        putString(entry.factoryName)
-        putString(entry.containerReceiverType.kotlinString)
-        putString(entry.publicType.kotlinString)
-    }
+    entries
+        .sortedWith(compareBy({ it.factoryName }, { it.containerReceiverType.kotlinString }, { it.publicType.kotlinString }))
+        .forEach { entry ->
+            putString(entry.factoryName)
+            putString(entry.containerReceiverType.kotlinString)
+            putString(entry.publicType.kotlinString)
+        }
 }
 
 private fun Hasher.putProjectFeatureEntries(entries: List<ProjectFeatureEntry<SchemaType>>) {
     putInt(entries.size)
-    entries.forEach { entry ->
-        putString(entry.featureName)
-        putString(entry.ownDefinitionType.kotlinString)
-        putString(entry.targetDefinitionType.kotlinString)
-    }
+    entries
+        .sortedWith(compareBy({ it.featureName }, { it.ownDefinitionType.kotlinString }, { it.targetDefinitionType.kotlinString }))
+        .forEach { entry ->
+            putString(entry.featureName)
+            putString(entry.ownDefinitionType.kotlinString)
+            putString(entry.targetDefinitionType.kotlinString)
+        }
 }
 
 
