@@ -44,5 +44,7 @@ public interface TemporaryFileProvider {
      */
     File createTemporaryFile(String prefix, @Nullable String suffix, String... path);
 
+    File createOwnerOnlyTemporaryFile(String prefix, @Nullable String suffix, String... path);
+
     File createTemporaryDirectory(String prefix, @Nullable String suffix, String... path);
 }

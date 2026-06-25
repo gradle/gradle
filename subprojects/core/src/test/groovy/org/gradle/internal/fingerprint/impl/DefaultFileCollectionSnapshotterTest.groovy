@@ -178,6 +178,11 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
             }
 
             @Override
+            File createOwnerOnlyTemporaryFile(String prefix, @Nullable String suffix, String... path) {
+                return null
+            }
+
+            @Override
             File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, String... path) {
                 return tmpDir.createDir(path)
             }
