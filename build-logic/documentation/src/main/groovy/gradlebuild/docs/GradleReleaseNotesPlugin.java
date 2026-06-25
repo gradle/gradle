@@ -60,7 +60,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getOutputEncoding().convention(Charset.defaultCharset().name());
 
             task.getMarkdownFile().convention(extension.getReleaseNotes().getMarkdownFile());
-            task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/raw.html"));
+            task.getDestinationFile().convention(extension.getReleaseNotes().getStagingRoot().file("raw.html"));
         });
 
         TaskProvider<DecorateReleaseNotes> releaseNotesPostProcess = tasks.register("releaseNotes", DecorateReleaseNotes.class, task -> {
@@ -84,7 +84,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             replacementTokens.put("version", moduleIdentity.getVersion().map(GradleVersion::getVersion));
             replacementTokens.put("baseVersion", moduleIdentity.getVersion().map(v -> v.getBaseVersion().getVersion()));
 
-            task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/release-notes.html"));
+            task.getDestinationFile().convention(extension.getReleaseNotes().getStagingRoot().file("release-notes.html"));
         });
 
         tasks.register("checkContributorsInReleaseNotes", CheckContributorsInReleaseNotes.class);
@@ -104,6 +104,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         });
 
         extension.releaseNotes(releaseNotes -> {
+            releaseNotes.getStagingRoot().convention(extension.getStagingRoot().dir("release-notes"));
             releaseNotes.getMarkdownFile().convention(extension.getSourceRoot().file("release/notes.md"));
             releaseNotes.getRenderedDocumentation().convention(releaseNotesPostProcess.flatMap(DecorateReleaseNotes::getDestinationFile));
             releaseNotes.getBaseCssFile().convention(extension.getSourceRoot().file("css/base.css"));
