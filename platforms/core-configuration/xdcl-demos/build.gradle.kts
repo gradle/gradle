@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.testingBase)   // Test report containers
     implementation(projects.reporting)     // DirectoryReport output locations
     implementation(projects.loggingApi)    // project.getLogger()
+    implementation(libs.asm)               // ClassReader/ClassWriter for the instrumentation demo task
 
     integTestImplementation(projects.coreApi)
     integTestImplementation(projects.logging)
