@@ -37,12 +37,14 @@ import org.jspecify.annotations.Nullable;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,6 +55,9 @@ public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = new HashMap<>();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = new ArrayList<>();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
+    // Descriptions of trust entries that were dropped as duplicates while building (differing only
+    // by origin/reason). Reported as a deprecation when reading a verification file for verification.
+    private final List<String> droppedDuplicateTrustEntries = new ArrayList<>();
     private final List<URI> keyServers = new ArrayList<>();
     private final Set<IgnoredKey> ignoredKeys = new LinkedHashSet<>();
     private boolean isVerifyMetadata = true;
@@ -144,7 +149,13 @@ public class DependencyVerifierBuilder {
 
     public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
-        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason));
+        DependencyVerificationConfiguration.TrustedArtifact artifact = new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason);
+        DependencyVerificationConfiguration.TrustedArtifact existing = findEntryWithSameCoordinates(trustedArtifacts, artifact);
+        if (existing == null) {
+            trustedArtifacts.add(artifact);
+        } else if (!Objects.equals(existing.getReason(), artifact.getReason())) {
+            droppedDuplicateTrustEntries.add("trusted artifact (" + describeCoordinates(artifact) + ")");
+        }
     }
 
     public void addIgnoredKey(IgnoredKey keyId) {
@@ -157,7 +168,48 @@ public class DependencyVerifierBuilder {
 
     public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
-        trustedKeys.add(new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex, origin, reason));
+        DependencyVerificationConfiguration.TrustedKey key = new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex, origin, reason);
+        DependencyVerificationConfiguration.TrustedKey existing = findEntryWithSameCoordinates(trustedKeys, key);
+        if (existing == null) {
+            trustedKeys.add(key);
+        } else if (!Objects.equals(existing.getOrigin(), key.getOrigin()) || !Objects.equals(existing.getReason(), key.getReason())) {
+            droppedDuplicateTrustEntries.add("trusted key '" + key.getKeyId() + "'");
+        }
+    }
+
+    /**
+     * Returns the descriptions of trust entries that were dropped as duplicates while building
+     * (entries with the same coordinates that differ only by their {@code origin} or {@code reason}).
+     */
+    public List<String> getDroppedDuplicateTrustEntries() {
+        return droppedDuplicateTrustEntries;
+    }
+
+    @Nullable
+    private static <T> T findEntryWithSameCoordinates(Collection<T> entries, T candidate) {
+        for (T entry : entries) {
+            if (entry.equals(candidate)) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    private static String describeCoordinates(DependencyVerificationConfiguration.TrustCoordinates coordinates) {
+        List<String> parts = new ArrayList<>();
+        if (coordinates.getGroup() != null) {
+            parts.add("group '" + coordinates.getGroup() + "'");
+        }
+        if (coordinates.getName() != null) {
+            parts.add("name '" + coordinates.getName() + "'");
+        }
+        if (coordinates.getVersion() != null) {
+            parts.add("version '" + coordinates.getVersion() + "'");
+        }
+        if (coordinates.getFileName() != null) {
+            parts.add("file '" + coordinates.getFileName() + "'");
+        }
+        return String.join(", ", parts);
     }
 
     private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {

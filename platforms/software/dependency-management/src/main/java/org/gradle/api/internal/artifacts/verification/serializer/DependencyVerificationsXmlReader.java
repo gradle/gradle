@@ -29,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlFactories;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
@@ -94,7 +96,22 @@ public class DependencyVerificationsXmlReader {
     public static DependencyVerifier readFromXml(InputStream in) {
         DependencyVerifierBuilder builder = new DependencyVerifierBuilder();
         readFromXml(in, builder);
-        return builder.build();
+        DependencyVerifier verifier = builder.build();
+        // Only nag when reading the file for verification. The write path reads the file through the
+        // two-argument overload with its own builder and is expected to rewrite (and so collapse) it.
+        nagAboutDuplicateTrustEntries(builder.getDroppedDuplicateTrustEntries());
+        return verifier;
+    }
+
+    private static void nagAboutDuplicateTrustEntries(List<String> droppedDuplicateTrustEntries) {
+        for (String entry : droppedDuplicateTrustEntries) {
+            DeprecationLogger.deprecateBehaviour("The dependency verification metadata declares a duplicate " + entry + " that differs only by its origin or reason.")
+                .withContext("Trust entries are identified by their coordinates, so such duplicates are redundant: only the first one is kept and the duplicate, including its origin and reason, is removed the next time the metadata file is written (for example with --write-verification-metadata).")
+                .withAdvice("Keep a single entry per set of coordinates, with the origin and reason you want to retain.")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        }
     }
 
     private static SAXParser createSecureParser() throws ParserConfigurationException, SAXException {

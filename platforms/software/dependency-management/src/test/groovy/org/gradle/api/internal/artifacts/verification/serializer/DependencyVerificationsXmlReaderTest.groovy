@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
+import org.gradle.test.fixtures.ExpectDeprecation
 import spock.lang.Specification
 
 class DependencyVerificationsXmlReaderTest extends Specification {
@@ -376,6 +377,57 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[1].name == "m4"
         trustedKeys[1].origin == "https://example.com/m4.asc"
         trustedKeys[1].reason == "special reason"
+    }
+
+    @ExpectDeprecation("The dependency verification metadata declares a duplicate trusted key 'A000000000000000000000000000000000000000' that differs only by its origin or reason.")
+    def "trusted keys with the same coordinates are deduplicated, keeping the first origin and reason"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/first.asc" reason="first"/>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/second.asc" reason="second"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 1
+        trustedKeys[0].keyId == "A000000000000000000000000000000000000000"
+        trustedKeys[0].group == "g1"
+        trustedKeys[0].origin == "https://example.com/first.asc"
+        trustedKeys[0].reason == "first"
+    }
+
+    @ExpectDeprecation("The dependency verification metadata declares a duplicate trusted artifact (group 'g1', name 'm1') that differs only by its origin or reason.")
+    def "trusted artifacts with the same coordinates are deduplicated, keeping the first reason"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+         <trust group="g1" name="m1" reason="first"/>
+         <trust group="g1" name="m1" reason="second"/>
+      </trusted-artifacts>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedArtifacts = verifier.configuration.trustedArtifacts
+        trustedArtifacts.size() == 1
+        trustedArtifacts[0].group == "g1"
+        trustedArtifacts[0].name == "m1"
+        trustedArtifacts[0].reason == "first"
     }
 
     def "can parse origin and reason of artifact specific trusted pgp keys"() {

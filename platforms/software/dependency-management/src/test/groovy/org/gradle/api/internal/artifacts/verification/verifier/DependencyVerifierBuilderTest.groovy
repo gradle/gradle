@@ -85,4 +85,43 @@ class DependencyVerifierBuilderTest extends Specification {
         noExceptionThrown()
     }
 
+    def "deduplicates trusted keys with the same coordinates and records those differing only by origin or reason"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+
+        when:
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, "https://example.com/first.asc", "first")
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, "https://example.com/second.asc", "second")
+
+        then:
+        builder.trustedKeys.size() == 1
+        builder.droppedDuplicateTrustEntries == ["trusted key 'A000000000000000000000000000000000000000'"]
+    }
+
+    def "deduplicates trusted artifacts with the same coordinates and records those differing only by reason"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+
+        when:
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "first")
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "second")
+
+        then:
+        builder.trustedArtifacts.size() == 1
+        builder.droppedDuplicateTrustEntries == ["trusted artifact (group 'g1', name 'm1')"]
+    }
+
+    def "does not record fully identical duplicate trust entries"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+
+        when:
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "same")
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "same")
+
+        then:
+        builder.trustedArtifacts.size() == 1
+        builder.droppedDuplicateTrustEntries.isEmpty()
+    }
+
 }
