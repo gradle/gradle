@@ -68,6 +68,37 @@ The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in [
 This ADR deliberately does not cover action-based mutators — APIs that accept an `Action<...>` / `Closure` registering behavior to run later, or used to configure a container.
 That question — whether and how registered callbacks should be observable, and where lifecycle hooks fit — is left to a follow-up ADR.
 
+### Examples
+
+These examples illustrate rule 1 against a proposed migration of `ResolutionStrategy.preferProjectModules()` — currently a write-only setter.
+
+**Preferred** — replace the verb-style setter with a lazy property; the property is both setter and observer in one shape:
+
+```java
+public interface ResolutionStrategy {
+    Property<Boolean> getPreferProjectModules();
+}
+```
+
+Callers configure with `getPreferProjectModules().set(true)` and observe with `getPreferProjectModules().get()`.
+
+**Acceptable** — add the property without removing the existing setter, so existing callers keep working through the migration:
+
+```java
+public interface ResolutionStrategy {
+    void preferProjectModules();
+    Property<Boolean> getPreferProjectModules();
+}
+```
+
+**Unacceptable** — the current state, where the only way to influence the behavior is a write-only setter:
+
+```java
+public interface ResolutionStrategy {
+    void preferProjectModules();
+}
+```
+
 ### Terminology
 
 * **Configuration API** — a public type or public method on a public type whose purpose is to let users tell Gradle how to behave.
