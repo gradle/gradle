@@ -35,7 +35,6 @@ import org.gradle.demos.groovy.dsl.GroovySource;
 import org.gradle.jvm.tasks.Jar;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -79,7 +78,7 @@ public class GroovyLibraryReaction implements Reaction<GroovyLibrary, Project> {
         FileCollection groovyClasspath = createGroovyClasspath(data, project);
 
         int javaVersion = data.javaVersion().get();
-        Map<String, GroovySource> sources = data.sources().getOrElse(Map.of());
+        List<GroovySource> sources = data.sources().getOrElse(List.of());
 
         // The compiled bytecode of every non-test source set — the "production" classpath the test
         // source set compiles and runs against. Lazy: the byteCodeDir providers carry their
@@ -90,9 +89,8 @@ public class GroovyLibraryReaction implements Reaction<GroovyLibrary, Project> {
                 .map(GroovyClasses::getByteCodeDir)
                 .toList());
 
-        for (Map.Entry<String, GroovySource> entry : sources.entrySet()) {
-            String name = entry.getKey();
-            GroovySource source = entry.getValue();
+        for (GroovySource source : sources) {
+            String name = source.name().get();
             String cap = capitalize(name);
 
             FileCollection sourceClasspath = DependencyScopes.configureSource(project, name, source);
@@ -147,7 +145,8 @@ public class GroovyLibraryReaction implements Reaction<GroovyLibrary, Project> {
 
         registerTestTask(project, model, mainClasses, productionClasses, groovyClasspath);
 
-        project.getLogger().lifecycle("groovyLibrary[" + project.getName() + "] groovyVersion=" + data.groovyVersion().getOrElse("") + " javaVersion=" + javaVersion + " sources=" + sources.keySet());
+        List<String> sourceNames = sources.stream().map(s -> s.name().get()).toList();
+        project.getLogger().lifecycle("groovyLibrary[" + project.getName() + "] groovyVersion=" + data.groovyVersion().getOrElse("") + " javaVersion=" + javaVersion + " sources=" + sourceNames);
     }
 
     /**

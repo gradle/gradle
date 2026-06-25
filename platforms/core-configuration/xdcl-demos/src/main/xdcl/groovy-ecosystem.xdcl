@@ -3,7 +3,7 @@ plugin {
   defaults {
     for GroovyComponent {
       groovyVersion "4.0.3"
-      sources [ main: {}, test: {} ]
+      sources [ { name "main" }, { name "test" } ]
     }
   }
 }

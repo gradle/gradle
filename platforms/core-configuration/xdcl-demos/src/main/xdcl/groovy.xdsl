@@ -17,19 +17,22 @@ trait GroovyComponent {
   /// JVM source/target bytecode version. e.g. 8, 17, 21. Kept for parity with the Java demo.
   javaVersion: Int = 17
   /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
-  /// the whole map to add more. Kept as a `[String: GroovySource]` map (unlike the Java demo, which
-  /// uses a `[JavaSource]` list of named records): the list form there exists only so each source set
-  /// composes `HasJavaSources` and the checkstyle demo can bind `extension Checkstyle for HasJavaSources`
-  /// per source set and recover the name; the Groovy demo has no such per-source extension, so the
-  /// simpler map form stays.
-  sources: [String: GroovySource]?
+  /// the whole list to add more. A list of named records (mirroring the Java demo's `[JavaSource]`)
+  /// rather than a `[String: GroovySource]` map, so each source set carries its own `name` on the
+  /// facade. The Java demo needs that so the checkstyle demo's per-source `extension` reaction can
+  /// recover the name; the Groovy demo has no such per-source extension, but uses the same list pattern
+  /// for parity.
+  sources: [GroovySource]?
 }
 
-/// One named source set. Directories are optional overrides; the reaction falls back to the
-/// conventional `src/<name>/groovy` and `src/<name>/resources`. Its `dependencies` (from
-/// `HasDependencies`) map to per-source-set configurations (`<name>Api`, `<name>Implementation`, …)
-/// that extend the matching top-level configurations.
+/// One named source set. `name` identifies the source set and lives on the record (not a map key) so it
+/// travels with the facade, matching the Java demo's `JavaSource`. Directories are optional overrides;
+/// the reaction falls back to the conventional `src/<name>/groovy` and `src/<name>/resources`. Its
+/// `dependencies` (from `HasDependencies`) map to per-source-set configurations (`<name>Api`,
+/// `<name>Implementation`, …) that extend the matching top-level configurations.
 record GroovySource with HasDependencies {
+  /// Identifies the source set (e.g. `main`, `test`); drives task and configuration names.
+  name: String
   groovyDirs: [String]?
   resourceDirs: [String]?
 }
