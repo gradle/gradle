@@ -90,8 +90,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
-            // TODO: This breaks if version is changed later
-            task.setTitle("Gradle API " + project.getVersion());
+            task.setTitle("Gradle API " + extension.getGradleVersion().get());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
             options.setEncoding("utf-8");
@@ -125,11 +124,9 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
-            // TODO: This breaks the provider
             options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
-            // TODO: This breaks the provider
             task.getInputs().dir(javadocs.getJavaPackageListLoc());
             var javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> {
                 if (v.endsWith("/")) {
@@ -138,7 +135,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 return v;
             }).get();
             options.linksOffline(javaApiLink, javadocs.getJavaPackageListLoc().map(Directory::getAsFile).get().getAbsolutePath());
-            // TODO: This breaks the provider
             task.getInputs().dir(extractGroovyPackageListTask.map(Copy::getDestinationDir)).withPathSensitivity(PathSensitivity.NONE);
             options.linksOffline(javadocs.getGroovyApi().get().toString(), extractGroovyPackageListTask.map(Copy::getDestinationDir).get().getAbsolutePath());
 
@@ -154,7 +150,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             generatedJavadocDirectory.set(layout.getBuildDirectory().dir("javadoc"));
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
-            // TODO: This breaks the provider
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
         });
 
