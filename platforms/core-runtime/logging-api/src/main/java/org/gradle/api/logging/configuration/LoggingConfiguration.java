@@ -79,20 +79,20 @@ public interface LoggingConfiguration {
     void setWarningMode(WarningMode warningMode);
 
     /**
-     * Can the build do interactive prompting on the console.
+     * Whether the build may prompt the user for input on the console. Defaults to {@code true}.
      *
-     * @since 9.6.0
+     * @since 9.6.1
      */
     @Incubating
-    boolean isNonInteractive();
+    boolean isInteractive();
 
     /**
-     * Sets if the build can do interactive prompting on the console.
+     * Sets whether the build may prompt the user for input on the console.
      *
-     * @since 9.6.0
+     * @since 9.6.1
      */
     @Incubating
-    void setNonInteractive(boolean nonInteractive);
+    void setInteractive(boolean interactive);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.
