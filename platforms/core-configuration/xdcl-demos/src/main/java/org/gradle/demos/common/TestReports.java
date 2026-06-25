@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.demos.groovy;
+package org.gradle.demos.common;
 
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- * The test report locations of the Groovy build model.
+ * The test report locations of a JVM build model, populated by the reaction from the registered
+ * {@code test} task. Shared by the {@code JavaLibraryModel} and {@code GroovyLibraryModel}.
  */
 public interface TestReports {
 

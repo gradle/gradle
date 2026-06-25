@@ -19,6 +19,7 @@ package org.gradle.demos.java;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Nested;
+import org.gradle.demos.common.TestReports;
 
 /**
  * The imperative build-side state the {@link JavaLibraryReaction} produces and that other build logic
