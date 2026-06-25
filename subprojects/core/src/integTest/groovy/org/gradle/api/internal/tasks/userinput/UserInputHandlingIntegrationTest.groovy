@@ -184,6 +184,35 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         outputContains("result = <default>")
     }
 
+    def "does not prompt and uses default when org.gradle.console.interactive is false"() {
+        given:
+        file("gradle.properties") << "org.gradle.console.interactive=false"
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks("askYesNo").start()
+        writeToStdInAndClose(gradleHandle, EOF)
+        result = gradleHandle.waitForFinish()
+
+        then:
+        outputDoesNotContain(YES_NO_PROMPT)
+        outputContains("result = <default>")
+    }
+
+    def "does not prompt and uses default with --no-interactive"() {
+        given:
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withArgument("--no-interactive").withTasks("askYesNo").start()
+        writeToStdInAndClose(gradleHandle, EOF)
+        result = gradleHandle.waitForFinish()
+
+        then:
+        outputDoesNotContain(YES_NO_PROMPT)
+        outputContains("result = <default>")
+    }
+
     def "can ask boolean question and handle valid input '#stdin' in interactive build"() {
         when:
         runWithInput("askBoolean", BOOLEAN_PROMPT, stdin)
