@@ -21,12 +21,10 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- * The build-side outputs of one named Groovy source set, mirroring {@link org.gradle.demos.java.JavaClasses}.
+ * The build-side outputs of one named Groovy source set.
+ *
  * A fully-managed {@link Named} type so it works as the element of a {@code NamedDomainObjectContainer}
  * auto-created on {@link GroovyLibraryModel#getClasses()}.
- *
- * <p>{@code inputSources} is a {@link ConfigurableFileCollection} (not a {@code SourceDirectorySet}) so
- * the type stays fully managed for container auto-creation.
  */
 public interface GroovyClasses extends Named {
 
