@@ -45,8 +45,7 @@ Logging:
 Console:
   --console                          Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
   --console-unicode                  Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
-  --interactive                      Allow Gradle to prompt the user for input on the console. [incubating]
-  --no-interactive                   Do not do interactive prompting. [incubating]
+  --non-interactive                  Do not do interactive prompting. [incubating]
 
 Configuration:
   --gradle-user-home, -g             Specifies the Gradle user home directory. Default is ~/.gradle.
