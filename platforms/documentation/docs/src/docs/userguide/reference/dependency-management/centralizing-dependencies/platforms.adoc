@@ -46,15 +46,15 @@ Platforms are particularly useful when you need to share consistent dependency v
 For example, a local `platform` project looks as follows:
 
 ====
-include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=define-platform]"]
-include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=define-platform]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/kotlin/platform",files="build.gradle.kts[tags=define-platform]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/groovy/platform",files="build.gradle[tags=define-platform]"]
 ====
 
 To use a platform, declare a dependency with the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#platform(java.lang.Object)[`platform`] keyword in your `dependencies {}` block:
 
 ====
-include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
-include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
 ====
 
 For details of the published `junit` platform, see its link:https://mvnrepository.com/artifact/org.junit/junit-bom/5.10.0[Maven repository page].
@@ -102,8 +102,8 @@ Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar
 To import a BOM, declare a dependency on it using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#platform(java.lang.Object)[`platform`] dependency modifier method:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
 In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j`, so no explicit versions are needed.
@@ -115,12 +115,14 @@ When you import a BOM using link:{javadocPath}/org/gradle/api/artifacts/dsl/Depe
 To prevent upgrades and lock all versions from a BOM, use link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#enforcedPlatform(java.lang.Object)[`enforcedPlatform`]:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
 Under the hood, `enforcedPlatform` converts every version constraint from the BOM into a <<dependency_versions.adoc#sec:strict-version,`strictly`>> declaration.
 This means that no dependency in the graph can be upgraded past the versions defined in the BOM.
+
+TIP: You can verify this on your own build with `./gradlew dependencies` or `./gradlew dependencyInsight --dependency <module>` — each converted constraint appears with a `{strictly <version>}` annotation in the report.
 
 [[sec:enforced-platform-vs-strictly]]
 == `enforcedPlatform` vs. `strictly`
@@ -158,7 +160,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 WARNING: `enforcedPlatform` should generally only be used in applications, not in libraries or other components consumed by others.
 
 Because `enforcedPlatform` converts all BOM constraints to `strictly`, these strict versions propagate transitively to every consumer of your project.
-Consumers who need a different version will be forced to use `exclude` to work around the conflict.
+Consumers who need a different version cannot simply declare it, they must either override with their own `strictly` higher in the dependency graph, or disable endorsement on the platform import with `doNotEndorseStrictVersions()`.
 
 If you are publishing a library that depends on specific third-party versions, prefer using <<dependency_versions.adoc#sec:rich-version-constraints,rich version declarations>> with `strictly` and a range on only the dependencies that require it:
 

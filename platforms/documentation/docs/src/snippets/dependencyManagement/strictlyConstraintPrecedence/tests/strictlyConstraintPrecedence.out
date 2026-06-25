@@ -1,5 +1,5 @@
 runtimeClasspath - Runtime classpath of source set 'main'.
-+--- project :moduleA
++--- project ':moduleA'
 |    \--- org.apache.httpcomponents:httpclient:{strictly 4.5} -> 4.4 (c)
 \--- org.apache.httpcomponents:httpclient:{strictly 4.4} -> 4.4
      +--- org.apache.httpcomponents:httpcore:4.4

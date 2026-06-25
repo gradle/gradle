@@ -1,0 +1,3 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.logging.log4j:log4j-core:2.17.0 -> 2.26.0
+\--- org.apache.logging.log4j:log4j-core:{strictly [2.17.1, 3[} -> 2.26.0 (c)

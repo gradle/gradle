@@ -44,6 +44,7 @@ include::sample[dir="snippets/java-platform/constraintsInPlatform/groovy",files=
 ====
 
 You cannot declare constraints in <<version_catalogs.adoc#version-catalog,version catalogs>>.
+A catalog *can*, however, declare <<dependency_versions.adoc#sec:rich-version-constraints,rich versions>>, including `strictly`, `prefer`, and `reject`, on its version entries.
 
 [[sec:declaring-constraints-dependencies]]
 == Declaring constraints alongside direct dependencies
@@ -119,45 +120,149 @@ For tighter control, attach a <<dependency_versions.adoc#sec:rich-version-constr
 For example, using `strictly` to prevent any upgrade past a known-good version:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-strictly]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-strictly]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
 ====
 
 [[sec:strictly-constraint-precedence]]
-=== `strictly` constraints at different dependency graph depths
+=== Competing `strictly` declarations
 
-When multiple `strictly` version constraints are declared for the same dependency at different points in the dependency graph, Gradle always selects the constraint that is *closest to the root* of the graph.
-Constraints declared deeper in the graph, such as in transitive dependencies or subprojects, cannot override a parent project's `strictly` constraint.
+When more than one `strictly` declaration applies to the same dependency, Gradle's behavior depends on *where* those declarations sit in the dependency graph.
+Same-level declarations compose by intersection; declarations at different depths follow a precedence rule.
 
-In other words, a `strictly` constraint declared directly in your project's dependency declarations takes precedence over any `strictly` constraints declared by the components you depend on.
+[[sec:strictly-same-level]]
+==== Same level: intersection
 
-In this example, the root project declares a `strictly` constraint on version `4.4`:
+When multiple `strictly` declarations on the same module are made at the same level, for example, a direct dependency and a constraint in the same project, or two constraints side by side, Gradle takes the *intersection* of their accepted versions and resolves to the highest version inside it.
+
+A direct dependency with a wide strict range, combined with a constraint that narrows it:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelRanges/kotlin",files="build.gradle.kts[tags=same-level-ranges]"]
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelRanges/groovy",files="build.gradle[tags=same-level-ranges]"]
+====
+
+The direct declaration's `[4.0, 5.0[` intersected with the constraint's `[4.3, 4.5[` gives `[4.3, 4.5[`; the resolved version is the highest available there:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlySameLevelRanges/tests/strictlySameLevelRanges.out[]
+----
+
+The intersection behavior is the same when both declarations are constraints rather than one being a direct dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelTwoConstraints/kotlin",files="build.gradle.kts[tags=same-level-two-constraints]"]
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelTwoConstraints/groovy",files="build.gradle[tags=same-level-two-constraints]"]
+====
+
+Both constraints are honored, and the resolved version satisfies both:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlySameLevelTwoConstraints/tests/strictlySameLevelTwoConstraints.out[]
+----
+
+If the two same-level ranges do not overlap, the intersection is empty and resolution fails:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelNoOverlap/kotlin",files="build.gradle.kts[tags=same-level-no-overlap]"]
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelNoOverlap/groovy",files="build.gradle[tags=same-level-no-overlap]"]
+====
+
+The dependency report marks both declarations as `FAILED`:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlySameLevelNoOverlap/tests/strictlySameLevelNoOverlap.out[]
+----
+
+[[sec:strictly-across-depths]]
+==== Across graph depths: the root-most wins outright
+
+When the competing `strictly` declarations sit at different depths in the dependency graph, Gradle does *not* take the intersection.
+The declaration closer to the root fully overrides the deeper one, even when the deeper declaration's range is more restrictive and would have produced a version that satisfies both.
+
+In this example, the root project declares a wide strict range as a direct dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/kotlin",files="build.gradle.kts[tags=overlapping-root]"]
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/groovy",files="build.gradle[tags=overlapping-root]"]
+====
+
+A subproject contributes a narrower strict range, fully inside the root's:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/kotlin/moduleA",files="build.gradle.kts[tags=overlapping-module]"]
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/groovy/moduleA",files="build.gradle[tags=overlapping-module]"]
+====
+
+The resolved version comes from the root's range only:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyOverlappingRanges/tests/strictlyOverlappingRanges.out[]
+----
+
+The selection `4.5.14` is the maximum of the root's `[4.0, 5.0[` range, and it is *outside* the subproject's `[4.3, 4.5[` strict declaration.
+The subproject's `strictly` was silently dropped.
+
+The same rule applies when the ranges do not overlap at all, the deeper `strictly` is dropped rather than causing a conflict:
 
 ====
 include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="build.gradle.kts[tags=strictly-precedence-root]"]
 include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="build.gradle[tags=strictly-precedence-root]"]
 ====
 
-While a subproject declares a `strictly` constraint on version `4.5`:
-
 ====
 include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="moduleA/build.gradle.kts[tags=strictly-precedence-module]"]
 include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="moduleA/build.gradle[tags=strictly-precedence-module]"]
 ====
 
-Because the root project sits higher in the dependency graph, its constraint (`4.4`) takes precedence, and the subproject's constraint is ignored:
+The root's pinned `4.4` wins over the subproject's `4.5`, and the subproject's declaration is dropped instead of triggering a conflict failure:
 
 [source,text]
 ----
 include::{snippetsPath}/dependencyManagement/strictlyConstraintPrecedence/tests/strictlyConstraintPrecedence.out[]
 ----
 
-This behavior ensures that projects maintain control over the versions of their direct dependencies and can override any constraints introduced by transitive dependencies.
+The rule also holds for any depth — root-most wins, all deeper `strictly` declarations are dropped together.
+This three-level example has the root, a direct subproject, and a transitive subproject each declaring a `strictly` on the same module:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/kotlin",files="build.gradle.kts[tags=three-levels-root]"]
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/groovy",files="build.gradle[tags=three-levels-root]"]
+====
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/kotlin/moduleA",files="build.gradle.kts[tags=three-levels-moduleA]"]
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/groovy/moduleA",files="build.gradle[tags=three-levels-moduleA]"]
+====
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/kotlin/moduleB",files="build.gradle.kts[tags=three-levels-moduleB]"]
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/groovy/moduleB",files="build.gradle[tags=three-levels-moduleB]"]
+====
+
+Both `moduleA`'s and `moduleB`'s strict declarations are dropped; the root's range alone governs the result:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyThreeLevels/tests/strictlyThreeLevels.out[]
+----
+
+[NOTE]
+====
+Gradle's conflict-resolution rules differ between same-level and cross-depth `strictly` declarations.
+At the same level, declarations compose by intersection (or fail when the intersection is empty).
+Across depths, the root-most declaration takes complete precedence and any deeper `strictly` is silently dropped.
+This protects a project's right to control the versions of its direct dependencies without negotiation with the components it depends on.
+====
 
 [[sec:strictly-from-platform]]
 === `strictly` constraints from platforms
 
-When a platform declares a `strictly` constraint and a consumer imports it with `platform()`, the strict version is <<platforms.adoc#sec:endorsing-platform-strict-versions,endorsed by default>>, Gradle treats it as if the consumer declared it directly.
+When a platform declares a `strictly` constraint and a consumer imports it with `platform()`, the strict version is <<platforms.adoc#sec:endorsing-platform-strict-versions,endorsed by default>>; Gradle treats it as if the consumer declared it directly.
 
 A platform that pins `guava` to an exact version:
 

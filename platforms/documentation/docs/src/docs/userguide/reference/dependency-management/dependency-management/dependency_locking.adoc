@@ -170,7 +170,7 @@ The lock's `strictly` constraint must be compatible with it:
 
 In both cases, the mechanism is standard <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> conflict resolution between `require` and `strictly` — the lock file simply injects the `strictly` constraint automatically.
 
-TIP: This is why updating a direct dependency version without also running `--write-locks` can cause a build failure: your new `require` may be higher than the existing lock's `strictly`.
+TIP: This is why updating a direct dependency version without also running `--write-locks` can cause a build failure: your new `require` may be higher than the version pinned by the lock's `strictly`.
 
 [[sec:lock-state]]
 == Understanding lock state location and format
