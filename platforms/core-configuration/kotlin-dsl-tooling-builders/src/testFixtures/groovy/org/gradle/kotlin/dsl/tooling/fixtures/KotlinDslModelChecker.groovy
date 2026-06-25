@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.tooling.fixtures
 
 
+import java.nio.file.Paths
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
@@ -27,9 +28,8 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.check
 class KotlinDslModelChecker {
 
     static void checkScriptModelEditorReportsArePositioned(Map<File, KotlinDslScriptModel> scriptModels, String scriptFileName) {
-        // Anchor the match to a path-segment boundary: a bare endsWith("a/build.gradle.kts") also matches a
-        // root build script under a temp dir that happens to end in 'a' (e.g. ".../todga/build.gradle.kts").
-        def script = scriptModels.keySet().find { it.path == scriptFileName || it.path.endsWith(File.separator + scriptFileName) }
+        def expectedPath = Paths.get(scriptFileName)
+        def script = scriptModels.keySet().find { it.toPath().endsWith(expectedPath) }
         assert script != null: "no script model found ending with '$scriptFileName'"
         assert scriptModels[script].editorReports.any { it.position != null }: "no positioned editor report on '$scriptFileName'"
     }

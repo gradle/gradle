@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.kotlin.dsl.tooling.fixtures.FetchKotlinDslScriptsModelForAllBuilds
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.junit.Assume
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkBuildTreeScriptsModels
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkKotlinDslScriptsModel
@@ -27,13 +28,19 @@ import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.check
 class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest implements KotlinDslTestProjectInitiation {
 
     def "can fetch KotlinDslScripts model contains editor reports for #scriptError-broken #scriptKind script in lenient mode"() {
+        // A settings *compile* error is intentionally excluded: without a compilable settings script the
+        // build can't determine project structure, so no model is produced at all (the fetch throws) —
+        // unlike a settings *runtime* error, which lenient mode tolerates, and unlike build/init compile
+        // errors, which degrade gracefully.
+        Assume.assumeFalse(scriptKind == ScriptKind.SETTINGS && scriptError == ScriptError.COMPILE)
+
         withSettings("""
-            ${scriptError(scriptKind, ScriptKind.SETTINGS, scriptError)}
+            ${scriptErrorSnippet(scriptKind, ScriptKind.SETTINGS, scriptError)}
         """)
-        withBuildScript(scriptError(scriptKind, ScriptKind.BUILD, scriptError))
+        withBuildScript(scriptErrorSnippet(scriptKind, ScriptKind.BUILD, scriptError))
         if (scriptKind == ScriptKind.INIT) {
             def initScript = file("init.gradle.kts")
-            initScript.text = scriptError(scriptKind, ScriptKind.INIT, scriptError)
+            initScript.text = scriptErrorSnippet(scriptKind, ScriptKind.INIT, scriptError)
             // The executer is reset() after each run, which clears its init scripts.
             // Use beforeExecute so the --init-script arg is re-applied before each fetch.
             executer.beforeExecute { it.usingInitScript(initScript) }
@@ -55,12 +62,10 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
         checkKotlinDslScriptsModel(model, originalModel)
 
         where:
-        [scriptKind, scriptError] << [ScriptKind.values() as List, ScriptError.values() as List].combinations()
-        // A settings *compile* error is intentionally excluded: without a compilable settings script the
-        // build can't determine project structure, so no model is produced at all (the fetch throws) —
-        // unlike a settings *runtime* error, which lenient mode tolerates, and unlike build/init compile
-        // errors, which degrade gracefully.
-            .findAll { it != [ScriptKind.SETTINGS, ScriptError.COMPILE] }
+        scriptKind << ScriptKind.values()
+
+        combined:
+        scriptError << ScriptError.values()
     }
 
     def "can fetch KotlinDslScripts model honors subproject-local locationAwareEditorHints for runtime-broken script in lenient mode"() {
@@ -90,12 +95,12 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
     def "can fetch KotlinDslScripts model honors root-level locationAwareEditorHints for runtime-broken #scriptKinds script in lenient mode"() {
         file("gradle.properties") << "org.gradle.kotlin.dsl.internal.locationAwareEditorHints=true"
         withSettings("""
-            ${scriptError(scriptKinds, ScriptKind.SETTINGS, ScriptError.RUNTIME)}
+            ${scriptErrorSnippet(scriptKinds, ScriptKind.SETTINGS, ScriptError.RUNTIME)}
         """)
-        withBuildScript(scriptError(scriptKinds, ScriptKind.BUILD, ScriptError.RUNTIME))
+        withBuildScript(scriptErrorSnippet(scriptKinds, ScriptKind.BUILD, ScriptError.RUNTIME))
         if (scriptKinds.contains(ScriptKind.INIT)) {
             def initScript = file("init.gradle.kts")
-            initScript.text = scriptError(scriptKinds, ScriptKind.INIT, ScriptError.RUNTIME)
+            initScript.text = scriptErrorSnippet(scriptKinds, ScriptKind.INIT, ScriptError.RUNTIME)
             executer.beforeExecute { it.usingInitScript(initScript) }
         }
 
@@ -204,12 +209,12 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
 
     // Returns the error snippet for 'target' when it is among the broken kinds, otherwise an empty string —
     // used to inject broken scripts of the requested kinds into an otherwise valid build.
-    private static String scriptError(Collection<ScriptKind> brokenKinds, ScriptKind target, ScriptError error) {
+    private static String scriptErrorSnippet(Collection<ScriptKind> brokenKinds, ScriptKind target, ScriptError error) {
         target in brokenKinds ? error.snippet : ""
     }
 
-    private static String scriptError(ScriptKind brokenKind, ScriptKind target, ScriptError error) {
-        scriptError([brokenKind], target, error)
+    private static String scriptErrorSnippet(ScriptKind brokenKind, ScriptKind target, ScriptError error) {
+        scriptErrorSnippet([brokenKind], target, error)
     }
 
     private enum ScriptKind {

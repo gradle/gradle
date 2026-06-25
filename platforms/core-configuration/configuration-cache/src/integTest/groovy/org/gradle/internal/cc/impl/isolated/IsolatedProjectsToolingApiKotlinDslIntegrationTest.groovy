@@ -134,5 +134,4 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
             return controller.getModel(build.rootProject, KotlinDslScriptsModel)
         }
     }
-
 }

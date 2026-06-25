@@ -51,7 +51,6 @@ import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.buildEditorReportsFor
 import org.gradle.kotlin.dsl.tooling.builders.mapEditorReports
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
-import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.tooling.builders.isLocationAwareEditorHintsEnabled
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
@@ -86,20 +85,15 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
     fun buildFor(rootProject: ProjectInternal): StandardKotlinDslScriptsModel {
         val base = ScriptModelBase(rootProject)
 
-        // Phase 1: trigger all script evaluations that may populate the build-scoped exception collector.
-        //   - nonProjectIntermediateModels evaluates init and settings scripts, collecting failures during
-        //     script compilation classpath and accessors classpath computation accordingly.
-        //   - visitProjectHierarchy builds each project's IsolatedScriptsModel, which evaluates project
-        //     build scripts under lenient mode and collects any failures.
-        // Each IsolatedScriptsModel also snapshots its locationAwareEditorHints in the per-project context.
         val nonProjectIntermediate = nonProjectIntermediateModels(rootProject)
         val projectHierarchy = visitProjectHierarchy(rootProject, intermediateModelProvider)
 
-        // Phase 2: snapshot the exceptions caught by the collector.
+        // Script evaluation failures are reported to a single build-scoped collector rather than travelling
+        // back with each intermediate model, so we read them here once every script (init, settings, and
+        // every project's build script) has been evaluated above.
+        // TODO:isolated reconsider this central-collector approach for the IP-first model builders.
         val exceptions = rootProject.serviceOf<ClassPathModeExceptionCollector>().exceptions
 
-        // Phase 3: assemble output models. Non-project scripts (init, settings) use the root project's
-        // locationAwareEditorHints; per-project scripts use their owning project's value.
         val nonProjectScriptModels = buildOutputsForNonProject(nonProjectIntermediate, base, exceptions)
         val projectHierarchyScriptModels = buildOutputsForHierarchy(projectHierarchy, base, exceptions)
         return createStandardKotlinDslScriptsModel(nonProjectScriptModels + projectHierarchyScriptModels)
@@ -175,8 +169,8 @@ fun nonProjectIntermediateModels(rootProject: ProjectInternal): List<NonProjectS
     }
 
 
-internal
-data class VisitedProject(val model: IsolatedScriptsModel, val parentSourcePath: ClassPath)
+private
+data class ProjectModelWithParentSource(val model: IsolatedScriptsModel, val parentSourcePath: ClassPath)
 
 
 /**
@@ -189,8 +183,8 @@ private
 fun visitProjectHierarchy(
     rootProject: ProjectInternal,
     intermediateModelProvider: IntermediateToolingModelProvider
-): List<VisitedProject> {
-    val visited = mutableListOf<VisitedProject>()
+): List<ProjectModelWithParentSource> {
+    val visited = mutableListOf<ProjectModelWithParentSource>()
     val classPathModeExceptionCollector = rootProject.serviceOf<ClassPathModeExceptionCollector>()
 
     fun prepareForParallelAccess() {
@@ -211,7 +205,7 @@ fun visitProjectHierarchy(
                 classPathModeExceptionCollector.collect(original as? Exception ?: RuntimeException(original))
             }
             result.model?.let {
-                visited.add(VisitedProject(it, parentSourcePath))
+                visited.add(ProjectModelWithParentSource(it, parentSourcePath))
                 visitChildren(child, parentSourcePath + it.buildScriptSourcePath)
             }
         }
@@ -219,7 +213,7 @@ fun visitProjectHierarchy(
 
     prepareForParallelAccess()
     val rootModel = isolatedScriptsModelFor(rootProject)
-    visited.add(VisitedProject(rootModel, EMPTY))
+    visited.add(ProjectModelWithParentSource(rootModel, EMPTY))
     visitChildren(rootProject.owner, rootModel.buildScriptSourcePath)
     return visited
 }
@@ -227,7 +221,7 @@ fun visitProjectHierarchy(
 
 private
 fun buildOutputsForHierarchy(
-    visitedProjects: List<VisitedProject>,
+    visitedProjects: List<ProjectModelWithParentSource>,
     base: ScriptModelBase,
     exceptions: List<Exception>
 ): Map<File, KotlinDslScriptModel> {
@@ -368,9 +362,6 @@ fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
     val buildScriptSourcePath =
         if (buildScriptModel != null) sourcePathFor(listOf(project.buildscript))
         else EMPTY
-    // Subproject-local gradle.properties IS honored here on purpose, matching the vintage builder.
-    // Project.findProperty is now safe under IP,so it reads only this project's own properties —
-    // including subproject-local gradle.properties.
     val locationAwareEditorHints = project.isLocationAwareEditorHintsEnabled
     return IsolatedScriptsModel(models, buildScriptSourcePath, locationAwareEditorHints)
 }
