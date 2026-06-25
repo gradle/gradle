@@ -370,7 +370,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             if (pgp.hasArtifactLevelKeys()) {
                 for (String key : pgp.getArtifactLevelKeys()) {
                     if (!failedKeys.contains(key)) {
-                        verificationsBuilder.addTrustedKey(pgp.id, key);
+                        verificationsBuilder.addTrustedKey(pgp.id, key, null, null);
                     }
                 }
             }

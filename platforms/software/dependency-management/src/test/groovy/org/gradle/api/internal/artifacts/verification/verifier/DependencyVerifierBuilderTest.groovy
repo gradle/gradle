@@ -37,7 +37,7 @@ class DependencyVerifierBuilderTest extends Specification {
 
         def dependencyVerifier = new DependencyVerifierBuilder.ComponentVerificationsBuilder(moduleComponentIdentifier);
         keyIds.forEach {
-            dependencyVerifier.addTrustedKey(componentArtifactIdentified, it)
+            dependencyVerifier.addTrustedKey(componentArtifactIdentified, it, null, null)
         }
 
         when:
@@ -57,7 +57,7 @@ class DependencyVerifierBuilderTest extends Specification {
     def "ArtifactVerificationBuilder should fail if trusted GPG key is not a fingerprint but a #name"() {
         given:
         def verificationBuilder = new DependencyVerifierBuilder.ArtifactVerificationBuilder()
-        keyIds.forEach(verificationBuilder::addTrustedKey)
+        keyIds.forEach { verificationBuilder.addTrustedKey(it, null, null) }
 
         when:
         verificationBuilder.buildTrustedPgpKeys();
@@ -76,7 +76,7 @@ class DependencyVerifierBuilderTest extends Specification {
     def "ArtifactVerificationBuilder should succeed if trusted GPG key is a fingerprint"() {
         given:
         def verificationBuilder = new DependencyVerifierBuilder.ArtifactVerificationBuilder()
-        verificationBuilder.addTrustedKey("d7bf96a169f77b28c934ab1614f53f0824875d73")
+        verificationBuilder.addTrustedKey("d7bf96a169f77b28c934ab1614f53f0824875d73", null, null)
 
         when:
         verificationBuilder.buildTrustedPgpKeys();

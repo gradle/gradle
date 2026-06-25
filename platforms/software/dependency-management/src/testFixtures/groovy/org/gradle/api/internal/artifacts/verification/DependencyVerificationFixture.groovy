@@ -315,7 +315,9 @@ class DependencyVerificationFixture {
                     type,
                     ext
                 ),
-                key
+                key,
+                null,
+                null
             )
         }
 
@@ -332,7 +334,9 @@ class DependencyVerificationFixture {
                     ),
                     fileName
                 ),
-                key
+                key,
+                null,
+                null
             )
         }
 

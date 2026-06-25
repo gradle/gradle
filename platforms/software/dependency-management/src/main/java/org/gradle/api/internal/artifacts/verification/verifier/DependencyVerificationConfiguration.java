@@ -234,10 +234,6 @@ public class DependencyVerificationConfiguration {
         private final String keyId;
         private final String origin;
 
-        TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            this(keyId, group, name, version, fileName, regex, null, null);
-        }
-
         TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
             super(group, name, version, fileName, regex, reason);
             this.origin = origin;

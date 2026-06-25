@@ -155,8 +155,8 @@ class PgpKeyGrouperTest extends Specification {
     }
 
     def "does not attempt grouping when it exists already"() {
-        def trustedKey = new DependencyVerificationConfiguration.TrustedKey(KEY_1, "org.*", null, null, null, true)
-        builder.addTrustedKey(KEY_1, "org.*", null, null, null, true)
+        def trustedKey = new DependencyVerificationConfiguration.TrustedKey(KEY_1, "org.*", null, null, null, true, null, null)
+        builder.addTrustedKey(KEY_1, "org.*", null, null, null, true, null, null)
 
         grouper {
             entry("org.group.a", "foo", "1.0", "foo-1.0.jar").addVerifiedKey(KEY_1)

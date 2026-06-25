@@ -95,10 +95,6 @@ public class DependencyVerifierBuilder {
             .addChecksum(artifact, kind, value, origin, reason);
     }
 
-    public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
-        addTrustedKey(artifact, key, null, null);
-    }
-
     public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
@@ -160,10 +156,6 @@ public class DependencyVerifierBuilder {
 
     public void addIgnoredKey(IgnoredKey keyId) {
         ignoredKeys.add(keyId);
-    }
-
-    public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-        addTrustedKey(keyId, group, name, version, fileName, regex, null, null);
     }
 
     public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
@@ -247,10 +239,6 @@ public class DependencyVerifierBuilder {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
         }
 
-        void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
-            addTrustedKey(artifact, key, null, null);
-        }
-
         void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
         }
@@ -306,10 +294,6 @@ public class DependencyVerifierBuilder {
                 .map(ChecksumBuilder::build)
                 .sorted(Comparator.comparing(Checksum::getKind))
                 .collect(Collectors.toList());
-        }
-
-        public void addTrustedKey(String key) {
-            addTrustedKey(key, null, null);
         }
 
         public void addTrustedKey(String key, @Nullable String origin, @Nullable String reason) {

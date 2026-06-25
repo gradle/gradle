@@ -182,11 +182,11 @@ on two lines -->
 
     def "can declare trusted keys"() {
         when:
-        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false)
-        builder.addTrustedKey("B000000000000000000000000000000000000000", "g2", "m1", null, "file.jar", true)
-        builder.addTrustedKey("C000000000000000000000000000000000000000", "g3", "m2", "1.0", null, true)
-        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false)
-        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true)
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, null, null)
+        builder.addTrustedKey("B000000000000000000000000000000000000000", "g2", "m1", null, "file.jar", true, null, null)
+        builder.addTrustedKey("C000000000000000000000000000000000000000", "g3", "m2", "1.0", null, true, null, null)
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, null, null)
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, null, null)
         serialize()
 
         then:
