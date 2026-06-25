@@ -27,18 +27,14 @@ abstract class ConsumerTask extends DefaultTask {
 // end::common-tasks[]
 
 // tag::flatmap-provider[]
-def lazyGenerator = tasks.register('generateLazy', GeneratorTask) {
+def generatorTask = tasks.register('generator', GeneratorTask) {
     outputFile = layout.buildDirectory.file('output.txt')
 }
 
 tasks.register('consumeLazy', ConsumerTask) {
-    // CORRECT: flatMap extracts the Provider property
-    // The dependency on 'generateLazy' is preserved
-    inputFile = lazyGenerator.flatMap { it.outputFile }
-
-    // CORRECT: Chain map on the Provider to read content lazily
-    inputContent = lazyGenerator.flatMap { it.outputFile }
-        .map { it.asFile.text }
+    inputFile = generatorTask.flatMap { it.outputFile } // <1>
+    inputContent = generatorTask.flatMap { it.outputFile }
+        .map { it.asFile.text } // <2>
 }
 // end::flatmap-provider[]
 
@@ -60,18 +56,15 @@ def legacy = tasks.register('legacy', LegacyTask) {
 }
 
 tasks.register('consumeLegacy', ConsumerTask) {
-    // CORRECT: Use map for eager (non-Provider) properties
-    inputFile.fileProvider(legacy.map { new File(it.destinationDir, 'output.txt') })
+    inputFile.fileProvider(legacy.map { new File(it.destinationDir, 'output.txt') }) // <1>
     inputContent = legacy.map { new File(it.destinationDir, 'output.txt').text }
 }
 // end::eager-property[]
 
 // tag::chaining[]
 tasks.register('consumeChained', ConsumerTask) {
-    // CORRECT: Chain transformations on the Provider itself
-    // First flatMap extracts the Provider, then map transforms it
-    inputFile = lazyGenerator.flatMap { it.outputFile }
-    inputContent = lazyGenerator.flatMap { it.outputFile }
+    inputFile = generatorTask.flatMap { it.outputFile }
+    inputContent = generatorTask.flatMap { it.outputFile }
         .map { it.asFile.text }
         .map { it.toUpperCase() }
 }
@@ -98,8 +91,7 @@ def derivedProducer = tasks.register('produceDerived', ProducerTask) {
 }
 
 tasks.register('consumeDerivedSync', Sync) {
-    // WORKAROUND: Using map with .get() preserves the dependency
-    from(derivedProducer.map { it.outputFile.get() })
+    from(derivedProducer.map { it.outputFile.get() }) // <1>
     into(layout.buildDirectory.dir('sync'))
 }
 // end::derived-property-fix[]
@@ -121,8 +113,7 @@ def directProducer = tasks.register('directProducer', DirectProducerTask) {
 }
 
 tasks.register('consumeDirect', Sync) {
-    // CORRECT: flatMap works reliably with directly annotated properties
-    from(directProducer.flatMap { it.outputFile })
+    from(directProducer.flatMap { it.outputFile }) // <1>
     into(layout.buildDirectory.dir('sync-direct'))
 }
 // end::direct-annotation[]

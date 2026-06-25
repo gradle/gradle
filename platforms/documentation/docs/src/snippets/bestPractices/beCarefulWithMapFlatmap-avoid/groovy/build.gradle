@@ -26,34 +26,15 @@ abstract class ConsumerTask extends DefaultTask {
 }
 // end::common-tasks[]
 
-// tag::naked-provider[]
-def nakedGenerator = tasks.register('generateNaked', GeneratorTask) {
-    outputFile = layout.buildDirectory.file('output.txt')
-}
-
-// BROKEN: standalone provider {} has no connection to the generator task.
-// Gradle will not add 'generateNaked' to the task graph when 'consumeNaked' runs.
-Provider<String> content = providers.provider {
-    nakedGenerator.get().outputFile.get().asFile.text
-}
-
-tasks.register('consumeNaked', ConsumerTask) {
-    inputFile = nakedGenerator.flatMap { it.outputFile }
-    inputContent = content
-}
-// end::naked-provider[]
-
 // tag::config-time-read[]
-def eagerGenerator = tasks.register('generateEager', GeneratorTask) {
+def generatorTask = tasks.register('generator', GeneratorTask) {
     outputFile = layout.buildDirectory.file('eager-output.txt')
 }
 
 tasks.register('consumeEager', ConsumerTask) {
-    // BROKEN: Tries to read the file at configuration time
-    // The file doesn't exist yet - generator hasn't run!
-    inputFile = eagerGenerator.flatMap { it.outputFile }
-    inputContent = eagerGenerator.map {
-        it.outputFile.get().asFile.text // FAILS HERE
+    inputFile = generatorTask.flatMap { it.outputFile }
+    inputContent = generatorTask.map {
+        it.outputFile.get().asFile.text // <1>
     }
 }
 // end::config-time-read[]
@@ -80,8 +61,7 @@ def derivedProducer = tasks.register('produceDerived', ProducerTask) {
 }
 
 tasks.register('consumeDerived', Sync) {
-    // BROKEN: flatMap on a derived property may lose the task dependency
-    from(derivedProducer.flatMap { it.outputFile })
+    from(derivedProducer.flatMap { it.outputFile }) // <1>
     into(layout.buildDirectory.dir('sync'))
 }
 // end::derived-property[]

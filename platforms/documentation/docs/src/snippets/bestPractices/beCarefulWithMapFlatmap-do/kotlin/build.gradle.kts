@@ -27,19 +27,15 @@ abstract class ConsumerTask : DefaultTask() {
 // end::common-tasks[]
 
 // tag::flatmap-provider[]
-val lazyGenerator = tasks.register<GeneratorTask>("generateLazy") {
+val generatorTask = tasks.register<GeneratorTask>("generator") {
     outputFile.set(layout.buildDirectory.file("output.txt"))
 }
 
 tasks.register<ConsumerTask>("consumeLazy") {
-    // CORRECT: flatMap extracts the Provider property
-    // The dependency on 'generateLazy' is preserved
-    inputFile.set(lazyGenerator.flatMap { it.outputFile })
-
-    // CORRECT: Chain map on the Provider to read content lazily
+    inputFile.set(generatorTask.flatMap { it.outputFile }) // <1>
     inputContent.set(
-        lazyGenerator.flatMap { it.outputFile }
-            .map { it.asFile.readText() }
+        generatorTask.flatMap { it.outputFile }
+            .map { it.asFile.readText() } // <2>
     )
 }
 // end::flatmap-provider[]
@@ -62,19 +58,16 @@ val legacy = tasks.register<LegacyTask>("legacy") {
 }
 
 tasks.register<ConsumerTask>("consumeLegacy") {
-    // CORRECT: Use map for eager (non-Provider) properties
-    inputFile.fileProvider(legacy.map { File(it.destinationDir, "output.txt") })
+    inputFile.fileProvider(legacy.map { File(it.destinationDir, "output.txt") }) // <1>
     inputContent.set(legacy.map { File(it.destinationDir, "output.txt").readText() })
 }
 // end::eager-property[]
 
 // tag::chaining[]
 tasks.register<ConsumerTask>("consumeChained") {
-    // CORRECT: Chain transformations on the Provider itself
-    // First flatMap extracts the Provider, then map transforms it
-    inputFile.set(lazyGenerator.flatMap { it.outputFile })
+    inputFile.set(generatorTask.flatMap { it.outputFile })
     inputContent.set(
-        lazyGenerator.flatMap { it.outputFile }
+        generatorTask.flatMap { it.outputFile }
             .map { it.asFile.readText() }
             .map { it.uppercase() }
     )
@@ -102,8 +95,7 @@ val derivedProducer = tasks.register<ProducerTask>("produceDerived") {
 }
 
 tasks.register<Sync>("consumeDerivedSync") {
-    // WORKAROUND: Using map with .get() preserves the dependency
-    from(derivedProducer.map { it.outputFile.get() })
+    from(derivedProducer.map { it.outputFile.get() }) // <1>
     into(layout.buildDirectory.dir("sync"))
 }
 // end::derived-property-fix[]
@@ -125,8 +117,7 @@ val directProducer = tasks.register<DirectProducerTask>("directProducer") {
 }
 
 tasks.register<Sync>("consumeDirect") {
-    // CORRECT: flatMap works reliably with directly annotated properties
-    from(directProducer.flatMap { it.outputFile })
+    from(directProducer.flatMap { it.outputFile }) // <1>
     into(layout.buildDirectory.dir("sync-direct"))
 }
 // end::direct-annotation[]
