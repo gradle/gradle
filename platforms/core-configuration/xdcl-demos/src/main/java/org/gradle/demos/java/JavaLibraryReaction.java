@@ -102,7 +102,7 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
                 classes.getInputSources().from(javaSrc);
                 classes.getClassesDir().set(compile.flatMap(JavaCompile::getDestinationDirectory));
                 // byteCodeDir is the canonical bytecode the jar and test tasks consume; by convention it is
-                // the raw compiler output, but a post-processing reaction (instrumentation) can override it.
+                // the raw compiler output, but a post-processing reaction (e.g. instrumentation) can override it.
                 classes.getByteCodeDir().convention(classes.getClassesDir());
                 classes.getProcessedResourcesDir().fileProvider(processResources.map(Copy::getDestinationDir));
             });

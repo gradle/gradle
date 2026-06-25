@@ -21,8 +21,9 @@ import org.gradle.api.file.ConfigurableFileCollection;
 /**
  * The build-side output of the project-wide {@code CheckstyleTool} reaction: the single resolved
  * Checkstyle tool classpath, published as a {@code Project} extension so the per-source-set
- * {@code CheckstyleReaction} can read it back (the xdcl analog of one reaction consuming another's
- * output). Fully managed so {@code project.getExtensions().create("checkstyleModel", …)} instantiates
+ * {@code CheckstyleReaction} can read it back.
+ *
+ * Fully managed so {@code project.getExtensions().create("checkstyleModel", …)} instantiates
  * it and the {@link #getCheckstyleClasspath()} collection.
  */
 public interface CheckstyleModel {

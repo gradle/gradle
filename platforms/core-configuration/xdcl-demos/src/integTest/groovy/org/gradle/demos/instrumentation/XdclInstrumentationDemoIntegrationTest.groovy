@@ -22,13 +22,6 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
-/**
- * Drives the XDCL instrumentation demo end to end in the distribution-under-test: applies the generated
- * {@code java-ecosystem} and {@code instrumentation-ecosystem} carriers and evaluates a
- * {@code build.gradle.xdcl} so {@code InstrumentReaction} fires on a live project. Embedded only — the
- * demo plugins reach the build via {@code integTestImplementation(project)} on the embedded build's
- * classpath, and their shipped schemas are discovered from the applied carriers' jar.
- */
 @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 class XdclInstrumentationDemoIntegrationTest extends AbstractIntegrationSpec {
 

@@ -21,13 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- * The build-side outputs of one named source set, mirroring the original {@code JavaClasses}
- * build-model element. A fully-managed {@link Named} type so it works as the element of a
+ * The build-side outputs of one named source set.  A fully-managed {@link Named} type so it works as the element of a
  * {@code NamedDomainObjectContainer} auto-created on {@link JavaLibraryModel#getClasses()}.
- *
- * <p>Divergence from the original: {@code inputSources} is a {@link ConfigurableFileCollection}
- * rather than a {@code SourceDirectorySet}, so the type stays fully managed (a SourceDirectorySet
- * needs custom {@code ObjectFactory} construction and would block container auto-creation).
  */
 public interface JavaClasses extends Named {
 
