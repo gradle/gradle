@@ -1,0 +1,24 @@
+package org.gradle.demos.instrumentation.dsl
+
+import org.gradle.demos.java.dsl
+
+// The instrumentation demo is the XDCL port of the project-features `InstrumentClassesProjectFeaturePlugin`:
+// a single per-source-set feature, declared as `instrument { }` on a Java source set. It binds to the
+// `HasJavaSources` trait (an extension host must be a trait or template, never a bare record), so a
+// source set opts in by writing the block, and its reaction registers an `instrument<Name>Classes` task.
+//
+// Unlike the checkstyle demo there is no project-wide half: instrumentation has no shared tool classpath
+// to resolve, so one extension and one reaction suffice.
+
+/// Per-source-set bytecode instrumentation, declared as `instrument { }` on a source set. Its reaction
+/// registers an `instrument<Name>Classes` task that consumes the source set's compiled bytecode.
+extension Instrument for HasJavaSources {
+  instrument {
+    /// Output directory for the instrumented classes, relative to the project. Optional: when absent the
+    /// task writes to the conventional `build/instrumented/<name>` (mirrors `InstrumentClassesDefinition.destinationDirectory`).
+    destinationDir: String?
+    /// Optional path to an instrumentation configuration file, relative to the project, wired as an
+    /// optional task input (mirrors `InstrumentClassesDefinition.configFile`).
+    configFile: String?
+  }
+}
