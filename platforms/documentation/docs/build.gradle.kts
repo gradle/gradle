@@ -83,6 +83,8 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
     constraints {
+        // Selenium transitively requests an old (CVE-vulnerable) websocket-client.
+        // This forces it up to the secure version pinned in the test catalog.
         testImplementation(testLibs.jettyWebsocket)
     }
 }
