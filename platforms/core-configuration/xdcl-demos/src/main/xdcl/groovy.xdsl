@@ -5,31 +5,19 @@ import org.gradle.demos.common.dsl
 // Shares Dependencies/Repository/NamedRepository with the Java demo via the common fragment
 // (package-import form). Only the Groovy-specific source record and the trait live here.
 
-/// Capability contract for the Groovy project type, mirroring the Java demo's JavaComponent. Carries
-/// what the reaction reads to wire a Groovy component: the Groovy compiler/runtime version, the JVM
-/// bytecode target, and its named source sets. Dependencies and repositories come from the shared
-/// `HasDependencies`/`HasRepositories` traits the template composes.
+/// Capability contract for the Groovy project type.
 trait GroovyComponent {
   /// Groovy compiler/runtime version (e.g. "4.0.3"), resolved as `org.apache.groovy:groovy:<version>`
-  /// into the mandatory groovyClasspath of every GroovyCompile. No inline default: it is supplied by
-  /// the plugin-shipped ecosystem default (a SCALAR shipped default, vs. the map default for sources).
+  /// into the mandatory groovyClasspath of every GroovyCompile.
   groovyVersion: String?
-  /// JVM source/target bytecode version. e.g. 8, 17, 21. Kept for parity with the Java demo.
+  /// JVM source/target bytecode version. e.g. 8, 17, 21.
   javaVersion: Int = 17
   /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
-  /// the whole list to add more. A list of named records (mirroring the Java demo's `[JavaSource]`)
-  /// rather than a `[String: GroovySource]` map, so each source set carries its own `name` on the
-  /// facade. The Java demo needs that so the checkstyle demo's per-source `extension` reaction can
-  /// recover the name; the Groovy demo has no such per-source extension, but uses the same list pattern
-  /// for parity.
+  /// the whole list to add more.
   sources: [GroovySource]?
 }
 
-/// One named source set. `name` identifies the source set and lives on the record (not a map key) so it
-/// travels with the facade, matching the Java demo's `JavaSource`. Directories are optional overrides;
-/// the reaction falls back to the conventional `src/<name>/groovy` and `src/<name>/resources`. Its
-/// `dependencies` (from `HasDependencies`) map to per-source-set configurations (`<name>Api`,
-/// `<name>Implementation`, …) that extend the matching top-level configurations.
+/// One named source set.
 record GroovySource with HasDependencies {
   /// Identifies the source set (e.g. `main`, `test`); drives task and configuration names.
   name: String

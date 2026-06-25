@@ -21,12 +21,8 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Nested;
 
 /**
- * The XDCL equivalent of the original project-features {@code JavaLibraryModel} build model — the
- * imperative build-side state the {@link JavaLibraryReaction} produces and that other build logic
- * could consume. XDCL has no "build model" concept, so this is realized as a Gradle <em>Project
- * extension</em> (registered on the reaction's live {@code Project} context). Unlike the original it
- * does <strong>not</strong> extend {@code org.gradle.features.binding.BuildModel} — that marker
- * belongs to the project-features framework, not XDCL.
+ * The imperative build-side state the {@link JavaLibraryReaction} produces and that other build logic
+ * could consume.
  *
  * <p>Fully managed so {@code project.getExtensions().create("javaLibraryModel", JavaLibraryModel.class)}
  * instantiates it and auto-creates the {@link #getClasses()} container.

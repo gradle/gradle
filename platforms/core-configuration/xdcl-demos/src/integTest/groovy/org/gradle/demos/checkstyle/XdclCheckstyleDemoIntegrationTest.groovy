@@ -21,13 +21,6 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
-/**
- * Drives the XDCL checkstyle demo end to end in the distribution-under-test: applies the generated
- * {@code java-ecosystem} and {@code checkstyle-ecosystem} carriers and evaluates a
- * {@code build.gradle.xdcl} so {@code CheckstyleReaction} fires on a live project. Embedded only — the
- * demo plugins reach the build via {@code integTestImplementation(project)} on the embedded build's
- * classpath, and their shipped schemas are discovered from the applied carriers' jar.
- */
 @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 class XdclCheckstyleDemoIntegrationTest extends AbstractIntegrationSpec {
 

@@ -38,23 +38,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * The Groovy counterpart of {@link org.gradle.demos.java.JavaLibraryReaction}: reacts to a
- * {@code groovyLibrary { }} definition by configuring the live {@link Project} — registering project
- * repositories, the four-scope dependency configurations and resolvable classpaths, the Groovy
+ * Reacts to a {@code groovyLibrary { }} definition by configuring the live {@link Project} — registering
+ * project repositories, the four-scope dependency configurations and resolvable classpaths, the Groovy
  * compiler/runtime classpath, the per-source compile/resource tasks, a jar, and a test task — and
  * publishing the build outputs through a {@link GroovyLibraryModel} Project extension.
- *
- * <p>Structurally a copy of {@code JavaLibraryReaction}. The Groovy-specific deltas:
- * <ul>
- *   <li>each source is compiled by a {@link GroovyCompile} (source convention {@code src/<name>/groovy});</li>
- *   <li>{@link GroovyCompile#setGroovyClasspath} is <strong>mandatory</strong> (the task throws on an
- *       empty groovy classpath) — built once from {@code groovyVersion} resolved against the declared
- *       repositories;</li>
- *   <li>the {@code test} task classpath carries that same groovy runtime, so compiled Groovy classes
- *       can be loaded and run.</li>
- * </ul>
- *
- * <p>Stateless per the {@link Reaction} contract; idempotent via the extension's presence.
  */
 public class GroovyLibraryReaction implements Reaction<GroovyLibrary, Project> {
 

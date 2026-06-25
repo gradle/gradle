@@ -22,13 +22,6 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
-/**
- * Drives the XDCL Java-library demo end to end in the distribution-under-test: applies the generated
- * {@code java-ecosystem} carrier and evaluates a {@code build.gradle.xdcl} so the {@code JavaLibraryReaction}
- * fires on a live project. Embedded only — the demo plugin reaches the build via
- * {@code integTestImplementation(project)} on the embedded build's classpath, and its shipped schema is
- * discovered from the applied carrier's jar.
- */
 @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 class XdclJavaLibraryDemoIntegrationTest extends AbstractIntegrationSpec {
 

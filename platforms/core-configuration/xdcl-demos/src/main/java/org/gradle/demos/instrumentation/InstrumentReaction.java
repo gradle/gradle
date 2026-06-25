@@ -26,9 +26,8 @@ import org.gradle.demos.java.JavaLibraryModel;
 import org.gradle.demos.java.dsl.HasJavaSources;
 
 /**
- * The XDCL port of {@code InstrumentClassesProjectFeaturePlugin.Binding.ApplyAction}: reacts to an
- * {@code instrument { }} block declared on a Java source set and registers an {@code instrument<Name>Classes}
- * task that consumes that source set's compiled bytecode.
+ * Reacts to an {@code instrument { }} block declared on a Java source set and registers an
+ * {@code instrument<Name>Classes} task that consumes that source set's compiled bytecode.
  *
  * <p>The reaction's data is the {@link Instrument} <em>facade</em> (the schema type). It fires once per
  * source set that opts in, recovering the host source-set name through {@link ReactionScope#ancestor(Class)}
@@ -40,13 +39,6 @@ import org.gradle.demos.java.dsl.HasJavaSources;
  * {@code test} tasks consume — to its own output, so those tasks bundle/run the instrumented classes
  * instead of the raw compiler output (overriding the {@code byteCodeDir -> classesDir} convention the Java
  * reaction set).
- *
- * <p>Ordering: the {@code javaLibrary}-template reaction publishes the model and its per-source
- * {@link JavaClasses} entries before any {@link HasJavaSources} per-source reaction fires, so the eager
- * lookup resolves and the {@code byteCodeDir} override is observed by the already-registered jar/test tasks
- * at execution time.
- *
- * <p>Stateless per the {@link Reaction} contract; idempotent via the registered task's presence.
  */
 public class InstrumentReaction implements Reaction<Instrument, Project> {
 

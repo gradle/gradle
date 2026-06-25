@@ -14,10 +14,7 @@ trait JavaComponent {
   /// JDK source/target version. e.g. 8, 17, 21.
   javaVersion: Int = 17
   /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
-  /// the whole list to add more. A list of named records (rather than a `[String: JavaSource]` map)
-  /// so each source set carries its own `name` on the facade — build logic (and the checkstyle demo's
-  /// per-source `extension Checkstyle for HasJavaSources` reaction) can identify a source set, which a
-  /// map key cannot do since xdcl never exposes the key to the value record.
+  /// the whole list to add more.
   sources: [JavaSource]?
 }
 

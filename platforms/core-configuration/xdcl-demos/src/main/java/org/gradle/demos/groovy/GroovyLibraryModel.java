@@ -21,12 +21,8 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Nested;
 
 /**
- * The Groovy counterpart of {@link org.gradle.demos.java.JavaLibraryModel}: the imperative build-side
- * state the {@link GroovyLibraryReaction} produces and that other build logic could consume. XDCL has
- * no "build model" concept, so this is realized as a Gradle <em>Project extension</em> (registered on
- * the reaction's live {@code Project} context). It does <strong>not</strong> extend
- * {@code org.gradle.features.binding.BuildModel} — that marker belongs to the project-features
- * framework, not XDCL.
+ * The imperative build-side state the {@link GroovyLibraryReaction} produces and that other build logic
+ * could consume.
  *
  * <p>Fully managed so {@code project.getExtensions().create("groovyLibraryModel", GroovyLibraryModel.class)}
  * instantiates it and auto-creates the {@link #getClasses()} container.

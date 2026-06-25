@@ -33,11 +33,8 @@ import java.util.Map;
 /**
  * The project-wide half of the checkstyle demo: reacts to a {@code checkstyle { }} block on a
  * {@code javaLibrary} by resolving the requested {@code checkstyleVersion} to a single shared Checkstyle
- * tool classpath (adapting {@code AbstractCodeQualityPlugin.createConfigurations}, since there is no
- * {@code CheckstylePlugin} in the XDCL world) and publishing it on a {@link CheckstyleModel} project
- * extension. The per-source-set {@link CheckstyleReaction} reads that classpath back.
- *
- * <p>Stateless per the {@link Reaction} contract; idempotent via the model's presence.
+ * tool classpath and publishing it on a {@link CheckstyleModel} project extension. The per-source-set
+ * {@link CheckstyleReaction} reads that classpath back.
  */
 public class CheckstyleToolReaction implements Reaction<CheckstyleTool, Project> {
 
@@ -67,9 +64,7 @@ public class CheckstyleToolReaction implements Reaction<CheckstyleTool, Project>
         Configuration checkstyleClasspath = project.getConfigurations().resolvable(CLASSPATH, configuration -> {
             configuration.setDescription("The resolved Checkstyle classpath for this project.");
             configuration.extendsFrom(project.getConfigurations().getByName(LIBRARIES));
-            // The runtime-classpath attribute set (what JvmPluginServices.configureAsRuntimeClasspath
-            // would apply): Usage alone is ambiguous for modules that publish both a standard-JVM and an
-            // Android runtime variant (e.g. Guava), so TargetJvmEnvironment=standard-jvm disambiguates.
+            // The runtime-classpath attribute set
             configuration.attributes(attributes -> {
                 attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY));

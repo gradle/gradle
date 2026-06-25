@@ -19,8 +19,8 @@ package org.gradle.demos.java;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- * The test report locations of the build model, mirroring the original {@code JavaLibraryModel.TestReports}.
- * Populated by {@link JavaLibraryReaction} from the registered {@code test} task.
+ * The test report locations of the build model, populated by {@link JavaLibraryReaction}
+ * from the registered {@code test} task.
  */
 public interface TestReports {
 
