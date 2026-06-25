@@ -154,7 +154,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             if (in == null) {
                 throw new IllegalStateException("Missing classpath resource: /javadoc-header.html");
             }
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8).replaceAll("\\R", " ");
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to load /javadoc-header.html", e);
         }
