@@ -81,7 +81,7 @@ public interface LoggingConfiguration {
     /**
      * Whether the build may prompt the user for input on the console. Defaults to {@code true}.
      *
-     * @since 9.6.1
+     * @since 9.7.0
      */
     @Incubating
     boolean isInteractive();
@@ -89,7 +89,7 @@ public interface LoggingConfiguration {
     /**
      * Sets whether the build may prompt the user for input on the console.
      *
-     * @since 9.6.1
+     * @since 9.7.0
      */
     @Incubating
     void setInteractive(boolean interactive);
