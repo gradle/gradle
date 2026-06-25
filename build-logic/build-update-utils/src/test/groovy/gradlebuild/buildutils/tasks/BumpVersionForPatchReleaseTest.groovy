@@ -18,7 +18,7 @@ package gradlebuild.buildutils.tasks
 
 import spock.lang.Specification
 
-class PreparePatchReleaseTest extends Specification {
+class BumpVersionForPatchReleaseTest extends Specification {
 
     def "patch version is correctly bumped"() {
         expect:

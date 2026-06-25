@@ -397,7 +397,7 @@ class DefaultConfigurationCacheCodecs(
         buildStateRegistry: BuildStateRegistry
     ) = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::userTypesCodec),
             BuildServiceProviderCodec(buildStateRegistry),
             FlowProvidersCodec
         )
@@ -409,7 +409,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun nestedProviderCodecForFingerprint() = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::fingerprintTypesCodec),
             UnsupportedFingerprintBuildServiceProviderCodec,
             UnsupportedFingerprintFlowProviders
         )

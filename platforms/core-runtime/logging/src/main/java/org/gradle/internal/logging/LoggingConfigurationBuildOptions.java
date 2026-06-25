@@ -26,10 +26,11 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.OptionCategory;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
+import org.gradle.internal.buildoption.BooleanBuildOption;
+import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
@@ -50,7 +51,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         new WarningsOption(),
         new ConsoleOption(),
         new ConsoleUnicodeOption(),
-        new NonInteractiveOption()
+        new InteractiveOption()
     );
 
     @Override
@@ -246,9 +247,12 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
     }
 
     @NullMarked
-    private static class NonInteractiveOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
-        public NonInteractiveOption() {
-            super(null, CommandLineOptionConfiguration.create("non-interactive", "Do not do interactive prompting."));
+    public static class InteractiveOption extends BooleanBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "interactive";
+        public static final String GRADLE_PROPERTY = "org.gradle.console.interactive";
+
+        public InteractiveOption() {
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Allow Gradle to prompt the user for input on the console.", "Do not do interactive prompting.").incubating());
         }
 
         @Override
@@ -257,8 +261,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings, Origin origin) {
-            settings.setNonInteractive(true);
+        public void applyTo(boolean value, LoggingConfiguration settings, Origin origin) {
+            settings.setInteractive(value);
         }
     }
 

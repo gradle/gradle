@@ -475,21 +475,21 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
     }
 
-    def "use defaults when run from an interactive session with --non-interactive and no options"() {
+    def "use defaults when run from an interactive session with --no-interactive and no options"() {
         when:
         closeInteractiveExecutor(
-            startInteractiveExecutorWithTasks("--non-interactive", "init")
+            startInteractiveExecutorWithTasks("--no-interactive", "init")
         )
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "use defaults when run from an interactive session with --non-interactive and not enough options"() {
+    def "use defaults when run from an interactive session with --no-interactive and not enough options"() {
         when:
         closeInteractiveExecutor(
             startInteractiveExecutorWithTasks(
-                "--non-interactive",
+                "--no-interactive",
                 "init",
                 "--type", "basic",
                 "--dsl", "kotlin",
@@ -500,11 +500,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "use defaults when run from an interactive session with --non-interactive and all options"() {
+    def "use defaults when run from an interactive session with --no-interactive and all options"() {
         when:
         closeInteractiveExecutor(
             startInteractiveExecutorWithTasks(
-                "--non-interactive",
+                "--no-interactive",
                 "init",
                 "--type", "basic",
                 "--dsl", "kotlin",
