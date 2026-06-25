@@ -277,6 +277,10 @@ public class DependencyVerificationsXmlReader {
             String name = getNullableAttribute(attributes, NAME);
             String version = getNullableAttribute(attributes, VERSION);
             String file = getNullableAttribute(attributes, FILE);
+            // origin/reason can be declared on the entry itself (e.g. a <trusting> element) and
+            // otherwise default to the values declared on the enclosing <trusted-key> element
+            String origin = getNullableAttribute(attributes, ORIGIN);
+            String reason = getNullableAttribute(attributes, REASON);
             if (group != null || name!=null || version != null || file != null) {
                 builder.addTrustedKey(
                     currentTrustedKey,
@@ -285,8 +289,8 @@ public class DependencyVerificationsXmlReader {
                     version,
                     file,
                     regex,
-                    currentTrustedKeyOrigin,
-                    currentTrustedKeyReason
+                    origin != null ? origin : currentTrustedKeyOrigin,
+                    reason != null ? reason : currentTrustedKeyReason
                 );
             }
         }

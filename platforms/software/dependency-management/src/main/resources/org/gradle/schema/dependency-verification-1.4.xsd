@@ -62,7 +62,10 @@
     </xs:complexType>
     <xs:complexType name="trustingType">
         <xs:complexContent>
-            <xs:extension base="coordinatesType"/>
+            <xs:extension base="coordinatesType">
+                <xs:attribute type="xs:string" name="origin"/>
+                <xs:attribute type="xs:string" name="reason"/>
+            </xs:extension>
         </xs:complexContent>
     </xs:complexType>
     <xs:complexType name="trusted-keysType">

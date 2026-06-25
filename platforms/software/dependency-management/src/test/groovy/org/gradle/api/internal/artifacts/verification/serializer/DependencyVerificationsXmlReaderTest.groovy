@@ -345,6 +345,39 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[2].reason == "shared key"
     }
 
+    def "trusting entries inherit the trusted key origin and reason but can override them"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/default.asc" reason="default reason">
+            <trusting name="m3" version="1.4"/>
+            <trusting name="m4" origin="https://example.com/m4.asc" reason="special reason"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 2
+
+        // inherits the key-level origin/reason
+        trustedKeys[0].name == "m3"
+        trustedKeys[0].origin == "https://example.com/default.asc"
+        trustedKeys[0].reason == "default reason"
+
+        // overrides the key-level origin/reason
+        trustedKeys[1].name == "m4"
+        trustedKeys[1].origin == "https://example.com/m4.asc"
+        trustedKeys[1].reason == "special reason"
+    }
+
     def "can parse origin and reason of artifact specific trusted pgp keys"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

@@ -32,9 +32,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -151,20 +153,50 @@ public class DependencyVerificationsXmlWriter {
     private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys) throws IOException {
         writer.startElement(TRUSTED_KEY);
         writeAttribute(ID, keyId);
-        // origin and reason describe the key itself, so they are shared by all the grouped entries
-        DependencyVerificationConfiguration.TrustedKey representative = trustedKeys.get(0);
-        writeNullableAttribute(ORIGIN, representative.getOrigin());
-        writeNullableAttribute(REASON, representative.getReason());
+        // origin and reason default to the key level and are inherited by each trusting entry.
+        // The most common value of each is hoisted onto the key so that only the deviating
+        // entries need to repeat it.
+        String defaultOrigin = mostCommonInheritableValue(trustedKeys.stream().map(DependencyVerificationConfiguration.TrustedKey::getOrigin).collect(Collectors.toList()));
+        String defaultReason = mostCommonInheritableValue(trustedKeys.stream().map(DependencyVerificationConfiguration.TrustedKey::getReason).collect(Collectors.toList()));
+        writeNullableAttribute(ORIGIN, defaultOrigin);
+        writeNullableAttribute(REASON, defaultReason);
         trustedKeys.stream().sorted().forEach(trustedKey -> {
             try {
                 writer.startElement(TRUSTING);
                 writeCoordinates(trustedKey);
+                if (!Objects.equals(trustedKey.getOrigin(), defaultOrigin)) {
+                    writeNullableAttribute(ORIGIN, trustedKey.getOrigin());
+                }
+                if (!Objects.equals(trustedKey.getReason(), defaultReason)) {
+                    writeNullableAttribute(REASON, trustedKey.getReason());
+                }
                 writer.endElement();
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         });
         writer.endElement();
+    }
+
+    /**
+     * Picks the value to hoist onto the {@code <trusted-key>} element as the default inherited by
+     * its {@code <trusting>} entries. Returns {@code null} (i.e. no default) when any entry omits the
+     * value, because an entry cannot blank out an inherited value; otherwise returns the most
+     * frequent value, but only when it actually repeats.
+     */
+    @Nullable
+    private static String mostCommonInheritableValue(List<String> values) {
+        if (values.stream().anyMatch(Objects::isNull)) {
+            return null;
+        }
+        return values.stream()
+            .collect(Collectors.groupingBy(value -> value, Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() >= 2)
+            .max(Comparator.<Map.Entry<String, Long>>comparingLong(Map.Entry::getValue).thenComparing(Map.Entry::getKey))
+            .map(Map.Entry::getKey)
+            .orElse(null);
     }
 
     private void writeTrustedKey(DependencyVerificationConfiguration.TrustedKey key) throws IOException {

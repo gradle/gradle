@@ -752,6 +752,24 @@ For example:
 
 The `origin` and `reason` attributes are purely informational: Gradle preserves them across read/write cycles but never uses them during verification.
 
+When a single key is trusted for several different groups or artifacts, Gradle groups the entries under one `trusted-key` element with nested `trusting` elements.
+In that case the key-level `origin` and `reason` act as defaults, and each `trusting` entry may override them with its own values.
+This is useful when the same key signs very different artifacts whose provenance you want to document separately:
+
+[source,xml]
+----
+<trusted-keys>
+   <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+                origin="https://keyserver.ubuntu.com"
+                reason="Verified against the maintainer's website">
+      <trusting group="com.github.javaparser"/>
+      <trusting group="com.example" reason="Trusted internally after manual review"/>
+   </trusted-key>
+</trusted-keys>
+----
+
+Here the `com.github.javaparser` entry inherits the key-level `origin`/`reason`, while the `com.example` entry overrides the `reason`.
+
 [[security_considerations]]
 ===== Security Considerations
 

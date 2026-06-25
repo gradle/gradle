@@ -242,6 +242,62 @@ on two lines -->
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "writes per-entry origin and reason on grouped trusted keys when they differ"() {
+        when:
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, "https://example.com/m3.asc", "trusted for m3")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, "https://example.com/m4.asc", "trusted for m4")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="D000000000000000000000000000000000000000">
+            <trusting name="m3" version="1.4" file="file.zip" origin="https://example.com/m3.asc" reason="trusted for m3"/>
+            <trusting name="m4" file="other-file.zip" regex="true" origin="https://example.com/m4.asc" reason="trusted for m4"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        validateAgainstSchemasSince("1.4")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "hoists the most common origin and reason of grouped trusted keys and only repeats the overriding entry"() {
+        when:
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, "https://example.com/common.asc", "common reason")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, "https://example.com/common.asc", "common reason")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", "g5", "m5", null, null, false, "https://example.com/special.asc", "special reason")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/common.asc" reason="common reason">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting group="g5" name="m5" origin="https://example.com/special.asc" reason="special reason"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        validateAgainstSchemasSince("1.4")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
     def "can declare origin and reason of an artifact specific trusted pgp key"() {
         when:
         declareTrustedPgpKey("org:foo:1.0", "foo-1.0.jar", "ABCDEF0123456789ABCDEF0123456789ABCDEF01", "https://example.com/key.asc", "trusted maintainer")
