@@ -1,7 +1,7 @@
 // tag::plugin-build-script[]
 plugins {                                                             // <1>
     `java-gradle-plugin`                                              // <2>
-    id("org.jetbrains.kotlin.jvm") version "2.4.0"                 // <3>
+    id("org.jetbrains.kotlin.jvm") version "2.4.10-RC"                 // <3>
 }
 
 repositories {                                                        // <4>

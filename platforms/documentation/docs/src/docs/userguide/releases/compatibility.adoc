@@ -68,7 +68,7 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 2.0.0 through 2.4.0.
+Gradle is tested with Kotlin 2.0.0 through 2.4.20-Beta1.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -108,7 +108,7 @@ Beta and RC versions may or may not work.
 | 2.3.0  | 9.4.0 | 2.2
 | 2.3.20 | 9.5.0 | 2.2
 | 2.3.21 | 9.6.0 | 2.2
-| 2.4.0  | 9.7.0 | 2.2
+| 2.4.10-RC  | 9.7.0 | 2.2
 |===
 
 [[groovy_compatibility]]
