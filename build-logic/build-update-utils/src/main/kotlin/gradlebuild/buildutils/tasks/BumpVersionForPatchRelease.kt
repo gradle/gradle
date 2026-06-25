@@ -34,7 +34,7 @@ data class GradleServicesVersion(val version: String, val buildTime: String)
 
 
 @DisableCachingByDefault(because = "Not worth caching")
-abstract class PreparePatchRelease : DefaultTask() {
+abstract class BumpVersionForPatchRelease : DefaultTask() {
 
     @get:Internal
     abstract val versionFile: RegularFileProperty
