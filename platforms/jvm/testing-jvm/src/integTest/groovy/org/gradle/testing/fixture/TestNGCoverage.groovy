@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.util.internal.VersionNumber
 
 class TestNGCoverage {
-    final static String NEWEST = '7.5'
+    final static String NEWEST = '7.10.2'
 
     private static final String FIXED_ILLEGAL_ACCESS = '5.14.6' // Oldest version to support JDK 16+ without explicit --add-opens
 
@@ -38,6 +38,8 @@ class TestNGCoverage {
     private static final String BEFORE_BROKEN_PRESERVE_ORDER = '6.1.1' // Latest version before introduction of cbeust/testng#639 bug
     private static final String FIXED_BROKEN_PRESERVE_ORDER = '6.9.4'  // Fixes cbeust/testng#639 for preserve-order
 
+    private static final String LAST_BEFORE_NEW_EXECUTOR_API = '7.5' // Last version with setExecutorFactoryClass(String)
+
     public static final Set<String> ALL_VERSIONS = [
         '5.12.1', // Newest version without TestNG#setConfigFailurePolicy method (Added in 5.13)
         FIXED_ILLEGAL_ACCESS,
@@ -45,6 +47,7 @@ class TestNGCoverage {
         FIXED_BROKEN_PRESERVE_ORDER,
         BROKEN_ICLASS_LISTENER,
         FIXED_ICLASS_LISTENER,
+        LAST_BEFORE_NEW_EXECUTOR_API,
         NEWEST
       ]
 

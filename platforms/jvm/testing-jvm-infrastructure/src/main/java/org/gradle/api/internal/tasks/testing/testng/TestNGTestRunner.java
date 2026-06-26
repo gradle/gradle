@@ -182,7 +182,38 @@ public class TestNGTestRunner {
         }
     }
 
+    /**
+     * The setter for the thread pool factory has a different signature depending on TestNG version.
+     * This method uses reflection to detect the API and calls the version with the correct signature.
+     *
+     * TestNG >= 7.10 uses {@code setExecutorServiceFactory(IExecutorServiceFactory)}.
+     * TestNG 7.0–7.9 uses {@code setExecutorFactoryClass(String)}.
+     */
     private void setThreadPoolFactoryClass(TestNG testNg, String threadPoolFactoryClass) {
+        Class<?> factoryInterface;
+        try {
+            factoryInterface = Class.forName("org.testng.IExecutorServiceFactory", false, applicationClassLoader);
+        } catch (ClassNotFoundException e) {
+            factoryInterface = null;
+        }
+
+        if (factoryInterface != null) {
+            Class<?> factoryClass;
+            try {
+                factoryClass = applicationClassLoader.loadClass(threadPoolFactoryClass);
+            } catch (ClassNotFoundException e) {
+                throw new InvalidUserDataException(String.format(
+                    "Could not load thread pool factory class '%s'.", threadPoolFactoryClass));
+            }
+            if (!factoryInterface.isAssignableFrom(factoryClass)) {
+                throw new InvalidUserDataException(String.format(
+                    "The thread pool factory class '%s' does not implement org.testng.IExecutorServiceFactory.", threadPoolFactoryClass));
+            }
+            Object factoryInstance = JavaReflectionUtil.newInstance(factoryClass);
+            JavaMethod.of(TestNG.class, Object.class, "setExecutorServiceFactory", factoryInterface).invoke(testNg, factoryInstance);
+            return;
+        }
+
         try {
             JavaMethod.of(TestNG.class, Object.class, "setExecutorFactoryClass", String.class).invoke(testNg, threadPoolFactoryClass);
         } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
