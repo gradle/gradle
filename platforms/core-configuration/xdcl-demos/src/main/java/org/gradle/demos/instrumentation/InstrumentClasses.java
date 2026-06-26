@@ -59,8 +59,6 @@ public abstract class InstrumentClasses extends DefaultTask {
 
     @TaskAction
     void instrument() {
-        File outDir = getInstrumentedClassesDir().get().getAsFile();
-
         getClassesDir().get().getAsFileTree().visit(details -> {
             if (details.isDirectory()) {
                 return;

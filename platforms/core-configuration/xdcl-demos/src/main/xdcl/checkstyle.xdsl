@@ -15,7 +15,7 @@ import org.gradle.demos.java.dsl
 
 /// Project-wide Checkstyle tool configuration, declared as `checkstyle { }` on a `javaLibrary`. Its
 /// reaction resolves `checkstyleVersion` to the shared Checkstyle classpath.
-extension CheckstyleTool for JavaLibrary {
+extension CheckstyleTool for JavaComponent {
   checkstyle {
     /// The Checkstyle tool version, resolved as `com.puppycrawl.tools:checkstyle:<version>`. Defaults
     /// inline (an xdcl schema default, like `JavaComponent.javaVersion`) so a bare `checkstyle { }`
