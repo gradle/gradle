@@ -72,6 +72,49 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### `ResolutionResult` is fully Configuration Cache compatible
+
+A [`ResolutionResult`](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html) may now be included directly as a task input when using Configuration Cache.
+Previously, its root [`ResolvedComponentResult`](javadoc/org/gradle/api/artifacts/result/ResolvedComponentResult.html) and [`ResolvedVariantResult`](javadoc/org/gradle/api/artifacts/result/ResolvedVariantResult.html) needed to be extracted and included on the task separately.
+This provides easy access to convenience APIs on `ResolutionResult`, avoiding the need to traverse the graph manually to access them.
+
+```kotlin
+// Before
+abstract class PreviousTask : DefaultTask() {
+    @get:Input
+    abstract val rootComponent: Property<ResolvedComponentResult>
+    @get:Input
+    abstract val rootVariant: Property<ResolvedVariantResult>
+
+    @TaskAction
+    fun execute() {
+        // No access to APIs on ResolutionResult, requiring manual graph traversal.
+    }
+}
+
+tasks.register<PreviousTask>("before") {
+    rootComponent = configurations.runtimeClasspath.flatMap { it.incoming.resolutionResult.rootComponent }
+    rootVariant = configurations.runtimeClasspath.flatMap { it.incoming.resolutionResult.rootVariant }
+}
+
+// After
+abstract class NewTask : DefaultTask() {
+    @get:Input
+    abstract val resolutionResult: Property<ResolutionResult>
+
+    @TaskAction
+    fun traverse() {
+        // Access to convenience APIs on ResolutionResult.
+        resolutionResult.get().allDependencies
+        resolutionResult.get().allComponents
+    }
+}
+
+tasks.register<NewTask>("after") {
+    resolutionResult = configurations.runtimeClasspath.map { it.incoming.resolutionResult }
+}
+```
+
 ### Isolated Projects improvements
 Gradle provides [Isolated Projects](userguide/isolated_projects.html), an incubating feature that enables parallel project configuration.
 
