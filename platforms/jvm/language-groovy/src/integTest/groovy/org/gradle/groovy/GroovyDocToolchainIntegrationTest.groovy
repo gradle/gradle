@@ -51,8 +51,8 @@ class GroovyDocToolchainIntegrationTest extends MultiVersionIntegrationSpec impl
 
     def "uses #what toolchain #when for Groovy "() {
         def currentJdk = Jvm.current()
-        def otherJdk = AvailableJavaHomes.getDifferentVersion()
-        Assume.assumeTrue("Requires a JDK different from the current one", otherJdk != null)
+        def otherJdk = AvailableJavaHomes.getDifferentVersion { GroovyCoverage.supportsJavaVersion(version, it.languageVersion) }
+        Assume.assumeTrue("Requires a JDK different from the current one that is supported by Groovy $version", otherJdk != null)
         def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
 
         if (withTool != null) {
@@ -82,8 +82,8 @@ class GroovyDocToolchainIntegrationTest extends MultiVersionIntegrationSpec impl
 
     def "up-to-date depends on the toolchain for Groovy "() {
         def currentJdk = Jvm.current()
-        def otherJdk = AvailableJavaHomes.getDifferentVersion()
-        Assume.assumeTrue("Requires a JDK different from the current one", otherJdk != null)
+        def otherJdk = AvailableJavaHomes.getDifferentVersion { GroovyCoverage.supportsJavaVersion(version, it.languageVersion) }
+        Assume.assumeTrue("Requires a JDK different from the current one that is supported by Groovy $version", otherJdk != null)
 
         buildFile << """
             groovydoc {
@@ -117,6 +117,22 @@ class GroovyDocToolchainIntegrationTest extends MultiVersionIntegrationSpec impl
         withInstallations(currentJdk, otherJdk).run(":groovydoc", "-Pchanged")
         then:
         skipped(":groovydoc")
+    }
+
+    def "groovydoc uses maxMemory"() {
+        buildFile << """
+            groovydoc {
+                maxMemory = '234M'
+            }
+        """
+
+        when:
+        succeeds(":groovydoc", "-i")
+
+        then:
+        // Looks like
+        // Started Gradle worker daemon (0.399 secs) with fork options DaemonForkOptions{executable=..., minHeapSize=null, maxHeapSize=234M, ...}.
+        outputContains("maxHeapSize=234M")
     }
 
     private void configureGroovydocTool(Jvm jdk) {

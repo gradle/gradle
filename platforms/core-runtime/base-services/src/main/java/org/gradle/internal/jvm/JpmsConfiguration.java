@@ -79,7 +79,7 @@ public class JpmsConfiguration {
         .addAll(GRADLE_SHARED_JPMS_ARGS_24)
         .build();
 
-    public static List<String> forGroovyCompilerWorker(int majorVersion) {
+    public static List<String> forGroovyWorker(int majorVersion) {
         if (majorVersion < 9) {
             return ImmutableList.of();
         }

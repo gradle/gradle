@@ -259,8 +259,28 @@ tasks.register("process") {
     }
 }
 ```
-
 See the [Collections](userguide/collections.html#collection_types) section in the Gradle User Manual for more details.
+
+#### Java toolchain support for Groovydoc
+
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now supports [Java toolchains](userguide/toolchains.html), aligning it with `GroovyCompile`, `Javadoc`, and `ScalaDoc`.
+By default the task uses the project's configured toolchain, and it can also be configured per-task:
+
+```kotlin
+tasks.named<Groovydoc>("groovydoc") {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+```
+
+As `Groovydoc` now runs in a separate worker process, a new incubating `maxMemory` property is available to control the heap size of that process for larger code bases:
+
+```kotlin
+tasks.named<Groovydoc>("groovydoc") {
+    maxMemory = "1g"
+}
+```
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
