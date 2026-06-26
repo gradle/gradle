@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
@@ -68,6 +69,16 @@ public interface GraphStructure {
         int owner(int index);
 
         /**
+         * The name of the variant backing the node with the given index.
+         */
+        String variantName(int index);
+
+        /**
+         * The identifier of the variant backing the node with the given index.
+         */
+        VariantIdentifier id(int index);
+
+        /**
          * The attributes of the node with the given index.
          */
         ImmutableAttributes attributes(int index);
@@ -76,11 +87,6 @@ public interface GraphStructure {
          * The capabilities of the node with the given index.
          */
         ImmutableCapabilities capabilities(int index);
-
-        /**
-         * The name of the variant backing the node with the given index.
-         */
-        String variantName(int index);
 
         /**
          * The index of the external variant of the node with the given index,

@@ -48,7 +48,12 @@ public class NamedVariantIdentifier implements VariantIdentifier {
 
     @Override
     public String getDisplayName() {
-        return name + "(" + componentIdentifier.getDisplayName() + ")";
+        return componentIdentifier.getDisplayName() + " (" + name + ")";
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     @Override

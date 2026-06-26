@@ -70,9 +70,10 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         builder.addNode(
             node.getNodeId(),
             component.getResultId(),
+            node.getMetadata().getName(),
+            node.getMetadata().getId(),
             node.getMetadata().getAttributes(),
             node.getMetadata().getCapabilities(),
-            node.getMetadata().getName(),
             externalVariantId
         );
 

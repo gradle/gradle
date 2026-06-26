@@ -22,6 +22,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.jspecify.annotations.Nullable
 import spock.lang.Specification
@@ -181,7 +182,7 @@ class GraphStructureBuilderSpec extends Specification {
         def componentId = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1")
         def moduleVersionId = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("x", module), "1")
         builder.addComponent(resultId, reason, "repo", componentId, moduleVersionId)
-        builder.addNode(resultId, resultId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, module, -1)
+        builder.addNode(resultId, resultId, module, Mock(VariantIdentifier), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, -1)
 
         edges.each {
             def target = id(it.target)

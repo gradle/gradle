@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
@@ -42,9 +43,10 @@ public record DefaultGraphStructure(
     public record DefaultNodes(
         int root,
         IntList owners,
+        ImmutableList<String> variantNames,
+        ImmutableList<VariantIdentifier> variantIds,
         ImmutableList<ImmutableAttributes> attributes,
         ImmutableList<ImmutableCapabilities> capabilities,
-        ImmutableList<String> variantNames,
         Int2IntMap externalVariantIndices
     ) implements Nodes {
 
@@ -59,6 +61,16 @@ public record DefaultGraphStructure(
         }
 
         @Override
+        public String variantName(int index) {
+            return variantNames.get(index);
+        }
+
+        @Override
+        public VariantIdentifier id(int index) {
+            return variantIds.get(index);
+        }
+
+        @Override
         public ImmutableAttributes attributes(int index) {
             return attributes.get(index);
         }
@@ -66,11 +78,6 @@ public record DefaultGraphStructure(
         @Override
         public ImmutableCapabilities capabilities(int index) {
             return capabilities.get(index);
-        }
-
-        @Override
-        public String variantName(int index) {
-            return variantNames.get(index);
         }
 
         @Override
