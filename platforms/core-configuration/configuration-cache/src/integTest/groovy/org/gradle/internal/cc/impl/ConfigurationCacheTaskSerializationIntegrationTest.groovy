@@ -473,11 +473,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             tasks.register("task3") {
                 def myTasks = tasks.withType(MyTask)
-                dependsOn(myTasks)
                 inputs.files(myTasks)
-                def inputFiles = inputs.files
                 doLast {
-                    println "inputs = " + inputFiles.files*.name.sort()
+                    println "inputs = " + inputs.files.files*.name.sort()
                 }
             }
         """
@@ -519,11 +517,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             tasks.register("task3") {
                 def myTasks = tasks.withType(MyTask)
-                dependsOn(myTasks)
                 inputs.files([myTasks])
-                def inputFiles = inputs.files
                 doLast {
-                    println "inputs = " + inputFiles.files*.name.sort()
+                    println "inputs = " + inputs.files.files*.name.sort()
                 }
             }
         """
@@ -568,7 +564,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
                 inputs.files(myConfigs)
                 def inputFiles = inputs.files
                 doLast {
-                    println "inputs = " + inputFiles.files*.name.sort()
+                    println "inputs = " + inputs.files.files*.name.sort()
                 }
             }
         """
@@ -595,9 +591,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             tasks.register("reader") {
                 inputs.file("inputFile.txt").withPropertyName("singleFile")
                 inputs.dir("inputDir").withPropertyName("singleDir")
-                def fileInput = inputs.files.filter { it.name == "inputFile.txt" }
-                def dirInput = inputs.files.filter { it.parentFile?.name == "inputDir" }
                 doLast {
+                    def fileInput = inputs.files.filter { it.name == "inputFile.txt" }
+                    def dirInput = inputs.files.filter { it.parentFile?.name == "inputDir" }
                     println "file = " + fileInput.singleFile.name
                     println "dir contents = " + dirInput.files*.name.sort()
                 }
@@ -639,8 +635,8 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
                 // `selected` exposes DefaultNamedDomainObjectCollection internals (pendingMap) — without the
                 // codec-level wrap this hits ConcurrentModificationException at CC store time.
                 outputs.files(selected)
-                def outFiles = outputs.files
                 doLast {
+                    def outFiles = outputs.files
                     println "outputs = " + outFiles.files*.name.sort()
                 }
             }
