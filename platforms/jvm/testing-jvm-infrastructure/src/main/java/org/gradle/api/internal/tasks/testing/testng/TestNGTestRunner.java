@@ -190,9 +190,21 @@ public class TestNGTestRunner {
      * TestNG 7.0–7.9 uses {@code setExecutorFactoryClass(String)}.
      */
     private void setThreadPoolFactoryClass(TestNG testNg, String threadPoolFactoryClass) {
+        Class<?> factoryInterface;
         try {
-            Class<?> factoryInterface = Class.forName("org.testng.IExecutorServiceFactory", false, applicationClassLoader);
-            Class<?> factoryClass = applicationClassLoader.loadClass(threadPoolFactoryClass);
+            factoryInterface = Class.forName("org.testng.IExecutorServiceFactory", false, applicationClassLoader);
+        } catch (ClassNotFoundException e) {
+            factoryInterface = null;
+        }
+
+        if (factoryInterface != null) {
+            Class<?> factoryClass;
+            try {
+                factoryClass = applicationClassLoader.loadClass(threadPoolFactoryClass);
+            } catch (ClassNotFoundException e) {
+                throw new InvalidUserDataException(String.format(
+                    "Could not load thread pool factory class '%s'.", threadPoolFactoryClass));
+            }
             if (!factoryInterface.isAssignableFrom(factoryClass)) {
                 throw new InvalidUserDataException(String.format(
                     "The thread pool factory class '%s' does not implement org.testng.IExecutorServiceFactory.", threadPoolFactoryClass));
@@ -200,8 +212,6 @@ public class TestNGTestRunner {
             Object factoryInstance = JavaReflectionUtil.newInstance(factoryClass);
             JavaMethod.of(TestNG.class, Object.class, "setExecutorServiceFactory", factoryInterface).invoke(testNg, factoryInstance);
             return;
-        } catch (ClassNotFoundException e) {
-            // New API not available, fall through to legacy API
         }
 
         try {

@@ -190,6 +190,24 @@ The new `TestFailureDetails.isFrameworkFailure()` predicate exposes this distinc
 
 See the [Test logging](userguide/java_testing.html#sec:test_logging) section in the Gradle User Manual for more details.
 
+#### TestNG `threadPoolFactoryClass` works with TestNG 7.10 and later
+TestNG 7.10 replaced its thread-pool factory setter (`setExecutorFactoryClass(String)`) with a new API (`setExecutorServiceFactory(IExecutorServiceFactory)`). This release adds support for thread pool factories implementing this API on supporting TestNG versions.
+
+Gradle now detects which API the runtime TestNG version exposes and handles it accordingly:
+
+- On TestNG 7.10 and later, the configured class must implement `org.testng.IExecutorServiceFactory`.
+- On TestNG 7.0 through 7.9, the configured class must implement `org.testng.thread.IExecutorFactory`.
+
+The test task configuration remains unchanged — only the interface the user-supplied class must implement differs across TestNG versions:
+
+```kotlin
+tasks.named<Test>("test") {
+    useTestNG {
+        threadPoolFactoryClass = "com.example.MyExecutorServiceFactory"
+    }
+}
+```
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 

@@ -31,8 +31,11 @@ class TestNGThreadPoolFactoryIntegrationTest extends AbstractIntegrationSpec {
                 testImplementation 'org.testng:testng:7.10.2'
             }
             test {
+                systemProperty 'factoryMarkerFile', new File(layout.buildDirectory.asFile.get(), 'factory-invoked.marker').absolutePath
                 useTestNG {
                     threadPoolFactoryClass = 'org.gradle.test.CustomExecutorServiceFactory'
+                    parallel = 'methods'
+                    threadCount = 2
                 }
             }
         """
@@ -40,6 +43,8 @@ class TestNGThreadPoolFactoryIntegrationTest extends AbstractIntegrationSpec {
         file("src/test/java/org/gradle/test/CustomExecutorServiceFactory.java") << """
             package org.gradle.test;
 
+            import java.io.File;
+            import java.io.IOException;
             import java.util.concurrent.BlockingQueue;
             import java.util.concurrent.ExecutorService;
             import java.util.concurrent.ThreadFactory;
@@ -55,7 +60,57 @@ class TestNGThreadPoolFactoryIntegrationTest extends AbstractIntegrationSpec {
                         TimeUnit unit,
                         BlockingQueue<Runnable> workQueue,
                         ThreadFactory threadFactory) {
+                    String markerPath = System.getProperty("factoryMarkerFile");
+                    if (markerPath != null) {
+                        File marker = new File(markerPath);
+                        marker.getParentFile().mkdirs();
+                        try {
+                            marker.createNewFile();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
+                }
+            }
+        """
+
+        file("src/test/java/org/gradle/test/SimpleTest.java") << """
+            package org.gradle.test;
+
+            import org.testng.annotations.Test;
+
+            public class SimpleTest {
+                @Test
+                public void testPassOne() {
+                    assert true;
+                }
+
+                @Test
+                public void testPassTwo() {
+                    assert true;
+                }
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        file("build/factory-invoked.marker").assertExists()
+    }
+
+    def "fails with informative error when threadPoolFactoryClass cannot be loaded (TestNG 7.10+)"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.testng:testng:7.10.2'
+            }
+            test {
+                useTestNG {
+                    threadPoolFactoryClass = 'org.gradle.test.DoesNotExist'
                 }
             }
         """
@@ -74,10 +129,52 @@ class TestNGThreadPoolFactoryIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("test")
+        fails("test")
 
         then:
-        noExceptionThrown()
+        failure.assertHasCause("Could not load thread pool factory class 'org.gradle.test.DoesNotExist'.")
+    }
+
+    def "fails with informative error when threadPoolFactoryClass does not implement IExecutorServiceFactory (TestNG 7.10+)"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.testng:testng:7.10.2'
+            }
+            test {
+                useTestNG {
+                    threadPoolFactoryClass = 'org.gradle.test.NotAFactory'
+                }
+            }
+        """
+
+        file("src/test/java/org/gradle/test/NotAFactory.java") << """
+            package org.gradle.test;
+
+            public class NotAFactory {
+            }
+        """
+
+        file("src/test/java/org/gradle/test/SimpleTest.java") << """
+            package org.gradle.test;
+
+            import org.testng.annotations.Test;
+
+            public class SimpleTest {
+                @Test
+                public void testPass() {
+                    assert true;
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        failure.assertHasCause("The thread pool factory class 'org.gradle.test.NotAFactory' does not implement org.testng.IExecutorServiceFactory.")
     }
 
     def "can configure threadPoolFactoryClass with TestNG 7.5 (legacy setExecutorFactoryClass API)"() {
