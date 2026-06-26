@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -118,7 +119,6 @@ public class ResolutionFailureHandler {
 
     // region Component Selection failures
     // TODO: Route more of these failures through this handler in order to standardize their description logic
-
     public AbstractResolutionFailureException componentRejected(ComponentState component, List<String> conflictResolutions) {
         AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(component.getModule());
         String legacyErrorMsg = component.getRejectedErrorMessage();
@@ -126,13 +126,19 @@ public class ResolutionFailureHandler {
         return describeFailure(failure);
     }
 
-    public AbstractResolutionFailureException nodeRejected(NodeState node) {
+    public AbstractResolutionFailureException nodeRejectedDueToCapabilityConflict(NodeState node) {
         AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(node.getComponent().getModule());
         String legacyErrorMsg = node.getRejectedErrorMessage();
-        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection, Collections.emptyList(), legacyErrorMsg);
+
+        DocumentationRegistry docs = new DocumentationRegistry();
+        List<String> resolutionFailures = ImmutableList.of(
+            "Capability conflicts are explained in more detail at " + docs.getDocumentationFor("component_capabilities", "sub:capabilities") + ".",
+            "Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at " + docs.getDocumentationFor("component_capabilities", "sec:selecting-between-candidates") + "."
+        );
+
+        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection, resolutionFailures, legacyErrorMsg);
         return describeFailure(failure);
     }
-
     // endregion Component Selection failures
 
     // region Variant Selection failures

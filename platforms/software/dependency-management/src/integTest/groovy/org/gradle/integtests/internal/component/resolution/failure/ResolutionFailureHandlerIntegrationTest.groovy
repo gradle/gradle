@@ -84,6 +84,34 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
+
+    def "demonstrate multiple selected variants with the same capabilities failure"() {
+        multipleSelectedVariantsWithSameCapabilities.prepare()
+
+        expect:
+        fails "forceResolution"
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'test'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'test'
+      > Module 'org.example:test' has been rejected:
+           Cannot select module with conflict on capability 'org:example:test-nonconflicting' also provided by ['root project 'test'' (c2)]""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/component_capabilities.html#sub:capabilities.")
+        assertSuggestsViewingDocs("Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/component_capabilities.html#sec:selecting-between-candidates.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-version-satisfies'
+            additionalData.asMap['requestTarget'] == "org.example:test"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
+            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+        }
+    }
     // endregion Component Selection failures
 
     // region Variant Selection failures
