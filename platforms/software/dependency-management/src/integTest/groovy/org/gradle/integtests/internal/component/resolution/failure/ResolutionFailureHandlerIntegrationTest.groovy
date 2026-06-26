@@ -106,10 +106,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-version-satisfies'
+            fqid == 'dependency-variant-resolution:capability-conflict'
             additionalData.asMap['requestTarget'] == "org.example:test"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
-            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CAPABILITY_CONFLICT.name()
+            additionalData.asMap['problemDisplayName'] == "Module rejected due to a capability conflict"
         }
     }
     // endregion Component Selection failures
