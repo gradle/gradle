@@ -127,6 +127,18 @@ Update your `gradle.properties` and command-line invocations to the new names.
 
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
+[[deprecate-internal-buildlayout]]
+==== Usage of internal `BuildLayout` and `SettingsLocation` services is now deprecated
+
+The internal services `org.gradle.initialization.layout.BuildLayout` and `org.gradle.initialization.SettingsLocation` are deprecated.
+Because these classes do not make it explicit that they are not part of the Gradle API, they can be mistaken for the public link:{javadocPath}/org/gradle/api/file/BuildLayout.html[`org.gradle.api.file.BuildLayout`] service.
+Injecting them is now deprecated, and their removal is scheduled for Gradle 10.
+
+If you need the settings directory in the context of a `Project` plugin,
+then use the public link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[`ProjectLayout.settingsDirectory`] service.
+If you need it in the context of a `Settings` plugin,
+then use the public link:{javadocPath}/org/gradle/api/file/BuildLayout.html[`org.gradle.api.file.BuildLayout.settingsDirectory`] service (note the different package).
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 

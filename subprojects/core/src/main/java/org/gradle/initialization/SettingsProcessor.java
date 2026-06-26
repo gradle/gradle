@@ -19,6 +19,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.internal.initialization.BuildLocation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -32,7 +33,7 @@ public interface SettingsProcessor {
      */
     SettingsState process(
         GradleInternal gradle,
-        SettingsLocation settingsLocation,
+        BuildLocation buildLocation,
         ClassLoaderScope buildRootClassLoaderScope,
         StartParameterInternal startParameter
     );
