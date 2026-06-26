@@ -41,10 +41,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             tasks.register("reader") {
                 inputs.files($tasksInput)
-                def inputFiles = inputs.files
                 doLast {
-                    println "names = " + inputFiles.asFileTree.files*.name.sort()
-                    println "contents = " + inputFiles.asFileTree.files.collect { it.text }.sort()
+                    println "names = " + inputs.files.asFileTree.files*.name.sort()
+                    println "contents = " + inputs.files.asFileTree.files.collect { it.text }.sort()
                 }
             }
         """
@@ -83,10 +82,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         file("foo/build.gradle") << """
             tasks.register("consumer") {
                 inputs.files(parent.tasks.getByName('producer'))
-                def inputFiles = inputs.files
                 doLast {
-                    println "names = " + inputFiles.files*.name
-                    println "contents = " + inputFiles.files.collect { it.text }
+                    println "names = " + inputs.files.files*.name
+                    println "contents = " + inputs.files.files.collect { it.text }
                 }
             }
         """

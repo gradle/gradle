@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.collections.FailingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ProviderResolutionStrategy
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
@@ -98,7 +99,13 @@ class FileCollectionCodec(
                     is File -> element
                     is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                     is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
-                    is ProviderBackedFileCollectionSpec -> fileCollectionFactory.withResolver(element.resolver).resolving(element.provider)
+                    is ProviderBackedFileCollectionSpec -> fileCollectionFactory.withResolver(element.resolver).run {
+                        val source = element.provider
+                        when (element.resolutionStrategy) {
+                            ProviderResolutionStrategy.ALLOW_ABSENT -> resolvingLeniently(source)
+                            ProviderResolutionStrategy.REQUIRE_PRESENT -> resolving(source)
+                        }
+                    }
                     is FileTree -> element
                     is ResolutionBackedFileCollectionSpec -> ResolutionBackedFileCollection(
                         artifactSetConverter.getSelectedArtifacts(element.elements),
@@ -126,8 +133,11 @@ class FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spe
 
 
 private
-class ProviderBackedFileCollectionSpec(val resolver: PathToFileResolver, val provider: ProviderInternal<*>) :
-    ValueObject
+class ProviderBackedFileCollectionSpec(
+    val resolver: PathToFileResolver,
+    val resolutionStrategy: ProviderResolutionStrategy,
+    val provider: ProviderInternal<*>
+) : ValueObject
 
 
 private
@@ -174,7 +184,7 @@ class CollectingVisitor : AbstractVisitor() {
                 // being referenced from a different task.
                 val provider = fileCollection.provider
                 if (provider !is TaskProvider<*>) {
-                    elements.add(ProviderBackedFileCollectionSpec(fileCollection.resolver, provider))
+                    elements.add(ProviderBackedFileCollectionSpec(fileCollection.resolver, fileCollection.providerResolutionStrategy, provider))
                     false
                 } else {
                     true
