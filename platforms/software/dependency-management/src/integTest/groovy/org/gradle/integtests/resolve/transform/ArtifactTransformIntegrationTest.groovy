@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
@@ -31,7 +32,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     def setup() {
         createDirs("lib", "app")
         settingsFile << """
@@ -3030,6 +3031,9 @@ Found the following transformation chains:
             executer.withArgument("--configuration-cache")
         }
 
+        // The 'resolve' task action queries an undeclared artifact transform output, which fires the
+        // deprecation regardless of whether the build ultimately succeeds (CC=false) or fails (CC=true).
+        expectUndeclaredArtifactTransformInputDeprecation()
         if (configurationCache) {
             fails "resolve"
         } else {
@@ -3117,6 +3121,9 @@ Found the following transformation chains:
         executer.withArgument("--configuration-cache")
 
         when:
+        // The 'resolve' task action queries an undeclared artifact transform output, which fires
+        // the deprecation before the CC undeclared-project error.
+        expectUndeclaredArtifactTransformInputDeprecation()
         fails "resolve"
 
         then:

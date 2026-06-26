@@ -48,19 +48,17 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.green, b.jar.green]")
     }
 
-    @UnsupportedWithConfigurationCache(because = "explicitly enables Configuration Cache in the test body to demonstrate the project-not-found failure")
+    @UnsupportedWithConfigurationCache(because = "explicitly enables Configuration Cache in the test body to demonstrate the new actionable CC error")
     @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "demonstrates CC bug: undeclared project-artifact transform output query fails with project-not-found"() {
-        // Characterization test for the bug in issue #37219.
+    def "undeclared project-artifact transform output query under CC fails with actionable error naming each unscheduled producer project"() {
+        // With Configuration Cache enabled, the very first run fails when the task action resolves
+        // the artifact view: the producer project's state cannot be reached because the transform
+        // was not declared as a task input (no edge in the work graph). Production now translates
+        // the underlying project-state-not-registered failure into an actionable cause that names
+        // each producer project and tells the user how to fix the declaration.
         //
-        // With Configuration Cache enabled, the very first run already fails when the task action
-        // resolves the artifact view: the producer project's state cannot be reached because the
-        // transform was not declared as a task input (no edge in the work graph), so under CC
-        // restrictions `ProjectStateRegistry.stateFor(...)` reports the producer project as missing.
-        //
-        // A deprecation warning is currently emitted before the failure. Eventually this access
-        // pattern should produce a hard error before the project lookup, replacing the cryptic
-        // "project not found" with a clear up-front diagnostic.
+        // A deprecation warning is also emitted before the failure to point users at the same
+        // root cause and the upgrade guide.
 
         setupBuildWithProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
@@ -73,8 +71,8 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         then:
         failure.assertHasDescription("Execution failed for task ':broken'")
         failure.assertHasCause("Could not resolve all files for configuration ':implementation'.")
-        failure.assertThatCause(containsString("project ':a' not found."))
-        failure.assertThatCause(containsString("project ':b' not found."))
+        failure.assertThatCause(containsString("Could not access project ':a'. No task declared this project as part of an input, so it was not scheduled."))
+        failure.assertThatCause(containsString("Could not access project ':b'. No task declared this project as part of an input, so it was not scheduled."))
     }
 
     @UnsupportedWithConfigurationCache(because = "task dependency logic is not executed when loaded from the configuration cache")
