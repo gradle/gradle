@@ -317,6 +317,11 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+* [`project()`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html#project()) in `DependencyHandler`
+* [`project(String)`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html#project(java.lang.String)) in `DependencyHandler`
+* [`createProjectDependency()`](javadoc/org/gradle/api/artifacts/dsl/DependencyFactory.html#createProjectDependency()) in `DependencyFactory`
+* [`createProjectDependency(String)`](javadoc/org/gradle/api/artifacts/dsl/DependencyFactory.html#createProjectDependency(java.lang.String)) in `DependencyFactory`
+
 ## Documentation and training
 
 <!--

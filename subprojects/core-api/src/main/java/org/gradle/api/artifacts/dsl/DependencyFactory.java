@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
@@ -104,7 +103,6 @@ public interface DependencyFactory {
      *
      * @since 9.5.0
      */
-    @Incubating
     ProjectDependency createProjectDependency(String projectPath);
 
     /**
@@ -114,7 +112,6 @@ public interface DependencyFactory {
      *
      * @since 9.5.0
      */
-    @Incubating
     ProjectDependency createProjectDependency();
 
     /**
