@@ -25,7 +25,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
@@ -86,7 +86,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         configurationServices,
         listenerManager,
         domainObjectContext,
-        Stub(PublishArtifactNotationParserFactory),
+        Stub(PublishArtifactNotationParser),
         userCodeApplicationContext
     )
 

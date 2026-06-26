@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.artifacts.AnonymousModule
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.ProviderInternal
@@ -58,7 +60,18 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         }
         def identity = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
         identity.getModule().set('pub-name')
-        parser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, identity, TestFiles.taskDependencyFactory()).create()
+        parser = new IvyArtifactNotationParserFactory(
+            instantiator,
+            fileResolver,
+            identity,
+            TestFiles.taskDependencyFactory(),
+            new PublishArtifactNotationParserFactory(
+                TestUtil.objectFactory(),
+                AnonymousModule::new,
+                TestFiles.resolver(getTemporaryFolder().getTestDirectory()),
+                TestFiles.taskDependencyFactory()
+            ).create()
+        ).create()
     }
 
     def "directly returns IvyArtifact input"() {

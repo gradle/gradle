@@ -21,14 +21,13 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
@@ -125,10 +124,10 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
         addAssembleTask(project, dist, assembleTaskName, zipTask, tarTask);
 
         // Build zips and tars by default when running the build-wide assemble task.
-        PublishArtifactSet archivesArtifacts = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts();
+        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         DeprecationLogger.whileDisabled(() -> {
-            archivesArtifacts.add(new LazyPublishArtifact(zipTask, project.getFileResolver(), project.getTaskDependencyFactory()));
-            archivesArtifacts.add(new LazyPublishArtifact(tarTask, project.getFileResolver(), project.getTaskDependencyFactory()));
+            archivesConfiguration.getOutgoing().artifact(zipTask);
+            archivesConfiguration.getOutgoing().artifact(tarTask);
         });
     }
 

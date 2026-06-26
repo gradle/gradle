@@ -25,14 +25,13 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.dependencyManagement)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.dependencyManagement)
-    implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.logging)
     implementation(projects.languageJava)
