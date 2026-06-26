@@ -14,7 +14,9 @@ Gradle @version@ is the first patch release for Gradle 9.6.0. (released [@releas
 
 The following issues were resolved:
 
-* TODO
+- [Allow setting --non-interactive via Gradle property](https://github.com/gradle/gradle/issues/38270)
+- [Gradle 9.6.0 changes dependency-cache artifact permissions from 0644 to 0600](https://github.com/gradle/gradle/issues/38284)
+- [Deadlock can occur in DefaultBuildOperationQueue under certain circumstances](https://github.com/gradle/gradle/issues/38291)
 
 We recommend upgrading to Gradle @version@.
 
