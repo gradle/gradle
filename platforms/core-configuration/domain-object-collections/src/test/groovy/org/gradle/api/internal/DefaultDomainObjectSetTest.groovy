@@ -96,12 +96,13 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
         def pending = TestUtil.objectFactory().listProperty(CharSequence)
         pending.value(TestUtil.providerFactory().provider { throw new RuntimeException("pending provider realized too early") })
         set.addAllLater(pending)
-        // configureEach is documented as lazy: registering it must not realize pending providers.
-        set.configureEach { } // first call stays lazy because no eager element exists yet
+        // configureEach is documented as lazy: registering it must never realize pending providers,
+        // whether registered before or after an eager element is present.
+        set.configureEach { } // registered with no eager element present
         set.add(a) // mix in an eager element
 
         when:
-        set.configureEach { } // second call must remain lazy and not realize the pending provider
+        set.configureEach { } // registered with an eager element present; must still stay lazy
 
         then:
         noExceptionThrown()
