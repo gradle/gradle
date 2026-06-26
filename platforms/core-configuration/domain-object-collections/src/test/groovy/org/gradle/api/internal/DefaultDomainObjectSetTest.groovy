@@ -17,6 +17,7 @@ package org.gradle.api.internal
 
 import groovy.test.NotYetImplemented
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 
 class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
     DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence, callbackActionDecorator)
@@ -87,6 +88,23 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
 
         then:
         result == [value]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36951")
+    def "configureEach does not realize pending elements added via addAllLater when an eager element is present"() {
+        given:
+        def pending = TestUtil.objectFactory().listProperty(CharSequence)
+        pending.value(TestUtil.providerFactory().provider { throw new RuntimeException("pending provider realized too early") })
+        set.addAllLater(pending)
+        // configureEach is documented as lazy: registering it must not realize pending providers.
+        set.configureEach { } // first call stays lazy because no eager element exists yet
+        set.add(a) // mix in an eager element
+
+        when:
+        set.configureEach { } // second call must remain lazy and not realize the pending provider
+
+        then:
+        noExceptionThrown()
     }
 
     interface Subtype extends CharSequence {}
