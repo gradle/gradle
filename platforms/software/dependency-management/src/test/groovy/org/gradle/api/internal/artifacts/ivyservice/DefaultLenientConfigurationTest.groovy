@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphSt
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
@@ -99,7 +100,7 @@ class DefaultLenientConfigurationTest extends Specification {
         allNodes.each {
             ModuleVersionIdentifier mvid = DefaultModuleVersionIdentifier.newId("g", Integer.toString(it), "v")
             builder.addComponent(it, ComponentSelectionReasons.requested(), null, Mock(ComponentIdentifier), mvid)
-            builder.addNode(it, it, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, "", -1)
+            builder.addNode(it, it, "", Mock(VariantIdentifier), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, -1)
             treeStructure.getOrDefault(it, Collections.emptyList()).each {
                 builder.addSuccessfulEdge(Mock(ComponentSelector), false, it)
             }

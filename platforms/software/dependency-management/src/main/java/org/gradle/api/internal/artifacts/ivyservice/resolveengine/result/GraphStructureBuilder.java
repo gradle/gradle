@@ -33,10 +33,12 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
@@ -58,9 +60,10 @@ public class GraphStructureBuilder {
     // Nodes
     private final Long2IntMap nodeIdToIndex = new Long2IntOpenHashMap();
     private final IntArrayList nodeOwnerIndices = new IntArrayList();
+    private final List<String> nodeVariantNames = new ArrayList<>();
+    private final List<VariantIdentifier> nodeVariantIds = new ArrayList<>();
     private final List<ImmutableAttributes> nodeAttributes = new ArrayList<>();
     private final List<ImmutableCapabilities> nodeCapabilities = new ArrayList<>();
-    private final List<String> nodeVariantNames = new ArrayList<>();
     private final Int2LongMap externalVariantIds = new Int2LongOpenHashMap();
 
     // Edges
@@ -100,9 +103,10 @@ public class GraphStructureBuilder {
         builder.addNode(
             1L,
             0L,
+            rootVariantName,
+            new NamedVariantIdentifier(componentIdentifier, rootVariantName),
             attributeDesugaring.desugar(attributes),
             rawCapabilities,
-            rootVariantName,
             -1
         );
 
@@ -145,9 +149,10 @@ public class GraphStructureBuilder {
     public void addNode(
         long id,
         long ownerId,
+        String variantName,
+        VariantIdentifier variantId,
         ImmutableAttributes attributes,
         ImmutableCapabilities rawCapabilities,
-        String variantName,
         long externalVariantId
     ) {
         int nodeIndex = nodeOwnerIndices.size();
@@ -158,9 +163,10 @@ public class GraphStructureBuilder {
             throw new IllegalStateException("Cannot find owner component for node " + id + " with owner " + ownerId);
         }
         nodeOwnerIndices.add(ownerIndex);
+        nodeVariantNames.add(variantName);
+        nodeVariantIds.add(variantId);
         nodeAttributes.add(attributes);
         nodeCapabilities.add(capabilitiesFor(rawCapabilities, ownerIndex));
-        nodeVariantNames.add(variantName);
         if (externalVariantId != -1) {
             externalVariantIds.put(nodeIndex, externalVariantId);
         }
@@ -255,9 +261,10 @@ public class GraphStructureBuilder {
             new DefaultGraphStructure.DefaultNodes(
                 rootNodeIndex,
                 nodeOwnerIndices,
+                ImmutableList.copyOf(nodeVariantNames),
+                ImmutableList.copyOf(nodeVariantIds),
                 ImmutableList.copyOf(nodeAttributes),
                 ImmutableList.copyOf(nodeCapabilities),
-                ImmutableList.copyOf(nodeVariantNames),
                 externalVariantIndices
             ),
             new DefaultGraphStructure.DefaultEdges(
