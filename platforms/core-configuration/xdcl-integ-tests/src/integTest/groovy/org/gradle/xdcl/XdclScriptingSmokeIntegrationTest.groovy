@@ -248,6 +248,91 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("ERROR: unused")
     }
 
+    def "a declarative settings plugin cannot be applied from a settings reaction"() {
+        given:
+        enableProblemsApiCheck()
+        xdclSettingsFile '''
+            settings {
+                pluginManagement {
+                  includedBuilds ["build-logic"]
+                }
+                plugins [
+                  { id "trigger" }
+                ]
+                trigger {
+                }
+            }
+        '''
+        xdclFile 'build-logic/settings.gradle.xdcl', '''
+            settings {}
+        '''
+        buildFile 'build-logic/build.gradle', '''
+            plugins {
+              id "java-gradle-plugin"
+              id "xdcl-gradle-plugin"
+            }
+            gradlePlugin {
+              plugins {
+                triggerPlugin {
+                  id = "trigger"
+                  implementationClass = "my.TriggerPlugin"
+                }
+              }
+            }
+        '''
+        xdslFile 'build-logic/src/main/xdcl/my.xdsl', '''
+            package my.dsl
+
+            import xdcl.gradle.bootstrap // Settings
+
+            extension Trigger for Settings {
+              trigger {
+                enabled: Bool = true
+              }
+            }
+        '''
+        javaFile 'build-logic/src/main/java/my/TriggerPlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.*;
+            import my.dsl.*;
+
+            @BindReaction(TriggerPlugin.TriggerReaction.class)
+            public class TriggerPlugin implements Plugin<Settings> {
+                static class TriggerReaction implements Reaction<Trigger, Settings> {
+                    @Override public void on(Trigger data, Settings context, ReactionScope scope) {
+                        context.getPluginManager().apply(LatePlugin.class); // declarative, applied too late
+                    }
+                }
+                @Override public void apply(Settings target) {}
+            }
+        """
+        javaFile 'build-logic/src/main/java/my/LatePlugin.java', """
+            package my;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.xdcl.PluginDefaults;
+
+            @PluginDefaults(pluginId = "late")
+            public class LatePlugin implements Plugin<Settings> {
+                @Override public void apply(Settings target) {}
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'scripts:xdcl:xdcl-declarative-plugin-outside-plugins-block'
+            contextualLabel.contains("my.LatePlugin")
+            contextualLabel.contains("settings plugins block")
+        }
+    }
+
     def "can register project template and associated reactions via settings plugin from included build"() {
         given:
         xdclSettingsFile '''
