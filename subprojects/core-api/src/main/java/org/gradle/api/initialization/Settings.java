@@ -23,6 +23,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.initialization.files.FileSystemDefaultExcludes;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
@@ -484,4 +485,26 @@ public interface Settings extends PluginAware, ExtensionAware {
     @Incubating
     @HiddenInDefinition
     SetProperty<String> getFileSystemDefaultExcludes();
+
+    /**
+     * Configures the {@linkplain #getFileSystemDefaultExcludes() default file-system exclude patterns} for
+     * this build using add/remove/clear operations, as a more convenient alternative to mutating the
+     * property directly.
+     *
+     * <p>For example, to include version-control metadata that is excluded by default:</p>
+     * <pre>
+     * fileSystemDefaultExcludes {
+     *     remove("**&#47;.gitignore")
+     *     remove("**&#47;.gitattributes")
+     * }
+     * </pre>
+     *
+     * <p>Changes after settings evaluation are not honored.</p>
+     *
+     * @param action the configuration to apply
+     * @since 9.7.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    void fileSystemDefaultExcludes(Action<? super FileSystemDefaultExcludes> action);
 }

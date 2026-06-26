@@ -247,11 +247,10 @@ Gradle now provides a [`fileSystemDefaultExcludes`](javadoc/org/gradle/api/initi
 
 ```kotlin
 // settings.gradle.kts
-// Add a custom exclude
-fileSystemDefaultExcludes.add("**/node_modules")
-
-// Remove a built-in exclude
-fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
+fileSystemDefaultExcludes {
+    add("**/node_modules")       // add a custom exclude
+    remove("**/.gitignore")      // remove a built-in exclude
+}
 ```
 
 The legacy `DirectoryScanner` mutation is now deprecated and will be removed in Gradle 10.

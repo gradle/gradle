@@ -200,8 +200,10 @@ Use the new `Settings.fileSystemDefaultExcludes` property instead:
 .settings.gradle.kts
 [source,kotlin]
 ----
-fileSystemDefaultExcludes.add("**/node_modules")
-fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
+fileSystemDefaultExcludes {
+    add("**/node_modules")
+    remove("**/.gitignore")
+}
 ----
 ======
 [.multi-language-sample]
@@ -209,8 +211,10 @@ fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
 .settings.gradle
 [source,groovy]
 ----
-fileSystemDefaultExcludes.add("**/node_modules")
-fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
+fileSystemDefaultExcludes {
+    add "**/node_modules"
+    remove "**/.gitignore"
+}
 ----
 ======
 =====

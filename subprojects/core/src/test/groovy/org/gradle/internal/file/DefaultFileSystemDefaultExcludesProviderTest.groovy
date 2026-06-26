@@ -112,6 +112,31 @@ class DefaultFileSystemDefaultExcludesProviderTest extends Specification {
         noDeprecationWarnings()
     }
 
+    def "property can clear every default exclude"() {
+        when: "the property is set to an empty set (e.g. fileSystemDefaultExcludes.empty())"
+        settingsEvaluated([] as Set)
+
+        then: "nothing is excluded by default and no Ant-quirk workaround is needed"
+        provider.currentDefaultExcludes.isEmpty()
+        broadcasts.last().isEmpty()
+        noDeprecationWarnings()
+    }
+
+    def "removing every default via the DirectoryScanner clears the set and is deprecated"() {
+        when: "an earlier script wipes the Ant default excludes (the legacy 'include everything' idiom)"
+        DirectoryScanner.getDefaultExcludes().each { DirectoryScanner.removeDefaultExclude(it) }
+        settingsEvaluated(null)
+
+        then:
+        provider.currentDefaultExcludes.isEmpty()
+        broadcasts.last().isEmpty()
+
+        and:
+        def warnings = deprecationWarnings()
+        warnings.size() == 1
+        warnings[0].contains("Mutating org.apache.tools.ant.DirectoryScanner default excludes has been deprecated")
+    }
+
     def "additions from multiple settings scripts stack"() {
         when:
         settingsEvaluated(baselinePlus("**/a"))

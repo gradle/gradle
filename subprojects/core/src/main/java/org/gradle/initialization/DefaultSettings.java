@@ -26,6 +26,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.initialization.files.FileSystemDefaultExcludes;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
@@ -64,6 +65,8 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -446,5 +449,42 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public SetProperty<String> getFileSystemDefaultExcludes() {
         return fileSystemDefaultExcludes;
+    }
+
+    @Override
+    public void fileSystemDefaultExcludes(Action<? super FileSystemDefaultExcludes> action) {
+        action.execute(new DefaultFileSystemDefaultExcludes(fileSystemDefaultExcludes));
+    }
+
+    /**
+     * Backs the {@link Settings#fileSystemDefaultExcludes(Action)} block by translating add/remove/clear
+     * operations onto the {@link #getFileSystemDefaultExcludes()} property. Removal is an eager
+     * get-modify-set (the only way to subtract from a collection property); this is safe here because the
+     * block runs once at settings-evaluation time and the property's convention is an immutable constant.
+     */
+    private static class DefaultFileSystemDefaultExcludes implements FileSystemDefaultExcludes {
+
+        private final SetProperty<String> property;
+
+        DefaultFileSystemDefaultExcludes(SetProperty<String> property) {
+            this.property = property;
+        }
+
+        @Override
+        public void add(String... patterns) {
+            property.addAll(patterns);
+        }
+
+        @Override
+        public void remove(String... patterns) {
+            Set<String> resolved = new LinkedHashSet<>(property.get());
+            resolved.removeAll(Arrays.asList(patterns));
+            property.set(resolved);
+        }
+
+        @Override
+        public void clear() {
+            property.empty();
+        }
     }
 }
