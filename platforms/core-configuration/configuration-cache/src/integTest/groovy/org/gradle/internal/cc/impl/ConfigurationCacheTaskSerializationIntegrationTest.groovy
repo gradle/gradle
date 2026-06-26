@@ -498,6 +498,52 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33318")
+    def "can use TaskCollection from withType wrapped in a list as task input"() {
+        buildFile  """
+            abstract class MyTask extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void run() {
+                    outputFile.get().asFile.text = name
+                }
+            }
+
+            tasks.register("task1", MyTask) {
+                outputFile = layout.buildDirectory.file("task1.txt")
+            }
+            tasks.register("task2", MyTask) {
+                outputFile = layout.buildDirectory.file("task2.txt")
+            }
+
+            tasks.register("task3") {
+                def myTasks = tasks.withType(MyTask)
+                dependsOn(myTasks)
+                inputs.files([myTasks])
+                def inputFiles = inputs.files
+                doLast {
+                    println "inputs = " + inputFiles.files*.name.sort()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "task3"
+
+        then:
+        result.assertTasksExecuted(":task1", ":task2", ":task3")
+        outputContains("inputs = [task1.txt, task2.txt]")
+
+        when:
+        configurationCacheRun "task3"
+
+        then:
+        result.assertTaskExecuted(":task3")
+        outputContains("inputs = [task1.txt, task2.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33318")
     def "can use DomainObjectCollection of Configuration as ad hoc task input"() {
         file("foo.txt").text = "foo"
         file("bar.txt").text = "bar"
