@@ -266,11 +266,21 @@ class EdgeState implements DependencyGraphEdge {
             }
 
             // If we couldn't attach to any nodes, try to inherit any failures that hard edges have
-            // encountered during selection.
+            // encountered during selection. Failures may originate either from target variant
+            // selection (targetNodeSelectionFailure) or from selector resolution itself - for
+            // example when a throwing eachDependency/substitution rule fired on the requested
+            // coordinate and prevented a component from ever being selected.
             if (targetNodes.isEmpty()) {
                 for (EdgeState unattachedEdge : targetComponent.getModule().getUnattachedEdges()) {
-                    if (!unattachedEdge.isConstraint() && unattachedEdge.targetNodeSelectionFailure != null) {
-                        this.targetNodeSelectionFailure = unattachedEdge.targetNodeSelectionFailure;
+                    if (unattachedEdge.isConstraint()) {
+                        continue;
+                    }
+                    ModuleVersionResolveException targetNodeFailure = unattachedEdge.targetNodeSelectionFailure;
+                    if (targetNodeFailure == null && unattachedEdge.selector != null) {
+                        targetNodeFailure = unattachedEdge.selector.getFailure();
+                    }
+                    if (targetNodeFailure != null) {
+                        this.targetNodeSelectionFailure = targetNodeFailure;
                         return;
                     }
                 }
