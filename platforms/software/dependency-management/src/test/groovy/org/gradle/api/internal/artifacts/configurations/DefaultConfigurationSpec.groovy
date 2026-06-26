@@ -1895,12 +1895,12 @@ This method is only meant to be called on configurations which allow the (non-de
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
-        def publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(
+        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
-        )
+        ).create()
 
         ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
             new TestBuildOperationRunner(),
@@ -1922,7 +1922,7 @@ This method is only meant to be called on configurations which allow the (non-de
             configurationServices,
             listenerManager,
             domainObjectContext,
-            publishArtifactNotationParserFactory,
+            publishArtifactNotationParser,
             userCodeApplicationContext
         )
     }

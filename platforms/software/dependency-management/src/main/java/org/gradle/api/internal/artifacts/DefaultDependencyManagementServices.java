@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -552,8 +553,23 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ArtifactHandler createArtifactHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, PublishArtifactNotationParserFactory publishArtifactNotationParserFactory) {
-            return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParserFactory.create());
+        PublishArtifactNotationParser createPublishArtifactNotationParser(
+            ObjectFactory objectFactory,
+            DependencyMetaDataProvider metaDataProvider,
+            FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory
+        ) {
+            return new PublishArtifactNotationParserFactory(
+                objectFactory,
+                metaDataProvider,
+                fileResolver,
+                taskDependencyFactory
+            ).create();
+        }
+
+        @Provides
+        ArtifactHandler createArtifactHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, PublishArtifactNotationParser publishArtifactNotationParser) {
+            return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
         @Provides
