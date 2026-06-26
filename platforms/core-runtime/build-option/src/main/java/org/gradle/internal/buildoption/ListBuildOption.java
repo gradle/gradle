@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,20 +32,28 @@ import java.util.Map;
 public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public ListBuildOption(String property) {
-        super(property);
+        this(property, (String) null);
+    }
+
+    public ListBuildOption(String property, String deprecatedProperty) {
+        super(property, deprecatedProperty);
     }
 
     public ListBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(property, commandLineOptionConfigurations);
+        this(property, null, commandLineOptionConfigurations);
+    }
+
+    public ListBuildOption(@Nullable String property, @Nullable String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, deprecatedProperty, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(property);
-
+        OptionValue<String> propertyValue = getFromProperties(properties);
+        String value = propertyValue.getValue();
         if (value != null) {
             String[] splitValues = value.split("\\s*,\\s*");
-            applyTo(Arrays.asList(splitValues), settings, Origin.forGradleProperty(property));
+            applyTo(Arrays.asList(splitValues), settings, propertyValue.getOrigin());
         }
     }
 
@@ -65,5 +74,5 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandL
         }
     }
 
-    public abstract void applyTo(List<String> values, T settings, Origin origin);
+    public abstract void applyTo(List<String> values, T settings, @Nullable Origin origin);
 }

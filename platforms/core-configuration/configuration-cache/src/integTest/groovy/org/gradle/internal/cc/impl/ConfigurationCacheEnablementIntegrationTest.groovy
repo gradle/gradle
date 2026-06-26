@@ -103,6 +103,9 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
     def "can enable configuration cache using incubating and final property variants"() {
         given:
+        if (deprecatedProperty) {
+            executer.expectDocumentedDeprecationWarning(expectedDeprecationMessage(deprecatedProperty, replacementProperty))
+        }
         buildFile """
         task check {
             assert gradle.startParameter.configurationCache.get() == ${ccOn}
@@ -123,22 +126,30 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         }
 
         where:
-        task    | ccOn  | problemsAs| maxProblems   | quiet | recreate  | debug | options
-        "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache.problems=warn"]
-        "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.configuration-cache.max-problems=100"]
-        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.internal.configuration-cache.quiet=true"]
-        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.internal.configuration-cache.recreate-cache=true"]
-        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.internal.configuration-cache.debug=true"]
-        "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache-problems=warn"]
-        "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]
-        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.quiet=true"]
-        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.unsafe.configuration-cache.recreate-cache=true"]
-        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.unsafe.configuration-cache.debug=true"]
-        "check" | true  | _         | _             | _     | _         | _     | ["--configuration-cache"]
-        "check" | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=true"]
-        "check" | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=true"]
-        "check" | false | _         | _             | _     | _         | _     | ["--no-configuration-cache"]
-        "check" | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=false"]
-        "check" | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=false"]
+        task    | ccOn  | problemsAs| maxProblems   | quiet | recreate  | debug | options                                                              | deprecatedProperty                                       | replacementProperty
+        "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache.problems=warn"]                   | null                                                     | null
+        "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.configuration-cache.max-problems=100"]                | null                                                     | null
+        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.internal.configuration-cache.quiet=true"]             | null                                                     | null
+        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.internal.configuration-cache.recreate-cache=true"]    | null                                                     | null
+        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.internal.configuration-cache.debug=true"]             | null                                                     | null
+        "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache-problems=warn"]            | "org.gradle.unsafe.configuration-cache-problems"         | "org.gradle.configuration-cache.problems"
+        "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]         | "org.gradle.unsafe.configuration-cache.max-problems"     | "org.gradle.configuration-cache.max-problems"
+        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.quiet=true"]               | "org.gradle.unsafe.configuration-cache.quiet"            | "org.gradle.internal.configuration-cache.quiet"
+        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.unsafe.configuration-cache.recreate-cache=true"]      | "org.gradle.unsafe.configuration-cache.recreate-cache"   | "org.gradle.internal.configuration-cache.recreate-cache"
+        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.unsafe.configuration-cache.debug=true"]               | "org.gradle.unsafe.configuration-cache.debug"            | "org.gradle.internal.configuration-cache.debug"
+        "check" | true  | _         | _             | _     | _         | _     | ["--configuration-cache"]                                            | null                                                     | null
+        "check" | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=true"]                            | null                                                     | null
+        "check" | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=true"]                     | "org.gradle.unsafe.configuration-cache"                  | "org.gradle.configuration-cache"
+        "check" | false | _         | _             | _     | _         | _     | ["--no-configuration-cache"]                                         | null                                                     | null
+        "check" | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=false"]                           | null                                                     | null
+        "check" | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=false"]                    | "org.gradle.unsafe.configuration-cache"                  | "org.gradle.configuration-cache"
+    }
+
+    private static String expectedDeprecationMessage(String deprecatedProperty, String replacementProperty) {
+        "The ${deprecatedProperty} system property has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10. " +
+            "Please use the ${replacementProperty} system property instead. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_unsafe_configuration_cache_properties"
     }
 }
