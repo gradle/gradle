@@ -31,8 +31,8 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
@@ -119,7 +119,7 @@ public class EclipseDependenciesCreator {
                 return;
             }
             ComponentArtifactIdentifier artifactId = artifact.getId();
-            TaskDependency buildDependencies = null;
+            TaskDependencyContainer buildDependencies = null;
             if (artifactId instanceof ComponentArtifactMetadata) {
                 buildDependencies = ((ComponentArtifactMetadata) artifactId).getBuildDependencies();
             }

@@ -258,7 +258,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ConfigurationResolver.Factory.class, DefaultConfigurationResolver.Factory.class);
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
-            registration.add(PublishArtifactNotationParserFactory.class);
         }
 
         @Provides
