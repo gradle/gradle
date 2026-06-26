@@ -161,6 +161,10 @@ As a result, the [console](userguide/command_line_interface.html), the [problems
 Run with `--warning-mode=all` to remove the limit and capture a source location for every problem.
 Past the cap, including under `--warning-mode=all` and `fail`, the capture keeps the originating build logic down to the calling script, enough to locate the problem, rather than the full call chain.
 
+Previously, [Isolated Projects](userguide/isolated_projects.html) raised the full stack trace cap to 5000 problems to give early adopters locations on large builds.
+Now that the cheaper location capture covers everything past the cap, that special case is no longer needed: Isolated Projects uses the same 50-problem full stack trace cap as every other mode, and problems past it get the same reduced bounded location.
+This lowers the cost of problem reporting under Isolated Projects with no loss of locations for affected problems.
+
 See the [CLI reference](userguide/command_line_interface.html#sec:command_line_warnings) in the Gradle User Manual for more details.
 
 ### Build authoring improvements

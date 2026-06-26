@@ -59,7 +59,26 @@ class StackTraceCapturerTest extends Specification {
         results[2] == null
         results[3] == null
 
+        // captureSupplied never substitutes a bounded capture for a supplied throwable; the bounded fallback
+        // past the full budget is the caller's responsibility, via captureBoundedFallback.
         0 * boundedCapturer.captureCallerStack()
+    }
+
+    def "captureBoundedFallback spends only the bounded budget, then captures nothing"() {
+        given:
+        def boundedException = new Exception()
+        def capturer = new StackTraceCapturer(2, 2, boundedCapturer)
+
+        when:
+        // The full budget is untouched: captureBoundedFallback only ever spends the bounded budget.
+        def results = (1..3).collect { capturer.captureBoundedFallback() }
+
+        then:
+        results[0].is(boundedException)
+        results[1].is(boundedException)
+        results[2] == null
+
+        2 * boundedCapturer.captureCallerStack() >> boundedException
     }
 
     def "captureCaller with an unbounded bounded budget keeps capturing past the full cap"() {
