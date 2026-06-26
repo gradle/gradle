@@ -323,23 +323,28 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds "forceResolution"
     }
 
-    def "requireCapability() does not narrow when notations differ only in the version segment, and the error message surfaces the effective selector"() {
+    def "requireCapability() does NOT narrow when notations differ only in the version segment, and the error message surfaces the effective selector"() {
         given:
-        setupVariantsDistinguishedByCapability("org:example:c1", "org:example:c2")
+        setupVariantsDistinguishedByCapability("group:name:1.0", "group:name:2.0")
 
         when:
         fails "forceResolution"
 
-        then: "the ambiguity is reported with the effective (version-stripped) capability"
-        failure.assertHasErrorOutput("The consumer was configured to find attribute 'custom' with value 'a1' and capability 'org:example'. However we cannot choose between the following variants of project ':producer':")
-
-        and: "the trailer indicates required capability was considered"
-        failure.assertHasErrorOutput("All of them match the consumer attributes and required capability:")
+        then: "the ambiguity is reported with the effective (version-stripped) capability and the trailer indicates required capability was considered"
+        assertFullMessageCorrect("""Required by:
+         root project 'test'
+      > The consumer was configured to find attribute 'custom' with value 'a1' and capability 'group:name'. However we cannot choose between the following variants of project ':producer':
+          - v1
+          - v2
+        All of them match the consumer attributes and required capability:
+          - Variant 'v1' capability 'group:name:1.0' declares attribute 'custom' with value 'a1'
+          - Variant 'v2' capability 'group:name:2.0' declares attribute 'custom' with value 'a1'""")
     }
 
     private void setupVariantsDistinguishedByCapability(String c1Notation, String c2Notation) {
         settingsFile << """
             include("producer")
+            rootProject.name = "test"
         """
 
         file("producer/build.gradle") << """
@@ -398,4 +403,9 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
+    private void assertFullMessageCorrect(String identifyingFragment) {
+        identifyingFragment.eachLine {
+            failure.assertHasErrorOutput(it.trim())
+        }
+    }
 }
