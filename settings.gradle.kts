@@ -27,7 +27,7 @@ includeBuild("build-logic")
 // no publish round-trip, no SNAPSHOT staleness. Substitution matches the
 // distribution.versions.toml coordinates by group:name and is the ONLY source of org.xdcl
 // artifacts, so a substitution gap fails resolution loudly instead of picking up stale jars.
-includeBuild("../xdcl-scripting-language")
+includeBuild("../xdcl")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
