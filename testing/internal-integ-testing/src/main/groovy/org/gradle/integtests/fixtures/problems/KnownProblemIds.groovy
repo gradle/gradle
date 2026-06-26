@@ -242,5 +242,6 @@ class KnownProblemIds {
         'scripts:xdcl:xdcl-project-local-plugins': ['Project-local plugins are not supported'],
         'scripts:xdcl:xdcl-conflicting-defaults': ['Conflicting XDCL defaults'],
         'scripts:xdcl:xdcl-plugin-dependency-cycle': ['XDCL plugin dependency cycle'],
+        'scripts:xdcl:xdcl-declarative-plugin-outside-plugins-block': ['Declarative settings plugin applied outside the plugins block'],
     ]
 }
