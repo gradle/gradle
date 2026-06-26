@@ -1729,6 +1729,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "xdcl-demos",
+    "path": "platforms/core-configuration/xdcl-demos",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "xdcl-integ-tests",
     "path": "platforms/core-configuration/xdcl-integ-tests",
     "unitTests": false,
