@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultLocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -105,6 +106,9 @@ class LocalFileDependencyBackedArtifactSetCodec(
                 val selected = value.variantSelector.select(recordingSet, value.requestAttributes, true)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
+                } else if (selected is BrokenResolvedArtifactSet) {
+                    // Variant selection failed (e.g. ambiguous transforms). Preserve the failure so it surfaces at execution time, matching the non-configuration-cache behavior.
+                    mappings[sourceAttributes] = BrokenMapping(selected.getFailure())
                 } else if (recordingSet.targetAttributes != null) {
                     mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformChain!!)
                 } else {
@@ -284,6 +288,15 @@ private
 object IdentityMapping : MappingSpec()
 
 
+/**
+ * A mapping that records that variant selection failed at configuration cache store time
+ * (e.g. ambiguous transformation chains). The captured failure should surface when the
+ * resulting artifact set is actually consumed at execution time, mirroring non-CC behavior.
+ */
+private
+class BrokenMapping(val failure: Throwable) : MappingSpec()
+
+
 private
 class FixedArtifactVariantSelector(
     private val matchingOnArtifactFormat: Boolean,
@@ -308,6 +321,7 @@ class FixedArtifactVariantSelector(
 
             is IdentityMapping -> variant.artifacts
             is TransformMapping -> candidates.transformCandidate(variant, spec)
+            is BrokenMapping -> BrokenResolvedArtifactSet(spec.failure)
         }
     }
 }
