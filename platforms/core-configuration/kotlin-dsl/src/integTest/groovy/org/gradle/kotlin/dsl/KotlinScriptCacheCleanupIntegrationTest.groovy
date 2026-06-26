@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 
 import java.util.concurrent.TimeUnit
@@ -67,49 +69,158 @@ class KotlinScriptCacheCleanupIntegrationTest
 
         then: 'outdated entry is soft-deleted (kept with markers) and baseline entries are still present'
         outdatedScriptCache.exists()
-        isSoftDeleted(outdatedScriptCache.name)
-        locksAndSoftDeletionFilesExist(outdatedScriptCache.name)
+        isSoftDeleted(scriptCacheDir, outdatedScriptCache.name)
+        locksAndSoftDeletionFilesExist(scriptCacheDir, outdatedScriptCache.name)
         gcFile.lastModified() >= SECONDS.toMillis(beforeSoftCleanup)
 
         when: 'simulate passage of time beyond soft deletion window and trigger cleanup again (hard delete)'
         def beforeHardCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
         def sevenHoursAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(7)
-        setSoftDeletedTime(outdatedScriptCache.name, sevenHoursAgo)
+        setSoftDeletedTime(scriptCacheDir, outdatedScriptCache.name, sevenHoursAgo)
         gcFile.lastModified = daysAgo(2)
         run "run"
 
         then: 'outdated entry directory is hard deleted and markers removed; baseline remains'
         outdatedScriptCache.assertDoesNotExist()
-        locksAndSoftDeletionFilesAreDeleted(outdatedScriptCache.name)
+        locksAndSoftDeletionFilesAreDeleted(scriptCacheDir, outdatedScriptCache.name)
         // Baseline entries are still the same
         scriptCacheDir.list() as Set == scriptCacheBaseLine as Set
         gcFile.lastModified() >= SECONDS.toMillis(beforeHardCleanup)
     }
 
-    boolean isSoftDeleted(String key) {
-        return new TestFile(scriptCacheDir, ".internal/gc/${key}/soft.deleted").exists()
-            && new TestFile(scriptCacheDir, ".internal/gc/${key}/gc.properties").exists()
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "needs a separate process per build so the file-access-time journal is read from disk; " +
+            "embedded keeps it in memory, so externally backdating an entry the build touched has no effect"
+    )
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
+    def "incremental compilation cache entry is kept alive by recompilation and reclaimed once unused"() {
+        given:
+        // needs a real daemon process per build and its own journal
+        executer.requireDaemon().requireIsolatedDaemons()
+        requireOwnGradleUserHomeDir("needs its own journal")
+
+        and: 'seed the IC cache by compiling a script'
+        buildKotlinFile.text = scriptPrinting("ok")
+        run 'run'
+
+        and: 'the IC entries that compiling the script produced'
+        List<TestFile> entries = realIcEntries()
+        assert !entries.isEmpty()
+        TestFile gcFile = icCacheDir.file('.internal/gc.properties')
+
+        when: '(1) time passes with the script unused, so a cleanup soft-deletes its entries'
+        run '--stop' // ensure the daemon does not cache file access times in memory
+        ageForCleanup(entries)
+        forceCleanupDue(gcFile)
+        run 'run' // workspace hit: the script is not recompiled, so its entries are not touched
+
+        then:
+        entries.every { it.exists() && isSoftDeleted(icCacheDir, it.name) }
+
+        when: '(2) the script is modified, so recompilation reuses its entries and clears the soft-deletion'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok again") // same identity (content-independent), so the entries are reused
+        run 'run' // no cleanup is due this build; recompiling clears the soft-delete marker in withScriptState
+
+        then:
+        entries.every { it.exists() && !isSoftDeleted(icCacheDir, it.name) }
+
+        when: '(3) more time passes but the entries were just used, so the next cleanup keeps them'
+        run '--stop'
+        forceCleanupDue(gcFile) // do NOT re-age: step (2) refreshed their access time
+        run 'run'
+
+        then:
+        entries.every { it.exists() && !isSoftDeleted(icCacheDir, it.name) }
+
+        when: '(4) more time passes with the script unused again, so a cleanup soft-deletes the entries'
+        run '--stop'
+        ageForCleanup(entries)
+        forceCleanupDue(gcFile)
+        run 'run'
+
+        then:
+        entries.every { it.exists() && isSoftDeleted(icCacheDir, it.name) }
+
+        when: '(5) the soft-deletion window elapses, so the next cleanup hard-deletes them'
+        run '--stop'
+        def sevenHoursAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(7)
+        entries.each { setSoftDeletedTime(icCacheDir, it.name, sevenHoursAgo) }
+        forceCleanupDue(gcFile)
+        run 'run'
+
+        then:
+        entries.every { it.assertDoesNotExist() && locksAndSoftDeletionFilesAreDeleted(icCacheDir, it.name) }
     }
 
-    void setSoftDeletedTime(String key, long millis) {
-        def keyGcDir = new TestFile(scriptCacheDir, ".internal/gc/${key}")
+    private static String scriptPrinting(String message) {
+        return """
+            tasks.register("run") {
+                doLast { println("$message") }
+            }
+        """
+    }
+
+    private List<TestFile> realIcEntries() {
+        return (icCacheDir.list() as List<String>)
+            .findAll { it != '.internal' }
+            .collect { icCacheDir.file(it) }
+            .findAll { it.directory }
+    }
+
+    private void ageForCleanup(List<TestFile> entries) {
+        def old = daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1)
+        writeJournalInceptionTimestamp(old)
+        entries.each {
+            // mark the entry as last accessed older than retention so it is a candidate for cleanup
+            writeLastFileAccessTimeToJournal(it, old)
+
+            // gc.properties records when this entry was last soft-deleted. The cleanup will not soft-delete
+            // an entry again until that timestamp is older than the retention period.
+            def lastSoftDeleteMarker = new TestFile(icCacheDir, ".internal/gc/${it.name}/gc.properties")
+            if (lastSoftDeleteMarker.exists()) {
+                lastSoftDeleteMarker.lastModified = old
+            }
+        }
+    }
+
+    private void forceCleanupDue(TestFile gcFile) {
+        if (!gcFile.exists()) {
+            gcFile.createFile()
+        }
+        // pretend the last cleanup ran days ago so the DAILY frequency check fires again
+        gcFile.lastModified = daysAgo(2)
+    }
+
+    boolean isSoftDeleted(TestFile cacheDir, String key) {
+        return new TestFile(cacheDir, ".internal/gc/${key}/soft.deleted").exists()
+            && new TestFile(cacheDir, ".internal/gc/${key}/gc.properties").exists()
+    }
+
+    void setSoftDeletedTime(TestFile cacheDir, String key, long millis) {
+        def keyGcDir = new TestFile(cacheDir, ".internal/gc/${key}")
         def softDeleted = keyGcDir.file("soft.deleted")
         def softGc = keyGcDir.file("gc.properties")
         softDeleted.lastModified = millis
         softGc.lastModified = millis
     }
 
-    boolean locksAndSoftDeletionFilesExist(String key) {
-        return new TestFile(scriptCacheDir, ".internal/locks/${key}.lock").exists()
-            && new TestFile(scriptCacheDir, ".internal/gc/${key}").exists()
+    boolean locksAndSoftDeletionFilesExist(TestFile cacheDir, String key) {
+        return new TestFile(cacheDir, ".internal/locks/${key}.lock").exists()
+            && new TestFile(cacheDir, ".internal/gc/${key}").exists()
     }
 
-    boolean locksAndSoftDeletionFilesAreDeleted(String key) {
-        return !new TestFile(scriptCacheDir, ".internal/locks/${key}.lock").exists()
-            && !new TestFile(scriptCacheDir, ".internal/gc/${key}").exists()
+    boolean locksAndSoftDeletionFilesAreDeleted(TestFile cacheDir, String key) {
+        return !new TestFile(cacheDir, ".internal/locks/${key}.lock").exists()
+            && !new TestFile(cacheDir, ".internal/gc/${key}").exists()
     }
 
     TestFile getScriptCacheDir() {
         return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl').file('scripts')
+    }
+
+    TestFile getIcCacheDir() {
+        return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl-ic')
     }
 }

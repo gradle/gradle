@@ -16,12 +16,18 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.IndexedCacheParameters
+import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory
+import org.gradle.cache.internal.DefaultFineGrainedCacheCleanupStrategyFactory
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -34,6 +40,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
@@ -61,6 +68,7 @@ import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Path
+import java.util.function.Supplier
 
 
 /**
@@ -312,8 +320,24 @@ fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCa
     rootDir.mkdirs()
     val cacheBuilderFactory = DefaultGlobalScopedCacheBuilderFactory(rootDir, DefaultUnscopedCacheBuilderFactory(TestInMemoryCacheFactory()))
     val inMemoryCacheDecoratorFactory = DefaultInMemoryCacheDecoratorFactory(false, TestCrossBuildInMemoryCacheFactory())
-    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory)
-    val cache = KotlinDslIncrementalCompilationCache(store.cache)
+    val fileAccessTimeJournal = ModificationTimeFileAccessTimeJournal()
+    val cacheCleanupStrategyFactory = DefaultFineGrainedCacheCleanupStrategyFactory(
+        DefaultCacheCleanupStrategyFactory(TestBuildOperationRunner()),
+        fileAccessTimeJournal
+    )
+    // These caches back unit tests, not a real Gradle invocation, so age-based eviction has no place
+    // here: NEVER means close() never sweeps. It keeps tests deterministic (the per-JVM shared cache
+    // is reused across the whole suite, and cleanup tests drive the soft/hard-delete passes themselves
+    // rather than racing a sweep on close). The retention supplier is therefore never consulted.
+    val createdResources = mock<CacheResourceConfigurationInternal> {
+        on { entryRetentionTimestampSupplier } doReturn Supplier { 0L }
+    }
+    val cacheConfigurations = mock<CacheConfigurationsInternal> {
+        on { getCreatedResources() } doReturn createdResources
+        on { cleanupFrequency } doReturn Providers.of(CleanupFrequency.NEVER)
+    }
+    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+    val cache = KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
     val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
     val snapshotCache = KotlinDslClasspathEntrySnapshotCache(
         snapshotStore.snapshotsCacheDirectory,
