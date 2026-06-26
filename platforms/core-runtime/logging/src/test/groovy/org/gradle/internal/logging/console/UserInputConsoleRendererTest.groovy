@@ -287,12 +287,12 @@ class UserInputConsoleRendererTest extends Specification {
         given:
         def callCount = 0
         def unreliableProvider = Mock(TemporaryFileProvider) {
-            createTemporaryFile(_, _) >> {
+            createOwnerOnlyTemporaryFile(_, _) >> {
                 callCount++
                 if (callCount == 1) {
                     throw new IOException("disk full")
                 }
-                return tempFileProvider.createTemporaryFile("user-input-overflow-", ".bin")
+                return tempFileProvider.createOwnerOnlyTemporaryFile("user-input-overflow-", ".bin")
             }
         }
         def testRenderer = new UserInputConsoleRenderer(listener, console, userInput, unreliableProvider)
@@ -339,7 +339,7 @@ class UserInputConsoleRendererTest extends Specification {
     def "falls back to in-memory buffer when disk overflow fails"() {
         given:
         def failingProvider = Mock(TemporaryFileProvider) {
-            createTemporaryFile(_, _) >> { throw new IOException("disk full") }
+            createOwnerOnlyTemporaryFile(_, _) >> { throw new IOException("disk full") }
         }
         def failRenderer = new UserInputConsoleRenderer(listener, console, userInput, failingProvider)
         def totalEvents = AbstractUserInputRenderer.MEMORY_QUEUE_LIMIT + 100

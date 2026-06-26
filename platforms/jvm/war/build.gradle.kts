@@ -53,6 +53,9 @@ dependencies {
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+
+    integTestImplementation(testFixtures(projects.resourcesHttp))
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

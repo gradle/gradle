@@ -199,12 +199,12 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         outputContains("result = <default>")
     }
 
-    def "does not prompt and uses default with --no-interactive"() {
+    def "does not prompt and uses default with --non-interactive"() {
         given:
         interactiveExecution()
 
         when:
-        def gradleHandle = executer.withArgument("--no-interactive").withTasks("askYesNo").start()
+        def gradleHandle = executer.withArgument("--non-interactive").withTasks("askYesNo").start()
         writeToStdInAndClose(gradleHandle, EOF)
         result = gradleHandle.waitForFinish()
 
