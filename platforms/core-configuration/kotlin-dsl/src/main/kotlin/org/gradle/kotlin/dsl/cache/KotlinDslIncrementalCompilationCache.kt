@@ -16,7 +16,9 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter
 import org.gradle.cache.FineGrainedPersistentCache
+import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -40,6 +42,8 @@ import kotlin.io.path.createDirectories
 @ServiceScope(Scope.UserHome::class)
 class KotlinDslIncrementalCompilationCache(
     private val cache: FineGrainedPersistentCache,
+    private val fileAccessTracker: FileAccessTracker,
+    private val softDeleter: FineGrainedCacheEntrySoftDeleter,
 ) {
     private val baseDir: Path = cache.baseDir.toPath()
 
@@ -47,10 +51,19 @@ class KotlinDslIncrementalCompilationCache(
      * Runs [action] holding [scriptIdentity]'s lock — exclusive across the processes sharing
      * this `GRADLE_USER_HOME`, so concurrent compiles of the same script can't corrupt its
      * read-modify-write IC state. Different scripts use different keys and don't contend.
+     *
+     * Touches the entry for LRU cleanup and, since the entry is in active use, clears any
+     * soft-delete marker left by a prior cleanup pass so it won't be hard-deleted. Both happen
+     * under the entry lock, as the soft-deleter contract requires.
      */
     fun <T> withScriptState(scriptIdentity: String, action: () -> T): T {
+        val key = dirNameFor(scriptIdentity)
         var result: T? = null
-        cache.useCache(dirNameFor(scriptIdentity)) { result = action() }
+        cache.useCache(key) {
+            fileAccessTracker.markAccessed(scriptEntry(scriptIdentity).toFile())
+            result = action()
+            softDeleter.removeSoftDeleteMarker(key)
+        }
         @Suppress("UNCHECKED_CAST")
         return result as T
     }
