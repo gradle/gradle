@@ -25,7 +25,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -47,26 +47,31 @@ import java.util.concurrent.Callable;
  * @see <a href="https://docs.gradle.org/current/userguide/war_plugin.html">WAR plugin reference</a>
  */
 public abstract class WarPlugin implements Plugin<Project> {
+
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
 
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
 
-    private Project project;
     private JvmFeatureInternal mainFeature;
 
     @Inject
-    public WarPlugin(ObjectFactory objectFactory, AttributesFactory attributesFactory) {
+    public WarPlugin(
+        ObjectFactory objectFactory,
+        AttributesFactory attributesFactory,
+        PublishArtifactNotationParser publishArtifactNotationParser
+    ) {
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.publishArtifactNotationParser = publishArtifactNotationParser;
     }
 
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        this.project = project;
         this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
         project.getTasks().withType(War.class).configureEach(task -> {
@@ -84,16 +89,16 @@ public abstract class WarPlugin implements Plugin<Project> {
             warTask.setGroup(BasePlugin.BUILD_GROUP);
         });
 
-        PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
+        PublishArtifact warArtifact = publishArtifactNotationParser.parseNotation(war);
         DeprecationLogger.whileDisabled(() -> {
             project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
         });
-        configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
+        configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature, project);
         configureComponent(project, warArtifact);
     }
 
     @SuppressWarnings("deprecation")
-    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
+    private static void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature, Project project) {
         Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
             conf.setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
         });
@@ -118,4 +123,5 @@ public abstract class WarPlugin implements Plugin<Project> {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, attributes.named(Usage.class, Usage.JAVA_RUNTIME));
         project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, "master", attributes));
     }
+
 }
