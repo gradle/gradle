@@ -16,9 +16,12 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory
 import org.gradle.cache.IndexedCacheParameters
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.service.PrivateService
@@ -39,14 +42,17 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @PrivateService
     fun createKotlinDslIncrementalCompilationStore(
         cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+        fileAccessTimeJournal: FileAccessTimeJournal,
+        cacheConfigurations: CacheConfigurationsInternal,
+        cacheCleanupStrategyFactory: FineGrainedCacheCleanupStrategyFactory,
     ): KotlinDslIncrementalCompilationStore =
-        KotlinDslIncrementalCompilationStore(cacheBuilderFactory)
+        KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
 
     @Provides
     fun createKotlinDslIncrementalCompilationCache(
         store: KotlinDslIncrementalCompilationStore,
     ): KotlinDslIncrementalCompilationCache =
-        KotlinDslIncrementalCompilationCache(store.cache)
+        KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
 
     @Provides
     @PrivateService

@@ -16,8 +16,14 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory
+import org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter
 import org.gradle.cache.FineGrainedPersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.file.FileAccessTracker
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
@@ -28,21 +34,34 @@ import java.io.Closeable
  * `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-ic/`. Holds only the mutable, per-script
  * incremental-compilation state.
  *
- * [close] is invoked by the service registry on shutdown.
- *
- * TODO: no disk cleanup — per-script entries grow unbounded. Drop-in via
- *  `FineGrainedCacheBuilder.withCleanupStrategy(...)`, mirroring KotlinDslWorkspaceProvider's cleanup
- *  wiring and touching each entry on use so LRU drops the right scripts.
+ * Per-script entries (`<scriptHash>/`, one cache key each) are reclaimed by the mark-and-sweep LRU
+ * cleanup wired here. The cache touches each entry on use (see
+ * [KotlinDslIncrementalCompilationCache.withScriptState]) via [fileAccessTracker], and clears
+ * its soft-delete marker through [softDeleter] so entries in active use survive; the cleanup itself
+ * runs on [close].
  */
 @ServiceScope(Scope.UserHome::class)
 internal class KotlinDslIncrementalCompilationStore(
     cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    fileAccessTimeJournal: FileAccessTimeJournal,
+    cacheConfigurations: CacheConfigurationsInternal,
+    cacheCleanupStrategyFactory: FineGrainedCacheCleanupStrategyFactory,
 ) : Closeable {
+
+    private val cleanupStrategy = cacheCleanupStrategyFactory.markAndSweepCleanupStrategy(
+        cacheConfigurations.createdResources.entryRetentionTimestampSupplier,
+        cacheConfigurations.cleanupFrequency::get
+    )
 
     val cache: FineGrainedPersistentCache = cacheBuilderFactory
         .createFineGrainedCacheBuilder("kotlin-dsl-ic")
         .withDisplayName("Kotlin DSL incremental compilation cache")
+        .withCleanupStrategy(cleanupStrategy)
         .open()
+
+    val fileAccessTracker: FileAccessTracker = SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.baseDir, 1)
+
+    val softDeleter: FineGrainedCacheEntrySoftDeleter = cleanupStrategy.getSoftDeleter(cache)
 
     override fun close() {
         cache.close()

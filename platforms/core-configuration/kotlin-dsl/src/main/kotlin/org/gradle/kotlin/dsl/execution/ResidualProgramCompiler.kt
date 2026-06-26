@@ -751,8 +751,9 @@ class ResidualProgramCompiler(
         //  - [programKind] (TopLevel/ScriptPlugin): a top-level script vs one applied via
         //    `apply(from = …)`.
         //  - [compilerOptions]: when these change (e.g. `allWarningsAsErrors` flips), warnings
-        //    that should be errors would be hidden behind the prior cache hit.
-        return "$originalPath#$stage#${programTarget}#${programKind}#${compilerOptions.hashCode()}"
+        //    that should be errors would be hidden behind the prior cache hit (don't use the
+        //    hashCode of it, changes from one Daemon instance to another).
+        return "$originalPath#$stage#${programTarget}#${programKind}#${compilerOptions}"
     }
 
     /**
