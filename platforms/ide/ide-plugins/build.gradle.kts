@@ -44,7 +44,6 @@ dependencies {
     implementation(projects.dependencyManagement)
     implementation(projects.ear)
     implementation(projects.fileCollections)
-    implementation(projects.processServices)
     implementation(projects.languageJava)
     implementation(projects.logging)
     implementation(projects.pluginsGroovy)
