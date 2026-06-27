@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.resolver;
+package org.gradle.internal.util;
 
-import java.io.File;
+import com.google.common.collect.ImmutableSet;
 
-public class NullGradleApiSourcesResolver implements GradleApiSourcesResolver {
+import java.util.Collection;
+import java.util.function.Function;
 
-    public static final GradleApiSourcesResolver INSTANCE = new NullGradleApiSourcesResolver();
+public final class ImmutableSets {
 
-    private NullGradleApiSourcesResolver() {
+    private ImmutableSets() {
     }
 
-    @Override
-    public File resolveLocalGroovySources(String jarName) {
-        return null;
+    public static <T, V> ImmutableSet<V> transform(Collection<T> source, Function<T, V> function) {
+        ImmutableSet.Builder<V> builder = ImmutableSet.builderWithExpectedSize(source.size());
+        for (T item : source) {
+            builder.add(function.apply(item));
+        }
+        return builder.build();
     }
+
 }

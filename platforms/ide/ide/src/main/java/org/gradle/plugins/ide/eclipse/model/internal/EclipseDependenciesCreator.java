@@ -24,17 +24,16 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -44,7 +43,6 @@ import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
 import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
@@ -63,21 +61,20 @@ public class EclipseDependenciesCreator {
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;
-    private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final boolean inferModulePath;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, boolean inferModulePath) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
         this.currentProjectId = ((ProjectInternal) classpath.getProject()).getOwner().getComponentIdentifier();
-        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
         this.inferModulePath = inferModulePath;
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
         Set<Configuration> testConfigurations = classpath.getTestConfigurations().getOrElse(Collections.emptySet());
-        new IdeDependencySet(classpath.getProject().getDependencies(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), inferModulePath, gradleApiSourcesResolver, testConfigurations).visit(visitor);
+        IdeDependencySet ideDependencySet = ((ProjectInternal) classpath.getProject()).getServices().get(IdeDependencySet.class);
+        ideDependencySet.visit(classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), testConfigurations, inferModulePath, visitor);
         return visitor.getDependencies();
     }
 
@@ -152,12 +149,12 @@ public class EclipseDependenciesCreator {
         }
 
         @Override
-        public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
-            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
+        public void visitUnresolvedDependency(ComponentSelector requested, Throwable failure) {
+            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(project.getProjectDir(), requested);
             UnresolvedLibrary unresolvedLib = (UnresolvedLibrary) createUnresolvedLibraryEntry(unresolvedFile, classpath, pathToSourceSets, false, false);
-            unresolvedLib.setAttemptedSelector(unresolvedDependency.getAttempted());
+            unresolvedLib.setAttemptedSelector(requested);
             files.add(unresolvedLib);
-            unresolvedIdeDependencyHandler.log(unresolvedDependency);
+            UnresolvedIdeDependencyHandler.log(requested, failure);
         }
 
         /*

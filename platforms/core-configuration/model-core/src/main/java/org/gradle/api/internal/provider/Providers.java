@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.apache.commons.lang3.function.TriFunction;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -93,6 +95,10 @@ public class Providers {
 
     public static <T> ProviderInternal<T> changing(SerializableCallable<T> value) {
         return new ChangingProvider<>(value);
+    }
+
+    public static <A, B, C, Z> Provider<Z> zip(Provider<A> a, Provider<B> b, Provider<C> c, TriFunction<? super A, ? super B, ? super C, Z> combiner) {
+        return a.zip(b, Pair::of).zip(c, (pair, cValue) -> combiner.apply(pair.getLeft(), pair.getRight(), cValue));
     }
 
     /**

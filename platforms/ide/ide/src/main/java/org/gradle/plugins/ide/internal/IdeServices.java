@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal;
 
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 
 public class IdeServices extends AbstractGradleModuleServices {
     @Override
@@ -28,5 +29,6 @@ public class IdeServices extends AbstractGradleModuleServices {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(IdeArtifactRegistry.class, DefaultIdeArtifactRegistry.class);
+        registration.add(IdeDependencySet.class);
     }
 }

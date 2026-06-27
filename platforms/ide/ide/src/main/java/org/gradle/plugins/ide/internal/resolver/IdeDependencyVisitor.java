@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 import java.io.File;
 import java.util.Set;
@@ -68,5 +68,5 @@ public interface IdeDependencyVisitor {
     /**
      * There was an unresolved dependency in the result.
      */
-    void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency);
+    void visitUnresolvedDependency(ComponentSelector requested, Throwable failure);
 }
