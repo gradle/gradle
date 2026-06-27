@@ -21,7 +21,6 @@ import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
@@ -49,9 +48,9 @@ public class EclipseClasspathResolver {
         ClasspathFactory classpathFactory = new ClasspathFactory(
             classpath,
             project.getServices().get(IdeArtifactRegistry.class),
-            new DefaultGradleApiSourcesResolver(project.newDetachedResolver()),
             EclipseClassPathUtil.isInferModulePath(project),
-            modulePathResolver);
+            modulePathResolver
+        );
         return classpathFactory.createEntries();
     }
 

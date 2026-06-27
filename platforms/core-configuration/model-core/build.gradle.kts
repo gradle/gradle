@@ -23,10 +23,11 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.asm)
-    api(libs.jspecify)
-    api(libs.inject)
+    api(libs.commonsLang)
     api(libs.groovy)
     api(libs.guava)
+    api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
@@ -37,7 +38,6 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
-    implementation(libs.commonsLang)
 
     compileOnly(libs.errorProneAnnotations)
 

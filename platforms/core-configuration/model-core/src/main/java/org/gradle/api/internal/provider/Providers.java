@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
@@ -31,6 +30,8 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.function.TriFunction;
+import org.apache.commons.lang3.tuple.Pair;
 import static java.util.Objects.requireNonNull;
 
 public class Providers {
@@ -96,6 +97,10 @@ public class Providers {
 
     public static <T> ProviderInternal<T> changing(SerializableCallable<T> value) {
         return new ChangingProvider<>(value);
+    }
+
+    public static <A, B, C, Z> Provider<Z> zip(Provider<A> a, Provider<B> b, Provider<C> c, TriFunction<? super A, ? super B, ? super C, Z> combiner) {
+        return a.zip(b, Pair::of).zip(c, (pair, cValue) -> combiner.apply(pair.getLeft(), pair.getRight(), cValue));
     }
 
     /**
