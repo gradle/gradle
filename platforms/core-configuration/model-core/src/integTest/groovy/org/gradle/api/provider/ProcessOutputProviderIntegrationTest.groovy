@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.process.ShellScript
 import org.gradle.process.TestJavaMain
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
     def "providers.exec can be used during configuration time"() {
@@ -262,6 +263,25 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Other script output")
         result.assertTaskScheduled(":printScriptOutput")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33858")
+    def "providers.exec reports a clear cause when configuring standard streams"() {
+        given:
+        buildFile """
+            providers.exec {
+                standardInput = System.in
+                commandLine("echo")
+            }
+
+            task empty() {}
+        """
+
+        when:
+        fails(":empty")
+
+        then:
+        failure.assertHasCause("Standard streams cannot be configured for exec output provider")
     }
 
     static String cmdToExecConfig(String... args) {
