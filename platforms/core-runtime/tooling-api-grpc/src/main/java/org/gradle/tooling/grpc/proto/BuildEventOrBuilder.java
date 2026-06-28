@@ -88,5 +88,32 @@ public interface BuildEventOrBuilder extends
    */
   org.gradle.tooling.grpc.proto.StyledOutputOrBuilder getStyledOrBuilder();
 
+  /**
+   * <pre>
+   * progress start/status/complete
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+   * @return Whether the progress field is set.
+   */
+  boolean hasProgress();
+  /**
+   * <pre>
+   * progress start/status/complete
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+   * @return The progress.
+   */
+  org.gradle.tooling.grpc.proto.ProgressEvent getProgress();
+  /**
+   * <pre>
+   * progress start/status/complete
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+   */
+  org.gradle.tooling.grpc.proto.ProgressEventOrBuilder getProgressOrBuilder();
+
   public org.gradle.tooling.grpc.proto.BuildEvent.KindCase getKindCase();
 }

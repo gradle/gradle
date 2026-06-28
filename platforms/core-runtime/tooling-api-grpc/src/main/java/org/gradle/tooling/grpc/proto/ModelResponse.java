@@ -50,6 +50,7 @@ private static final long serialVersionUID = 0L;
       implements com.google.protobuf.Internal.EnumLite,
           com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     BUILD_ENVIRONMENT(3),
+    TASKS(4),
     MODEL_NOT_SET(0);
     private final int value;
     private ModelCase(int value) {
@@ -68,6 +69,7 @@ private static final long serialVersionUID = 0L;
     public static ModelCase forNumber(int value) {
       switch (value) {
         case 3: return BUILD_ENVIRONMENT;
+        case 4: return TASKS;
         case 0: return MODEL_NOT_SET;
         default: return null;
       }
@@ -164,6 +166,37 @@ private static final long serialVersionUID = 0L;
     return org.gradle.tooling.grpc.proto.BuildEnvironment.getDefaultInstance();
   }
 
+  public static final int TASKS_FIELD_NUMBER = 4;
+  /**
+   * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+   * @return Whether the tasks field is set.
+   */
+  @java.lang.Override
+  public boolean hasTasks() {
+    return modelCase_ == 4;
+  }
+  /**
+   * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+   * @return The tasks.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.grpc.proto.TaskList getTasks() {
+    if (modelCase_ == 4) {
+       return (org.gradle.tooling.grpc.proto.TaskList) model_;
+    }
+    return org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
+  }
+  /**
+   * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.grpc.proto.TaskListOrBuilder getTasksOrBuilder() {
+    if (modelCase_ == 4) {
+       return (org.gradle.tooling.grpc.proto.TaskList) model_;
+    }
+    return org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -187,6 +220,9 @@ private static final long serialVersionUID = 0L;
     if (modelCase_ == 3) {
       output.writeMessage(3, (org.gradle.tooling.grpc.proto.BuildEnvironment) model_);
     }
+    if (modelCase_ == 4) {
+      output.writeMessage(4, (org.gradle.tooling.grpc.proto.TaskList) model_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -206,6 +242,10 @@ private static final long serialVersionUID = 0L;
     if (modelCase_ == 3) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, (org.gradle.tooling.grpc.proto.BuildEnvironment) model_);
+    }
+    if (modelCase_ == 4) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, (org.gradle.tooling.grpc.proto.TaskList) model_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -232,6 +272,10 @@ private static final long serialVersionUID = 0L;
         if (!getBuildEnvironment()
             .equals(other.getBuildEnvironment())) return false;
         break;
+      case 4:
+        if (!getTasks()
+            .equals(other.getTasks())) return false;
+        break;
       case 0:
       default:
     }
@@ -255,6 +299,10 @@ private static final long serialVersionUID = 0L;
       case 3:
         hash = (37 * hash) + BUILD_ENVIRONMENT_FIELD_NUMBER;
         hash = (53 * hash) + getBuildEnvironment().hashCode();
+        break;
+      case 4:
+        hash = (37 * hash) + TASKS_FIELD_NUMBER;
+        hash = (53 * hash) + getTasks().hashCode();
         break;
       case 0:
       default:
@@ -393,6 +441,9 @@ private static final long serialVersionUID = 0L;
       if (buildEnvironmentBuilder_ != null) {
         buildEnvironmentBuilder_.clear();
       }
+      if (tasksBuilder_ != null) {
+        tasksBuilder_.clear();
+      }
       modelCase_ = 0;
       model_ = null;
       return this;
@@ -443,6 +494,10 @@ private static final long serialVersionUID = 0L;
       if (modelCase_ == 3 &&
           buildEnvironmentBuilder_ != null) {
         result.model_ = buildEnvironmentBuilder_.build();
+      }
+      if (modelCase_ == 4 &&
+          tasksBuilder_ != null) {
+        result.model_ = tasksBuilder_.build();
       }
     }
 
@@ -503,6 +558,10 @@ private static final long serialVersionUID = 0L;
           mergeBuildEnvironment(other.getBuildEnvironment());
           break;
         }
+        case TASKS: {
+          mergeTasks(other.getTasks());
+          break;
+        }
         case MODEL_NOT_SET: {
           break;
         }
@@ -550,6 +609,13 @@ private static final long serialVersionUID = 0L;
               modelCase_ = 3;
               break;
             } // case 26
+            case 34: {
+              input.readMessage(
+                  getTasksFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              modelCase_ = 4;
+              break;
+            } // case 34
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -826,6 +892,148 @@ private static final long serialVersionUID = 0L;
       modelCase_ = 3;
       onChanged();
       return buildEnvironmentBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.grpc.proto.TaskList, org.gradle.tooling.grpc.proto.TaskList.Builder, org.gradle.tooling.grpc.proto.TaskListOrBuilder> tasksBuilder_;
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     * @return Whether the tasks field is set.
+     */
+    @java.lang.Override
+    public boolean hasTasks() {
+      return modelCase_ == 4;
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     * @return The tasks.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.grpc.proto.TaskList getTasks() {
+      if (tasksBuilder_ == null) {
+        if (modelCase_ == 4) {
+          return (org.gradle.tooling.grpc.proto.TaskList) model_;
+        }
+        return org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
+      } else {
+        if (modelCase_ == 4) {
+          return tasksBuilder_.getMessage();
+        }
+        return org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
+      }
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    public Builder setTasks(org.gradle.tooling.grpc.proto.TaskList value) {
+      if (tasksBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        model_ = value;
+        onChanged();
+      } else {
+        tasksBuilder_.setMessage(value);
+      }
+      modelCase_ = 4;
+      return this;
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    public Builder setTasks(
+        org.gradle.tooling.grpc.proto.TaskList.Builder builderForValue) {
+      if (tasksBuilder_ == null) {
+        model_ = builderForValue.build();
+        onChanged();
+      } else {
+        tasksBuilder_.setMessage(builderForValue.build());
+      }
+      modelCase_ = 4;
+      return this;
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    public Builder mergeTasks(org.gradle.tooling.grpc.proto.TaskList value) {
+      if (tasksBuilder_ == null) {
+        if (modelCase_ == 4 &&
+            model_ != org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance()) {
+          model_ = org.gradle.tooling.grpc.proto.TaskList.newBuilder((org.gradle.tooling.grpc.proto.TaskList) model_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          model_ = value;
+        }
+        onChanged();
+      } else {
+        if (modelCase_ == 4) {
+          tasksBuilder_.mergeFrom(value);
+        } else {
+          tasksBuilder_.setMessage(value);
+        }
+      }
+      modelCase_ = 4;
+      return this;
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    public Builder clearTasks() {
+      if (tasksBuilder_ == null) {
+        if (modelCase_ == 4) {
+          modelCase_ = 0;
+          model_ = null;
+          onChanged();
+        }
+      } else {
+        if (modelCase_ == 4) {
+          modelCase_ = 0;
+          model_ = null;
+        }
+        tasksBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    public org.gradle.tooling.grpc.proto.TaskList.Builder getTasksBuilder() {
+      return getTasksFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    @java.lang.Override
+    public org.gradle.tooling.grpc.proto.TaskListOrBuilder getTasksOrBuilder() {
+      if ((modelCase_ == 4) && (tasksBuilder_ != null)) {
+        return tasksBuilder_.getMessageOrBuilder();
+      } else {
+        if (modelCase_ == 4) {
+          return (org.gradle.tooling.grpc.proto.TaskList) model_;
+        }
+        return org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
+      }
+    }
+    /**
+     * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.grpc.proto.TaskList, org.gradle.tooling.grpc.proto.TaskList.Builder, org.gradle.tooling.grpc.proto.TaskListOrBuilder> 
+        getTasksFieldBuilder() {
+      if (tasksBuilder_ == null) {
+        if (!(modelCase_ == 4)) {
+          model_ = org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
+        }
+        tasksBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.grpc.proto.TaskList, org.gradle.tooling.grpc.proto.TaskList.Builder, org.gradle.tooling.grpc.proto.TaskListOrBuilder>(
+                (org.gradle.tooling.grpc.proto.TaskList) model_,
+                getParentForChildren(),
+                isClean());
+        model_ = null;
+      }
+      modelCase_ = 4;
+      onChanged();
+      return tasksBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

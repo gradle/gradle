@@ -51,6 +51,7 @@ private static final long serialVersionUID = 0L;
     OUTPUT(1),
     RESULT(2),
     STYLED(3),
+    PROGRESS(4),
     KIND_NOT_SET(0);
     private final int value;
     private KindCase(int value) {
@@ -71,6 +72,7 @@ private static final long serialVersionUID = 0L;
         case 1: return OUTPUT;
         case 2: return RESULT;
         case 3: return STYLED;
+        case 4: return PROGRESS;
         case 0: return KIND_NOT_SET;
         default: return null;
       }
@@ -215,6 +217,49 @@ private static final long serialVersionUID = 0L;
     return org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
   }
 
+  public static final int PROGRESS_FIELD_NUMBER = 4;
+  /**
+   * <pre>
+   * progress start/status/complete
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+   * @return Whether the progress field is set.
+   */
+  @java.lang.Override
+  public boolean hasProgress() {
+    return kindCase_ == 4;
+  }
+  /**
+   * <pre>
+   * progress start/status/complete
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+   * @return The progress.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.grpc.proto.ProgressEvent getProgress() {
+    if (kindCase_ == 4) {
+       return (org.gradle.tooling.grpc.proto.ProgressEvent) kind_;
+    }
+    return org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance();
+  }
+  /**
+   * <pre>
+   * progress start/status/complete
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.grpc.proto.ProgressEventOrBuilder getProgressOrBuilder() {
+    if (kindCase_ == 4) {
+       return (org.gradle.tooling.grpc.proto.ProgressEvent) kind_;
+    }
+    return org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance();
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -238,6 +283,9 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 3) {
       output.writeMessage(3, (org.gradle.tooling.grpc.proto.StyledOutput) kind_);
     }
+    if (kindCase_ == 4) {
+      output.writeMessage(4, (org.gradle.tooling.grpc.proto.ProgressEvent) kind_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -258,6 +306,10 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 3) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, (org.gradle.tooling.grpc.proto.StyledOutput) kind_);
+    }
+    if (kindCase_ == 4) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, (org.gradle.tooling.grpc.proto.ProgressEvent) kind_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -288,6 +340,10 @@ private static final long serialVersionUID = 0L;
         if (!getStyled()
             .equals(other.getStyled())) return false;
         break;
+      case 4:
+        if (!getProgress()
+            .equals(other.getProgress())) return false;
+        break;
       case 0:
       default:
     }
@@ -314,6 +370,10 @@ private static final long serialVersionUID = 0L;
       case 3:
         hash = (37 * hash) + STYLED_FIELD_NUMBER;
         hash = (53 * hash) + getStyled().hashCode();
+        break;
+      case 4:
+        hash = (37 * hash) + PROGRESS_FIELD_NUMBER;
+        hash = (53 * hash) + getProgress().hashCode();
         break;
       case 0:
       default:
@@ -456,6 +516,9 @@ private static final long serialVersionUID = 0L;
       if (styledBuilder_ != null) {
         styledBuilder_.clear();
       }
+      if (progressBuilder_ != null) {
+        progressBuilder_.clear();
+      }
       kindCase_ = 0;
       kind_ = null;
       return this;
@@ -508,6 +571,10 @@ private static final long serialVersionUID = 0L;
       if (kindCase_ == 3 &&
           styledBuilder_ != null) {
         result.kind_ = styledBuilder_.build();
+      }
+      if (kindCase_ == 4 &&
+          progressBuilder_ != null) {
+        result.kind_ = progressBuilder_.build();
       }
     }
 
@@ -568,6 +635,10 @@ private static final long serialVersionUID = 0L;
           mergeStyled(other.getStyled());
           break;
         }
+        case PROGRESS: {
+          mergeProgress(other.getProgress());
+          break;
+        }
         case KIND_NOT_SET: {
           break;
         }
@@ -619,6 +690,13 @@ private static final long serialVersionUID = 0L;
               kindCase_ = 3;
               break;
             } // case 26
+            case 34: {
+              input.readMessage(
+                  getProgressFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              kindCase_ = 4;
+              break;
+            } // case 34
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1183,6 +1261,184 @@ private static final long serialVersionUID = 0L;
       kindCase_ = 3;
       onChanged();
       return styledBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.grpc.proto.ProgressEvent, org.gradle.tooling.grpc.proto.ProgressEvent.Builder, org.gradle.tooling.grpc.proto.ProgressEventOrBuilder> progressBuilder_;
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     * @return Whether the progress field is set.
+     */
+    @java.lang.Override
+    public boolean hasProgress() {
+      return kindCase_ == 4;
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     * @return The progress.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.grpc.proto.ProgressEvent getProgress() {
+      if (progressBuilder_ == null) {
+        if (kindCase_ == 4) {
+          return (org.gradle.tooling.grpc.proto.ProgressEvent) kind_;
+        }
+        return org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance();
+      } else {
+        if (kindCase_ == 4) {
+          return progressBuilder_.getMessage();
+        }
+        return org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    public Builder setProgress(org.gradle.tooling.grpc.proto.ProgressEvent value) {
+      if (progressBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        kind_ = value;
+        onChanged();
+      } else {
+        progressBuilder_.setMessage(value);
+      }
+      kindCase_ = 4;
+      return this;
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    public Builder setProgress(
+        org.gradle.tooling.grpc.proto.ProgressEvent.Builder builderForValue) {
+      if (progressBuilder_ == null) {
+        kind_ = builderForValue.build();
+        onChanged();
+      } else {
+        progressBuilder_.setMessage(builderForValue.build());
+      }
+      kindCase_ = 4;
+      return this;
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    public Builder mergeProgress(org.gradle.tooling.grpc.proto.ProgressEvent value) {
+      if (progressBuilder_ == null) {
+        if (kindCase_ == 4 &&
+            kind_ != org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance()) {
+          kind_ = org.gradle.tooling.grpc.proto.ProgressEvent.newBuilder((org.gradle.tooling.grpc.proto.ProgressEvent) kind_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          kind_ = value;
+        }
+        onChanged();
+      } else {
+        if (kindCase_ == 4) {
+          progressBuilder_.mergeFrom(value);
+        } else {
+          progressBuilder_.setMessage(value);
+        }
+      }
+      kindCase_ = 4;
+      return this;
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    public Builder clearProgress() {
+      if (progressBuilder_ == null) {
+        if (kindCase_ == 4) {
+          kindCase_ = 0;
+          kind_ = null;
+          onChanged();
+        }
+      } else {
+        if (kindCase_ == 4) {
+          kindCase_ = 0;
+          kind_ = null;
+        }
+        progressBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    public org.gradle.tooling.grpc.proto.ProgressEvent.Builder getProgressBuilder() {
+      return getProgressFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    @java.lang.Override
+    public org.gradle.tooling.grpc.proto.ProgressEventOrBuilder getProgressOrBuilder() {
+      if ((kindCase_ == 4) && (progressBuilder_ != null)) {
+        return progressBuilder_.getMessageOrBuilder();
+      } else {
+        if (kindCase_ == 4) {
+          return (org.gradle.tooling.grpc.proto.ProgressEvent) kind_;
+        }
+        return org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * progress start/status/complete
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.grpc.proto.ProgressEvent, org.gradle.tooling.grpc.proto.ProgressEvent.Builder, org.gradle.tooling.grpc.proto.ProgressEventOrBuilder> 
+        getProgressFieldBuilder() {
+      if (progressBuilder_ == null) {
+        if (!(kindCase_ == 4)) {
+          kind_ = org.gradle.tooling.grpc.proto.ProgressEvent.getDefaultInstance();
+        }
+        progressBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.grpc.proto.ProgressEvent, org.gradle.tooling.grpc.proto.ProgressEvent.Builder, org.gradle.tooling.grpc.proto.ProgressEventOrBuilder>(
+                (org.gradle.tooling.grpc.proto.ProgressEvent) kind_,
+                getParentForChildren(),
+                isClean());
+        kind_ = null;
+      }
+      kindCase_ = 4;
+      onChanged();
+      return progressBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

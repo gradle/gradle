@@ -34,7 +34,12 @@ $PY prototype/client.py boom           # daemon-rendered FAILURE, exit 1
 $PY prototype/client.py hello -Px=y    # build flags pass through (-P/-D/-x/-q/--info)
 $PY prototype/client.py --query env    # query build environment (the C slice)
 
-# Full scenario suite (10 cases)
+# CLI-over-gRPC: the real `gradle` command driving the daemon over gRPC instead of the
+# internal protocol (a step toward unifying CLI + TAPI + native on one protocol)
+$GRADLE_BIN --grpc hello --project-dir prototype/sample   # exit 0
+$GRADLE_BIN --grpc boom  --project-dir prototype/sample   # exit 1
+
+# Full scenario suite (13 cases)
 PY=$PY ./prototype/run-scenarios.sh
 ```
 
@@ -43,10 +48,12 @@ daemons get reused): `pkill -f org.gradle.launcher.daemon.bootstrap.GradleDaemon
 
 ## Scope
 
-- **B (run builds)**: tasks + common flags, streamed structured output (log + styled spans),
-  success/failure exit code.
+- **B (run builds)**: tasks + flags via Gradle's real CLI converter, streamed structured output
+  (log + styled spans + progress), success/failure exit code.
 - **C (query state)**: `QueryModel` returns the build environment (gradle version, java home,
   java version). Richer models (tasks, dependencies) need a model-projection layer - a follow-up.
+- **CLI-over-gRPC**: `gradle --grpc <tasks>` runs the build by talking to the daemon over the gRPC
+  contract instead of the internal Kryo protocol - the same contract the native client uses.
 
 Documented prototype simplifications (see the plan): side-file port advertisement (not
 greeting+registry), pragmatic flag parsing (not the full CLI converter), `--dependency-verification=off`,

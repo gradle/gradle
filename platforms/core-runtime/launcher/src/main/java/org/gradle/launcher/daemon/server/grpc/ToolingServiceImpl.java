@@ -21,20 +21,33 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.converter.StartParameterConverter;
+import org.gradle.launcher.configuration.AllProperties;
+import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -46,6 +59,7 @@ import org.gradle.tooling.grpc.proto.BuildRequest;
 import org.gradle.tooling.grpc.proto.BuildResult;
 import org.gradle.tooling.grpc.proto.ModelRequest;
 import org.gradle.tooling.grpc.proto.ModelResponse;
+import org.gradle.tooling.grpc.proto.ModelType;
 import org.gradle.tooling.grpc.proto.OutputLine;
 import org.gradle.tooling.grpc.proto.Span;
 import org.gradle.tooling.grpc.proto.StyledOutput;
@@ -55,17 +69,12 @@ import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Drives a build from a gRPC {@code RunBuild} request by reusing the daemon's {@link BuildExecutor}
- * (as {@code ExecuteBuild} does for the Kryo protocol) and streams build output by registering an
- * {@link OutputEventListener} on the daemon's logging output (mirroring {@code LogToClient}).
- * Also answers {@code QueryModel} requests about build state (the "C" slice).
+ * and streams build output (log, styled, progress) by registering an {@link OutputEventListener} on
+ * the daemon's logging output. Also answers {@code QueryModel} requests about build state.
  */
 public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
 
@@ -76,11 +85,13 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     private final BuildExecutor buildExecutor;
     private final LoggingOutputInternal loggingOutput;
     private final DaemonStateControl stateControl;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public ToolingServiceImpl(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, DaemonStateControl stateControl) {
+    public ToolingServiceImpl(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, DaemonStateControl stateControl, BuildLayoutFactory buildLayoutFactory) {
         this.buildExecutor = buildExecutor;
         this.loggingOutput = loggingOutput;
         this.stateControl = stateControl;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     @Override
@@ -142,16 +153,23 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
 
     @Override
     public void queryModel(ModelRequest request, StreamObserver<ModelResponse> responseObserver) {
-        // The "C" slice: answer a build-state question over gRPC, language-neutrally, no TAPI.
-        // Only BuildEnvironment for now; richer models (tasks/dependencies) need a model-projection
-        // layer (the documented hard part) and are a follow-up.
         try {
-            BuildEnvironment env = BuildEnvironment.newBuilder()
-                .setGradleVersion(GradleVersion.current().getVersion())
-                .setJavaHome(System.getProperty("java.home", ""))
-                .setJavaVersion(Integer.parseInt(JavaVersion.current().getMajorVersion()))
-                .build();
-            responseObserver.onNext(ModelResponse.newBuilder().setSuccess(true).setBuildEnvironment(env).build());
+            if (request.getType() == ModelType.MODEL_TASKS) {
+                // Richer models (tasks/dependencies) need a model-projection layer: the model is produced
+                // and serialized inside a build session, and the build-session-scoped PayloadSerializer /
+                // model builders are not available at the daemon-global gRPC layer. Documented follow-up.
+                responseObserver.onNext(ModelResponse.newBuilder()
+                    .setSuccess(false)
+                    .setError("MODEL_TASKS is not implemented in the prototype; it requires a model-projection layer.")
+                    .build());
+            } else {
+                BuildEnvironment env = BuildEnvironment.newBuilder()
+                    .setGradleVersion(GradleVersion.current().getVersion())
+                    .setJavaHome(System.getProperty("java.home", ""))
+                    .setJavaVersion(Integer.parseInt(JavaVersion.current().getMajorVersion()))
+                    .build();
+                responseObserver.onNext(ModelResponse.newBuilder().setSuccess(true).setBuildEnvironment(env).build());
+            }
         } catch (Throwable t) {
             LOGGER.warn("gRPC tooling API model query failed", t);
             responseObserver.onNext(ModelResponse.newBuilder().setSuccess(false).setError(String.valueOf(t.getMessage())).build());
@@ -160,6 +178,18 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     }
 
     private static @Nullable BuildEvent toBuildEvent(OutputEvent event) {
+        // Progress events are structural UI signals; stream them regardless of log level.
+        if (event instanceof ProgressStartEvent) {
+            ProgressStartEvent start = (ProgressStartEvent) event;
+            return progress(org.gradle.tooling.grpc.proto.ProgressType.PROGRESS_START, start.getDescription(), start.getStatus());
+        }
+        if (event instanceof ProgressCompleteEvent) {
+            return progress(org.gradle.tooling.grpc.proto.ProgressType.PROGRESS_COMPLETE, "", ((ProgressCompleteEvent) event).getStatus());
+        }
+        if (event instanceof ProgressEvent) {
+            return progress(org.gradle.tooling.grpc.proto.ProgressType.PROGRESS_STATUS, "", ((ProgressEvent) event).getStatus());
+        }
+        // Log/styled output: only build-facing levels (LIFECYCLE+), not daemon/netty DEBUG/INFO noise.
         if (!isUserVisible(event.getLogLevel())) {
             return null;
         }
@@ -179,69 +209,40 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         return null;
     }
 
-    private static StartParameterInternal toStartParameter(BuildRequest request) {
-        // Pragmatic arg handling: tasks + the common flags. The full CLI converter chain
-        // (all options, gradle.properties merge, init scripts) is a documented follow-up.
+    private static BuildEvent progress(org.gradle.tooling.grpc.proto.ProgressType type, @Nullable String description, @Nullable String status) {
+        return BuildEvent.newBuilder()
+            .setProgress(org.gradle.tooling.grpc.proto.ProgressEvent.newBuilder()
+                .setType(type)
+                .setDescription(description == null ? "" : description)
+                .setStatus(status == null ? "" : status)
+                .build())
+            .build();
+    }
+
+    private StartParameterInternal toStartParameter(BuildRequest request) {
+        // Reuse Gradle's real CLI converter chain so all flags, -P/-D, gradle.properties merge, etc. apply.
+        CommandLineParser parser = new CommandLineParser();
+        parser.allowUnknownOptions();
+        parser.allowMixedSubcommandsAndOptions();
+
+        InitialPropertiesConverter initialPropertiesConverter = new InitialPropertiesConverter();
+        BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
+        StartParameterConverter startParameterConverter = new StartParameterConverter();
+        initialPropertiesConverter.configure(parser);
+        buildLayoutConverter.configure(parser);
+        startParameterConverter.configure(parser);
+
+        ParsedCommandLine parsed = parser.parse(request.getArgsList());
+        InitialProperties initialProperties = initialPropertiesConverter.convert(parsed);
+        BuildLayoutResult layout = buildLayoutConverter.convert(initialProperties, parsed, new File(request.getProjectDir()));
+        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, layout);
+
         StartParameterInternal startParameter = new StartParameterInternal();
-        startParameter.setCurrentDir(new File(request.getProjectDir()));
-
-        List<String> tasks = new ArrayList<>();
-        List<String> excluded = new ArrayList<>();
-        Map<String, String> projectProperties = new HashMap<>();
-        Map<String, String> systemProperties = new HashMap<>();
-
-        List<String> args = request.getArgsList();
-        for (int i = 0; i < args.size(); i++) {
-            String arg = args.get(i);
-            if (arg.equals("--info")) {
-                startParameter.setLogLevel(LogLevel.INFO);
-            } else if (arg.equals("--debug") || arg.equals("-d")) {
-                startParameter.setLogLevel(LogLevel.DEBUG);
-            } else if (arg.equals("--quiet") || arg.equals("-q")) {
-                startParameter.setLogLevel(LogLevel.QUIET);
-            } else if (arg.equals("--warn") || arg.equals("-w")) {
-                startParameter.setLogLevel(LogLevel.WARN);
-            } else if (arg.equals("--rerun-tasks")) {
-                startParameter.setRerunTasks(true);
-            } else if (arg.equals("-x") || arg.equals("--exclude-task")) {
-                if (i + 1 < args.size()) {
-                    excluded.add(args.get(++i));
-                }
-            } else if (arg.startsWith("-P")) {
-                putKeyValue(projectProperties, arg.substring(2));
-            } else if (arg.startsWith("-D")) {
-                putKeyValue(systemProperties, arg.substring(2));
-            } else {
-                tasks.add(arg);
-            }
-        }
-
-        if (!tasks.isEmpty()) {
-            startParameter.setTaskNames(tasks);
-        }
-        if (!excluded.isEmpty()) {
-            startParameter.setExcludedTaskNames(excluded);
-        }
-        if (!projectProperties.isEmpty()) {
-            startParameter.setProjectProperties(projectProperties);
-        }
-        if (!systemProperties.isEmpty()) {
-            startParameter.setSystemPropertiesArgs(systemProperties);
-        }
+        startParameterConverter.convert(parsed, layout, properties, System.getenv(), startParameter);
         return startParameter;
     }
 
-    private static void putKeyValue(Map<String, String> target, String keyValue) {
-        int eq = keyValue.indexOf('=');
-        if (eq < 0) {
-            target.put(keyValue, "true");
-        } else {
-            target.put(keyValue.substring(0, eq), keyValue.substring(eq + 1));
-        }
-    }
-
     private static boolean isUserVisible(org.gradle.api.logging.@Nullable LogLevel level) {
-        // Stream only build-facing output (LIFECYCLE and above), not daemon/netty DEBUG/INFO noise.
         // LogLevel order: DEBUG, INFO, LIFECYCLE, WARN, QUIET, ERROR.
         return level == null || level.compareTo(LogLevel.LIFECYCLE) >= 0;
     }

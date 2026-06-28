@@ -40,10 +40,23 @@ message BuildRequest {
 
 message BuildEvent {
   oneof kind {
-    OutputLine output = 1;     // plain log line (LogEvent)
-    BuildResult result = 2;    // terminal event
-    StyledOutput styled = 3;   // styled text (StyledTextOutputEvent)
+    OutputLine output = 1;       // plain log line (LogEvent)
+    BuildResult result = 2;      // terminal event
+    StyledOutput styled = 3;     // styled text (StyledTextOutputEvent)
+    ProgressEvent progress = 4;  // progress start/status/complete
   }
+}
+
+message ProgressEvent {
+  ProgressType type = 1;
+  string description = 2;  // for START
+  string status = 3;       // for STATUS / COMPLETE
+}
+
+enum ProgressType {
+  PROGRESS_START = 0;
+  PROGRESS_STATUS = 1;
+  PROGRESS_COMPLETE = 2;
 }
 
 message OutputLine {
@@ -101,6 +114,7 @@ message ModelRequest {
 
 enum ModelType {
   MODEL_BUILD_ENVIRONMENT = 0;
+  MODEL_TASKS = 1;
 }
 
 message ModelResponse {
@@ -108,6 +122,7 @@ message ModelResponse {
   string error = 2;
   oneof model {
     BuildEnvironment build_environment = 3;
+    TaskList tasks = 4;
   }
 }
 
@@ -115,4 +130,16 @@ message BuildEnvironment {
   string gradle_version = 1;
   string java_home = 2;
   int32 java_version = 3;
+}
+
+message TaskList {
+  string project_path = 1;
+  repeated TaskInfo tasks = 2;
+}
+
+message TaskInfo {
+  string name = 1;
+  string path = 2;
+  string group = 3;
+  string description = 4;
 }

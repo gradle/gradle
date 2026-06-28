@@ -57,6 +57,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new StopOption(),
         new StatusOption(),
         new GrpcEndpointOption(),
+        new GrpcOption(),
         new PriorityOption(),
         new NativeServicesOption()
     );
@@ -385,6 +386,22 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setGrpcEndpoint(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
+    }
+
+    public static class GrpcOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
+        public GrpcOption() {
+            super(null, CommandLineOptionConfiguration.create("grpc", "Prototype (Target beta): runs the build by talking to the daemon over the gRPC tooling API instead of the internal protocol."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings, Origin origin) {
+            settings.setGrpc(true);
         }
 
         @Override

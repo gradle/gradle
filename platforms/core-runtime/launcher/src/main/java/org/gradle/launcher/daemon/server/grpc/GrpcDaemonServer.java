@@ -20,6 +20,7 @@ import io.grpc.ServerInterceptors;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
@@ -38,7 +39,8 @@ import java.nio.file.Files;
  * {@code <daemonVersionedDir>/<uid>.grpcport} so the {@code gradle --grpc-endpoint} helper can find it.
  *
  * <p>Advertising via a side file (rather than the daemon startup greeting + registry) is a deliberate
- * prototype simplification to avoid changing the daemon startup protocol that every build depends on.
+ * prototype simplification: putting the port in the registry entry (DaemonInfo) would change the
+ * registry.bin format and the every-build state-change path, which is risky for little gain here.
  */
 public class GrpcDaemonServer implements Stoppable {
 
@@ -46,22 +48,24 @@ public class GrpcDaemonServer implements Stoppable {
 
     private final BuildExecutor buildExecutor;
     private final LoggingOutputInternal loggingOutput;
+    private final BuildLayoutFactory buildLayoutFactory;
     private final File daemonVersionedDir;
     private final String uid;
 
     private @Nullable Server server;
     private @Nullable File endpointFile;
 
-    public GrpcDaemonServer(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, File daemonVersionedDir, String uid) {
+    public GrpcDaemonServer(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, BuildLayoutFactory buildLayoutFactory, File daemonVersionedDir, String uid) {
         this.buildExecutor = buildExecutor;
         this.loggingOutput = loggingOutput;
+        this.buildLayoutFactory = buildLayoutFactory;
         this.daemonVersionedDir = daemonVersionedDir;
         this.uid = uid;
     }
 
     public void start(byte[] token, DaemonStateControl stateControl) {
         try {
-            ToolingServiceImpl service = new ToolingServiceImpl(buildExecutor, loggingOutput, stateControl);
+            ToolingServiceImpl service = new ToolingServiceImpl(buildExecutor, loggingOutput, stateControl, buildLayoutFactory);
             Server started = NettyServerBuilder.forAddress(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
                 .addService(ServerInterceptors.intercept(service, new TokenAuthInterceptor(token)))
                 .build()

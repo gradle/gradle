@@ -40,5 +40,20 @@ public interface ModelResponseOrBuilder extends
    */
   org.gradle.tooling.grpc.proto.BuildEnvironmentOrBuilder getBuildEnvironmentOrBuilder();
 
+  /**
+   * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+   * @return Whether the tasks field is set.
+   */
+  boolean hasTasks();
+  /**
+   * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+   * @return The tasks.
+   */
+  org.gradle.tooling.grpc.proto.TaskList getTasks();
+  /**
+   * <code>.gradle.tooling.grpc.TaskList tasks = 4;</code>
+   */
+  org.gradle.tooling.grpc.proto.TaskListOrBuilder getTasksOrBuilder();
+
   public org.gradle.tooling.grpc.proto.ModelResponse.ModelCase getModelCase();
 }

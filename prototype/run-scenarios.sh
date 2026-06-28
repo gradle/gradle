@@ -11,12 +11,26 @@ PY="${PY:-python3}"
 PASS=0
 FAIL=0
 
-# run <desc> <expected_exit> <expected_substring> -- <client args...>
+# run <desc> <expected_exit> <expected_substring> -- <client args...>   (native Python client)
 run() {
     local desc="$1" exp_exit="$2" exp_sub="$3"; shift 3
     [ "$1" = "--" ] && shift
     local out ec
     out="$("$PY" "$HERE/client.py" "$@" 2>&1)"; ec=$?
+    check "$desc" "$exp_exit" "$exp_sub" "$ec" "$out"
+}
+
+# cli <desc> <expected_exit> <expected_substring> -- <gradle args...>   (real gradle CLI)
+cli() {
+    local desc="$1" exp_exit="$2" exp_sub="$3"; shift 3
+    [ "$1" = "--" ] && shift
+    local out ec
+    out="$("$GRADLE_BIN" "$@" --project-dir "$HERE/sample" 2>&1)"; ec=$?
+    check "$desc" "$exp_exit" "$exp_sub" "$ec" "$out"
+}
+
+check() {
+    local desc="$1" exp_exit="$2" exp_sub="$3" ec="$4" out="$5"
     if [ "$ec" -eq "$exp_exit" ] && printf '%s' "$out" | grep -qF -- "$exp_sub"; then
         echo "PASS  $desc"
         PASS=$((PASS+1))
@@ -38,6 +52,11 @@ run "7  quiet (-q)"                   0 "Hello from the gRPC-driven build!" -- h
 run "8  unknown task (-> exit 1)"     1 "not found" -- doesnotexist
 run "9  query build environment"      0 "gradle version:" -- --query env
 run "10 reuse daemon (2nd hello)"     0 "Hello from the gRPC-driven build!" -- hello
+run "11 styled task (built-in tasks)" 0 "BUILD SUCCESSFUL" -- tasks
+
+# CLI-over-gRPC: the real `gradle` command driving the daemon via gRPC (--grpc)
+cli "12 CLI over gRPC (--grpc hello)" 0 "Hello from the gRPC-driven build!" -- --grpc hello
+cli "13 CLI over gRPC (--grpc boom)"  1 "Intentional failure for the prototype demo" -- --grpc boom
 
 echo "=== $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ]

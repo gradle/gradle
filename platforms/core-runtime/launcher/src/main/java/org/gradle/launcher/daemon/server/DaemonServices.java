@@ -29,6 +29,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -197,6 +198,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
         DaemonContext daemonContext,
         ListenerManager listenerManager,
         BuildExecutor buildExecutor,
+        BuildLayoutFactory buildLayoutFactory,
         DaemonDir daemonDir
     ) {
         // Prototype (Target beta): a gRPC tooling API server hosted in the daemon, reusing the
@@ -204,6 +206,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
         GrpcDaemonServer grpcDaemonServer = new GrpcDaemonServer(
             buildExecutor,
             loggingManager,
+            buildLayoutFactory,
             daemonDir.getVersionedDir(),
             daemonContext.getUid()
         );

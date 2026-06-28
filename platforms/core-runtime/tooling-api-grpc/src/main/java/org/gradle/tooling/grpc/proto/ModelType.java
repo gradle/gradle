@@ -12,6 +12,10 @@ public enum ModelType
    * <code>MODEL_BUILD_ENVIRONMENT = 0;</code>
    */
   MODEL_BUILD_ENVIRONMENT(0),
+  /**
+   * <code>MODEL_TASKS = 1;</code>
+   */
+  MODEL_TASKS(1),
   UNRECOGNIZED(-1),
   ;
 
@@ -19,6 +23,10 @@ public enum ModelType
    * <code>MODEL_BUILD_ENVIRONMENT = 0;</code>
    */
   public static final int MODEL_BUILD_ENVIRONMENT_VALUE = 0;
+  /**
+   * <code>MODEL_TASKS = 1;</code>
+   */
+  public static final int MODEL_TASKS_VALUE = 1;
 
 
   public final int getNumber() {
@@ -46,6 +54,7 @@ public enum ModelType
   public static ModelType forNumber(int value) {
     switch (value) {
       case 0: return MODEL_BUILD_ENVIRONMENT;
+      case 1: return MODEL_TASKS;
       default: return null;
     }
   }
@@ -76,7 +85,7 @@ public enum ModelType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(2);
+    return org.gradle.tooling.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(3);
   }
 
   private static final ModelType[] VALUES = values();

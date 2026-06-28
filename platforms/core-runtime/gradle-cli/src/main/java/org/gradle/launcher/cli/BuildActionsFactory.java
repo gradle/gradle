@@ -123,6 +123,9 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (daemonParameters.isGrpcEndpoint()) {
             return Actions.toAction(printGrpcEndpoint(daemonParameters, requestContext, buildLayoutConfiguration));
         }
+        if (daemonParameters.isGrpc()) {
+            return Actions.toAction(runBuildViaGrpc(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));
+        }
 
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));
@@ -156,6 +159,17 @@ class BuildActionsFactory implements CommandLineActionCreator {
         Stoppable stoppable = new CompositeStoppable().add(clientServices).add(clientSharedServices);
         File versionedDir = new DaemonDir(daemonParameters.getBaseDir()).getVersionedDir();
         return new PrintGrpcEndpointAction(connector, new DaemonCompatibilitySpec(requestContext), versionedDir, stoppable);
+    }
+
+    private Runnable runBuildViaGrpc(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {
+        // Prototype (Target beta): run the build over the daemon's gRPC tooling API instead of Kryo.
+        // Note: this demo forwards the parsed task names; flags applied client-side are not re-sent.
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, buildLayoutConfiguration, System.in, Optional.empty());
+        DaemonConnector connector = clientServices.get(DaemonConnector.class);
+        Stoppable stoppable = new CompositeStoppable().add(clientServices).add(clientSharedServices);
+        File versionedDir = new DaemonDir(daemonParameters.getBaseDir()).getVersionedDir();
+        return new GrpcCliBuildAction(connector, new DaemonCompatibilitySpec(requestContext), versionedDir, startParameter.getTaskNames(), startParameter.getCurrentDir(), stoppable);
     }
 
     private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {

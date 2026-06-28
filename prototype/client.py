@@ -90,6 +90,11 @@ def run_build(stub, pb, tasks, project_dir, token):
                 code = ansi_for(pb, span.style) if use_color else ""
                 reset = "\033[0m" if code else ""
                 sys.stdout.write(code + span.text + reset)
+        elif kind == "progress":
+            p = event.progress
+            # render progress to stderr (dim) so it doesn't pollute build stdout
+            if p.type == pb.PROGRESS_START and p.description:
+                sys.stderr.write("\033[2m> %s\033[0m\n" % p.description)
         elif kind == "result":
             success = event.result.success
             message = event.result.message
