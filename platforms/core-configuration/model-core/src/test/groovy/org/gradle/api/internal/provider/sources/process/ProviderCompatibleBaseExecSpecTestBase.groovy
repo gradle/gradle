@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.process.BaseExecSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -131,21 +132,48 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         when:
         specUnderTest.setStandardInput(new ByteArrayInputStream())
         then:
-        thrown UnsupportedOperationException
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Standard streams cannot be configured for exec output provider"
     }
 
     def "setting output stream is forbidden"() {
         when:
         specUnderTest.setStandardOutput(new ByteArrayOutputStream())
         then:
-        thrown UnsupportedOperationException
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Standard streams cannot be configured for exec output provider"
     }
 
     def "setting error stream is forbidden"() {
         when:
         specUnderTest.setErrorOutput(new ByteArrayOutputStream())
         then:
-        thrown UnsupportedOperationException
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Standard streams cannot be configured for exec output provider"
+    }
+
+    def "getting input stream is forbidden"() {
+        when:
+        specUnderTest.getStandardInput()
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Standard streams cannot be configured for exec output provider"
+    }
+
+    def "getting output stream is forbidden"() {
+        when:
+        specUnderTest.getStandardOutput()
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Standard streams cannot be configured for exec output provider"
+    }
+
+    def "getting error stream is forbidden"() {
+        when:
+        specUnderTest.getErrorOutput()
+        then:
+        def e = thrown(InvalidUserCodeException)
+        e.message == "Standard streams cannot be configured for exec output provider"
     }
 
     def "spec without working directory doesn't set it on parameters"() {
