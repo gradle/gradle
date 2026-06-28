@@ -40,6 +40,8 @@ class TestNGCoverage {
 
     private static final String LAST_BEFORE_NEW_EXECUTOR_API = '7.5' // Last version with setExecutorFactoryClass(String)
 
+    private static final String FIRST_REQUIRING_JDK_11 = '7.6' // TestNG 7.6.0 dropped Java 8 support and requires JDK 11+
+
     public static final Set<String> ALL_VERSIONS = [
         '5.12.1', // Newest version without TestNG#setConfigFailurePolicy method (Added in 5.13)
         FIXED_ILLEGAL_ACCESS,
@@ -65,6 +67,9 @@ class TestNGCoverage {
         } else if (javaVersion < JavaVersion.VERSION_1_7) {
             // 6.8.21 was the last version to compile to JDK 5 bytecode. Afterwards (6.9.4) TestNG compiled to JDK 7 bytecode.
             return versions.findAll { VersionNumber.parse(it) <= VersionNumber.parse('6.8.21')}
+        } else if (javaVersion < JavaVersion.VERSION_11) {
+            // TestNG 7.6.0 and later require JDK 11+, so they cannot run on Java 8/9/10.
+            return versions.findAll { VersionNumber.parse(it) < VersionNumber.parse(FIRST_REQUIRING_JDK_11) }
         } else {
             return versions
         }
