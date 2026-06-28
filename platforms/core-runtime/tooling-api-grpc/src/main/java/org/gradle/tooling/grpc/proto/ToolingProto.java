@@ -30,10 +30,35 @@ public final class ToolingProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_gradle_tooling_grpc_OutputLine_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_gradle_tooling_grpc_StyledOutput_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_gradle_tooling_grpc_StyledOutput_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_gradle_tooling_grpc_Span_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_gradle_tooling_grpc_Span_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_gradle_tooling_grpc_BuildResult_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_gradle_tooling_grpc_BuildResult_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_gradle_tooling_grpc_ModelRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_gradle_tooling_grpc_ModelRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_gradle_tooling_grpc_ModelResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_gradle_tooling_grpc_ModelResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_gradle_tooling_grpc_BuildEnvironment_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_gradle_tooling_grpc_BuildEnvironment_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -45,19 +70,42 @@ public final class ToolingProto {
     java.lang.String[] descriptorData = {
       "\n\rtooling.proto\022\023gradle.tooling.grpc\"1\n\014" +
       "BuildRequest\022\014\n\004args\030\001 \003(\t\022\023\n\013project_di" +
-      "r\030\002 \001(\t\"{\n\nBuildEvent\0221\n\006output\030\001 \001(\0132\037." +
-      "gradle.tooling.grpc.OutputLineH\000\0222\n\006resu" +
-      "lt\030\002 \001(\0132 .gradle.tooling.grpc.BuildResu" +
-      "ltH\000B\006\n\004kind\"H\n\nOutputLine\022\014\n\004text\030\001 \001(\t" +
-      "\022,\n\005level\030\002 \001(\0162\035.gradle.tooling.grpc.Lo" +
-      "gLevel\"/\n\013BuildResult\022\017\n\007success\030\001 \001(\010\022\017" +
-      "\n\007message\030\002 \001(\t*i\n\010LogLevel\022\031\n\025LOG_LEVEL" +
-      "_UNSPECIFIED\020\000\022\t\n\005QUIET\020\001\022\010\n\004WARN\020\002\022\r\n\tL" +
-      "IFECYCLE\020\003\022\010\n\004INFO\020\004\022\t\n\005DEBUG\020\005\022\t\n\005ERROR" +
-      "\020\0062[\n\007Tooling\022P\n\010RunBuild\022!.gradle.tooli" +
-      "ng.grpc.BuildRequest\032\037.gradle.tooling.gr" +
-      "pc.BuildEvent0\001B/\n\035org.gradle.tooling.gr" +
-      "pc.protoB\014ToolingProtoP\001b\006proto3"
+      "r\030\002 \001(\t\"\260\001\n\nBuildEvent\0221\n\006output\030\001 \001(\0132\037" +
+      ".gradle.tooling.grpc.OutputLineH\000\0222\n\006res" +
+      "ult\030\002 \001(\0132 .gradle.tooling.grpc.BuildRes" +
+      "ultH\000\0223\n\006styled\030\003 \001(\0132!.gradle.tooling.g" +
+      "rpc.StyledOutputH\000B\006\n\004kind\"H\n\nOutputLine" +
+      "\022\014\n\004text\030\001 \001(\t\022,\n\005level\030\002 \001(\0162\035.gradle.t" +
+      "ooling.grpc.LogLevel\"f\n\014StyledOutput\022(\n\005" +
+      "spans\030\001 \003(\0132\031.gradle.tooling.grpc.Span\022," +
+      "\n\005level\030\002 \001(\0162\035.gradle.tooling.grpc.LogL" +
+      "evel\"?\n\004Span\022\014\n\004text\030\001 \001(\t\022)\n\005style\030\002 \001(" +
+      "\0162\032.gradle.tooling.grpc.Style\"/\n\013BuildRe" +
+      "sult\022\017\n\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\"Q" +
+      "\n\014ModelRequest\022\023\n\013project_dir\030\001 \001(\t\022,\n\004t" +
+      "ype\030\002 \001(\0162\036.gradle.tooling.grpc.ModelTyp" +
+      "e\"|\n\rModelResponse\022\017\n\007success\030\001 \001(\010\022\r\n\005e" +
+      "rror\030\002 \001(\t\022B\n\021build_environment\030\003 \001(\0132%." +
+      "gradle.tooling.grpc.BuildEnvironmentH\000B\007" +
+      "\n\005model\"S\n\020BuildEnvironment\022\026\n\016gradle_ve" +
+      "rsion\030\001 \001(\t\022\021\n\tjava_home\030\002 \001(\t\022\024\n\014java_v" +
+      "ersion\030\003 \001(\005*i\n\010LogLevel\022\031\n\025LOG_LEVEL_UN" +
+      "SPECIFIED\020\000\022\t\n\005QUIET\020\001\022\010\n\004WARN\020\002\022\r\n\tLIFE" +
+      "CYCLE\020\003\022\010\n\004INFO\020\004\022\t\n\005DEBUG\020\005\022\t\n\005ERROR\020\006*" +
+      "\204\002\n\005Style\022\020\n\014STYLE_NORMAL\020\000\022\020\n\014STYLE_HEA" +
+      "DER\020\001\022\024\n\020STYLE_USER_INPUT\020\002\022\024\n\020STYLE_IDE" +
+      "NTIFIER\020\003\022\025\n\021STYLE_DESCRIPTION\020\004\022\031\n\025STYL" +
+      "E_PROGRESS_STATUS\020\005\022\021\n\rSTYLE_SUCCESS\020\006\022\030" +
+      "\n\024STYLE_SUCCESS_HEADER\020\007\022\021\n\rSTYLE_FAILUR" +
+      "E\020\010\022\030\n\024STYLE_FAILURE_HEADER\020\t\022\016\n\nSTYLE_I" +
+      "NFO\020\n\022\017\n\013STYLE_ERROR\020\013*(\n\tModelType\022\033\n\027M" +
+      "ODEL_BUILD_ENVIRONMENT\020\0002\260\001\n\007Tooling\022P\n\010" +
+      "RunBuild\022!.gradle.tooling.grpc.BuildRequ" +
+      "est\032\037.gradle.tooling.grpc.BuildEvent0\001\022S" +
+      "\n\nQueryModel\022!.gradle.tooling.grpc.Model" +
+      "Request\032\".gradle.tooling.grpc.ModelRespo" +
+      "nseB/\n\035org.gradle.tooling.grpc.protoB\014To" +
+      "olingProtoP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -74,19 +122,49 @@ public final class ToolingProto {
     internal_static_gradle_tooling_grpc_BuildEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_BuildEvent_descriptor,
-        new java.lang.String[] { "Output", "Result", "Kind", });
+        new java.lang.String[] { "Output", "Result", "Styled", "Kind", });
     internal_static_gradle_tooling_grpc_OutputLine_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_gradle_tooling_grpc_OutputLine_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_OutputLine_descriptor,
         new java.lang.String[] { "Text", "Level", });
-    internal_static_gradle_tooling_grpc_BuildResult_descriptor =
+    internal_static_gradle_tooling_grpc_StyledOutput_descriptor =
       getDescriptor().getMessageTypes().get(3);
+    internal_static_gradle_tooling_grpc_StyledOutput_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_gradle_tooling_grpc_StyledOutput_descriptor,
+        new java.lang.String[] { "Spans", "Level", });
+    internal_static_gradle_tooling_grpc_Span_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_gradle_tooling_grpc_Span_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_gradle_tooling_grpc_Span_descriptor,
+        new java.lang.String[] { "Text", "Style", });
+    internal_static_gradle_tooling_grpc_BuildResult_descriptor =
+      getDescriptor().getMessageTypes().get(5);
     internal_static_gradle_tooling_grpc_BuildResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_BuildResult_descriptor,
         new java.lang.String[] { "Success", "Message", });
+    internal_static_gradle_tooling_grpc_ModelRequest_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_gradle_tooling_grpc_ModelRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_gradle_tooling_grpc_ModelRequest_descriptor,
+        new java.lang.String[] { "ProjectDir", "Type", });
+    internal_static_gradle_tooling_grpc_ModelResponse_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_gradle_tooling_grpc_ModelResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_gradle_tooling_grpc_ModelResponse_descriptor,
+        new java.lang.String[] { "Success", "Error", "BuildEnvironment", "Model", });
+    internal_static_gradle_tooling_grpc_BuildEnvironment_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_gradle_tooling_grpc_BuildEnvironment_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_gradle_tooling_grpc_BuildEnvironment_descriptor,
+        new java.lang.String[] { "GradleVersion", "JavaHome", "JavaVersion", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

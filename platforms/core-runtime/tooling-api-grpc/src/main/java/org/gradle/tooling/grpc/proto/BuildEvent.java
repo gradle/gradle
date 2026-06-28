@@ -50,6 +50,7 @@ private static final long serialVersionUID = 0L;
           com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     OUTPUT(1),
     RESULT(2),
+    STYLED(3),
     KIND_NOT_SET(0);
     private final int value;
     private KindCase(int value) {
@@ -69,6 +70,7 @@ private static final long serialVersionUID = 0L;
       switch (value) {
         case 1: return OUTPUT;
         case 2: return RESULT;
+        case 3: return STYLED;
         case 0: return KIND_NOT_SET;
         default: return null;
       }
@@ -86,6 +88,10 @@ private static final long serialVersionUID = 0L;
 
   public static final int OUTPUT_FIELD_NUMBER = 1;
   /**
+   * <pre>
+   * plain log line (LogEvent)
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
    * @return Whether the output field is set.
    */
@@ -94,6 +100,10 @@ private static final long serialVersionUID = 0L;
     return kindCase_ == 1;
   }
   /**
+   * <pre>
+   * plain log line (LogEvent)
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
    * @return The output.
    */
@@ -105,6 +115,10 @@ private static final long serialVersionUID = 0L;
     return org.gradle.tooling.grpc.proto.OutputLine.getDefaultInstance();
   }
   /**
+   * <pre>
+   * plain log line (LogEvent)
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
    */
   @java.lang.Override
@@ -117,6 +131,10 @@ private static final long serialVersionUID = 0L;
 
   public static final int RESULT_FIELD_NUMBER = 2;
   /**
+   * <pre>
+   * terminal event
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
    * @return Whether the result field is set.
    */
@@ -125,6 +143,10 @@ private static final long serialVersionUID = 0L;
     return kindCase_ == 2;
   }
   /**
+   * <pre>
+   * terminal event
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
    * @return The result.
    */
@@ -136,6 +158,10 @@ private static final long serialVersionUID = 0L;
     return org.gradle.tooling.grpc.proto.BuildResult.getDefaultInstance();
   }
   /**
+   * <pre>
+   * terminal event
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
    */
   @java.lang.Override
@@ -144,6 +170,49 @@ private static final long serialVersionUID = 0L;
        return (org.gradle.tooling.grpc.proto.BuildResult) kind_;
     }
     return org.gradle.tooling.grpc.proto.BuildResult.getDefaultInstance();
+  }
+
+  public static final int STYLED_FIELD_NUMBER = 3;
+  /**
+   * <pre>
+   * styled text (StyledTextOutputEvent)
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+   * @return Whether the styled field is set.
+   */
+  @java.lang.Override
+  public boolean hasStyled() {
+    return kindCase_ == 3;
+  }
+  /**
+   * <pre>
+   * styled text (StyledTextOutputEvent)
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+   * @return The styled.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.grpc.proto.StyledOutput getStyled() {
+    if (kindCase_ == 3) {
+       return (org.gradle.tooling.grpc.proto.StyledOutput) kind_;
+    }
+    return org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
+  }
+  /**
+   * <pre>
+   * styled text (StyledTextOutputEvent)
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.grpc.proto.StyledOutputOrBuilder getStyledOrBuilder() {
+    if (kindCase_ == 3) {
+       return (org.gradle.tooling.grpc.proto.StyledOutput) kind_;
+    }
+    return org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -166,6 +235,9 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 2) {
       output.writeMessage(2, (org.gradle.tooling.grpc.proto.BuildResult) kind_);
     }
+    if (kindCase_ == 3) {
+      output.writeMessage(3, (org.gradle.tooling.grpc.proto.StyledOutput) kind_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -182,6 +254,10 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 2) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, (org.gradle.tooling.grpc.proto.BuildResult) kind_);
+    }
+    if (kindCase_ == 3) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(3, (org.gradle.tooling.grpc.proto.StyledOutput) kind_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -208,6 +284,10 @@ private static final long serialVersionUID = 0L;
         if (!getResult()
             .equals(other.getResult())) return false;
         break;
+      case 3:
+        if (!getStyled()
+            .equals(other.getStyled())) return false;
+        break;
       case 0:
       default:
     }
@@ -230,6 +310,10 @@ private static final long serialVersionUID = 0L;
       case 2:
         hash = (37 * hash) + RESULT_FIELD_NUMBER;
         hash = (53 * hash) + getResult().hashCode();
+        break;
+      case 3:
+        hash = (37 * hash) + STYLED_FIELD_NUMBER;
+        hash = (53 * hash) + getStyled().hashCode();
         break;
       case 0:
       default:
@@ -369,6 +453,9 @@ private static final long serialVersionUID = 0L;
       if (resultBuilder_ != null) {
         resultBuilder_.clear();
       }
+      if (styledBuilder_ != null) {
+        styledBuilder_.clear();
+      }
       kindCase_ = 0;
       kind_ = null;
       return this;
@@ -417,6 +504,10 @@ private static final long serialVersionUID = 0L;
       if (kindCase_ == 2 &&
           resultBuilder_ != null) {
         result.kind_ = resultBuilder_.build();
+      }
+      if (kindCase_ == 3 &&
+          styledBuilder_ != null) {
+        result.kind_ = styledBuilder_.build();
       }
     }
 
@@ -473,6 +564,10 @@ private static final long serialVersionUID = 0L;
           mergeResult(other.getResult());
           break;
         }
+        case STYLED: {
+          mergeStyled(other.getStyled());
+          break;
+        }
         case KIND_NOT_SET: {
           break;
         }
@@ -517,6 +612,13 @@ private static final long serialVersionUID = 0L;
               kindCase_ = 2;
               break;
             } // case 18
+            case 26: {
+              input.readMessage(
+                  getStyledFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              kindCase_ = 3;
+              break;
+            } // case 26
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -552,6 +654,10 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         org.gradle.tooling.grpc.proto.OutputLine, org.gradle.tooling.grpc.proto.OutputLine.Builder, org.gradle.tooling.grpc.proto.OutputLineOrBuilder> outputBuilder_;
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      * @return Whether the output field is set.
      */
@@ -560,6 +666,10 @@ private static final long serialVersionUID = 0L;
       return kindCase_ == 1;
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      * @return The output.
      */
@@ -578,6 +688,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     public Builder setOutput(org.gradle.tooling.grpc.proto.OutputLine value) {
@@ -594,6 +708,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     public Builder setOutput(
@@ -608,6 +726,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     public Builder mergeOutput(org.gradle.tooling.grpc.proto.OutputLine value) {
@@ -631,6 +753,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     public Builder clearOutput() {
@@ -650,12 +776,20 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     public org.gradle.tooling.grpc.proto.OutputLine.Builder getOutputBuilder() {
       return getOutputFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     @java.lang.Override
@@ -670,6 +804,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * plain log line (LogEvent)
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -694,6 +832,10 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         org.gradle.tooling.grpc.proto.BuildResult, org.gradle.tooling.grpc.proto.BuildResult.Builder, org.gradle.tooling.grpc.proto.BuildResultOrBuilder> resultBuilder_;
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      * @return Whether the result field is set.
      */
@@ -702,6 +844,10 @@ private static final long serialVersionUID = 0L;
       return kindCase_ == 2;
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      * @return The result.
      */
@@ -720,6 +866,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     public Builder setResult(org.gradle.tooling.grpc.proto.BuildResult value) {
@@ -736,6 +886,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     public Builder setResult(
@@ -750,6 +904,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     public Builder mergeResult(org.gradle.tooling.grpc.proto.BuildResult value) {
@@ -773,6 +931,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     public Builder clearResult() {
@@ -792,12 +954,20 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     public org.gradle.tooling.grpc.proto.BuildResult.Builder getResultBuilder() {
       return getResultFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     @java.lang.Override
@@ -812,6 +982,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * terminal event
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -831,6 +1005,184 @@ private static final long serialVersionUID = 0L;
       kindCase_ = 2;
       onChanged();
       return resultBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.grpc.proto.StyledOutput, org.gradle.tooling.grpc.proto.StyledOutput.Builder, org.gradle.tooling.grpc.proto.StyledOutputOrBuilder> styledBuilder_;
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     * @return Whether the styled field is set.
+     */
+    @java.lang.Override
+    public boolean hasStyled() {
+      return kindCase_ == 3;
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     * @return The styled.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.grpc.proto.StyledOutput getStyled() {
+      if (styledBuilder_ == null) {
+        if (kindCase_ == 3) {
+          return (org.gradle.tooling.grpc.proto.StyledOutput) kind_;
+        }
+        return org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
+      } else {
+        if (kindCase_ == 3) {
+          return styledBuilder_.getMessage();
+        }
+        return org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    public Builder setStyled(org.gradle.tooling.grpc.proto.StyledOutput value) {
+      if (styledBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        kind_ = value;
+        onChanged();
+      } else {
+        styledBuilder_.setMessage(value);
+      }
+      kindCase_ = 3;
+      return this;
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    public Builder setStyled(
+        org.gradle.tooling.grpc.proto.StyledOutput.Builder builderForValue) {
+      if (styledBuilder_ == null) {
+        kind_ = builderForValue.build();
+        onChanged();
+      } else {
+        styledBuilder_.setMessage(builderForValue.build());
+      }
+      kindCase_ = 3;
+      return this;
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    public Builder mergeStyled(org.gradle.tooling.grpc.proto.StyledOutput value) {
+      if (styledBuilder_ == null) {
+        if (kindCase_ == 3 &&
+            kind_ != org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance()) {
+          kind_ = org.gradle.tooling.grpc.proto.StyledOutput.newBuilder((org.gradle.tooling.grpc.proto.StyledOutput) kind_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          kind_ = value;
+        }
+        onChanged();
+      } else {
+        if (kindCase_ == 3) {
+          styledBuilder_.mergeFrom(value);
+        } else {
+          styledBuilder_.setMessage(value);
+        }
+      }
+      kindCase_ = 3;
+      return this;
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    public Builder clearStyled() {
+      if (styledBuilder_ == null) {
+        if (kindCase_ == 3) {
+          kindCase_ = 0;
+          kind_ = null;
+          onChanged();
+        }
+      } else {
+        if (kindCase_ == 3) {
+          kindCase_ = 0;
+          kind_ = null;
+        }
+        styledBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    public org.gradle.tooling.grpc.proto.StyledOutput.Builder getStyledBuilder() {
+      return getStyledFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    @java.lang.Override
+    public org.gradle.tooling.grpc.proto.StyledOutputOrBuilder getStyledOrBuilder() {
+      if ((kindCase_ == 3) && (styledBuilder_ != null)) {
+        return styledBuilder_.getMessageOrBuilder();
+      } else {
+        if (kindCase_ == 3) {
+          return (org.gradle.tooling.grpc.proto.StyledOutput) kind_;
+        }
+        return org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * styled text (StyledTextOutputEvent)
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.grpc.proto.StyledOutput, org.gradle.tooling.grpc.proto.StyledOutput.Builder, org.gradle.tooling.grpc.proto.StyledOutputOrBuilder> 
+        getStyledFieldBuilder() {
+      if (styledBuilder_ == null) {
+        if (!(kindCase_ == 3)) {
+          kind_ = org.gradle.tooling.grpc.proto.StyledOutput.getDefaultInstance();
+        }
+        styledBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.grpc.proto.StyledOutput, org.gradle.tooling.grpc.proto.StyledOutput.Builder, org.gradle.tooling.grpc.proto.StyledOutputOrBuilder>(
+                (org.gradle.tooling.grpc.proto.StyledOutput) kind_,
+                getParentForChildren(),
+                isClean());
+        kind_ = null;
+      }
+      kindCase_ = 3;
+      onChanged();
+      return styledBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

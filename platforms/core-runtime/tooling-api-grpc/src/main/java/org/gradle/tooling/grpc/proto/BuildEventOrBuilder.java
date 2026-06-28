@@ -8,34 +8,85 @@ public interface BuildEventOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * plain log line (LogEvent)
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
    * @return Whether the output field is set.
    */
   boolean hasOutput();
   /**
+   * <pre>
+   * plain log line (LogEvent)
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
    * @return The output.
    */
   org.gradle.tooling.grpc.proto.OutputLine getOutput();
   /**
+   * <pre>
+   * plain log line (LogEvent)
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.OutputLine output = 1;</code>
    */
   org.gradle.tooling.grpc.proto.OutputLineOrBuilder getOutputOrBuilder();
 
   /**
+   * <pre>
+   * terminal event
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
    * @return Whether the result field is set.
    */
   boolean hasResult();
   /**
+   * <pre>
+   * terminal event
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
    * @return The result.
    */
   org.gradle.tooling.grpc.proto.BuildResult getResult();
   /**
+   * <pre>
+   * terminal event
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.BuildResult result = 2;</code>
    */
   org.gradle.tooling.grpc.proto.BuildResultOrBuilder getResultOrBuilder();
+
+  /**
+   * <pre>
+   * styled text (StyledTextOutputEvent)
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+   * @return Whether the styled field is set.
+   */
+  boolean hasStyled();
+  /**
+   * <pre>
+   * styled text (StyledTextOutputEvent)
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+   * @return The styled.
+   */
+  org.gradle.tooling.grpc.proto.StyledOutput getStyled();
+  /**
+   * <pre>
+   * styled text (StyledTextOutputEvent)
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.StyledOutput styled = 3;</code>
+   */
+  org.gradle.tooling.grpc.proto.StyledOutputOrBuilder getStyledOrBuilder();
 
   public org.gradle.tooling.grpc.proto.BuildEvent.KindCase getKindCase();
 }

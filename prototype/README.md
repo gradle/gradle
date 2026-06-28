@@ -16,23 +16,39 @@ Proves that a non-JVM client can run a Gradle build and stream its output by tal
 ## Run
 
 ```sh
-# 1. Build a local distribution with the prototype
-./gradlew install -Pgradle_installPath=/tmp/grpc-gradle --dependency-verification=off
+# 1. Build a local distribution with the prototype.
+#    --no-build-cache is REQUIRED: the remote build cache otherwise serves stale
+#    jars and your changes silently won't take effect.
+./gradlew install -Pgradle_installPath=/tmp/grpc-gradle \
+    --dependency-verification=off --no-build-cache
 
 # 2. Use grpcio (a venv is fine)
 python3 -m venv /tmp/grpcvenv && /tmp/grpcvenv/bin/pip install grpcio grpcio-tools
 
-# 3. Run a build over gRPC from the non-JVM client
-GRADLE_BIN=/tmp/grpc-gradle/bin/gradle /tmp/grpcvenv/bin/python prototype/client.py hello
-#   -> streams "Hello from the gRPC-driven build!", exits 0
+# 3. Run builds / queries over gRPC from the non-JVM client
+export GRADLE_BIN=/tmp/grpc-gradle/bin/gradle
+PY=/tmp/grpcvenv/bin/python
 
-GRADLE_BIN=/tmp/grpc-gradle/bin/gradle /tmp/grpcvenv/bin/python prototype/client.py boom
-#   -> BUILD FAILED, exits 1
+$PY prototype/client.py hello          # streams "Hello ...", exit 0
+$PY prototype/client.py boom           # daemon-rendered FAILURE, exit 1
+$PY prototype/client.py hello -Px=y    # build flags pass through (-P/-D/-x/-q/--info)
+$PY prototype/client.py --query env    # query build environment (the C slice)
+
+# Full scenario suite (10 cases)
+PY=$PY ./prototype/run-scenarios.sh
 ```
 
-## Scope (B-only slice)
+If you rebuild after a change, kill daemons first (the dist version is pinned, so old
+daemons get reused): `pkill -f org.gradle.launcher.daemon.bootstrap.GradleDaemon`.
 
-Runs a build and streams output. No model/state queries (C), no cancellation, no stdin. See
-`Claude/plans/2026.06.28-grpc-tooling-api-beta-prototype.md` for the full plan and the documented
-prototype simplifications (side-file port advertisement, task-name-only arg handling,
-`--dependency-verification=off`).
+## Scope
+
+- **B (run builds)**: tasks + common flags, streamed structured output (log + styled spans),
+  success/failure exit code.
+- **C (query state)**: `QueryModel` returns the build environment (gradle version, java home,
+  java version). Richer models (tasks, dependencies) need a model-projection layer - a follow-up.
+
+Documented prototype simplifications (see the plan): side-file port advertisement (not
+greeting+registry), pragmatic flag parsing (not the full CLI converter), `--dependency-verification=off`,
+no cancellation/stdin. Full details + decisions in
+`Claude/plans/2026.06.28-grpc-tooling-api-beta-prototype.md`.

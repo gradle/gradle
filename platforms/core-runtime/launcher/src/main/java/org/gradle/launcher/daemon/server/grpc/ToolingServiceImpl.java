@@ -16,7 +16,9 @@
 package org.gradle.launcher.daemon.server.grpc;
 
 import io.grpc.stub.StreamObserver;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.configuration.DefaultBuildClientMetaData;
@@ -32,26 +34,38 @@ import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.tooling.grpc.proto.BuildEnvironment;
 import org.gradle.tooling.grpc.proto.BuildEvent;
 import org.gradle.tooling.grpc.proto.BuildRequest;
 import org.gradle.tooling.grpc.proto.BuildResult;
+import org.gradle.tooling.grpc.proto.ModelRequest;
+import org.gradle.tooling.grpc.proto.ModelResponse;
 import org.gradle.tooling.grpc.proto.OutputLine;
+import org.gradle.tooling.grpc.proto.Span;
+import org.gradle.tooling.grpc.proto.StyledOutput;
 import org.gradle.tooling.grpc.proto.ToolingGrpc;
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
+import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Drives a build from a gRPC {@code RunBuild} request by reusing the daemon's {@link BuildExecutor},
- * exactly as {@code ExecuteBuild} does for the Kryo protocol, and streams the build output back by
- * registering an {@link OutputEventListener} on the daemon's logging output (mirroring {@code LogToClient}).
+ * Drives a build from a gRPC {@code RunBuild} request by reusing the daemon's {@link BuildExecutor}
+ * (as {@code ExecuteBuild} does for the Kryo protocol) and streams build output by registering an
+ * {@link OutputEventListener} on the daemon's logging output (mirroring {@code LogToClient}).
+ * Also answers {@code QueryModel} requests about build state (the "C" slice).
  */
 public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
 
@@ -76,15 +90,10 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         Object responseLock = new Object();
 
         OutputEventListener listener = event -> {
-            String text = flatten(event);
-            if (text != null && isUserVisible(event.getLogLevel())) {
+            BuildEvent message = toBuildEvent(event);
+            if (message != null) {
                 synchronized (responseLock) {
-                    responseObserver.onNext(BuildEvent.newBuilder()
-                        .setOutput(OutputLine.newBuilder()
-                            .setText(text)
-                            .setLevel(mapLevel(event.getLogLevel()))
-                            .build())
-                        .build());
+                    responseObserver.onNext(message);
                 }
             }
         };
@@ -99,7 +108,7 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
                 System.getProperties(),
                 System.getenv(),
                 new File(request.getProjectDir()),
-                org.gradle.api.logging.LogLevel.LIFECYCLE,
+                startParameter.getLogLevel(),
                 false,
                 ClassPath.EMPTY);
 
@@ -131,35 +140,110 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         }
     }
 
+    @Override
+    public void queryModel(ModelRequest request, StreamObserver<ModelResponse> responseObserver) {
+        // The "C" slice: answer a build-state question over gRPC, language-neutrally, no TAPI.
+        // Only BuildEnvironment for now; richer models (tasks/dependencies) need a model-projection
+        // layer (the documented hard part) and are a follow-up.
+        try {
+            BuildEnvironment env = BuildEnvironment.newBuilder()
+                .setGradleVersion(GradleVersion.current().getVersion())
+                .setJavaHome(System.getProperty("java.home", ""))
+                .setJavaVersion(Integer.parseInt(JavaVersion.current().getMajorVersion()))
+                .build();
+            responseObserver.onNext(ModelResponse.newBuilder().setSuccess(true).setBuildEnvironment(env).build());
+        } catch (Throwable t) {
+            LOGGER.warn("gRPC tooling API model query failed", t);
+            responseObserver.onNext(ModelResponse.newBuilder().setSuccess(false).setError(String.valueOf(t.getMessage())).build());
+        }
+        responseObserver.onCompleted();
+    }
+
+    private static @Nullable BuildEvent toBuildEvent(OutputEvent event) {
+        if (!isUserVisible(event.getLogLevel())) {
+            return null;
+        }
+        if (event instanceof LogEvent) {
+            String text = ((LogEvent) event).getMessage();
+            return BuildEvent.newBuilder()
+                .setOutput(OutputLine.newBuilder().setText(text).setLevel(mapLevel(event.getLogLevel())).build())
+                .build();
+        }
+        if (event instanceof StyledTextOutputEvent) {
+            StyledOutput.Builder styled = StyledOutput.newBuilder().setLevel(mapLevel(event.getLogLevel()));
+            for (StyledTextOutputEvent.Span span : ((StyledTextOutputEvent) event).getSpans()) {
+                styled.addSpans(Span.newBuilder().setText(span.getText()).setStyle(mapStyle(span.getStyle())).build());
+            }
+            return BuildEvent.newBuilder().setStyled(styled.build()).build();
+        }
+        return null;
+    }
+
     private static StartParameterInternal toStartParameter(BuildRequest request) {
-        // Prototype: treat each arg as a task name. Reusing the full CLI converter chain
-        // (CommandLineParser + StartParameterConverter) for flags/-P/-D is a documented follow-up.
+        // Pragmatic arg handling: tasks + the common flags. The full CLI converter chain
+        // (all options, gradle.properties merge, init scripts) is a documented follow-up.
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setCurrentDir(new File(request.getProjectDir()));
-        if (!request.getArgsList().isEmpty()) {
-            startParameter.setTaskNames(request.getArgsList());
+
+        List<String> tasks = new ArrayList<>();
+        List<String> excluded = new ArrayList<>();
+        Map<String, String> projectProperties = new HashMap<>();
+        Map<String, String> systemProperties = new HashMap<>();
+
+        List<String> args = request.getArgsList();
+        for (int i = 0; i < args.size(); i++) {
+            String arg = args.get(i);
+            if (arg.equals("--info")) {
+                startParameter.setLogLevel(LogLevel.INFO);
+            } else if (arg.equals("--debug") || arg.equals("-d")) {
+                startParameter.setLogLevel(LogLevel.DEBUG);
+            } else if (arg.equals("--quiet") || arg.equals("-q")) {
+                startParameter.setLogLevel(LogLevel.QUIET);
+            } else if (arg.equals("--warn") || arg.equals("-w")) {
+                startParameter.setLogLevel(LogLevel.WARN);
+            } else if (arg.equals("--rerun-tasks")) {
+                startParameter.setRerunTasks(true);
+            } else if (arg.equals("-x") || arg.equals("--exclude-task")) {
+                if (i + 1 < args.size()) {
+                    excluded.add(args.get(++i));
+                }
+            } else if (arg.startsWith("-P")) {
+                putKeyValue(projectProperties, arg.substring(2));
+            } else if (arg.startsWith("-D")) {
+                putKeyValue(systemProperties, arg.substring(2));
+            } else {
+                tasks.add(arg);
+            }
+        }
+
+        if (!tasks.isEmpty()) {
+            startParameter.setTaskNames(tasks);
+        }
+        if (!excluded.isEmpty()) {
+            startParameter.setExcludedTaskNames(excluded);
+        }
+        if (!projectProperties.isEmpty()) {
+            startParameter.setProjectProperties(projectProperties);
+        }
+        if (!systemProperties.isEmpty()) {
+            startParameter.setSystemPropertiesArgs(systemProperties);
         }
         return startParameter;
     }
 
-    private static @Nullable String flatten(OutputEvent event) {
-        if (event instanceof LogEvent) {
-            return ((LogEvent) event).getMessage();
+    private static void putKeyValue(Map<String, String> target, String keyValue) {
+        int eq = keyValue.indexOf('=');
+        if (eq < 0) {
+            target.put(keyValue, "true");
+        } else {
+            target.put(keyValue.substring(0, eq), keyValue.substring(eq + 1));
         }
-        if (event instanceof StyledTextOutputEvent) {
-            StringBuilder builder = new StringBuilder();
-            for (StyledTextOutputEvent.Span span : ((StyledTextOutputEvent) event).getSpans()) {
-                builder.append(span.getText());
-            }
-            return builder.toString();
-        }
-        return null;
     }
 
     private static boolean isUserVisible(org.gradle.api.logging.@Nullable LogLevel level) {
         // Stream only build-facing output (LIFECYCLE and above), not daemon/netty DEBUG/INFO noise.
         // LogLevel order: DEBUG, INFO, LIFECYCLE, WARN, QUIET, ERROR.
-        return level == null || level.compareTo(org.gradle.api.logging.LogLevel.LIFECYCLE) >= 0;
+        return level == null || level.compareTo(LogLevel.LIFECYCLE) >= 0;
     }
 
     private static org.gradle.tooling.grpc.proto.LogLevel mapLevel(org.gradle.api.logging.@Nullable LogLevel level) {
@@ -181,6 +265,36 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
                 return org.gradle.tooling.grpc.proto.LogLevel.ERROR;
             default:
                 return org.gradle.tooling.grpc.proto.LogLevel.LOG_LEVEL_UNSPECIFIED;
+        }
+    }
+
+    private static org.gradle.tooling.grpc.proto.Style mapStyle(StyledTextOutput.Style style) {
+        switch (style) {
+            case Header:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_HEADER;
+            case UserInput:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_USER_INPUT;
+            case Identifier:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_IDENTIFIER;
+            case Description:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_DESCRIPTION;
+            case ProgressStatus:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_PROGRESS_STATUS;
+            case Success:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_SUCCESS;
+            case SuccessHeader:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_SUCCESS_HEADER;
+            case Failure:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_FAILURE;
+            case FailureHeader:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_FAILURE_HEADER;
+            case Info:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_INFO;
+            case Error:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_ERROR;
+            case Normal:
+            default:
+                return org.gradle.tooling.grpc.proto.Style.STYLE_NORMAL;
         }
     }
 }

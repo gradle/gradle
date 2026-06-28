@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Prototype native gRPC tooling API (Target beta). B-only slice: run a build,
-// stream its output, return a terminal result. Source of truth for both the
+// Prototype native gRPC tooling API (Target beta). Source of truth for both the
 // committed Java stubs and the Python client.
 
 syntax = "proto3";
@@ -27,7 +26,12 @@ option java_outer_classname = "ToolingProto";
 service Tooling {
   // Run a build. Output streams as it happens; the final BuildEvent is the result.
   rpc RunBuild(BuildRequest) returns (stream BuildEvent);
+
+  // Query information about a build (the "C" slice). Unary request/response.
+  rpc QueryModel(ModelRequest) returns (ModelResponse);
 }
+
+// ---- RunBuild ----
 
 message BuildRequest {
   repeated string args = 1;   // CLI-equivalent args: tasks + flags (-P/-D/--x)
@@ -36,14 +40,25 @@ message BuildRequest {
 
 message BuildEvent {
   oneof kind {
-    OutputLine output = 1;
-    BuildResult result = 2;
+    OutputLine output = 1;     // plain log line (LogEvent)
+    BuildResult result = 2;    // terminal event
+    StyledOutput styled = 3;   // styled text (StyledTextOutputEvent)
   }
 }
 
 message OutputLine {
   string text = 1;
   LogLevel level = 2;
+}
+
+message StyledOutput {
+  repeated Span spans = 1;
+  LogLevel level = 2;
+}
+
+message Span {
+  string text = 1;
+  Style style = 2;
 }
 
 message BuildResult {
@@ -59,4 +74,45 @@ enum LogLevel {
   INFO = 4;
   DEBUG = 5;
   ERROR = 6;
+}
+
+// Mirrors org.gradle.internal.logging.text.StyledTextOutput.Style
+enum Style {
+  STYLE_NORMAL = 0;
+  STYLE_HEADER = 1;
+  STYLE_USER_INPUT = 2;
+  STYLE_IDENTIFIER = 3;
+  STYLE_DESCRIPTION = 4;
+  STYLE_PROGRESS_STATUS = 5;
+  STYLE_SUCCESS = 6;
+  STYLE_SUCCESS_HEADER = 7;
+  STYLE_FAILURE = 8;
+  STYLE_FAILURE_HEADER = 9;
+  STYLE_INFO = 10;
+  STYLE_ERROR = 11;
+}
+
+// ---- QueryModel ----
+
+message ModelRequest {
+  string project_dir = 1;
+  ModelType type = 2;
+}
+
+enum ModelType {
+  MODEL_BUILD_ENVIRONMENT = 0;
+}
+
+message ModelResponse {
+  bool success = 1;
+  string error = 2;
+  oneof model {
+    BuildEnvironment build_environment = 3;
+  }
+}
+
+message BuildEnvironment {
+  string gradle_version = 1;
+  string java_home = 2;
+  int32 java_version = 3;
 }

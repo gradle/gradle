@@ -43,6 +43,37 @@ public final class ToolingGrpc {
     return getRunBuildMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<org.gradle.tooling.grpc.proto.ModelRequest,
+      org.gradle.tooling.grpc.proto.ModelResponse> getQueryModelMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "QueryModel",
+      requestType = org.gradle.tooling.grpc.proto.ModelRequest.class,
+      responseType = org.gradle.tooling.grpc.proto.ModelResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<org.gradle.tooling.grpc.proto.ModelRequest,
+      org.gradle.tooling.grpc.proto.ModelResponse> getQueryModelMethod() {
+    io.grpc.MethodDescriptor<org.gradle.tooling.grpc.proto.ModelRequest, org.gradle.tooling.grpc.proto.ModelResponse> getQueryModelMethod;
+    if ((getQueryModelMethod = ToolingGrpc.getQueryModelMethod) == null) {
+      synchronized (ToolingGrpc.class) {
+        if ((getQueryModelMethod = ToolingGrpc.getQueryModelMethod) == null) {
+          ToolingGrpc.getQueryModelMethod = getQueryModelMethod =
+              io.grpc.MethodDescriptor.<org.gradle.tooling.grpc.proto.ModelRequest, org.gradle.tooling.grpc.proto.ModelResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "QueryModel"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.grpc.proto.ModelRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.grpc.proto.ModelResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ToolingMethodDescriptorSupplier("QueryModel"))
+              .build();
+        }
+      }
+    }
+    return getQueryModelMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -101,6 +132,16 @@ public final class ToolingGrpc {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getRunBuildMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * Query information about a build (the "C" slice). Unary request/response.
+     * </pre>
+     */
+    public void queryModel(org.gradle.tooling.grpc.proto.ModelRequest request,
+        io.grpc.stub.StreamObserver<org.gradle.tooling.grpc.proto.ModelResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getQueryModelMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -110,6 +151,13 @@ public final class ToolingGrpc {
                 org.gradle.tooling.grpc.proto.BuildRequest,
                 org.gradle.tooling.grpc.proto.BuildEvent>(
                   this, METHODID_RUN_BUILD)))
+          .addMethod(
+            getQueryModelMethod(),
+            io.grpc.stub.ServerCalls.asyncUnaryCall(
+              new MethodHandlers<
+                org.gradle.tooling.grpc.proto.ModelRequest,
+                org.gradle.tooling.grpc.proto.ModelResponse>(
+                  this, METHODID_QUERY_MODEL)))
           .build();
     }
   }
@@ -138,6 +186,17 @@ public final class ToolingGrpc {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getRunBuildMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * Query information about a build (the "C" slice). Unary request/response.
+     * </pre>
+     */
+    public void queryModel(org.gradle.tooling.grpc.proto.ModelRequest request,
+        io.grpc.stub.StreamObserver<org.gradle.tooling.grpc.proto.ModelResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getQueryModelMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -164,6 +223,16 @@ public final class ToolingGrpc {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getRunBuildMethod(), getCallOptions(), request);
     }
+
+    /**
+     * <pre>
+     * Query information about a build (the "C" slice). Unary request/response.
+     * </pre>
+     */
+    public org.gradle.tooling.grpc.proto.ModelResponse queryModel(org.gradle.tooling.grpc.proto.ModelRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getQueryModelMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -179,9 +248,21 @@ public final class ToolingGrpc {
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new ToolingFutureStub(channel, callOptions);
     }
+
+    /**
+     * <pre>
+     * Query information about a build (the "C" slice). Unary request/response.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<org.gradle.tooling.grpc.proto.ModelResponse> queryModel(
+        org.gradle.tooling.grpc.proto.ModelRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getQueryModelMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_RUN_BUILD = 0;
+  private static final int METHODID_QUERY_MODEL = 1;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -203,6 +284,10 @@ public final class ToolingGrpc {
         case METHODID_RUN_BUILD:
           serviceImpl.runBuild((org.gradle.tooling.grpc.proto.BuildRequest) request,
               (io.grpc.stub.StreamObserver<org.gradle.tooling.grpc.proto.BuildEvent>) responseObserver);
+          break;
+        case METHODID_QUERY_MODEL:
+          serviceImpl.queryModel((org.gradle.tooling.grpc.proto.ModelRequest) request,
+              (io.grpc.stub.StreamObserver<org.gradle.tooling.grpc.proto.ModelResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -266,6 +351,7 @@ public final class ToolingGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new ToolingFileDescriptorSupplier())
               .addMethod(getRunBuildMethod())
+              .addMethod(getQueryModelMethod())
               .build();
         }
       }
