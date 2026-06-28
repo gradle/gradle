@@ -60,11 +60,14 @@ dependencies {
     implementation(projects.collections)
     implementation(projects.enterpriseOperations)
     implementation(projects.io)
+    implementation(projects.toolingApiGrpc)
 
     implementation(libs.slf4jApi)
     // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
     implementation(libs.ant)
     implementation(libs.groovy)
+    // Prototype native gRPC tooling API server hosted in the daemon (Target beta)
+    implementation(libs.grpcNettyShaded)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)

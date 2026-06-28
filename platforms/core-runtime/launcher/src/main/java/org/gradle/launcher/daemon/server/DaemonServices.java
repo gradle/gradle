@@ -62,6 +62,7 @@ import org.gradle.launcher.daemon.server.exec.WatchForDisconnection;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
+import org.gradle.launcher.daemon.server.grpc.GrpcDaemonServer;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
@@ -194,8 +195,18 @@ public class DaemonServices implements ServiceRegistrationProvider {
         InetAddressFactory inetAddressFactory,
         DaemonRegistry daemonRegistry,
         DaemonContext daemonContext,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        BuildExecutor buildExecutor,
+        DaemonDir daemonDir
     ) {
+        // Prototype (Target beta): a gRPC tooling API server hosted in the daemon, reusing the
+        // same BuildExecutor and logging output the Kryo command pipeline uses.
+        GrpcDaemonServer grpcDaemonServer = new GrpcDaemonServer(
+            buildExecutor,
+            loggingManager,
+            daemonDir.getVersionedDir(),
+            daemonContext.getUid()
+        );
         return new Daemon(
             new DaemonTcpServerConnector(
                 executorFactory,
@@ -206,7 +217,8 @@ public class DaemonServices implements ServiceRegistrationProvider {
             daemonContext,
             new DaemonCommandExecuter(configuration, actions),
             executorFactory,
-            listenerManager
+            listenerManager,
+            grpcDaemonServer
         );
     }
 }

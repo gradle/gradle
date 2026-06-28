@@ -15,6 +15,7 @@ googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
 googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2, our Google API Client version requires it
 googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
+grpc = "1.53.0!!"
 gson = "2.13.1!!"
 guava = "33.4.6-jre"
 httpcore = "4.4.16!!"
@@ -46,6 +47,7 @@ plexusInterpolation = "1.26!!"
 plexusSecDispatcher = "2.0!!"
 plexusUtils = "3.6.1!!"
 plist = "1.27!!"
+protobuf = "3.21.12!!"
 slf4j = "2.0.17!!"
 snakeyaml = "2.6!!"
 sshd = "2.15.0!!"
@@ -88,6 +90,10 @@ groovyJson = { group = "org.apache.groovy", name = "groovy-json", version.ref = 
 groovyNio = { group = "org.apache.groovy", name = "groovy-nio", version.ref = "groovy" }
 groovyTemplates = { group = "org.apache.groovy", name = "groovy-templates", version.ref = "groovy" }
 groovyXml = { group = "org.apache.groovy", name = "groovy-xml", version.ref = "groovy" }
+grpcApi = { group = "io.grpc", name = "grpc-api", version.ref = "grpc" }
+grpcNettyShaded = { group = "io.grpc", name = "grpc-netty-shaded", version.ref = "grpc" }
+grpcProtobuf = { group = "io.grpc", name = "grpc-protobuf", version.ref = "grpc" }
+grpcStub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "httpcore" }
@@ -153,6 +159,7 @@ plexusInterpolation = { group = "org.codehaus.plexus", name = "plexus-interpolat
 plexusSecDispatcher = { group = "org.codehaus.plexus", name = "plexus-sec-dispatcher", version.ref = "plexusSecDispatcher" }
 plexusUtils = { group = "org.codehaus.plexus", name = "plexus-utils", version.ref = "plexusUtils" }
 plist = { group = "com.googlecode.plist", name = "dd-plist", version.ref = "plist" }
+protobufJava = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
 slf4jApi = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 sshdCore = { group = "org.apache.sshd", name = "sshd-core", version.ref = "sshd" }

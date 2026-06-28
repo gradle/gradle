@@ -96,6 +96,7 @@ val core = platform("core") {
         subproject("start-parameter")
         subproject("time")
         subproject("tooling-api-provider")
+        subproject("tooling-api-grpc")
         subproject("versioned-cache")
         subproject("wrapper-main")
         subproject("wrapper-shared")

@@ -49,6 +49,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
+import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -57,6 +58,7 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -66,6 +68,7 @@ import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
@@ -117,6 +120,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
             startParameter.setDaemonJvmCriteriaConfigured(true);
         }
 
+        if (daemonParameters.isGrpcEndpoint()) {
+            return Actions.toAction(printGrpcEndpoint(daemonParameters, requestContext, buildLayoutConfiguration));
+        }
+
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));
         }
@@ -139,6 +146,16 @@ class BuildActionsFactory implements CommandLineActionCreator {
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices, daemonParameters.getBaseDir());
         ReportDaemonStatusClient statusClient = clientServices.get(ReportDaemonStatusClient.class);
         return new ReportDaemonStatusAction(statusClient);
+    }
+
+    private Runnable printGrpcEndpoint(DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {
+        // Prototype (Target beta): find-or-start a daemon, then print its gRPC tooling API endpoint + token.
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, buildLayoutConfiguration, System.in, Optional.empty());
+        DaemonConnector connector = clientServices.get(DaemonConnector.class);
+        Stoppable stoppable = new CompositeStoppable().add(clientServices).add(clientSharedServices);
+        File versionedDir = new DaemonDir(daemonParameters.getBaseDir()).getVersionedDir();
+        return new PrintGrpcEndpointAction(connector, new DaemonCompatibilitySpec(requestContext), versionedDir, stoppable);
     }
 
     private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {

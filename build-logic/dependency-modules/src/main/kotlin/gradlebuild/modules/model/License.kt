@@ -98,7 +98,7 @@ enum class License(
     MIT(
         "MIT License",
         "https://opensource.org/licenses/MIT",
-        listOf("The MIT License", "MIT License", "MIT"),
+        listOf("The MIT License", "MIT License", "MIT", "MIT license"),
     );
 
     companion object {

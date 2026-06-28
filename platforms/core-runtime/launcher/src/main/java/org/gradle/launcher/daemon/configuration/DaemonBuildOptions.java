@@ -56,6 +56,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new ForegroundOption(),
         new StopOption(),
         new StatusOption(),
+        new GrpcEndpointOption(),
         new PriorityOption(),
         new NativeServicesOption()
     );
@@ -368,6 +369,22 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStatus(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
+    }
+
+    public static class GrpcEndpointOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
+        public GrpcEndpointOption() {
+            super(null, CommandLineOptionConfiguration.create("grpc-endpoint", "Prototype (Target beta): finds or starts a daemon and prints its gRPC tooling API endpoint and token."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings, Origin origin) {
+            settings.setGrpcEndpoint(true);
         }
 
         @Override

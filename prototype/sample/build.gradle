@@ -1,0 +1,12 @@
+// Tiny throwaway project to exercise the prototype gRPC tooling API.
+tasks.register('hello') {
+    doLast {
+        println 'Hello from the gRPC-driven build!'
+    }
+}
+
+tasks.register('boom') {
+    doLast {
+        throw new GradleException('Intentional failure for the prototype demo')
+    }
+}

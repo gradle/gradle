@@ -59,6 +59,7 @@ public class DaemonParameters {
     private boolean foreground;
     private boolean stop;
     private boolean status;
+    private boolean grpcEndpoint;
     private DaemonPriority priority = DaemonPriority.NORMAL;
     private DaemonJvmCriteria requestedJvmCriteria = new DaemonJvmCriteria.LauncherJvm();
     private ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
@@ -235,6 +236,14 @@ public class DaemonParameters {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public boolean isGrpcEndpoint() {
+        return grpcEndpoint;
+    }
+
+    public void setGrpcEndpoint(boolean grpcEndpoint) {
+        this.grpcEndpoint = grpcEndpoint;
     }
 
     public Map<String, String> getEnvironmentVariables() {

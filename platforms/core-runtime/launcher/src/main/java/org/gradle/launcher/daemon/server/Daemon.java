@@ -29,6 +29,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.grpc.GrpcDaemonServer;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
@@ -65,6 +66,7 @@ public class Daemon implements Stoppable {
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
     private final ListenerManager listenerManager;
+    private final GrpcDaemonServer grpcDaemonServer;
 
     private DaemonStateCoordinator stateCoordinator;
 
@@ -80,7 +82,7 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager, GrpcDaemonServer grpcDaemonServer) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
@@ -88,6 +90,7 @@ public class Daemon implements Stoppable {
         this.executorFactory = executorFactory;
         this.scheduledExecutorService = executorFactory.createScheduled("Daemon periodic checks", 1);
         this.listenerManager = listenerManager;
+        this.grpcDaemonServer = grpcDaemonServer;
     }
 
     public String getUid() {
@@ -175,6 +178,10 @@ public class Daemon implements Stoppable {
             connectorAddress = connector.start(connectionHandler, connectionErrorHandler);
             LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
+
+            // Prototype (Target beta): start the gRPC tooling API server alongside the Kryo connector,
+            // sharing the daemon's authentication token and state control.
+            grpcDaemonServer.start(token, stateCoordinator);
         } finally {
             lifecycleLock.unlock();
         }
@@ -215,7 +222,7 @@ public class Daemon implements Stoppable {
             // 3. stop accepting new connections
             // 4. wait for commands in progress to finish (except for abandoned long running commands, like running a build)
 
-            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector, connectionHandler).stop();
+            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector, connectionHandler, grpcDaemonServer).stop();
         } finally {
             lifecycleLock.unlock();
         }

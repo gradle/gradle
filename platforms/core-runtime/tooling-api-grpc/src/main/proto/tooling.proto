@@ -1,0 +1,62 @@
+// Copyright 2026 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Prototype native gRPC tooling API (Target beta). B-only slice: run a build,
+// stream its output, return a terminal result. Source of truth for both the
+// committed Java stubs and the Python client.
+
+syntax = "proto3";
+
+package gradle.tooling.grpc;
+
+option java_multiple_files = true;
+option java_package = "org.gradle.tooling.grpc.proto";
+option java_outer_classname = "ToolingProto";
+
+service Tooling {
+  // Run a build. Output streams as it happens; the final BuildEvent is the result.
+  rpc RunBuild(BuildRequest) returns (stream BuildEvent);
+}
+
+message BuildRequest {
+  repeated string args = 1;   // CLI-equivalent args: tasks + flags (-P/-D/--x)
+  string project_dir = 2;     // build root; drives build layout
+}
+
+message BuildEvent {
+  oneof kind {
+    OutputLine output = 1;
+    BuildResult result = 2;
+  }
+}
+
+message OutputLine {
+  string text = 1;
+  LogLevel level = 2;
+}
+
+message BuildResult {
+  bool success = 1;
+  string message = 2;
+}
+
+enum LogLevel {
+  LOG_LEVEL_UNSPECIFIED = 0;
+  QUIET = 1;
+  WARN = 2;
+  LIFECYCLE = 3;
+  INFO = 4;
+  DEBUG = 5;
+  ERROR = 6;
+}
