@@ -16,29 +16,29 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.junit.Assume
+
 class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "reports a problem on project-level access of Gradle.extensions via #invocation"() {
-        settingsFile """
-            include("a")
-        """
-        file("a/build.gradle") << """
+    def "reports a problem on project-level access of #gradleTarget Gradle.extensions via #invocation from #accessLocation"() {
+        excludeRootParentVariant(gradleTarget, accessLocation)
+        compositeBuild(accessLocation, """
             import org.gradle.api.reflect.TypeOf;
 
             interface Foo {}
 
             class DefaultFoo implements Foo {}
 
-            gradle.extensions.$invocation
-        """
+            ${gradleTarget.gradleAccess}.extensions.$invocation
+        """)
 
         when:
-        isolatedProjectsFailsUsing mode, ":a:help"
+        isolatedProjectsFailsUsing mode, accessLocation.task
 
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
-            projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 8: Project ':a' cannot access Gradle.extensions")
+            projectsConfigured(*accessLocation.configuredProjects)
+            problem("Build file '${accessLocation.buildFileName}': line 8: Project '${accessLocation.accessor}' cannot access Gradle.extensions")
         }
 
         where:
@@ -72,24 +72,28 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         ]
 
         combined:
+        gradleTarget << GradleTarget.values().toList()
+
+        combined:
+        accessLocation << AccessLocation.values().toList()
+
+        combined:
         mode << ALL_MODES
     }
 
-    def "reports a problem on project-level access to mutable Gradle state via #invocation"() {
-        settingsFile """
-            include("a")
-        """
-        file("a/build.gradle") << """
-            gradle.$invocation
-        """
+    def "reports a problem on project-level access to mutable #gradleTarget Gradle state via #invocation from #accessLocation"() {
+        excludeRootParentVariant(gradleTarget, accessLocation)
+        compositeBuild(accessLocation, """
+            ${gradleTarget.gradleAccess}.$invocation
+        """)
 
         when:
-        isolatedProjectsFailsUsing mode, ":a:help"
+        isolatedProjectsFailsUsing mode, accessLocation.task
 
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
-            projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot access Gradle.$problemAccess")
+            projectsConfigured(*accessLocation.configuredProjects)
+            problem("Build file '${accessLocation.buildFileName}': line 2: Project '${accessLocation.accessor}' cannot access Gradle.$problemAccess")
         }
 
         where:
@@ -108,66 +112,127 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         "removeProjectEvaluationListener(${projectEvaluationListener()})" | "removeProjectEvaluationListener"
 
         combined:
+        gradleTarget << GradleTarget.values().toList()
+
+        combined:
+        accessLocation << AccessLocation.values().toList()
+
+        combined:
         mode << ALL_MODES
     }
 
-    def "reports a problem on project-level access to Gradle.#invocation from #source"() {
-        file(buildFileName) << """
-            gradle.$invocation
-        """
-        settingsFile """
-            if (${source == "included build"}) {
-                includeBuild("included")
-            }
-        """
+    def "reports a problem on project-level access to #gradleTarget Gradle.#invocation from #accessLocation"() {
+        excludeRootParentVariant(gradleTarget, accessLocation)
+        compositeBuild(accessLocation, """
+            ${gradleTarget.gradleAccess}.$invocation
+        """)
 
         // `useLogger` emits a deprecation warning when it runs (in DIAGNOSTICS); this test asserts IP problems,
         // not deprecations, so don't fail on it.
         executer.noDeprecationChecks()
 
         when:
-        isolatedProjectsFailsUsing mode, "help"
+        isolatedProjectsFailsUsing mode, accessLocation.task
 
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
-            projectsConfigured(*configuredProjects)
-            expectedProblems(mode, accessor)
+            projectsConfigured(*accessLocation.configuredProjects)
+            expectedProblems(mode, accessLocation.accessor, gradleTarget)
                 .each {
-                    problem("Build file '$buildFileName': line 2: $it")
+                    problem("Build file '${accessLocation.buildFileName}': line 2: $it")
                 }
         }
 
         where:
-        source                                              | buildFileName           | accessor    | configuredProjects
-        "buildSrc"                                          | "buildSrc/build.gradle" | ":buildSrc" | [":buildSrc", ":"]
-        "included build"                                    | "included/build.gradle" | ":included" | [":", ":included"]
-        "root"                                              | "build.gradle"          | ":"         | [":"]
+        invocation                                          | expectedProblems
+        "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project, GradleTarget which -> expectedProblemsOnUnsupportedListener(mode, project, "addListener", which) }
+        "addBuildListener(${buildListener()})"              | { IsolatedProjectsMode mode, String project, GradleTarget which -> expectedProblemsOnUnsupportedListener(mode, project, "addBuildListener", which) }
+        "useLogger(new Object())"                           | { IsolatedProjectsMode mode, String project, GradleTarget which -> expectedProblemsOnUnsupportedListener(mode, project, "useLogger", which) }
+        "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "addListener(${projectEvaluationListener()})"       | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.addListener"] }
+        "removeListener(${projectEvaluationListener()})"    | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "addListener(${taskExecutionGraphListener()})"      | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.addListener"] }
+        "removeListener(${taskExecutionGraphListener()})"   | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
+        "addListener(${dependencyResolutionListener()})"    | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.addListener"] }
+        "removeListener(${dependencyResolutionListener()})" | { IsolatedProjectsMode mode, String project, GradleTarget which -> ["Project '$project' cannot access Gradle.removeListener"] }
 
         combined:
-        invocation                                          | expectedProblems
-        "addListener(new Object())"                         | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "addListener") }
-        "addBuildListener(${buildListener()})"              | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "addBuildListener") }
-        "useLogger(new Object())"                           | { IsolatedProjectsMode mode, String project -> expectedProblemsOnUnsupportedListener(mode, project, "useLogger") }
-        "removeListener(new Object())"                      | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${projectEvaluationListener()})"       | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${projectEvaluationListener()})"    | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${taskExecutionGraphListener()})"      | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${taskExecutionGraphListener()})"   | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
-        "addListener(${dependencyResolutionListener()})"    | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.addListener"] }
-        "removeListener(${dependencyResolutionListener()})" | { IsolatedProjectsMode mode, String project -> ["Project '$project' cannot access Gradle.removeListener"] }
+        gradleTarget << GradleTarget.values().toList()
+
+        combined:
+        accessLocation << AccessLocation.values().toList()
 
         combined:
         mode << ALL_MODES
     }
 
-    private static List<String> expectedProblemsOnUnsupportedListener(IsolatedProjectsMode mode, String accessor, String method) {
+    enum AccessLocation {
+        INCLUDED_BUILD("included build", ":included", "included/build.gradle", [":", ":included"], ":included:help"),
+        BUILD_SRC("buildSrc", ":buildSrc", "buildSrc/build.gradle", [":buildSrc", ":"], ":buildSrc:help"),
+        ROOT("root", ":", "build.gradle", [":"], ":help")
+
+        final String description
+        final String accessor
+        final String buildFileName
+        final List<String> configuredProjects
+        final String task
+
+        AccessLocation(String description, String accessor, String buildFileName, List<String> configuredProjects, String task) {
+            this.description = description
+            this.accessor = accessor
+            this.buildFileName = buildFileName
+            this.configuredProjects = configuredProjects
+            this.task = task
+        }
+
+        @Override
+        String toString() {
+            description
+        }
+    }
+
+    enum GradleTarget {
+        THIS("this", "gradle"),
+        PARENT("parent", "gradle.parent")
+
+        final String description
+        final String gradleAccess
+
+        GradleTarget(String description, String gradleAccess) {
+            this.description = description
+            this.gradleAccess = gradleAccess
+        }
+
+        @Override
+        String toString() {
+            description
+        }
+    }
+
+    private static void excludeRootParentVariant(GradleTarget gradleTarget, AccessLocation accessLocation) {
+        // `gradle.parent` is null in the root build, so there is nothing to access via the parent there.
+        Assume.assumeFalse(gradleTarget == GradleTarget.PARENT && accessLocation == AccessLocation.ROOT)
+    }
+
+    private void compositeBuild(AccessLocation accessLocation, String script) {
+        settingsFile """
+            if (${accessLocation == AccessLocation.INCLUDED_BUILD}) {
+                includeBuild("included")
+            }
+        """
+        file(accessLocation.buildFileName) << script
+    }
+
+    private static List<String> expectedProblemsOnUnsupportedListener(IsolatedProjectsMode mode, String accessor, String method, GradleTarget gradleTarget) {
         // In FAIL_FAST the build halts on the first (IP) problem, so only it is reported.
         if (mode == IsolatedProjectsMode.FAIL_FAST) {
             return ["Project '$accessor' cannot access Gradle.$method"]
         }
         // In DIAGNOSTICS, CC also reports the unsupported-listener registration, except in buildSrc,
         // which CC exempts (see ConfigurationCacheProblemsListener.isBuildSrcBuild).
-        accessor == ":buildSrc"
+        // That exemption only applies to direct access: via `gradle.parent` the listener registers on
+        // the (root) parent build, which CC does not exempt, so the registration is still reported.
+        (accessor == ":buildSrc" && gradleTarget == GradleTarget.THIS)
             ? ["Project '$accessor' cannot access Gradle.$method"]
             : ["Project '$accessor' cannot access Gradle.$method", "registration of listener on 'Gradle.$method' is unsupported"]
     }
