@@ -22,7 +22,6 @@ dependencies {
     implementation(projects.processServices)
     api(projects.declarativeDslApi)
     api(projects.fileOperations)
-    api(projects.files)
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
@@ -46,6 +45,7 @@ dependencies {
 
     implementation(projects.baseAsm)
     implementation(projects.credentialsApi)
+    implementation(projects.files)
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildDiscoveryImpl)

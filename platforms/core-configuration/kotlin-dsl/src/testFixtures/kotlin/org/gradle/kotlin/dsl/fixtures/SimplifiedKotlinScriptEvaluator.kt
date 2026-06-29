@@ -25,12 +25,9 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.cache.CleanupFrequency
-import org.gradle.cache.IndexedCacheParameters
 import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory
 import org.gradle.cache.internal.DefaultFineGrainedCacheCleanupStrategyFactory
-import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
@@ -46,7 +43,6 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
@@ -294,7 +290,7 @@ val testRuntimeClassPath: ClassPath by lazy {
  * must [close] this once they are done, or the file locks and on-disk state will leak for the
  * duration of the test JVM.
  */
-class TestIncrementalCompilationCache internal constructor(
+internal class TestIncrementalCompilationCache(
     val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
     private val incrementalCompilationStore: KotlinDslIncrementalCompilationStore,
     val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
@@ -316,13 +312,13 @@ class TestIncrementalCompilationCache internal constructor(
  * Returns an [AutoCloseable] wrapper — the caller is responsible for closing it (typically in
  * `@After` / `@AfterClass`, or via `close()` on whatever owns the cache).
  */
-fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCache {
+internal fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCache {
     rootDir.mkdirs()
     val cacheBuilderFactory = DefaultGlobalScopedCacheBuilderFactory(rootDir, DefaultUnscopedCacheBuilderFactory(TestInMemoryCacheFactory()))
-    val inMemoryCacheDecoratorFactory = DefaultInMemoryCacheDecoratorFactory(false, TestCrossBuildInMemoryCacheFactory())
     val fileAccessTimeJournal = ModificationTimeFileAccessTimeJournal()
-    val cacheCleanupStrategyFactory = DefaultFineGrainedCacheCleanupStrategyFactory(
-        DefaultCacheCleanupStrategyFactory(TestBuildOperationRunner()),
+    val cacheCleanupStrategyFactory = DefaultCacheCleanupStrategyFactory(TestBuildOperationRunner())
+    val fineGrainedCacheCleanupStrategyFactory = DefaultFineGrainedCacheCleanupStrategyFactory(
+        cacheCleanupStrategyFactory,
         fileAccessTimeJournal
     )
     // These caches back unit tests, not a real Gradle invocation, so age-based eviction has no place
@@ -336,17 +332,10 @@ fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCa
         on { getCreatedResources() } doReturn createdResources
         on { cleanupFrequency } doReturn Providers.of(CleanupFrequency.NEVER)
     }
-    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, fineGrainedCacheCleanupStrategyFactory)
     val cache = KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
-    val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
-    val snapshotCache = KotlinDslClasspathEntrySnapshotCache(
-        snapshotStore.snapshotsCacheDirectory,
-        snapshotStore.createIndexedCache(
-            IndexedCacheParameters.of("kotlinDslClasspathSnapshotIndex", HashCode::class.java, HashCodeSerializer()),
-            10_000,
-            true
-        )
-    )
+    val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+    val snapshotCache = KotlinDslClasspathEntrySnapshotCache(snapshotStore.snapshotsCacheDirectory, snapshotStore.fileAccessTracker)
     return TestIncrementalCompilationCache(cache, store, snapshotCache, snapshotStore)
 }
 
@@ -383,9 +372,9 @@ private val sharedTestCaches: TestIncrementalCompilationCache by lazy {
 }
 
 
-val sharedTestIncrementalCompilationCache: KotlinDslIncrementalCompilationCache
+internal val sharedTestIncrementalCompilationCache: KotlinDslIncrementalCompilationCache
     get() = sharedTestCaches.incrementalCompilationCache
 
 
-val sharedTestClasspathSnapshotCache: KotlinDslClasspathEntrySnapshotCache
+internal val sharedTestClasspathSnapshotCache: KotlinDslClasspathEntrySnapshotCache
     get() = sharedTestCaches.classpathEntrySnapshotCache

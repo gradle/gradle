@@ -16,15 +16,22 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.cache.CacheCleanupStrategy
+import org.gradle.cache.CacheCleanupStrategyFactory
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.IndexedCache
-import org.gradle.cache.IndexedCacheParameters
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.internal.CompositeCleanupAction
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
+import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.file.FileAccessTracker
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
+import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
@@ -33,43 +40,65 @@ import kotlin.io.path.createDirectories
  * Owns the [PersistentCache] backing [KotlinDslClasspathEntrySnapshotCache].
  *
  * Layout under `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-classpath-snapshots/`:
- *  - `snapshots/<contentHash>.snapshot`    - content-addressed BTA classpath snapshots.
- *  - `kotlinDslClasspathSnapshotIndex.bin` - IndexedCache backing file (content hash → ABI hash;
- *                                           see [KotlinDslClasspathEntrySnapshotCache]).
+ *  - `snapshots/<contentHash>.snapshot` - content-addressed BTA classpath snapshots (incremental compilation).
+ *  - `snapshots/<contentHash>.abi`      - content-addressed ABI hashes (compile avoidance).
  *
- * Opened with [FileLockManager.LockMode.OnDemand] — a coarse cache-level lock (no per-key locking)
- * that serializes the index; the snapshot files are published lock-free via atomic rename in
- * [KotlinDslClasspathEntrySnapshotCache]. [close] is invoked by the service registry on shutdown.
+ * Opened with [FileLockManager.LockMode.OnDemand]: a coarse lock taken only for cleanup; the entries
+ * need none, being immutable and content-addressed and published lock-free via atomic rename.
  *
- * TODO: no disk cleanup. The `maxEntriesToKeepInMemory` passed to [createIndexedCache] caps only the
- *  index's in-memory layer (10_000 entries); the on-disk index and the `snapshots/` files are never
- *  pruned, so both grow without bound and only whole-directory user-home cleanup ever reclaims them.
+ * Cleanup is least-recently-used, scoped to `snapshots/` so the cache metadata at the root is left
+ * alone: [fileAccessTracker] touches each file on use, and files unused past the retention period are
+ * deleted. Hard-deleting immediately with no soft-delete grace window is safe here — unlike the
+ * mutable [KotlinDslIncrementalCompilationStore], entries are immutable and regenerable, and a
+ * snapshot reclaimed mid-build is handled by the compiler's full-compile fallback. [close] is invoked
+ * by the service registry on shutdown.
  */
 @ServiceScope(Scope.UserHome::class)
 internal class KotlinDslClasspathEntrySnapshotStore(
     cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
-    private val inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
+    fileAccessTimeJournal: FileAccessTimeJournal,
+    cacheConfigurations: CacheConfigurationsInternal,
+    cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
 ) : Closeable {
 
+    // Resolved without opening the cache, so the cleanup strategy can be scoped to it before open().
+    private val snapshotsDir: File = cacheBuilderFactory.baseDirForCache(CACHE_KEY).resolve("snapshots")
+
+    val snapshotsCacheDirectory: Path = snapshotsDir.toPath().also { it.createDirectories() }
+
     private val cache: PersistentCache = cacheBuilderFactory
-        .createCacheBuilder("kotlin-dsl-classpath-snapshots")
+        .createCacheBuilder(CACHE_KEY)
         .withDisplayName("Kotlin DSL classpath snapshot cache")
         .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+        .withCleanupStrategy(cleanupStrategy(fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory))
         .open()
 
-    val snapshotsCacheDirectory: Path = cache.baseDir.toPath().resolve("snapshots").also { it.createDirectories() }
+    val fileAccessTracker: FileAccessTracker = SingleDepthFileAccessTracker(fileAccessTimeJournal, snapshotsDir, ENTRY_DEPTH)
 
-    fun <K : Any, V : Any> createIndexedCache(
-        parameters: IndexedCacheParameters<K, V>,
-        maxEntriesToKeepInMemory: Int,
-        cacheInMemoryForShortLivedProcesses: Boolean,
-    ): IndexedCache<K, V> = cache.createIndexedCache(
-        parameters.withCacheDecorator(
-            inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses)
+    private fun cleanupStrategy(
+        fileAccessTimeJournal: FileAccessTimeJournal,
+        cacheConfigurations: CacheConfigurationsInternal,
+        cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
+    ): CacheCleanupStrategy =
+        cacheCleanupStrategyFactory.create(
+            CompositeCleanupAction.builder()
+                .add(
+                    snapshotsDir,
+                    LeastRecentlyUsedCacheCleanup(
+                        SingleDepthFilesFinder(ENTRY_DEPTH),
+                        fileAccessTimeJournal,
+                        cacheConfigurations.createdResources.entryRetentionTimestampSupplier
+                    )
+                )
+                .build(),
+            cacheConfigurations.cleanupFrequency::get
         )
-    )
 
     override fun close() {
         cache.close()
     }
 }
+
+private const val CACHE_KEY = "kotlin-dsl-classpath-snapshots"
+
+private const val ENTRY_DEPTH = 1

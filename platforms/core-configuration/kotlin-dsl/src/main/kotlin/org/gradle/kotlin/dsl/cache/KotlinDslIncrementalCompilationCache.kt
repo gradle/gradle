@@ -40,7 +40,7 @@ import kotlin.io.path.createDirectories
  * Concurrency: each compilation runs under the script's lock via [withScriptState].
  */
 @ServiceScope(Scope.UserHome::class)
-class KotlinDslIncrementalCompilationCache(
+internal class KotlinDslIncrementalCompilationCache(
     private val cache: FineGrainedPersistentCache,
     private val fileAccessTracker: FileAccessTracker,
     private val softDeleter: FineGrainedCacheEntrySoftDeleter,
@@ -73,6 +73,16 @@ class KotlinDslIncrementalCompilationCache(
      */
     fun scriptCacheDirectory(scriptIdentity: String): Path =
         scriptEntry(scriptIdentity).resolve("ic-state").also { it.createDirectories() }
+
+    /**
+     * Discards [scriptIdentity]'s IC working state so the next compile bootstraps from scratch (its
+     * `outputs` survive, so that compile records IC state rather than starting cold). Call only under
+     * the script's lock (see [withScriptState]); recovers from a corrupt ic-state that would otherwise
+     * make every incremental attempt fail and fall back to a full compile indefinitely.
+     */
+    fun discardIncrementalState(scriptIdentity: String) {
+        scriptEntry(scriptIdentity).resolve("ic-state").toFile().deleteRecursively()
+    }
 
     /**
      * Returns the stable per-script directory the compiler writes class outputs into, creating it if needed.

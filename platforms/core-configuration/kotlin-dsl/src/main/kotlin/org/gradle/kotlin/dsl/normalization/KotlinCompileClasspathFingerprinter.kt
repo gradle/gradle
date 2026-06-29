@@ -34,13 +34,10 @@ import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.support.BtaClasspathSnapshotter
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
-import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
-import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import java.io.File
 import java.nio.file.Path
 
@@ -71,12 +68,12 @@ class KotlinCompileClasspathFingerprinter(
             }
 
             // Shared with BTA incremental compilation via the content-addressed snapshot store:
-            // whichever layer asks first generates the BTA snapshot, the other gets a cache hit.
-            // On hit, only the rollup HashCode is read from the in-memory index — the snapshot
-            // file itself is not deserialized here.
-            val abiHash = cache.snapshotAndAbiHashFor(snapshot.hash) { snapshotPath ->
+            // whichever layer asks first runs the snapshotting pass, the other reuses its by-products.
+            // Avoidance reads only the tiny ABI sidecar (served from memory when hot); the snapshot
+            // file itself is never deserialized here, nor regenerated if cleanup already reclaimed it.
+            val abiHash = cache.abiHashFor(snapshot.hash) { snapshotPath ->
                 snapshotter.snapshotAndSave(File(snapshot.absolutePath), snapshotPath)
-            }.abiHash
+            }
             fingerprints[snapshot.absolutePath] = abiHash
 
             // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
@@ -146,30 +143,9 @@ private class Snapshotter {
     private val jvmToolchains = toolchains.getToolchain(JvmPlatformToolchain::class.java)
 
     /**
-     * Computes the BTA classpath snapshot for [file], writes it to [snapshotPath], and returns
-     * the ABI-rollup hash derived from the same in-memory snapshot. Single BTA invocation
-     * produces both outputs that the cache requires.
+     * Computes the BTA classpath snapshot for [file], writes it to [snapshotPath], and returns the
+     * ABI-rollup hash derived from the same snapshot — see [BtaClasspathSnapshotter].
      */
-    fun snapshotAndSave(file: File, snapshotPath: Path): HashCode {
-        val operation = jvmToolchains.classpathSnapshottingOperationBuilder(file.toPath())
-            .apply {
-                this[JvmClasspathSnapshottingOperation.GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
-                // Must match the option used by BTA incremental compilation in KotlinCompiler —
-                // the snapshot file is shared by content hash, so a mismatch would mean the two
-                // layers compute different snapshot bytes for the same input.
-                this[JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES] = true
-            }.build()
-        val snapshot = buildSession.executeOperation(operation)
-        snapshot.saveSnapshot(snapshotPath)
-        return rollupAbiHash(snapshot.classSnapshots)
-    }
-
-    // Duplicated, by design, in BTACompiler in KotlinCompiler.kt — see the comment there.
-    private fun rollupAbiHash(classSnapshots: Map<String, ClassSnapshot>): HashCode {
-        val hasher = Hashing.newHasher()
-        classSnapshots.values
-            .filterIsInstance<AccessibleClassSnapshot>()
-            .forEach { hasher.putLong(it.classAbiHash) }
-        return hasher.hash()
-    }
+    fun snapshotAndSave(file: File, snapshotPath: Path): HashCode =
+        BtaClasspathSnapshotter.snapshot(jvmToolchains, buildSession, file.toPath(), snapshotPath)
 }
