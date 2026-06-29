@@ -31,6 +31,8 @@ class GroovyCoverage {
     static final Map<String, Jvm> ALL_VERSIONS_JVMS
     static final Set<String> ALL_VERSIONS
     static final Set<String> SUPPORTS_GROOVYDOC
+    static final Set<String> SUPPORTS_GROOVYDOC_JAVA_VERSION
+    static final Set<String> SUPPORTS_GROOVYDOC_GROOVY6_OPTIONS
     static final Set<String> SUPPORTS_INDY
     static final Set<String> SUPPORTS_TIMESTAMP
     static final Set<String> SUPPORTS_PARAMETERS
@@ -48,6 +50,10 @@ class GroovyCoverage {
         ALL_VERSIONS = ALL_VERSIONS_JVMS.keySet()
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
         SUPPORTS_GROOVYDOC = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "1.6.9")
+        // The Groovydoc Ant task gained a javaVersion option (passed to JavaParser) in 4.0.27
+        SUPPORTS_GROOVYDOC_JAVA_VERSION = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "4.0.27")
+        // The Groovydoc Ant task gained showInternal/noIndex/noDeprecatedList/noHelp/syntaxHighlighter/theme/preLanguage/addStylesheet in 6.0.0
+        SUPPORTS_GROOVYDOC_GROOVY6_OPTIONS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "6.0.0")
         // Indy compilation doesn't work in 2.2.2 and before
         SUPPORTS_INDY = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.3.0")
         SUPPORTS_TIMESTAMP = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.4.6")

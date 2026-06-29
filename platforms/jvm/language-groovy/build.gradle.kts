@@ -18,6 +18,7 @@ dependencies {
     api(projects.groovydocWorker)
     api(projects.javaCompilerWorker)
     api(projects.jvmCompilerWorker)
+    api(projects.jvmServices)
     api(projects.processServices)
     api(projects.languageJava)
     api(projects.languageJvm)
@@ -34,7 +35,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.classloaders)
-    implementation(projects.jvmServices)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)
