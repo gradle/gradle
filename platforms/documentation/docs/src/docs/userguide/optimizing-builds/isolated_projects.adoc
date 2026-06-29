@@ -248,7 +248,7 @@ The current implementation of Isolated Projects has a number of limitations that
 * The configuration phase might require more memory to process more work in parallel.
 * Changes to included builds invalidate all cached results, even unrelated ones.
 * Tooling model caching is local only: no sharing across checkouts or remote caching.
-* `gradle.lifecycle.beforeProject` callbacks registered in `settings.gradle(.kts)` cannot directly apply convention plugins from a build registered via `pluginManagement.includeBuild(...)`, even though the same plugins are usable from a `plugins {}` block in the same settings script.
+* A `gradle.lifecycle.beforeProject` callback registered in `settings.gradle(.kts)` cannot directly apply a convention plugin from a build registered via `pluginManagement.includeBuild(...)`, because the callback alone does not trigger resolution of that plugin and the export of its classpath.
 See <<sec:lifecycle_callbacks_with_included_plugin_builds>> for working patterns.
 
 [[sec:constraints]]
@@ -728,8 +728,7 @@ The limitation above does not apply there.
 
 Two workarounds are available.
 
-[[sec:lifecycle_via_settings_convention_plugin]]
-====== Recommended: register `beforeProject` from a settings convention plugin
+=== Recommended: register `beforeProject` from a settings convention plugin
 
 Move the `gradle.lifecycle.beforeProject` registration into a <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins,settings convention plugin>> published from your included build, then apply that settings plugin from `settings.gradle(.kts)`.
 Inside the settings plugin, the included build's classpath is naturally available, and the project plugin it applies is visible to all projects via the standard plugin-resolution flow.
@@ -745,8 +744,7 @@ gradle.lifecycle.beforeProject {
 include::sample[dir="snippets/isolatedProjects/lifecycleSettingsPlugin/kotlin",files="settings.gradle.kts[tags=settings-file]"]
 include::sample[dir="snippets/isolatedProjects/lifecycleSettingsPlugin/groovy",files="settings.gradle[tags=settings-file]"]
 
-[[sec:lifecycle_via_apply_false]]
-====== Alternative: pre-resolve via the settings `plugins {}` block
+=== Alternative: pre-resolve via the settings `plugins {}` block
 
 For simple cases where adding a settings plugin to your included build is unwarranted, declare the project convention plugin in the settings `plugins {}` block with `apply false`.
 This forces resolution at settings evaluation time and exports the classpath into the settings classloader scope, the parent of every project's scope, so the `beforeProject` callback can find the plugin:
@@ -757,7 +755,6 @@ include::sample[dir="snippets/isolatedProjects/lifecycleApplyFalse/groovy",files
 [NOTE]
 ====
 Both patterns are workarounds for the current implementation limitation listed under <<sec:current_limitations>>.
-A more direct way to make convention plugins from `pluginManagement.includeBuild` available to `gradle.lifecycle` callbacks is planned.
 ====
 
 [[sec:isolated_project_api]]

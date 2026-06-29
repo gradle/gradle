@@ -18,10 +18,19 @@ package org.gradle.internal.cc.impl.isolated
 
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
+
 @Issue("https://github.com/gradle/gradle/issues/36461")
 class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     private static final String CONVENTION_PLUGIN_ID = "my.convention"
+    public static final String CONVENTION_PLUGIN_SRC = """
+            plugins.apply("base")
+            def projectPath = project.path
+            tasks.register("verifyConvention") {
+                doLast { println("convention applied to [" + projectPath + "]") }
+            }
+        """
 
     def setup() {
         // The strict-mode classloader-scope check is a developer-only check that masks the
@@ -36,28 +45,26 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         file("build-logic/build.gradle.kts") << """
             plugins { id("groovy-gradle-plugin") }
         """
-        file("build-logic/src/main/groovy/${CONVENTION_PLUGIN_ID}.gradle") << """
-            plugins.apply("base")
-            def projectPath = project.path
-            tasks.register("verifyConvention") {
-                doLast { println("convention applied to " + projectPath) }
-            }
-        """
+        file("build-logic/src/main/groovy/${CONVENTION_PLUGIN_ID}.gradle") << CONVENTION_PLUGIN_SRC
 
-        // Empty build files materialize the subproject directories so include("a") and include("b") succeed.
-        file("a/build.gradle.kts") << ""
-        file("b/build.gradle.kts") << ""
-    }
+        // Empty build file materializes the subproject directory so include("sub") succeeds.
+        file("sub/build.gradle.kts") << ""
 
-    def "fails with hint when applying included-build plugin via beforeProject without settings plugins {} declaration"() {
-        given:
-        file("settings.gradle.kts") << """
+        // Consumer settings shared by all scenarios. Each test appends its own
+        // plugins {} / lifecycle declarations afterwards; imperative statements such as
+        // include(...) are allowed to precede a later plugins {} block.
+        settingsKotlinFile << """
             pluginManagement {
                 includeBuild("build-logic")
             }
             rootProject.name = "consumer"
-            include("a")
-            include("b")
+            include("sub")
+        """
+    }
+
+    def "fails with hint when applying included-build plugin via beforeProject without settings plugins {} declaration"() {
+        given:
+        settingsKotlinFile << """
             gradle.lifecycle.beforeProject {
                 apply(plugin = "${CONVENTION_PLUGIN_ID}")
             }
@@ -74,29 +81,48 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         failureCauseContains("userguide/isolated_projects.html#sec:lifecycle_callbacks_with_included_plugin_builds")
     }
 
-    def "applying included-build plugin via beforeProject works when declared in settings plugins {} block"() {
+    def "applying buildSrc plugin via beforeProject works without any settings declaration"() {
         given:
-        file("settings.gradle.kts") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-            plugins {
-                id("${CONVENTION_PLUGIN_ID}") apply false
-            }
+        file("buildSrc/build.gradle.kts") << """
+            plugins { id("groovy-gradle-plugin") }
+        """
+        file("buildSrc/src/main/groovy/${CONVENTION_PLUGIN_ID}.gradle") << CONVENTION_PLUGIN_SRC
+        // Unlike pluginManagement.includeBuild, buildSrc is built eagerly and its classpath is
+        // exported to all projects, so the callback can apply the plugin with no includeBuild and
+        // no plugins {} declaration. Override the shared settings to drop the unused included build.
+        settingsKotlinFile.text = """
             rootProject.name = "consumer"
-            include("a")
-            include("b")
+            include("sub")
             gradle.lifecycle.beforeProject {
                 apply(plugin = "${CONVENTION_PLUGIN_ID}")
             }
         """
 
         when:
-        isolatedProjectsRun(":a:verifyConvention", ":b:verifyConvention")
+        isolatedProjectsRun("verifyConvention")
 
         then:
-        outputContains("convention applied to :a")
-        outputContains("convention applied to :b")
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
+    }
+
+    def "applying included-build plugin via beforeProject works when declared in settings plugins {} block"() {
+        given:
+        settingsKotlinFile << """
+            plugins {
+                id("${CONVENTION_PLUGIN_ID}") apply false
+            }
+            gradle.lifecycle.beforeProject {
+                apply(plugin = "${CONVENTION_PLUGIN_ID}")
+            }
+        """
+
+        when:
+        isolatedProjectsRun("verifyConvention")
+
+        then:
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
     }
 
     def "applying included-build plugin via beforeProject works from a settings convention plugin"() {
@@ -106,59 +132,77 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
                 it.apply plugin: '${CONVENTION_PLUGIN_ID}'
             }
         """
-        file("settings.gradle.kts") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
+        settingsKotlinFile << """
             plugins {
                 id("my.lifecycle")
             }
-            rootProject.name = "consumer"
-            include("a")
-            include("b")
         """
 
         when:
-        isolatedProjectsRun(":a:verifyConvention", ":b:verifyConvention")
+        isolatedProjectsRun("verifyConvention")
 
         then:
-        outputContains("convention applied to :a")
-        outputContains("convention applied to :b")
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
+    }
+
+    def "applying included-build plugin via beforeProject works from a Kotlin settings convention plugin"() {
+        given:
+        // build-logic must compile a Kotlin precompiled settings plugin alongside the Groovy
+        // convention plugin from setup, so it applies both groovy-gradle-plugin and kotlin-dsl.
+        file("build-logic/build.gradle.kts").text = """
+            plugins {
+                id("groovy-gradle-plugin")
+                `kotlin-dsl`
+            }
+            $kotlinDslBuildSrcConfig
+        """
+        file("build-logic/src/main/kotlin/my.lifecycle.settings.gradle.kts") << """
+            gradle.lifecycle.beforeProject {
+                apply(plugin = "${CONVENTION_PLUGIN_ID}")
+            }
+        """
+        settingsKotlinFile << """
+            plugins {
+                id("my.lifecycle")
+            }
+        """
+
+        when:
+        isolatedProjectsRun("verifyConvention")
+
+        then:
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
     }
 
     def "applying included-build plugin via beforeProject reuses configuration cache"() {
         given:
-        file("settings.gradle.kts") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
+        settingsKotlinFile << """
             plugins {
                 id("${CONVENTION_PLUGIN_ID}") apply false
             }
-            rootProject.name = "consumer"
-            include("a")
-            include("b")
             gradle.lifecycle.beforeProject {
                 apply(plugin = "${CONVENTION_PLUGIN_ID}")
             }
         """
 
         when:
-        isolatedProjectsRun(":a:verifyConvention", ":b:verifyConvention")
+        isolatedProjectsRun("verifyConvention")
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":build-logic", ":", ":a", ":b")
+            projectsConfigured(":build-logic", ":", ":sub")
         }
-        outputContains("convention applied to :a")
-        outputContains("convention applied to :b")
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
 
         when:
-        isolatedProjectsRun(":a:verifyConvention", ":b:verifyConvention")
+        isolatedProjectsRun("verifyConvention")
 
         then:
         fixture.assertStateLoaded()
-        outputContains("convention applied to :a")
-        outputContains("convention applied to :b")
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
     }
 }
