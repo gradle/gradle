@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.api.invocation
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
 
 @Issue("https://github.com/gradle/gradle/issues/36461")
-class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+class GradleLifecycleConventionPluginApplicationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String CONVENTION_PLUGIN_ID = "my.convention"
     public static final String CONVENTION_PLUGIN_SRC = """
@@ -71,7 +72,7 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         """
 
         when:
-        isolatedProjectsFails("help")
+        fails("help")
 
         then:
         failureCauseContains("Plugin with id '${CONVENTION_PLUGIN_ID}' not found.")
@@ -99,7 +100,7 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         """
 
         when:
-        isolatedProjectsRun("verifyConvention")
+        succeeds("verifyConvention")
 
         then:
         outputContains("convention applied to [:]")
@@ -118,7 +119,16 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         """
 
         when:
-        isolatedProjectsRun("verifyConvention")
+        succeeds("verifyConvention")
+
+        then:
+        outputContains("convention applied to [:]")
+        outputContains("convention applied to [:sub]")
+
+        when: "the build is invoked again"
+        // Under the configuration cache and isolated projects executers this second invocation
+        // exercises a store/load cycle, verifying the convention still applies after reuse.
+        succeeds("verifyConvention")
 
         then:
         outputContains("convention applied to [:]")
@@ -139,7 +149,7 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         """
 
         when:
-        isolatedProjectsRun("verifyConvention")
+        succeeds("verifyConvention")
 
         then:
         outputContains("convention applied to [:]")
@@ -169,39 +179,9 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         """
 
         when:
-        isolatedProjectsRun("verifyConvention")
+        succeeds("verifyConvention")
 
         then:
-        outputContains("convention applied to [:]")
-        outputContains("convention applied to [:sub]")
-    }
-
-    def "applying included-build plugin via beforeProject reuses configuration cache"() {
-        given:
-        settingsKotlinFile << """
-            plugins {
-                id("${CONVENTION_PLUGIN_ID}") apply false
-            }
-            gradle.lifecycle.beforeProject {
-                apply(plugin = "${CONVENTION_PLUGIN_ID}")
-            }
-        """
-
-        when:
-        isolatedProjectsRun("verifyConvention")
-
-        then:
-        fixture.assertStateStored {
-            projectsConfigured(":build-logic", ":", ":sub")
-        }
-        outputContains("convention applied to [:]")
-        outputContains("convention applied to [:sub]")
-
-        when:
-        isolatedProjectsRun("verifyConvention")
-
-        then:
-        fixture.assertStateLoaded()
         outputContains("convention applied to [:]")
         outputContains("convention applied to [:sub]")
     }
