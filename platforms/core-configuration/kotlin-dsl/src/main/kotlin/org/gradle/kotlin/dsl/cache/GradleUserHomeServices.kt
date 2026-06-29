@@ -17,13 +17,10 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.cache.CacheCleanupStrategyFactory
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory
-import org.gradle.cache.IndexedCacheParameters
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.file.FileAccessTimeJournal
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.service.PrivateService
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -58,22 +55,15 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @PrivateService
     fun createKotlinDslClasspathEntrySnapshotStore(
         cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
-        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
+        fileAccessTimeJournal: FileAccessTimeJournal,
+        cacheConfigurations: CacheConfigurationsInternal,
+        cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
     ): KotlinDslClasspathEntrySnapshotStore =
-        KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
+        KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
 
     @Provides
     fun createKotlinDslClasspathEntrySnapshotCache(
         store: KotlinDslClasspathEntrySnapshotStore,
-    ): KotlinDslClasspathEntrySnapshotCache {
-        val maxEntriesToKeep = 10_000
-        return KotlinDslClasspathEntrySnapshotCache(
-            store.snapshotsCacheDirectory,
-            store.createIndexedCache(
-                IndexedCacheParameters.of("kotlinDslClasspathSnapshotIndex", HashCode::class.java, HashCodeSerializer()),
-                maxEntriesToKeep,
-                true
-            )
-        )
-    }
+    ): KotlinDslClasspathEntrySnapshotCache =
+        KotlinDslClasspathEntrySnapshotCache(store.snapshotsCacheDirectory, store.fileAccessTracker)
 }
