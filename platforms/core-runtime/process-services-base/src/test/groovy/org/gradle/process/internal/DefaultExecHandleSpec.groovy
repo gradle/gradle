@@ -17,35 +17,25 @@
 
 package org.gradle.process.internal
 
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.streams.StreamsHandler
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
-
 import org.gradle.util.UsesNativeServices
-import org.gradle.util.internal.GUtil
-import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import java.util.concurrent.RejectedExecutionException
 
 @UsesNativeServices
 @Timeout(60)
-class DefaultExecHandleSpec extends ConcurrentSpec {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
+class DefaultExecHandleSpec extends AbstractExecHandleSpec {
     private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
@@ -200,27 +190,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish().exitValue != 0
     }
 
-    void "abort destroys all child processes"() {
-        def execHandle = handle().args(args(AppWithChildWithGrandChild.class)).build()
-        // On Windows additional `conhost.exe` processes are spawned as children of java processes
-        def expectedDescendantProcesses = OperatingSystem.current().isWindows() ? 5 : 2
-
-        when:
-        execHandle.start()
-        // wait for child and grand child to start
-        while(childProcessHandles(execHandle).size() != expectedDescendantProcesses) {
-            Thread.sleep(10)
-        }
-        execHandle.abort()
-
-        then:
-        childProcessHandles(execHandle).isEmpty()
-        and:
-        execHandle.state == ExecHandleState.ABORTED
-        and:
-        execHandle.waitForFinish().exitValue != 0
-    }
-
     void "can abort after process has completed"() {
         given:
         def execHandle = handle().args(args(TestApp.class)).build()
@@ -265,6 +234,38 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         and:
         execHandle.waitForFinish().exitValue != 0
+    }
+
+    void "does not hang when the executor rejects the post-exit completion"() {
+        given:
+        def rejecting = new RejectingExecutor(executor)
+        def execHandle = handle(rejecting).args(args(ShortApp.class)).build()
+
+        when:
+        execHandle.start()
+        rejecting.process = execHandle.execHandleRunner.process
+        execHandle.waitForFinish()
+
+        then:
+        // The executor is gone, so the completion can't run: the handle fails rather than hanging
+        // (the class @Timeout guards against a regression to an indefinite block).
+        thrown(ProcessExecutionException)
+        execHandle.state == ExecHandleState.FAILED
+    }
+
+    void "does not hang when aborting and the executor rejects the post-exit completion"() {
+        given:
+        def rejecting = new RejectingExecutor(executor)
+        def execHandle = handle(rejecting).args(args(SlowApp.class)).build()
+        execHandle.start()
+        rejecting.process = execHandle.execHandleRunner.process
+
+        when:
+        execHandle.abort()
+
+        then:
+        thrown(ProcessExecutionException)
+        execHandle.state == ExecHandleState.FAILED
     }
 
     void "clients can listen to notifications"() {
@@ -528,32 +529,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         }
     }
 
-    private ClientExecHandleBuilder handle() {
-        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
-            .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
-            .setTimeout(20000) //sanity timeout
-            .setWorkingDir(tmpDir.getTestDirectory())
-            .environment('CLASSPATH', mergeClasspath())
-            .environment('JAVA_EXE_PATH', TextUtil.normaliseFileSeparators(Jvm.current().getJavaExecutable().getAbsolutePath()))
-    }
-
-    private String mergeClasspath() {
-        if (System.getenv('CLASSPATH') == null) {
-            return System.getProperty('java.class.path')
-        } else {
-            return "${System.getenv('CLASSPATH')}${File.pathSeparator}${System.getProperty('java.class.path')}"
-        }
-    }
-
-    private List args(Class mainClass, String... args) {
-        GUtil.flattenElements(mainClass.getName(), args)
-    }
-
-    private List<String> childProcessHandles(ExecHandle execHandle) {
-        Process process = execHandle.execHandleRunner.process
-        process.descendants().map { it.toString() }.toList()
-    }
-
     public static class BrokenApp {
         public static void main(String[] args) {
             System.exit(args[0].toInteger())
@@ -563,6 +538,36 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     public static class SlowApp {
         public static void main(String[] args) throws InterruptedException {
             Thread.sleep(10000L)
+        }
+    }
+
+    public static class ShortApp {
+        public static void main(String[] args) throws InterruptedException {
+            Thread.sleep(500L)
+        }
+    }
+
+    /**
+     * Simulates an executor that was stopped while a process was still running: rejects any
+     * submission made once {@link #process} has exited. Startup submissions (the runner and the
+     * stream pumps) happen while the process is alive and are delegated; only the post-exit
+     * completion submission is rejected.
+     */
+    static class RejectingExecutor implements Executor {
+        private final Executor delegate
+        volatile Process process
+
+        RejectingExecutor(Executor delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        void execute(Runnable command) {
+            def p = process
+            if (p != null && !p.isAlive()) {
+                throw new RejectedExecutionException("executor stopped (test)")
+            }
+            delegate.execute(command)
         }
     }
 
