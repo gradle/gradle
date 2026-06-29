@@ -723,8 +723,8 @@ There is a limitation however:
 The callback only registers an action; it doesn't request anything.
 By the time the callback runs at project configuration, nothing has asked Gradle to build the plugin, so `apply(plugin = "...")` fails with `Plugin with id '...' not found`.
 
-By contrast, `buildSrc/` is built eagerly and its classpath is automatically exported to all projects.
-The limitation above does not apply there.
+This limitation does not apply to `buildSrc/`: it is built eagerly and its classpath is exported to every project, so a `gradle.lifecycle.beforeProject` callback can apply a `buildSrc` convention plugin directly, with none of the workarounds below.
+Moving build logic into `buildSrc` solely to sidestep this limitation is not recommended, however; Gradle best practice is to <<best_practices_structuring_builds.adoc#favor_composite_builds,favor `build-logic` composite builds over `buildSrc`>>.
 
 Two workarounds are available.
 
