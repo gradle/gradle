@@ -50,7 +50,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
@@ -191,36 +191,33 @@ public class TomlCatalogFileParser {
         }
     }
 
-    @SuppressWarnings("BoxingComparator")
     private void parseLibraries(@Nullable TomlTable librariesTable, StrictVersionParser strictVersionParser) {
         if (librariesTable == null) {
             return;
         }
         librariesTable.keySet()
             .stream()
-            .sorted(comparing(String::length))
+            .sorted(comparingInt(String::length))
             .forEach(alias -> parseLibrary(alias, librariesTable, versionCatalogBuilder, strictVersionParser));
     }
 
-    @SuppressWarnings("BoxingComparator")
     private void parsePlugins(@Nullable TomlTable pluginsTable, StrictVersionParser strictVersionParser) {
         if (pluginsTable == null) {
             return;
         }
         pluginsTable.keySet()
             .stream()
-            .sorted(comparing(String::length))
+            .sorted(comparingInt(String::length))
             .forEach(alias -> parsePlugin(alias, pluginsTable, versionCatalogBuilder, strictVersionParser));
     }
 
-    @SuppressWarnings("BoxingComparator")
     private void parseVersions(@Nullable TomlTable versionsTable, StrictVersionParser strictVersionParser) {
         if (versionsTable == null) {
             return;
         }
         versionsTable.keySet()
             .stream()
-            .sorted(comparing(String::length))
+            .sorted(comparingInt(String::length))
             .forEach(alias -> parseVersion(alias, versionsTable, versionCatalogBuilder, strictVersionParser));
     }
 

@@ -22,13 +22,12 @@ import java.io.File;
 import java.util.Comparator;
 
 abstract class VerificationEntry implements Comparable<VerificationEntry> {
-    @SuppressWarnings("BoxingComparator")
     private static final Comparator<VerificationEntry> ENTRY_COMPARATOR = Comparator.comparing(VerificationEntry::getGroup)
         .thenComparing(VerificationEntry::getModule)
         .thenComparing(VerificationEntry::getVersion)
         .thenComparing(VerificationEntry::getFile)
         .thenComparing(VerificationEntry::getArtifactKind)
-        .thenComparing(VerificationEntry::getOrder);
+        .thenComparingInt(VerificationEntry::getOrder);
 
     protected final ModuleComponentArtifactIdentifier id;
     protected final ArtifactVerificationOperation.ArtifactKind artifactKind;

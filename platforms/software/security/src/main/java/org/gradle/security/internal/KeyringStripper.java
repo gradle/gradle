@@ -59,7 +59,7 @@ public class KeyringStripper {
         return new PGPPublicKeyRing(strippedKeys);
     }
 
-    @SuppressWarnings({"unchecked", "BoxingComparator"})
+    @SuppressWarnings("unchecked")
     private static PGPPublicKey stripKey(PGPPublicKey key, KeyFingerPrintCalculator fingerprintCalculator) {
         PGPPublicKey stripped;
         try {
@@ -67,7 +67,7 @@ public class KeyringStripper {
                 Optional<String> id = PGPUtils.getUserIDs(key)
                     .stream()
                     .filter(KeyringStripper::looksLikeEmail)
-                    .min(Comparator.comparing(String::length));
+                    .min(Comparator.comparingInt(String::length));
 
                 List<UserIDPacket> ids;
                 List<List<PGPSignature>> idSignatures;
