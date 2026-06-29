@@ -192,7 +192,7 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
     }
 
     enum GradleTarget {
-        THIS("this", "gradle"),
+        CURRENT("current", "gradle"),
         PARENT("parent", "gradle.parent")
 
         final String description
@@ -232,7 +232,7 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         // which CC exempts (see ConfigurationCacheProblemsListener.isBuildSrcBuild).
         // That exemption only applies to direct access: via `gradle.parent` the listener registers on
         // the (root) parent build, which CC does not exempt, so the registration is still reported.
-        (accessor == ":buildSrc" && gradleTarget == GradleTarget.THIS)
+        (accessor == ":buildSrc" && gradleTarget == GradleTarget.CURRENT)
             ? ["Project '$accessor' cannot access Gradle.$method"]
             : ["Project '$accessor' cannot access Gradle.$method", "registration of listener on 'Gradle.$method' is unsupported"]
     }
