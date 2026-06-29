@@ -17,6 +17,7 @@
 package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public interface ExecutorPolicy {
      */
     class CatchAndRecordFailures implements ExecutorPolicy {
         private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutorFactory.class);
-        private final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
+        private final AtomicReference<@Nullable Throwable> failure = new AtomicReference<>();
 
         @Override
         public void onExecute(Runnable command) {
@@ -80,7 +81,6 @@ public interface ExecutorPolicy {
             }
         }
 
-        @SuppressWarnings("NullAway")
         public void onFailure(String message, Throwable throwable) {
             // Capture or log all failures
             if (!failure.compareAndSet(null, throwable)) {
@@ -89,7 +89,6 @@ public interface ExecutorPolicy {
         }
 
         @Override
-        @SuppressWarnings("NullAway")
         public void onStop() {
             // Rethrow the first failure
             Throwable failure = this.failure.getAndSet(null);
