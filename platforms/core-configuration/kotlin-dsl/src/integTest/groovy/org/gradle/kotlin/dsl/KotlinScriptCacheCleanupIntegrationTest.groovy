@@ -90,8 +90,7 @@ class KotlinScriptCacheCleanupIntegrationTest
 
     @Requires(
         value = TestExecutionPreconditions.NotEmbeddedExecutor,
-        reason = "needs a separate process per build so the file-access-time journal is read from disk; " +
-            "embedded keeps it in memory, so externally backdating an entry the build touched has no effect"
+        reason = "needs a separate process per build so the file-access-time journal is read from disk; embedded keeps it in memory, so externally backdating an entry the build touched has no effect"
     )
     @UnsupportedWithConfigurationCache(because = "tests script compilation")
     def "incremental compilation cache entry is kept alive by recompilation and reclaimed once unused"() {
@@ -154,6 +153,143 @@ class KotlinScriptCacheCleanupIntegrationTest
         entries.every { it.assertDoesNotExist() && locksAndSoftDeletionFilesAreDeleted(icCacheDir, it.name) }
     }
 
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
+    def "unused classpath entry snapshot and ABI hash files are deleted"() {
+        given:
+        // needs to stop the daemon and have its own journal
+        executer.requireIsolatedDaemons()
+        requireOwnGradleUserHomeDir("needs its own journal")
+
+        and: 'seed the classpath snapshot cache by compiling a script'
+        buildKotlinFile.text = scriptPrinting("ok")
+        run 'run'
+
+        and: 'the snapshot + ABI files the real classpath produced, plus a synthetic entry never on any classpath'
+        List<TestFile> realEntries = snapshotEntryFiles('.snapshot') + snapshotEntryFiles('.abi')
+        assert !realEntries.isEmpty()
+        TestFile staleSnapshot = classpathSnapshotsDir.file('00000000000000000000000000000000.snapshot').tap { assert !exists(); text = 'stale' }
+        TestFile staleAbi = classpathSnapshotsDir.file('00000000000000000000000000000000.abi').tap { assert !exists(); text = 'stale' }
+        // mark the synthetic entry as last accessed older than retention so it is a candidate for cleanup
+        ageForSnapshotCleanup([staleSnapshot, staleAbi])
+        forceCleanupDue(classpathSnapshotCacheGcFile)
+
+        when: 'a build runs with cleanup due'
+        run '--stop' // ensure the daemon does not cache file access times in memory
+        run 'run'
+
+        then: 'the unused synthetic files are deleted, while the entries the build just used remain'
+        staleSnapshot.assertDoesNotExist()
+        staleAbi.assertDoesNotExist()
+        realEntries.every { it.assertExists() }
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "needs a separate process per build so the file-access-time journal is read from disk; embedded keeps it in memory, so externally backdating an entry the build touched has no effect"
+    )
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
+    def "classpath entry snapshot ages out while avoidance keeps its ABI hash, and is regenerated on recompilation"() {
+        given:
+        // needs a real daemon process per build and its own journal
+        executer.requireDaemon().requireIsolatedDaemons()
+        requireOwnGradleUserHomeDir("needs its own journal")
+
+        and: 'compiling a script snapshots its classpath: a .snapshot (for IC) and a .abi (for avoidance) per entry'
+        buildKotlinFile.text = scriptPrinting("ok")
+        run 'run'
+
+        and:
+        List<TestFile> snapshots = snapshotEntryFiles('.snapshot')
+        List<TestFile> abiHashes = snapshotEntryFiles('.abi')
+        assert !snapshots.isEmpty()
+        assert !abiHashes.isEmpty()
+
+        when: '(1) time passes and the script is not recompiled, so cleanup runs while only avoidance has touched the cache'
+        run '--stop' // ensure the daemon does not cache file access times in memory
+        ageForSnapshotCleanup(snapshots + abiHashes)
+        forceCleanupDue(classpathSnapshotCacheGcFile)
+        run 'run' // workspace hit: avoidance reads each .abi (refreshing it), but the script is not recompiled, so no .snapshot is touched
+
+        then: 'the snapshots are reclaimed, but the ABI hashes survive because avoidance refreshed their access time'
+        snapshots.every { it.assertDoesNotExist() }
+        abiHashes.every { it.assertExists() }
+
+        when: '(2) the script is modified, forcing recompilation, which regenerates the reclaimed snapshots on demand'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok again")
+        run 'run' // no cleanup due; recompiling calls snapshotFileFor, which regenerates the missing snapshots
+
+        then:
+        snapshots.every { it.assertExists() }
+        abiHashes.every { it.assertExists() }
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "needs a fresh daemon so BTA re-reads the corrupted snapshot from disk rather than reusing the in-memory IC state from the seeding build"
+    )
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
+    def "an unreadable classpath entry snapshot degrades to recompilation rather than failing the build"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        requireOwnGradleUserHomeDir("corrupts the snapshot cache")
+
+        and: 'seed the snapshot cache by compiling a script'
+        buildKotlinFile.text = scriptPrinting("ok")
+        run 'run'
+
+        and: 'corrupt every cached classpath snapshot — they still exist, so snapshotFileFor hands the garbage straight to BTA instead of regenerating it'
+        List<TestFile> snapshots = snapshotEntryFiles('.snapshot')
+        assert !snapshots.isEmpty()
+        snapshots.each { it.text = 'not a valid snapshot' }
+
+        when: 'a fresh daemon recompiles, re-reading the corrupt snapshots from disk'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok again")
+
+        then: 'the build still succeeds — an unreadable classpath snapshot degrades to recompilation, never a build failure'
+        succeeds 'run'
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "needs a fresh daemon per build so BTA re-reads ic-state from disk rather than reusing in-memory IC state"
+    )
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
+    def "corrupt incremental-compilation state is discarded on fallback so the next build recovers"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        requireOwnGradleUserHomeDir("corrupts the IC cache")
+
+        and: 'seed incremental state: the first compile is cold (outputs only), a recompile then records ic-state'
+        buildKotlinFile.text = scriptPrinting("ok")
+        run 'run'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok 2")
+        run 'run'
+
+        and: 'corrupt the recorded ic-state so the next incremental attempt throws'
+        List<TestFile> icStates = realIcEntries().collect { it.file('ic-state') }.findAll { it.directory && it.list().length > 0 }
+        assert !icStates.isEmpty()
+        icStates.each { it.eachFileRecurse(groovy.io.FileType.FILES) { f -> f.text = 'corrupt' } }
+
+        when: 'a fresh daemon recompiles: incremental fails on the corrupt ic-state, falls back to a full compile, and discards the ic-state'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok 3")
+        run 'run'
+
+        then: 'the build succeeded and the corrupt ic-state was discarded (the full compile does not repopulate it)'
+        icStates.every { !it.exists() || it.list().length == 0 }
+
+        when: 'the next build bootstraps from the surviving outputs and records fresh ic-state'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok 4")
+        run 'run'
+
+        then: 'incremental compilation is healthy again rather than pinned to the slow path — ic-state is repopulated'
+        icStates.every { it.directory && it.list().length > 0 }
+    }
+
     private static String scriptPrinting(String message) {
         return """
             tasks.register("run") {
@@ -193,6 +329,17 @@ class KotlinScriptCacheCleanupIntegrationTest
         gcFile.lastModified = daysAgo(2)
     }
 
+    private List<TestFile> snapshotEntryFiles(String suffix) {
+        return classpathSnapshotsDir.exists()
+            ? (classpathSnapshotsDir.list() as List<String>).findAll { it.endsWith(suffix) }.collect { classpathSnapshotsDir.file(it) }
+            : []
+    }
+
+    private void ageForSnapshotCleanup(List<TestFile> files) {
+        // mark each file as last accessed older than retention so it is a candidate for cleanup
+        files.each { writeLastFileAccessTimeToJournal(it, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1)) }
+    }
+
     boolean isSoftDeleted(TestFile cacheDir, String key) {
         return new TestFile(cacheDir, ".internal/gc/${key}/soft.deleted").exists()
             && new TestFile(cacheDir, ".internal/gc/${key}/gc.properties").exists()
@@ -222,5 +369,17 @@ class KotlinScriptCacheCleanupIntegrationTest
 
     TestFile getIcCacheDir() {
         return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl-ic')
+    }
+
+    TestFile getClasspathSnapshotCacheDir() {
+        return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl-classpath-snapshots')
+    }
+
+    TestFile getClasspathSnapshotsDir() {
+        return classpathSnapshotCacheDir.file('snapshots')
+    }
+
+    TestFile getClasspathSnapshotCacheGcFile() {
+        return classpathSnapshotCacheDir.file('gc.properties')
     }
 }
