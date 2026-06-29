@@ -40,8 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -85,12 +88,14 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         PomReader pomReader = new PomReader(resource, moduleIdentifierFactory);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
 
-        doParsePom(parserSettings, mdBuilder, pomReader);
+        List<ModuleComponentIdentifier> parentPomChain = new ArrayList<>();
+        doParsePom(parserSettings, mdBuilder, pomReader, parentPomChain);
 
         List<MavenDependencyDescriptor> dependencies = mdBuilder.getDependencies();
         ModuleComponentIdentifier cid = mdBuilder.getComponentIdentifier();
         MutableMavenModuleResolveMetadata metadata = metadataFactory.create(cid, dependencies);
         metadata.setStatus(mdBuilder.getStatus());
+        metadata.setParentPomChain(ImmutableList.copyOf(parentPomChain));
         if (pomReader.getRelocation() != null) {
             metadata.setPackaging("pom");
             metadata.setRelocated(true);
@@ -101,7 +106,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return ParseResult.of(metadata, pomReader.hasGradleMetadataMarker());
     }
 
-    private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
+    private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader, List<ModuleComponentIdentifier> parentPomChain) throws IOException, SAXException {
         pomReader.resolveGAV();
 
         String groupId = pomReader.getGroupId();
@@ -120,7 +125,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 ModuleComponentSelector parentId = DefaultModuleComponentSelector.newSelector(
                     DefaultModuleIdentifier.newId(parentGroupId, parentArtifactId),
                     new DefaultImmutableVersionConstraint(parentVersion));
-                PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
+                // Collect parent POM identifier for the parent chain before recursing,
+                // so that grandparent POMs are also accumulated into the same list
+                parentPomChain.add(DefaultModuleComponentIdentifier.newId(
+                    DefaultModuleIdentifier.newId(parentGroupId, parentArtifactId), parentVersion));
+                PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties(), parentPomChain);
                 pomReader.setPomParent(parentPomReader);
 
                 // Current POM can derive version/artifactId from parent. Resolve GAV and substitute values
@@ -225,10 +234,20 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return parsePomResource(parseContext, localResource, childProperties);
     }
 
+    private PomReader parsePomForSelector(DescriptorParseContext parseContext, ModuleComponentSelector selector, Map<String, String> childProperties, List<ModuleComponentIdentifier> parentPomChain) throws IOException, SAXException {
+        VersionSelector acceptor = mavenVersionSelectorScheme.parseSelector(selector.getVersion());
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(selector, acceptor, ArtifactType.MAVEN_POM);
+        return parsePomResource(parseContext, localResource, childProperties, parentPomChain);
+    }
+
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {
+        return parsePomResource(parseContext, localResource, childProperties, new ArrayList<>());
+    }
+
+    private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties, List<ModuleComponentIdentifier> parentPomChain) throws SAXException, IOException {
         PomReader pomReader = new PomReader(localResource, moduleIdentifierFactory, childProperties);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
-        doParsePom(parseContext, mdBuilder, pomReader);
+        doParsePom(parseContext, mdBuilder, pomReader, parentPomChain);
         return pomReader;
     }
 }

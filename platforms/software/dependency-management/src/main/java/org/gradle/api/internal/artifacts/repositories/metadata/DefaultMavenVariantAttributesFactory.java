@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.MetadataFormat;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -104,6 +105,17 @@ public class DefaultMavenVariantAttributesFactory implements MavenVariantAttribu
             result = attributesFactory.concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
             result = attributesFactory.concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.JAVADOC));
             result = attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            return result;
+        });
+    }
+
+    @Override
+    public ImmutableAttributes pomVariant(ImmutableAttributes original) {
+        List<Object> key = ImmutableList.of(original, Category.METADATA, MetadataFormat.MAVEN);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.METADATA, objectInstantiator));
+            result = attributesFactory.concat(result, MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objectInstantiator.named(MetadataFormat.class, MetadataFormat.MAVEN));
             return result;
         });
     }

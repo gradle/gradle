@@ -106,8 +106,19 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         for (ComponentVariant variant : variants) {
             configurations.add(new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
         }
+        Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> supplemental = maybeDeriveSupplementalVariants();
+        supplemental.ifPresent(list -> configurations.addAll(list));
         return addVariantsByRule(Optional.of(configurations.build()));
 
+    }
+
+    /**
+     * Returns supplemental variants to add alongside the explicit variants (e.g. from GMM).
+     * For example, Maven modules always have a POM file that can be exposed as a metadata variant.
+     * By default returns empty. Subclasses can override.
+     */
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
+        return Optional.empty();
     }
 
     private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> addVariantsByRule(Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> variants) {

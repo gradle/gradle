@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -43,4 +44,10 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
      * Returns the dependency declarations of this component.
      */
     ImmutableList<MavenDependencyDescriptor> getDependencies();
+
+    /**
+     * Returns the chain of parent POM identifiers, from immediate parent to root.
+     */
+    ImmutableList<ModuleComponentIdentifier> getParentPomChain();
+    void setParentPomChain(ImmutableList<ModuleComponentIdentifier> parentPomChain);
 }
