@@ -33,8 +33,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.PositionAwareEncoder
-import org.gradle.internal.serialize.graph.readFile
-import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
