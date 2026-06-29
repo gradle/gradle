@@ -707,7 +707,7 @@ Together, they preserve the task dependency chain so Gradle knows which tasks mu
 
 === Explanation
 
-When wiring task outputs to inputs, `flatMap` extracts a `Provider`-typed output from a task while preserving the task dependency.
+When wiring task outputs to inputs, `flatMap` extracts a `Provider`-typed output from a task while preserving the task dependency that the output `Provider` carries.
 Then `map` transforms that value.
 For example, reading a file's contents or extracting a path, without breaking the chain.
 The typical pattern looks like:
