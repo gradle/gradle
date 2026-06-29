@@ -865,8 +865,8 @@ You can disable all interactive prompting by using the `--non-interactive` comma
 When interactive prompting is disabled, Gradle uses default values instead of prompting.
 This is useful for running Gradle in automated environments such as CI pipelines, scripts, and AI agents.
 
-`--non-interactive`::
-Do not prompt for user input. _(incubating)_
+`--non-interactive` incubating-label:[]::
+Do not prompt for user input.
 
 [[sec:task_options]]
 == Task options

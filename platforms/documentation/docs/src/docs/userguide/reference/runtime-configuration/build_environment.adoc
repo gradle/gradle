@@ -381,7 +381,7 @@ Customize <<command_line_interface.adoc#sec:command_line_logging,console output>
 +
 _Default depends on how Gradle is invoked._
 
-`org.gradle.console.interactive=(true,false)`:: _(incubating)_
+`org.gradle.console.interactive=(true,false)` incubating-label:[]::
 When set to `false`, Gradle does not prompt the user for input on the console and uses default values instead. This is useful for automated environments such as CI pipelines, scripts, and AI agents.
 +
 _Default is `true`._
