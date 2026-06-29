@@ -699,6 +699,17 @@ fun classLoaderScopeOf(scriptTarget: Any) = when (scriptTarget) {
 }
 
 
+/**
+ * Computes the hash that identifies [schema] for accessor caching.
+ *
+ * The hash is independent of the order in which entries appear within each schema category: every
+ * category is sorted before hashing. This is required because the schema is collected from live,
+ * mutable containers whose iteration order is not stable across configuration modes. For example,
+ * tasks come from `DefaultTaskCollection.getCollectionSchema()` as realized-then-pending, so a task
+ * realized under one mode but not another (`test` is realized by Isolated Projects' project-metadata
+ * serialization, but stays lazy otherwise) shifts position. Without order-independence the same
+ * schema would yield different accessor `<hash>` directories.
+ */
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
     putAll(schema.tasks)
@@ -719,10 +730,6 @@ fun Hasher.putConfigurationEntries(configurations: List<ConfigurationEntry<Strin
 
 private
 fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
-    // Sort before hashing so the identity is independent of schema collection order.
-    // Task entries come from DefaultTaskCollection.getCollectionSchema() as
-    // realized-then-pending, so a task realized under one mode but not another (e.g. `test`
-    // realized by IP's project-metadata serialization) reorders the list. See gradle/gradle#37719.
     putInt(entries.size)
     entries
         .sortedWith(compareBy({ it.target.kotlinString }, { it.name }, { it.type.kotlinString }))
