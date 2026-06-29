@@ -16,6 +16,9 @@
 
 package org.gradle.internal.io;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Locale;
@@ -86,15 +89,15 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     @Override
-    @SuppressWarnings("AnnotateFormatMethod")
-    public PrintStream format(String format, Object... args) {
+    @FormatMethod
+    public PrintStream format(@FormatString String format, Object... args) {
         getStream().format(format, args);
         return this;
     }
 
     @Override
-    @SuppressWarnings("AnnotateFormatMethod")
-    public PrintStream format(Locale l, String format, Object... args) {
+    @FormatMethod
+    public PrintStream format(Locale l, @FormatString String format, Object... args) {
         getStream().format(l, format, args);
         return this;
     }
@@ -145,15 +148,15 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     @Override
-    @SuppressWarnings("AnnotateFormatMethod")
-    public PrintStream printf(String format, Object... args) {
+    @FormatMethod
+    public PrintStream printf(@FormatString String format, Object... args) {
         getStream().printf(format, args);
         return this;
     }
 
     @Override
-    @SuppressWarnings("AnnotateFormatMethod")
-    public PrintStream printf(Locale l, String format, Object... args) {
+    @FormatMethod
+    public PrintStream printf(Locale l, @FormatString String format, Object... args) {
         getStream().printf(l, format, args);
         return this;
     }
