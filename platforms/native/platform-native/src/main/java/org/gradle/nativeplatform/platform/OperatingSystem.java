@@ -44,6 +44,10 @@ import org.gradle.api.tasks.Internal;
  *         <td>Solaris</td>
  *         <td>"solaris", "sunos"</td>
  *     </tr>
+ *     <tr>
+ *         <td>FreeBSD</td>
+ *         <td>"freebsd"</td>
+ *     </tr>
  * </table>
  */
 public interface OperatingSystem extends Named {

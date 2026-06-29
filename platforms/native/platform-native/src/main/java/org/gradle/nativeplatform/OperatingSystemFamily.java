@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
@@ -62,6 +63,24 @@ public abstract class OperatingSystemFamily implements Named {
      */
     public boolean isLinux() {
         return is(LINUX);
+    }
+
+    /**
+     * The FreeBSD operating system family.
+     *
+     * @since 9.7
+     */
+    @Incubating
+    public static final String FREE_BSD = "freebsd";
+
+    /**
+     * Is this the FreeBSD operating system family?
+     *
+     * @since 9.7
+     */
+    @Incubating
+    public boolean isFreeBSD() {
+        return is(FREE_BSD);
     }
 
     /**
