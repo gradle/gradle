@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.model.TrustedPgpKey;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter;
 import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
@@ -265,7 +266,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         verifier.getVerificationMetadata()
             .stream()
             .flatMap(md -> md.getArtifactVerifications().stream())
-            .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream(), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
+            .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream().map(TrustedPgpKey::getKeyId), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
             .forEach(keysToExport::add);
 
         exportKeyRingCollection(
@@ -369,7 +370,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             if (pgp.hasArtifactLevelKeys()) {
                 for (String key : pgp.getArtifactLevelKeys()) {
                     if (!failedKeys.contains(key)) {
-                        verificationsBuilder.addTrustedKey(pgp.id, key);
+                        verificationsBuilder.addTrustedKey(pgp.id, key, null, null);
                     }
                 }
             }

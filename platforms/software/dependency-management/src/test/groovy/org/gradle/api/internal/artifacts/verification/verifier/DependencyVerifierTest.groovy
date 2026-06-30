@@ -179,11 +179,11 @@ class DependencyVerifierTest extends Specification {
     }
 
     private static DependencyVerificationConfiguration.TrustedKey trustedKey(String keyId, String group, boolean regex = false) {
-        new DependencyVerificationConfiguration.TrustedKey(keyId, group, null, null, null, regex)
+        new DependencyVerificationConfiguration.TrustedKey(keyId, group, null, null, null, regex, null, null)
     }
 
     private static DependencyVerificationConfiguration.TrustedKey moduleTrustedKey(String keyId, String group, String name, boolean regex = false) {
-        new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, null, null, regex)
+        new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, null, null, regex, null, null)
     }
 
     private void artifact(String group, String name, String version) {

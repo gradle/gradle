@@ -116,7 +116,9 @@ class PgpKeyGrouper {
                     null,
                     null,
                     null,
-                    false
+                    false,
+                    null,
+                    null
                 );
                 remainingUntouched
                     .stream()
@@ -137,7 +139,9 @@ class PgpKeyGrouper {
                 null,
                 null,
                 null,
-                true
+                true,
+                null,
+                null
             );
             for (PgpEntry pgpEntry : e.getValue()) {
                 if (pgpEntry.getGroup().matches(groupRegex)) {
@@ -210,7 +214,9 @@ class PgpKeyGrouper {
             null,
             null,
             null,
-            false
+            false,
+            null,
+            null
         );
         markKeyDeclaredGlobally(e);
     }
@@ -223,7 +229,9 @@ class PgpKeyGrouper {
             mi.getName(),
             null,
             null,
-            false
+            false,
+            null,
+            null
         );
         markKeyDeclaredGlobally(e);
     }
@@ -236,7 +244,9 @@ class PgpKeyGrouper {
             mci.getModule(),
             mci.getVersion(),
             null,
-            false
+            false,
+            null,
+            null
         );
         markKeyDeclaredGlobally(e);
     }
