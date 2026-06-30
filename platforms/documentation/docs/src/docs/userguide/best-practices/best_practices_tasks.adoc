@@ -775,8 +775,8 @@ Both examples below use the same `generatorTask` producer; only the consumer dif
 ===== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=config-time-read]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=config-time-read]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=config-time-read]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=config-time-read]"]
 ====
 <1> *File read at configuration time*: `.get()` realizes the file before the producer task has run; reading it here fails because the file doesn't exist yet.
 
@@ -786,8 +786,8 @@ Use the `flatMap`/`map` chain instead.
 The `map` on a `flatMap` result is evaluated lazily at execution time, when the file exists:
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
 ====
 <1> *Lazy wiring via `flatMap`*: extracts the `outputFile` Provider while preserving the dependency on `generator`.
 <2> *Read content lazily*: chaining `map` on the `flatMap` result defers reading until execution time.
@@ -804,8 +804,8 @@ Both examples below use the same `generatorTask` producer; only the consumer dif
 ===== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-ex-avoid/kotlin",files="build.gradle.kts[tags=naked-provider]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-ex-avoid/groovy",files="build.gradle[tags=naked-provider]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-ex-avoid/kotlin",files="build.gradle.kts[tags=naked-provider]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-ex-avoid/groovy",files="build.gradle[tags=naked-provider]"]
 ====
 <1> *Disconnected `provider {}` block*: has no link to the generator task; Gradle cannot infer that `consumeNaked` depends on `generator` from this provider alone.
 
@@ -814,8 +814,8 @@ include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-ex-avoid/gro
 Use `flatMap` to extract the `Provider`-typed output, then chain `map` to transform the value:
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
 ====
 <1> *Lazy wiring via `flatMap`*: extracts the `outputFile` Provider while preserving the dependency on `generator`.
 <2> *Read content lazily*: chaining `map` on the `flatMap` result defers reading until execution time.
@@ -827,8 +827,8 @@ When a task's output is computed via `.map {}` rather than directly annotated wi
 ===== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=derived-property]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=derived-property]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=derived-property]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=derived-property]"]
 ====
 <1> *Derived output property*: when `outputFile` is built via `.map { ... }` rather than annotated directly, `flatMap` may lose the task dependency.
 
@@ -837,16 +837,16 @@ include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy
 As a workaround, use `.map { it.property.get() }` to preserve the dependency:
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=derived-property-fix]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=derived-property-fix]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=derived-property-fix]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=derived-property-fix]"]
 ====
 <1> *Workaround with `.map { it.property.get() }`*: preserves the task dependency at the cost of an explicit `.get()` call.
 
 The preferred approach is to use directly annotated abstract getters instead of derived ones, so that `flatMap` works reliably:
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=direct-annotation]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=direct-annotation]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=direct-annotation]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=direct-annotation]"]
 ====
 <1> *Directly annotated abstract getter*: with `@OutputFile` on an abstract `RegularFileProperty`, `flatMap` carries the task dependency reliably.
 
@@ -858,8 +858,8 @@ The `flatMap` closure must return a `Provider`; wrapping a plain value in a stan
 ===== Do This
 
 ====
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=eager-property]"]
-include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=eager-property]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=eager-property]"]
+include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=eager-property]"]
 ====
 <1> *Use `map` for non-Provider outputs*: when the producer exposes a plain `File` instead of a Provider, `map` is the right extractor.
 
