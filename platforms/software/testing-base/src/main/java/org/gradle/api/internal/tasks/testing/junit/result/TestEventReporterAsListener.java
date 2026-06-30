@@ -54,8 +54,12 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
         TestEventReporter reporter;
         if (testDescriptor.getParent() != null) {
-            GroupTestEventReporterInternal parentReporter =
-                (GroupTestEventReporterInternal) reportersById.get(testDescriptor.getParent().getId());
+            GroupTestEventReporterInternal parentReporter;
+            try {
+                parentReporter = (GroupTestEventReporterInternal) reportersById.get(testDescriptor.getParent().getId());
+            } catch (ClassCastException e) {
+                throw new IllegalStateException("An internal test structure error occurred. Please file a new issue on https://github.com/gradle/gradle/issues, and if possible include the test class causing this failure.", e);
+            }
 
             if (testDescriptor.isComposite()) {
                 reporter = parentReporter.reportTestGroupDirectly(testDescriptor);

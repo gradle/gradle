@@ -21,12 +21,18 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.util.Path;
 
 /**
  * An internal lazy reference to a graph resolution. Provides access to the inputs and
  * outputs of a graph resolution.
  */
 public interface ResolutionAccess {
+
+    /**
+     * The identity path of resolution.
+     */
+    Path getIdentityPath();
 
     /**
      * Get the owner of the resolution.

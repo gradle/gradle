@@ -65,7 +65,7 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
 
     @Override
     public ResolvedComponentResult read(Decoder decoder) throws Exception {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("This serializer is only intended for input snapshotting.");
     }
 
     @Override

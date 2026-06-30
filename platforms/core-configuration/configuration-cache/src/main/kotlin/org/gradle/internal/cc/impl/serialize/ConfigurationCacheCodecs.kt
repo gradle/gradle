@@ -83,6 +83,7 @@ import org.gradle.internal.serialize.codecs.core.ListPropertyCodec
 import org.gradle.internal.serialize.codecs.core.LoggerCodec
 import org.gradle.internal.serialize.codecs.core.MapEntrySnapshotCodec
 import org.gradle.internal.serialize.codecs.core.MapPropertyCodec
+import org.gradle.internal.serialize.codecs.core.NamedCodec
 import org.gradle.internal.serialize.codecs.core.NullValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.OrdinalNodeCodec
 import org.gradle.internal.serialize.codecs.core.PathToFileResolverCodec
@@ -313,6 +314,8 @@ class DefaultConfigurationCacheCodecs(
             bind(BeanSpecCodec)
 
             bind(RegisteredFlowActionCodec)
+
+            bind(NamedCodec(managedFactoryRegistry))
         }
 
         userTypesBindings = makeUserTypeBindings {
@@ -397,7 +400,7 @@ class DefaultConfigurationCacheCodecs(
         buildStateRegistry: BuildStateRegistry
     ) = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::userTypesCodec),
             BuildServiceProviderCodec(buildStateRegistry),
             FlowProvidersCodec
         )
@@ -409,7 +412,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun nestedProviderCodecForFingerprint() = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::fingerprintTypesCodec),
             UnsupportedFingerprintBuildServiceProviderCodec,
             UnsupportedFingerprintFlowProviders
         )

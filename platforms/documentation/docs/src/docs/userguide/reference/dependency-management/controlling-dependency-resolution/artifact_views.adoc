@@ -82,6 +82,14 @@ include::{snippetsPath}/reference/dependency-management/controlling-dependency-r
 When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView.getAttributes()` method.
 The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
 
+[NOTE]
+====
+Variant reselection operates on the components already present in the resolved graph: it re-picks a variant of each component in place.
+It does not re-run graph resolution.
+As a result, variants that delegate to a different component via an `available-at` pointer in Gradle Module Metadata are not followed, and the artifacts of the pointed-at component do not appear in the view.
+To resolve such variants, declare a separate `Configuration` whose request attributes already select them.
+====
+
 [[sec:performing_lenient_artifact_selection]]
 == 2. Performing lenient artifact selection and resolution
 

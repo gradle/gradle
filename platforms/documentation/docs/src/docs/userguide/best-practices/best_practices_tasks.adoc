@@ -588,8 +588,8 @@ As a plugin author, provide a DSL extension for users to configure behavior decl
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> Looking up `compileJava` by name: This relies on the hardcoded `"compileJava"` string.
@@ -600,8 +600,8 @@ include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groov
 ++++
 <div style="text-align: right;">
   <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidHardcodingTaskNames-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin">
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidHardcodingTaskNames-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidHardcodingTaskNames-do/kotlin">
     <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
   </a>
 </div>
@@ -610,8 +610,8 @@ include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groov
 A better option for the `compileJava` configuration is to use a public constant — this task name is part of <<public_apis.adoc#public_gradle_apis,public API>>, so referencing it via the constant is safe:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=ok]"]
-include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=ok]"]
+include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=ok]"]
+include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=ok]"]
 ====
 
 <1> Using `tasks.named` with `JavaPlugin.COMPILE_JAVA_TASK_NAME`: Replaces the hardcoded string with a public constant.
@@ -619,8 +619,8 @@ include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",
 The best option is to use the plugin DSL where possible — this avoids referring to tasks by name or type at all:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=best]"]
-include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=best]"]
+include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=best]"]
+include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=best]"]
 ====
 
 <1> Using Java DSL: Entirely avoids implementation details of `java-library` plugin and sets `sourceCompatibility` for all `JavaCompile` tasks.
@@ -652,8 +652,8 @@ The problem arises when `Project` is accessed during _task execution_ (e.g., ins
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/dontAccessProject-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/dontAccessProject-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> *Reading `project.version` in a task action*: Inside the task's action, the `Project` instance is accessed to read the `version` property.
@@ -668,8 +668,8 @@ There are two main problems with this setup:
 ++++
 <div style="text-align: right;">
   <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/dontAccessProject-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/dontAccessProject-do/kotlin">
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/dontAccessProject-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/dontAccessProject-do/kotlin">
     <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
   </a>
 </div>
@@ -679,8 +679,8 @@ To ensure compatibility, avoid accessing the `Project` instance during task exec
 Instead, tasks should explicitly declare all required inputs.
 
 ====
-include::sample[dir="snippets/bestPractices/dontAccessProject-do/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/dontAccessProject-do/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/best-practices/dontAccessProject-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/dontAccessProject-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Declare the version as an input property*: This allows Gradle to track the version string for up-to-date checks.

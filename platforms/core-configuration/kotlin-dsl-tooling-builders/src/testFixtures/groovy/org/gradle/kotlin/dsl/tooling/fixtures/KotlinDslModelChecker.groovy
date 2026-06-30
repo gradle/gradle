@@ -17,14 +17,21 @@
 package org.gradle.kotlin.dsl.tooling.fixtures
 
 
+import java.nio.file.Paths
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-import spock.lang.Issue
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
 
 class KotlinDslModelChecker {
+
+    static void checkScriptModelEditorReportsArePositioned(Map<File, KotlinDslScriptModel> scriptModels, String scriptFileName) {
+        def expectedPath = Paths.get(scriptFileName)
+        def script = scriptModels.keySet().find { it.toPath().endsWith(expectedPath) }
+        assert script != null: "no script model found ending with '$scriptFileName'"
+        assert scriptModels[script].editorReports.any { it.position != null }: "no positioned editor report on '$scriptFileName'"
+    }
 
     static void checkBuildTreeScriptsModels(Map<String, KotlinDslScriptsModel> actual, Map<String, KotlinDslScriptsModel> expected) {
         assert actual.keySet() == expected.keySet()
@@ -41,13 +48,33 @@ class KotlinDslModelChecker {
 
     static void checkKotlinDslScriptModel(KotlinDslScriptModel actual, KotlinDslScriptModel expected) {
         checkModel(actual, expected, [
-            { withNormalizedAccessorHash(it.classPath) },
-            { withNormalizedAccessorHash(it.sourcePath) },
+            { it.classPath },
+            { it.sourcePath },
             { it.implicitImports },
-            // TODO:isolated support editor reports
-//            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
-            { it.exceptions },
+            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
+            // Stack-trace strings legitimately differ between IP and non-IP runs
+            // (different call stacks during script evaluation). Compare only the
+            // exception class + message line, which is stable across the two modes.
+            { it.exceptions.collect { normalizeExceptionSummary(it) } },
         ])
+    }
+
+    private static String normalizeExceptionSummary(String exceptionString) {
+        // Drop stack-frame lines (start with whitespace: "\tat ..." or "\t... N more").
+        // This yields the exception class + message and any "Caused by:" headers,
+        // which are stable across IP and non-IP runs.
+        exceptionString.readLines()
+            .findAll { !it.matches(/\s+.*/) }
+            .collect { normalizeCompilerTempPath(it) }
+            .join("\n")
+    }
+
+    // A compile error's ScriptCompilationException reports its 'location' in a throwaway file, not the real
+    // script: the Kotlin DSL compiles generated "residual program" fragments written to a fresh
+    // "gradle-kotlin-dsl-<random>" temp dir (see TemporaryScriptFiles.withTemporaryScriptFileFor). IP and
+    // non-IP get different <random> values, so scrub it — otherwise it's the one field that breaks parity.
+    private static String normalizeCompilerTempPath(String line) {
+        line.replaceAll(/gradle-kotlin-dsl-\d+\.tmp/, "gradle-kotlin-dsl-<tmp>.tmp")
     }
 
     private static void checkEditorReport(actual, expected) {
@@ -62,19 +89,5 @@ class KotlinDslModelChecker {
                 { it.column },
             ]]
         ])
-    }
-
-    // replaces `kotlin-dsl/accessors/*hash*/` with `kotlin-dsl/accessors/<hash>`
-    @Issue("https://github.com/gradle/gradle/issues/37719")
-    private static List<File> withNormalizedAccessorHash(List<File> paths) {
-        final String accessorPathPrefix = "kotlin-dsl" + File.separator + "accessors" + File.separator
-        paths.collect { File f ->
-            int idx = f.path.indexOf(accessorPathPrefix)
-            if (idx < 0) {
-                return f
-            }
-            int hashEnd = f.path.indexOf(File.separator, idx + accessorPathPrefix.length())
-            return new File(f.path.substring(0, idx + accessorPathPrefix.length()) + "<hash>" + f.path.substring(hashEnd))
-        }
     }
 }

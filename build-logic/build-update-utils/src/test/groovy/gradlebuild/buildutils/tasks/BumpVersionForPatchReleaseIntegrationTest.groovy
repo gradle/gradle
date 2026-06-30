@@ -20,7 +20,7 @@ import gradlebuild.buildutils.model.ReleasedVersion
 import spock.lang.Specification
 import spock.lang.TempDir
 
-class PreparePatchReleaseIntegrationTest extends Specification {
+class BumpVersionForPatchReleaseIntegrationTest extends Specification {
 
     @TempDir
     File tmpDir

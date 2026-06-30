@@ -38,6 +38,7 @@ import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariant
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.ToBeImplemented
 
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
@@ -600,6 +601,147 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         true    || true          | false
         false   || false         | true
     }
+
+
+    def "demonstrate multiple selected variants with the same capabilities failure"() {
+        multipleSelectedVariantsWithSameCapabilities.prepare()
+
+        expect:
+        fails "forceResolution" // Graph validation failure is not a failure currently handled by the ResolutionFailureHandler
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'test'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'test'
+      > Module 'org.example:test' has been rejected:
+           Cannot select module with conflict on capability 'org:example:test-nonconflicting' also provided by ['root project 'test'' (c2)]""")
+
+        // TODO: No helpful resolutions are provided in this case
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-version-satisfies'
+            additionalData.asMap['requestTarget'] == "org.example:test"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
+            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+        }
+    }
+
+    @ToBeImplemented("this should NOT be a failure, the distinct capabilities required should make selection unambiguous")
+    def "requireCapability() has no effect"() {
+        requireCapabilityHasNoEffect.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(requireCapabilityHasNoEffect)
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve project ':producer'")
+        assertFullMessageCorrect("""The consumer was configured to find attribute 'custom' with value 'a1'. However we cannot choose between the following variants of project ':producer':""")
+        assertFullMessageCorrect("""The consumer was configured to find attribute 'custom' with value 'a2'. However we cannot choose between the following variants of project ':producer':""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsReviewingAlgorithm()
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "project ':producer'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "project ':producer'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+        }
+    }
+
+    // This test fails with an artifact ambiguity error if you remove --configuration-cache and un-comment the artifact type registry entry for color=yellow
+    @ToBeImplemented("this SHOULD be a failure, the choice of artifact transforms IS ambiguous")
+    def "multiple possible artifact transforms should cause an error but dont"() {
+        settingsKotlinFile.text = """
+            rootProject.name = "producer"
+        """
+        buildFile.text = """
+            plugins {
+                id("base")
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def color = Attribute.of("color", String)
+
+            abstract class VariantArtifactTransform1 implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def output = outputs.file("transformed1-" + inputArtifact.get().asFile.name)
+                    output << "transformed1"
+                }
+            }
+
+            abstract class VariantArtifactTransform2 implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def output = outputs.file("transformed2-" + inputArtifact.get().asFile.name)
+                    output << "transformed2"
+                }
+            }
+
+            file("foo").text = "hello"
+            task doZip(type: Zip) {
+                from(file("foo"))
+            }
+
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes {
+                        attribute(artifactType, "jar")
+                    }
+                }
+            }
+
+            dependencies {
+                deps files(file("foo.zip")) {
+                    builtBy doZip
+                }
+
+                registerTransform(VariantArtifactTransform1) {
+                    from.attribute(artifactType, 'zip')
+                    from.attribute(color, 'yellow')
+                    to.attribute(artifactType, 'jar')
+                    to.attribute(color, 'red')
+                }
+
+                registerTransform(VariantArtifactTransform2) {
+                    from.attribute(artifactType, 'zip')
+                    from.attribute(color, 'yellow')
+                    to.attribute(artifactType, 'jar')
+                    to.attribute(color, 'blue')
+                }
+            }
+
+            task resolve {
+                def files = configurations.res.incoming.files
+                doLast {
+                    println files.files*.name
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve", '--configuration-cache')
+    }
     // endregion other tests
 
     // region error showcase
@@ -678,6 +820,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactSelectionException.class, AmbiguousArtifactTransformsFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
     private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactSelectionException.class, AmbiguousArtifactsFailure.class, this.&setupAmbiguousArtifactsFailureForProject)
 
+    private final Demonstration multipleSelectedVariantsWithSameCapabilities = new Demonstration("Multiple selected variants with the same capabilities", VariantSelectionByAttributesException.class, ConfigurationNotCompatibleFailure.class, this.&setupMultipleConfigurationsWithSameCapabilities)
+    private final Demonstration requireCapabilityHasNoEffect = new Demonstration("requireCapability() has no effect", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupRequireCapabilityHasNoEffect)
+
     private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible graph variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
 
     private final List<Demonstration> demonstrations = [
@@ -695,7 +840,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactTransforms,
         ambiguousArtifactVariants,
 
-        incompatibleArtifactVariants
+        incompatibleArtifactVariants,
+        multipleSelectedVariantsWithSameCapabilities,
+        requireCapabilityHasNoEffect
     ]
     // endregion error showcase
 
@@ -705,6 +852,139 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         settingsKotlinFile << """
             rootProject.name = "example"
+        """
+    }
+
+    private void setupRequireCapabilityHasNoEffect() {
+        settingsKotlinFile << """
+            rootProject.name = "test"
+
+            include("producer");
+        """
+
+        file("producer/build.gradle.kts") << """
+            group = "org.example"
+            version = "1.0"
+            val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java)
+
+            configurations {
+                create("v1") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a1")
+                    }
+                    outgoing {
+                        capability("org:example:c1")
+                    }
+                }
+
+                create("v2") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a1")
+                    }
+                    outgoing {
+                        capability("org:example:c2")
+                    }
+                }
+
+                create("v3") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a2")
+                    }
+                    outgoing {
+                        capability("org:example:c1")
+                    }
+                }
+
+                create("v4") {
+                    isCanBeConsumed = true
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a2")
+                    }
+                    outgoing {
+                        capability("org:example:c2")
+                    }
+                }
+            }
+        """
+
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+            val CUSTOM_ATTRIBUTE = Attribute.of("custom", String::class.java)
+
+            configurations {
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":producer")) {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a1")
+                    }
+                    capabilities {
+                        requireCapability("org:example:c1")
+                    }
+                }
+
+                add("myDependencies", project(":producer")) {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "a2")
+                    }
+                    capabilities {
+                        requireCapability("org:example:c2")
+                    }
+                }
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupMultipleConfigurationsWithSameCapabilities() {
+        settingsKotlinFile << """
+            rootProject.name = "test"
+        """
+
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+
+            configurations {
+                create("c1") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-nonconflicting")
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                create("c2") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c1")))
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c2")))
+            }
+
+            ${forceConsumerResolution()}
         """
     }
 

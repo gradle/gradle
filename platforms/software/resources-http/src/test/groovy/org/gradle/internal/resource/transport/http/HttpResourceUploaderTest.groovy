@@ -31,7 +31,7 @@ class HttpResourceUploaderTest extends Specification {
             getStatusCode() >> 500
         }
         def client = Mock(HttpClient) {
-            performRawPut(_, _) >> response
+            performRawPut(_, _, _) >> response
         }
 
         when:

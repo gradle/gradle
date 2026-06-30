@@ -27,22 +27,23 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
 public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private final ConfigurationContainer configurationContainer;
-    private final NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
     private final DynamicMethods dynamicMethods;
 
-    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory) {
+    @Inject
+    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, PublishArtifactNotationParser publishArtifactNotationParser) {
         this.configurationContainer = configurationContainer;
-        this.publishArtifactFactory = publishArtifactFactory;
+        this.publishArtifactNotationParser = publishArtifactNotationParser;
         dynamicMethods = new DynamicMethods();
     }
 
@@ -53,7 +54,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
+        ConfigurablePublishArtifact publishArtifact = publishArtifactNotationParser.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;

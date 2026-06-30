@@ -15,22 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.internal.Describables;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,8 +31,8 @@ import java.util.Map;
  */
 @NotThreadSafe
 public class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
+
     private final Map<ResolvedVariantResult, Integer> written = new HashMap<>();
-    private final List<ResolvedVariantResult> read = new ArrayList<>();
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
@@ -53,22 +46,7 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
 
     @Override
     public ResolvedVariantResult read(Decoder decoder) throws Exception {
-        int index = decoder.readSmallInt();
-        if (index == -1) {
-            return null;
-        }
-        if (index == read.size()) {
-            ComponentIdentifier owner = componentIdentifierSerializer.read(decoder);
-            String variantName = decoder.readString();
-            AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-            ImmutableList<Capability> capabilities = capabilitySerializer.read(decoder);
-            read.add(null);
-            ResolvedVariantResult externalVariant = read(decoder);
-            DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(owner, Describables.of(variantName), attributes, capabilities, externalVariant);
-            this.read.set(index, result);
-            return result;
-        }
-        return read.get(index);
+        throw new UnsupportedOperationException("This serializer is only intended for input snapshotting.");
     }
 
     @Override
@@ -92,8 +70,4 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
         }
     }
 
-    void reset() {
-        written.clear();
-        read.clear();
-    }
 }

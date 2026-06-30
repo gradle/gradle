@@ -22,9 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -61,7 +59,6 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
-    private final TaskDependencyFactory taskDependencyFactory;
 
     /**
      * Injects an {@link ObjectFactory}
@@ -69,10 +66,9 @@ public abstract class EarPlugin implements Plugin<Project> {
      * @since 4.2
      */
     @Inject
-    public EarPlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices, TaskDependencyFactory taskDependencyFactory) {
+    public EarPlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
         this.objectFactory = objectFactory;
         this.jvmPluginServices = jvmPluginServices;
-        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -126,8 +122,8 @@ public abstract class EarPlugin implements Plugin<Project> {
 
         DeprecationLogger.whileDisabled(() -> {
             project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
-                .getArtifacts()
-                .add(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
+                .getOutgoing()
+                .artifact(ear);
         });
     }
 
