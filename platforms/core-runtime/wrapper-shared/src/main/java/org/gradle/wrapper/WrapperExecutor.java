@@ -17,6 +17,7 @@ package org.gradle.wrapper;
 
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
 
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -128,7 +129,9 @@ public class WrapperExecutor {
         return Boolean.parseBoolean(getProperty(propertyName, String.valueOf(defaultValue)));
     }
 
-    private String getProperty(String propertyName, String defaultValue, boolean required) {
+    // Returns null only in the !required branch; callers passing required=true rely on a non-null result.
+    @SuppressWarnings("NullAway")
+    private String getProperty(String propertyName, @Nullable String defaultValue, boolean required) {
         String value = properties.getProperty(propertyName);
         if (value != null) {
             return value;
