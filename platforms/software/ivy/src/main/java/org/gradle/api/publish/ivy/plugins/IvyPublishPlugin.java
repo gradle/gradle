@@ -71,7 +71,6 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_ivy.html">Ivy Publishing reference</a>
  * @since 1.3
  */
-@SuppressWarnings("deprecation")
 public abstract class IvyPublishPlugin implements Plugin<Project> {
     private final static Logger LOGGER = Logging.getLogger(IvyPublishPlugin.class);
 
@@ -166,7 +165,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }
 
-    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @org.gradle.model.Path("buildDir") final DirectoryProperty buildDir) {
+    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, final DirectoryProperty buildDir) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
 
         TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, descriptorTask -> {
