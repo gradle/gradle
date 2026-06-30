@@ -871,7 +871,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.configureEach(action)
 
         then:
-        _ * providerOfIterable.size() >> 2
+        // configureEach must not query the provider's size: doing so realizes pending elements (see gradle/gradle#36951)
+        0 * providerOfIterable.size()
         1 * action.execute(a)
         1 * action.execute(b)
         1 * action.execute(c)
