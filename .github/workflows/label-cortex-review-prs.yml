@@ -1,0 +1,29 @@
+name: Label PRs reviewed by bt-cortex
+
+# The `@cortex`-labeled PRs are expected to be picked up by Project automation of the Cortex Board.
+
+on:
+  pull_request_target:
+    types: [review_requested, review_request_removed]
+
+permissions: {}
+
+jobs:
+  label:
+    if: github.event.requested_team.slug == 'bt-cortex'
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add @cortex label
+        if: github.event.action == 'review_requested'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.html_url }}
+        run: gh pr edit "$PR" --add-label "@cortex"
+      - name: Remove @cortex label
+        if: github.event.action == 'review_request_removed'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.html_url }}
+        run: gh pr edit "$PR" --remove-label "@cortex"
