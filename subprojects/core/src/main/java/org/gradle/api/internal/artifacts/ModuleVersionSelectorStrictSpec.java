@@ -17,19 +17,23 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.specs.Spec;
 
+/**
+ * @deprecated To be removed in Gradle 10 when {@link org.gradle.api.artifacts.ModuleVersionSelector} is removed.
+ */
+@Deprecated
 public class ModuleVersionSelectorStrictSpec implements Spec<ModuleVersionIdentifier> {
 
-    private final ModuleVersionSelector selector;
+    private final org.gradle.api.artifacts.ModuleVersionSelector selector;
 
-    public ModuleVersionSelectorStrictSpec(ModuleVersionSelector selector) {
+    public ModuleVersionSelectorStrictSpec(org.gradle.api.artifacts.ModuleVersionSelector selector) {
         assert selector != null;
         this.selector = selector;
     }
 
     @Override
+    @Deprecated
     public boolean isSatisfiedBy(ModuleVersionIdentifier candidate) {
         return candidate.getName().equals(selector.getName())
                 && candidate.getGroup().equals(selector.getGroup())

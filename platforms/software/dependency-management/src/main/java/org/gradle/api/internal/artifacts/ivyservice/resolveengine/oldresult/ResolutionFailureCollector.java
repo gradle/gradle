@@ -19,8 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -72,20 +70,20 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
         }
     }
 
-    public Set<UnresolvedDependency> complete(Set<UnresolvedDependency> extraFailures) {
+    public Set<DefaultUnresolvedDependency> complete(Set<DefaultUnresolvedDependency> extraFailures) {
         if (extraFailures.isEmpty() && failuresByRevisionId.isEmpty()) {
             return ImmutableSet.of();
         }
 
-        ImmutableSet.Builder<UnresolvedDependency> builder = ImmutableSet.builder();
+        ImmutableSet.Builder<DefaultUnresolvedDependency> builder = ImmutableSet.builder();
         builder.addAll(extraFailures);
         for (Map.Entry<ComponentSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
             Collection<List<Describable>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root, owner);
 
             ComponentSelector key = entry.getKey();
             ModuleVersionIdentifier moduleVersionId = componentSelectorConverter.getModuleVersionId(key);
-            ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(moduleVersionId);
-            builder.add(new DefaultUnresolvedDependency(selector, entry.getValue().failure.withIncomingPaths(paths)));
+            @SuppressWarnings("deprecation") org.gradle.api.artifacts.ModuleVersionSelector mvs = DefaultModuleVersionSelector.newSelector(moduleVersionId);
+            builder.add(new DefaultUnresolvedDependency(key, mvs, entry.getValue().failure.withIncomingPaths(paths)));
         }
         return builder.build();
     }

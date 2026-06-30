@@ -23,7 +23,10 @@ import org.jspecify.annotations.Nullable;
  * If you need to change this interface, you're probably doing it wrong:
  * it is superseded by {@link org.gradle.api.artifacts.component.ModuleComponentSelector}, so check this first, and only
  * add methods here if it's for bridging.
+ *
+ * @deprecated This type will be removed in Gradle 10.
  */
+@Deprecated
 public interface ModuleVersionSelector {
 
     /**
@@ -44,7 +47,6 @@ public interface ModuleVersionSelector {
      * The version of the module. May be null.
      *
      * @return module version
-     *
      */
     @Nullable
     String getVersion();
@@ -57,6 +59,7 @@ public interface ModuleVersionSelector {
      *
      * @return if this selector matches exactly the given identifier.
      */
+    @Deprecated
     boolean matchesStrictly(ModuleVersionIdentifier identifier);
 
     /**
@@ -68,4 +71,5 @@ public interface ModuleVersionSelector {
      * @since 4.9
      */
     ModuleIdentifier getModule();
+
 }

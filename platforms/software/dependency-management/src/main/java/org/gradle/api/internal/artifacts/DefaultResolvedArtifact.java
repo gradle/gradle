@@ -33,6 +33,7 @@ import java.io.File;
  * classifier via its {@link IvyArtifactName}. This name is tracked on a best-effort basis, and may not
  * always represent the actual file name.
  */
+@Deprecated // Soft deprecated until we introduce "Artifact Graph" API
 public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     private final ComponentArtifactIdentifier id;
@@ -48,12 +49,14 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     @Override
+    @Deprecated
     public File getFile() {
         fileSource.finalizeIfNotAlready();
         return fileSource.get();
     }
 
     @Override
+    @Deprecated
     public ComponentArtifactIdentifier getId() {
         return id;
     }
@@ -64,6 +67,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     @Override
+    @Deprecated
     public ResolvedModuleVersion getModuleVersion() {
         if (owner == null) {
             // Local file dependencies do not have an owner
@@ -73,23 +77,27 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     @Override
+    @Deprecated
     public String getName() {
         return artifactName.getName();
     }
 
     @Override
+    @Deprecated
     public String getType() {
         return artifactName.getType();
     }
 
     @Nullable
     @Override
+    @Deprecated
     public String getExtension() {
         return artifactName.getExtension();
     }
 
     @Nullable
     @Override
+    @Deprecated
     public String getClassifier() {
         return artifactName.getClassifier();
     }

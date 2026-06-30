@@ -95,6 +95,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         }
 
         @Override
+        @Deprecated
         public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
             throw shouldNotBeCalled();
         }

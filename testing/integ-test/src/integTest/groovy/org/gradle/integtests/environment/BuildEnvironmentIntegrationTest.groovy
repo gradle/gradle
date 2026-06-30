@@ -255,11 +255,10 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
                     classpath 'com.github.spotbugs:spotbugs-annotations:4.8.3'
                 }
                 configurations.all { config ->
-                    config.getResolutionStrategy().eachDependency { dep ->
-                        if (dep.getRequested().getName() == "spotbugs-annotations") {
-                            dep.useTarget("com.github.spotbugs:spotbugs-annotations:4.8.1")
-                            dep.because("Because I said so")
-                        }
+                    config.resolutionStrategy.dependencySubstitution {
+                        substitute(module('com.github.spotbugs:spotbugs-annotations'))
+                            .because('Because I said so')
+                            .using(module('com.github.spotbugs:spotbugs-annotations:4.8.1'))
                     }
                 }
             }

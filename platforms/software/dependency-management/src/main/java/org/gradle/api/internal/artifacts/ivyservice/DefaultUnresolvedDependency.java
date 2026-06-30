@@ -15,20 +15,35 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
+// To be left around when `UnresolvedDependency` is removed. We directly reference
+// this type using its `class` to access data separate from the public API type.
+@SuppressWarnings("deprecation")
 public class DefaultUnresolvedDependency implements UnresolvedDependency {
-    private final Throwable problem;
-    private final ModuleVersionSelector selector;
 
-    public DefaultUnresolvedDependency(ModuleVersionSelector selector, Throwable problem) {
+    private final ComponentSelector requested;
+    private final org.gradle.api.artifacts.ModuleVersionSelector selector;
+    private final Throwable problem;
+
+    public DefaultUnresolvedDependency(
+        ComponentSelector requested,
+        org.gradle.api.artifacts.ModuleVersionSelector selector,
+        Throwable problem
+    ) {
+        this.requested = requested;
         this.selector = selector;
         this.problem = problem;
     }
 
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
     @Override
-    public ModuleVersionSelector getSelector() {
+    @Deprecated
+    public org.gradle.api.artifacts.ModuleVersionSelector getSelector() {
         return selector;
     }
 
@@ -41,4 +56,5 @@ public class DefaultUnresolvedDependency implements UnresolvedDependency {
     public String toString() {
         return selector.getGroup() + ":" + selector.getName() + ":" + selector.getVersion();
     }
+
 }

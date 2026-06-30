@@ -28,9 +28,10 @@ public class DefaultResolverResults implements ResolverResults {
 
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet visitedArtifacts;
-    private final LegacyResolverResults legacyResolverResults;
+    private final @Deprecated LegacyResolverResults legacyResolverResults;
     private final boolean fullyResolved;
 
+    @SuppressWarnings("deprecation")
     public DefaultResolverResults(
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
@@ -44,6 +45,7 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
+    @Deprecated
     public LegacyResolverResults getLegacyResults() {
         return legacyResolverResults;
     }
@@ -66,6 +68,7 @@ public class DefaultResolverResults implements ResolverResults {
     /**
      * Create a new result representing the result of resolving build dependencies.
      */
+    @SuppressWarnings("deprecation")
     public static ResolverResults buildDependenciesResolved(
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
@@ -82,6 +85,7 @@ public class DefaultResolverResults implements ResolverResults {
     /**
      * Create a new result representing the result of resolving the dependency graph.
      */
+    @SuppressWarnings("deprecation")
     public static ResolverResults graphResolved(
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
@@ -98,6 +102,7 @@ public class DefaultResolverResults implements ResolverResults {
     /**
      * Default implementation of {@link LegacyResolverResults}.
      */
+    @Deprecated
     public static class DefaultLegacyResolverResults implements LegacyResolverResults {
 
         private final @Nullable ResolvedConfiguration configuration;
@@ -107,6 +112,7 @@ public class DefaultResolverResults implements ResolverResults {
         }
 
         @Override
+        @Deprecated
         public ResolvedConfiguration getResolvedConfiguration() {
             if (configuration == null) {
                 throw new IllegalStateException("Cannot get resolved configuration when only build dependencies are resolved.");
@@ -118,6 +124,7 @@ public class DefaultResolverResults implements ResolverResults {
         /**
          * Create a new legacy result representing the result of resolving build dependencies.
          */
+        @Deprecated
         public static LegacyResolverResults buildDependenciesResolved() {
             return new DefaultLegacyResolverResults(null);
         }
@@ -125,6 +132,7 @@ public class DefaultResolverResults implements ResolverResults {
         /**
          * Create a new legacy result representing the result of resolving the dependency graph.
          */
+        @Deprecated
         public static LegacyResolverResults graphResolved(ResolvedConfiguration configuration) {
             return new DefaultLegacyResolverResults(configuration);
         }

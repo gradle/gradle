@@ -69,6 +69,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         run "resolutionResult"
 
         then:
@@ -253,10 +254,8 @@ baz:1.0 requested
             }
 
             configurations.all {
-                resolutionStrategy.eachDependency {
-                    if (requested.name == 'foo') {
-                        because("fix comes from component selection rule").useTarget("org:bar:1.0")
-                    }
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')).because('fix comes from component selection rule').using(module('org:bar:1.0'))
                 }
             }
 
@@ -309,10 +308,8 @@ baz:1.0 requested
             }
 
             configurations.all {
-                resolutionStrategy.eachDependency {
-                    if (requested.name == 'foo') {
-                        because("fix comes from component selection rule").useTarget("org:bar:1.0")
-                    }
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org:foo')).because('fix comes from component selection rule').using(module('org:bar:1.0'))
                 }
             }
 

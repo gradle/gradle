@@ -47,7 +47,16 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             """
 
         then:
-        runner('build').build()
+        runner('build')
+            .expectDeprecationWarning(
+                getEachDependencyDeprecation(),
+                "https://github.com/nebula-plugins/nebula-dependency-recommender-plugin/blob/9f7f4a86bfee76e2197d312ac204d4ee402446c2/src/main/groovy/netflix/nebula/dependency/recommender/DependencyRecommendationsPlugin.java#L133"
+            )
+            .expectDeprecationWarning(
+                getForceDeprecation(),
+                "https://github.com/nebula-plugins/nebula-dependency-recommender-plugin/blob/9f7f4a86bfee76e2197d312ac204d4ee402446c2/src/main/groovy/netflix/nebula/dependency/recommender/DependencyRecommendationsPlugin.java#L139"
+            )
+            .build()
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin')
@@ -191,9 +200,16 @@ testImplementation('junit:junit:4.7')""")
 }'''
 
         then:
-        runner('dependencies').build()
-        runner('generateLock').build()
-        runner('resolve').build()
+        def resolution = "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/blob/5c8337ac88ed82cdf3eaea3dbc8cad5f841ef750/src/main/kotlin/nebula/plugin/dependencylock/DependencyLockPlugin.kt#L375"
+        runner('dependencies')
+            .expectDeprecationWarning(getEachDependencyDeprecation(), resolution)
+            .build()
+        runner('generateLock')
+            .expectDeprecationWarning(getEachDependencyDeprecation(), resolution)
+            .build()
+        runner('resolve')
+            .expectDeprecationWarning(getEachDependencyDeprecation(), resolution)
+            .build()
 
         where:
         version << [TestedVersions.nebulaDependencyLock]
@@ -262,12 +278,23 @@ testImplementation('junit:junit:4.7')""")
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
         switch (testedPluginId) {
             case 'com.netflix.nebula.dependency-recommender':
-                return [parentMethodInvocationDeprecation('dependencyRecommendations')]
+                return [
+                    parentMethodInvocationDeprecation('dependencyRecommendations'),
+                    getEachDependencyDeprecation()
+                ]
             case 'com.netflix.nebula.lint':
                 return [parentPropertyAccessDeprecation('gradleLint')]
             default:
                 return []
         }
+    }
+
+    private static String getForceDeprecation() {
+        "The ResolutionStrategy.getForcedModules() method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force"
+    }
+
+    private static String getEachDependencyDeprecation() {
+        "The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations"
     }
 }
 

@@ -224,7 +224,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Returns a {@link ResolvedConfiguration}, a legacy view of the results of dependency resolution.
      * <strong>Avoid this method for new code</strong>. Prefer accessing resolution outputs via
-     * {@link #getIncoming()}. This API will be deprecated and removed in future Gradle versions.
+     * {@link #getIncoming()}.
      * <p>
      * See {@link ResolvedConfiguration} for details on why this API should not be used.
      *
@@ -233,7 +233,11 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * allowed this usage but marked it as deprecated.
      *
      * @return The ResolvedConfiguration object
+     *
+     * @deprecated This method will be removed in a future Gradle version.
+     * Access resolution outputs via {@link #getIncoming()} instead.
      */
+    @Deprecated
     ResolvedConfiguration getResolvedConfiguration();
 
     /**

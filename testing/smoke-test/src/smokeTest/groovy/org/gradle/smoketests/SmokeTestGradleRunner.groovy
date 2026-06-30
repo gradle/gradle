@@ -145,7 +145,7 @@ class SmokeTestGradleRunner extends GradleRunner {
      * @param warning the text of the warning to match.
      */
     SmokeTestGradleRunner expectLegacyDeprecationWarning(String warning) {
-        expectedDeprecationWarnings.add(warning)
+        expectedDeprecationWarnings.add(warning.replace("/current/", "/" + GradleVersion.current().version + "/"))
         return this
     }
 
@@ -178,7 +178,7 @@ class SmokeTestGradleRunner extends GradleRunner {
      * @param warning the text of the warning to match.
      */
     SmokeTestGradleRunner maybeExpectLegacyDeprecationWarning(String warning) {
-        maybeExpectedDeprecationWarnings.add(warning)
+        maybeExpectedDeprecationWarnings.add(warning.replace("/current/", "/" + GradleVersion.current().version + "/"))
         return this
     }
 

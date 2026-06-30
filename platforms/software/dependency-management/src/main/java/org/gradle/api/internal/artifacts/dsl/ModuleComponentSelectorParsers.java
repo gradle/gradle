@@ -20,7 +20,6 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -185,18 +184,22 @@ public class ModuleComponentSelectorParsers {
         }
     }
 
-    static class ModuleVersionSelectorConverter extends TypedNotationConverter<ModuleVersionSelector, ModuleComponentSelector> {
+    /**
+     * @deprecated To be removed in Gradle 10 when {@link org.gradle.api.artifacts.ModuleVersionSelector} is removed.
+     */
+    @Deprecated
+    static class ModuleVersionSelectorConverter extends TypedNotationConverter<org.gradle.api.artifacts.ModuleVersionSelector, ModuleComponentSelector> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("ModuleVersionSelector instances. (deprecated)");
         }
 
         public ModuleVersionSelectorConverter() {
-            super(new TypeInfo<>(ModuleVersionSelector.class));
+            super(new TypeInfo<>(org.gradle.api.artifacts.ModuleVersionSelector.class));
         }
 
         @Override
-        protected ModuleComponentSelector parseType(ModuleVersionSelector notation) {
+        protected ModuleComponentSelector parseType(org.gradle.api.artifacts.ModuleVersionSelector notation) {
             DeprecationLogger.deprecateAction("Converting an instance of ModuleVersionSelector to ModuleComponentSelector")
                 .withAdvice("Don't create or use ModuleVersionSelector instances and pass one of the other supported notations instead.")
                 .willBecomeAnErrorInGradle10()

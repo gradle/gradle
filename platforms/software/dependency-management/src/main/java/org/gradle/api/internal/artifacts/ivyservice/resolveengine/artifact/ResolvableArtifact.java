@@ -49,5 +49,6 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
 
     ResolvableArtifact transformedTo(File file);
 
+    @Deprecated // Soft deprecated until we introduce "Artifact Graph" API
     ResolvedArtifact toPublicView();
 }

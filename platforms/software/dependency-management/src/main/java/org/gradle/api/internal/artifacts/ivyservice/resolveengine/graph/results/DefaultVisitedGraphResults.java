@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
@@ -37,7 +39,7 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
     private final ImmutableAttributes requestAttributes;
     private final Supplier<GraphStructure> graphStructureSource;
-    private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final Set<DefaultUnresolvedDependency> unresolvedDependencies;
 
     /**
      * ResolvedGraphResult is a wrapper over the underlying GraphStructure and provides
@@ -50,7 +52,7 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
     public DefaultVisitedGraphResults(
         ResolvedDependencyGraph resolvedDependencyGraph,
-        Set<UnresolvedDependency> unresolvedDependencies
+        Set<DefaultUnresolvedDependency> unresolvedDependencies
     ) {
         this.requestAttributes = resolvedDependencyGraph.requestAttributes();
         this.graphStructureSource = resolvedDependencyGraph.graphSource();
@@ -90,14 +92,15 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
     @Override
     public void visitFailures(Consumer<Throwable> visitor) {
-        for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+        for (DefaultUnresolvedDependency unresolvedDependency : unresolvedDependencies) {
             visitor.accept(unresolvedDependency.getProblem());
         }
     }
 
     @Override
+    @Deprecated
     public Set<UnresolvedDependency> getUnresolvedDependencies() {
-        return unresolvedDependencies;
+        return ImmutableSet.copyOf(unresolvedDependencies);
     }
 
     @Override

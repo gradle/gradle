@@ -191,8 +191,13 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                         it.useTarget group: 'org.utils', name: it.requested.module, version: '1.4'
                     }
                 }
-                eachDependency {
-                    it.useVersion '1.5'
+                dependencySubstitution {
+                    all { dep ->
+                        if (dep.requested instanceof ModuleComponentSelector) {
+                            def req = dep.requested as ModuleComponentSelector
+                            dep.useTarget(req.group + ':' + req.module + ':1.5')
+                        }
+                    }
                 }
             }
         """
@@ -237,6 +242,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         run "checkDeps"
 
         then:
@@ -278,6 +284,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         run "checkDeps"
 
         then:
@@ -579,6 +586,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         run ":impl:checkDeps"
 
         then:
@@ -616,6 +624,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         fails ":impl:checkDeps"
 
         then:
@@ -735,9 +744,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                         it.selected.selectionReason.conflictResolution
                     }
 
-                    def resolvedDeps = configurations.runtimeClasspath.resolvedConfiguration.firstLevelModuleDependencies
+                    def resolvedDeps = configurations.runtimeClasspath.incoming.artifacts
                     resolvedDeps.size() == 1
-                    resolvedDeps[0].module.id == moduleId("org.utils", "api", "2.0")
+                    resolvedDeps[0].id.componentIdentifier.displayName == "org.utils:api:2.0"
                 }
             }
         """
@@ -1522,8 +1531,8 @@ Required by:
                      }
                   }
                }""",
-            """eachDependency { dep ->
-                  if (dep.requested.name == 'lib') {
+            """dependencySubstitution.all { DependencySubstitution dep ->
+                  if (dep.requested instanceof ModuleComponentSelector && (dep.requested as ModuleComponentSelector).module == 'lib') {
                      dep.artifactSelection {
                         selectArtifact('jar', 'jar', null)
                      }

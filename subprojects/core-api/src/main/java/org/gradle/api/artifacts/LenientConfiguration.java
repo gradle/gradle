@@ -29,7 +29,11 @@ import java.util.Set;
  *     <li>Returned file sets do not track task dependencies.</li>
  *     <li>The returned types do not reflect the variant-aware nature of the dependency resolution engine.</li>
  * </ul>
+ *
+ * @deprecated This type will be removed in a future Gradle version. Use {@link org.gradle.api.artifacts.result.ResolutionResult} or
+ * {@link org.gradle.api.file.FileCollection} and {@link ArtifactCollection} via a lenient {@link ArtifactView} instead.
  */
+@Deprecated
 public interface LenientConfiguration {
 
     /**
@@ -40,7 +44,10 @@ public interface LenientConfiguration {
      *
      * @return only resolved dependencies
      * @since 3.3
+     *
+     * @deprecated This method will be removed in a future Gradle version.
      */
+    @Deprecated
     Set<ResolvedDependency> getFirstLevelModuleDependencies();
 
     /**
@@ -51,17 +58,22 @@ public interface LenientConfiguration {
      *
      * @since 3.1
      * @return all resolved dependencies
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link ArtifactView#getArtifacts()} instead.
      */
+    @Deprecated
     Set<ResolvedDependency> getAllModuleDependencies();
 
     /**
      * returns dependencies that were attempted to resolve but failed.
      * If empty then all dependencies are neatly resolved.
-     * <p>
-     * Prefer {@link org.gradle.api.artifacts.result.ResolutionResult}.
      *
      * @return only unresolved dependencies
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     * Use {@link org.gradle.api.artifacts.result.ResolutionResult} instead.
      */
+    @Deprecated
     Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 
     /**
@@ -71,7 +83,10 @@ public interface LenientConfiguration {
      *
      * @return successfully resolved artifacts
      * @since 3.3
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link ArtifactView#getArtifacts()} instead.
      */
+    @Deprecated
     Set<ResolvedArtifact> getArtifacts();
 
 }

@@ -146,12 +146,11 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         project.getConfigurations().resolvableDependencyScopeLocked(ZINC_CONFIGURATION_NAME, zinc -> {
             zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
-            zinc.getResolutionStrategy().eachDependency(rule -> {
-                if (rule.getRequested().getGroup().equals("com.typesafe.zinc") && rule.getRequested().getName().equals("zinc")) {
-                    rule.useTarget("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + DEFAULT_ZINC_VERSION);
-                    rule.because("Typesafe Zinc is no longer maintained.");
-                }
-            });
+            zinc.getResolutionStrategy().dependencySubstitution(subs ->
+                subs.substitute(subs.module("com.typesafe.zinc:zinc"))
+                    .because("Typesafe Zinc is no longer maintained.")
+                    .using(subs.module("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + DEFAULT_ZINC_VERSION))
+            );
 
             zinc.defaultDependencies(dependencies -> {
                 dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + scalaPluginExtension.getZincVersion().get()));

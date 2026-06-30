@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
+/**
+ * @deprecated To be removed in Gradle 10 when {@link ResolvedModuleVersion} is removed.
+ */
+@Deprecated
 public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
     private final ModuleVersionIdentifier identifier;
 
@@ -31,6 +35,7 @@ public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
     }
 
     @Override
+    @Deprecated
     public ModuleVersionIdentifier getId() {
         return identifier;
     }

@@ -47,8 +47,14 @@ class CodeNarcNonJvmIntegrationTest extends MultiVersionIntegrationSpec implemen
                 source "test.groovy"
             }
 
-            configurations.codenarc {
-                resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
+            dependencies {
+                constraints {
+                    codenarc('org.apache.groovy:groovy') {
+                        version {
+                            strictly('${GroovySystem.version}')
+                        }
+                    }
+                }
             }
         """
         writeRuleFile()

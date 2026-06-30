@@ -23,11 +23,13 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@Deprecated // Soft deprecated until we introduce "Artifact Graph" API
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     private final VisitedGraphResults graphResults;
@@ -48,12 +50,30 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
+    @Deprecated
     public boolean hasError() {
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "hasError()")
+            .withAdvice("Use ResolutionResult instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         return graphResults.hasAnyFailure();
     }
 
     @Override
+    @Deprecated
     public void rethrowFailure() throws ResolveException {
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "rethrowFailure()")
+            .withAdvice("Use ResolutionResult instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
+        doRethrowFailure();
+    }
+
+    private void doRethrowFailure() {
         if (!graphResults.hasAnyFailure()) {
             return;
         }
@@ -64,18 +84,27 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
+    @Deprecated // Soft deprecated until we introduce "Artifact Graph" API
     public LenientConfiguration getLenientConfiguration() {
         return configuration;
     }
 
     @Override
+    @Deprecated // Soft deprecated until we introduce "Artifact Graph" API
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
-        rethrowFailure();
+        doRethrowFailure();
         return configuration.getFirstLevelModuleDependencies();
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getResolvedArtifacts()")
+            .replaceWith("ResolvableDependencies#getArtifacts()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());

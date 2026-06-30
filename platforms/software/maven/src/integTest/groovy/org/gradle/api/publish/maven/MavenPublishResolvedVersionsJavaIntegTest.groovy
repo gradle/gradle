@@ -376,6 +376,9 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         """)
 
         when:
+        if (substitution.contains("eachDependency")) {
+            executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        }
         run "publish"
 
         then:

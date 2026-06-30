@@ -48,14 +48,17 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
 
             dependencies {
                 implementation localGroovy()
+                constraints {
+                    codenarc('org.apache.groovy:groovy') {
+                        version {
+                            strictly('${GroovySystem.version}')
+                        }
+                    }
+                }
             }
 
             testing.suites.test.useJUnit()
-
-            configurations.codenarc {
-                resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
-            }
-        """.stripIndent()
+        """
 
         writeRuleFile()
     }

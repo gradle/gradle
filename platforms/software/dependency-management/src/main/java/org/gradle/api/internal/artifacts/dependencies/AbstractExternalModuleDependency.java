@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySel
 import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -65,7 +67,13 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
+    @Deprecated
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
+        DeprecationLogger.deprecateMethod(ExternalDependency.class, "matchesStrictly(ModuleVersionIdentifier)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 

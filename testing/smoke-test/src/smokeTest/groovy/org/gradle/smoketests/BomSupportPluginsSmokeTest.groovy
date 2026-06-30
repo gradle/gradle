@@ -18,12 +18,10 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 import org.junit.jupiter.api.Assumptions
-
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
@@ -72,7 +70,19 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = runner('checkDep')
-        runner.maybeExpectLegacyDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecated_get_properties")
+
+        if (bomSupportProvider == "nebula recommender plugin") {
+            // Below deprecations from nebula recommender
+            runner.expectLegacyDeprecationWarning("The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+            runner.expectLegacyDeprecationWarning("The ResolutionStrategy.getForcedModules() method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
+            runner.expectLegacyDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
+        } else if (bomSupportProvider == "spring dependency management plugin") {
+            // Below deprecations from spring dependency management
+            runner.expectLegacyDeprecationWarning("The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+            runner.expectLegacyDeprecationWarning("The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+            runner.expectLegacyDeprecationWarning("The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        }
+
         runner.build()
 
         then:

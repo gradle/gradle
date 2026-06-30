@@ -340,7 +340,7 @@ task copyFiles(type: Copy) {
 
     }
 
-    def "fails when a force overwrites a locked version"() {
+    def "fails when a substitution overwrites a locked version"() {
         given:
         mavenRepo.module('org', 'test', '1.0').publish()
         mavenRepo.module('org', 'test', '1.1').publish()
@@ -360,8 +360,8 @@ repositories {
 }
 configurations {
     lockedConf {
-        resolutionStrategy {
-            force 'org:test:1.0'
+        resolutionStrategy.dependencySubstitution {
+            substitute(module('org:test')).using(module('org:test:1.0'))
         }
     }
 }
@@ -450,10 +450,8 @@ repositories {
 }
 configurations {
     lockedConf {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'org' && details.requested.name == 'test') {
-                details.useVersion '1.0'
-            }
+        resolutionStrategy.dependencySubstitution {
+            substitute(module('org:test')).using(module('org:test:1.0'))
         }
     }
 }

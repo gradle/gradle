@@ -48,7 +48,12 @@ class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """.stripIndent()
 
         when:
-        def result = runner('spotbugsMain').build()
+        runner('spotbugsMain')
+            .expectDeprecationWarning(
+                "The ResolutionStrategy.eachDependency(Action) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the dependencySubstitution(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/spotbugs/spotbugs-gradle-plugin/blob/18ee52e0b199126d2499e11fdac6a41b3dc5ce59/src/main/kotlin/com/github/spotbugs/snom/SpotBugsBasePlugin.kt#L78"
+            )
+            .build()
 
         then:
         file('build/reports/spotbugs').isDirectory()

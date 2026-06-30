@@ -57,6 +57,7 @@ Method <org.gradle.api.artifacts.DependencyArtifact.getExtension()> does not hav
 Method <org.gradle.api.artifacts.DependencyArtifact.getName()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (DependencyArtifact.java:0)
 Method <org.gradle.api.artifacts.DependencyArtifact.getType()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (DependencyArtifact.java:0)
 Method <org.gradle.api.artifacts.DependencyArtifact.getUrl()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (DependencyArtifact.java:0)
+Method <org.gradle.api.artifacts.ExternalDependency.getModule()> does not have raw return type (org.gradle.api.artifacts.ModuleIdentifier) assignable to any of [Provider] in (ExternalDependency.java:0)
 Method <org.gradle.api.artifacts.ExternalDependency.getVersionConstraint()> does not have raw return type (org.gradle.api.artifacts.VersionConstraint) assignable to any of [Provider] in (ExternalDependency.java:0)
 Method <org.gradle.api.artifacts.ExternalDependency.isForce()> does not have raw return type (boolean) assignable to any of [Provider] in (ExternalDependency.java:0)
 Method <org.gradle.api.artifacts.ExternalModuleDependency.isChanging()> does not have raw return type (boolean) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (ExternalModuleDependency.java:0)

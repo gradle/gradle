@@ -33,6 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+@Deprecated // Soft deprecated until we introduce "Artifact Graph" API
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifact> artifacts;
     private List<Throwable> failures;
@@ -46,11 +47,13 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    @Deprecated
     public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
         this.artifacts.add(artifact.toPublicView());
     }
 
     @Override
+    @Deprecated
     public void visitFailure(Throwable failure) {
         if (failures == null) {
             failures = new ArrayList<>();
@@ -59,6 +62,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    @Deprecated
     public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         if (source instanceof LocalDependencyFiles) {
             return FileCollectionStructureVisitor.VisitType.NoContents;
@@ -67,14 +71,17 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    @Deprecated
     public boolean requireArtifactFiles() {
         return false;
     }
 
+    @Deprecated
     public Set<ResolvedArtifact> getArtifacts() {
         return artifacts;
     }
 
+    @Deprecated
     public List<Throwable> getFailures() {
         return failures != null ? failures : Collections.emptyList();
     }

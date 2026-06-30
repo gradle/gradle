@@ -78,7 +78,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.hasError() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        if (expression == "resolvedArtifacts") {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        }
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
         failure.assertHasCause("Could not find org.foo:unknown:1.0.")
@@ -137,7 +140,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.hasError() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getUnresolvedModuleDependencies() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        int count = expression.contains("resolvedArtifacts") ? 2 : 1
+        count.times { executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations") }
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
         failure.assertHasCause("Could not find unknown-1.0.jar (org.foo:unknown:1.0).")
@@ -202,6 +208,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getUnresolvedModuleDependencies() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds "validate"
     }
 
@@ -272,6 +280,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         f1.allowAll()
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getUnresolvedModuleDependencies() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds "validate"
     }
 
@@ -331,6 +341,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.artifact.expectGetUnauthorized()
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getUnresolvedModuleDependencies() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds "validate"
     }
 
@@ -379,6 +391,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m2.allowAll()
 
         expect:
+        2.times { executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getUnresolvedModuleDependencies() method has been deprecated. This is scheduled to be removed in Gradle 10. Use ResolutionResult instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations") }
         succeeds "validate"
     }
 
@@ -423,6 +436,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         bar1.allowAll()
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds "validate"
     }
 
@@ -466,6 +480,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds("resolve")
     }
 }

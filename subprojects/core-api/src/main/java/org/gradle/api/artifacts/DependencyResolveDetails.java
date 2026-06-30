@@ -26,7 +26,10 @@ import org.gradle.api.provider.ProviderConvertible;
  * Provides means to manipulate dependency metadata when it is resolved.
  *
  * @since 1.4
+ *
+ * @deprecated This type will be removed in Gradle 10. Use {@link DependencySubstitution} instead.
  */
+@Deprecated
 public interface DependencyResolveDetails {
 
     /**
@@ -34,6 +37,7 @@ public interface DependencyResolveDetails {
      * The requested module does not change even if there are multiple dependency resolve rules
      * that manipulate the dependency metadata.
      */
+    @Deprecated
     ModuleVersionSelector getRequested();
 
     /**
@@ -48,6 +52,7 @@ public interface DependencyResolveDetails {
      * @param version to use when resolving this dependency, cannot be null.
      * It is valid to configure the same version as requested.
      */
+    @Deprecated
     void useVersion(String version);
 
     /**
@@ -72,12 +77,14 @@ public interface DependencyResolveDetails {
      * @param notation the notation that gets parsed into an instance of {@link ModuleComponentSelector}
      * @since 1.5
      */
+    @Deprecated
     void useTarget(Object notation);
 
     /**
      * The target module selector used to resolve the dependency.
      * Never returns null. Target module is updated when methods like {@link #useVersion(String)} are used.
      */
+    @Deprecated
     ModuleVersionSelector getTarget();
 
     /**
@@ -90,6 +97,7 @@ public interface DependencyResolveDetails {
      *
      * @since 4.5
      */
+    @Deprecated
     DependencyResolveDetails because(String description);
 
     /**
@@ -98,5 +106,6 @@ public interface DependencyResolveDetails {
      *
      * @since 6.6
      */
+    @Deprecated
     DependencyResolveDetails artifactSelection(Action<? super ArtifactSelectionDetails> details);
 }

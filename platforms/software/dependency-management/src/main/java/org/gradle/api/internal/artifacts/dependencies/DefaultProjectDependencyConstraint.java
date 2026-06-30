@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -102,7 +103,13 @@ public class DefaultProjectDependencyConstraint extends AbstractDependencyConstr
     }
 
     @Override
+    @Deprecated
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
+        DeprecationLogger.deprecateMethod(DependencyConstraint.class, "matchesStrictly(ModuleVersionIdentifier)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         return identifier.getModule().equals(getModule()) && identifier.getVersion().equals(projectDependency.getVersion());
     }
 

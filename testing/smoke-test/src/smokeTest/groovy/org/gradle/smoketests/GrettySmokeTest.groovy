@@ -69,6 +69,16 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                     "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_7.html#task_project",
                 "https://github.com/gretty-gradle-plugin/gretty/issues/313"
             )
+            .expectDeprecationWarning(
+                getForceDeprecation(),
+                "https://github.com/gretty-gradle-plugin/gretty/blob/f8d8555316f21797848df436401ff777328ca238/libs/gretty/src/main/groovy/org/akhikhl/gretty/ServletContainerConfig.groovy#L73C11-L73C16"
+            )
+            .expectDeprecationWarning(
+                "The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations",
+                "https://github.com/gretty-gradle-plugin/gretty/blob/f8d8555316f21797848df436401ff777328ca238/libs/gretty/src/main/groovy/org/akhikhl/gretty/ProjectUtils.groovy#L219" +
+                    "https://github.com/gretty-gradle-plugin/gretty/blob/f8d8555316f21797848df436401ff777328ca238/libs/gretty/src/main/groovy/org/akhikhl/gretty/ProjectUtils.groovy#L288" +
+                    "https://github.com/gretty-gradle-plugin/gretty/blob/f8d8555316f21797848df436401ff777328ca238/libs/gretty/src/main/groovy/org/akhikhl/gretty/scanner/BaseScannerManager.groovy#L168"
+            )
             .build()
 
         then:
@@ -92,7 +102,10 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Override
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('gretty')]
+        [
+            parentMethodInvocationDeprecation('gretty'),
+            getForceDeprecation()
+        ]
     }
 
     static def grettyConfigForCurrentJavaVersion() {
@@ -100,5 +113,9 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
             JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) &&
                 (it.javaMaxVersion == null || JavaVersion.current() <= JavaVersion.toVersion(it.javaMaxVersion))
         }
+    }
+
+    private static String getForceDeprecation() {
+        "The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force"
     }
 }

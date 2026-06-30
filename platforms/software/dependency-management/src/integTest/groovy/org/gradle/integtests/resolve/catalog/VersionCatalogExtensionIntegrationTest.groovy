@@ -2262,6 +2262,8 @@ Second: 1.1"""
         lib.artifact.expectGet()
         lib2.pom.expectGet()
         lib2.artifact.expectGet()
+        disableProblemsApiCheck() // Because of emitted deprecation
+        2.times { executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force") }
         succeeds ':checkDeps'
 
         then:
@@ -2307,6 +2309,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         fails ':checkDeps'
 
         then:
@@ -2344,6 +2347,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         fails ':checkDeps'
 
         then:

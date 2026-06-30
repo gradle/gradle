@@ -133,7 +133,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
             configurations.all {
               exclude module: 'bar' //an exclusion
-              resolutionStrategy.force 'gradle:baz:2.0' //forced module
+              resolutionStrategy.dependencySubstitution {
+                substitute(module('gradle:baz')).using(module('gradle:baz:2.0'))
+              }
             }
         """
 

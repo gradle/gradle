@@ -17,8 +17,8 @@
 package org.gradle.plugin.management.internal.argumentloaded;
 
 import com.google.common.base.Strings;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -106,9 +106,15 @@ public final class ArgumentSourcedPluginRequest implements PluginRequestInternal
         return null;
     }
 
-    @Nullable
     @Override
-    public ModuleVersionSelector getModule() {
+    @Deprecated
+    public org.gradle.api.artifacts.@Nullable ModuleVersionSelector getModule() {
+        DeprecationLogger.deprecateMethod(PluginRequest.class, "getModule()")
+            .replaceWith("getSelector()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         return null;
     }
 }

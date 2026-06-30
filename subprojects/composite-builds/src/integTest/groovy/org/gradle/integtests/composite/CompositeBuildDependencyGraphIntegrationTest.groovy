@@ -387,6 +387,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         checkDependencies()
 
         then:
@@ -412,15 +413,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.external:external-dep:1.0"
             }
-            configurations.runtimeClasspath.resolutionStrategy {
-                eachDependency { DependencyResolveDetails details ->
-                    if (details.requested.name == 'something') {
-                        details.useTarget "org.test:buildB:1.0"
-                    }
-                }
-                dependencySubstitution {
-                    substitute module("org.other:something-else:1.0") using module("org.test:b1:1.0")
-                }
+            configurations.runtimeClasspath.resolutionStrategy.dependencySubstitution {
+                substitute(module("org.test:something")).using(module("org.test:buildB:1.0"))
+                substitute(module("org.other:something-else:1.0")).using(module("org.test:b1:1.0"))
             }
         """
 

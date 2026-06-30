@@ -90,6 +90,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         fails()
 
         then:
@@ -114,7 +115,9 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations { a }
             configurations.a.resolve()
-            configurations.a.resolutionStrategy.eachDependency {}
+            configurations.a.resolutionStrategy.dependencySubstitution {
+                all { }
+            }
         """
 
         when:
@@ -380,13 +383,17 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolutionStrategy.failOnVersionConflict()
             configurations.a.resolutionStrategy.force "org.utils:api:1.3"
             configurations.a.resolutionStrategy.forcedModules = [ "org.utils:api:1.4" ]
-            configurations.a.resolutionStrategy.eachDependency {}
+            configurations.a.resolutionStrategy.dependencySubstitution {
+                all { }
+            }
             configurations.a.resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
             configurations.a.resolutionStrategy.cacheChangingModulesFor 0, "seconds"
             configurations.a.resolutionStrategy.componentSelection.all {}
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.setForcedModules(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds()
     }
 

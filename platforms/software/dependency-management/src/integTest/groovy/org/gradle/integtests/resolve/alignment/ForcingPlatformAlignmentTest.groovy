@@ -82,6 +82,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
             module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
         }
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         run ':checkDeps'
 
         then:
@@ -205,6 +206,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         when:
         allowAllRepositoryInteractions()
+        2.times { executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force") }
         fails ':checkDeps'
 
         then:
@@ -283,6 +285,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         allowAllRepositoryInteractions()
 
         then:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds(':checkDeps')
     }
 
@@ -317,6 +320,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         expect:
         allowAllRepositoryInteractions()
+        2.times { executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force") }
         succeeds ':checkDeps'
     }
 
@@ -353,6 +357,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         expect:
         allowAllRepositoryInteractions()
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds ':checkDeps'
     }
 
@@ -406,6 +411,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             }
         }
 
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds ':checkDeps'
 
         then:
@@ -813,6 +819,9 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 allowAll()
             }
         }
+        if (forceNotation.contains("resolutionStrategy")) {
+            executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
+        }
         run ':checkDeps'
 
         then:
@@ -840,9 +849,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                         }
                         module("org:core:2.8.10")
                     }
-                }
-                if (forceNotation.contains("force = true")) {
-                    module("org:databind:2.8.11.1")
                 }
             }
         }
@@ -879,6 +885,9 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             }
         }
 
+        if (forceNotation.contains("resolutionStrategy")) {
+            executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
+        }
         run ':checkDeps'
 
         then:
@@ -903,9 +912,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                         }
                         module("org:core:2.6.7")
                     }
-                }
-                if (forceNotation.contains("force = true")) {
-                    module("org:databind:2.6.7.1")
                 }
             }
         }

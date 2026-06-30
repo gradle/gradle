@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -131,7 +131,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public Set<ModuleVersionSelector> getForcedModules() {
+    @Deprecated
+    public Set<org.gradle.api.artifacts.ModuleVersionSelector> getForcedModules() {
+        DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "getForcedModules()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
+            .nagUser();
+
         return getParsedForcedModules().stream()
             .map(DefaultModuleVersionSelector::newSelector)
             .collect(ImmutableSet.toImmutableSet());
@@ -219,15 +225,33 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    @Deprecated
     public DefaultResolutionStrategy force(Object... notations) {
-        mutationValidator.validateMutation(STRATEGY);
-        parsedForcedModules = null;
-        Collections.addAll(forcedModules, notations);
+        DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "force(Object...)")
+            .withAdvice("Use strict versions instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
+            .nagUser();
+
+        doForce(notations);
         return this;
     }
 
+    private void doForce(Object[] notations) {
+        mutationValidator.validateMutation(STRATEGY);
+        parsedForcedModules = null;
+        Collections.addAll(forcedModules, notations);
+    }
+
     @Override
+    @Deprecated
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
+        DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "eachDependency(Action)")
+            .replaceWith("dependencySubstitution(Action)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_resolution_deprecations")
+            .nagUser();
+
         mutationValidator.validateMutation(STRATEGY);
         dependencySubstitutions.allWithDependencyResolveDetails(rule, componentSelectorConverter);
         return this;
@@ -261,10 +285,17 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    @Deprecated
     public DefaultResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations) {
+        DeprecationLogger.deprecateMethod(ResolutionStrategy.class, "setForcedModules(Object...)")
+            .withAdvice("Use strict versions instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_resolution_strategy_force")
+            .nagUser();
+
         mutationValidator.validateMutation(STRATEGY);
         this.forcedModules.clear();
-        force(moduleVersionSelectorNotations);
+        doForce(moduleVersionSelectorNotations);
         return this;
     }
 
@@ -331,7 +362,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         } else if (conflictResolution == ConflictResolution.preferProjectModules) {
             out.preferProjectModules();
         }
-        out.setForcedModules(forcedModules);
+        out.doForce(forcedModules.toArray());
         for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {
             out.getComponentSelection().addRule(ruleAction);
         }

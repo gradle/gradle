@@ -41,6 +41,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
+@Deprecated // Soft deprecated until we introduce "Artifact Graph" API
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
@@ -67,46 +68,55 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     @Override
+    @Deprecated
     public String getName() {
         return String.format("%s:%s:%s", moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
     }
 
     @Override
+    @Deprecated
     public String getModuleGroup() {
         return moduleVersionId.getGroup();
     }
 
     @Override
+    @Deprecated
     public String getModuleName() {
         return moduleVersionId.getName();
     }
 
     @Override
+    @Deprecated
     public String getModuleVersion() {
         return moduleVersionId.getVersion();
     }
 
     @Override
+    @Deprecated
     public String getConfiguration() {
         return variantName;
     }
 
     @Override
+    @Deprecated
     public ResolvedModuleVersion getModule() {
         return new DefaultResolvedModuleVersion(moduleVersionId);
     }
 
     @Override
+    @Deprecated
     public ImmutableSet<ResolvedDependency> getChildren() {
         return ImmutableSet.copyOf(children);
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getModuleArtifacts() {
         return sort(CompositeResolvedArtifactSet.of(moduleArtifacts));
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getAllModuleArtifacts() {
         if (allModuleArtifactsCache == null) {
             Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getModuleArtifacts());
@@ -119,6 +129,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
         return sort(getArtifactsForIncomingEdge(parent));
     }
@@ -140,11 +151,13 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
         return getParentArtifacts(parent);
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
         if (allArtifactsCache.get(parent) == null) {
             Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifacts(parent));
@@ -159,6 +172,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedDependency> getParents() {
         return parents;
     }

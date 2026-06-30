@@ -95,6 +95,7 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         runnerForLocation(relocatedDir, agpVersion, "clean", *ossLicensesTasksExcludes, *excludingCCIncompatibleTasks())
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecation()
+                expectForceDeprecation()
             }
             .build()
         result = buildCachedLocation(relocatedDir, agpVersion)

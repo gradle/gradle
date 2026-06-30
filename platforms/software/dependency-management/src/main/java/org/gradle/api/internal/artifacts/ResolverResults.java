@@ -34,6 +34,7 @@ public interface ResolverResults {
      *
      * <strong>This method should only be used to implement existing legacy public API methods.</strong>
      */
+    @Deprecated
     LegacyResolverResults getLegacyResults();
 
     /**
@@ -60,6 +61,7 @@ public interface ResolverResults {
      *     <li>{@link org.gradle.api.artifacts.Configuration#fileCollection(Spec)} and related methods</li>
      * </ul>
      */
+    @Deprecated
     interface LegacyResolverResults {
 
         /**
@@ -67,6 +69,7 @@ public interface ResolverResults {
          *
          * @throws IllegalStateException If only build dependencies have been resolved.
          */
+        @Deprecated
         ResolvedConfiguration getResolvedConfiguration();
 
     }

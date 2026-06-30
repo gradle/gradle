@@ -18,7 +18,6 @@ package org.gradle.plugin.management;
 
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
@@ -48,7 +47,7 @@ public interface PluginResolveDetails {
      *   <li>{@link Provider} and {@link ProviderConvertible} of {@link MinimalExternalModuleDependency}</li>
      *   <li>instance of {@link ExternalDependency}</li>
      *   <li>instance of {@link ModuleComponentSelector}</li>
-     *   <li>instance of {@link ModuleVersionSelector} (deprecated)</li>
+     *   <li>instance of {@link org.gradle.api.artifacts.ModuleVersionSelector} (deprecated)</li>
      * </ul>
      *
      * @param notation the module to use

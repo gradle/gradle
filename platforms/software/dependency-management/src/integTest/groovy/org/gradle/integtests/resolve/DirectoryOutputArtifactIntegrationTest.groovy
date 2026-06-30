@@ -307,8 +307,9 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task run {
+                def files = configurations.compile.incoming.files
                 doLast {
-                    assert configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.name == [':nullsafe:1.0']
+                    assert files*.name == ['nullsafe-1.0.jar']
                 }
             }
         """

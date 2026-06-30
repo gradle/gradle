@@ -223,6 +223,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         """
 
         when:
+        if (baseType == ResolvedArtifact) {
+            3.times { executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ResolvableDependencies#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations") }
+        }
         configurationCacheRunLenient "broken"
 
         then:

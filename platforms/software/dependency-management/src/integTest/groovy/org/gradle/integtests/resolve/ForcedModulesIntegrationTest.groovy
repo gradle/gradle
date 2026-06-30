@@ -47,6 +47,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("checkDeps")
     }
 
@@ -79,6 +80,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("checkDeps")
     }
 
@@ -136,6 +138,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        2.times { executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force") }
         succeeds("api:dependencies", "tool:dependencies")
     }
 
@@ -206,6 +209,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds(":tool:checkDeps")
         resolve.expectGraph(":tool") {
             root(":tool", "org.foo.unittests:tool:1.0") {
@@ -278,6 +282,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("tool:checkDeps")
     }
 
@@ -308,6 +313,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force")
         succeeds("checkDeps")
     }
 
@@ -341,6 +347,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        3.times { executer.expectDocumentedDeprecationWarning("The ResolutionStrategy.force(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use strict versions instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_resolution_strategy_force") }
         succeeds("checkDeps")
     }
 }

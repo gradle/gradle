@@ -100,6 +100,7 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the ArtifactView#getArtifacts() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_resolution_deprecations")
         succeeds "resolve"
     }
 

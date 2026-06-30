@@ -168,24 +168,12 @@ class ResolveTestFixture {
                                 pw.println("first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}]")
                             }
                             visitNodes("resolved", configuration.resolvedConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
-                            configuration.resolvedConfiguration.resolvedArtifacts.each {
-                                pw.println("artifact:[${it.moduleVersion.id}][${it.name}:${it.classifier}:${it.extension}:${it.type}] (${it.id.componentIdentifier.displayName})")
-                            }
-                            configuration.resolvedConfiguration.resolvedArtifacts.each {
-                                writeFile("file-artifact-resolved-config", pw, it.file)
-                            }
 
                             // LenientConfiguration
                             configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies.each {
                                 pw.println("lenient-first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}]")
                             }
                             visitNodes("lenient", configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
-                            configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
-                                pw.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}:${it.classifier}:${it.extension}:${it.type}] (${it.id.componentIdentifier.displayName})")
-                            }
-                            configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
-                                writeFile("file-artifact-lenient-config", pw, it.file)
-                            }
                         } catch (Exception ignored) {
                             // We will emit the failure later when the the fields on the task are read.
                         }
@@ -510,22 +498,6 @@ class ResolveTestFixture {
         def actualLenientResolvedEdges = findLines(configDetails, 'lenient-resolved-dependency-edge')
             .findAll() { !it.contains("[${root.moduleVersionId}]->[") } as Set
         compare("lenient resolved dependency edges", actualLenientResolvedEdges, expectedResolvedEdges)
-
-        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}] (${it.componentId})" }
-
-        actualArtifacts = findLines(configDetails, 'artifact')
-        compare("artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'lenient-artifact')
-        compare("lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        def expectedArtifactOnlyFiles = graph.artifactNodes.collect { it.fileName }
-
-        actualFiles = findLines(configDetails, 'file-artifact-resolved-config')
-        compare("resolved configuration artifact files", actualFiles, expectedArtifactOnlyFiles)
-
-        actualFiles = findLines(configDetails, 'file-artifact-lenient-config')
-        compare("lenient configuration artifact files", actualFiles, expectedArtifactOnlyFiles)
     }
 
     List<String> findLines(List<String> lines, String prefix) {

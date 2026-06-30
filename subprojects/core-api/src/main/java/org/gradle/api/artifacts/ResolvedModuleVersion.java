@@ -17,11 +17,15 @@ package org.gradle.api.artifacts;
 
 /**
  * Represents meta-data about a resolved module version.
+ *
+ * @deprecated This type will be removed in a future version of Gradle.
  */
+@Deprecated
 public interface ResolvedModuleVersion {
     /**
      * The identifier of this resolved module version.
      * @return the identifier
      */
+    @Deprecated
     ModuleVersionIdentifier getId();
 }

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collections;
@@ -136,7 +138,7 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
      *
      * @return the existing failures augmented with any locking related one
      */
-    public Set<UnresolvedDependency> collectLockingFailures() {
+    public Set<DefaultUnresolvedDependency> collectLockingFailures() {
         if (dependencyLockingState.mustValidateLockState()) {
             if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty() || !forcedModules.isEmpty()) {
                 lockOutOfDate = true;
@@ -146,21 +148,42 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
         return Collections.emptySet();
     }
 
-    private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
-        Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
+    @SuppressWarnings("deprecation")
+    private static Set<DefaultUnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
+        Set<DefaultUnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
         for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock),
-                                  new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));
+            completedFailures.add(
+                new DefaultUnresolvedDependency(
+                    toSelector(presentInLock),
+                    DefaultModuleVersionSelector.newSelector(presentInLock),
+                    new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")
+                )
+            );
         }
         for (ModuleComponentIdentifier extraModule : extraModules) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule),
-                new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
+            completedFailures.add(
+                new DefaultUnresolvedDependency(
+                    toSelector(extraModule),
+                    DefaultModuleVersionSelector.newSelector(extraModule),
+                    new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")
+                )
+            );
         }
         for (Map.Entry<ModuleComponentIdentifier, String> entry : forcedModules.entrySet()) {
             ModuleComponentIdentifier forcedModule = entry.getKey();
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule),
-                new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")));
+            completedFailures.add(
+                new DefaultUnresolvedDependency(
+                    toSelector(forcedModule),
+                    DefaultModuleVersionSelector.newSelector(forcedModule),
+                    new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")
+                )
+            );
         }
         return completedFailures;
     }
+
+    private static ModuleComponentSelector toSelector(ModuleComponentIdentifier id) {
+        return DefaultModuleComponentSelector.newSelector(id.getModuleIdentifier(), id.getVersion());
+    }
+
 }

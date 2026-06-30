@@ -21,7 +21,14 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 /**
  * <p>An {@code ExternalDependency} is a {@link Dependency} on a source outside the current project hierarchy.</p>
  */
+@SuppressWarnings("deprecation") // This type will no longer extend ModuleVersionSelector in Gradle 10
 public interface ExternalDependency extends ModuleDependency, ModuleVersionSelector {
+
+    /**
+     * The identifier of the module this dependency targets.
+     */
+    @Override
+    ModuleIdentifier getModule();
 
     /**
      * Returns whether or not the version of this dependency should be enforced in the case of version conflicts.
