@@ -20,7 +20,6 @@ import org.gradle.model.Model
 import org.gradle.model.RuleSource
 
 
-@SuppressWarnings("deprecation")
 public class CustomRuleSource extends RuleSource {
 
     @Model
