@@ -17,7 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -130,7 +130,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY, because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
+    @ToBeFixedForConfigurationCache(skipBecause = "flaky", because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
     def "selects and builds from tag for static selector"() {
         given:
         buildFile << """
@@ -173,7 +173,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY, because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
+    @ToBeFixedForConfigurationCache(skipBecause = "flaky", because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
     def "reports on and recovers from missing version for static selector"() {
         given:
         buildFile << """
@@ -279,7 +279,7 @@ Required by:
         "[1.0,1.9]" | _
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY, because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
+    @ToBeFixedForConfigurationCache(skipBecause = "flaky", because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
     def "reports on and recovers from missing version for selector #selector"() {
         given:
         buildFile << """
@@ -424,7 +424,7 @@ Required by:
         result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY, because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
+    @ToBeFixedForConfigurationCache(skipBecause = "flaky", because = "Test fixture's BlockingHttpServer state is sensitive to ordering under CC")
     def "reports on and recovers from missing branch"() {
         given:
         buildFile << """
