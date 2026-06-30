@@ -39,7 +39,11 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     private final TransformStepNodeFactory transformStepNodeFactory;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
 
-    public DefaultTransformedVariantFactory(BuildOperationRunner buildOperationRunner, CalculatedValueContainerFactory calculatedValueContainerFactory, TransformStepNodeFactory transformStepNodeFactory) {
+    public DefaultTransformedVariantFactory(
+        BuildOperationRunner buildOperationRunner,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        TransformStepNodeFactory transformStepNodeFactory
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.transformStepNodeFactory = transformStepNodeFactory;

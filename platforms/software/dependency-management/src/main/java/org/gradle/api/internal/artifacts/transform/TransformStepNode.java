@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Task;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -27,9 +29,14 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.SelfExecutingNode;
+import org.gradle.execution.plan.TaskDeclarationAware;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.execution.SafeInternalArtifactTransformAccess;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -39,6 +46,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
@@ -49,20 +57,38 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("this-escape")
-public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode {
+public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode, TaskDeclarationAware {
 
     protected final TransformStep transformStep;
     protected final ResolvableArtifact artifact;
     private final ComponentVariantIdentifier targetComponentVariant;
     private final AttributeContainer sourceAttributes;
     protected final TransformUpstreamDependencies upstreamDependencies;
+    private final WorkExecutionTracker workExecutionTracker;
     private final long transformStepNodeId;
-
+    @Nullable
     private PlannedTransformStepIdentity cachedIdentity;
+    private final Set<String> declaringTaskPaths = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Per-build set of task paths for which the undeclared-resolution deprecation has already been emitted
+     * by {@link #nagAboutUndeclaredResolution()}.
+     * <p>
+     * Used purely to dedupe warnings: a single task action that queries this node multiple times
+     * (e.g. several {@code view.files} accesses in one {@code doLast}) should only see one warning,
+     * not one per call site.
+     * <p>
+     * This set is intentionally NOT serialized across configuration cache reloads: it is UX-only state,
+     * not correctness state. On CC reload it starts empty and undeclared tasks will warn again on first
+     * query, which is the desired behavior since the user has not yet fixed their build.
+     */
+    private final Set<String> naggedTaskPaths = ConcurrentHashMap.newKeySet();
 
     protected TransformStepNode(
         long transformStepNodeId,
@@ -70,13 +96,15 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         AttributeContainer sourceAttributes,
         TransformStep transformStep,
         ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies
+        TransformUpstreamDependencies upstreamDependencies,
+        WorkExecutionTracker workExecutionTracker
     ) {
         this.targetComponentVariant = targetComponentVariant;
         this.sourceAttributes = sourceAttributes;
         this.transformStep = transformStep;
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
+        this.workExecutionTracker = workExecutionTracker;
         this.transformStepNodeId = transformStepNodeId;
     }
 
@@ -179,15 +207,84 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         return getTransformedArtifacts().getValue();
     }
 
+    /**
+     * Records that the given task properly declared this transform step node as one of its inputs.
+     * Called by {@link TransformStepNodeDependencyResolver} as part of task dependency resolution.
+     * Used by {@link #executeIfNotAlready()} to identify undeclared queries on a per-task basis.
+     */
+    @Override
+    public void markDeclaredBy(Task task) {
+        declaringTaskPaths.add(task.getPath());
+    }
+
+    /**
+     * Returns the set of task paths that declared this node as an input. Used by the configuration
+     * cache codec to serialize per-node declarer state so that it survives CC reloads without
+     * requiring the dependency resolver to re-run.
+     */
+    public Set<String> getDeclaringTaskPaths() {
+        return declaringTaskPaths;
+    }
+
+    /**
+     * Restores the declaring task paths after configuration cache deserialization. The dependency
+     * resolver does not re-run on CC reload, so without restoration the set would be empty and
+     * every properly-declared task would falsely trip the undeclared-input nag.
+     */
+    public void setDeclaringTaskPaths(Set<String> taskPaths) {
+        declaringTaskPaths.addAll(taskPaths);
+    }
+
     @Override
     public void execute(NodeExecutionContext context) {
         getTransformedArtifacts().run(context);
     }
 
     public void executeIfNotAlready() {
+        // The check is gated on whether the currently-executing task declared this node as an
+        // input, not on whether the node has been executed: a properly-declared sibling task that
+        // pre-runs the transform must not silence an undeclared querier later in the build.
+        // naggedTaskPaths.add(...) dedupes multiple query sites within the same task action so
+        // the user sees one warning per (undeclared task, node) per build, not one per call site.
+        if (!SafeInternalArtifactTransformAccess.isActive()) {
+            Optional<TaskInternal> currentTask = workExecutionTracker.getCurrentTask();
+            if (currentTask.isPresent()) {
+                String taskPath = currentTask.get().getPath();
+                if (!declaringTaskPaths.contains(taskPath) && naggedTaskPaths.add(taskPath)) {
+                    nagAboutUndeclaredResolution();
+                }
+            }
+        }
         transformStep.isolateParametersIfNotAlready();
         upstreamDependencies.finalizeIfNotAlready();
         getTransformedArtifacts().finalizeIfNotAlready();
+    }
+
+    private void nagAboutUndeclaredResolution() {
+        String taskPath = workExecutionTracker.getCurrentTask().map(Task::getPath).orElse(null);
+        String configName = configurationNameOf();
+        DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
+            "Querying the output of an artifact transform from a task action without declaring it as a task input"
+        );
+        // Only add the contextual line when both task and configuration are known — otherwise the
+        // string would render misleading filler like "Task 'null' queried ...".
+        if (taskPath != null && configName != null) {
+            deprecation = deprecation.withContext(String.format(
+                "Task '%s' queried artifact transform output of configuration '%s' without declaring it as an input.",
+                taskPath, configName
+            ));
+        }
+
+        deprecation.withAdvice("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "undeclared_artifact_transform_input")
+            .nagUser();
+    }
+
+    @Nullable
+    private String configurationNameOf() {
+        ConfigurationIdentity id = getUpstreamDependencies().getConfigurationIdentity();
+        return id == null ? null : id.getName();
     }
 
     protected abstract CalculatedValueContainer<TransformStepSubject, ?> getTransformedArtifacts();
@@ -218,10 +315,11 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             TransformStep transformStep,
             ResolvableArtifact artifact,
             TransformUpstreamDependencies upstreamDependencies,
+            WorkExecutionTracker workExecutionTracker,
             BuildOperationRunner buildOperationRunner,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies);
+            super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, workExecutionTracker);
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationRunner));
         }
 
@@ -273,10 +371,11 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             TransformStep transformStep,
             TransformStepNode previousTransformStepNode,
             TransformUpstreamDependencies upstreamDependencies,
+            WorkExecutionTracker workExecutionTracker,
             BuildOperationRunner buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, previousTransformStepNode.artifact, upstreamDependencies);
+            super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, previousTransformStepNode.artifact, upstreamDependencies, workExecutionTracker);
             this.previousTransformStepNode = previousTransformStepNode;
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }
@@ -288,6 +387,17 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         @Override
         protected CalculatedValueContainer<TransformStepSubject, TransformPreviousArtifacts> getTransformedArtifacts() {
             return result;
+        }
+
+        @Override
+        public void markDeclaredBy(Task task) {
+            // Propagate the declaration through the chain: declaring an artifact view as a task
+            // input implicitly declares every upstream transform step that produces files in
+            // that view. Without this, only the final node would be marked and intermediate
+            // nodes would falsely trip the undeclared-input nag when the task action queries
+            // the view and walks the whole chain.
+            super.markDeclaredBy(task);
+            previousTransformStepNode.markDeclaredBy(task);
         }
 
         @Override
