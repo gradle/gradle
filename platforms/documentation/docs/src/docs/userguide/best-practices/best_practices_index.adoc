@@ -79,6 +79,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_tasks.adoc#use_unique_output_files_and_directories,Use unique output files and directories>> | Task | 9.3.0
 | <<best_practices_tasks.adoc#dont_hardcode_task_names,Don't hardcode task names when referring to them>> | Task | 9.7.0
 | <<best_practices_tasks.adoc#dont_access_project_instance_inside_task,Don't access a `Project` instance during Task Execution>> | Task | 9.7.0
+| <<best_practices_tasks.adoc#map_versus_flatmap,Wiring Task Outputs with `map` and `flatMap`>> | Task | 9.7.0
 
 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
 | <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0
