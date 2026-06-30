@@ -18,7 +18,6 @@ package org.gradle.vcs.git.internal
 
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
@@ -69,12 +68,14 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
                 conf "org.test:dep:" + repoVersion
             }
             task assertVersion {
-                dependsOn configurations.conf
+                def confFiles = configurations.conf
+                def expectedVersion = repoVersion
+                dependsOn confFiles
                 doLast {
-                    def files = zipTree(configurations.conf.singleFile).files
-                    def versionFile = files.find { it.name == "version" }
-                    assert versionFile
-                    assert versionFile.text == repoVersion
+                    // The dep build sets its project version (and hence its jar name) from the
+                    // checked-out "version" file, so the resolved artifact name verifies the
+                    // correct commit was checked out without reading project state at execution time.
+                    assert confFiles.singleFile.name == "dep-\${expectedVersion}.jar"
                 }
             }
         """
@@ -91,7 +92,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Test build script uses ext properties / repoVersion read at execution time")
     def "does not remove vcs checkout on every build"() {
         succeeds("assertVersion", "-PrepoVersion=1.0")
         def checkout = checkoutDir("dep", commits.initial.id.name, repo.id)
@@ -114,7 +114,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         trashFile.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Test build script uses ext properties / repoVersion read at execution time")
     def "removes vcs checkout after 7 days"() {
         // checkout all versions
         versions.each { version ->
@@ -133,7 +132,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         checkoutDir("dep", commits["3.0"].id.name, repo.id).assertExists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Test build script uses ext properties / repoVersion read at execution time")
     def "does not remove vcs checkout that is older than 7 days but recently used"() {
         // checkout all versions
         versions.each { version ->
@@ -153,7 +151,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         checkoutDir("dep", commits["3.0"].id.name, repo.id).assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Test build script uses ext properties / repoVersion read at execution time")
     def "removes all checkouts when VCS mappings are removed"() {
         // checkout all versions
         versions.each { version ->

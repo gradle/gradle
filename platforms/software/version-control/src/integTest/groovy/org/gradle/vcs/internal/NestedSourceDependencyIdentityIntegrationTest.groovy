@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
@@ -137,7 +136,6 @@ Required by:
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects in nested included build")
-    @ToBeFixedForConfigurationCache(because = "doLast block reads configurations from a Groovy closure at execution time")
     def "includes build identifier in dependency resolution results with #display"() {
         repoC.file("a/.gitkeepdir").touch()
         repoC.file("settings.gradle") << """
@@ -156,31 +154,49 @@ Required by:
         repoB.createLightWeightTag("1.2")
 
         buildFile << """
-            classes.doLast {
-                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
-                assert components.size() == 4
-                assert components[0].build.buildPath == ':'
-                assert components[0].projectPath == ':'
-                assert components[0].projectName == 'buildA'
-                assert components[0].buildTreePath == ':'
-                assert components[1].build.buildPath == ':buildB'
-                assert components[1].projectPath == ':'
-                assert components[1].projectName == 'buildB'
-                assert components[1].buildTreePath == ':buildB'
-                assert components[2].build.buildPath == ':${buildName}'
-                assert components[2].projectPath == ':'
-                assert components[2].projectName == '${dependencyName}'
-                assert components[3].build.buildPath == ':${buildName}'
-                assert components[3].projectPath == ':a'
-                assert components[3].projectName == 'a'
+            classes {
+                // Capture the resolution result lazily at configuration time so the assertions
+                // don't read project state at execution time (configuration-cache compatible).
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def components = []
+                    def selectors = []
+                    def seen = new HashSet()
+                    def queue = [rootComponent.get()]
+                    while (!queue.isEmpty()) {
+                        def component = queue.remove(0)
+                        if (!seen.add(component.id)) {
+                            continue
+                        }
+                        components << component.id
+                        component.dependencies.each { dependency ->
+                            selectors << dependency.requested
+                            if (dependency instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult) {
+                                queue << dependency.selected
+                            }
+                        }
+                    }
 
-                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
-                assert selectors.size() == 3
-                assert selectors[0].displayName == 'org.test:buildB:1.2'
-                assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
-                assert selectors[2].displayName == 'project \\':${buildName}:a\\''
-                assert selectors[2].buildPath == ':${buildName}'
-                assert selectors[2].projectPath == ':a'
+                    assert components.size() == 4
+                    assert components.collect { [it.build.buildPath, it.projectPath, it.projectName] } as Set == [
+                        [':', ':', 'buildA'],
+                        [':buildB', ':', 'buildB'],
+                        [':${buildName}', ':', '${dependencyName}'],
+                        [':${buildName}', ':a', 'a']
+                    ] as Set
+                    assert components.find { it.projectName == 'buildA' }.buildTreePath == ':'
+                    assert components.find { it.projectName == 'buildB' }.buildTreePath == ':buildB'
+
+                    assert selectors.size() == 3
+                    assert selectors.collect { it.displayName } as Set == [
+                        'org.test:buildB:1.2',
+                        'org.test:${dependencyName}:1.2',
+                        "project ':${buildName}:a'"
+                    ] as Set
+                    def projectSelector = selectors.find { it instanceof org.gradle.api.artifacts.component.ProjectComponentSelector }
+                    assert projectSelector.buildPath == ':${buildName}'
+                    assert projectSelector.projectPath == ':a'
+                }
             }
         """
 
