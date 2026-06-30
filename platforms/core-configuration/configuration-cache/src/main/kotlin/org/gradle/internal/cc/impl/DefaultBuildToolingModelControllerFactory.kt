@@ -23,7 +23,6 @@ import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.build.DefaultBuildToolingModelController
 import org.gradle.internal.build.ResilientBuildToolingModelController
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.ResilientModelBuildingFailureCollector
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
@@ -31,13 +30,12 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 internal
 class DefaultBuildToolingModelControllerFactory(
     private val modelParameters: BuildModelParameters,
-    private val failureFactory: FailureFactory,
-    private val modelBuildingFailureCollector: ResilientModelBuildingFailureCollector
+    private val failureFactory: FailureFactory
 ) : BuildToolingModelControllerFactory {
     override fun createController(owner: BuildState, lifecycleController: BuildLifecycleController, inResilientContext: Boolean): BuildToolingModelController {
         val modelBuilderLookup = lifecycleController.gradle.services.get(ToolingModelBuilderLookup::class.java)
         val toolingModelController = if (inResilientContext) {
-            ResilientBuildToolingModelController(owner, lifecycleController, modelBuilderLookup, failureFactory, modelBuildingFailureCollector)
+            ResilientBuildToolingModelController(owner, lifecycleController, modelBuilderLookup, failureFactory)
         } else {
             DefaultBuildToolingModelController(owner, lifecycleController, modelBuilderLookup)
         }

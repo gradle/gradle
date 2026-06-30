@@ -36,7 +36,6 @@ import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.ResilientModelBuildingFailureCollector;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -72,9 +71,8 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
             ExceptionAnalyser exceptionAnalyser = buildServices.get(ExceptionAnalyser.class);
             BuildStateRegistry buildStateRegistry = buildServices.get(BuildStateRegistry.class);
-            ResilientModelBuildingFailureCollector modelBuildingFailureCollector = buildServices.get(ResilientModelBuildingFailureCollector.class);
             BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
-            BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController, modelBuildingFailureCollector);
+            BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
             buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
         } catch (Throwable t) {
             CompositeStoppable.stoppable().addFailure(t).add(buildServices).stop();

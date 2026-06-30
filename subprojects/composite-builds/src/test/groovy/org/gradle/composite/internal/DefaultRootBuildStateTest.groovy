@@ -28,7 +28,6 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeServices
-import org.gradle.internal.buildtree.ResilientModelBuildingFailureCollector
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exception.ExceptionAnalyser
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -67,7 +66,6 @@ class DefaultRootBuildStateTest extends Specification {
         services.add(Stub(DocumentationRegistry))
         services.add(Stub(DefaultDeploymentRegistry))
         services.add(Stub(BuildStateRegistry))
-        services.add(new ResilientModelBuildingFailureCollector())
         services.add(buildTreeControllerFactory)
 
         _ * buildTreeControllerFactory.createRootBuildController(_, _, _) >> buildTreeController

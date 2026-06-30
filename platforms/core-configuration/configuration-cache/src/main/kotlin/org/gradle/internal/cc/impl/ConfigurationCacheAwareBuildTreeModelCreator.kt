@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
+import org.gradle.internal.buildtree.ResilientModelBuildingFailures
 import org.gradle.internal.cc.impl.models.BuildTreeModel
 
 
@@ -25,6 +26,8 @@ class ConfigurationCacheAwareBuildTreeModelCreator(
     private val delegate: BuildTreeModelCreator,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeModelCreator {
+    override fun drainModelBuildingFailures(): ResilientModelBuildingFailures = delegate.drainModelBuildingFailures()
+
     override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>) {
         cache.maybePrepareModel {
             delegate.beforeTasks(action)

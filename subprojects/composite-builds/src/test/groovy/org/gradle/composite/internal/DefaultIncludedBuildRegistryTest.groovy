@@ -37,7 +37,6 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.ResilientModelBuildingFailureCollector
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeServices
 import org.gradle.internal.event.ListenerManager
@@ -91,7 +90,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         services.add(Stub(BuildModelParameters))
         services.add(Stub(GradleInternal))
         services.add(Stub(DocumentationRegistry))
-        services.add(new ResilientModelBuildingFailureCollector())
 
         _ * buildTree.services >> services
     }

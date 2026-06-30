@@ -43,6 +43,9 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildStateRegistry buildStateRegistry;
     private final BuildOperationRunner buildOperationRunner;
 
+    private final Object failuresLock = new Object();
+    private ResilientModelBuildingFailures resilientFailures = ResilientModelBuildingFailures.empty();
+
     public DefaultBuildTreeModelCreator(
         BuildState defaultTarget,
         IntermediateBuildActionRunner actionRunner,
@@ -67,6 +70,24 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         return action.fromBuildModel(new DefaultBuildTreeModelController());
     }
 
+    @Override
+    public ResilientModelBuildingFailures drainModelBuildingFailures() {
+        synchronized (failuresLock) {
+            ResilientModelBuildingFailures drained = resilientFailures;
+            resilientFailures = ResilientModelBuildingFailures.empty();
+            return drained;
+        }
+    }
+
+    private void accumulateBuildFailures(ResilientModelBuildingFailures failures) {
+        if (failures.isEmpty()) {
+            return;
+        }
+        synchronized (failuresLock) {
+            resilientFailures = resilientFailures.plus(failures);
+        }
+    }
+
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
         @Override
         public GradleInternal getConfiguredModel() {
@@ -82,10 +103,14 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public ToolingModelBuilderResultInternal call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
-                    return scope.getModel(modelRequestContext,
+                    ToolingModelBuilderResultInternal result = scope.getModel(modelRequestContext,
                         modelRequestContext.getParameter()
                             .map(parameterCarrierFactory::createCarrier)
                             .orElse(null));
+                    // Failures observed during resilient model building travel with the result; accumulate them here,
+                    // at the build-tree model boundary, so the build still fails when it finishes.
+                    accumulateBuildFailures(result.getBuildFailures());
+                    return result;
                 }
 
                 @Override

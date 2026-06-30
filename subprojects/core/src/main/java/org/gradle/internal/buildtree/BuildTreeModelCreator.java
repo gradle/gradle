@@ -26,4 +26,10 @@ public interface BuildTreeModelCreator {
 
     @Nullable
     <T> T fromBuildModel(BuildTreeModelAction<? extends T> action);
+
+    /**
+     * Returns the failures observed during resilient model building since the last call, and clears them. These are
+     * carried back with the model results and must fail the build, even though partial models were returned.
+     */
+    ResilientModelBuildingFailures drainModelBuildingFailures();
 }

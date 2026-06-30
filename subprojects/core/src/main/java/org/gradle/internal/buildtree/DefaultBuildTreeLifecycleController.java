@@ -86,7 +86,21 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             }
             // Allow model action to run even if tasks failed
             ExecutionResult<T> modelResult = runFromBuildModel(action);
-            return modelResult.withFailures(taskRunResult);
+
+            // Failures captured during resilient model building travel back with the model results. Fold them onto
+            // the execution result so they reach finishBuildTree through the normal failure channel. The "build
+            // already failing" check must use only the work/action failures, before the model builder failures below.
+            boolean buildAlreadyFailing = !taskRunResult.getFailures().isEmpty() || !modelResult.getFailures().isEmpty();
+            ResilientModelBuildingFailures resilientFailures = modelCreator.drainModelBuildingFailures();
+            modelResult = modelResult.withFailures(taskRunResult);
+            // Model builder failures are always propagated.
+            modelResult = modelResult.withFailures(ExecutionResult.maybeFailed(resilientFailures.getModelBuilderFailures()));
+            // Configuration failures are normally swallowed when no tasks run; propagate them unless the build is
+            // already failing because of the same configuration failure (e.g. tasks were requested and configuration failed).
+            if (!buildAlreadyFailing) {
+                modelResult = modelResult.withFailures(ExecutionResult.maybeFailed(resilientFailures.getConfigurationFailures()));
+            }
+            return modelResult;
         });
     }
 
