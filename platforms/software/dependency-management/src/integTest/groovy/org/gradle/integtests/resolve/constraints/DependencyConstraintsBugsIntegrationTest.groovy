@@ -202,4 +202,65 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
             }
         }
     }
+
+    def "throwing eachDependency rule on a coordinate carrying only a phantom constraint surfaces the rule's exception"() {
+        // Reproduces this scenario:
+        //   producer: declares a constraint on org:foo:1.1, but does not depend on org:foo
+        //   app: depends on producer and on org:foo:1.0; registers an eachDependency rule that throws
+        //        whenever it sees a non-1.1 version of org:foo
+        //
+        // The throwing rule fires on org:foo:1.0. Historically the rule's exception
+        // was swallowed and the build failed with a confusing internal error referencing the
+        // binary store and an EdgeState with no target component. The rule's own exception should
+        // be surfaced as the resolution failure cause.
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+
+        createDirs("producer", "app")
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'producer', 'app'
+        """
+
+        file("producer/build.gradle") << """
+            plugins { id 'java-library' }
+            dependencies {
+                constraints {
+                    api 'org:foo:1.1'
+                }
+            }
+        """
+
+        file("app/build.gradle") << """
+            plugins { id 'java' }
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            dependencies {
+                implementation project(':producer')
+                implementation 'org:foo:1.0'
+            }
+            configurations.all {
+                resolutionStrategy.eachDependency { details ->
+                    if (details.requested.group == 'org' && details.requested.name == 'foo'
+                        && !(details.requested.version ?: '').startsWith('1.1')) {
+                        throw new org.gradle.api.GradleException("enforced version check failed for foo:\${details.requested.version}")
+                    }
+                }
+            }
+            tasks.register('resolveRuntime') {
+                def files = configurations.runtimeClasspath
+                doLast { files.files }
+            }
+        """
+
+        when:
+        fails ':app:resolveRuntime'
+
+        then:
+        failure.assertHasCause("enforced version check failed for foo:1.0")
+        failure.assertHasNoCause("Problems writing to Binary store")
+        failure.assertHasNoCause("No target component for edge")
+    }
 }
