@@ -62,8 +62,10 @@ class KotlinScriptCacheCleanupIntegrationTest
         writeLastFileAccessTimeToJournal(outdatedScriptCache, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
 
         when: 'trigger first cleanup pass (soft delete)'
-        run '--stop' // ensure daemon does not cache file access times in memory
+        // Capture the baseline before '--stop': stopping the daemon closes the cache and can itself
+        // run the (already-due) cleanup, so the window must cover it, not just the 'run' below.
         def beforeSoftCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        run '--stop' // ensure daemon does not cache file access times in memory
         // start as new process so journal is not restored from in-memory cache
         run "run"
 
@@ -288,6 +290,46 @@ class KotlinScriptCacheCleanupIntegrationTest
 
         then: 'incremental compilation is healthy again rather than pinned to the slow path — ic-state is repopulated'
         icStates.every { it.directory && it.list().length > 0 }
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "needs a fresh daemon per build so BTA re-reads ic-state and outputs from disk rather than reusing in-memory state"
+    )
+    @UnsupportedWithConfigurationCache(because = "tests script compilation")
+    def "outputs left torn by an interrupted compile are discarded and rebuilt rather than copied into the workspace"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+        requireOwnGradleUserHomeDir("corrupts the IC cache")
+
+        and: 'seed incremental state: a cold compile then a recompile that records ic-state, so the next build would otherwise reach BTA "no work"'
+        buildKotlinFile.text = scriptPrinting("ok")
+        run 'run'
+        run '--stop'
+        buildKotlinFile.text = scriptPrinting("ok 2")
+        run 'run'
+
+        and: 'simulate a compile killed mid-emit: a surviving in-progress marker plus torn class files in the stable outputs'
+        List<TestFile> entries = realIcEntries()
+        assert !entries.isEmpty()
+        List<TestFile> markers = entries.collect { it.file('compile-in-progress') }
+        List<File> tornClasses = []
+        entries.collect { it.file('outputs') }.findAll { it.directory }.each {
+            it.eachFileRecurse(groovy.io.FileType.FILES) { f -> if (f.name.endsWith('.class')) { tornClasses << f } }
+        }
+        assert !tornClasses.isEmpty()
+        markers.each { it.createFile() }
+        tornClasses.each { it.bytes = [0, 1, 2, 3] as byte[] } // invalid bytecode
+
+        and: 'drop the published workspace so the next build must recompile instead of serving the good cached classes'
+        scriptCacheDir.deleteDir()
+
+        when: 'a fresh daemon recompiles the unchanged script: BTA would go "no work", but the marker forces a discard-and-rebuild'
+        run '--stop'
+
+        then: 'the torn classes never reach the workspace — the build succeeds and the marker is cleared'
+        succeeds 'run'
+        markers.every { !it.exists() }
     }
 
     private static String scriptPrinting(String message) {
