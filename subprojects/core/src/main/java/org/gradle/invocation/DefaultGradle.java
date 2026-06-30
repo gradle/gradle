@@ -101,6 +101,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private @Nullable ProjectState defaultProject;
     private boolean projectsLoaded;
 
+    @SuppressWarnings("this-escape")
     public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
         this.buildState = buildState;
         this.startParameter = startParameter;
@@ -281,11 +282,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public ProjectInternal getRootProject() {
-        // At the very least, verify we have the lock at the time of access.
-        // In most cases other Gradle implementations will wrap the project in mutable state checks.
-        // We should use `CrossProjectModelAccess` here too, and potentially remove alternative implementations of `Gradle.getRootProject()` in other Gradle implementations.
-        ProjectState rootProject = buildState.getRootProject();
-        return rootProject.runWithModelLock(rootProject::getMutableModel);
+        // It would be nice to assert that we have the lock here,
+        // but we need to ensure we pull an "all builds" lock in vintage mode where applicable first
+        return buildState.getRootProject().getMutableModel();
     }
 
     @Override

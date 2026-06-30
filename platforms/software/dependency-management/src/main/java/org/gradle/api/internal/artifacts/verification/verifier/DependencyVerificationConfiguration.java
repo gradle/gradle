@@ -182,10 +182,10 @@ public class DependencyVerificationConfiguration {
             if (!Objects.equals(version, that.version)) {
                 return false;
             }
-            if (!Objects.equals(fileName, that.fileName)) {
-                return false;
-            }
-            return Objects.equals(reason, that.reason);
+            // reason is intentionally excluded: it is informational metadata, not part of a
+            // trust entry's identity. Two entries with the same coordinates are the same trust
+            // rule regardless of their reason (or, for trusted keys, origin).
+            return Objects.equals(fileName, that.fileName);
         }
 
         @Override
@@ -195,7 +195,6 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + (version != null ? version.hashCode() : 0);
             result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
             result = 31 * result + (regex ? 1 : 0);
-            result = 31 * result + (reason != null ? reason.hashCode() : 0);
             return result;
         }
 
@@ -216,11 +215,7 @@ public class DependencyVerificationConfiguration {
             if (versionComparison != 0) {
                 return versionComparison;
             }
-            int fileNameComparison = compareNullableStrings(getFileName(), other.getFileName());
-            if (fileNameComparison != 0) {
-                return fileNameComparison;
-            }
-            return compareNullableStrings(getReason(), other.getReason());
+            return compareNullableStrings(getFileName(), other.getFileName());
         }
     }
 
@@ -237,9 +232,11 @@ public class DependencyVerificationConfiguration {
 
     public static class TrustedKey extends TrustCoordinates implements Comparable<TrustedKey> {
         private final String keyId;
+        private final String origin;
 
-        TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex, null);
+        TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
+            super(group, name, version, fileName, regex, reason);
+            this.origin = origin;
 
             // The key is 160 bits long, encoded in base32 (case-insensitive characters).
             //
@@ -257,6 +254,11 @@ public class DependencyVerificationConfiguration {
 
         public String getKeyId() {
             return keyId;
+        }
+
+        @Nullable
+        public String getOrigin() {
+            return origin;
         }
 
         @Override

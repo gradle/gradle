@@ -44,6 +44,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
 
     private final Transient.Var<MavenPublicationInternal> publication = varOf();
 
+    @SuppressWarnings("this-escape")
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
         getInputs().files((Callable<FileCollection>) () -> {

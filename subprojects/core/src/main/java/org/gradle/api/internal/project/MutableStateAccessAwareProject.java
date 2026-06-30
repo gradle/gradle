@@ -118,6 +118,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     protected final ProjectIdentity referrer;
     private final DynamicObject dynamicObject;
 
+    @SuppressWarnings("this-escape")
     protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectIdentity referrer) {
         this.delegate = delegate;
         this.referrer = referrer;
@@ -469,6 +470,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess("properties");
         return delegate.getProperties();
+    }
+
+    @Override
+    public Map<String, ? extends @Nullable Object> collectPropertiesInternal() {
+        return delegate.collectPropertiesInternal();
     }
 
     @Nullable

@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "can apply a transform to the outputs of included builds"() {
@@ -80,6 +82,7 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         output.count("Transforming") == 2
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "cross-build dependency with transform in another build"() {
         given:
         def buildB = multiProjectBuild('buildB', ['app', 'lib'])

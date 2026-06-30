@@ -20,6 +20,8 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.jspecify.annotations.Nullable;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Details about a service registration.
  */
@@ -27,11 +29,12 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     private final BuildIdentifier buildIdentifier;
     private final String name;
     private final Class<T> implementationType;
+    @Nullable
     private final P parameters;
     private final int maxUsages;
     private final boolean resolved;
 
-    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, @Nullable Integer maxUsages) {
+    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, P parameters, @Nullable Integer maxUsages) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;
@@ -62,7 +65,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     }
 
     public P getParameters() {
-        return parameters;
+        return requireNonNull(parameters, "parameters are not available for an unresolved service");
     }
 
     public int getMaxUsages() {

@@ -35,7 +35,7 @@ class GradleBuildIsolatedProjectsKotlinDslSmokeTest extends AbstractGradleceptio
         originalModel != null
 
         when:
-        def isolatedModel = fetchBuildTreeScriptsModels(runner, '-Dorg.gradle.unsafe.isolated-projects=true')
+        def isolatedModel = fetchBuildTreeScriptsModels(runner, '-Dorg.gradle.isolated-projects=true')
 
         then:
         isolatedModel != null

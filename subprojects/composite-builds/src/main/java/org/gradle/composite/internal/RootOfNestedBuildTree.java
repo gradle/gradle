@@ -50,6 +50,7 @@ import org.gradle.util.Path;
 import java.util.Set;
 import java.util.function.Function;
 
+@SuppressWarnings("this-escape")
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
 
     private final Path identityPath;

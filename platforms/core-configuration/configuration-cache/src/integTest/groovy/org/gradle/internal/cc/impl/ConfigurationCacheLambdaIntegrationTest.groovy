@@ -382,4 +382,65 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         then:
         outputContains("some value")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/22920")
+    def "report identifies #kind by impl method when it appears in property trace"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import java.util.function.Supplier;
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+                    private Supplier<String> supplier;
+
+                    public void setSupplier(Supplier<String> supplier) {
+                        this.supplier = supplier;
+                    }
+
+                    public void captureProject() {
+                        Project p = getProject();
+                        setSupplier(() -> "project name is " + p.getName());
+                    }
+
+                    public void captureProjectBoundRef() {
+                        Project p = getProject();
+                        setSupplier(p::getName);
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("supplier -> " + supplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                ${setupCall}()
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        problems.htmlReport(failure.error).assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.") {
+                at(":ok").at("supplier").at("lambda of type java.util.function.Supplier returning java.lang.String").at(expectedCapturedArgs)
+            }
+            ignoringUnexpectedInputs()
+        }
+
+        where:
+        kind               | setupCall                | expectedCapturedArgs
+        "lambda body"      | "captureProject"         | "captured state from method my.LambdaTask.captureProject"
+        "bound method ref" | "captureProjectBoundRef" | "bound receiver of method org.gradle.api.Project.getName"
+    }
 }

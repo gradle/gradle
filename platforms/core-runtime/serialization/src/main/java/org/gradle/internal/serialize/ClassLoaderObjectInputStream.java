@@ -62,6 +62,7 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
      */
     public static class UnsupportedClassVersionErrorWithJavaVersion extends UnsupportedClassVersionError  {
         private final JavaVersion version;
+        @SuppressWarnings("this-escape")
         public UnsupportedClassVersionErrorWithJavaVersion(UnsupportedClassVersionError cause, JavaVersion version) {
             super(cause.getMessage());
             initCause(cause);

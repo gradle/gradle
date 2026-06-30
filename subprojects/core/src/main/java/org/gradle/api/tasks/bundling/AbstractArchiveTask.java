@@ -17,6 +17,7 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -30,6 +31,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -57,6 +59,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
+    @SuppressWarnings("this-escape")
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
 
@@ -240,9 +243,30 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Specifies the reproducible file timestamp used for each entry in the archive in milliseconds from the epoch of 1970-01-01T00:00:00Z.
+     * <p>
+     * If not set, then each archive entry will use the value as determined by the <code>preserveFileTimestamps</code> property.
+     * If set, then each archive entry will use the reproducible file timestamp.
+     * If set, the <code>preserveFileTimestamps</code> property must be <code>false</code> (the default value), otherwise the task fails.
+     * <p>
+     * Each archive format has a minimum supported timestamp, and smaller values are raised to that minimum:
+     * 1980-02-01 00:00 for ZIP archives and 1970-01-02T00:00:00Z for TAR archives.
+     *
+     * @return the reproducible file timestamp used for each entry in the archive
+     * @since 9.7.0
+     */
+    @Incubating
+    @Input
+    @Optional
+    public abstract Property<Long> getReproducibleFileTimestamp();
+
+    /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
      * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * </p>
+     * <p>
+     * Gradle defaults to <code>false</code> if not set explictly starting Gradle 9.0.0
      * </p>
      *
      * @return <code>true</code> if file timestamps should be preserved for archive entries
@@ -259,6 +283,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * <p>
      * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
+     * <p>
+     * Gradle defaults to <code>false</code> if not set explictly starting Gradle 9.0.0
+     * </p>
      *
      * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
@@ -273,6 +300,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
      * independent of file systems and operating systems.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     * <p>
+     * Gradle defaults to <code>true</code> if not set explictly starting Gradle 9.0.0
      * </p>
      *
      * @return <code>true</code> if the files should read from disk in a reproducible order.
@@ -290,6 +320,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
      * independent of file systems and operating systems.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     * <p>
+     * Gradle defaults to <code>true</code> if not set explictly starting Gradle 9.0.0
      * </p>
      *
      * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.

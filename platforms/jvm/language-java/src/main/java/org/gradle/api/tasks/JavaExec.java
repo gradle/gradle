@@ -125,6 +125,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
 
+    @SuppressWarnings("this-escape")
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);

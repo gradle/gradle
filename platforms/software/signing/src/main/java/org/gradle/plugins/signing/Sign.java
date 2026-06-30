@@ -28,8 +28,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -70,6 +74,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * <p>The task produces {@link Signature}</p> objects that are publishable artifacts and can be assigned to another configuration. <p> The signature objects are created with defaults and using this
  * tasks signatory and signature type.
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class Sign extends DefaultTask implements SignatureSpec {
 
@@ -95,11 +100,18 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
         return getSignatures().stream();
     }
 
+    @SuppressWarnings("this-escape")
     @Inject
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
     }
+
+    @Inject
+    protected abstract Problems getProblems();
+
+    @Inject
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     /**
      * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks).
@@ -228,7 +240,21 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @TaskAction
     public void generate() {
         if (getSignatory() == null) {
-            throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
+            ProblemId problemId = ProblemId.create(
+                "no-configured-signatory",
+                "No configured signatory",
+                GradleCoreProblemGroup.packaging().signing()
+            );
+            throw getProblems().getReporter().throwing(
+                new InvalidUserDataException(),
+                problemId,
+                spec -> spec
+                    .contextualLabel("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory")
+                    .details("A signatory holds the PGP key used to sign artifacts. "
+                        + "It must be configured in the \'signing {}\' block before signing tasks can run.")
+                    .solution("Configure a signatory in the \'signing {}\' block.")
+                    .documentedAt(getDocumentationRegistry().getDocumentationFor("signing_plugin"))
+            );
         }
 
         for (Signature.Generator signature : sanitizedGenerators().values()) {

@@ -17,9 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.TextUtil
@@ -27,7 +27,6 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -305,8 +304,9 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @ToBeFixedForConfigurationCache(
-        skip = FLAKY,
-        because = "Due to extra parallelism with cc missing dependencies detection can be flaky. See https://github.com/gradle/gradle/issues/27576"
+        issue = "https://github.com/gradle/gradle/issues/27576",
+        because = "Due to extra parallelism with cc missing dependencies detection can be flaky",
+        skipBecause = "flaky"
     )
     def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
@@ -570,9 +570,14 @@ The following types/formats are supported:
         when:
         fails "broken"
         then:
-        executedAndNotSkipped ":broken"
-        failureDescriptionContains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
-        failureCauseContains(cause)
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache state could not be cached")
+            failureCauseContains(cause)
+        } else {
+            executedAndNotSkipped ":broken"
+            failureDescriptionContains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+            failureCauseContains(cause)
+        }
     }
 
     def "detects missing dependency when executed in #firstTask -> #secondTask order"() {

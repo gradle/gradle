@@ -28,7 +28,6 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
@@ -62,6 +61,7 @@ import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
@@ -109,7 +109,6 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.jspecify.annotations.Nullable;
-
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
@@ -132,14 +131,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * The default {@link Configuration} implementation.
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"this-escape", "rawtypes"})
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private final ConfigurationResolver resolver;
     private final DefaultDependencySet dependencies;
@@ -227,7 +225,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        PublishArtifactNotationParser artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -571,6 +569,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private class ConfigurationResolutionAccess implements ResolutionAccess {
+
+        @Override
+        public Path getIdentityPath() {
+            return identityPath;
+        }
 
         @Override
         public ResolutionHost getHost() {

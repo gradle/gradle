@@ -32,7 +32,9 @@ public interface ProblemDiagnosticsFactory {
     ProblemStream newStream();
 
     /**
-     * Creates a new stream of problems without any limits.
+     * Creates a stream that caps full stack-trace captures like {@link #newStream()} but applies no limit to
+     * the cheaper bounded location captures past that cap, so every problem still gets a location. Used for
+     * {@code --warning-mode=all} and {@code --warning-mode=fail}.
      */
     ProblemStream newUnlimitedStream();
 

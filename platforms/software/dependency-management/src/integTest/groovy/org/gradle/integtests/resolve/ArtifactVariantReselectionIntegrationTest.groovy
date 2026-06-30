@@ -164,6 +164,95 @@ class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec 
         succeeds(":resolve")
     }
 
+    def "withVariantReselection does not follow available-at pointers, since variant reselection picks variants only from components already in the graph"() {
+        // 'foo:a:1.0' has an "original" variant with its own file and a "reselected" variant
+        // that delegates (via available-at) to 'foo:a-reselected:1.0'.
+        // 'foo:b:1.0' has two variants, both with their own files.
+        //
+        // A configuration whose request attributes already select the "reselected" variant
+        // triggers full graph resolution. Graph resolution follows the available-at pointer,
+        // adding foo:a-reselected:1.0 to the graph; that component's artifact appears in the
+        // result.
+        //
+        // An ArtifactView built on a configuration that requested the "original" variant and
+        // reselects via withVariantReselection() does NOT re-run graph resolution. It picks a
+        // different variant of each component already in the graph. The "reselected" variant of
+        // foo:a:1.0 is an external variant with no files of its own; since reselection cannot
+        // follow the available-at pointer, foo:a-reselected:1.0 never enters the result and the
+        // view returns only foo:b:1.0's reselected artifact.
+        given:
+        mavenRepo.module("foo", "a", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("originalElements", [attr: "original"]) {
+                artifact("a-1.0.jar")
+            }
+            .variant("reselectedElements", [attr: "reselected"]) {
+                availableAt("../../a-reselected/1.0/a-reselected-1.0.module", "foo", "a-reselected", "1.0")
+            }
+            .publish()
+
+        mavenRepo.module("foo", "a-reselected", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("reselectedElements", [attr: "reselected"]) {
+                artifact("a-reselected-1.0.jar")
+            }
+            .publish()
+
+        mavenRepo.module("foo", "b", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("originalElements", [attr: "original"]) {
+                artifact("b-1.0.jar")
+            }
+            .variant("reselectedElements", [attr: "reselected"]) {
+                artifact("b-1.0.jar")
+            }
+            .publish()
+
+        buildFile << """
+            def attr = Attribute.of("attr", String)
+
+            repositories { maven { url = "${mavenRepo.uri}" } }
+
+            configurations {
+                originalDependency {
+                    canBeConsumed = false
+                    attributes { attribute(attr, "original") }
+                }
+                reselectedDependency {
+                    canBeConsumed = false
+                    attributes { attribute(attr, "reselected") }
+                }
+            }
+
+            dependencies {
+                originalDependency "foo:a:1.0"
+                originalDependency "foo:b:1.0"
+                reselectedDependency "foo:a:1.0"
+                reselectedDependency "foo:b:1.0"
+            }
+
+            task resolve {
+                def reselectedConfFiles = configurations.reselectedDependency.incoming.files
+                def reselectedViewFiles = configurations.originalDependency.incoming.artifactView {
+                    withVariantReselection()
+                    attributes { attribute(attr, "reselected") }
+                }.files
+                doLast {
+                    // Full graph resolution follows the available-at pointer.
+                    assert reselectedConfFiles*.name.toSet() == ["a-reselected-1.0.jar", "b-1.0.jar"].toSet()
+                    // Variant reselection does not: the foo:a-reselected:1.0 artifact is absent.
+                    assert reselectedViewFiles*.name.toSet() == ["b-1.0.jar"].toSet()
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+    }
+
     private static String multiFeatureProducer() {
         """
             plugins {

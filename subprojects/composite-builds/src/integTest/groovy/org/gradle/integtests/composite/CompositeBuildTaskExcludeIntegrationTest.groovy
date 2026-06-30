@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTaskExecutionIntegrationTest {
@@ -91,6 +92,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can exclude tasks from an included build"() {
         expect:
         2.times {
@@ -105,6 +107,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can exclude tasks using pattern matching"() {
         expect:
         2.times {
@@ -119,6 +122,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "excluding a task from a root project does not affect included task with same path"() {
         when:
         succeeds("build", "-x", ":sub:test")
@@ -128,6 +132,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         result.assertTasksNotScheduled(":sub:test")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "cannot use unqualified task paths to exclude tasks from included build roots"() {
         when:
         run("build", "-x", "test")
@@ -138,6 +143,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         result.assertTasksNotScheduled(":sub:test")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "cannot use unqualified task paths to exclude tasks from included build subproject"() {
         when:
         run("build", "-x", "sub:test")
@@ -147,6 +153,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         result.assertTasksNotScheduled(":sub:test")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can exclude task from main build when root build uses project plugin from included build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
@@ -191,6 +198,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can exclude task from included build that produces a project plugin used from root build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
@@ -211,6 +219,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can exclude task from included build that is a dependency of the root build and also produces a project plugin used from root build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
@@ -236,6 +245,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21708")
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "can exclude task from included build that requires a project plugin from another build"() {
         setup:
         settingsFile << """
@@ -259,6 +269,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24341")
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can exclude task with included build that in turn includes a build for convention plugins"() {
         setup:
         file('included/settings.gradle').text = """

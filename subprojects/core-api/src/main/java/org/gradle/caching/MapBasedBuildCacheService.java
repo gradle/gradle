@@ -16,10 +16,11 @@
 
 package org.gradle.caching;
 
-import org.gradle.internal.io.StreamByteBuffer;
+import com.google.common.io.ByteStreams;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -50,13 +51,14 @@ public class MapBasedBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter output) throws BuildCacheException {
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        try {
-            output.writeTo(buffer.getOutputStream());
+        byte[] data;
+        try (InputStream is = output.getInputStream()){
+            data = ByteStreams.toByteArray(is);
         } catch (IOException e) {
             throw new BuildCacheException("storing " + key, e);
         }
-        delegate.put(key.getHashCode(), buffer.readAsByteArray());
+
+        delegate.put(key.getHashCode(), data);
     }
 
     @Override

@@ -66,6 +66,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;
@@ -311,6 +312,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             providerInternal = defaultListProperty;
         }
         store.addPendingCollection(providerInternal);
+    }
+
+    @Override
+    public Provider<? extends Collection<T>> getElements() {
+        return store.getElements();
     }
 
     protected void didAdd(T toAdd) {

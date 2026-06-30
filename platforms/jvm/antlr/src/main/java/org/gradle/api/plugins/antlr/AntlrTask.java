@@ -65,6 +65,7 @@ import java.util.concurrent.Callable;
 /**
  * Generates parsers from Antlr grammars.
  */
+@SuppressWarnings("this-escape")
 @NullMarked
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {

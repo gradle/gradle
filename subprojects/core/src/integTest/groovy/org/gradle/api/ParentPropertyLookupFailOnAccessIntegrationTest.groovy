@@ -80,22 +80,39 @@ class ParentPropertyLookupFailOnAccessIntegrationTest extends AbstractIntegratio
             println getProperty('foo')
             println hasProperty('foo')
             println fooMethod()
+            println project.hasProperty('foo')
+            println project.getProperty('foo')
         """)
-        5.times {
-            executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Property 'foo' was not declared in project ':child' and was resolved from root project 'root'. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+        // `println foo`, `getProperty('foo')`, `hasProperty('foo')` reach the dynamic-object path
+        // without explicit caller context, so they emit the implicit-access message.
+        3.times {
+            expectParentLookupDeprecation('property', 'foo', null)
         }
-        executer.expectDocumentedDeprecationWarning("Implicitly resolving methods in the project hierarchy has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Method 'fooMethod' was not declared in project ':child' and was resolved from root project 'root'. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+        // `findProperty('foo')` and `property('foo')` are wired with explicit caller context, which
+        // is surfaced in the deprecation context (the action itself stays stable for Develocity).
+        ['findProperty', 'property'].each { api ->
+            expectParentLookupDeprecation('property', 'foo', "${api}()")
+        }
+        // `project.getProperty('foo')` and `project.hasProperty('foo')` route to the Project rather
+        // than the script, so they too carry explicit caller context.
+        ['hasProperty', 'getProperty'].each { api ->
+            expectParentLookupDeprecation('property', 'foo', "${api}()")
+        }
+        expectParentLookupDeprecation('method', 'fooMethod', null)
 
         expect:
         succeeds "help"
+    }
+
+    private void expectParentLookupDeprecation(String memberKind, String memberName, String initiatedBy) {
+        def plural = memberKind == 'property' ? 'properties' : 'methods'
+        def origin = initiatedBy ? "'${initiatedBy}'" : "a dynamic invocation in the build script"
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of ${plural} in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "${memberKind.capitalize()} '${memberName}' was not declared in project ':child' and was resolved from root project 'root'. " +
+            "This lookup was initiated by ${origin}. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
     }
 
     def "succeeds when child defines the property locally even with flag set"() {

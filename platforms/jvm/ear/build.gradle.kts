@@ -12,18 +12,17 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.languageJvm)
-    api(projects.modelCore)
     api(projects.platformJvm)
 
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)
     implementation(projects.fileOperations)
-    implementation(projects.dependencyManagement)
     implementation(projects.execution)
     implementation(projects.fileCollections)
     implementation(projects.languageJava)
     implementation(projects.logging)
+    implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
@@ -58,6 +57,4 @@ strictCompile {
 packageCycles {
     excludePatterns.add("org/gradle/plugins/ear/internal/*")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

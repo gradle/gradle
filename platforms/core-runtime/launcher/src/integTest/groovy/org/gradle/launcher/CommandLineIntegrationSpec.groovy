@@ -116,7 +116,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
 
-        def jdwpHost = nonLoopbackAddress()
+        def jdwpHost = JDWPUtil.nonLoopbackAddress()
         Assume.assumeNotNull(jdwpHost)
         jdwpClient.host = jdwpHost
 
@@ -152,7 +152,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
 
-        def address = nonLoopbackAddress()
+        def address = JDWPUtil.nonLoopbackAddress()
         Assume.assumeNotNull(address)
         jdwpClient.host = address
 
@@ -168,16 +168,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         cleanup:
         jdwpClient.close()
-    }
-
-    private static String nonLoopbackAddress() {
-        println("Looking at network interfaces")
-        def address = Collections.list(NetworkInterface.getNetworkInterfaces())
-            .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
-            .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
-            .hostAddress
-        println("using address=$address")
-        return address
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')

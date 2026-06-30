@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -172,8 +174,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             lock.unlock();
         }
 
-        // Need to wait for work to complete, so release worker lease while waiting
-        workerLeases.blocking(() -> {
+        // Need to wait for work to complete, so release worker lease while waiting.
+        // Keep the project lock while waiting unless this queue's operations are allowed to
+        // change project locks themselves; lending it out otherwise risks deadlock (see
+        // withProjectLockChangePolicy).
+        withProjectLockChangePolicy(Factories.toFactory(() -> workerLeases.blocking(() -> {
             lock.lock();
             try {
                 // Wait for any work still running in other threads
@@ -189,7 +194,21 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             } finally {
                 lock.unlock();
             }
-        });
+        })));
+    }
+
+    /**
+     * Runs the given work, disallowing changes to the set of project locks held by the current
+     * thread unless this queue's operations are allowed to access project state.
+     *
+     * <p>See <a href="https://github.com/gradle/gradle/issues/38154">gradle/gradle#38154</a> and
+     * {@link org.gradle.internal.resources.ProjectLeaseRegistry#whileDisallowingProjectLockChanges}.
+     */
+    private <R> R withProjectLockChangePolicy(Factory<R> factory) {
+        if (allowAccessToProjectState) {
+            return factory.create();
+        }
+        return workerLeases.whileDisallowingProjectLockChanges(factory);
     }
 
     private void markFinished() {
@@ -252,7 +271,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 } catch (Throwable t) {
                     addFailure(t);
                 } finally {
-                    invalidateIfNeeded();
+                    if (token != null) {
+                        lock.lock();
+                        try {
+                            token.invalidateIfNeeded();
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
                 }
             });
         }
@@ -291,10 +317,16 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             if (queueState != QueueState.Working && helper.isQueueEmpty()) {
                 return true;
             }
-            if (helper.isExtraWorker()) {
-                if (token != null) {
-                    token.invalidateIfNeeded();
-                }
+            return tryRetireIfExtraWorker();
+        }
+
+        @GuardedBy("lock")
+        private boolean tryRetireIfExtraWorker() {
+            // The main thread (token == null) never retires: it's the only worker guaranteed to run,
+            // so it must keep draining in case no spawned worker ever starts.
+            if (token != null && helper.isExtraWorker()) {
+                // Invalidate now so the worker count drops immediately, not when runOperations() ends.
+                token.invalidateIfNeeded();
                 return true;
             }
             return false;
@@ -343,21 +375,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private int executePendingWork() {
-            if (allowAccessToProjectState) {
-                return doRunBatch();
-            } else {
-                // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
-                // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
-                // holds without causing a deadlock. This in turn implies that this thread does not need to release the project locks it holds while
-                // blocking waiting for an operation to complete and does not need to deal with another thread stealing its project lock(s) while blocking.
-                //
-                // Eventually, this should become the default and only behaviour for all worker threads and changes to locks made only when starting or
-                // finishing an execution node. Adding this constraint here means that we can make all build operation queue workers compliant with this
-                // constraint and then gradually roll this out to other worker threads, such as task action workers.
-                //
-                // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
-                return workerLeases.whileDisallowingProjectLockChanges(this::doRunBatch);
-            }
+            return withProjectLockChangePolicy(this::doRunBatch);
         }
 
         /**
@@ -374,9 +392,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 T operation;
                 lock.lock();
                 try {
-                    if (helper.isExtraWorker()) {
-                        // We should exit, immediately invalidate our token to ensure the count goes down now.
-                        invalidateIfNeeded();
+                    if (tryRetireIfExtraWorker()) {
                         break;
                     }
                     operation = helper.pollWork();
@@ -403,15 +419,5 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
-        private void invalidateIfNeeded() {
-            lock.lock();
-            try {
-                if (token != null) {
-                    token.invalidateIfNeeded();
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
     }
 }

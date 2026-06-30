@@ -16,7 +16,7 @@
 import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import gradlebuild.AbstractBuildScanInfoCollectingService
 import gradlebuild.registerBuildScanInfoCollectingService
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskOperationResult
 import java.io.Serializable

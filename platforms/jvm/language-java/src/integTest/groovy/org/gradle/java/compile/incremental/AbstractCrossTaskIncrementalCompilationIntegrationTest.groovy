@@ -18,8 +18,10 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
+@ToBeFixedForIsolatedProjects(because = "subprojects/allprojects, configure projects from root")
 abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
 
     def "detects change to dependency and ensures class dependency info refreshed"() {

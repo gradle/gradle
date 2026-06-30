@@ -144,7 +144,7 @@ See <<best_practices_general.adoc#do_not_use_gradle_properties_in_subprojects,ou
 
 Project properties are specific to your Gradle project, they can be used to customize your build.
 Project properties can be accessed in your build files and get passed in from an external source when your build is executed.
-Project properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.gradleProperty()`.
+Project properties can be retrieved in build scripts lazily using `providers.gradleProperty()`.
 
 [[setting_a_project_property]]
 === Setting a project property
@@ -258,7 +258,7 @@ The command line interface and the available flags are described in <<command_li
 == System properties
 
 System properties are variables set at the JVM level and accessible to the Gradle build process.
-System properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.systemProperty()`.
+System properties can be retrieved in build scripts lazily using `providers.systemProperty()`.
 
 [[setting_a_system_property]]
 === Setting a system property
@@ -381,6 +381,11 @@ Customize <<command_line_interface.adoc#sec:command_line_logging,console output>
 +
 _Default depends on how Gradle is invoked._
 
+`org.gradle.console.interactive=(true,false)` incubating-label:[]::
+When set to `false`, Gradle does not prompt the user for input on the console and uses default values instead. This is useful for automated environments such as CI pipelines, scripts, and AI agents.
++
+_Default is `true`._
+
 `org.gradle.continue=(true,false)`::
 If enabled, continue task execution after a task failure, else stop task execution after a task failure.
 +
@@ -477,15 +482,24 @@ An explicit value will override `org.gradle.parallel` in this context.
 +
 _Default is the value of `org.gradle.parallel`._
 
-`org.gradle.unsafe.isolated-projects=(true,false)`::
+`org.gradle.isolated-projects=(true,false)` since-gradle-label:9.7.0[]::
 
-Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
+Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, which configures projects in parallel and implies enabling the Configuration Cache.
 +
 _Default is `false`._
 
-`org.gradle.unsafe.isolated-projects.diagnostics=(true,false)`  since-gradle-label:9.6.0[]::
+`org.gradle.isolated-projects.diagnostics=(true,false)` since-gradle-label:9.7.0[]::
 
 Enables <<isolated_projects.adoc#sec:diagnostics_mode,Diagnostics mode>> for Isolated Projects, which runs project configuration sequentially to surface violations across all projects in a deterministic manner.
+Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
++
+_Default is `false`._
+
+`org.gradle.isolated-projects.dangerously-ignore-problems=(true,false)` since-gradle-label:9.7.0[]::
+
+Ignores <<isolated_projects.adoc#sec:dangerously_ignore_problems,Isolated Projects violations>> so that a parallel build or sync can be timed to estimate the speedup before violations are fixed.
+Violations are still reported but do not fail the build.
+Build outputs may be incorrect.
 Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
 +
 _Default is `false`._
@@ -516,7 +530,7 @@ _Default is the number of CPU processors._
 == Environment variables
 
 Gradle provides a number of environment variables, which are listed below.
-Environment variables can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.environmentVariable()`.
+Environment variables can be retrieved in build scripts lazily using `providers.environmentVariable()`.
 
 [[setting_environment_variables]]
 === Setting environment variables

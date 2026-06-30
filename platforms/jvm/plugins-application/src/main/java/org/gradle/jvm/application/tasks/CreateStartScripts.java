@@ -143,6 +143,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
+    @SuppressWarnings("this-escape")
     public CreateStartScripts() {
         getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
@@ -265,6 +266,7 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     public void setOutputDir(@Nullable File outputDir) {
         getOutputDirectory().set(outputDir);
+        getOutputDirectory().convention(getObjectFactory().directoryProperty().fileValue(outputDir));
     }
 
     /**

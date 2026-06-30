@@ -105,7 +105,7 @@ Instead, prefer declaring dependencies on an external repository, or if necessar
 
 image::dependency-management-file-dependencies.png[]
 
-File dependencies are unique because they represent a direct reference to files on the filesystem without any associated <<glossary.adoc#sub:terminology_module_metadata,metadata>>, such as transitive dependencies, origin, or author information.
+File dependencies are unique because they represent a direct reference to files on the filesystem without any associated metadata, such as transitive dependencies, origin, or author information.
 
 ====
 include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]

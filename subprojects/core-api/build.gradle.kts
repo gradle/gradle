@@ -33,7 +33,6 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServicesGroovy)
-    implementation(projects.io)
     implementation(projects.logging)
 
     implementation(libs.ant)
@@ -73,6 +72,4 @@ strictCompile {
 // AutoTestedSamplesCoreApiIntegrationTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
 integTest.generateDefaultAutoTestedSamplesTest = false
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

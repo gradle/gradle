@@ -60,6 +60,7 @@ public interface ResolverResults {
      *     <li>{@link org.gradle.api.artifacts.Configuration#fileCollection(Spec)} and related methods</li>
      * </ul>
      */
+    @SuppressWarnings("InvalidLink")
     interface LegacyResolverResults {
 
         /**

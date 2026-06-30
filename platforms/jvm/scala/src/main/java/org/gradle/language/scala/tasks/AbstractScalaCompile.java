@@ -80,6 +80,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      *
      * @since 7.6
      */
+    @SuppressWarnings("this-escape")
     @Incubating
     protected AbstractScalaCompile() {
         ObjectFactory objectFactory = getObjectFactory();

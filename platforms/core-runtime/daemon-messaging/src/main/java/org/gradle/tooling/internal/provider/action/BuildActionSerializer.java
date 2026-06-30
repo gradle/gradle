@@ -157,6 +157,7 @@ public class BuildActionSerializer {
             encoder.writeNullableString(startParameter.getConfigurationCacheHeapDumpDir());
             encoder.writeBoolean(startParameter.isConfigurationCacheFineGrainedPropertyTracking());
             encoder.writeBoolean(startParameter.isIsolatedProjectsDiagnostics());
+            encoder.writeBoolean(startParameter.isIsolatedProjectsDangerouslyIgnoreProblems());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
@@ -175,7 +176,7 @@ public class BuildActionSerializer {
             valueSerializer.write(encoder, startParameter.getParallelToolingModelBuilding());
             encoder.writeNullableString(startParameter.getDevelocityUrl());
             encoder.writeNullableString(startParameter.getDevelocityPluginVersion());
-            encoder.writeBoolean(startParameter.isNonInteractive());
+            encoder.writeBoolean(startParameter.isInteractive());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -258,6 +259,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheHeapDumpDir(decoder.readNullableString());
             startParameter.setConfigurationCacheFineGrainedPropertyTracking(decoder.readBoolean());
             startParameter.setIsolatedProjectsDiagnostics(decoder.readBoolean());
+            startParameter.setIsolatedProjectsDangerouslyIgnoreProblems(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
@@ -279,7 +281,7 @@ public class BuildActionSerializer {
             startParameter.setParallelToolingModelBuilding(valueSerializer.read(decoder));
             startParameter.setDevelocityUrl(decoder.readNullableString());
             startParameter.setDevelocityPluginVersion(decoder.readNullableString());
-            startParameter.setNonInteractive(decoder.readBoolean());
+            startParameter.setInteractive(decoder.readBoolean());
 
             return startParameter;
         }

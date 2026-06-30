@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 import spock.lang.Issue
 
@@ -107,6 +108,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         failure.assertHasFailures(2)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "tasks that complete without output do not break up other task output"() {
         server.start()
 

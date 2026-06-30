@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
 
@@ -514,6 +515,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     }
 
     @Issue('https://github.com/gradle/gradle/issues/29147')
+    @ToBeFixedForIsolatedProjects(because = "cross-project file access")
     def "can connect transformed incoming elements of a configuration to task input ListProperty"() {
         withZipArtifactProducingSubprojects 'p1', 'p2'
         withIdentityTransform()
@@ -561,6 +563,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     }
 
     @Issue('https://github.com/gradle/gradle/issues/29147')
+    @ToBeFixedForIsolatedProjects(because = "cross-project file access")
     def "can connect transformed incoming files of a configuration to task input ListProperty"() {
         withZipArtifactProducingSubprojects 'p1', 'p2'
         withIdentityTransform()

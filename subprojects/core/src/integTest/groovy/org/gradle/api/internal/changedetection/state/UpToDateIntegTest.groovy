@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -194,7 +194,10 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         type << ["dir", "file"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "TaskExecutionGraph.beforeTask, https://github.com/gradle/gradle/issues/36700")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/36700",
+        because = "TaskExecutionGraph.beforeTask"
+    )
     @Issue("https://github.com/gradle/gradle/issues/15397")
     def "can add a file input in a task execution listener"() {
         buildFile << """

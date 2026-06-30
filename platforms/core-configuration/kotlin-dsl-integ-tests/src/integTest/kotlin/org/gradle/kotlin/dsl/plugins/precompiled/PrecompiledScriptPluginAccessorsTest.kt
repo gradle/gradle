@@ -53,11 +53,13 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import spock.lang.Issue
 import java.io.File
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
+    @ToBeFixedForIsolatedProjects(because = "precompiled script plugins cross-project")
     @Test
     fun `cannot use type-safe accessors for extensions contributed in afterEvaluate`() {
         withFolders {
@@ -104,7 +106,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         buildAndFail("compileKotlin").apply {
             assertHasCause("Compilation error.")
-            assertHasErrorOutput("Unresolved reference 'after'.")
+            assertOutputContainsPattern("""Unresolved reference 'after'\.\s+Location: .*?consumer\.plugin\.gradle\.kts line 4""")
         }
     }
 

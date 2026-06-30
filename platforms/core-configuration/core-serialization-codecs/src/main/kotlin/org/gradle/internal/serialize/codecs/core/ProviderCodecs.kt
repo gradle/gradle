@@ -67,7 +67,9 @@ import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.serviceOf
+import org.gradle.internal.serialize.graph.withCodec
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
@@ -188,7 +190,7 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     override suspend fun ReadContext.decode(): RegisteredFlowAction {
         val flowActionClass = readClassOf<FlowAction<FlowParameters>>()
         withFlowActionIsolate(flowActionClass, verifiedIsolateOwner()) {
-            return RegisteredFlowAction(flowActionClass, read()?.uncheckedCast())
+            return RegisteredFlowAction(flowActionClass, readNonNull())
         }
     }
 
@@ -253,7 +255,7 @@ class BuildServiceProviderCodec(
             val implementationType = readClassOf<BuildService<*>>()
             val isResolved = readBoolean()
             if (isResolved) {
-                val parameters = read() as BuildServiceParameters?
+                val parameters = readNonNull<BuildServiceParameters>()
                 val maxUsages = readInt()
                 buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
@@ -279,8 +281,14 @@ object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
         }.uncheckedCast()
 }
 
-
-object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
+/**
+ * @param newUserTypeCodecs Creates an independent set of user-type codecs to decode ValueSource params
+ * in a nested decoding session.
+ * Decoding the parameters must not end up suspending, because it is triggered from synchronous Java code.
+ */
+class ValueSourceProviderCodec(
+    private val newUserTypeCodecs: () -> Codec<Any?>
+) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
         writeSharedObject(value) {
@@ -313,13 +321,9 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
         // TODO:configuration-cache `encodePreservingSharedIdentityOf` should be unnecessary for shared objects
         encodePreservingSharedIdentityOf(value) {
             value.run {
-                val hasParameters = parametersType != null
                 writeClass(valueSourceType)
-                writeBoolean(hasParameters)
-                if (hasParameters) {
-                    writeClass(parametersType as Class<*>)
-                    write(parameters)
-                }
+                writeClass(parametersType as Class<*>)
+                write(parameters)
             }
         }
     }
@@ -327,19 +331,28 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
     private
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         // TODO:configuration-cache `decodePreservingSharedIdentity` should be unnecessary for shared objects
-        decodePreservingSharedIdentity {
+        decodePreservingIdentity(sharedIdentities) { id ->
             val valueSourceType = readClass()
-            val hasParameters = readBoolean()
-            val parametersType = if (hasParameters) readClass() else null
-            val parameters = if (hasParameters) read()!! else null
+            val parametersType = readClass()
 
+            val readContext = this
             val valueSourceProviderFactory = isolate.owner.serviceOf<ValueSourceProviderFactory>()
-            val provider =
-                valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
-                    valueSourceType.uncheckedCast(),
-                    parametersType?.uncheckedCast(),
-                    parameters?.uncheckedCast()
-                )
+            val provider = valueSourceProviderFactory.instantiateValueSourceProviderForDeserialization<Any, ValueSourceParameters>(
+                valueSourceType.uncheckedCast(),
+                parametersType.uncheckedCast()
+            ) { providerInstance ->
+                readContext.runReadOperation {
+                    sharedIdentities.putInstance(id, providerInstance)
+                    // The shared codec set wraps BeanCodec in a stateful `reentrant` codec that suspends
+                    // on a nested decode while an outer decode is still in progress, e.g. when this value
+                    // source's parameters reference another value source.
+                    // Decoding through a fresh codec set gives the `reentrant` wrapper clean state
+                    // so it can unfold its trampoline to completion within the nested coroutine.
+                    withCodec(newUserTypeCodecs()) {
+                        read()!!.uncheckedCast()
+                    }
+                }
+            }
             provider.uncheckedCast()
         }
 }

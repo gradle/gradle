@@ -4,11 +4,11 @@ ant = "1.10.17!!"
 awsS3 = "1.12.780!!"
 bouncycastle = "1.84!!"
 commonsCodec = "1.18.0!!"
-commonsCompress = "1.26.1!!"
+commonsCompress = "1.28.0!!"
 commonsHttpclient = "4.5.14!!"
-commonsIo = "2.15.1!!"
+commonsIo = "2.20.0!!"
 commonsLang = "3.20.0!!"
-configurationCacheReport = "1.32!!"
+configurationCacheReport = "1.34!!"
 fastutil = "8.5.2!!"
 gcs = "v1-rev20220705-1.32.1!!"
 googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
@@ -17,7 +17,7 @@ googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
 gson = "2.13.1!!"
 guava = "33.4.6-jre"
-httpcore = "4.4.14!!"
+httpcore = "4.4.16!!"
 inject = "1!!"
 ivy = "2.5.3!!"
 jansi = "2.4.2!!" # If JANSI is updated run on a Windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
@@ -32,10 +32,10 @@ jnr = "0.10.4!!"
 joda = "2.14.0!!"
 jquery = "3.7.1!!" # used in resoures
 jsch = "0.2.16!!"
-jsoup = "1.15.3!!"
+jsoup = "1.22.2!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-kotlin = "2.3.21!!"
+kotlin = "2.4.0!!"
 kotlinxSerialization = "1.11.0!!"
 kryo = "2.24.0!!"
 minlog = "1.2!!"
@@ -47,7 +47,7 @@ plexusSecDispatcher = "2.0!!"
 plexusUtils = "3.6.1!!"
 plist = "1.27!!"
 slf4j = "2.0.17!!"
-snakeyaml = "2.0!!"
+snakeyaml = "2.6!!"
 sshd = "2.15.0!!"
 tomlj = "1.0.0!!"
 
@@ -93,7 +93,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "httpcore" }
 inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
 ivy = { group = "org.apache.ivy", name = "ivy", version.ref = "ivy" }
-jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
+jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version = "2.22!!" } # jackson-annotations is released without a patch digit for .0 minors (matches jackson 2.22.0)
 jacksonCore = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
 jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jacksonDatatypeJdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson" }
@@ -120,6 +120,7 @@ jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "j
 julToSlf4j = { group = "org.slf4j", name = "jul-to-slf4j", version.ref = "slf4j" }
 kotlinAssignment = { group = "org.jetbrains.kotlin", name = "kotlin-assignment", version.ref = "kotlin" }
 kotlinAssignmentCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-assignment-compiler-plugin-embeddable", version.ref = "kotlin" }
+kotlinBuildToolsApi = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-api", version.ref = "kotlin" }
 kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-impl", version.ref = "kotlin" }
 kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }

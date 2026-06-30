@@ -56,6 +56,7 @@ public abstract class Jar extends Zip {
     private final CopySpecInternal metaInf;
     private final Property<String> manifestContentCharset;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);

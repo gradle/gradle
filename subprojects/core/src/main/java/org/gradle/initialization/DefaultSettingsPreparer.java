@@ -273,9 +273,9 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         return startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
     }
 
-    private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
+    private SettingsState createEmptySettings(GradleInternal gradle, StartParameterInternal startParameter, ClassLoaderScope classLoaderScope) {
         logger.debug("Creating empty settings for build: '{}'", gradle.getIdentityPath());
-        StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
+        StartParameterInternal noSearchParameter = startParameter.newInstance();
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(noSearchParameter.toBuildLayoutConfiguration());
@@ -289,7 +289,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
      */
     private SettingsState findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         BuildLayout buildLayout,
         ClassLoaderScope classLoaderScope
     ) {

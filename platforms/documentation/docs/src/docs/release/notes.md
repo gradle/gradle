@@ -23,6 +23,8 @@ Include only their name, impactful features should be called out separately belo
 THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 
+[sk-reddy17](https://github.com/sk-reddy17)
+
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
@@ -70,17 +72,233 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### `ResolutionResult` is fully Configuration Cache compatible
+
+A [`ResolutionResult`](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html) may now be included directly as a task input when using Configuration Cache.
+Previously, its root [`ResolvedComponentResult`](javadoc/org/gradle/api/artifacts/result/ResolvedComponentResult.html) and [`ResolvedVariantResult`](javadoc/org/gradle/api/artifacts/result/ResolvedVariantResult.html) needed to be extracted and included on the task separately.
+This provides easy access to convenience APIs on `ResolutionResult`, avoiding the need to traverse the graph manually to access them.
+
+```kotlin
+// Before
+abstract class PreviousTask : DefaultTask() {
+    @get:Input
+    abstract val rootComponent: Property<ResolvedComponentResult>
+    @get:Input
+    abstract val rootVariant: Property<ResolvedVariantResult>
+
+    @TaskAction
+    fun execute() {
+        // No access to APIs on ResolutionResult, requiring manual graph traversal.
+    }
+}
+
+tasks.register<PreviousTask>("before") {
+    rootComponent = configurations.runtimeClasspath.flatMap { it.incoming.resolutionResult.rootComponent }
+    rootVariant = configurations.runtimeClasspath.flatMap { it.incoming.resolutionResult.rootVariant }
+}
+
+// After
+abstract class NewTask : DefaultTask() {
+    @get:Input
+    abstract val resolutionResult: Property<ResolutionResult>
+
+    @TaskAction
+    fun traverse() {
+        // Access to convenience APIs on ResolutionResult.
+        resolutionResult.get().allDependencies
+        resolutionResult.get().allComponents
+    }
+}
+
+tasks.register<NewTask>("after") {
+    resolutionResult = configurations.runtimeClasspath.map { it.incoming.resolutionResult }
+}
+```
+
+### Isolated Projects improvements
+Gradle provides [Isolated Projects](userguide/isolated_projects.html), an incubating feature that enables parallel project configuration.
+
+#### Isolated Projects is now incubating
+
+Isolated Projects has graduated from experimental to incubating.
+It can now be enabled with the stable `org.gradle.isolated-projects` property and the new `--isolated-projects` CLI option, dropping the `.unsafe.` segment from the previous names.
+
+```properties
+# gradle.properties
+org.gradle.isolated-projects=true
+```
+
+The legacy `org.gradle.unsafe.isolated-projects` property names are now deprecated and will be removed in a future release.
+They continue to work as aliases for now.
+See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_unsafe_isolated_projects_properties) for the full list of renamed properties.
+
+#### Isolated Projects now offers three modes for handling constraint violations
+
+Builds adopting Isolated Projects typically contain [constraint violations](userguide/isolated_projects.html#sec:constraint_violations) that must be fixed over time.
+Isolated Projects now offers three modes, each suited to a different stage of that journey:
+
+- **Fail-fast** — the default. Project configuration runs in parallel and the build fails as soon as a violation is detected, guaranteeing reliable build results.
+- **[Diagnostics](userguide/isolated_projects.html#sec:diagnostics_mode)** (`org.gradle.isolated-projects.diagnostics`) — project configuration runs sequentially and the build continues past
+  violations, reporting all of them deterministically. Use this to discover what needs fixing during migration.
+- **[Dangerously ignore problems](userguide/isolated_projects.html#sec:dangerously_ignore_problems)** (`org.gradle.isolated-projects.dangerously-ignore-problems`) — violations are reported but
+  do not fail the build, and parallel configuration stays active. Use this to estimate the parallel build or IDE sync speedup before fixing every violation. Build outputs may be incorrect while
+  violations are ignored, so never use this mode to produce artifacts.
+
+The opt-in modes can also be combined, for example to complete an IDE sync that concurrency errors would otherwise interrupt:
+
+```properties
+# gradle.properties
+org.gradle.isolated-projects=true
+org.gradle.isolated-projects.diagnostics=true
+org.gradle.isolated-projects.dangerously-ignore-problems=true
+```
+
+In all modes, the severity of Isolated Projects violations is now independent of the Configuration Cache `--configuration-cache-problems=warn` flag.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
+
+#### Test framework initialization failures for TestNG, JUnit 4, and JUnit Platform are always logged to the console
+
+Gradle's [test logging](userguide/java_testing.html#sec:test_logging) now surfaces test-framework startup failures from TestNG, JUnit 4, and JUnit Platform even when the default granularity would otherwise hide them.
+
+Previously, when these frameworks failed to initialize (for example, when a TestNG test class threw an exception from its constructor, a JUnit 4 suite could not be started, or a Jupiter `@BeforeAll` lifecycle hook aborted a container) the failure was silently filtered out by the default granularity.
+Users would see only `> There were failing tests` and had to read the XML report to find the underlying cause:
+
+```text
+> Task :test FAILED
+
+> There were failing tests. See the report at: file:///.../build/reports/tests/test/index.html
+
+FAILURE: Build failed with an exception.
+```
+
+These framework-startup failures now bypass the granularity filter and are always written to the console by default:
+
+```text
+> Task :test
+
+ExampleTest > initializationError FAILED
+    framework-startup org.testng.TestNGException: Cannot instantiate class ExampleTest
+        at org.testng.internal.ObjectFactoryImpl.newInstance(...)
+        ...
+```
+
+The `testLogging.events` predicate still applies, explicitly silencing `FAILED` events is honored.
+
+The new `TestFailureDetails.isFrameworkFailure()` predicate exposes this distinction to Tooling-API and Build-Scan consumers, who may render framework-startup failures differently from ordinary test failures.
+
+See the [Test logging](userguide/java_testing.html#sec:test_logging) section in the Gradle User Manual for more details.
+
+#### TestNG `threadPoolFactoryClass` works with TestNG 7.10 and later
+TestNG 7.10 replaced its thread-pool factory setter (`setExecutorFactoryClass(String)`) with a new API (`setExecutorServiceFactory(IExecutorServiceFactory)`). This release adds support for thread pool factories implementing this API on supporting TestNG versions.
+
+Gradle now detects which API the runtime TestNG version exposes and handles it accordingly:
+
+- On TestNG 7.10 and later, the configured class must implement `org.testng.IExecutorServiceFactory`.
+- On TestNG 7.0 through 7.9, the configured class must implement `org.testng.thread.IExecutorFactory`.
+
+The test task configuration remains unchanged — only the interface the user-supplied class must implement differs across TestNG versions:
+
+```kotlin
+tasks.named<Test>("test") {
+    useTestNG {
+        threadPoolFactoryClass = "com.example.MyExecutorServiceFactory"
+    }
+}
+```
 
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Source locations for more problems
+
+To keep stack trace capture affordable, Gradle attached a source location to only the first 50 problems per build, so builds that report many problems (deprecations especially) left most of them without a file and line.
+
+Gradle now captures a source location for up to 2000 additional problems past that cap.
+The capture mechanism is far cheaper than a full stack trace, so the added coverage has negligible cost.
+As a result, the [console](userguide/command_line_interface.html), the [problems report](userguide/reporting_problems.html#sec:generated_html_report), and the [Tooling API](userguide/third_party_integration.html) show a source location for many more problems than before.
+
+![Problems report listing many problems with their source locations](release-notes-assets/problems-locations.png)
+
+Run with `--warning-mode=all` to remove the limit and capture a source location for every problem.
+Past the cap, including under `--warning-mode=all` and `fail`, the capture keeps the originating build logic down to the calling script, enough to locate the problem, rather than the full call chain.
+
+See the [CLI reference](userguide/command_line_interface.html#sec:command_line_warnings) in the Gradle User Manual for more details.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Custom timestamps for reproducible archives
+
+Gradle produces [reproducible archives](userguide/working_with_files.html#sec:reproducible_archives) by default, using fixed timestamps for all entries.
+However, some environments, such as those following the [SOURCE_DATE_EPOCH](https://reproducible-builds.org/specs/source-date-epoch/) specification, require a meaningful, verifiable timestamp rather than a fixed default.
+
+Archive tasks now support a [`reproducibleFileTimestamp`](userguide/working_with_files.html#sec:reproducible_timestamp) property that lets you set a custom timestamp for every entry in the archive:
+
+```kotlin
+import java.time.Instant
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    reproducibleFileTimestamp = providers.environmentVariable("SOURCE_DATE_EPOCH").map {
+        Instant.ofEpochSecond(it.toLong()).toEpochMilli()
+    }
+}
+```
+
+See the [Timestamp for files inside archives](userguide/working_with_files.html#sec:reproducible_timestamp) section in the Gradle User Manual for more details.
+
+#### New `getInputStream()` method on `BuildCacheEntryWriter`
+
+Authors of custom [`BuildCacheService`](javadoc/org/gradle/caching/BuildCacheService.html) implementations can now obtain cache entry content as an `InputStream` via [`BuildCacheEntryWriter.getInputStream()`](javadoc/org/gradle/caching/BuildCacheEntryWriter.html#getInputStream()), as an alternative to writing to an `OutputStream` via `writeTo`.
+Consuming an `InputStream` can be more efficient for I/O, especially for asynchronous HTTP clients.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
+
+#### New lazy element provider for Domain Object Collections
+
+[`DomainObjectCollection.getElements()`](javadoc/org/gradle/api/DomainObjectCollection.html#getElements()) returns a `Provider<? extends Collection<T>>` and acts as an important bridge between the [Domain Object Collection](userguide/collections.html) and [Provider APIs](userguide/properties_providers.html).
+This API is similar to the existing [`FileCollection.getElements()`](javadoc/org/gradle/api/file/FileCollection.html#getElements()) method.
+
+The returned provider carries build dependencies, meaning dependencies carried by providers added via `addLater` and `addAllLater` are reflected in the returned `elements` provider:
+
+```kotlin
+val container = objects.domainObjectSet(MyType::class.java)
+container.addLater(someProvider)
+
+// Lazily access all elements as a Provider
+val allElements: Provider<out Collection<MyType>> = container.elements
+
+tasks.register("process") {
+    inputs.property("items", allElements)
+    doLast {
+        println(allElements.get())
+    }
+}
+```
+See the [Collections](userguide/collections.html#collection_types) section in the Gradle User Manual for more details.
+
+#### Java toolchain support for Groovydoc
+
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now supports [Java toolchains](userguide/toolchains.html), aligning it with `GroovyCompile`, `Javadoc`, and `ScalaDoc`.
+By default the task uses the project's configured toolchain, and it can also be configured per-task:
+
+```kotlin
+tasks.named<Groovydoc>("groovydoc") {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+```
+
+As `Groovydoc` now runs in a separate worker process, a new incubating `maxMemory` property is available to control the heap size of that process for larger code bases:
+
+```kotlin
+tasks.named<Groovydoc>("groovydoc") {
+    maxMemory = "1g"
+}
+```
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
@@ -88,11 +306,59 @@ Gradle provides a comprehensive plugin system, including built-in [Core Plugins]
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
+#### Document the origin and reason of trusted PGP keys
+
+Gradle’s [dependency verification](userguide/dependency_verification.html) helps you mitigate security risks by ensuring downloaded artifacts match expected checksums or are signed with trusted keys.
+
+Dependency verification metadata already lets you [annotate checksums](userguide/dependency_verification.html#sec:trusting-artifacts) with `origin` and `reason` attributes to document where a checksum was obtained and why it is trusted.
+
+Starting with this release, the same `origin` and `reason` attributes are also supported on the `<trusted-key>` and `<pgp>` elements, so you can record where a public key was verified (for example, the URL it was downloaded from) directly alongside the key:
+
+```xml
+<trusted-keys>
+   <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+                group="com.github.javaparser"
+                origin="https://keyserver.ubuntu.com"
+                reason="Verified against the maintainer's website"/>
+</trusted-keys>
+```
+
+These attributes are purely informational: Gradle preserves them across read/write cycles but never uses them during verification.
+Existing verification metadata files continue to be read without changes; files written by this version of Gradle use the new `dependency-verification-1.4.xsd` schema.
+
+#### Dependency verification reports other trusted keys for the same module or group
+
+When [dependency verification](userguide/dependency_verification.html) fails because an artifact was signed with a key that could not be found on any key server, it can be hard to tell whether you are pulling a brand-new dependency for the first time or whether a previously trusted dependency has had its signing key rotated.
+
+Gradle now appends the number of other keys you already trust for the failing artifact to the message, distinguishing keys trusted for the specific `group:module` from keys trusted for the whole `group`:
+
+```
+> On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for module 'org:foo'; 3 other keys are already trusted for group 'org')
+```
+
+A non-zero count is a strong signal that the signing key has been rotated rather than that you are trusting the module or group for the first time, making it easier to react appropriately. This note now appears both in the console output and in the generated HTML verification report.
+
+See the [Verifying dependency signatures](userguide/dependency_verification.html#sec:signature-verification) section in the Gradle User Manual for more details.
+
 ### Tooling and IDE integration
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+
+#### Kotlin DSL accessor generation is no longer stored in the build cache
+
+Generating the [type-safe Kotlin DSL accessors](userguide/kotlin_dsl.html#type-safe-accessors) for a project produces Kotlin source files.
+For some projects those files can be sizeable, but their generation is fast.
+
+Storing and fetching those files adds its own overhead when the [Build Cache](userguide/build_cache.html#build_cache) is in use.
+That overhead alone is comparable to or higher than the cost of just regenerating the accessors.
+Gradle therefore no longer stores Kotlin DSL accessor generation in the Build Cache by default.
+
+Builds that use a remote Build Cache will regenerate accessors locally instead of downloading them; in-build deduplication of accessor generation is unaffected.
+Kotlin DSL script compilation continues to be cached as before.
+
+See the [Type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) section in the Gradle User Manual for more details.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -108,6 +374,11 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
+
+* [`project()`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html#project()) in `DependencyHandler`
+* [`project(String)`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html#project(java.lang.String)) in `DependencyHandler`
+* [`createProjectDependency()`](javadoc/org/gradle/api/artifacts/dsl/DependencyFactory.html#createProjectDependency()) in `DependencyFactory`
+* [`createProjectDependency(String)`](javadoc/org/gradle/api/artifacts/dsl/DependencyFactory.html#createProjectDependency(java.lang.String)) in `DependencyFactory`
 
 ## Documentation and training
 

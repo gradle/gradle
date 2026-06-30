@@ -176,6 +176,7 @@ import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcesso
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.internal.settings.StartParameterMutationReportingSettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
@@ -236,6 +237,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -625,25 +627,29 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
         TextFileResourceLoader textFileResourceLoader,
-        BuildIncludeListener buildIncludeListener
+        BuildIncludeListener buildIncludeListener,
+        IsolatedProjectsProblemsReporter isolatedProjectsProblemsReporter,
+        BuildModelParameters buildModelParameters
     ) {
+        SettingsProcessor settingsProcessor = new SettingsEvaluatedCallbackFiringSettingsProcessor(
+            new ScriptEvaluatingSettingsProcessor(
+                scriptPluginFactory,
+                new SettingsFactory(
+                    instantiator,
+                    buildScopeServices,
+                    scriptHandlerFactory
+                ),
+                gradleProperties,
+                textFileResourceLoader,
+                buildIncludeListener
+            )
+        );
+        if (buildModelParameters.isIsolatedProjects()) {
+            settingsProcessor = new StartParameterMutationReportingSettingsProcessor(settingsProcessor, isolatedProjectsProblemsReporter);
+        }
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
-                new SharedModelDefaultsSettingsProcessor(
-                    new SettingsEvaluatedCallbackFiringSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                            scriptPluginFactory,
-                            new SettingsFactory(
-                                instantiator,
-                                buildScopeServices,
-                                scriptHandlerFactory
-                            ),
-                            gradleProperties,
-                            textFileResourceLoader,
-                            buildIncludeListener
-                        )
-                    )
-                )
+                new SharedModelDefaultsSettingsProcessor(settingsProcessor)
             ),
             buildOperationRunner
         );
@@ -746,10 +752,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        ToolingModelProjectDependencyListener projectDependencyListener
+        ToolingModelProjectDependencyListener projectDependencyListener,
+        FailureFactory failureFactory
     ) {
         IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
-        return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener);
+        return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener, failureFactory);
     }
 
     @Provides

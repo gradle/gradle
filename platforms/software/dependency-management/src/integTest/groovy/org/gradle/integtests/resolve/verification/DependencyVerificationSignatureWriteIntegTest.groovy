@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
 import org.gradle.security.internal.PGPUtils
@@ -69,6 +69,60 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
       </trusted-keys>
    </configuration>
    <components/>
+</verification-metadata>
+"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "preserves user-provided origin and reason on trusted-key and pgp entries when updating the metadata file"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            // a globally trusted key covering the resolved module, carrying origin/reason
+            addGloballyTrustedKey(SigningFixtures.validPublicKeyHexString, "org", null, null, null, false, "https://keys.example/org.asc", "verified manually")
+            // an artifact-specific pgp entry for a module that is NOT resolved by this build, carrying origin/reason
+            addTrustedKeyWithMetadata("org:bar:1.0", SigningFixtures.validPublicKeyHexString, "https://keys.example/bar.asc", "trusted maintainer")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        writeVerificationMetadata()
+
+        succeeds ":help"
+
+        then: "Gradle rewrites the file but keeps the user-provided origin/reason on both elements"
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <trusted-keys>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" origin="https://keys.example/org.asc" reason="verified manually"/>
+      </trusted-keys>
+   </configuration>
+   <components>
+      <component group="org" name="bar" version="1.0">
+         <artifact name="bar-1.0.jar">
+            <pgp value="${SigningFixtures.validPublicKeyHexString}" origin="https://keys.example/bar.asc" reason="trusted maintainer"/>
+         </artifact>
+      </component>
+   </components>
 </verification-metadata>
 """
     }

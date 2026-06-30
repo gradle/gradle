@@ -23,4 +23,14 @@ class AvroPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.github.davidmc24.gradle.plugin.avro': TestedVersions.avro,
         ]
     }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "avro {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('avro')]
+    }
 }

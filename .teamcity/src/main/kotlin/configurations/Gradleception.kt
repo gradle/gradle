@@ -87,9 +87,6 @@ class Gradleception(
             extraSysProp += "-DbundleGroovyMajor=$bundleGroovyMajor"
             extraTasks += ":plugins-groovy:embeddedIntegTest"
         }
-        if (buildJvm.version != BuildToolBuildJvm.version) {
-            extraSysProp += "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
-        }
         val defaultParameters =
             (buildToolGradleParameters() + buildScanTags + extraSysProp + functionalTestParameters(Os.LINUX)).joinToString(
                 separator = " ",
@@ -101,10 +98,9 @@ class Gradleception(
         }
 
         if (buildJvm.version != BuildToolBuildJvm.version) {
-            steps.gradleWrapper {
+            steps.script {
                 name = "UPDATE_DAEMON_JVM_CRITERIA_FILE"
-                tasks = "updateDaemonJvm --jvm-version=${buildJvm.version.major}"
-                gradleParams = defaultParameters
+                scriptContent = "echo 'toolchainVersion=${buildJvm.version.major}' > gradle/gradle-daemon-jvm.properties"
             }
         }
 

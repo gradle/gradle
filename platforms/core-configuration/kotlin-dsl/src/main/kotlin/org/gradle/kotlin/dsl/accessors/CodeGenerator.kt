@@ -106,7 +106,7 @@ internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
         DeprecationLevel.ERROR -> """
         |@Suppress("DEPRECATION_ERROR")
         |        ${deprecatedAnnotation(deprecation)}
-        """.trimIndent() + "\n        "
+        """.trimMargin() + "\n        "
 
         DeprecationLevel.HIDDEN -> ""
     }

@@ -47,9 +47,27 @@ class TempFilesTest extends Specification {
         file.canWrite()
     }
 
-    def "creates temp files with owner-only permissions on POSIX systems"() {
+    def "createTempFile creates temp files with default permissions on POSIX systems"() {
         when:
         def file = TempFiles.createTempFile("test-", ".tmp", tempDir)
+
+        then:
+        file.exists()
+        file.canRead()
+        file.canWrite()
+
+        and:
+        if (Files.getFileStore(tempDir.toPath()).supportsFileAttributeView("posix")) {
+            // A normally-created file inherits the umask; createTempFile must do the same, i.e. it
+            // must NOT restrict the file to owner-only permissions.
+            def reference = Files.createFile(new File(tempDir, "umask-reference").toPath())
+            assert Files.getPosixFilePermissions(file.toPath()) == Files.getPosixFilePermissions(reference)
+        }
+    }
+
+    def "createOwnerOnlyTempFile creates temp files with owner-only permissions on POSIX systems"() {
+        when:
+        def file = TempFiles.createOwnerOnlyTempFile("test-", ".tmp", tempDir)
 
         then:
         file.exists()

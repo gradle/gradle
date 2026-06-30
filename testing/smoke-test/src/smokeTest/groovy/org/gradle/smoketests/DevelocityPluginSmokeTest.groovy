@@ -16,8 +16,8 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
@@ -27,6 +27,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 
 import java.nio.charset.StandardCharsets
@@ -167,14 +168,14 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.4.0",
         "4.4.1",
         "4.4.2",
+        "4.4.3",
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
     private static final List<String> SUPPORTED_BY_CI_INJECTION = SUPPORTED
         .findAll { VersionNumber.parse("3.6.4") <= VersionNumber.parse(it) }
 
-    private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS = VersionNumber.parse("3.15")
-    private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION = VersionNumber.parse("3.17")
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS = VersionNumber.parse("4.0")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("3.17")
@@ -206,6 +207,10 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/34252")
     def "does not fail when using TD #version"() {
+        Assume.assumeTrue(
+            GradleContextualExecuter.notIsolatedProjects || VersionNumber.parse(version) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS
+        )
+
         when:
         usePluginVersion version
 
@@ -301,7 +306,7 @@ public class MyFlakyTest {
 
 
         then:
-        scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
+        scanRunner("-Dorg.gradle.isolated-projects=true")
             .build().output.contains("Build scan written to")
 
         when:
@@ -309,7 +314,7 @@ public class MyFlakyTest {
         createTest(file("project2"), "MyTest1")
 
         then:
-        with(scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
+        with(scanRunner("-Dorg.gradle.isolated-projects=true")
             .build()) {
             output.contains("Build scan written to")
             output.contains("Reusing configuration cache.")
@@ -325,7 +330,7 @@ public class MyFlakyTest {
         createTest(file("project2"), "MyTest2")
 
         then:
-        with(scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
+        with(scanRunner("-Dorg.gradle.isolated-projects=true")
             .build()) {
             output.contains("Build scan written to")
             task(":project1:test").outcome == TaskOutcome.SUCCESS
@@ -334,7 +339,7 @@ public class MyFlakyTest {
 
         where:
         version << SUPPORTED
-            .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION }
+            .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS }
     }
 
     @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
@@ -343,11 +348,11 @@ public class MyFlakyTest {
         usePluginVersion version
 
         and:
-        def output = scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
+        def output = scanRunner("-Dorg.gradle.isolated-projects=true")
             .build().output
 
         then:
-        output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
+        output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 4.0 or newer to restore functionality.")
         !output.contains("Build scan written to")
 
         where:
@@ -556,7 +561,6 @@ public class MyFlakyTest {
             runner.maybeExpectLegacyDeprecationWarning(
                 "Usage of the Develocity plugin ${currentPluginVersion} has been deprecated. " +
                     "This will fail with an error in Gradle 10. " +
-                    "The plugin application will be ignored. " +
                     "Upgrade to version 4.0 or later of the Develocity plugin. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecated_develocity_plugin_pre_4_0"
             )
@@ -636,7 +640,7 @@ public class MyFlakyTest {
     }
 
     void createTest(TestFile projectDir, String testName) {
-        projectDir.file("src/test/java/${testName}.java").java"""
+        projectDir.file("src/test/java/${testName}.java").java """
             import org.junit.jupiter.api.*;
             import static org.junit.jupiter.api.Assertions.*;
 

@@ -60,6 +60,9 @@ LICENSE                                 @gradle/bt-product-operations
 *.md                                    @gradle/bt-product-operations @gradle/bt-docs-reviewers
 contributing/                           @gradle/bt-product-operations @gradle/bt-docs-reviewers
 
+# AI related files
+.claude/                                @gradle/bt-developer-productivity
+
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
 architecture/                               @gradle/bt-architecture-council

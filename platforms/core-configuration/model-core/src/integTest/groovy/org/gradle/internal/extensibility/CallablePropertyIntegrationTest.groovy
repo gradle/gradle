@@ -17,7 +17,7 @@
 package org.gradle.internal.extensibility
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -99,7 +99,7 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
 
 
     @Issue('https://github.com/gradle/gradle/issues/23111')
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22041")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/22041")
     def "can configure dynamic property without call method"() {
         buildFile << """
             task test {

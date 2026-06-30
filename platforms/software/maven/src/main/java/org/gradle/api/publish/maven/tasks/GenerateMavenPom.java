@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
@@ -44,6 +45,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.4
  */
+@SuppressWarnings("this-escape")
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public abstract class GenerateMavenPom extends DefaultTask {
 
@@ -54,6 +56,9 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     @Inject
     protected abstract FileResolver getFileResolver();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * The Maven POM.
@@ -99,6 +104,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      */
     public void setDestination(File destination) {
         getDestinationFile().fileValue(destination);
+        getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(destination));
     }
 
     /**
@@ -109,7 +115,9 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * @param destination The file the descriptor will be written to.
      */
     public void setDestination(Object destination) {
-        getDestinationFile().fileValue(getFileResolver().resolve(destination));
+        File resolved = getFileResolver().resolve(destination);
+        getDestinationFile().fileValue(resolved);
+        getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(resolved));
     }
 
     @TaskAction

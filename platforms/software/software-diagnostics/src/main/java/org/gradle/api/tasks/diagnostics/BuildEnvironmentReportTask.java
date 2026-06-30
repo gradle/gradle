@@ -48,6 +48,7 @@ import static java.util.Collections.singleton;
  *
  * @since 2.10
  */
+@SuppressWarnings("this-escape")
 @UntrackedTask(because = "Produces only non-cacheable console output")
 public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
@@ -56,6 +57,7 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
     private final ToolchainReportRenderer toolchainReportRenderer = new ToolchainReportRenderer();
     private final DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
+    @SuppressWarnings("ExposedPrivateType")
     final Cached<BuildEnvironmentReportModel> reportModel = Cached.of(this::calculateReportModel);
 
     private static final class BuildEnvironmentReportModel {

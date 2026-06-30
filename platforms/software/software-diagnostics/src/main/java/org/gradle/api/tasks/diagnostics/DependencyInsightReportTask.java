@@ -114,6 +114,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * For more information please refer to {@link #setDependencySpec(Object)}, {@link #setConfiguration(String)},
  * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class DependencyInsightReportTask extends DefaultTask {
 

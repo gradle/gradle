@@ -76,22 +76,6 @@ testing/*/build/tmp/**/profile.log => failure-logs
 testing/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
-// to avoid pathname too long error
-fun BuildSteps.substDirOnWindows(os: Os) {
-    if (os == Os.WINDOWS) {
-        script {
-            name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent =
-                """
-                subst p: /d
-                subst p: "%teamcity.build.checkoutDir%"
-                """.trimIndent()
-            skipConditionally()
-        }
-    }
-}
-
 fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
     steps {
         script {
@@ -100,17 +84,6 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
             scriptContent = "git clean -fdx -e test-splits/ -e .gradle/workspace-id.txt -e \"*.psoutput\""
             skipConditionally()
             onlyRunOnGitHubMergeQueueBranch()
-        }
-    }
-}
-
-fun BuildSteps.removeSubstDirOnWindows(os: Os) {
-    if (os == Os.WINDOWS) {
-        script {
-            name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """dir p: && subst p: /d"""
-            skipConditionally()
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.kotlin.dsl.tooling.fixtures.FetchKotlinDslScriptsModelForAllBuilds
+import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkBuildTreeScriptsModels
@@ -232,7 +233,7 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
         "build-logic"      | """pluginManagement { includeBuild("build-logic") }"""
     }
 
-    Map<String , KotlinDslScriptsModel> fetchBuildTreeScriptModels() {
-        return runBuildAction(new FetchKotlinDslScriptsModelForAllBuilds())
+    private Map<String, KotlinDslScriptsModel> fetchBuildTreeScriptModels(@DelegatesTo(BuildActionExecuter) Closure config = {}) {
+        return runBuildAction(new FetchKotlinDslScriptsModelForAllBuilds(), config)
     }
 }

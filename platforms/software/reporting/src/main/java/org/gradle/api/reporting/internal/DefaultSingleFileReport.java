@@ -24,6 +24,7 @@ import javax.inject.Inject;
 
 public abstract class DefaultSingleFileReport extends SimpleReport implements SingleFileReport {
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultSingleFileReport(String name, Describable owner) {
         super(name, Describables.of(name, "report for", owner), OutputType.FILE);

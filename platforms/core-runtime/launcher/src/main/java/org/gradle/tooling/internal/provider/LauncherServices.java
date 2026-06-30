@@ -168,7 +168,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             Clock clock,
             UserInputReader inputReader
         ) {
-            if (startParameter.isNonInteractive() || !requestMetaData.isInteractiveConsole()) {
+            if (!startParameter.isInteractive() || !requestMetaData.isInteractiveConsole()) {
                 return new NonInteractiveUserInputHandler();
             }
 
@@ -211,7 +211,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
-            StartParameter startParameter,
             FailureFactory failureFactory,
             ProblemsInternal problemsService,
             ProblemStream problemStream,
@@ -223,7 +222,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
                 listenerManager.getBroadcaster(BuildTreeLifecycleListener.class),
                 problemsService,
                 eventEmitter,
-                startParameter,
                 problemStream,
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(

@@ -53,6 +53,7 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
     // The variants to use for variant selection during graph resolution
     private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
+    @SuppressWarnings("this-escape")
     public DefaultExternalModuleComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata);
         this.legacyMetadata = legacyMetadata;

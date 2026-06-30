@@ -17,7 +17,7 @@
 package org.gradle.java.compile
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 

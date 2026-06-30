@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.userinput
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -178,6 +178,35 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     def "does not prompt user for yes/no question in non-interactive build"() {
         when:
         run("askYesNo")
+
+        then:
+        outputDoesNotContain(YES_NO_PROMPT)
+        outputContains("result = <default>")
+    }
+
+    def "does not prompt and uses default when org.gradle.console.interactive is false"() {
+        given:
+        file("gradle.properties") << "org.gradle.console.interactive=false"
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks("askYesNo").start()
+        writeToStdInAndClose(gradleHandle, EOF)
+        result = gradleHandle.waitForFinish()
+
+        then:
+        outputDoesNotContain(YES_NO_PROMPT)
+        outputContains("result = <default>")
+    }
+
+    def "does not prompt and uses default with --non-interactive"() {
+        given:
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withArgument("--non-interactive").withTasks("askYesNo").start()
+        writeToStdInAndClose(gradleHandle, EOF)
+        result = gradleHandle.waitForFinish()
 
         then:
         outputDoesNotContain(YES_NO_PROMPT)

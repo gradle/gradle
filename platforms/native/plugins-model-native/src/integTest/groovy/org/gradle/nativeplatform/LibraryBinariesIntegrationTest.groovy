@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
@@ -104,6 +105,7 @@ model {
             .exec().out == "Hello staticHello shared"
     }
 
+    @UnsupportedWithIsolatedProjects(because = "software model")
     def "executable can use a combination of libraries from the same and other projects"() {
         given:
         settingsFile << """

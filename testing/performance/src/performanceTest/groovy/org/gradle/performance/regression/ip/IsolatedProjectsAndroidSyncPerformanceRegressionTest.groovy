@@ -59,7 +59,7 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
             // realistic defaults
             "-Dorg.gradle.caching=true",
             // scenario
-            "-Dorg.gradle.unsafe.isolated-projects=true",
+            "-Dorg.gradle.isolated-projects=true",
             "-Dorg.gradle.workers.max=$maxWorkers",
             "--no-scan", // TODO:isolated benchmark with Develocity plugin as well
         ])

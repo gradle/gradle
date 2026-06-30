@@ -46,15 +46,12 @@ class ActionBasedModelDefaultsHandler(
         }
 
         if (target is DynamicObjectAware && projectFeatureImplementation != null) {
-            sharedModelDefaults.setProjectLayout(projectLayout)
-            try {
+            sharedModelDefaults.withProjectLayout(projectLayout) {
                 projectFeatureImplementation.visitModelDefaults(
                     Cast.uncheckedNonnullCast(ActionBasedDefault::class.java),
                     executeActionVisitor(projectFeatureImplementation, definition)
                 )
                 executeActionVisitor(projectFeatureImplementation, target)
-            } finally {
-                sharedModelDefaults.clearProjectLayout()
             }
         } else {
             throw GradleException("Tried to apply defaults for project feature '$projectFeatureName', got unexpected target object: ${target::class.qualifiedName}")

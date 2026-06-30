@@ -32,6 +32,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     private final NotationParser<Object, File> fileNotationParser;
     private final NotationParser<Object, URI> uriOrFileNotationParser;
 
+    @SuppressWarnings("this-escape")
     protected AbstractFileResolver() {
         this.fileNotationParser = FileNotationConverter.parser();
         this.uriOrFileNotationParser = NotationParserBuilder

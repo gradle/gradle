@@ -428,7 +428,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      * @see [DependencyHandler.create]
                      * @see [DependencyHandler.add]
                      */
-                    @Deprecated("Use single-string notation instead")
+                    @Deprecated("Use single-string notation or DependencyFactory instead")
                     fun DependencyHandler.`$kotlinIdentifier`(
                         group: String,
                         name: String,

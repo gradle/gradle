@@ -193,6 +193,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
+    @SuppressWarnings("this-escape")
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();

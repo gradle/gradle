@@ -144,8 +144,10 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
      */
     public abstract boolean isEmpty();
 
+    @SuppressWarnings("ExposedPrivateType")
     abstract ImmutableActionSet<T> addAll(SetWithFewActions<T> source);
 
+    @SuppressWarnings("ExposedPrivateType")
     abstract ImmutableActionSet<T> addAll(SetWithManyActions<T> source);
 
     abstract ImmutableActionSet<T> addOne(Action<? super T> action);

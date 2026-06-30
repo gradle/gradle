@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -38,6 +39,7 @@ import static org.gradle.util.Matchers.containsText
 @Requires(TestEnvironmentPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements VerifiesGenericTestReportResults {
+    @ToBeFixedForIsolatedProjects(because = "configures the :app project from the root build script")
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
         buildFile << """
@@ -58,6 +60,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         failure.assertHasCause("Working directory '${file('app/does-not-exist')}' does not exist.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configures the :app project from the root build script")
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
         buildFile << """

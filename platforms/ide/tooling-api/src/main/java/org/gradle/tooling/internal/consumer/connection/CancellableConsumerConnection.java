@@ -31,6 +31,7 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
     private final ActionRunner actionRunner;
     private final ModelProducer modelProducer;
 
+    @SuppressWarnings("this-escape")
     public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
         CancellationExceptionTransformer exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());

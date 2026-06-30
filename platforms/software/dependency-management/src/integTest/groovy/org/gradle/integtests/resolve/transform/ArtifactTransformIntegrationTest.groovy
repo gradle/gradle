@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.resolve.transform
 
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
@@ -1591,7 +1593,10 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForConfigurationCache(because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references, https://github.com/gradle/gradle/issues/24273")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/24273",
+        because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references"
+    )
     def "transforms are created as required and a new instance created for each file"() {
         given:
         buildFile << """
@@ -1728,7 +1733,7 @@ Found the following transformation chains:
         outputContains("files: [b.jar]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Resolution happens during configuration time, so the transform is not triggered. Also, lenient is not respected https://github.com/gradle/gradle/issues/37420")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { dependencies { ... } }")
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
@@ -1782,7 +1787,10 @@ Found the following transformation chains:
         outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "the CC error is not descriptive, https://github.com/gradle/gradle/issues/16179")
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/16179",
+        because = "the CC error is not descriptive"
+    )
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
         given:
         buildFile << """
@@ -2148,7 +2156,7 @@ Found the following transformation chains:
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Resolution happens during configuration time, so the transform is not triggered, Also, lenient is not respected https://github.com/gradle/gradle/issues/37420")
+    @ToBeFixedForIsolatedProjects(because = "test setup uses allprojects { dependencies { ... } }")
     def "collects multiple failures"() {
         def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
         def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
@@ -2919,6 +2927,168 @@ Found the following transformation chains:
         then:
         // Previously, this test would fail with an OOM.
         failure.assertHasCause("No variants of root project 'root' match the consumer attributes")
+    }
+
+    @UnsupportedWithConfigurationCache(because = "drives Configuration Cache explicitly via the test parameter")
+    @Issue(["https://github.com/gradle/gradle/issues/13567", "https://github.com/gradle/gradle/issues/37219"])
+    def "task that does not declare dependency resolution queries transform output mixing project and external artifacts [CC=#configurationCache]"() {
+        // The 'resolve' task captures the 'sizes' configuration in a closure and reads its files in
+        // doLast without declaring them as a task input. The configuration mixes a project dependency
+        // and an external dependency, and the registered transform converts jar -> txt for both.
+        //
+        // Without Configuration Cache, the transforms run and the task succeeds.
+        //
+        // With Configuration Cache, the producer project ':lib' is not part of the execution plan,
+        // so its state is not registered when the task action queries the configuration. The build
+        // fails with a three-tier cause chain:
+        //   1. Could not resolve all files for configuration ':sizes'.
+        //   2. Failed to transform lib.jar (project ':lib') to match attributes {...}.
+        //   3. Could not access project :lib. (Helpful root-cause hint from UnknownProjectStateException.)
+
+        mavenRepo.module("test", "commons-math", "3.6.1").publish()
+
+        file("lib/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+        """
+
+        buildFile << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            dependencies {
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "txt")
+                }
+            }
+
+            configurations {
+                sizes {
+                    canBeResolved = true
+                    canBeConsumed = false
+                    attributes {
+                        attribute(artifactType, "txt")
+                    }
+                }
+            }
+
+            dependencies {
+                sizes 'test:commons-math:3.6.1'
+                sizes project(':lib')
+            }
+
+            tasks.register("resolve") {
+                def inputText = configurations.sizes
+                doLast {
+                    inputText.files.each {
+                        println it
+                    }
+                }
+            }
+        """
+
+        when:
+        if (configurationCache) {
+            executer.withArgument("--configuration-cache")
+        }
+
+        if (configurationCache) {
+            fails "resolve"
+        } else {
+            succeeds "resolve"
+        }
+
+        then:
+        if (configurationCache) {
+            failure.assertHasCause("Could not resolve all files for configuration ':sizes'.")
+            failure.assertThatCause(matchesRegexp("Failed to transform lib\\.jar \\(project ':lib'\\) to match attributes \\{artifactType=txt, org\\.gradle\\.category=library, org\\.gradle\\.dependency\\.bundling=external, org\\.gradle\\.jvm\\.version=\\d+, org\\.gradle\\.libraryelements=jar, org\\.gradle\\.usage=java-runtime\\}\\."))
+            failure.assertHasCause("Could not access project ':lib'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
+            failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
+            failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input")
+        } else {
+            outputContains("commons-math-3.6.1.jar.txt")
+            outputContains("lib.jar.txt")
+        }
+
+        where:
+        configurationCache << [false, true]
+    }
+
+    @UnsupportedWithConfigurationCache(because = "drives Configuration Cache explicitly")
+    @Issue("https://github.com/gradle/gradle/issues/13567")
+    def "task that does not declare dependency resolution queries transform output of included-build project artifact under CC"() {
+        // Same shape as the previous test, but the producing project lives in an included build.
+        // Verifies that the new actionable error message uses the full build-tree path (which
+        // includes the included-build segment) so composite-build scenarios are unambiguous.
+
+        mavenRepo.module("test", "commons-math", "3.6.1").publish()
+
+        file("lib-build/settings.gradle") << """
+            rootProject.name = 'lib-build'
+            include 'producer'
+        """
+        file("lib-build/producer/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            group = 'org.test'
+            version = '1.0'
+        """
+
+        settingsFile << """
+            includeBuild('lib-build')
+        """
+
+        buildFile << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            dependencies {
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "txt")
+                }
+            }
+
+            configurations {
+                sizes {
+                    canBeResolved = true
+                    canBeConsumed = false
+                    attributes {
+                        attribute(artifactType, "txt")
+                    }
+                }
+            }
+
+            dependencies {
+                sizes 'test:commons-math:3.6.1'
+                sizes 'org.test:producer:1.0'
+            }
+
+            tasks.register("resolve") {
+                def inputText = configurations.sizes
+                doLast {
+                    inputText.files.each {
+                        println it
+                    }
+                }
+            }
+        """
+
+        executer.withArgument("--configuration-cache")
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasCause("Could not resolve all files for configuration ':sizes'.")
+        failure.assertHasCause("Could not access project ':lib-build:producer'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
+        failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
+        failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input")
     }
 
     def declareTransform(String transformImplementation) {

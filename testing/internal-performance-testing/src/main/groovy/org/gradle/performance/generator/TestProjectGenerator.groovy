@@ -107,6 +107,68 @@ class TestProjectGenerator extends AbstractTestProjectGenerator {
     private addDummyBuildSrcProject(File projectDir) {
         file projectDir, "buildSrc/src/main/${config.language.name}/Thing.${config.language.name}", "public class Thing {}"
         file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
+        if (config.deprecationsPerProject > 0) {
+            file projectDir, "buildSrc/src/main/java/perf/PerfDeprecationsPlugin.java", generateDeprecationsPlugin(config.deprecationsPerProject)
+            file projectDir, "buildSrc/src/main/java/org/gradle/perf/internal/DeprecationDepthHelper.java", generateDeprecationDepthHelper()
+            file projectDir, "buildSrc/src/main/resources/META-INF/gradle-plugins/perf-deprecations.properties", "implementation-class=perf.PerfDeprecationsPlugin"
+        }
+    }
+
+    /**
+     * A compiled convention plugin, applied via {@code plugins { id 'perf-deprecations' }}, that fires
+     * the given number of deprecations. It lives in a non-Gradle package, so it is the first user frame
+     * the location analyser sees, making the deprecations plugin-sourced (no script file location),
+     * matching the dominant real-world profile. Messages are unique so console deduplication does not
+     * collapse them.
+     */
+    private static String generateDeprecationsPlugin(int count) {
+        """
+        package perf;
+
+        import org.gradle.api.Plugin;
+        import org.gradle.api.Project;
+        import org.gradle.perf.internal.DeprecationDepthHelper;
+
+        public class PerfDeprecationsPlugin implements Plugin<Project> {
+            @Override
+            public void apply(Project project) {
+                for (int i = 0; i < ${count}; i++) {
+                    int depth = 8 + (i % 4) * 8;
+                    DeprecationDepthHelper.fireAtDepth(depth, "Perf deprecation from " + project.getPath() + " #" + i);
+                }
+            }
+        }
+        """.stripIndent()
+    }
+
+    /**
+     * Fires a deprecation after recursing to the given depth. It lives in an {@code org.gradle.*} package
+     * so its frames are classified as internal and skipped by location inference; this lets the recursion
+     * vary the depth from the capture point to the first user (plugin) frame, mimicking the varied call
+     * depths of real deprecations.
+     */
+    private static String generateDeprecationDepthHelper() {
+        """
+        package org.gradle.perf.internal;
+
+        import org.gradle.internal.deprecation.DeprecationLogger;
+
+        public final class DeprecationDepthHelper {
+            private DeprecationDepthHelper() {
+            }
+
+            public static void fireAtDepth(int depth, String message) {
+                if (depth > 0) {
+                    fireAtDepth(depth - 1, message);
+                    return;
+                }
+                DeprecationLogger.deprecate(message)
+                    .willBecomeAnErrorInGradle10()
+                    .withUserManual("feature_lifecycle", "sec:deprecated")
+                    .nagUser();
+            }
+        }
+        """.stripIndent()
     }
 
     static void main(String[] args) {

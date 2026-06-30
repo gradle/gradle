@@ -111,6 +111,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
+    @SuppressWarnings("ExposedPrivateType")
     public DefaultWorkerLease newWorkerLease() {
         return workerLeaseLockRegistry.newResourceLock();
     }
@@ -131,6 +132,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
+    @SuppressWarnings("NullAway")
     public void runAsWorkerThread(Runnable action) {
         runAsWorkerThread(Factories.<Void>toFactory(action));
     }
@@ -589,6 +591,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         }
     }
 
+    @SuppressWarnings("this-escape")
     private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {
         private final LeaseHolder root = new LeaseHolder(getMaxWorkerCount());
 

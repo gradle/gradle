@@ -53,6 +53,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 // TODO: We should eventually consider making the DefaultConfigurationContainer extend DefaultPolymorphicDomainObjectContainer
+@SuppressWarnings("this-escape")
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal {
 
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";

@@ -19,8 +19,7 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -35,6 +34,7 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
 
     private IvyArtifactName ivyArtifactName;
 
+    @SuppressWarnings("this-escape")
     public UrlBackedArtifactMetadata(ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
         this.componentIdentifier = componentIdentifier;
         this.fileName = fileName;
@@ -82,8 +82,8 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
+    public TaskDependencyContainer getBuildDependencies() {
+        return TaskDependencyContainer.EMPTY;
     }
 
     private String uniqueVersion() {

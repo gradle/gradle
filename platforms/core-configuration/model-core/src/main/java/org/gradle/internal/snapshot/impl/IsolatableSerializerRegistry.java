@@ -96,6 +96,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
+    @SuppressWarnings("this-escape")
     public IsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -532,6 +533,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     }
 
 
+    @SuppressWarnings("ExposedPrivateType")
     public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
 
         @Override

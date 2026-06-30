@@ -69,6 +69,7 @@ class DefaultBuildController implements
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
+    private final FetchFailureConverter failureConverter;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
@@ -76,7 +77,8 @@ class DefaultBuildController implements
         BuildCancellationToken cancellationToken,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        FetchFailureConverter failureConverter
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
@@ -84,6 +86,7 @@ class DefaultBuildController implements
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
+        this.failureConverter = failureConverter;
     }
 
     /**
@@ -181,10 +184,10 @@ class DefaultBuildController implements
         }
     }
 
-    private static List<InternalFailure> toInternalFailures(List<Failure> failures) {
+    private List<InternalFailure> toInternalFailures(List<Failure> failures) {
         return failures
             .stream()
-            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
+            .map(failureConverter::convert)
             .collect(toImmutableList());
     }
 }

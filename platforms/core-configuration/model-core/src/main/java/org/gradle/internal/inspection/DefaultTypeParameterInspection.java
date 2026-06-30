@@ -20,7 +20,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Types;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -42,35 +41,6 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
         this.noParamsType = noParamsType;
     }
 
-    /**
-     * Determines the parameters type for the given implementation.
-     *
-     * @return The parameters type, or {@code null} when the implementation takes no parameters.
-     */
-    @Override
-    @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType) {
-        return parameterTypeForOrNull(implementationType, 0);
-    }
-
-    /**
-     * Determines the parameters type found at the given type argument index for the given implementation.
-     *
-     * @return The parameters type, or {@code null} when the implementation takes no parameters.
-     */
-    @Override
-    @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType, int typeArgumentIndex) {
-        if (implementationType == interfaceType) {
-            return null;
-        }
-        Class<P> parametersType = parameterTypeFor(implementationType, typeArgumentIndex);
-        if (parametersType == noParamsType) {
-            return null;
-        }
-        return parametersType;
-    }
-
     @Override
     public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
         return parameterTypeFor(implementationType, 0);
@@ -78,6 +48,17 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
 
     @Override
     public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
+        if (implementationType == interfaceType) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Could not create the parameters for ");
+            formatter.appendType(implementationType);
+            formatter.append(": an implementation type is required, but ");
+            formatter.appendType(implementationType);
+            formatter.append(" is the ");
+            formatter.appendType(interfaceType);
+            formatter.append(" interface itself.");
+            throw new IllegalArgumentException(formatter.toString());
+        }
         Class<P> parametersType = inferParameterType(implementationType, typeArgumentIndex);
         if (parametersType == paramsType) {
             TreeFormatter formatter = new TreeFormatter();

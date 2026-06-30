@@ -18,28 +18,42 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.Problem;
+import org.gradle.tooling.internal.protocol.FailureDescriptionReconstructor;
+import org.jspecify.annotations.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class DefaultFailure implements Failure {
 
     private final String message;
-    private final String description;
+    private final @Nullable String fullDescription;
+    private final @Nullable String ownDescription;
     private final List<? extends Failure> causes;
     private final List<Problem> problems;
+    private @Nullable String reconstructedDescription;
 
     public DefaultFailure(String message, String description, List<? extends Failure> causes) {
         this(message, description, causes, Collections.<Problem>emptyList());
     }
 
     public DefaultFailure(String message, String description, List<? extends Failure> causes, List<Problem> problems) {
+        this(message, description, description, causes, problems);
+    }
+
+    private DefaultFailure(String message, @Nullable String fullDescription, @Nullable String ownDescription, List<? extends Failure> causes, List<Problem> problems) {
         this.message = message;
-        this.description = description;
+        this.fullDescription = fullDescription;
+        this.ownDescription = ownDescription;
         this.causes = causes;
         this.problems = problems;
+    }
+
+    public static DefaultFailure fromOwnDescription(String message, String ownDescription, List<? extends Failure> causes, List<Problem> problems) {
+        return new DefaultFailure(message, null, ownDescription, causes, problems);
     }
 
     @Override
@@ -49,7 +63,29 @@ public class DefaultFailure implements Failure {
 
     @Override
     public String getDescription() {
-        return description;
+        if (fullDescription != null) {
+            return fullDescription;
+        }
+        String reconstructed = reconstructedDescription;
+        if (reconstructed == null) {
+            // Walk the concrete node type rather than the Failure interface: own text is an internal detail used only
+            // to reassemble the full description, and is not part of the public Failure API.
+            reconstructed = FailureDescriptionReconstructor.reconstruct(this, DefaultFailure::getOwnDescription, DefaultFailure::ownCauses);
+            reconstructedDescription = reconstructed;
+        }
+        return reconstructed;
+    }
+
+    private @Nullable String getOwnDescription() {
+        return ownDescription;
+    }
+
+    private List<DefaultFailure> ownCauses() {
+        List<DefaultFailure> result = new ArrayList<>(causes.size());
+        for (Failure cause : causes) {
+            result.add((DefaultFailure) cause);
+        }
+        return result;
     }
 
     @Override
@@ -77,7 +113,7 @@ public class DefaultFailure implements Failure {
     public String toString() {
         return "DefaultFailure{" +
             "message='" + message + '\'' +
-            ", description='" + description + '\'' +
+            ", ownDescription='" + ownDescription + '\'' +
             ", causes=" + causes +
             ", problems=" + problems +
             '}';

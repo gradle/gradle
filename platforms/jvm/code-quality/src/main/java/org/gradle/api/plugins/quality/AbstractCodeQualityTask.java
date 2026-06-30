@@ -46,6 +46,7 @@ import javax.inject.Inject;
 abstract public class AbstractCodeQualityTask extends SourceTask implements VerificationTask {
     private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
 
+    @SuppressWarnings("this-escape")
     @Inject
     public AbstractCodeQualityTask() {
         getIgnoreFailuresProperty().convention(false);

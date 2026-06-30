@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
@@ -156,6 +157,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         libraries[3].assertHasJar(anotherJar)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void includesTransitiveRepoFileDependencies() {
         //given
@@ -204,6 +206,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         libs[1].assertHasJar(someArtifactJar)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void includesTransitiveImplementationDependencies() {
         //given
@@ -254,6 +257,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         libs[1].assertHasJar(someArtifactJar)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     void transitiveProjectDependenciesMappedAsDirectDependencies() {
         given:
@@ -288,6 +292,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         assert eclipseClasspath.projects.collect { it.name } == ['b', 'c']
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void transitiveFileDependenciesMappedAsDirectDependencies() {
         createDirs("a", "b", "c")
@@ -332,6 +337,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         eclipseClasspath.libs[2].assertHasJar(file("c/foo.jar"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
@@ -562,6 +568,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         libraries[1].assertHasJar(file("bar.txt"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void handlesPlusMinusConfigurationsForProjectDeps() {
         //when
@@ -942,6 +949,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
     }
 
     @Issue("GRADLE-1502")
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void createsLinkedResourcesForSourceDirectoriesWhichAreNotUnderTheProjectDirectory() {
         file('someGroovySrc').mkdirs()
@@ -1021,6 +1029,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         result.assertTasksScheduled(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
@@ -1139,6 +1148,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         classpath.assertHasLibs('compileOnly-1.0.jar', 'testCompileOnly-1.0.jar')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void compileOnlyDependenciesAreNotExported() {
         // given
@@ -1182,6 +1192,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         classpathB.assertHasLibs('compile-1.0.jar')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "test compile only dependencies mapped to classpath and not exported"() {
         // given
@@ -1230,6 +1241,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
         // given
@@ -1278,6 +1290,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
         // given
@@ -1326,6 +1339,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     @Test
     void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
         // given

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
@@ -34,7 +35,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -42,7 +42,7 @@ import java.util.List;
 public abstract class DefaultVariant implements ConfigurationVariantInternal {
 
     private final String name;
-    private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
+    private final PublishArtifactNotationParser artifactNotationParser;
 
     private final DisplayName displayName;
     private final FreezableAttributeContainer attributes;
@@ -55,7 +55,7 @@ public abstract class DefaultVariant implements ConfigurationVariantInternal {
         Describable parentDisplayName,
         String name,
         AttributeContainerInternal parentAttributes,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        PublishArtifactNotationParser artifactNotationParser,
         FileCollectionFactory fileCollectionFactory,
         AttributesFactory attributesFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
@@ -64,7 +64,7 @@ public abstract class DefaultVariant implements ConfigurationVariantInternal {
         this.name = name;
         this.artifactNotationParser = artifactNotationParser;
 
-        this.displayName = Describables.of(parentDisplayName, "variant", name);
+        this.displayName = Describables.of(parentDisplayName, Describables.quoted("variant", name));
         this.attributes = attributesFactory.freezable(attributesFactory.mutable(parentAttributes), displayName);
         this.artifacts = new DefaultPublishArtifactSet(displayName, domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
     }

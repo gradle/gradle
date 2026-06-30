@@ -55,6 +55,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private final BuildDashboardReports reports;
 
+    @SuppressWarnings("this-escape")
     public GenerateBuildDashboard() {
         ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
         reports = getObjectFactory().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
@@ -63,6 +64,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     @Input
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since ReportState is private")
+    @SuppressWarnings("ExposedPrivateType")
     public Set<ReportState> getInputReports() {
         Set<ReportState> inputs = new LinkedHashSet<ReportState>();
         for (Report report : getEnabledInputReports()) {

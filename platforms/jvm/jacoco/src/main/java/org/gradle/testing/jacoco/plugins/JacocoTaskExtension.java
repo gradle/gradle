@@ -70,6 +70,7 @@ public abstract class JacocoTaskExtension {
 
     private final JacocoAgentJar agent;
     private final JavaForkOptions task;
+    private final ObjectFactory objectFactory;
 
     private boolean enabled = true;
     private final RegularFileProperty destinationFile;
@@ -95,6 +96,7 @@ public abstract class JacocoTaskExtension {
     public JacocoTaskExtension(ObjectFactory objects, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
+        this.objectFactory = objects;
         destinationFile = objects.fileProperty();
     }
 
@@ -297,6 +299,7 @@ public abstract class JacocoTaskExtension {
      */
     public void setClassDumpDir(@Nullable File classDumpDir) {
         getClassDumpDirectory().set(classDumpDir);
+        getClassDumpDirectory().convention(objectFactory.directoryProperty().fileValue(classDumpDir));
     }
 
     /**

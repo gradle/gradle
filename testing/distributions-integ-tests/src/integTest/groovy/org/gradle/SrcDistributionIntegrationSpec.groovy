@@ -16,15 +16,12 @@
 
 package org.gradle
 
-import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
-
-import org.gradle.util.internal.AntUtil
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
@@ -78,13 +75,11 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         binZip.exists()
 
         when:
-        Expand unpack = new Expand()
-        unpack.src = binZip
-        unpack.dest = contentsDir.file('build/distributions/unzip')
-        AntUtil.execute(unpack)
+        def unzipDestination = contentsDir.file('build/distributions/unzip')
+        binZip.unzipTo(unzipDestination)
 
         then:
-        TestFile unpackedRoot = new TestFile(contentsDir.file('build/distributions/unzip').listFiles().first())
+        TestFile unpackedRoot = new TestFile(unzipDestination.listFiles().first())
         unpackedRoot.file("bin/gradle").exists()
     }
 

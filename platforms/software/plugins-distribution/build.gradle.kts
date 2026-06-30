@@ -30,10 +30,7 @@ dependencies {
     api(projects.fileOperations)
 
     implementation(projects.core)
-    implementation(projects.dependencyManagement)
-    implementation(projects.fileCollections)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.platformBase)
 
     implementation(libs.commonsLang)
@@ -54,6 +51,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

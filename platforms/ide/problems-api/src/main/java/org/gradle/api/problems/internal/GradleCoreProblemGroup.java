@@ -30,6 +30,7 @@ public abstract class GradleCoreProblemGroup {
     private static final ProblemGroup CONFIGURATION_USAGE_PROBLEM_GROUP = ProblemGroup.create("configuration-usage", "Configuration usage");
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
     private static final ProblemGroup SCRIPTS_PROBLEM_GROUP = ProblemGroup.create("scripts", "Scripts");
+    private static final DefaultPackagingProblemGroup PACKAGING_PROBLEM_GROUP = new DefaultPackagingProblemGroup();
 
     public static CompilationProblemGroup compilation() {
         return COMPILATION_PROBLEM_GROUP;
@@ -71,6 +72,10 @@ public abstract class GradleCoreProblemGroup {
         return SCRIPTS_PROBLEM_GROUP;
     }
 
+    public static PackagingProblemGroup packaging() {
+        return PACKAGING_PROBLEM_GROUP;
+    }
+
     public interface CompilationProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup java();
@@ -87,6 +92,11 @@ public abstract class GradleCoreProblemGroup {
     public interface DaemonToolchainProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup configurationGeneration();
+    }
+
+    public interface PackagingProblemGroup {
+        ProblemGroup thisGroup();
+        ProblemGroup signing();
     }
 
     private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
@@ -158,6 +168,22 @@ public abstract class GradleCoreProblemGroup {
         @Override
         public ProblemGroup configurationGeneration() {
             return configurationGeneration;
+        }
+    }
+
+    private static class DefaultPackagingProblemGroup implements PackagingProblemGroup {
+
+        private final ProblemGroup thisGroup = ProblemGroup.create("packaging", "Packaging");
+        private final ProblemGroup signing = ProblemGroup.create("signing", "Signing", thisGroup);
+
+        @Override
+        public ProblemGroup thisGroup() {
+            return thisGroup;
+        }
+
+        @Override
+        public ProblemGroup signing() {
+            return signing;
         }
     }
 

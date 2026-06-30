@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
@@ -104,10 +105,10 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
-        Provider<Directory> reportsDir = extension.getReportsDirectory();
+        DirectoryProperty reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
-            report.getOutputLocation().convention(reportsDir.map(dir -> dir.file(baseName + "." + report.getName())));
+            report.getOutputLocation().convention(reportsDir.file(baseName + "." + report.getName()));
         }));
     }
 

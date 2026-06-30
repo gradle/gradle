@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -44,7 +43,7 @@ public class DefaultConfigurationFactory {
     private final ConfigurationServicesBundle configurationServices;
     private final ListenerManager listenerManager;
     private final DomainObjectContext domainObjectContext;
-    private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
+    private final PublishArtifactNotationParser artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
@@ -53,13 +52,13 @@ public class DefaultConfigurationFactory {
         ConfigurationServicesBundle configurationServices,
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
-        PublishArtifactNotationParserFactory artifactNotationParserFactory,
+        PublishArtifactNotationParser artifactNotationParserFactory,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
-        this.artifactNotationParser = artifactNotationParserFactory.create();
+        this.artifactNotationParser = artifactNotationParserFactory;
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.userCodeApplicationContext = userCodeApplicationContext;
     }

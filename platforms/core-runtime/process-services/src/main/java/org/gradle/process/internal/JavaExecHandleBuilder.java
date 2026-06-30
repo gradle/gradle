@@ -75,6 +75,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private final JavaForkOptionsInternal javaOptions;
     private final ModularitySpec modularity;
 
+    @SuppressWarnings("this-escape")
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,

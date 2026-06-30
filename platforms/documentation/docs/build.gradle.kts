@@ -6,7 +6,6 @@ import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
-import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
@@ -15,8 +14,6 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
     id("gradlebuild.internal.java")
-    // TODO: Apply asciidoctor in documentation plugin instead.
-    id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")
     id("org.gradle.samples")
     id("gradlebuild.android-home-warmup")
@@ -53,12 +50,6 @@ configurations {
     }
 }
 
-configurations.docsTestImplementation {
-    // The 'org.gradle.samples' plugin from the old gradle/guides build pulls in slf4j-simple, which we don't want.
-    // See: https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesDocumentationPlugin.java#L335
-    exclude("org.slf4j", "slf4j-simple")
-}
-
 dependencyAnalysis {
     issues {
         ignoreSourceSet(sourceSets.docsTest.name)
@@ -92,6 +83,8 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
     constraints {
+        // Selenium transitively requests an old (CVE-vulnerable) websocket-client.
+        // This forces it up to the secure version pinned in the test catalog.
         testImplementation(testLibs.jettyWebsocket)
     }
 }
@@ -100,34 +93,13 @@ jvmCompile {
     addCompilationFrom(sourceSets.docsTest)
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-asciidoctorj {
-    setVersion("2.5.13")
-    modules.pdf.setVersion("2.3.10")
-    // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
-    // TODO: tables are not handled properly in pdfs
-    fatalWarnings.add(
-        Regex("^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*").toPattern()
-    )
-}
-
-tasks.withType<AsciidoctorTask>().configureEach {
-    val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    doctorj.docExtensions(
-        project.dependencies.create(project(":docs-asciidoctor-extensions")),
-        project.dependencies.create(files("src/main/resources"))
-    )
-}
-
 gradleDocumentation {
+    gradleVersion = project.version.toString()
     javadocs {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
+        minJdkVersion = jvmVersion
+        javadocReferenceUrl = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/specs/man/javadoc.html") }
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
         groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
@@ -291,58 +263,21 @@ tasks.named<Test>("docsTest") {
             }
         }
 
+        // Individual snippets excluded when docsTest runs with the configCache executer.
+        // The categories (unsupported / third-party / not-yet-supported / to-be-fixed) are
+        // documented as comment headers in the file. All entries are treated identically here.
+        // Opt in to run them with -PrunBrokenConfigurationCacheDocsTests=true.
+        val brokenTests = providers.fileContents(
+            layout.projectDirectory.file("src/main/resources/broken-config-cache-snippets.txt")
+        ).asText.map { text ->
+            text.lines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+        }.get()
+
         filter {
             configCacheExcludedTestGroups.forEach { excludeTestsMatching("*${it}*") }
 
-            // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
-            val testsForUnsupportedFeatures = listOf(
-                "snippet-reference-other-topics-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget",
-                "snippet-reference-other-topics-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget",
-                "snippet-reference-other-topics-depends-on-ant-target_groovy_dependsOnAntTarget",
-                "snippet-reference-other-topics-depends-on-ant-target_kotlin_dependsOnAntTarget",
-                "snippet-reference-other-topics-depends-on-task_groovy_dependsOnTask",
-                "snippet-reference-other-topics-depends-on-task_kotlin_dependsOnTask",
-                "snippet-reference-other-topics-hello_groovy_antHello",
-                "snippet-reference-other-topics-hello_kotlin_antHello",
-                "snippet-reference-other-topics-rename-task_groovy_renameAntDelegate",
-                "snippet-reference-other-topics-rename-task_kotlin_renameAntDelegate",
-                "snippet-reference-other-topics-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig",
-                "snippet-reference-other-topics-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig",
-                "snippet-reference-other-topics-ant-logging_groovy_antLogging",
-                "snippet-reference-other-topics-ant-logging_kotlin_antLogging",
-                "snippet-reference-runtime-configuration-custom-logger_groovy_customLogger.groovy",
-                "snippet-reference-runtime-configuration-custom-logger_kotlin_customLogger.kotlin",
-                "snippet-reference-platforms-native-cpp_groovy_nativeComponentReport",
-                "snippet-reference-platforms-native-cunit_groovy_assembleDependentComponents",
-                "snippet-reference-platforms-native-cunit_groovy_assembleDependentComponentsReport",
-                "snippet-reference-platforms-native-cunit_groovy_buildDependentComponents",
-                "snippet-reference-platforms-native-cunit_groovy_buildDependentComponentsReport",
-                "snippet-reference-platforms-native-cunit_groovy_completeCUnitExample",
-                "snippet-reference-platforms-native-cunit_groovy_dependentComponentsReport",
-                "snippet-reference-platforms-native-cunit_groovy_dependentComponentsReportAll",
-            )
-
-            // These tests use third-party plugins at versions that may not support the configuration cache properly.
-            // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
-            val testsWithThirdPartyFailures = listOf<String>(
-            )
-
-            // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
-            // The tests should be removed from this list when the feature becomes supported.
-            val testsForNotYetSupportedFeatures = listOf(
-                // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
-                "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod",
-                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod",
-            )
-
-            // Tests that can and has to be fixed to run with the configuration cache enabled.
-            // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
-            val testsToBeFixedForConfigurationCache = listOf(
-                "snippet-optimizing-builds-build-cache-configure-task_groovy_configureTask",
-                "snippet-optimizing-builds-build-cache-configure-task_kotlin_configureTask",
-            )
-
-            val brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
             brokenTests.forEach { testName ->
                 val testMask = "org.gradle.docs.samples.*.$testName"
                 if (project.runBrokenForConfigurationCacheDocsTests) {
@@ -363,8 +298,7 @@ tasks.named<Test>("docsTest") {
 
 configurations {
     named("gradleFullDocsElements") {
-        // TODO: This breaks the provider
-        outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot.get().asFile) {
+        outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot) {
             builtBy(tasks.named("docs"))
         }
     }

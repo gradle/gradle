@@ -17,7 +17,7 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -158,11 +158,12 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
         file("sub/build.gradle") << "apply from: 'script.gradle'"
         file("sub/script.gradle") << "someMethod()"
-        executer.expectDocumentedDeprecationWarning("Implicitly resolving methods in the project hierarchy has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Method 'someMethod' was not declared in project ':sub' and was resolved from root project 'root'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
         when:
         run "help"
@@ -257,11 +258,12 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
                 getClass().classLoader.close()
             }
         """
-        executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of properties in parent projects has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
             "Property 'pluginClass' was not declared in project ':sub' and was resolved from root project 'root'. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
 
         when:
         succeeds "hello"

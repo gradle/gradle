@@ -23,18 +23,20 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.protocol.HTTP;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transport.http.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
@@ -119,14 +121,18 @@ public class HttpBuildCacheService implements BuildCacheService {
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
-        HttpClient.WritableContent putResource = new HttpClient.WritableContent() {
+        ReadableContent putResource = new ReadableContent() {
             @Override
-            public void writeTo(OutputStream outputStream) throws IOException {
-                writer.writeTo(outputStream);
+            public InputStream open() throws ResourceException {
+                try {
+                    return writer.getInputStream();
+                } catch (IOException e) {
+                    throw new ResourceException("Failed to open build cache entry stream", e);
+                }
             }
 
             @Override
-            public long getSize() {
+            public long getContentLength() {
                 return writer.getSize();
             }
         };

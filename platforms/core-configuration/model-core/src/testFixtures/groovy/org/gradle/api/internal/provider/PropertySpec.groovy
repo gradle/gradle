@@ -254,8 +254,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def property = propertyWithNoValue()
         assert property.getOrNull() != someValue()
 
-        expect:
+        when:
         property.convention(someValue())
+
+        then:
         property.present
         property.get() == someValue()
 
@@ -363,8 +365,10 @@ The value of this property is derived from: <source>""")
         def property = propertyWithNoValue()
         property.set(someValue())
 
-        expect:
+        when:
         property.convention(someOtherValue())
+
+        then:
         property.get() == someValue()
     }
 
@@ -374,8 +378,10 @@ The value of this property is derived from: <source>""")
         def property = propertyWithNoValue()
         property.set(someValue())
 
-        expect:
+        when:
         property.convention(provider)
+
+        then:
         property.get() == someValue()
     }
 
@@ -389,7 +395,10 @@ The value of this property is derived from: <source>""")
         property.present
         property.get() == someOtherValue()
 
+        when:
         property.convention(someValue())
+
+        then:
         property.present
         property.get() == someValue()
     }
@@ -411,8 +420,10 @@ The value of this property is derived from: <source>""")
         def property = propertyWithNoValue()
         property.set(Providers.notDefined())
 
-        expect:
+        when:
         property.convention(someOtherValue())
+
+        then:
         !property.present
         property.getOrNull() == null
     }
@@ -423,8 +434,10 @@ The value of this property is derived from: <source>""")
         def property = propertyWithNoValue()
         property.set(Providers.notDefined())
 
-        expect:
+        when:
         property.convention(provider)
+
+        then:
         !property.present
         property.getOrNull() == null
     }

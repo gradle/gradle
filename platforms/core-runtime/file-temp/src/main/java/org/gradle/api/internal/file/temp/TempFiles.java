@@ -50,19 +50,42 @@ public final class TempFiles {
      */
     @CheckReturnValue
     static File createTempFile(@Nullable String prefix, @Nullable String suffix, File directory) throws IOException {
+        return File.createTempFile(normalizePrefix(prefix), suffix, requireDirectory(directory));
+    }
+
+    /**
+     * Like {@link #createTempFile(String, String, File)}, but additionally restricts the created
+     * file to owner-only read/write permissions ({@code rw-------}) on POSIX filesystems, applied
+     * atomically at creation time so there is no world-readable window. Use this for temporary
+     * files that may hold sensitive data.
+     *
+     * <p>On non-POSIX filesystems the permission attribute is skipped and the platform default
+     * ACLs apply.
+     */
+    @CheckReturnValue
+    static File createOwnerOnlyTempFile(@Nullable String prefix, @Nullable String suffix, File directory) throws IOException {
+        Path dir = requireDirectory(directory).toPath();
+        String normalizedPrefix = normalizePrefix(prefix);
+        if (Files.getFileStore(dir).supportsFileAttributeView("posix")) {
+            return Files.createTempFile(dir, normalizedPrefix, suffix, OWNER_ONLY_ATTRIBUTE).toFile();
+        }
+        return Files.createTempFile(dir, normalizedPrefix, suffix).toFile();
+    }
+
+    private static File requireDirectory(@Nullable File directory) {
         if (directory == null) {
             throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
         }
+        return directory;
+    }
+
+    private static String normalizePrefix(@Nullable String prefix) {
         if (prefix == null) {
             prefix = "gradle-";
         }
         if (prefix.length() <= 3) {
             prefix = "tmp-" + prefix;
         }
-        Path dir = directory.toPath();
-        if (Files.getFileStore(dir).supportsFileAttributeView("posix")) {
-            return Files.createTempFile(dir, prefix, suffix, OWNER_ONLY_ATTRIBUTE).toFile();
-        }
-        return Files.createTempFile(dir, prefix, suffix).toFile();
+        return prefix;
     }
 }

@@ -77,6 +77,7 @@
             <trusting group="org.jvnet.staxex" name="stax-ex"/>
             <trusting group="^com[.]sun($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="051927E24FA091722E05A3B23C03136EA34A60F7" group="org.asciidoctor"/>
          <trusted-key id="05F1A5DA5701D415BEFC67FC6329ADE2B25B244B" group="io.github.pdvrieze.xmlutil"/>
          <trusted-key id="06D34ED6FF73DE368A772A781063FE98BCECB758" group="com.puppycrawl.tools" name="checkstyle"/>
          <trusted-key id="073F7A9345756F3B40CDB99E6C70A3B7599C5736">
@@ -135,6 +136,7 @@
          <trusted-key id="1D85469D8559C2E1DF5F925131D2D79DF7E85DD3" group="org.jcommander" name="jcommander"/>
          <trusted-key id="1FA37FBE4453C1073E7EF61D6449005F96BC97A3" group="de.undercouch"/>
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
+         <trusted-key id="21B1C1BFAFF8055FF496E718C4FFB4C9C3EBD20E" group="net.rubygrapefruit" name="ansi-control-sequence-util"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="223D3A74B068ECA354DC385CE126833F9CF64915" group="org.apache.xbean" name="xbean-reflect"/>
          <trusted-key id="253E8E4C6FB28D11748115C1249DEE8E2C07A0A2" group="com.github.javaparser"/>
@@ -164,6 +166,10 @@
          </trusted-key>
          <trusted-key id="2E3A1AFFE42B5F53AF19F780BCF4173966770193" group="org.jetbrains" name="annotations"/>
          <trusted-key id="2E92113263FC31C74CCBAAB20E91C2DE43B72BB1" group="org.ec4j.core" name="ec4j-core"/>
+         <trusted-key id="2FC53E6B1F681184F4CCD637F5C81DE10A0B8ECC">
+            <trusting group="org.snakeyaml" name="snakeyaml-engine"/>
+            <trusting group="org.yaml" name="snakeyaml"/>
+         </trusted-key>
          <trusted-key id="314FE82E5A4C5377BCA2EDEC5208812E1E4A6DB0">
             <trusting group="net.rubygrapefruit"/>
             <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
@@ -175,7 +181,10 @@
             <trusting group="org.codehaus.plexus" name="plexus-xml"/>
          </trusted-key>
          <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
-         <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF" group="org.jetbrains" name="annotations"/>
+         <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF">
+            <trusting group="org.jetbrains" name="annotations"/>
+            <trusting group="org.jetbrains.intellij.deps.kotlinx" name="kotlinx-coroutines-core-jvm"/>
+         </trusted-key>
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B">
             <trusting group="org.apache.groovy"/>
             <trusting group="org.apache.groovy" name="groovy"/>
@@ -248,7 +257,7 @@
             <trusting group="net.sourceforge.htmlunit"/>
          </trusted-key>
          <trusted-key id="5F55943E13D49059D3F342777186B06E1ED139E7" group="org.apache.lucene"/>
-         <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="io.gitlab.arturbosch.detekt"/>
+         <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="dev.detekt"/>
          <trusted-key id="600EA202B1EC682F4A788E5AAC7A514BC9F9BB70" group="io.opencensus"/>
          <trusted-key id="60200AC4AE761F1614D6C46766D68DAA073BE985">
             <trusting group="ch.qos.logback"/>
@@ -368,6 +377,7 @@
          <trusted-key id="ACF39CCDED38E2C6F0898BF28F7F6C0451967B84" group="org.scala-lang"/>
          <trusted-key id="AD296CA014321485EB6780FF8B8E0CB0F6A7657E" group="org.asciidoctor"/>
          <trusted-key id="ADBC987D1A7B91DB6B0AAA81995EFBF4A3D20BEB" group="^com[.]pinterest($|([.].*))" regex="true"/>
+         <trusted-key id="AF7104B493974EA5DDF5044355101494C452D7A2" group="org.crac" name="crac"/>
          <trusted-key id="B02137D875D833D9B23392ECAE5A7FB608A0221C">
             <trusting group="com.thoughtworks.qdox"/>
             <trusting group="org.codehaus.plexus"/>
@@ -380,7 +390,6 @@
             <trusting group="org.apache.commons" name="commons-lang3"/>
             <trusting group="org.apache.commons" name="commons-text"/>
          </trusted-key>
-         <trusted-key id="B801E2F8EF035068EC1139CC29579F18FA8FD93B" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="B8D44699D150AAD887FDCF8BD6131C504DEBCC09" group="com.kohlschutter.junixsocket"/>
          <trusted-key id="B91AB7D2121DC6B0A61AA182D7742D58455ECC7C" group="org.codehaus.plexus" name="plexus-classworlds"/>
          <trusted-key id="BA926F64CA647B6D853A38672E2010F8A7FF4A41">
@@ -393,13 +402,13 @@
          <trusted-key id="BD95A93175BFE816FC152DE5F9FD57A03B80305D" group="com.lihaoyi"/>
          <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE">
             <trusting group="com.google.guava"/>
-            <trusting group="com.google.j2objc" name="j2objc-annotations"/>
             <trusting group="com.google.testing.compile" name="compile-testing"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="BE685132AFD2740D9095F9040CC0B712FEE75827" group="org.assertj" name="assertj-core"/>
          <trusted-key id="C0612048F3393B80B22639B4F067A2FD751AE3E4" group="io.github.davidburstrom.contester" name="contester-breakpoint"/>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
+         <trusted-key id="C3259D20DAEC4ACE6D57CC83340B090F727518D8" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="C328250FE23A2420814521EC0EB69F76FD171538" group="io.airlift" name="slice"/>
          <trusted-key id="C3EB67E869C31CC00755038F0A07E0E55E45F65B" group="jcifs" name="jcifs"/>
          <trusted-key id="C44A68FD10FF456C91E2757D18088D07854014B3" group="org.scala-lang.modules" name="scala-parallel-collections_2.13"/>
@@ -453,6 +462,7 @@
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
          <trusted-key id="DED5A0BEA2A8CC381CE986CEAA89D120A76C41E8" group="org.scijava" name="native-lib-loader"/>
+         <trusted-key id="DFD60A08EC2B0CECED24A01F36A22209606109DC" group="com.typesafe" name="config"/>
          <trusted-key id="E0D98C5FD55A8AF232290E58DEE12B9896F97E34" group="org.pcollections" name="pcollections"/>
          <trusted-key id="E3A9F95079E84CE201F7CF60BEDE11EAF1164480" group="org.hamcrest"/>
          <trusted-key id="E5B8247AF8A619A28F90FDFC9FF25980F5BA7E4F" group="xalan"/>
@@ -478,6 +488,11 @@
             <trusting group="org.scala-sbt"/>
             <trusting group="org.scala-sbt.jline"/>
          </trusted-key>
+         <trusted-key id="EC23FD5875DFF32547D5257F631ECF66932B28BA">
+            <trusting group="com.github.jnr"/>
+            <trusting group="org.jruby.jcodings"/>
+            <trusting group="org.jruby.joni"/>
+         </trusted-key>
          <trusted-key id="EC9430D24E1FC30468C773FDCA1952B1E682D8A6" group="org.jodd"/>
          <trusted-key id="EE0CA873074092F806F59B65D364ABAA39A47320">
             <trusting group="com.google.errorprone"/>
@@ -487,7 +502,7 @@
          <trusted-key id="EF97D052DF6F6975A4E8C495AB9BC6BE0524BAD3">
             <trusting group="com.github.jnr"/>
             <trusting group="com.headius"/>
-            <trusting group="^org[.]jruby($|([.].*))" regex="true"/>
+            <trusting group="org.jruby"/>
          </trusted-key>
          <trusted-key id="F046369B06B761AC86D9849F71B329993BFFCFDD" group="org.openjdk.jmc"/>
          <trusted-key id="F254B35617DC255D9344BCFA873A8E86B4372146">
@@ -505,6 +520,7 @@
          <trusted-key id="F3D9FF1EE50634CC57D1E380C2952540150670BE" group="org.scala-lang.modules" name="scala-xml_2.13"/>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>
          <trusted-key id="F44F648ECAD30325AED69BBDA8538F26D55EA9A3" group="org.testng" name="testng"/>
+         <trusted-key id="F4DD59C90148BDC52BEB90A4530AA5F25C25011F" group="commons-io" name="commons-io"/>
          <trusted-key id="F60DB6893AB3825459528EADCC54B93C018511A4" group="com.beust" name="jcommander"/>
          <trusted-key id="F9514E84AE3708288374BBBE097586CFEA37F9A6" group="org.owasp.encoder" name="encoder"/>
          <trusted-key id="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A">
@@ -575,6 +591,11 @@
       <component group="com.android.tools" name="dvlib" version="26.0.0">
          <artifact name="dvlib-26.0.0.jar">
             <sha256 value="f518445fc8a2defc443aac1c53ca60d07cd991a20063c275a322f1668acd67c4" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="r8" version="8.5.35">
+         <artifact name="r8-8.5.35.jar">
+            <sha256 value="4733945987ee0a840fafc34080b135259e01678412e07212b23f706334290294" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.android.tools" name="repository" version="26.0.0">
@@ -833,14 +854,14 @@
             <sha256 value="757eeb1c6703b81fa3bb6bc2eae7a5fe6ddac5d833b977aa1ce08979d7c2de5a" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-base" version="4.0.2">
-         <artifact name="asciidoctor-gradle-base-4.0.2.jar">
-            <sha256 value="9e6cd8a7d5b660f4892ffa2e3311ab881d165ff9c8f3842b3915ce7c87603bfd" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctor-gradle-base" version="4.0.4">
+         <artifact name="asciidoctor-gradle-base-4.0.4.jar">
+            <sha256 value="a166d8ceab124de10093d65c63444cf6ce4015b564158a1cdce56e1c8864721c" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-jvm" version="4.0.2">
-         <artifact name="asciidoctor-gradle-jvm-4.0.2.jar">
-            <sha256 value="836267bb69b39ab011c9dea4a33caa4526b3656eb1bd7e4b9e809fb8a179f460" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.asciidoctor" name="asciidoctor-gradle-jvm" version="4.0.4">
+         <artifact name="asciidoctor-gradle-jvm-4.0.4.jar">
+            <sha256 value="f3448ca295830c56202723d04347c7bb56240bf9143d047329083d9e41e166d6" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.10">
@@ -868,49 +889,14 @@
             <sha256 value="843245599385e906a4133fed1765c4d9f2e697b0091bb681cffd71dc426ff76b" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle" name="test-retry-gradle-plugin" version="1.5.2">
-         <artifact name="test-retry-gradle-plugin-1.5.2.jar">
-            <sha256 value="9d83780b9df3d7d704c7f9c0feed2bfb5a295833392a666250db7f4cf91bda5a" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.buildtool.internal" name="gradle-ide-starter-scenarios" version="0.8.6">
          <artifact name="gradle-ide-starter-scenarios-0.8.6.jar">
             <sha256 value="5b8f84f082ee8fa872e63d0616a84b65e7d24cf57aafcdd080e74926e9dbe3ae" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.ci.health" name="common" version="0.63">
-         <artifact name="common-0.63.jar">
-            <sha256 value="1cbecb45b99d98523a62f9ead6a248b95e295d5db186d09222e6ae1ea6ce0292" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="common" version="0.74">
-         <artifact name="common-0.74.jar">
-            <sha256 value="c9e7a770270510d50ad4c7b9df04fc4fa88a60011e610822d653a9b25791bef7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="github-client" version="0.74">
-         <artifact name="github-client-0.74.jar">
-            <sha256 value="5bb1ef363623fdf76ca64a07abbd4c69d3b915876f87538d031791add35f2683" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="gradle-build-tag-plugin" version="0.74">
-         <artifact name="gradle-build-tag-plugin-0.74.jar">
-            <sha256 value="4824afdf33200a96ad995ed9f4b6c9cbac98168cbda53642e7f8664cb7331556" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="tagging" version="0.74">
-         <artifact name="tagging-0.74.jar">
-            <sha256 value="5c5db6b64345396574d4527f44623a449753aeb308ab8adf1ad717795ec708b7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="teamcity-client" version="0.74">
-         <artifact name="teamcity-client-0.74.jar">
-            <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.24.0">
-         <artifact name="gradle-guides-plugin-0.24.0.jar">
-            <sha256 value="88164871e17dc8d9e1d7c0d1415822a440278cc70513f3dbe0b507d85868412e" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.25.0">
+         <artifact name="gradle-guides-plugin-0.25.0.jar">
+            <sha256 value="aaef2108d192420ab4a2723fab4d2ca00aec68836056dd2e2f56c529d2681ca8" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="plugins" version="1.3.6">
