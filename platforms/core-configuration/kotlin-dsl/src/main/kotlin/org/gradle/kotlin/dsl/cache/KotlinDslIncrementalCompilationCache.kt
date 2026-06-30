@@ -85,6 +85,47 @@ internal class KotlinDslIncrementalCompilationCache(
     }
 
     /**
+     * True when a prior compile started writing into [scriptIdentity]'s stable `outputs/` but was
+     * killed before finishing, its in-progress marker survives. The `outputs/` may then hold a torn
+     * mix of old and new class files, so callers should discard and rebuild rather than trust it.
+     * A compilation that completes, or even one that throws, clears the marker (see [markCompilationComplete]);
+     * only a hard process death (kill/OOM) leaves it behind.
+     */
+    fun wasPreviousCompilationInterrupted(scriptIdentity: String): Boolean =
+        Files.exists(compilationMarkerFile(scriptIdentity))
+
+    /**
+     * Records that an emit into [scriptIdentity]'s stable `outputs/` is starting. Cleared by
+     * [markCompilationComplete] once the compile finishes; if the process dies in between, the surviving
+     * marker tells the next build the `outputs/` may be torn (see [wasPreviousCompilationInterrupted]).
+     */
+    fun markCompilationStarted(scriptIdentity: String) {
+        scriptEntry(scriptIdentity).createDirectories()
+        Files.write(compilationMarkerFile(scriptIdentity), ByteArray(0))
+    }
+
+    /**
+     * Clears the in-progress marker after a compile finishes, so the next build trusts the stable `outputs/`.
+     */
+    fun markCompilationComplete(scriptIdentity: String) {
+        Files.deleteIfExists(compilationMarkerFile(scriptIdentity))
+    }
+
+    /**
+     * Discards [scriptIdentity]'s compiler `outputs/` and IC working state (keeps its stable `sources/`),
+     * so the next compile rebuilds from scratch. Recovers from an `outputs/` left torn by an interrupted
+     * compile (see [wasPreviousCompilationInterrupted]). Call only under the script's lock (see [withScriptState]).
+     */
+    fun discardOutputsAndIncrementalState(scriptIdentity: String) {
+        val entry = scriptEntry(scriptIdentity)
+        entry.resolve("outputs").toFile().deleteRecursively()
+        entry.resolve("ic-state").toFile().deleteRecursively()
+    }
+
+    private fun compilationMarkerFile(scriptIdentity: String): Path =
+        scriptEntry(scriptIdentity).resolve("compile-in-progress")
+
+    /**
      * Returns the stable per-script directory the compiler writes class outputs into, creating it if needed.
      */
     fun scriptOutputsDirectory(scriptIdentity: String): Path =
