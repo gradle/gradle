@@ -116,7 +116,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     @Nullable
-    LoggingManagerInternal getLoggingManagerIfCreated();
+    LoggingManagerInternal getLoggingManager();
 
     @Override
     TaskInputsInternal getInputs();

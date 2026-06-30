@@ -58,6 +58,7 @@ import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.readStringsSet
@@ -302,7 +303,7 @@ class TaskNodeCodec(
     private
     suspend fun WriteContext.writeTaskLoggingListeners(task: TaskInternal) {
         withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
-            val loggingManager = task.loggingManagerIfCreated
+            val loggingManager = task.loggingManager
             writeCollection(loggingManager?.standardOutputListeners ?: emptyList<StandardOutputListener>())
             writeCollection(loggingManager?.standardErrorListeners ?: emptyList<StandardOutputListener>())
         }
@@ -311,10 +312,8 @@ class TaskNodeCodec(
     private
     suspend fun ReadContext.readTaskLoggingListeners(task: TaskInternal) {
         withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
-            val stdoutListeners = ArrayList<StandardOutputListener>()
-            readCollection { stdoutListeners.add(readNonNull()) }
-            val stderrListeners = ArrayList<StandardOutputListener>()
-            readCollection { stderrListeners.add(readNonNull()) }
+            val stdoutListeners = readList { readNonNull<StandardOutputListener>() }
+            val stderrListeners = readList { readNonNull<StandardOutputListener>() }
             if (stdoutListeners.isNotEmpty() || stderrListeners.isNotEmpty()) {
                 val loggingManager = task.logging as LoggingManagerInternal
                 stdoutListeners.forEach { loggingManager.addStandardOutputListener(it) }

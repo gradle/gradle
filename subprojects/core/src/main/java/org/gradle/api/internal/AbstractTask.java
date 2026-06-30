@@ -601,7 +601,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Nullable
     @Override
-    public LoggingManagerInternal getLoggingManagerIfCreated() {
+    public LoggingManagerInternal getLoggingManager() {
         return loggingManager;
     }
 
