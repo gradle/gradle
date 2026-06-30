@@ -47,7 +47,10 @@ import static org.gradle.performance.results.PerformanceFlakinessDataProvider.Em
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
     public static Set<String> getDependencyPerformanceTestTeamCityBuildIds() {
-        return new HashSet<>(Arrays.asList(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(",")));
+        return Arrays.stream(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(","))
+            .map(String::trim)
+            .filter(id -> !id.isEmpty())
+            .collect(Collectors.toCollection(HashSet::new));
     }
 
     protected void generateReport(String... args) {

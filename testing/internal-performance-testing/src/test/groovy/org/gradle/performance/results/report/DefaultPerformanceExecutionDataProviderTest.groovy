@@ -16,10 +16,12 @@
 
 package org.gradle.performance.results.report
 
+import groovy.json.JsonOutput
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceReportScenario
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution
+import org.gradle.performance.results.PerformanceTestHistory
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.PerformanceTestExecutionResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -54,6 +56,34 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
 
         then:
         buildResults.collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
+    }
+
+    def 'marks a scenario as carried over from cache when none of its executions ran in the current pipeline'() {
+        given:
+        def store = Mock(ResultsStore) {
+            getTestResults(_, _, _, _ as List, _) >> Stub(PerformanceTestHistory) {
+                getExecutions() >> []
+            }
+        }
+        resultsJson.text = JsonOutput.toJson([[
+            teamCityBuildId: jsonBuildId,
+            scenarioName   : 'assemble',
+            scenarioClass  : 'org.example.SomeTest',
+            testProject    : 'largeMonolithicJavaProject',
+            status         : 'FAILURE',
+            webUrl         : "https://builds.gradle.org/viewLog.html?buildId=$jsonBuildId"
+        ]])
+        provider = new DefaultPerformanceExecutionDataProvider(store, [resultsJson], currentPipelineBuildIds as Set)
+
+        expect:
+        provider.reportScenarios.first().fromCache == expectedFromCache
+
+        where:
+        // A cache hit restores the bucket task output, whose JSON carries the *original* producing build's id.
+        scenario       | jsonBuildId | currentPipelineBuildIds | expectedFromCache
+        'cache hit'    | '114123152' | ['114134082']           | true   // stale build id, not one of this pipeline's buckets
+        'fresh run'    | '114134082' | ['114134082']           | false  // produced by this pipeline
+        'unknown (local)' | '114123152' | []                   | false  // no authoritative set -> never suppress
     }
 
     private PerformanceReportScenario createFailedData() {

@@ -51,7 +51,12 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
-                if (scenario.isBuildFailed()) {
+                if (scenario.isFromCache()) {
+                    // Results restored from the Gradle build cache were produced by a previous execution
+                    // It may include tiny or unconfident regression, but we must not fail current build
+                    System.out.println("Ignoring cached (not re-executed) scenario for build status: " + scenario.getName() + " "
+                        + scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(Collectors.joining(", ")));
+                } else if (scenario.isBuildFailed()) {
                     System.out.println("Build failed for " + scenario.getName() + scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(Collectors.joining(", ")));
                     failureCollector.scenarioFailed();
                 } else if (scenario.isRegressed()) {

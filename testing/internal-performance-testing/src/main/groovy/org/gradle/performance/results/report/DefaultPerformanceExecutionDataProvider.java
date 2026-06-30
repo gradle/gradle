@@ -76,7 +76,22 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
             teamCityExecutionsOfSameScenario,
             historyExecutions,
             history instanceof CrossBuildPerformanceTestHistory,
-            historyExecutions.stream().map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId).noneMatch(performanceTestBuildIds::contains)
+            isCarriedOverFromCache(teamCityExecutionsOfSameScenario)
         );
+    }
+
+    /**
+     * Whether this scenario's results were carried over from the Gradle build cache rather than produced by this
+     * pipeline. The upstream {@code PerformanceTest} task is cacheable and bakes the producing build's
+     * {@code teamCityBuildId} into its output, so on a cache hit the result JSON references a build from a previous
+     * pipeline. We detect that by checking the scenario's executions against {@code performanceTestBuildIds} - the
+     * authoritative set of build IDs this pipeline actually triggered. When that set is unknown (e.g. local runs,
+     * where the property is unset) we cannot tell, so we conservatively treat nothing as cached.
+     */
+    private boolean isCarriedOverFromCache(List<PerformanceTestExecutionResult> teamCityExecutionsOfSameScenario) {
+        return !performanceTestBuildIds.isEmpty()
+            && teamCityExecutionsOfSameScenario.stream()
+                .map(PerformanceTestExecutionResult::getTeamCityBuildId)
+                .noneMatch(performanceTestBuildIds::contains);
     }
 }
