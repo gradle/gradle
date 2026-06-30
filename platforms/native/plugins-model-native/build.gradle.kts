@@ -76,6 +76,6 @@ gradleModule {
 packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
     excludePatterns.add("org/gradle/nativeplatform/internal/**")
+    excludePatterns.add("org/gradle/**")
 }
-
 
