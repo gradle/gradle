@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @ServiceScope(Scope.UserHome.class)
 public class FileWatchingFilter implements FileSystemAccess.WriteListener {
     private final FileHierarchySet immutableLocations;
-    private final AtomicReference<FileHierarchySet> currentBuildImmutableLocations = new AtomicReference<>(FileHierarchySet.empty());
+    private final AtomicReference<FileHierarchySet> currentSessionImmutableLocations = new AtomicReference<>(FileHierarchySet.empty());
     private final AtomicReference<FileHierarchySet> locationsWrittenByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
     private volatile boolean buildRunning;
 
@@ -45,12 +45,12 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
         this.immutableLocations = immutableLocations;
     }
 
-    public void addCurrentBuildImmutableLocation(File location) {
-        currentBuildImmutableLocations.updateAndGet(locations -> locations.plus(location));
+    public void addCurrentSessionImmutableLocation(File location) {
+        currentSessionImmutableLocations.updateAndGet(locations -> locations.plus(location));
     }
 
     public boolean isImmutableLocation(String location) {
-        return immutableLocations.contains(location) || currentBuildImmutableLocations.get().contains(location);
+        return immutableLocations.contains(location) || currentSessionImmutableLocations.get().contains(location);
     }
 
     @Override
@@ -78,8 +78,11 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
 
     public void buildFinished() {
         resetLocationsWritten();
-        currentBuildImmutableLocations.set(FileHierarchySet.empty());
         buildRunning = false;
+    }
+
+    public void sessionFinished() {
+        currentSessionImmutableLocations.set(FileHierarchySet.empty());
     }
 
     private void resetLocationsWritten() {

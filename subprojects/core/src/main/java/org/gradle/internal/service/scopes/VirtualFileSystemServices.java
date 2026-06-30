@@ -79,6 +79,7 @@ import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -353,7 +354,13 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             ProjectCacheDir projectCacheDir,
             FileWatchingFilter fileWatchingFilter
         ) {
-            fileWatchingFilter.addCurrentBuildImmutableLocation(projectCacheDir.getDir());
+            fileWatchingFilter.addCurrentSessionImmutableLocation(projectCacheDir.getDir());
+            listenerManager.addListener(new BuildSessionLifecycleListener() {
+                @Override
+                public void beforeComplete() {
+                    fileWatchingFilter.sessionFinished();
+                }
+            });
 
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
                 hasher,

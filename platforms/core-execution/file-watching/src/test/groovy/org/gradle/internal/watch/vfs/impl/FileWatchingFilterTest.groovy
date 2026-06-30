@@ -23,26 +23,38 @@ class FileWatchingFilterTest extends Specification {
     def globalCache = new File("global-cache").absoluteFile
     def filter = new FileWatchingFilter(FileHierarchySet.empty().plus(globalCache))
 
-    def "a current-build location is immutable alongside the global immutable locations"() {
+    def "a current-session location is immutable alongside the global immutable locations"() {
         def cacheDir = new File("project/.gradle").absoluteFile
 
         expect:
         !filter.isImmutableLocation(cacheDir.absolutePath)
 
         when:
-        filter.addCurrentBuildImmutableLocation(cacheDir)
+        filter.addCurrentSessionImmutableLocation(cacheDir)
 
         then:
         filter.isImmutableLocation(cacheDir.absolutePath)
         filter.isImmutableLocation(globalCache.absolutePath)
     }
 
-    def "current-build immutable locations are forgotten on build finish, global ones are kept"() {
+    def "current-session immutable locations survive a build finishing, so they stay excluded across a continuous build"() {
         def cacheDir = new File("project/.gradle").absoluteFile
-        filter.addCurrentBuildImmutableLocation(cacheDir)
+        filter.addCurrentSessionImmutableLocation(cacheDir)
 
         when:
+        filter.buildStarted()
         filter.buildFinished()
+
+        then:
+        filter.isImmutableLocation(cacheDir.absolutePath)
+    }
+
+    def "current-session immutable locations are forgotten on session finish, global ones are kept"() {
+        def cacheDir = new File("project/.gradle").absoluteFile
+        filter.addCurrentSessionImmutableLocation(cacheDir)
+
+        when:
+        filter.sessionFinished()
 
         then:
         !filter.isImmutableLocation(cacheDir.absolutePath)
