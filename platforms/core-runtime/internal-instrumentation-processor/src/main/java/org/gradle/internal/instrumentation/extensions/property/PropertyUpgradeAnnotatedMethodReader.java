@@ -99,12 +99,15 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getTypeParameterOrThrow;
 
+import static java.util.Objects.requireNonNull;
+
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final TypeName DEFAULT_TYPE = ClassName.get(DefaultValue.class);
     private static final String TO_BE_REPLACED_SETTERS_KEY_PREFIX = "@ToBeReplacedByLazyPropertySetters_";
     private static final String TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX = "@ToBeReplacedByLazyPropertySettersVisited_";
 
+    @Nullable
     private final String projectName;
     private final Elements elements;
     private final Types types;
@@ -115,6 +118,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         this.types = processingEnv.getTypeUtils();
     }
 
+    @Nullable
     private static String getProjectName(ProcessingEnvironment processingEnv) {
         String projectName = processingEnv.getOptions().get(PROJECT_NAME_OPTIONS);
         if (projectName == null || projectName.isEmpty()) {
@@ -187,7 +191,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 .map(Success::new)
                 .collect(Collectors.toList());
         } catch (IllegalArgumentException failure) {
-            return Collections.singletonList(new InvalidRequest(failure.getMessage()));
+            return Collections.singletonList(new InvalidRequest(requireNonNull(failure.getMessage())));
         }
     }
 
@@ -239,7 +243,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String implementationMethodPrefix = accessor.accessorType == AccessorType.GETTER ? "get" : "set";
         String interceptorsClassName = getGroovyInterceptorsClassName(accessor.interceptorType);
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, accessor.interceptorType));
-        List<ParameterInfo> callableParameters = prependReceiverParameter(accessor.parameters, extractType(method.getEnclosingElement().asType()));
+        List<ParameterInfo> callableParameters = prependReceiverParameter(accessor.parameters, extractType(requireNonNull(method.getEnclosingElement()).asType()));
         Type returnType = TypeUtils.extractRawType(accessor.returnType);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(callableKindInfo, method, returnType, callableMethodName, callableParameters),
@@ -265,7 +269,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .map(v -> types.asElement((TypeMirror) v.getValue()))
             .orElseThrow(() -> new IllegalArgumentException("Missing adapter value"));
         if (!element.getSimpleName().toString().equals(DefaultValue.class.getSimpleName())) {
-            return readAccessorSpecsFromAdapter(element, method.getEnclosingElement(), annotationMirror);
+            return readAccessorSpecsFromAdapter(element, requireNonNull(method.getEnclosingElement()), annotationMirror);
         }
 
         List<AnnotationMirror> replacedAccessors = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "replacedAccessors")
@@ -298,8 +302,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
 
         String propertyName = getPropertyName(annotatedMethod);
-        String settersKey = TO_BE_REPLACED_SETTERS_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
-        String propertySettersVisitedKey = TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
+        String settersKey = TO_BE_REPLACED_SETTERS_KEY_PREFIX + requireNonNull(annotatedMethod.getEnclosingElement()).asType().toString();
+        String propertySettersVisitedKey = TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX + requireNonNull(annotatedMethod.getEnclosingElement()).asType().toString();
         Collection<ExecutableElement> setters;
         Set<String> propertySettersVisited = context.computeIfAbsent(propertySettersVisitedKey, key -> new HashSet<>());
         if (isSetterMethodName(annotatedMethod.getSimpleName().toString()) || !propertySettersVisited.add(propertyName)) {
@@ -307,7 +311,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             // also some booleans have two getters, is and get getter, so lets visit setters only once.
             setters = Collections.emptyList();
         } else {
-            setters = context.computeIfAbsent(settersKey, key -> getAllSetters(annotatedMethod.getEnclosingElement())).get(propertyName);
+            setters = context.computeIfAbsent(settersKey, key -> getAllSetters(requireNonNull(annotatedMethod.getEnclosingElement()))).get(propertyName);
         }
 
         DeprecationSpec deprecationSpec = new DeprecationSpec(false, RemovedIn.UNSPECIFIED, -1, "", false);
@@ -415,8 +419,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private AccessorSpec adapterBridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {
-        Element innerClass = method.getEnclosingElement();
-        Element topClass = innerClass.getEnclosingElement();
+        Element innerClass = requireNonNull(method.getEnclosingElement());
+        Element topClass = requireNonNull(innerClass.getEnclosingElement());
         PackageElement packageElement = elements.getPackageOf(innerClass);
 
         // Using $$, since internal classes types has $ and due to
@@ -519,13 +523,13 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 boolean isFluentSetter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
                     .map(v -> (Boolean) v.getValue())
                     .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"));
-                returnType = isFluentSetter ? TypeName.get(method.getEnclosingElement().asType()) : ClassName.VOID;
+                returnType = isFluentSetter ? TypeName.get(requireNonNull(method.getEnclosingElement()).asType()) : ClassName.VOID;
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported accessor type: " + accessorType);
         }
         String propertyName = getPropertyName(methodName);
-        String generatedClassName = "org.gradle.internal.classpath.generated." + method.getEnclosingElement().getSimpleName() + "_Adapter";
+        String generatedClassName = "org.gradle.internal.classpath.generated." + requireNonNull(method.getEnclosingElement()).getSimpleName() + "_Adapter";
         return new AccessorSpec(
             generatedClassName,
             accessorType,
@@ -653,13 +657,13 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private static CallableInfo extractCallableInfo(CallableKindInfo kindInfo, ExecutableElement methodElement, Type returnType, String callableName, List<ParameterInfo> parameters) {
-        CallableOwnerInfo owner = new CallableOwnerInfo(extractType(methodElement.getEnclosingElement().asType()), true);
+        CallableOwnerInfo owner = new CallableOwnerInfo(extractType(requireNonNull(methodElement.getEnclosingElement()).asType()), true);
         CallableReturnTypeInfo returnTypeInfo = new CallableReturnTypeInfo(returnType);
         return new CallableInfoImpl(kindInfo, owner, callableName, returnTypeInfo, parameters);
     }
 
     private static ImplementationInfoImpl extractImplementationInfo(AccessorSpec accessor, ExecutableElement method, Type returnType, String interceptedMethodName, String methodPrefix, List<ParameterInfo> parameters) {
-        Type owner = extractType(method.getEnclosingElement().asType());
+        Type owner = extractType(requireNonNull(method.getEnclosingElement()).asType());
         Type implementationOwner = Type.getObjectType(accessor.generatedClassName);
         String implementationName = "access_" + methodPrefix + "_" + interceptedMethodName;
         String implementationDescriptor = Type.getMethodDescriptor(returnType, toArray(owner, parameters));
@@ -720,6 +724,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final List<ParameterInfo> parameters;
         private final BinaryCompatibility binaryCompatibility;
         private final DeprecationSpec deprecationSpec;
+        @Nullable
         private final BridgedMethodInfo bridgedMethod;
         private final BytecodeInterceptorType interceptorType;
 
