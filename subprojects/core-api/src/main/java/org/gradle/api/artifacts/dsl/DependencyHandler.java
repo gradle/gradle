@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -339,7 +338,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 9.5.0
      */
-    @Incubating
     ProjectDependency project();
 
     /**
@@ -351,7 +349,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 9.5.0
      * @see org.gradle.api.Project#getPath()
      */
-    @Incubating
     ProjectDependency project(String projectPath);
 
     /**

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.DefaultFileSystemLocation
@@ -40,7 +41,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def parentAttributes = ImmutableAttributes.EMPTY
     def artifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory(), TestFiles.taskDependencyFactory())
     def allArtifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory(), TestFiles.taskDependencyFactory())
-    def artifactNotationParser = Stub(NotationParser)
+    def artifactNotationParser = Stub(PublishArtifactNotationParser)
     def capabilityNotationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()

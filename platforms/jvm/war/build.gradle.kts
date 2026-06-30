@@ -25,14 +25,13 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.dependencyManagement)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.dependencyManagement)
-    implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.logging)
     implementation(projects.languageJava)
@@ -53,6 +52,9 @@ dependencies {
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+
+    integTestImplementation(testFixtures(projects.resourcesHttp))
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

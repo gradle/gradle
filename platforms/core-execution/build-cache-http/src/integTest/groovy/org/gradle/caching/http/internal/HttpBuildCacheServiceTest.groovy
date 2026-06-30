@@ -85,9 +85,13 @@ class HttpBuildCacheServiceTest extends Specification {
         server.expectPut("/cache/${key.hashCode}", destFile, HttpStatus.SC_OK, null, content.length)
 
         when:
-        cache.store(key, writer(content))
+        def writer = writer(content)
+        cache.store(key, writer)
+
         then:
         destFile.bytes == content
+        writer.writeCount == 0
+        writer.readCount == 1
     }
 
     def "storing to cache can follow non method preserving redirects"() {
@@ -101,7 +105,8 @@ class HttpBuildCacheServiceTest extends Specification {
 
         then:
         noExceptionThrown()
-        writer.writeCount == 1
+        writer.writeCount == 0
+        writer.readCount == 1
     }
 
     def "storing to cache can follow method preserving redirects"() {
@@ -115,7 +120,8 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer)
         then:
         destFile.bytes == content
-        writer.writeCount == 2
+        writer.writeCount == 0
+        writer.readCount == 2
     }
 
     def "can load artifact from cache"() {
@@ -237,6 +243,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         thrown BuildCacheException
         writer.writeCount == 0
+        writer.readCount == 0
     }
 
     def "does transmit body when using expect continue that continues"() {
@@ -254,7 +261,8 @@ class HttpBuildCacheServiceTest extends Specification {
 
         then:
         destFile.bytes == content
-        writer.writeCount == 1
+        writer.writeCount == 0
+        writer.readCount == 1
     }
 
     def "does not transmit body when using expect continue for redirected request"() {
@@ -273,7 +281,8 @@ class HttpBuildCacheServiceTest extends Specification {
 
         then:
         destFile.bytes == content
-        writer.writeCount == 1
+        writer.writeCount == 0
+        writer.readCount == 1
     }
 
     def "sends X-Gradle-Version and Content-Type headers on GET"() {
@@ -359,10 +368,18 @@ class HttpBuildCacheServiceTest extends Specification {
 
     static class Writer implements BuildCacheEntryWriter {
         private final byte[] content
+
         private int writeCount = 0
+        private int readCount = 0
 
         Writer(byte[] content) {
             this.content = content
+        }
+
+        @Override
+        InputStream getInputStream() throws IOException {
+            readCount++
+            return new ByteArrayInputStream(content)
         }
 
         @Override

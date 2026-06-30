@@ -73,6 +73,69 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
     }
 
     @Test
+    fun `hash code is task order insensitive`() {
+
+        assertThat(
+            hashCodeFor(
+                tasks = listOf(
+                    entry<TaskContainer, DefaultTask>("assemble"),
+                    entry<TaskContainer, Delete>("clean")
+                )
+            ),
+            equalTo(
+                hashCodeFor(
+                    tasks = listOf(
+                        entry<TaskContainer, Delete>("clean"),
+                        entry<TaskContainer, DefaultTask>("assemble")
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `hash code is extension order insensitive`() {
+
+        assertThat(
+            hashCodeFor(
+                extensions = listOf(
+                    entry<TaskContainer, DefaultTask>("foo"),
+                    entry<TaskContainer, Delete>("bar")
+                )
+            ),
+            equalTo(
+                hashCodeFor(
+                    extensions = listOf(
+                        entry<TaskContainer, Delete>("bar"),
+                        entry<TaskContainer, DefaultTask>("foo")
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `hash code is container element order insensitive`() {
+
+        assertThat(
+            hashCodeFor(
+                containerElements = listOf(
+                    entry<TaskContainer, DefaultTask>("assemble"),
+                    entry<TaskContainer, Delete>("clean")
+                )
+            ),
+            equalTo(
+                hashCodeFor(
+                    containerElements = listOf(
+                        entry<TaskContainer, Delete>("clean"),
+                        entry<TaskContainer, DefaultTask>("assemble")
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
     fun `hash code takes container element names into account`() {
 
         assertThat(

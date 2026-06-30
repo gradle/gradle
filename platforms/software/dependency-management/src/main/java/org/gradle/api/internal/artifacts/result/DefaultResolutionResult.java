@@ -26,29 +26,34 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final ResolutionAccess resolutionAccess;
-    private final AttributeDesugaring attributeDesugaring;
+    private final Path path;
+    private final Cached<ResolvedGraphResult> graph;
+    private final Cached<ImmutableAttributes> attributes;
 
     public DefaultResolutionResult(
         ResolutionAccess resolutionAccess,
         AttributeDesugaring attributeDesugaring
     ) {
-        this.resolutionAccess = resolutionAccess;
-        this.attributeDesugaring = attributeDesugaring;
+        this.path = resolutionAccess.getIdentityPath();
+        this.graph = Cached.of(() -> resolutionAccess.getResults().getValue().getVisitedGraph().getResolvedGraphResultSource().get());
+        this.attributes = Cached.of(() -> attributeDesugaring.desugar(resolutionAccess.getAttributes()));
     }
 
     @Override
@@ -59,7 +64,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
         return new DefaultProvider<>(() -> {
-            ResolvedGraphResult graph = getGraph();
+            ResolvedGraphResult graph = this.graph.get();
             GraphStructure.Nodes nodes = graph.structure().nodes();
             return graph.getComponent(nodes.owner(nodes.root()));
         });
@@ -68,18 +73,14 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
         return new DefaultProvider<>(() -> {
-            ResolvedGraphResult graph = getGraph();
+            ResolvedGraphResult graph = this.graph.get();
             return graph.getVariant(graph.structure().nodes().root());
         });
     }
 
-    private ResolvedGraphResult getGraph() {
-        return resolutionAccess.getResults().getValue().getVisitedGraph().getResolvedGraphResultSource().get();
-    }
-
     @Override
     public AttributeContainer getRequestedAttributes() {
-        return attributeDesugaring.desugar(resolutionAccess.getAttributes());
+        return attributes.get();
     }
 
     // TODO: The below methods should operate directly on a GraphStructure
@@ -122,7 +123,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -130,12 +131,12 @@ public class DefaultResolutionResult implements ResolutionResult {
             return false;
         }
         DefaultResolutionResult that = (DefaultResolutionResult) o;
-        return Objects.equals(resolutionAccess, that.resolutionAccess);
+        return path.equals(that.path);
     }
 
     @Override
     public int hashCode() {
-        return resolutionAccess.hashCode();
+        return path.hashCode();
     }
 
 }

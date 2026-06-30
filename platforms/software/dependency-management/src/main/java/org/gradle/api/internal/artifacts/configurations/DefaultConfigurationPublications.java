@@ -30,6 +30,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -56,7 +57,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     // Services
     private final ObjectFactory objectFactory;
-    private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
+    private final PublishArtifactNotationParser artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
     private final AttributesFactory attributesFactory;
@@ -77,7 +78,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         PublishArtifactSetProvider allArtifacts,
         AttributeContainerInternal parentAttributes,
         ObjectFactory objectFactory,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        PublishArtifactNotationParser artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         FileCollectionFactory fileCollectionFactory,
         AttributesFactory attributesFactory,

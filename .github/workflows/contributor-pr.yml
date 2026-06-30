@@ -136,7 +136,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: microsoft # no temurin available
-          java-version: 25
+          java-version: 21.0.1
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
@@ -145,4 +145,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      # Work around JDK-8371740: Microsoft OpenJDK 25 on Windows ARM64 intermittently
+      # fails at build shutdown with "Timeout waiting for concurrent jobs to complete".
+      - name: Pin daemon JVM to 21 (avoid JDK-8371740 on 25)
+        run: |
+          Set-Content -Path gradle/gradle-daemon-jvm.properties -Value "toolchainVersion=21"
+     
       - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}

@@ -20,17 +20,17 @@ import spock.lang.Specification
 
 class JpmsConfigurationTest extends Specification {
 
-    def "forGroovyProcesses returns empty list for Java 8 and below"() {
+    def "forGroovyWorker returns empty list for Java 8 and below"() {
         expect:
-        JpmsConfiguration.forGroovyCompilerWorker(majorVersion) == []
+        JpmsConfiguration.forGroovyWorker(majorVersion) == []
 
         where:
         majorVersion << [1, 5, 6, 7, 8]
     }
 
-    def "forGroovyProcesses returns JPMS args for Java 9 and above"() {
+    def "forGroovyWorker returns JPMS args for Java 9 and above"() {
         when:
-        def result = JpmsConfiguration.forGroovyCompilerWorker(majorVersion)
+        def result = JpmsConfiguration.forGroovyWorker(majorVersion)
 
         then:
         result == [

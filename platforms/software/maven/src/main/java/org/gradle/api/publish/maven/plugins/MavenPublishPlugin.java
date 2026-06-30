@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -71,16 +72,23 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
 
     @Inject
-    public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
-                              FileResolver fileResolver,
-                              TaskDependencyFactory taskDependencyFactory) {
+    public MavenPublishPlugin(
+        InstantiatorFactory instantiatorFactory,
+        ObjectFactory objectFactory,
+        DependencyMetaDataProvider dependencyMetaDataProvider,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        PublishArtifactNotationParser publishArtifactNotationParser
+    ) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.publishArtifactNotationParser = publishArtifactNotationParser;
     }
 
     @Override
@@ -94,10 +102,14 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         });
 
         project.getExtensions().configure(PublishingExtension.class, extension -> {
-            extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(
+            extension.getPublications().registerFactory(MavenPublication.class,
+                new MavenPublicationFactory(
                     dependencyMetaDataProvider,
                     instantiatorFactory.decorateLenient(),
-                    fileResolver));
+                    fileResolver,
+                    publishArtifactNotationParser
+                )
+            );
             realizePublishingTasksLater(project, extension);
         });
     }
@@ -194,30 +206,42 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {
+
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final FileResolver fileResolver;
+        private final PublishArtifactNotationParser publishArtifactNotationParser;
 
-        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
-                                        Instantiator instantiator,
-                                        FileResolver fileResolver) {
+        private MavenPublicationFactory(
+            DependencyMetaDataProvider dependencyMetaDataProvider,
+            Instantiator instantiator,
+            FileResolver fileResolver,
+            PublishArtifactNotationParser publishArtifactNotationParser
+        ) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
+            this.publishArtifactNotationParser = publishArtifactNotationParser;
         }
 
         @Override
         public MavenPublication create(final String name) {
-            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
+            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(
+                instantiator,
+                fileResolver,
+                taskDependencyFactory,
+                publishArtifactNotationParser
+            ).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             return objectFactory.newInstance(
-                    DefaultMavenPublication.class,
-                    name,
-                    dependencyMetaDataProvider,
-                    artifactNotationParser,
-                    versionMappingStrategy
+                DefaultMavenPublication.class,
+                name,
+                dependencyMetaDataProvider,
+                artifactNotationParser,
+                versionMappingStrategy
             );
         }
+
     }
 
 }

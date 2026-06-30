@@ -1,6 +1,7 @@
 # some versions are in shared-versions.properties
 [versions]
 asciidoctor = "3.0.1"
+asciidoctorPdf = "2.3.23"
 bytebuddy = "1.18.8"
 checkstyle = "10.25.0"
 develocity = "4.4.3"
