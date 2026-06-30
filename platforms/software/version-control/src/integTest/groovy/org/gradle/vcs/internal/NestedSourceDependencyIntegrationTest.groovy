@@ -45,14 +45,18 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 runtime "org.test:first:latest.integration"
             }
 
-            task resolve {
-                def runtimeFiles = configurations.runtime
-                def expectedArtifacts = objects.listProperty(String)
-                def expectedMessage = objects.property(String).convention("hello world")
-                ext.expectedArtifacts = expectedArtifacts
-                ext.expectedMessage = expectedMessage
-                dependsOn runtimeFiles
-                doLast {
+            abstract class Resolve extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getRuntimeFiles()
+
+                @Input
+                abstract ListProperty<String> getExpectedArtifacts()
+
+                @Input
+                abstract Property<String> getExpectedMessage()
+
+                @TaskAction
+                void resolve() {
                     def resolved = runtimeFiles.files
                     def message = expectedMessage.get()
                     println "Looking for " + message
@@ -63,6 +67,11 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                         assert artifactFile.text == message
                     }
                 }
+            }
+
+            task resolve(type: Resolve) {
+                runtimeFiles.from(configurations.runtime)
+                expectedMessage.convention("hello world")
             }
         """
 
@@ -76,19 +85,29 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task generate {
-                def runtimeFiles = configurations.runtime
-                def outputFile = new File(temporaryDir, project.name + ".txt")
-                def message = objects.property(String).convention("hello world")
-                ext.outputFile = outputFile
-                ext.message = message
-                dependsOn runtimeFiles
-                doLast {
-                    // write to outputFile
+            abstract class Generate extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getRuntimeFiles()
+
+                @Input
+                abstract Property<String> getMessage()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void generate() {
+                    def output = outputFile.get().asFile
                     println "Generating " + message.get() + " against " + runtimeFiles.files
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = message.get()
+                    output.parentFile.mkdirs()
+                    output.text = message.get()
                 }
+            }
+
+            task generate(type: Generate) {
+                runtimeFiles.from(configurations.runtime)
+                message.convention("hello world")
+                outputFile.set(new File(temporaryDir, project.name + ".txt"))
             }
 
             artifacts {

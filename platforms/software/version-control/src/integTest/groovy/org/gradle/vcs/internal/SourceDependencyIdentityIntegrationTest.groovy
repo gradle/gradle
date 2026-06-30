@@ -128,8 +128,8 @@ Required by:
 
         buildFile << """
             classes {
-                // Capture the resolution result lazily at configuration time so the assertions
-                // don't read project state at execution time (configuration-cache compatible).
+                // Capture the resolution result lazily at configuration time so the task action
+                // doesn't read project state at execution time (configuration-cache compatible).
                 def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
                 doLast {
                     def components = []
@@ -150,27 +150,31 @@ Required by:
                         }
                     }
 
-                    assert components.size() == 3
-                    assert components.collect { [it.build.buildPath, it.projectPath, it.projectName] } as Set == [
-                        [':', ':', 'buildA'],
-                        [':${buildName}', ':', '${dependencyName}'],
-                        [':${buildName}', ':a', 'a']
-                    ] as Set
+                    components.each { component ->
+                        def buildTreePath = component.hasProperty("buildTreePath") ? component.buildTreePath : null
+                        println "component: [ buildPath: \${component.build.buildPath}, projectPath: \${component.projectPath}, projectName: \${component.projectName}, buildTreePath: \${buildTreePath} ]"
+                    }
+                    println "components: \${components.size()}"
 
-                    assert selectors.size() == 2
-                    assert selectors.collect { it.displayName } as Set == [
-                        'org.test:${dependencyName}:1.2',
-                        "project ':${buildName}:a'"
-                    ] as Set
-                    def projectSelector = selectors.find { it instanceof org.gradle.api.artifacts.component.ProjectComponentSelector }
-                    assert projectSelector.buildPath == ':${buildName}'
-                    assert projectSelector.projectPath == ':a'
+                    selectors.each { selector ->
+                        def buildPath = selector.hasProperty("buildPath") ? selector.buildPath : null
+                        def projectPath = selector.hasProperty("projectPath") ? selector.projectPath : null
+                        println "selector: [ displayName: \${selector.displayName}, buildPath: \${buildPath}, projectPath: \${projectPath} ]"
+                    }
+                    println "selectors: \${selectors.size()}"
                 }
             }
         """
 
         expect:
         succeeds(":assemble")
+        outputContains("component: [ buildPath: :, projectPath: :, projectName: buildA, buildTreePath: : ]")
+        outputContains("component: [ buildPath: :${buildName}, projectPath: :, projectName: ${dependencyName}, buildTreePath: :${buildName} ]")
+        outputContains("component: [ buildPath: :${buildName}, projectPath: :a, projectName: a, buildTreePath: :${buildName}:a ]")
+        outputContains("components: 3")
+        outputContains("selector: [ displayName: org.test:${dependencyName}:1.2, buildPath: null, projectPath: null ]")
+        outputContains("selector: [ displayName: project ':${buildName}:a', buildPath: :${buildName}, projectPath: :a ]")
+        outputContains("selectors: 2")
 
         where:
         settings                     | buildName | dependencyName | display
