@@ -22,14 +22,12 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CppAppWithLibraries()
     @Rule
     GitFileRepository repo = new GitFileRepository(testDirectory)
 
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can combine C++ builds in a composite"() {
         given:
         createDirs("app", "hello", "log")
@@ -58,7 +56,6 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
 
     // NOTE: This method is named in a short way because of the maximum path length
     // on Windows.
-    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "from VCS"() {
         given:
         createDirs("app")
