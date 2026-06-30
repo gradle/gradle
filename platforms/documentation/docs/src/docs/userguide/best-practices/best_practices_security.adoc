@@ -129,3 +129,60 @@ This ensures that even if a malicious script runs, it cannot access your files.
 === Tags
 
 `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+
+[[builds_should_be_reproducible]]
+== Build Output Should Be Byte-for-Byte Reproducible
+
+A build is reproducible when the same source code produces byte-for-byte identical output files, on any machine, at any time.
+
+=== Explanation
+
+Reproducibility matters far beyond the publishing flow.
+If binaries remain identical, then downstream consumers can verify that they match the source.
+Build systems typically verify artifact checksums; non-determinism in artifact bytes defeats caches and deduplication logic without providing any benefit.
+
+With this strong form of reproducibility, the question "Did my change actually change anything?" is easy to answer: compare the output hashes.
+Gradle's own up-to-date checks and <<build_cache.adoc#build_cache,remote build cache>> also rely on stable inputs producing stable outputs.
+
+Some common sources of non-determinism in builds are file timestamps inside archives, the order of entries inside archives, and the SDK used to compile classes.
+For JVM builds, keeping wall-clock timestamps on `.class` files inside a `.jar`, or letting archive entries follow the filesystem's directory-iteration order, means that two clean builds of the same source produce slightly different artifacts with different checksums even though the output is functionally identical.
+
+NOTE: Since Gradle 9.0.0, archive artifacts are set to be link:https://docs.gradle.org/9.0.0/release-notes.html#archive-tasks-produce-reproducible-archives-by-default[reproducible by default].
+
+This is list of examples is *not exhaustive*.
+There are other ways to introduce non-reproducibility in your project.
+One good test to confirm reproducibility is to try re-building an older version on a different machine, and comparing the output to the published binary.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> No `java { toolchain { ... } }` block is declared. Gradle has no default toolchain, so the JDK used for compilation falls back to whichever `JAVA_HOME` is active. Different machines (and even different JDK patch releases on the same machine) emit different bytecode.
+<2> Sets `preserveFileTimestamps` to `true`, overriding the Gradle 9.0+ default of `false`. Every entry inside the jar is stamped with the build's wall-clock time, so the same source produces a different jar on every build.
+<3> Sets `reproducibleFileOrder` to `false`, overriding the Gradle 9.0+ default of `true`. Archive entries are ordered by the filesystem's directory-iteration order, which varies by OS and filesystem.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> Pin the JDK used to compile so the build is decoupled from each developer's local `JAVA_HOME` and from whichever JDK happens to be on the CI image; Gradle auto-provisions a matching JDK if one isn't found.
+<2> Leave archive defaults alone — Gradle 9.0+ sets `preserveFileTimestamps = false` and `reproducibleFileOrder = true` on every link:{javadocPath}/org/gradle/api/tasks/bundling/AbstractArchiveTask.html[AbstractArchiveTask] (`Jar`, `War`, `Ear`, `Zip`, `Tar`). The performance cost of these defaults is negligible: `reproducibleFileOrder` adds a sort over directory listings that's dominated by I/O and compression work, and dropping timestamps actually makes archives marginally smaller and avoids unnecessary downstream cache invalidation. If you maintain a build that still supports an older Gradle version, set both flags explicitly with `tasks.withType<AbstractArchiveTask>().configureEach { ... }`.
+
+=== References
+
+- <<toolchains.adoc#toolchains,Toolchains for JVM projects>>
+- link:{javadocPath}/org/gradle/api/tasks/bundling/AbstractArchiveTask.html[AbstractArchiveTask]
+- link:https://reproducible-builds.org/[reproducible-builds.org]
+
+=== Tags
+
+<<tags_reference.adoc#tag:publishing,`#publishing`>>, <<tags_reference.adoc#tag:tasks,`#tasks`>>
+
