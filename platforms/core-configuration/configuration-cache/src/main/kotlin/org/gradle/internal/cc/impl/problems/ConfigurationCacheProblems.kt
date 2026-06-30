@@ -274,19 +274,6 @@ class ConfigurationCacheProblems(
         summarizer.onIncompatibleTask()
     }
 
-    private
-    fun reportDegradingFeature(feature: String) {
-        // we report degrading features as problems
-        val problem = problemFactory
-            .problem {
-                // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
-                text("Feature '$feature' is incompatible with the configuration cache.")
-            }
-            .build()
-        summarizer.onIncompatibleFeature(problem)
-        report.onProblem(problem)
-    }
-
     override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
         // IP severity is governed only by IP settings, independent of the CC `--configuration-cache-problems` flag.
         val severity = when {
@@ -410,7 +397,6 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         addNotReportedDegradingTasks()
-        addDegradingFeatures()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.consoleProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
@@ -445,14 +431,6 @@ class ConfigurationCacheProblems(
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
-        }
-    }
-
-    private
-    fun addDegradingFeatures() {
-        degradationDecision.onDegradedFeature { feature, _ ->
-            // TODO:configuration-cache consider collecting location information (trace)
-            reportDegradingFeature(feature)
         }
     }
 
@@ -536,28 +514,21 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        val degradingFeatures = buildList {
-            degradationDecision.onDegradedFeature { feature, _ -> add(feature) }
-        }
-        return DegradationSummary(degradingFeatures, degradationDecision.degradedTaskCount).render()
+        return DegradationSummary(degradationDecision.degradedTaskCount).render()
     }
 
     @VisibleForTesting
     internal
-    class DegradationSummary(private val degradingFeatures: List<String>, private val degradingTaskCount: Int) {
+    class DegradationSummary(private val degradingTaskCount: Int) {
         init {
-            require(degradingFeatures.isNotEmpty() || degradingTaskCount > 0)
+            require(degradingTaskCount > 0)
         }
 
         fun render(): String {
-            val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
             return " because incompatible " +
                 when {
-                    degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
-                    degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                    degradingTaskCount == 0 && degradingFeatures.isNotEmpty() -> "feature usage $featuresAsString was"
-                    degradingTaskCount == 1 -> "task and feature usage $featuresAsString were"
-                    else -> "tasks and feature usage $featuresAsString were"
+                    degradingTaskCount == 1 -> "task was"
+                    else -> "tasks were"
                 } + " found."
         }
     }

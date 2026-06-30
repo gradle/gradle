@@ -101,9 +101,6 @@ class ConfigurationCacheProblemsSummary(
     private
     var incompatibleTasksCount: Int = 0
 
-    private
-    var incompatibleFeatureCount: Int = 0
-
     /**
      * Report-unique problem causes observed among all reported problems.
      *
@@ -136,8 +133,7 @@ class ConfigurationCacheProblemsSummary(
             consoleProblemCauses = problemCausesForConsole(),
             originalProblemExceptions = ImmutableList.copyOf(originalProblemExceptions),
             maxCollectedProblems = maxCollectedProblems,
-            incompatibleTasksCount = incompatibleTasksCount,
-            incompatibleFeatureCount = incompatibleFeatureCount
+            incompatibleTasksCount = incompatibleTasksCount
         )
     }
 
@@ -194,13 +190,6 @@ class ConfigurationCacheProblemsSummary(
     fun onIncompatibleTask() {
         lock.withLock {
             incompatibleTasksCount += 1
-        }
-    }
-
-    fun onIncompatibleFeature(problem: PropertyProblem) {
-        lock.withLock {
-            onProblem(problem, ProblemSeverity.SuppressedSilently)
-            incompatibleFeatureCount += 1
         }
     }
 
@@ -284,12 +273,7 @@ class Summary(
      * Total number of tasks in the current work graph that are not CC-compatible.
      */
     private
-    val incompatibleTasksCount: Int,
-    /**
-     * Total number of features that are not CC-compatible.
-     */
-    private
-    val incompatibleFeatureCount: Int
+    val incompatibleTasksCount: Int
 ) {
     @VisibleForTesting
     internal
@@ -334,10 +318,9 @@ class Summary(
                 }
             }
             val hasIncompatibleTasks = incompatibleTasksCount > 0
-            val hasIncompatibleFeatures = incompatibleFeatureCount > 0
             htmlReportFile?.let {
                 appendLine()
-                if ((hasIncompatibleTasks || hasIncompatibleFeatures) && !hasConsoleProblems) {
+                if (hasIncompatibleTasks && !hasConsoleProblems) {
                     // Some tests parse this line, you may need to change them if you change the message.
                     append("Some tasks or features in this build are not compatible with the configuration cache.")
                     appendLine()
