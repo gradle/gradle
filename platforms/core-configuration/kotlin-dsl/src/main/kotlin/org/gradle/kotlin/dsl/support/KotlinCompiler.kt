@@ -523,6 +523,11 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String
     ) {
+        if (incrementalCompilationCache.wasPreviousCompilationInterrupted(scriptIdentity)) {
+            logger.info("Previous compilation of '{}' was interrupted; discarding its outputs and rebuilding.", scriptIdentity)
+            incrementalCompilationCache.discardOutputsAndIncrementalState(scriptIdentity)
+        }
+
         // Route BTA at a stable per-scriptIdentity output dir...
         val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
 
@@ -546,6 +551,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
         }
 
+        incrementalCompilationCache.markCompilationStarted(scriptIdentity)
         if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
             try {
                 runCompilation(incremental = true)
@@ -558,6 +564,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         } else {
             runCompilation(incremental = false)
         }
+        incrementalCompilationCache.markCompilationComplete(scriptIdentity)
 
         // ... then copy into the workspace [destinationDirectory] (which changes every time the immutable compilation workspace changes).
         copyOutputs(btaOutputDir, destinationDirectory)
@@ -649,24 +656,14 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             // kotlin-dsl never compiles Java sources.
             this[PRECISE_JAVA_TRACKING] = false
 
-            // The flag selects a per-compile transactional backup inside BTA — when true,
-            // IncrementalCompilerRunner.createTransaction uses Files.createTempDirectory("kotlin-backups")
-            // and a RecoverableCompilationTransaction so a failed compile can roll back partial
-            // outputs from BTA's destinationDirectory. Off here because the workspace cache catches
-            // the failure at a coarser grain: a thrown compile causes the unit of work to fail, our
-            // copy step never runs, the workspace dir is never published as a cache hit, and the
-            // next build retries.
-            //
-            // TODO: with a stable BTA output dir, a crash mid-emit can leave that dir in a mixed
-            //  state (some classes new, some old, one possibly torn). A retry where the source
-            //  content matches the last *committed* compile will land BTA in "no work" mode and
-            //  the copy step then propagates mixed state into the workspace. Worth flipping to
-            //  true once we add a regression test that covers this.
+            // BACKUP_CLASSES=true rolls back partial outputs on an in-process compile failure. Off here:
+            // thrown failures are already covered by the full-compile fallback, and a hard crash mid-emit
+            // (which its in-process rollback couldn't undo anyway) by the interrupted-compile marker — both in compile().
             this[BACKUP_CLASSES] = false
 
-            // Flush IC state on compile success — saves per-key disk writes during the compile.
-            // Caveat: crash-recovery with REUSE_BUILD_SESSION = true depends on whether BTA flushes
-            // per-op or only on session close; worth a recompile-after-kill test. // TODO
+            // Keep IC caches in memory and flush them together rather than writing each key through
+            // during the compile — faster. A crash before that flush leaves ic-state stale or uncommitted,
+            // which is safe: the interrupted-compile marker (compile()) discards it and rebuilds cold.
             this[KEEP_IC_CACHES_IN_MEMORY] = true
         }.build()
 
