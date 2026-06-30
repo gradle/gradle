@@ -115,10 +115,12 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         private final ConcurrentCache<PersistentSet<ExcludeSpec>, ExcludeSpec> allOfListCache = ConcurrentCache.of();
         private final ConcurrentCache<PersistentSet<ExcludeSpec>, ExcludeSpec> anyOfListCache = ConcurrentCache.of();
 
+        @SuppressWarnings("ExposedPrivateType")
         ExcludeSpec getAnyPair(ExcludePair pair, Function<ExcludePair, ExcludeSpec> onMiss) {
             return anyOfPairCache.computeIfAbsent(pair, onMiss);
         }
 
+        @SuppressWarnings("ExposedPrivateType")
         ExcludeSpec getAllPair(ExcludePair pair, Function<ExcludePair, ExcludeSpec> onMiss) {
             return allOfPairCache.computeIfAbsent(pair, onMiss);
         }

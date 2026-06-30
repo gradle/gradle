@@ -94,6 +94,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.value = initialValue;
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     protected void withActualValue(Action<Configurer> action) {
         setToConventionIfUnset();
         action.execute(getConfigurer());

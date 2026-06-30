@@ -157,7 +157,7 @@ class PgpKeyGrouper {
     static List<List<String>> tryComputeCommonPrefixes(List<String> groups) {
         List<List<String>> splitGroups = groups.stream()
             .map(GROUP_SPLITTER::splitToList)
-            .sorted(Comparator.comparing(List::size))
+            .sorted(Comparator.comparingInt(List::size))
             .collect(Collectors.toList());
         List<String> shortest = splitGroups.get(0);
         if (shortest.size() < 2) {

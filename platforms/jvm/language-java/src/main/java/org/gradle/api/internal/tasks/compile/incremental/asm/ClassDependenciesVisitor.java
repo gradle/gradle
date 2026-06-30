@@ -172,6 +172,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     @Override
+    @SuppressWarnings("ExposedPrivateType")
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
         maybeAddClassTypesFromSignature(signature, types);
@@ -186,6 +187,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     @Override
+    @SuppressWarnings("ExposedPrivateType")
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
         maybeAddClassTypesFromSignature(signature, types);

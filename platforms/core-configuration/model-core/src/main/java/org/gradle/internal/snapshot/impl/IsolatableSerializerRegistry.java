@@ -533,6 +533,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     }
 
 
+    @SuppressWarnings("ExposedPrivateType")
     public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
 
         @Override

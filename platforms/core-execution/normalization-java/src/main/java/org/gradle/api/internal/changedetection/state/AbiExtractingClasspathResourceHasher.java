@@ -161,6 +161,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
 
         @Nullable
+        @SuppressWarnings("ExposedPrivateType")
         abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException;
     }
 }

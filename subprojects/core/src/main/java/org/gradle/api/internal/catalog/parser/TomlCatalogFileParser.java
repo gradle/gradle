@@ -50,7 +50,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
@@ -197,7 +197,7 @@ public class TomlCatalogFileParser {
         }
         librariesTable.keySet()
             .stream()
-            .sorted(comparing(String::length))
+            .sorted(comparingInt(String::length))
             .forEach(alias -> parseLibrary(alias, librariesTable, versionCatalogBuilder, strictVersionParser));
     }
 
@@ -207,7 +207,7 @@ public class TomlCatalogFileParser {
         }
         pluginsTable.keySet()
             .stream()
-            .sorted(comparing(String::length))
+            .sorted(comparingInt(String::length))
             .forEach(alias -> parsePlugin(alias, pluginsTable, versionCatalogBuilder, strictVersionParser));
     }
 
@@ -217,7 +217,7 @@ public class TomlCatalogFileParser {
         }
         versionsTable.keySet()
             .stream()
-            .sorted(comparing(String::length))
+            .sorted(comparingInt(String::length))
             .forEach(alias -> parseVersion(alias, versionsTable, versionCatalogBuilder, strictVersionParser));
     }
 
