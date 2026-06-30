@@ -84,6 +84,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.FeatureFlags
@@ -136,7 +137,7 @@ class DefaultProjectTest extends Specification {
 
     ProjectEvaluator projectEvaluator = Mock(ProjectEvaluator)
 
-    ProjectRegistry projectRegistry
+    BuildProjectRegistry projectRegistry = Mock(BuildProjectRegistry)
 
     File rootDir
     File buildFile
@@ -203,8 +204,6 @@ class DefaultProjectTest extends Specification {
         testScript = new EmptyScript()
 
         testTask = TestUtil.create(temporaryFolder).task(DefaultTask)
-
-        projectRegistry = new DefaultProjectRegistry()
 
         projectServiceRegistryFactoryMock = Stub(ServiceRegistryFactory)
         serviceRegistryMock = Stub(ServiceRegistry)
@@ -291,6 +290,7 @@ class DefaultProjectTest extends Specification {
         projectState.mutableModel >> project
         projectState.projectDir >> rootDir
         buildState.getRootProject() >> projectState
+
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
         child1State.owner >> buildState
@@ -300,12 +300,15 @@ class DefaultProjectTest extends Specification {
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
+
         chilchildState = Mock(ProjectState)
         chilchildState.owner >> buildState
         chilchildState.displayName >> Describables.of("project ':child1:childchild'")
         chilchildState.fromMutableState(_) >> { Function f -> f.apply(childchild) }
         chilchildState.parent >> child1State
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
+        chilchildState.mutableModel >> childchild
+
         child2State = Mock(ProjectState)
         child2State.owner >> buildState
         child2State.displayName >> Describables.of("project ':child2'")
@@ -315,8 +318,15 @@ class DefaultProjectTest extends Specification {
         child2State.mutableModel >> child2
         child2State.name >> "child2"
         projectState.childProjects >> ([child1State, child2State] as Set)
-        [project, child1, childchild, child2].each {
-            projectRegistry.addProject(it)
+
+        projectState.unorderedChildProjects >> [child1State, child2State]
+        child1State.unorderedChildProjects >> [chilchildState]
+        chilchildState.unorderedChildProjects >> []
+        child2State.unorderedChildProjects >> []
+
+        [projectState, child1State, chilchildState, child2State].each {
+            projectRegistry.findProject(it.identity.projectPath) >> it
+            projectRegistry.getProject(it.identity.projectPath) >> it
         }
     }
 

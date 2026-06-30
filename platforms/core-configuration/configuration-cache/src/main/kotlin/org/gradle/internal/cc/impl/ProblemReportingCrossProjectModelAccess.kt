@@ -43,7 +43,6 @@ import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.api.internal.tasks.TaskDependencyFactory
@@ -59,6 +58,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
@@ -90,7 +90,7 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters,
     private val instantiator: Instantiator,
     private val projectStateLookup: ProjectStateLookup,
-    projectRegistry: ProjectRegistry,
+    projectRegistry: BuildProjectRegistry,
     gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
 ) : CrossProjectModelAccess {
 

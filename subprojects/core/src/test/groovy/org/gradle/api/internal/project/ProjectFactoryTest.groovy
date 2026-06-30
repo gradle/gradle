@@ -44,7 +44,6 @@ class ProjectFactoryTest extends Specification {
     def projectDescriptor = Stub(ImmutableProjectDescriptor)
     def gradle = Stub(GradleInternal)
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
-    def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
     def owner = Stub(BuildState)
     def projectState = Stub(ProjectState)
@@ -72,7 +71,6 @@ class ProjectFactoryTest extends Specification {
     def "creates a project with build script"() {
         given:
         buildFile.createFile()
-        gradle.projectRegistry >> projectRegistry
         gradle.services >> serviceRegistry
         serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
 
@@ -82,13 +80,11 @@ class ProjectFactoryTest extends Specification {
         then:
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it instanceof TextResourceScriptSource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * projectRegistry.addProject(project)
         1 * dependencyResolutionManagement.configureProject(project)
     }
 
     def "creates a project with missing build script"() {
         given:
-        gradle.projectRegistry >> projectRegistry
         gradle.services >> serviceRegistry
         serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         when:
@@ -97,7 +93,6 @@ class ProjectFactoryTest extends Specification {
         then:
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it.resource instanceof EmptyFileTextResource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * projectRegistry.addProject(project)
         1 * dependencyResolutionManagement.configureProject(project)
     }
 
@@ -105,7 +100,6 @@ class ProjectFactoryTest extends Specification {
         def parent = Mock(ProjectInternal)
 
         given:
-        gradle.projectRegistry >> projectRegistry
         gradle.services >> serviceRegistry
         serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         when:
@@ -114,7 +108,6 @@ class ProjectFactoryTest extends Specification {
         then:
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * projectRegistry.addProject(project)
         1 * dependencyResolutionManagement.configureProject(project)
     }
 }

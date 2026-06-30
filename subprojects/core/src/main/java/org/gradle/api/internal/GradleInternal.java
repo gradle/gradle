@@ -20,7 +20,6 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -150,8 +149,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     @Override
     StartParameterInternal getStartParameter();
-
-    ProjectRegistry getProjectRegistry();
 
     // A separate property, as the public getter does not use a wildcard type and cannot be overridden
     List<? extends IncludedBuildInternal> includedBuilds();

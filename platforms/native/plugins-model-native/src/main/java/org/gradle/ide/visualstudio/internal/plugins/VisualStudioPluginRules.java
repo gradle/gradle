@@ -18,21 +18,22 @@ package org.gradle.ide.visualstudio.internal.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectOrderingUtil;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.internal.NativeSpecVisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
-import org.gradle.internal.Cast;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinaryContainer;
+import org.gradle.util.Path;
 
 @Incubating
 public class VisualStudioPluginRules {
@@ -48,10 +49,11 @@ public class VisualStudioPluginRules {
         @Mutate
         public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-            ProjectRegistry projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+            BuildProjectRegistry projectRegistry = serviceRegistry.get(BuildProjectRegistry.class);
+            ProjectState target = projectRegistry.getProject(Path.path(projectIdentifier.getPath()));
 
-            for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
-                projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);
+            for (ProjectState subproject : ProjectOrderingUtil.orderedSubprojectsOf(target)) {
+                projectModelResolver.resolveProjectModel(subproject.getIdentity().getProjectPath().asString()).find("visualStudio", VisualStudioExtension.class);
             }
         }
     }

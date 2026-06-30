@@ -34,7 +34,6 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -395,9 +394,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun setBaseProjectClassLoaderScope(classLoaderScope: ClassLoaderScope) {
         delegate.setBaseProjectClassLoaderScope(classLoaderScope)
     }
-
-    override fun getProjectRegistry(): ProjectRegistry =
-        delegate.projectRegistry
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
         delegate.includedBuilds()
