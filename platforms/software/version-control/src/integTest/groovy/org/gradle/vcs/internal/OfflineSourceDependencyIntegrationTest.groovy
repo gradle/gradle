@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
@@ -39,9 +38,10 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     compile 'test:test:1.2'
                 }
+                def compileFiles = configurations.compile
                 tasks.register('resolve') {
-                    inputs.files configurations.compile
-                    doLast { configurations.compile.each { } }
+                    inputs.files compileFiles
+                    doLast { compileFiles.each { } }
                 }
             }
             sourceControl.vcsMappings.withModule('test:test') {
@@ -64,7 +64,6 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag('1.2')
     }
 
-    @ToBeFixedForConfigurationCache(because = "Test fixture queues per-invocation HTTP expectations; CC reuses resolved graph and skips the second resolve")
     def "uses previous checkout when offline"() {
         given:
         repo.expectListVersions()
