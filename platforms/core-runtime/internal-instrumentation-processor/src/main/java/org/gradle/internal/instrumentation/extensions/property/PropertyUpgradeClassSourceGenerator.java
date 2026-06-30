@@ -58,11 +58,15 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleRefere
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
+import static java.util.Objects.requireNonNull;
+import org.jspecify.annotations.Nullable;
+
 public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
 
     private static final String SELF_PARAMETER_NAME = "self";
 
     @Override
+    @Nullable
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class)
             .map(PropertyUpgradeRequestExtra::getImplementationClassName)
@@ -118,13 +122,14 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             onProcessedRequest.accept(request);
             return spec;
         } catch (Exception e) {
-            onFailure.accept(new HasFailures.FailureInfo(request, e.getMessage()));
+            onFailure.accept(new HasFailures.FailureInfo(request, requireNonNull(e.getMessage())));
             throw e;
         }
     }
 
     private static MethodSpec mapToBridgedMethod(String methodName, PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
-        BridgedMethodInfo bridgedMethodInfo = implementationExtra.getBridgedMethodInfo();
+        // Only called for requests that carry a bridged method (checked by the caller).
+        BridgedMethodInfo bridgedMethodInfo = requireNonNull(implementationExtra.getBridgedMethodInfo());
         ExecutableElement bridgedMethod = bridgedMethodInfo.getBridgedMethod();
         List<TypeVariableName> typeVariables = bridgedMethod.getTypeParameters().stream()
             .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
@@ -147,7 +152,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         CodeBlock bridgeCall;
         List<AnnotationSpec> annotationSpecs = Collections.emptyList();
         if (bridgedMethodInfo.getBridgeType() == INSTANCE_METHOD_BRIDGE) {
-            TypeName type = TypeName.get(bridgedMethod.getEnclosingElement().asType());
+            TypeName type = TypeName.get(requireNonNull(bridgedMethod.getEnclosingElement()).asType());
             if (type instanceof ParameterizedTypeName) {
                 // To simplify code generation we remove type parameters from the instance type, e.g.:
                 // if we have AbstractExecTask<T>, method parameter has type `AbstractExecTask` without generics
@@ -160,8 +165,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 : CodeBlock.of("return $L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters);
         } else {
             bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
-                ? CodeBlock.of("$T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
-                : CodeBlock.of("return $T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
+                ? CodeBlock.of("$T.$N($L)", TypeName.get(requireNonNull(bridgedMethod.getEnclosingElement()).asType()), bridgedMethod.getSimpleName(), passedParameters)
+                : CodeBlock.of("return $T.$N($L)", TypeName.get(requireNonNull(bridgedMethod.getEnclosingElement()).asType()), bridgedMethod.getSimpleName(), passedParameters);
         }
         bodyBuilder.addStatement(bridgeCall);
 
