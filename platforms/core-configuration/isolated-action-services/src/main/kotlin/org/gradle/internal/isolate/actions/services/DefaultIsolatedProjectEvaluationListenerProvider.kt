@@ -219,9 +219,9 @@ fun lifecyclePluginHintFor(t: Throwable, gradle: Gradle): Throwable? {
     val gradleInternal = gradle as? GradleInternal ?: return null
     if (!hasIncludedPluginBuilds(gradleInternal)) return null
     val unknown = findUnknownPluginInCauseChain(t) ?: return null
-    val pluginId = unknown.message?.let(::extractMissingPluginId) ?: return null
+    val pluginId = unknown.pluginId ?: return null
     val documentationRegistry = gradleInternal.services.get(DocumentationRegistry::class.java)
-    return UnknownPluginException(unknown.message + lifecyclePluginHint(pluginId, documentationRegistry)).also { it.initCause(t) }
+    return UnknownPluginException(unknown.message + lifecyclePluginHint(pluginId, documentationRegistry), pluginId).also { it.initCause(t) }
 }
 
 
@@ -238,15 +238,6 @@ tailrec fun findUnknownPluginInCauseChain(t: Throwable?): UnknownPluginException
     is UnknownPluginException -> t
     else -> findUnknownPluginInCauseChain(t.cause.takeUnless { it === t })
 }
-
-
-private
-val unknownPluginIdRegex = Regex("""Plugin with id '([^']+)' not found\.""")
-
-
-private
-fun extractMissingPluginId(message: String): String? =
-    unknownPluginIdRegex.find(message)?.groupValues?.get(1)
 
 
 private

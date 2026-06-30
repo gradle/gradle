@@ -61,7 +61,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     public Plugin apply(String id) {
         PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(id));
         if (plugin == null) {
-            throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
+            throw new UnknownPluginException("Plugin with id '" + id + "' not found.", id);
         }
 
         if (!Plugin.class.isAssignableFrom(plugin.asClass())) {
@@ -125,7 +125,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     public Plugin getPlugin(String id) {
         Plugin<?> plugin = findPlugin(id);
         if (plugin == null) {
-            throw new UnknownPluginException("Plugin with id " + id + " has not been used.");
+            throw new UnknownPluginException("Plugin with id " + id + " has not been used.", id);
         }
         return plugin;
     }
