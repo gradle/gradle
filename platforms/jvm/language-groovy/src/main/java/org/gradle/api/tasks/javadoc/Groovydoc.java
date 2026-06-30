@@ -18,11 +18,14 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.internal.tasks.GroovydocParameters;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -38,6 +41,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -71,8 +75,6 @@ public abstract class Groovydoc extends SourceTask {
 
     private FileCollection classpath;
 
-    private File destinationDir;
-
     private boolean use;
 
     private boolean noTimestamp = true;
@@ -103,6 +105,9 @@ public abstract class Groovydoc extends SourceTask {
     @Inject
     protected abstract JavaToolchainService getJavaToolchainService();
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     /**
      * The Java launcher used to start the worker process for generating Groovydoc.
      *
@@ -125,7 +130,7 @@ public abstract class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDirectory().get().getAsFile();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
@@ -201,18 +206,30 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the directory to generate the documentation into.
      *
      * @return The directory to generate the documentation into
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
+    public abstract DirectoryProperty getDestinationDirectory();
+
+    /**
+     * Returns the directory to generate the documentation into.
+     *
+     * @return The directory to generate the documentation into
+     */
+    @ReplacedBy("destinationDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
     public File getDestinationDir() {
-        return destinationDir;
+        return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
     }
 
     /**
      * Sets the directory to generate the documentation into.
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        getDestinationDirectory().set(destinationDir);
+        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
 
     /**

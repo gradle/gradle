@@ -17,6 +17,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>webXmlFile</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>source</td>
                 <td><literal>[project.webAppDir]</literal></td>
             </tr>

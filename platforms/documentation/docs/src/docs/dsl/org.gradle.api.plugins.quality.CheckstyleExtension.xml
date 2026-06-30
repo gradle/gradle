@@ -20,6 +20,13 @@
                 </td>
             </tr>
             <tr>
+                <td>reportsDirectory</td>
+                <td>
+                    <literal><replaceable>${project.reporting.baseDirectory}</replaceable>/checkstyle
+                    </literal>
+                </td>
+            </tr>
+            <tr>
                 <td>config</td>
                 <td><literal><replaceable>${configDirectory}</replaceable>/checkstyle.xml</literal></td>
             </tr>

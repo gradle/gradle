@@ -54,6 +54,9 @@
                 <td>classDumpDir</td>
             </tr>
             <tr>
+                <td>classDumpDirectory</td>
+            </tr>
+            <tr>
                 <td>jmx</td>
             </tr>
         </table>

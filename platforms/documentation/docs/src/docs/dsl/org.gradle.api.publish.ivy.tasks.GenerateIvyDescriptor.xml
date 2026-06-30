@@ -8,6 +8,7 @@
                 </tr>
             </thead>
             <tr><td>destination</td></tr>
+            <tr><td>destinationFile</td></tr>
             <tr><td>descriptor</td></tr>
         </table>
     </section>
