@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stdout;
+import org.jspecify.annotations.Nullable;
 
 public class NativePlatformConsoleDetector implements ConsoleDetector {
     private static final int WINDOWS_UTF8_CODEPAGE_ID = 65001;
@@ -34,6 +35,7 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
     }
 
     @Override
+    @Nullable
     public ConsoleMetaData getConsole() {
         // Dumb terminal doesn't support ANSI control codes.
         // TODO - remove this when we use Terminal rather than JAnsi to render to console
