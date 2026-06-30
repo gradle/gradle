@@ -120,7 +120,7 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
 
     private static class CachingZipEntry implements ZipEntry {
         private final ZipEntry delegate;
-        private byte[] content;
+        private byte @Nullable [] content;
 
         public CachingZipEntry(ZipEntry delegate) {
             this.delegate = delegate;

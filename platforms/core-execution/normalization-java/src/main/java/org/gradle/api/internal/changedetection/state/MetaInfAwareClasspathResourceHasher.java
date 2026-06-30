@@ -39,6 +39,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 import static java.lang.String.join;
+import static java.util.Objects.requireNonNull;
 
 public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaInfAwareClasspathResourceHasher.class);
@@ -105,7 +106,7 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
         Map<String, Attributes> entries = manifest.getEntries();
         Set<String> names = new TreeSet<>(manifest.getEntries().keySet());
         for (String name : names) {
-            hashManifestAttributes(entries.get(name), name, hasher);
+            hashManifestAttributes(requireNonNull(entries.get(name)), name, hasher);
         }
         return hasher.hash();
     }
