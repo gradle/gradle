@@ -60,9 +60,11 @@ class CodeOwners(private val rules: List<Rule>) {
 
         /** Translates a CODEOWNERS pattern into a regex matching any repo-relative file path it owns. */
         private fun patternToRegex(pattern: String): Regex {
-            var p = pattern
-            val anchored = p.startsWith("/")
-            if (anchored) p = p.substring(1)
+            // gitignore semantics: a pattern is anchored to the repository root if it has a leading slash
+            // OR any interior (non-trailing) slash. Only patterns whose only slash is the trailing one
+            // (e.g. "gradle/") — or which have no slash at all (e.g. "*.md") — float to any depth.
+            val anchored = pattern.startsWith("/") || pattern.trim('/').contains("/")
+            var p = pattern.removePrefix("/")
             if (p.endsWith("/")) p = p.dropLast(1)
 
             val core = buildString {

@@ -70,4 +70,21 @@ class CodeOwnersTest {
     fun `unmatched path is unowned`() {
         assertEquals(emptyList<String>(), codeOwners.teamsFor("some/unrelated/path.txt"))
     }
+
+    @Test
+    fun `interior slash anchors to root, trailing-slash-only floats to any depth`() {
+        val co = CodeOwners.parse(
+            listOf(
+                "gradle/            @gradle/bt-developer-productivity",
+                "platforms/jvm/     @gradle/bt-jvm",
+            )
+        )
+        // A pattern with an interior slash is root-anchored: it must NOT match the same path nested deeper.
+        assertEquals(emptyList<String>(), co.teamsFor("subprojects/foo/platforms/jvm/Bar.java"))
+        assertEquals(listOf("bt-jvm"), co.teamsFor("platforms/jvm/Bar.java"))
+        // A trailing-slash-only pattern floats: "gradle/" matches the org/gradle package anywhere...
+        assertEquals(listOf("bt-developer-productivity"), co.teamsFor("some-project/src/main/org/gradle/Foo.java"))
+        // ...but a later, more specific platform rule still wins (last match), so platform sources keep their team.
+        assertEquals(listOf("bt-jvm"), co.teamsFor("platforms/jvm/src/main/org/gradle/Foo.java"))
+    }
 }
