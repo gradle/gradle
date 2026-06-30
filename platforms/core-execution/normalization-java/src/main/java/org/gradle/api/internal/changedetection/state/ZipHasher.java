@@ -100,6 +100,8 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
         }
     }
 
+    // The withInputStream callback below discards its result; the explicit null return is intentional.
+    @SuppressWarnings("NullAway")
     private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
         fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
