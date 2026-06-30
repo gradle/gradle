@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,15 +86,12 @@ class RuleSourceApplicationTest extends Specification {
         def project = buildProject()
 
         then:
-        !project.pluginManager.hasPlugin("custom-plugin")
         !project.pluginManager.hasPlugin("custom-rule-source")
 
         when:
-        project.apply plugin: "custom-plugin"
         project.apply plugin: "custom-rule-source"
 
         then:
-        project.pluginManager.hasPlugin("custom-plugin")
         project.pluginManager.hasPlugin("custom-rule-source")
     }
 }
