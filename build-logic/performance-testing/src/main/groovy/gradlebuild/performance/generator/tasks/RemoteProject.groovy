@@ -117,11 +117,11 @@ abstract class RemoteProject extends DefaultTask {
     static File checkout(FileSystemOperations fsOps, ExecOperations execOps, String remoteUri, String ref, File checkoutDir) {
         cleanTemporaryDir(fsOps, checkoutDir)
         execOps.exec {
-            commandLine = ["git", "clone", "--no-checkout", remoteUri, checkoutDir.absolutePath]
+            commandLine(["git", "clone", "--no-checkout", remoteUri, checkoutDir.absolutePath])
             errorOutput = System.out
         }
         execOps.exec {
-            commandLine = ["git", "checkout", ref]
+            commandLine(["git", "checkout", ref])
             workingDir = checkoutDir
             errorOutput = System.out
         }
@@ -149,7 +149,7 @@ abstract class RemoteProject extends DefaultTask {
 
         // Initialize an empty git repo
         execOps.exec {
-            commandLine = ["git", "init"]
+            commandLine(["git", "init"])
             workingDir = projectDir
             errorOutput = System.out
         }
