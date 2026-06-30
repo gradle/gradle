@@ -74,7 +74,8 @@ import org.gradle.util.internal.DeferredUtil
 
 
 class TaskNodeCodec(
-    private val userTypesCodec: Codec<Any?>
+    private val userTypesCodec: Codec<Any?>,
+    private val serializeTaskLoggingListeners: Boolean
 ) : Codec<LocalTaskNode> {
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
@@ -304,8 +305,13 @@ class TaskNodeCodec(
     suspend fun WriteContext.writeTaskLoggingListeners(task: TaskInternal) {
         withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
             val loggingManager = task.loggingManager
-            writeCollection(loggingManager?.standardOutputListeners ?: emptyList<StandardOutputListener>())
-            writeCollection(loggingManager?.standardErrorListeners ?: emptyList<StandardOutputListener>())
+            if (loggingManager == null || !serializeTaskLoggingListeners) {
+                writeCollection(emptyList<StandardOutputListener>())
+                writeCollection(emptyList<StandardOutputListener>())
+            } else {
+                writeCollection(loggingManager.standardOutputListeners)
+                writeCollection(loggingManager.standardErrorListeners)
+            }
         }
     }
 

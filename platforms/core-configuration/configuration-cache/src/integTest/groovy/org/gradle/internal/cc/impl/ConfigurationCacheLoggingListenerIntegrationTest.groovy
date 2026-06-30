@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.initialization.StartParameterBuildOptions
 import spock.lang.Issue
 
 class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -23,7 +24,7 @@ class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigura
     @Issue("https://github.com/gradle/gradle/issues/30771")
     def "standard error listener added to task logging at configuration time is invoked on configuration cache hit"() {
         given:
-        buildFile << """
+        buildFile """
             tasks.register("logError") {
                 def listenerOutput = file("listener-output.txt")
                 logging.addStandardErrorListener({ CharSequence line ->
@@ -58,7 +59,7 @@ class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigura
     @Issue("https://github.com/gradle/gradle/issues/30771")
     def "standard output listener added to task logging at configuration time is invoked on configuration cache hit"() {
         given:
-        buildFile << """
+        buildFile """
             tasks.register("logOutput") {
                 def listenerOutput = file("listener-output.txt")
                 logging.addStandardOutputListener({ CharSequence line ->
@@ -93,7 +94,7 @@ class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigura
     @Issue("https://github.com/gradle/gradle/issues/30771")
     def "non-serializable task logging listener is reported as a configuration cache problem"() {
         given:
-        buildFile << """
+        buildFile """
             class BrokenListener implements StandardOutputListener {
                 // A definitively non-serializable captured reference.
                 Thread thread = Thread.currentThread()
@@ -117,5 +118,43 @@ class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigura
             }
             problemsWithStackTraceCount = 0
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30771")
+    def "non-serializable task logging listener is dropped on cache hit when the opt-out is enabled"() {
+        given:
+        def skipSerialization = "-D${StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME}=true"
+        buildFile << """
+            tasks.register("logError") {
+                def listenerOutput = file("listener-output.txt")
+                // A definitively non-serializable captured reference, so the listener cannot be stored.
+                def capturedThread = Thread.currentThread()
+                logging.addStandardErrorListener({ CharSequence line ->
+                    if (capturedThread != null) {
+                        listenerOutput << line
+                    }
+                } as StandardOutputListener)
+                doLast {
+                    logger.error("error-from-task")
+                }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+        def listenerOutput = file("listener-output.txt")
+
+        when: "configuration is stored with the opt-out enabled"
+        configurationCacheRun("logError", skipSerialization)
+
+        then: "the unsupported listener is dropped instead of being reported as a problem, so the entry is stored"
+        configurationCache.assertStateStored()
+
+        when: "configuration is loaded from the cache after clearing any output from the store run"
+        listenerOutput.delete()
+        configurationCacheRun("logError", skipSerialization)
+
+        then: "the task still runs, but the dropped listener receives no output (pre-9.7.0 behavior)"
+        configurationCache.assertStateLoaded()
+        result.assertHasErrorOutput("error-from-task")
+        !listenerOutput.exists()
     }
 }

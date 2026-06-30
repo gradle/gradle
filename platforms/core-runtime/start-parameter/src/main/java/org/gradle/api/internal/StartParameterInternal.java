@@ -42,6 +42,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
     private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
+    private boolean configurationCacheSkipTaskLoggingListenersSerialization = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
@@ -114,6 +115,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+        p.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheReadOnly = configurationCacheReadOnly;
@@ -259,6 +261,15 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
         return configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
+    public void setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean configurationCacheSkipTaskLoggingListenersSerialization) {
+        onMutableCall("setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean)");
+        this.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
+    }
+
+    public boolean isConfigurationCacheSkipTaskLoggingListenersSerialization() {
+        return configurationCacheSkipTaskLoggingListenersSerialization;
     }
 
     public boolean isConfigurationCacheParallel() {

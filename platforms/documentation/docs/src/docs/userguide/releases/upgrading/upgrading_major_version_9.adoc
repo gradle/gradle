@@ -790,6 +790,23 @@ org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=
 
 This property will be removed in Gradle 10.
 
+[[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
+=== Task logging listeners are now stored in the Configuration Cache
+
+Standard output and error listeners registered on a task's logging manager during configuration (for example via link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardErrorListener`]) are now stored in the Configuration Cache and re-registered on a cache hit, so they receive the task's output as they would without the Configuration Cache.
+
+Previously, these listeners were silently discarded and never received output when the Configuration Cache was used.
+
+A listener that cannot be serialized is now reported as a Configuration Cache problem instead of being silently dropped, which may cause a build that previously worked to fail.
+If your build registers such a listener and the listener is nonessential, you can opt out and restore the previous behavior — listeners are not serialized, so they are dropped on a cache hit and no problem is reported — by setting:
+
+[source,properties]
+----
+org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
+----
+
+This property is a temporary opt-out and will be removed in a future Gradle release.
+
 [[configuration_cache_entry_is_now_always_discarded_for_incompatible_tasks_in_warning_mode]]
 === Configuration Cache entry is now always discarded for incompatible tasks in warning mode
 
