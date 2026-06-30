@@ -51,7 +51,9 @@ class IsolatedProjectsIdeaModelConcurrencySoakTest extends AbstractIntegrationSp
     ]
 
     def cleanup() {
-        new DaemonLogsAnalyzer(file("daemon")).daemons*.kill()
+        // killAll() blocks until each daemon process has actually exited (kill() alone returns before the
+        // OS releases file handles), so the test directory can be deleted without racing a dying daemon.
+        new DaemonLogsAnalyzer(file("daemon")).killAll()
     }
 
     def "concurrent IdeaProject model building does not corrupt shared build-tree state"() {
