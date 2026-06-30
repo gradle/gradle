@@ -374,6 +374,7 @@ org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=
 ----
 
 2. Starting with Gradle 9.7.0, standard output and error listeners registered on a task's logging manager during configuration (for example via
+link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardOutputListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardOutputListener`] or
 link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardErrorListener`]) are stored in the Configuration Cache and re-registered on a cache hit, so a listener that cannot be serialized is now reported as a problem.
 +
 Prior to Gradle 9.7.0, these listeners were silently discarded and never received output during cache-hit builds.
