@@ -38,6 +38,8 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
+import static java.util.Objects.requireNonNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -257,7 +259,7 @@ public class DirectorySnapshotter {
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
         private final RelativePathTracker pathTracker = new RelativePathTracker();
         private final FilteredTrackingMerkleDirectorySnapshotBuilder builder;
-        private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
+        private final SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
         private final FileHasher hasher;
         private final Interner<String> stringInterner;
@@ -521,7 +523,7 @@ public class DirectorySnapshotter {
         }
 
         public FileSystemLocationSnapshot getResult() {
-            return builder.getResult();
+            return requireNonNull(builder.getResult());
         }
     }
 }

@@ -21,9 +21,11 @@ import org.fusesource.jansi.io.WindowsAnsiProcessor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import org.jspecify.annotations.Nullable;
 
 public class WindowsConsoleDetector implements ConsoleDetector {
     @Override
+    @Nullable
     public ConsoleMetaData getConsole() {
         // Use Jansi's detection mechanism
         try {

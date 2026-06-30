@@ -35,7 +35,7 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
     @Nullable
     private AnnotationValue<?> annotationDefaultValue;
 
-    public MethodMember(int access, String name, String typeDesc, String signature, String @Nullable [] exceptions) {
+    public MethodMember(int access, String name, String typeDesc, @Nullable String signature, String @Nullable [] exceptions) {
         super(access, name, signature, typeDesc);
         if (exceptions != null && exceptions.length > 0) {
             this.exceptions.addAll(Arrays.asList(exceptions));

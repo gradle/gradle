@@ -39,6 +39,7 @@ public interface BuildStartedFileSystemWatchingBuildOperationType extends BuildO
             }
 
             @Override
+            @Nullable
             public FileSystemWatchingStatistics getStatistics() {
                 return null;
             }

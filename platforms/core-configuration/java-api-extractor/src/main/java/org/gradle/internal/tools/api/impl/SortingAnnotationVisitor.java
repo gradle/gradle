@@ -20,6 +20,8 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private final List<AnnotationValue<?>> annotationValues = new LinkedList<>();
     private final AnnotationMember annotation;
 
+    @Nullable
     private SortingAnnotationVisitor parentVisitor;
     @Nullable
     private String annotationValueName;
@@ -72,7 +75,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     public void visitEnd() {
         if (annotationValueName != null) {
             AnnotationAnnotationValue value = new AnnotationAnnotationValue(annotationValueName, annotation);
-            parentVisitor.annotationValues.add(value);
+            requireNonNull(parentVisitor).annotationValues.add(value);
             annotationValueName = null;
         } else if (arrayValueName != null) {
             ArrayAnnotationValue value = new ArrayAnnotationValue(

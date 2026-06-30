@@ -77,6 +77,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
+    @SuppressWarnings("NullAway.Init")
     private static NativeServices instance;
 
     // TODO All this should be static
@@ -292,6 +293,9 @@ public class NativeServices implements ServiceRegistrationProvider {
         }
     }
 
+    // Native-platform exception cause/message inspection is guarded by the surrounding instanceof checks;
+    // nativeIntegration is only used when useNativeIntegrations is true.
+    @SuppressWarnings("NullAway")
     private NativeServices(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         this.userHomeDir = userHomeDir;
 

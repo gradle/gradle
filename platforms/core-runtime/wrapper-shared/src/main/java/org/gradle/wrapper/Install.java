@@ -18,6 +18,7 @@ package org.gradle.wrapper;
 
 import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
 
+import org.jspecify.annotations.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,6 +39,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.gradle.internal.file.PathTraversalChecker.safePathName;
@@ -75,7 +77,7 @@ public class Install {
             if (distDir.isDirectory() && markerFile.isFile()) {
                 InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 if (installCheck.isVerified()) {
-                    return installCheck.gradleHome;
+                    return requireNonNull(installCheck.gradleHome);
                 }
                 // Distribution is invalid. Try to reinstall.
                 System.err.println(installCheck.failureMessage);
@@ -86,10 +88,10 @@ public class Install {
 
             InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
             if (installCheck.isVerified()) {
-                setExecutablePermissions(installCheck.gradleHome);
+                setExecutablePermissions(requireNonNull(installCheck.gradleHome));
                 markerFile.createNewFile();
                 localZipFile.delete();
-                return installCheck.gradleHome;
+                return requireNonNull(installCheck.gradleHome);
             }
             // Distribution couldn't be installed.
             throw new RuntimeException(installCheck.failureMessage);
@@ -126,6 +128,7 @@ public class Install {
         } while (failed);
     }
 
+    @Nullable
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();
         try {
@@ -248,7 +251,7 @@ public class Install {
         return InstallCheck.success(gradleHome);
     }
 
-    private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
+    private void verifyDownloadChecksum(String sourceUrl, File localZipFile, @Nullable String expectedSum) throws Exception {
         if (expectedSum == null) {
             return;
         }
@@ -376,7 +379,9 @@ public class Install {
     }
 
     private static class InstallCheck {
+        @Nullable
         private final File gradleHome;
+        @Nullable
         private final String failureMessage;
 
         private static InstallCheck failure(String message) {
@@ -387,7 +392,7 @@ public class Install {
             return new InstallCheck(gradleHome, null);
         }
 
-        private InstallCheck(File gradleHome, String failureMessage) {
+        private InstallCheck(@Nullable File gradleHome, @Nullable String failureMessage) {
             this.gradleHome = gradleHome;
             this.failureMessage = failureMessage;
         }

@@ -145,3 +145,7 @@ tasks.jar {
 }
 
 
+
+errorprone {
+    nullawayEnabled = true
+}

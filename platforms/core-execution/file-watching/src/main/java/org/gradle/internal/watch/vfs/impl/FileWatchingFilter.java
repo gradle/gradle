@@ -57,6 +57,8 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
         }
     }
 
+    // TODO: Drop the suppression once https://github.com/uber/NullAway/issues/681 is fixed.
+    @SuppressWarnings("NullAway")
     public boolean shouldWatchLocation(String location) {
         return !locationsWrittenByCurrentBuild.get().contains(location);
     }

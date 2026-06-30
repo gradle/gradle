@@ -17,6 +17,9 @@
 package org.gradle.internal.snapshot;
 
 import org.gradle.internal.RelativePathSupplier;
+import org.jspecify.annotations.Nullable;
+
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -28,6 +31,7 @@ import java.util.Iterator;
  */
 public class RelativePathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
+    @Nullable
     private String rootName;
 
     public void enter(FileSystemLocationSnapshot snapshot) {
@@ -48,7 +52,8 @@ public class RelativePathTracker implements RelativePathSupplier {
             name = rootName;
             rootName = null;
         }
-        return name;
+        // enter()/leave() are balanced by contract, so the name is non-null in correct usage.
+        return requireNonNull(name);
     }
 
     @Override

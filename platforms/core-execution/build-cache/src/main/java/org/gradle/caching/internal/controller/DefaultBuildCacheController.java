@@ -70,6 +70,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import static java.util.Objects.requireNonNull;
 
 public class DefaultBuildCacheController implements BuildCacheController {
     @VisibleForTesting
@@ -145,7 +146,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 result.set(remoteResult);
             }
         });
-        return result.get();
+        // TODO: Drop requireNonNull once https://github.com/uber/NullAway/issues/681 is fixed
+        //  (the AtomicReference is initialized with Optional.empty() and only set to non-null values).
+        return requireNonNull(result.get());
     }
 
     @Override
