@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import static java.util.Objects.requireNonNull;
 
 public class BaseLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
 
@@ -46,7 +47,9 @@ public class BaseLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
         AtomicReference<Optional<BuildCacheLoadResult>> result = new AtomicReference<>(Optional.empty());
         service.loadLocally(key, file -> result.set(Optional.ofNullable(unpackFunction.apply(file))));
-        return result.get();
+        // TODO: Drop requireNonNull once https://github.com/uber/NullAway/issues/681 is fixed
+        //  (the AtomicReference is initialized with Optional.empty() and only set to non-null values).
+        return requireNonNull(result.get());
     }
 
     @Override
