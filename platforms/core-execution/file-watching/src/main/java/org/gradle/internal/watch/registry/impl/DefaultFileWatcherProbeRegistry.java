@@ -187,14 +187,14 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         }
 
         public synchronized void deleteProbeFile() {
-            if (probeFile.delete()) {
-                File probeDirectory = probeFile.getParentFile();
-                String[] remaining = probeDirectory.list();
-                if (remaining != null && remaining.length == 0 && !probeDirectory.delete()) {
-                    LOGGER.debug("Could not delete empty probe directory: {}", probeDirectory);
-                }
-            } else if (probeFile.exists()) {
+            if (!probeFile.delete() && probeFile.exists()) {
                 LOGGER.debug("Could not delete probe file: {}", probeFile);
+                return;
+            }
+            File probeDirectory = probeFile.getParentFile();
+            String[] remaining = probeDirectory.list();
+            if (remaining != null && remaining.length == 0 && !probeDirectory.delete()) {
+                LOGGER.debug("Could not delete empty probe directory: {}", probeDirectory);
             }
         }
 
