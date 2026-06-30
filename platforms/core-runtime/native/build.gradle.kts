@@ -47,3 +47,7 @@ jmh {
     warmupIterations = 10
     synchronizeIterations = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}
