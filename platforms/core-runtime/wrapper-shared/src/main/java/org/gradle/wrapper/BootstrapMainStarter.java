@@ -15,6 +15,7 @@
  */
 package org.gradle.wrapper;
 
+import org.jspecify.annotations.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -38,6 +39,7 @@ public class BootstrapMainStarter {
         ((Closeable) contextClassLoader).close();
     }
 
+    @Nullable
     static File findLauncherJar(File gradleHome) {
         File libDirectory = new File(gradleHome, "lib");
         if (libDirectory.exists() && libDirectory.isDirectory()) {
