@@ -430,6 +430,34 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedArtifacts[0].reason == "first"
     }
 
+    @ExpectDeprecation("The dependency verification metadata declares a duplicate trusted PGP key 'ABCDEF0123456789ABCDEF0123456789ABCDEF01'")
+    def "artifact pgp keys with the same id are deduplicated, keeping the first origin and reason"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/first.asc" reason="first"/>
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/second.asc" reason="second"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        then:
+        def keys = verifier.verificationMetadata[0].artifactVerifications[0].trustedPgpKeys as List
+        keys.size() == 1
+        keys[0].keyId == "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+        keys[0].origin == "https://example.com/first.asc"
+        keys[0].reason == "first"
+    }
+
     def "can parse origin and reason of artifact specific trusted pgp keys"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

@@ -124,4 +124,21 @@ class DependencyVerifierBuilderTest extends Specification {
         builder.droppedDuplicateTrustEntries.isEmpty()
     }
 
+    def "deduplicates artifact-specific pgp keys with the same id and records those differing only by origin or reason"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+        def artifact = new DefaultModuleComponentArtifactIdentifier(
+            DefaultModuleComponentIdentifier.newId(DefaultModuleVersionIdentifier.newId("org", "foo", "1.0")),
+            "foo", "jar", "jar"
+        )
+
+        when:
+        builder.addTrustedKey(artifact, "d7bf96a169f77b28c934ab1614f53f0824875d73", "https://example.com/first.asc", "first")
+        builder.addTrustedKey(artifact, "d7bf96a169f77b28c934ab1614f53f0824875d73", "https://example.com/second.asc", "second")
+
+        then:
+        builder.droppedDuplicateTrustEntries.size() == 1
+        builder.droppedDuplicateTrustEntries[0].startsWith("trusted PGP key 'D7BF96A169F77B28C934AB1614F53F0824875D73'")
+    }
+
 }

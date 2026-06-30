@@ -97,8 +97,11 @@ public class DependencyVerifierBuilder {
 
     public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
+        boolean droppedAsDuplicate = byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
             .addTrustedKey(artifact, key, origin, reason);
+        if (droppedAsDuplicate) {
+            droppedDuplicateTrustEntries.add("trusted PGP key '" + key.toUpperCase(Locale.ROOT) + "' for " + componentIdentifier + " (" + artifact.getFileName() + ")");
+        }
     }
 
     public void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
@@ -146,7 +149,7 @@ public class DependencyVerifierBuilder {
     public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
         DependencyVerificationConfiguration.TrustedArtifact artifact = new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason);
-        DependencyVerificationConfiguration.TrustedArtifact existing = findEntryWithSameCoordinates(trustedArtifacts, artifact);
+        DependencyVerificationConfiguration.TrustedArtifact existing = findEqualEntry(trustedArtifacts, artifact);
         if (existing == null) {
             trustedArtifacts.add(artifact);
         } else if (!Objects.equals(existing.getReason(), artifact.getReason())) {
@@ -161,7 +164,7 @@ public class DependencyVerifierBuilder {
     public void addTrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String origin, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
         DependencyVerificationConfiguration.TrustedKey key = new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, version, fileName, regex, origin, reason);
-        DependencyVerificationConfiguration.TrustedKey existing = findEntryWithSameCoordinates(trustedKeys, key);
+        DependencyVerificationConfiguration.TrustedKey existing = findEqualEntry(trustedKeys, key);
         if (existing == null) {
             trustedKeys.add(key);
         } else if (!Objects.equals(existing.getOrigin(), key.getOrigin()) || !Objects.equals(existing.getReason(), key.getReason())) {
@@ -170,15 +173,16 @@ public class DependencyVerifierBuilder {
     }
 
     /**
-     * Returns the descriptions of trust entries that were dropped as duplicates while building
-     * (entries with the same coordinates that differ only by their {@code origin} or {@code reason}).
+     * Returns the descriptions of trust entries that were dropped as duplicates while building:
+     * trusted keys and trusted artifacts with the same coordinates, or artifact-specific PGP keys
+     * with the same id, that differ only by their {@code origin} or {@code reason}.
      */
     public List<String> getDroppedDuplicateTrustEntries() {
         return droppedDuplicateTrustEntries;
     }
 
     @Nullable
-    private static <T> T findEntryWithSameCoordinates(Collection<T> entries, T candidate) {
+    private static <T> T findEqualEntry(Collection<T> entries, T candidate) {
         for (T entry : entries) {
             if (entry.equals(candidate)) {
                 return entry;
@@ -239,8 +243,8 @@ public class DependencyVerifierBuilder {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
         }
 
-        void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
+        boolean addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key, @Nullable String origin, @Nullable String reason) {
+            return byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addTrustedKey(key, origin, reason);
         }
 
         void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
@@ -296,8 +300,19 @@ public class DependencyVerifierBuilder {
                 .collect(Collectors.toList());
         }
 
-        public void addTrustedKey(String key, @Nullable String origin, @Nullable String reason) {
-            pgpKeys.add(new TrustedPgpKey(key, origin, reason));
+        /**
+         * Adds an artifact-specific trusted PGP key. Returns {@code true} when an equal key
+         * (same id) was already present and is dropped because {@code pgpKeys} is a set, while
+         * differing only by its origin or reason — so that the caller can report the lost metadata.
+         */
+        public boolean addTrustedKey(String key, @Nullable String origin, @Nullable String reason) {
+            TrustedPgpKey candidate = new TrustedPgpKey(key, origin, reason);
+            TrustedPgpKey existing = findEqualEntry(pgpKeys, candidate);
+            if (existing == null) {
+                pgpKeys.add(candidate);
+                return false;
+            }
+            return !Objects.equals(existing.getOrigin(), candidate.getOrigin()) || !Objects.equals(existing.getReason(), candidate.getReason());
         }
 
         public void addIgnoredKey(IgnoredKey key) {
