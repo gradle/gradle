@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Encapsulates what happened when we tried to modify the environment.
  */
@@ -23,13 +25,16 @@ public enum EnvironmentModificationResult {
     SUCCESS(null),
     UNSUPPORTED_ENVIRONMENT("There is no native integration with this operating environment.");
 
+    @Nullable
     private final String reason;
 
-    EnvironmentModificationResult(String reason) {
+    EnvironmentModificationResult(@Nullable String reason) {
         this.reason = reason;
     }
 
     @Override
+    // SUCCESS has a null reason; preserve the original (possibly null) value.
+    @SuppressWarnings("NullAway")
     public String toString() {
         return reason;
     }

@@ -26,10 +26,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 public class UnsupportedEnvironment implements ProcessEnvironment {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedEnvironment.class);
 
+    @Nullable
     private final Long pid;
 
     public UnsupportedEnvironment() {
@@ -42,6 +44,7 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
      *
      * This works on Solaris and should work with any Java VM
      */
+    @Nullable
     private Long extractPIDFromRuntimeMXBeanName() {
         Long pid = null;
         String runtimeMXBeanName = ManagementFactory.getRuntimeMXBean().getName();
@@ -107,6 +110,7 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     @Override
+    @Nullable
     public Long maybeGetPid() {
         return pid;
     }
