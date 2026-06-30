@@ -228,6 +228,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static class MutableFileWatchingStatistics {
         private boolean unknownEventEncountered;
         private int numberOfReceivedEvents;
+        @Nullable
         private Throwable errorWhileReceivingFileChanges;
 
         public Optional<Throwable> getErrorWhileReceivingFileChanges() {
