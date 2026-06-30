@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
  * A {@link org.gradle.platform.base.ComponentSpec} that is directly checkable via a specified task.
  */
 @Incubating
-@SuppressWarnings("deprecation")
+@Deprecated
 public interface CheckableComponentSpec extends org.gradle.platform.base.ComponentSpec {
 
     /**

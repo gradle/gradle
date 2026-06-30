@@ -33,6 +33,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
+// TODO: Rewrite this to not rely on ComponentSpec once that's been removed.
+@SuppressWarnings("deprecation")
 public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     FileCollection pchObjects;
     File prefixHeaderFile;

@@ -157,7 +157,7 @@ import static java.util.Collections.singletonMap;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 import static org.gradle.util.internal.GUtil.addMaps;
 
-@SuppressWarnings({"this-escape", "deprecation"})
+@SuppressWarnings({"this-escape"})
 @NoConventionMapping
 public abstract class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
@@ -283,7 +283,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"deprecation", "unused"})
     static class BasicServicesRules extends org.gradle.model.RuleSource {
         @Hidden
         @org.gradle.model.Model
