@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -214,6 +216,17 @@ public class Providers {
         protected String toStringNoReentrance() {
             return String.format("fixed(%s, %s)", getType(), value);
         }
+
+        @Override
+        public ProviderDescription explain(boolean lazy) {
+            return new ProviderDescription(
+                ProviderDescription.Kind.FIXED,
+                true,
+                null,
+                ImmutableList.of(),
+                ImmutableMap.of()
+            );
+        }
     }
 
     public static class NamedFixedValueProvider<T extends Named> extends FixedValueProvider<T> implements NamedDomainObjectProvider<T> {
@@ -310,6 +323,25 @@ public class Providers {
         @Override
         public Provider<T> orElse(Provider<? extends T> provider) {
             return Cast.uncheckedCast(provider);
+        }
+
+        @Override
+        public ProviderDescription explain(boolean lazy) {
+            // A NoValueProvider is the frozen result of a missing computation (e.g. produced by
+            // withFinalValue after finalization). The underlying chain of named providers that
+            // contributed to the missing value is preserved in the stored value's pathToOrigin —
+            // surface it as a flat list of synthetic UNKNOWN sources, each carrying one name.
+            ImmutableList.Builder<ProviderDescription> sources = ImmutableList.builder();
+            for (DisplayName origin : value.getPathToOrigin()) {
+                sources.add(ProviderDescription.unknown(origin.getDisplayName(), false));
+            }
+            return new ProviderDescription(
+                ProviderDescription.Kind.UNKNOWN,
+                false,
+                null,
+                sources.build(),
+                ImmutableMap.of()
+            );
         }
 
         @Override

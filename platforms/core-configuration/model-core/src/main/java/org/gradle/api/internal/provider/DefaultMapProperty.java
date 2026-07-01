@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
@@ -118,6 +120,39 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     public Class<V> getValueType() {
         return valueType;
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+        ImmutableList<ProviderDescription> sources;
+        try (EvaluationScopeContext scope = openScope()) {
+            MapSupplier<K, V> supplier = getSupplier(scope);
+            if (supplier instanceof ProviderInternal) {
+                // CollectingSupplier (via AbstractCollectingSupplier) is itself a ProviderInternal.
+                sources = ImmutableList.of(((ProviderInternal<?>) supplier).explain(lazy));
+            } else if (supplier instanceof DefaultMapProperty<?, ?>.NoValueSupplier) {
+                // NoValueSupplier is the frozen result of finalization on a missing value; surface
+                // the captured pathToOrigin as synthetic UNKNOWN sources, one per origin name.
+                DefaultMapProperty<?, ?>.NoValueSupplier noValue =
+                    (DefaultMapProperty<?, ?>.NoValueSupplier) supplier;
+                ImmutableList.Builder<ProviderDescription> builder = ImmutableList.builder();
+                for (DisplayName origin : noValue.value.getPathToOrigin()) {
+                    builder.add(ProviderDescription.unknown(origin.getDisplayName(), false));
+                }
+                sources = builder.build();
+            } else {
+                // EmptySupplier, FixedSupplier — no further explain info.
+                sources = ImmutableList.of();
+            }
+        }
+        return new ProviderDescription(
+            ProviderDescription.Kind.MAP_PROPERTY,
+            false,
+            declared != null ? declared.getDisplayName() : null,
+            sources,
+            ImmutableMap.of("keyType", keyType, "valueType", valueType)
+        );
     }
 
     @Override

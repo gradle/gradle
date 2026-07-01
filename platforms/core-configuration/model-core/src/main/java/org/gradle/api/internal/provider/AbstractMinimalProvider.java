@@ -79,7 +79,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     protected Value<? extends T> calculateOwnPresentValue() {
         Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
         if (value.isMissing()) {
-            throw new MissingValueException(cannotQueryValueOf(value));
+            throw new MissingValueException(cannotQueryValueOf());
         }
 
         return value;
@@ -134,6 +134,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public ValueProducer getProducer() {
         return ValueProducer.unknown();
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        // Default impl: report kind UNKNOWN with whatever display name is attached.
+        // Do NOT call isPresent() here — that would re-evaluate the provider (and any upstream
+        // transformer/spec), which violates the no-resolution-penalty contract and can break
+        // callers that rely on a precise evaluation count. Subclasses that know their state
+        // cheaply should override to set hasValue accurately.
+        DisplayName declared = getDeclaredDisplayName();
+        return ProviderDescription.unknown(
+            declared != null ? declared.getDisplayName() : null,
+            false
+        );
     }
 
     @Override
@@ -195,14 +209,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
     }
 
-    private String cannotQueryValueOf(Value<? extends T> value) {
+    private String cannotQueryValueOf() {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
-        if (!value.getPathToOrigin().isEmpty()) {
+        java.util.List<String> names = explain(false).collectMissingSourceNames();
+        if (!names.isEmpty()) {
             formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
             formatter.startChildren();
-            for (DisplayName displayName : value.getPathToOrigin()) {
-                formatter.node(displayName.getDisplayName());
+            for (String name : names) {
+                formatter.node(name);
             }
             formatter.endChildren();
         }

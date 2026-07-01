@@ -18,6 +18,8 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
@@ -27,6 +29,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -116,6 +119,44 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     protected abstract Class<C> getCollectionType();
+
+    /**
+     * The {@link ProviderDescription.Kind} this collection property reports from {@link #explain(boolean)}.
+     */
+    protected abstract ProviderDescription.Kind collectionKind();
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+        ImmutableList<ProviderDescription> sources;
+        try (EvaluationScopeContext scope = openScope()) {
+            CollectionSupplier<T, C> supplier = getSupplier(scope);
+            if (supplier instanceof ProviderInternal) {
+                // CollectingSupplier (via AbstractCollectingSupplier) is itself a ProviderInternal.
+                sources = ImmutableList.of(((ProviderInternal<?>) supplier).explain(lazy));
+            } else if (supplier instanceof AbstractCollectionProperty<?, ?>.NoValueSupplier) {
+                // NoValueSupplier is the frozen result of finalization on a missing value; surface
+                // the captured pathToOrigin as synthetic UNKNOWN sources, one per origin name.
+                AbstractCollectionProperty<?, ?>.NoValueSupplier noValue =
+                    (AbstractCollectionProperty<?, ?>.NoValueSupplier) supplier;
+                ImmutableList.Builder<ProviderDescription> builder = ImmutableList.builder();
+                for (DisplayName origin : noValue.value.getPathToOrigin()) {
+                    builder.add(ProviderDescription.unknown(origin.getDisplayName(), false));
+                }
+                sources = builder.build();
+            } else {
+                // EmptySupplier, FixedSupplier — no further explain info.
+                sources = ImmutableList.of();
+            }
+        }
+        return new ProviderDescription(
+            collectionKind(),
+            false,
+            declared != null ? declared.getDisplayName() : null,
+            sources,
+            ImmutableMap.of("elementType", elementType)
+        );
+    }
 
     /**
      * Creates an empty immutable collection.

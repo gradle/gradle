@@ -17,10 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
@@ -66,6 +69,26 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public Class<T> getType() {
         return type;
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+            ImmutableList<ProviderDescription> sources;
+        try (EvaluationScopeContext scope = openScope()) {
+            // Include the current supplier as a source so the explain tree carries the same
+            // upstream chain that the pushWhenMissing mechanism used to push into pathToOrigin.
+            // This is cheap: getSupplier just reads a field, no value evaluation.
+            ProviderInternal<? extends T> supplier = getSupplier(scope);
+            sources = ImmutableList.of(supplier.explain(lazy));
+        }
+        return new ProviderDescription(
+            ProviderDescription.Kind.PROPERTY,
+            false,
+            declared != null ? declared.getDisplayName() : null,
+            sources,
+            ImmutableMap.of("baseType", type)
+        );
     }
 
     @Override
