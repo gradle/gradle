@@ -1636,7 +1636,7 @@ resultsFile:
         then:
         failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
         failure.assertResolutionFailure(":app:compile")
-        failure.hasErrorOutput("Received status code 500 from server: broken")
+        failure.hasErrorOutput("Received status code 500 from server: Internal Server Error")
 
         where:
         scheduled << [true, false]

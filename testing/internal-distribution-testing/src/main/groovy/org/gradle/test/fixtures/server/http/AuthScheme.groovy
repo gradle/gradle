@@ -16,27 +16,20 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.apache.http.HttpHeaders
-import org.eclipse.jetty.http.HttpHeader
-import org.eclipse.jetty.security.Authenticator
-import org.eclipse.jetty.security.ConstraintMapping
-import org.eclipse.jetty.security.ConstraintSecurityHandler
-import org.eclipse.jetty.security.ServerAuthException
-import org.eclipse.jetty.security.authentication.BasicAuthenticator
-import org.eclipse.jetty.security.authentication.DigestAuthenticator
-import org.eclipse.jetty.server.Authentication
-import org.eclipse.jetty.server.ServletResponseHttpWrapper
-import org.eclipse.jetty.util.security.Constraint
+import com.google.common.io.BaseEncoding
+import groovy.transform.CompileStatic
+import org.apache.http.HeaderElement
+import org.apache.http.message.BasicHeaderValueParser
 
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.nio.charset.StandardCharsets
 
+@CompileStatic
 enum AuthScheme {
-    BASIC(new BasicAuthHandler()),
+    BASIC(new BasicAuthHandler(false)),
     DIGEST(new DigestAuthHandler()),
-    HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler()),
+    HIDE_UNAUTHORIZED(new BasicAuthHandler(true)),
     NTLM(new NtlmAuthHandler()),
     HEADER(new HttpHeaderAuthHandler())
 
@@ -46,114 +39,170 @@ enum AuthScheme {
         this.handler = handler
     }
 
+    interface Authenticator {
+        boolean authenticate(HttpRequest request, HttpResponse response)
+    }
+
+    static abstract class AuthSchemeHandler {
+        abstract Authenticator createAuthenticator(TestUserRealm realm)
+
+        /** Whether a request to an unauthenticated path unexpectedly carries authentication (used to reject stray auth). */
+        abstract boolean containsUnexpectedAuthentication(HttpRequest request)
+    }
+
     private static class BasicAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return Constraint.__BASIC_AUTH
+        private final boolean hideUnauthorized
+
+        BasicAuthHandler(boolean hideUnauthorized) {
+            this.hideUnauthorized = hideUnauthorized
         }
 
         @Override
-        protected Authenticator getAuthenticator() {
-            return new BasicAuthenticator()
+        Authenticator createAuthenticator(TestUserRealm realm) {
+            return new BasicAuthenticator(realm, hideUnauthorized)
         }
 
         @Override
-        protected boolean containsUnexpectedAuthentication(HttpServletRequest request) {
-            return request.getHeader(HttpHeaders.AUTHORIZATION)
-        }
-    }
-
-    private static class HideUnauthorizedBasicAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return Constraint.__BASIC_AUTH
-        }
-
-        @Override
-        protected Authenticator getAuthenticator() {
-            return new BasicAuthenticator() {
-                @Override
-                Authentication validateRequest(ServletRequest req, ServletResponse res, boolean mandatory) throws ServerAuthException {
-                    def auth = super.validateRequest(req, new ServletResponseHttpWrapper(res), mandatory)
-                    if (!(auth instanceof Authentication.User)) {
-                        res.setHeader(HttpHeader.WWW_AUTHENTICATE.asString(), "basic realm=\"" + _loginService.getName() + '"')
-                        res.sendError(HttpServletResponse.SC_NOT_FOUND)
-                        return Authentication.SEND_CONTINUE
-                    }
-                    return super.validateRequest(req, res, mandatory)
-                }
-            }
-        }
-    }
-
-    abstract static class AuthSchemeHandler {
-        ConstraintSecurityHandler createSecurityHandler(String path, TestUserRealm realm) {
-            def constraintMapping = createConstraintMapping(path)
-            def securityHandler = new ConstraintSecurityHandler()
-            securityHandler.realmName = TestUserRealm.REALM_NAME
-            securityHandler.addConstraintMapping(constraintMapping)
-            securityHandler.authenticator = authenticator
-            securityHandler.loginService = realm
-            return securityHandler
-        }
-
-        void addConstraint(ConstraintSecurityHandler securityHandler, String path) {
-            securityHandler.addConstraintMapping(createConstraintMapping(path))
-        }
-
-        private ConstraintMapping createConstraintMapping(String path) {
-            def constraint = new Constraint()
-            constraint.name = constraintName()
-            constraint.authenticate = true
-            constraint.roles = [Constraint.ANY_ROLE, Constraint.ANY_AUTH, TestUserRealm.ROLE] as String[]
-            def constraintMapping = new ConstraintMapping()
-            constraintMapping.pathSpec = path
-            constraintMapping.constraint = constraint
-            return constraintMapping
-        }
-
-        protected abstract String constraintName()
-
-        protected abstract Authenticator getAuthenticator()
-
-        protected boolean containsUnexpectedAuthentication(HttpServletRequest request) {
-            false
-        }
-    }
-
-    private static class NtlmAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return NtlmAuthenticator.NTLM_AUTH_METHOD
-        }
-
-        @Override
-        protected Authenticator getAuthenticator() {
-            return new NtlmAuthenticator()
+        boolean containsUnexpectedAuthentication(HttpRequest request) {
+            // A client must not send Basic credentials to a path that does not require them.
+            return request.getHeader("Authorization") != null
         }
     }
 
     private static class DigestAuthHandler extends AuthSchemeHandler {
         @Override
-        protected String constraintName() {
-            return Constraint.__DIGEST_AUTH
+        Authenticator createAuthenticator(TestUserRealm realm) {
+            return new DigestAuthenticator(realm)
         }
 
         @Override
-        protected Authenticator getAuthenticator() {
-            return new DigestAuthenticator()
+        boolean containsUnexpectedAuthentication(HttpRequest request) {
+            return false
+        }
+    }
+
+    private static class NtlmAuthHandler extends AuthSchemeHandler {
+        @Override
+        Authenticator createAuthenticator(TestUserRealm realm) {
+            return new NtlmAuthenticator(realm)
+        }
+
+        @Override
+        boolean containsUnexpectedAuthentication(HttpRequest request) {
+            return false
         }
     }
 
     private static class HttpHeaderAuthHandler extends AuthSchemeHandler {
         @Override
-        protected String constraintName() {
-            return TestHttpHeaderAuthenticator.AUTH_SCHEME_NAME;
+        Authenticator createAuthenticator(TestUserRealm realm) {
+            return new TestHttpHeaderAuthenticator()
         }
 
         @Override
-        protected Authenticator getAuthenticator() {
-            return new TestHttpHeaderAuthenticator()
+        boolean containsUnexpectedAuthentication(HttpRequest request) {
+            return false
+        }
+    }
+
+    @CompileStatic
+    private static class BasicAuthenticator implements Authenticator {
+        private final TestUserRealm realm
+        private final boolean hideUnauthorized
+
+        BasicAuthenticator(TestUserRealm realm, boolean hideUnauthorized) {
+            this.realm = realm
+            this.hideUnauthorized = hideUnauthorized
+        }
+
+        @Override
+        boolean authenticate(HttpRequest request, HttpResponse response) {
+            String header = request.getHeader("Authorization")
+            if (header != null && header.regionMatches(true, 0, "Basic ", 0, 6)) {
+                try {
+                    String decoded = new String(Base64.decoder.decode(header.substring(6).trim()), StandardCharsets.UTF_8)
+                    int colon = decoded.indexOf(":")
+                    if (colon >= 0) {
+                        String user = decoded.substring(0, colon)
+                        String password = decoded.substring(colon + 1)
+                        if (realm.authenticate(user, password)) {
+                            return true
+                        }
+                    }
+                } catch (IllegalArgumentException ignore) {
+                    // Malformed Base64 credentials: fall through and treat as an authentication failure.
+                }
+            }
+            response.setHeader("WWW-Authenticate", "Basic realm=\"" + realm.name + "\"")
+            response.sendError(hideUnauthorized ? 404 : 401)
+            return false
+        }
+    }
+
+    @CompileStatic
+    private static class DigestAuthenticator implements Authenticator {
+        private final TestUserRealm realm
+        private final SecureRandom random = new SecureRandom()
+
+        DigestAuthenticator(TestUserRealm realm) {
+            this.realm = realm
+        }
+
+        @Override
+        boolean authenticate(HttpRequest request, HttpResponse response) {
+            String header = request.getHeader("Authorization")
+            if (header != null && header.regionMatches(true, 0, "Digest ", 0, 7)) {
+                Map<String, String> params = parse(header.substring(7))
+                if (validate(request.getMethod(), params)) {
+                    return true
+                }
+            }
+            challenge(response)
+            return false
+        }
+
+        private boolean validate(String method, Map<String, String> params) {
+            String username = params.get("username")
+            if (username == null || username != realm.username) {
+                return false
+            }
+            String nonce = params.get("nonce")
+            String uri = params.get("uri")
+            String qop = params.get("qop")
+            String response = params.get("response")
+            if (nonce == null || uri == null || response == null) {
+                return false
+            }
+            String ha1 = md5(realm.username + ":" + realm.name + ":" + realm.password)
+            String ha2 = md5(method + ":" + uri)
+            String expected
+            if (qop != null) {
+                expected = md5(ha1 + ":" + nonce + ":" + params.get("nc") + ":" + params.get("cnonce") + ":" + qop + ":" + ha2)
+            } else {
+                expected = md5(ha1 + ":" + nonce + ":" + ha2)
+            }
+            return expected == response
+        }
+
+        private void challenge(HttpResponse response) {
+            byte[] nonceBytes = new byte[16]
+            random.nextBytes(nonceBytes)
+            String nonce = BaseEncoding.base16().lowerCase().encode(nonceBytes)
+            response.setHeader("WWW-Authenticate", "Digest realm=\"" + realm.name + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + md5("opaque") + "\"")
+            response.sendError(401)
+        }
+
+        private static Map<String, String> parse(String params) {
+            Map<String, String> result = [:]
+            for (HeaderElement element : BasicHeaderValueParser.parseElements(params, BasicHeaderValueParser.INSTANCE)) {
+                result.put(element.name, element.value)
+            }
+            return result
+        }
+
+        private static String md5(String input) {
+            MessageDigest digest = MessageDigest.getInstance("MD5")
+            return BaseEncoding.base16().lowerCase().encode(digest.digest(input.getBytes(StandardCharsets.ISO_8859_1)))
         }
     }
 }

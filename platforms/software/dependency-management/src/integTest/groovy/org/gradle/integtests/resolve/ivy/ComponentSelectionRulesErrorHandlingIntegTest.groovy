@@ -315,7 +315,7 @@ dependencies {
         fails ":checkDeps"
         failure.assertHasCause("Could not resolve org.utils:api:+.")
         failure.assertHasCause("Could not resolve org.utils:api:2.1.")
-        failure.assertHasCause("Could not GET '${legacyMetadataURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${legacyMetadataURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: Internal Server Error")
 
         when:
         resetExpectations()
@@ -331,7 +331,7 @@ dependencies {
         then:
         fails ":checkDeps"
         failure.assertHasCause("Could not download api-2.1.jar (org.utils:api:2.1)")
-        failure.assertHasCause("Could not GET '${artifactURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${artifactURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: Internal Server Error")
 
         when:
         resetExpectations()

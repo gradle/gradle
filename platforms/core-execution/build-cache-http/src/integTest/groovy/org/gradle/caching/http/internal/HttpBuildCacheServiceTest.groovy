@@ -16,6 +16,9 @@
 
 package org.gradle.caching.http.internal
 
+import org.gradle.test.fixtures.server.http.HttpRequest
+import org.gradle.test.fixtures.server.http.HttpResponse
+
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.internal.DocumentationRegistry
@@ -36,8 +39,6 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 class HttpBuildCacheServiceTest extends Specification {
     public static final List<Integer> FATAL_HTTP_ERROR_CODES = [
@@ -178,7 +179,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
+        exception.message.startsWith("Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}:")
 
         where:
         httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
@@ -195,7 +196,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         UncheckedIOException exception = thrown()
 
-        exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
+        exception.message.startsWith("Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}:")
 
         where:
         httpCode << FATAL_HTTP_ERROR_CODES
@@ -210,7 +211,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         UncheckedIOException exception = thrown()
 
-        exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
+        exception.message.startsWith("Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}:")
 
         where:
         httpCode << FATAL_HTTP_ERROR_CODES
@@ -225,7 +226,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
+        exception.message.startsWith("Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}:")
 
         where:
         httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
@@ -287,7 +288,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def "sends X-Gradle-Version and Content-Type headers on GET"() {
         server.expect("/cache/${key.hashCode}", ["GET"], new HttpServer.ActionSupport("get has appropriate headers") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+            void handle(HttpRequest request, HttpResponse response) {
                 request.getHeader("X-Gradle-Version") == "3.0"
 
                 def accept = request.getHeader(HttpHeaders.ACCEPT).split(", ")
@@ -305,7 +306,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def "sends X-Gradle-Version and Content-Type headers on PUT"() {
         server.expect("/cache/${key.hashCode}", ["PUT"], new HttpServer.ActionSupport("put has appropriate headers") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+            void handle(HttpRequest request, HttpResponse response) {
                 request.getHeader("X-Gradle-Version") == "3.0"
 
                 assert request.getHeader(HttpHeaders.CONTENT_TYPE) == HttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
@@ -349,7 +350,7 @@ class HttpBuildCacheServiceTest extends Specification {
     private HttpResourceInteraction expectError(int httpCode, String method) {
         server.expect("/cache/${key.hashCode}", false, [method], new HttpServer.ActionSupport("return ${httpCode} broken") {
             @Override
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+            void handle(HttpRequest request, HttpResponse response) {
                 //noinspection GrDeprecatedAPIUsage
                 response.setStatus(httpCode, "broken")
             }

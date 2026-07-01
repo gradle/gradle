@@ -16,59 +16,61 @@
 
 package org.gradle.test.fixtures.server.http
 
+import com.sun.net.httpserver.HttpsConfigurator
+import com.sun.net.httpserver.HttpsParameters
+import com.sun.net.httpserver.HttpsServer
 import groovy.transform.CompileStatic
-import org.eclipse.jetty.http.HttpVersion
-import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.server.HttpConfiguration
-import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.SecureRequestCustomizer
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.SslConnectionFactory
-import org.eclipse.jetty.server.handler.HandlerCollection
-import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.gradle.api.Action
 import org.gradle.internal.Actions
 
-import java.util.function.Consumer
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLParameters
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 
 @CompileStatic
 trait HttpServerFixture {
-    private final Server server = new Server()
-    private ServerConnector connector
-    private ServerConnector sslConnector
+    private com.sun.net.httpserver.HttpServer httpServer
+    private HttpsServer httpsServer
+    private HttpServerDispatcher dispatcher
+    private LoggingHandler loggingHandler
+    private boolean running
     private final SslPreHandler sslPreHandler = new SslPreHandler()
     private final SecuredHandlerCollection securityHandlerWrapper = new SecuredHandlerCollection()
+    private final ExecutorService executor = Executors.newCachedThreadPool({ Runnable r ->
+        Thread thread = new Thread(r, "http-fixture")
+        thread.setDaemon(true)
+        return thread
+    } as ThreadFactory)
 
     private boolean logRequests = true
     private boolean useHostnameForUrl = false
     private final Set<String> authenticationAttempts = new LinkedHashSet<>()
     private final Set<Map<String, String>> allHeaders = new LinkedHashSet<>()
-    private boolean configured
 
-    Server getServer() {
-        server
+    com.sun.net.httpserver.HttpServer getServer() {
+        httpServer
     }
 
     String getAddress() {
-        if (!server.started) {
-            server.start()
+        if (!running) {
+            start()
         }
         getUri().toString()
     }
 
     URI getUri() {
-        assert server.started
-        if (sslConnector) {
-            return URI.create("https://localhost:${sslConnector.localPort}")
+        assert running
+        if (httpsServer != null) {
+            return URI.create("https://localhost:${getSslPort()}")
         } else if (useHostnameForUrl) {
             // If used in a code-path that interacts with the HttpClientHelper, this will fail validation.
-            return URI.create("http://localhost:${connector.localPort}")
+            return URI.create("http://localhost:${getPort()}")
         } else {
             // The HttpClientHelper will not do HTTPS validation if the host matches 127.0.0.1
             // This allows us to run integration tests without needing to use the TestKeyStore in every single test.
-            return URI.create("http://127.0.0.1:${connector.localPort}")
+            return URI.create("http://127.0.0.1:${getPort()}")
         }
     }
 
@@ -77,12 +79,12 @@ trait HttpServerFixture {
     }
 
     boolean isRunning() {
-        server.running
+        running
     }
 
-    abstract Handler getCustomHandler()
+    abstract HttpResourceHandler getCustomHandler()
 
-    HandlerCollection getCollection() {
+    HandlerChain getCollection() {
         return securityHandlerWrapper.handlers
     }
 
@@ -117,47 +119,45 @@ trait HttpServerFixture {
         securityHandlerWrapper.authenticationScheme = authenticationScheme
     }
 
-    void sslPreHandler(Consumer<Request> consumer) {
+    void sslPreHandler(Runnable consumer) {
         sslPreHandler.registerCustomizer(consumer)
     }
 
-    void start() {
-        if (!configured) {
-            HandlerCollection handlers = new HandlerCollection(true)
-            handlers.addHandler(new LoggingHandler(authenticationAttempts, allHeaders, logRequests))
-            handlers.addHandler(securityHandlerWrapper)
-            handlers.addHandler(getCustomHandler())
-            server.setHandler(handlers)
-            server.setStopTimeout(0)
-            configured = true
-        }
-
-        if (!server.started) {
-            server.start()
-            createConnector()
-            assert connector.localPort > 0
+    private void ensureDispatcher() {
+        if (dispatcher == null) {
+            loggingHandler = new LoggingHandler(authenticationAttempts, allHeaders, logRequests)
+            dispatcher = new HttpServerDispatcher(loggingHandler, securityHandlerWrapper, getCustomHandler())
         }
     }
 
-    private void createConnector() {
-        connector = new ServerConnector(server)
-        connector.port = 0
-        server.addConnector(connector)
-        connector.start()
+    void start() {
+        if (running) {
+            return
+        }
+        ensureDispatcher()
+        if (httpServer == null) {
+            httpServer = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(0), 0)
+            httpServer.setExecutor(executor)
+            httpServer.createContext("/", dispatcher)
+            httpServer.start()
+        }
+        if (httpsServer != null) {
+            httpsServer.start()
+        }
+        running = true
+        assert getPort() > 0
     }
 
     void stop() {
-        if (sslConnector) {
-            shutdownConnector(sslConnector)
-            sslConnector = null
+        if (httpsServer != null) {
+            httpsServer.stop(0)
+            httpsServer = null
         }
-
-        if (connector) {
-            shutdownConnector(connector)
-            connector = null
+        if (httpServer != null) {
+            httpServer.stop(0)
+            httpServer = null
         }
-
-        server?.stop()
+        running = false
     }
 
     void reset() {
@@ -165,38 +165,22 @@ trait HttpServerFixture {
     }
 
     void enableSsl(
-        String keyStore,
-        String keyPassword,
-        String trustStore = null,
-        String trustPassword = null,
-        Action<SslContextFactory.Server> configureServer = Actions.doNothing()
+        SSLContext sslContext,
+        boolean needClientAuth,
+        Action<SslConfiguration> configureServer = Actions.doNothing()
     ) {
-        def sslContextFactory = new SslContextFactory.Server()
-        sslContextFactory.setIncludeProtocols("TLSv1.2")
-        sslContextFactory.setKeyStorePath(keyStore)
-        sslContextFactory.setKeyStorePassword(keyPassword)
-        if (trustStore) {
-            sslContextFactory.needClientAuth = true
-            sslContextFactory.setTrustStorePath(trustStore)
-        }
-        if (trustPassword) {
-            sslContextFactory.setTrustStorePassword(trustPassword)
-        }
-        configureServer.execute(sslContextFactory)
-        def httpsConfig = new HttpConfiguration()
-        httpsConfig.addCustomizer(new SecureRequestCustomizer())
-        httpsConfig.addCustomizer(sslPreHandler)
-        def connectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString())
-        def httpConnectionFactory = new HttpConnectionFactory(httpsConfig)
+        ensureDispatcher()
+        SslConfiguration configuration = new SslConfiguration()
+        configureServer.execute(configuration)
+        String[] protocols = configuration.effectiveProtocols as String[]
 
-        sslConnector = new ServerConnector(server,
-            connectionFactory, httpConnectionFactory)
-        sslConnector.setPort(0)
-        server.addConnector(sslConnector)
-        if (server.started) {
-            sslConnector.start()
+        httpsServer = HttpsServer.create(new InetSocketAddress(0), 0)
+        httpsServer.setHttpsConfigurator(new FixtureHttpsConfigurator(sslContext, sslPreHandler, protocols, needClientAuth))
+        httpsServer.setExecutor(executor)
+        httpsServer.createContext("/", dispatcher)
+        if (running) {
+            httpsServer.start()
         }
-
     }
 
     void requireAuthentication(String path = '/*', String username, String password) {
@@ -204,17 +188,35 @@ trait HttpServerFixture {
     }
 
     int getPort() {
-        return connector.localPort
+        return httpServer.address.port
     }
 
     int getSslPort() {
-        sslConnector.localPort
+        return httpsServer.address.port
     }
 
-    private void shutdownConnector(ServerConnector connector) {
-        connector.stop()
-        connector.close()
-        server?.removeConnector(connector)
+    @CompileStatic
+    static class FixtureHttpsConfigurator extends HttpsConfigurator {
+        private final SslPreHandler sslPreHandler
+        private final String[] protocols
+        private final boolean needClientAuth
+
+        FixtureHttpsConfigurator(SSLContext sslContext, SslPreHandler sslPreHandler, String[] protocols, boolean needClientAuth) {
+            super(sslContext)
+            this.sslPreHandler = sslPreHandler
+            this.protocols = protocols
+            this.needClientAuth = needClientAuth
+        }
+
+        @Override
+        void configure(HttpsParameters params) {
+            sslPreHandler.handshakeStarted()
+            SSLParameters sslParameters = getSSLContext().getDefaultSSLParameters()
+            sslParameters.setProtocols(protocols)
+            sslParameters.setNeedClientAuth(needClientAuth)
+            params.setProtocols(protocols)
+            params.setNeedClientAuth(needClientAuth)
+            params.setSSLParameters(sslParameters)
+        }
     }
 }
-

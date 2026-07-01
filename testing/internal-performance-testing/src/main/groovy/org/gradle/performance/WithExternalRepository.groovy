@@ -16,17 +16,19 @@
 
 package org.gradle.performance
 
+import com.sun.net.httpserver.HttpHandler
+import com.sun.net.httpserver.HttpServer
 import groovy.transform.CompileStatic
-import org.eclipse.jetty.server.NetworkConnector
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.util.resource.Resource
-import org.eclipse.jetty.webapp.WebAppContext
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.TestProjectLocator
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 @CompileStatic
 trait WithExternalRepository {
-    Server server
+    HttpServer server
+    private ExecutorService executor
 
     File getRepoDir() {
         new File(TestProjectLocator.findProjectDir(runner.testProject), 'repository')
@@ -34,37 +36,31 @@ trait WithExternalRepository {
 
     abstract CrossVersionPerformanceTestRunner getRunner()
 
-    WebAppContext createContext() {
-        def context = new WebAppContext()
-        context.setContextPath("/")
-        context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
-        context
+    HttpHandler createHandler(File repoDir) {
+        return new StaticFileHandler(repoDir)
     }
 
     void startServer() {
-        try {
-            server = new Server(0)
-            WebAppContext context = createContext()
-            context.setContextPath("/")
-            context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
-            server.insertHandler(context)
-            server.start()
-        } catch (IllegalArgumentException ignored) {
-            server = null // repository not found, probably running on coordinator. If not, error will be caught later
+        File dir = repoDir
+        if (!dir.directory) {
+            server = null
+            return
         }
+        server = HttpServer.create(new InetSocketAddress(0), 0)
+        executor = Executors.newCachedThreadPool()
+        server.setExecutor(executor)
+        server.createContext("/", createHandler(dir))
+        server.start()
     }
 
     void stopServer() {
-        server?.stop()
+        server?.stop(0)
+        executor?.shutdownNow()
+        executor = null
     }
 
     int getServerPort() {
-        Objects.requireNonNull(server?.connectors, "No server connectors available to search for a local port")
-        for (var c in server.connectors) {
-            if (c instanceof NetworkConnector) {
-                return c.localPort
-            }
-        }
-        throw new IllegalStateException("No connector has a local port: " + server.connectors)
+        Objects.requireNonNull(server, "No server available to search for a local port")
+        return server.address.port
     }
 }

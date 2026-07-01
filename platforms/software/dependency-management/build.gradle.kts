@@ -120,7 +120,6 @@ dependencies {
         because("Test fixtures export the CacheAccess class")
     }
 
-    testFixturesApi(testLibs.jetty)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.resourcesHttp))
@@ -140,9 +139,6 @@ dependencies {
     testFixturesImplementation(projects.jvmServices) {
         because("Groovy compiler bug leaks internals")
     }
-    testFixturesImplementation(testLibs.jettyWebApp) {
-        because("Groovy compiler bug leaks internals")
-    }
 
     integTestImplementation(projects.launcher) {
         because("Daemon fixtures need DaemonRegistry")
@@ -151,7 +147,6 @@ dependencies {
         because("Need access to java platforms")
     }
 
-    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)

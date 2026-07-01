@@ -48,8 +48,6 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.core))
 
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(testLibs.jetty)
-    testFixturesImplementation(testLibs.jettyWebApp)
 }
 
 gradleModule {

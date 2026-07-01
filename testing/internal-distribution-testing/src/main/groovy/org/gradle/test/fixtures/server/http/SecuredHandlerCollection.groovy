@@ -17,131 +17,64 @@
 package org.gradle.test.fixtures.server.http
 
 import groovy.transform.CompileStatic
-import org.eclipse.jetty.security.ConstraintSecurityHandler
-import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.HandlerCollection
 
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 @CompileStatic
-class SecuredHandlerCollection implements Handler {
-    private final HandlerCollection handlers = new HandlerCollection(true)
-    private ConstraintSecurityHandler securityHandler
+class SecuredHandlerCollection {
+    private final HandlerChain handlers = new HandlerChain()
     private TestUserRealm realm
+    private AuthScheme.Authenticator authenticator
+    private final List<String> securedPaths = []
 
     AuthScheme authenticationScheme = AuthScheme.BASIC
 
-    private Handler delegate = handlers
-
-    SecuredHandlerCollection() {
-    }
-
-    HandlerCollection getHandlers() {
-        handlers
+    HandlerChain getHandlers() {
+        return handlers
     }
 
     void reset() {
         realm = null
-        securityHandler?.stop()
-        securityHandler = null
-        handlers.stop()
-        delegate = handlers
-        handlers.setHandlers(new Handler[0])
-        handlers.start()
+        authenticator = null
+        securedPaths.clear()
+        handlers.clear()
     }
 
-    @Override
-    void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        delegate.handle(target, baseRequest, request, response)
-    }
-
-    @Override
-    void setServer(Server server) {
-        delegate.server = server
-    }
-
-    @Override
-    Server getServer() {
-        delegate.server
-    }
-
-    @Override
-    void destroy() {
-        delegate.destroy()
+    void handle(String target, HttpRequest request, HttpResponse response) throws IOException {
+        if (authenticator != null && isSecured(target)) {
+            if (!authenticator.authenticate(request, response)) {
+                request.handled = true
+                return
+            }
+            request.remoteUser = realm.username
+        }
+        handlers.handle(target, request, response)
     }
 
     void requireAuthentication(String path, String username, String password) {
         if (realm != null) {
             assert realm.username == username
             assert realm.password == password
-            authenticationScheme.handler.addConstraint(securityHandler, path)
         } else {
             realm = new TestUserRealm(username, password)
-            securityHandler = authenticationScheme.handler.createSecurityHandler(path, realm)
-            def shouldRestart = handlers.server?.isStarted() ?: false
-            if (shouldRestart) {
-                handlers.stop()
-            }
-            securityHandler.handler = handlers
-            delegate = securityHandler
-            delegate.server = handlers.server
-            if (shouldRestart) {
-                delegate.start()
-            }
+            authenticator = authenticationScheme.handler.createAuthenticator(realm)
+        }
+        if (!securedPaths.contains(path)) {
+            securedPaths.add(path)
         }
     }
 
-    @Override
-    void start() throws Exception {
-        delegate.start()
+    private boolean isSecured(String target) {
+        return securedPaths.any { matches(it, target) }
     }
 
-    @Override
-    void stop() throws Exception {
-        delegate.stop()
-    }
-
-    @Override
-    boolean isRunning() {
-        delegate.running
-    }
-
-    @Override
-    boolean isStarted() {
-        delegate.started
-    }
-
-    @Override
-    boolean isStarting() {
-        delegate.starting
-    }
-
-    @Override
-    boolean isStopping() {
-        delegate.stopping
-    }
-
-    @Override
-    boolean isStopped() {
-        delegate.stopped
-    }
-
-    @Override
-    boolean isFailed() {
-        delegate.failed
-    }
-
-    @Override
-    void addLifeCycleListener(Listener listener) {
-        delegate.addLifeCycleListener(listener)
-    }
-
-    @Override
-    void removeLifeCycleListener(Listener listener) {
-        delegate.removeLifeCycleListener(listener)
+    private static boolean matches(String spec, String target) {
+        if (spec == '/*' || spec == '/') {
+            return true
+        }
+        if (spec.endsWith('/*')) {
+            String prefix = spec.substring(0, spec.length() - 2)
+            return target == prefix || target.startsWith(prefix + '/')
+        }
+        return target == spec
     }
 }

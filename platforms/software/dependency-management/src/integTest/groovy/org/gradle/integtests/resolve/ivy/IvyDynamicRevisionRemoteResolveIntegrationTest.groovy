@@ -1318,7 +1318,7 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause("Could not resolve group:projectA:latest.release")
-        failure.assertHasCause("Could not GET '${projectA.ivy.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${projectA.ivy.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
@@ -1328,7 +1328,7 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
-        failure.assertHasCause("Could not GET '${projectA.jar.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${projectA.jar.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
