@@ -33,6 +33,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -81,15 +82,28 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     @Override
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
-            // Failures that resilient model building holds behind partial results are collected here as they happen.
-            ResilientBuildTreeFailureCollector failures = new ResilientBuildTreeFailureCollector();
-            modelCreator.beforeTasks(action, failures);
+            ResilientBuildTreeFailureCollector failureCollector = new ResilientBuildTreeFailureCollector();
+
+            // Run before tasks (the projectsLoaded phase). If it fails, skip tasks and the model action, but still
+            // fail the build with the failures collected so far.
+            ExecutionResult<Void> beforeTasksResult = runModelAction(() -> {
+                modelCreator.beforeTasks(action, failureCollector);
+                return null;
+            });
+            if (!beforeTasksResult.getFailures().isEmpty()) {
+                ExecutionResult<T> workResult = beforeTasksResult.asFailure();
+                return failBuildWith(workResult, failureCollector);
+            }
+
+            // Run tasks
             ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
+
             // Allow the model action to run even if tasks failed
-            ExecutionResult<T> modelResult = runFromBuildModel(action, failures);
+            ExecutionResult<T> modelResult = runModelAction(() -> modelCreator.fromBuildModel(action, failureCollector));
             ExecutionResult<T> workResult = modelResult.withFailures(taskRunResult);
+
             // The held failures must still fail the build.
-            return failBuildWith(workResult, failures);
+            return failBuildWith(workResult, failureCollector);
         });
     }
 
@@ -109,12 +123,16 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return result;
     }
 
+    /**
+     * Runs a phase of the model action (beforeTasks or fromBuildModel), capturing a failure as a build action failure
+     * instead of throwing, so the caller can still fold in any failures collected before it.
+     */
     @SuppressWarnings("DataFlowIssue")
-    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures) {
-        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action, failures));
-        return model.getFailure().isPresent()
-            ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))
-            : ExecutionResult.succeeded(model.get());
+    private <T> ExecutionResult<T> runModelAction(Callable<T> phase) {
+        Try<T> result = Try.ofFailable(phase);
+        return result.getFailure().isPresent()
+            ? ExecutionResult.failed(BuildActionExecutionException.wrap(result.getFailure().get()))
+            : ExecutionResult.succeeded(result.get());
     }
 
     private ExecutionResult<Void> runTasks() {

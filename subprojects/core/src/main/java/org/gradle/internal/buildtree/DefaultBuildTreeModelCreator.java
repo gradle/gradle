@@ -59,20 +59,20 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     }
 
     @Override
-    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures) {
-        action.beforeTasks(new DefaultBuildTreeModelController(failures));
+    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failureCollector) {
+        action.beforeTasks(new DefaultBuildTreeModelController(failureCollector));
     }
 
     @Override
-    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures) {
-        return action.fromBuildModel(new DefaultBuildTreeModelController(failures));
+    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failureCollector) {
+        return action.fromBuildModel(new DefaultBuildTreeModelController(failureCollector));
     }
 
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
-        private final ResilientBuildTreeFailureCollector failures;
+        private final ResilientBuildTreeFailureCollector buildTreeFailureCollector;
 
-        public DefaultBuildTreeModelController(ResilientBuildTreeFailureCollector failures) {
-            this.failures = failures;
+        public DefaultBuildTreeModelController(ResilientBuildTreeFailureCollector buildTreeFailureCollector) {
+            this.buildTreeFailureCollector = buildTreeFailureCollector;
         }
 
         @Override
@@ -95,7 +95,7 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                     ToolingModelScopeResult result = scope.getModel(modelRequestContext, parameter);
                     // A failure held behind a partial result is collected here, at the build-tree model boundary, so
                     // the build still fails when it finishes, while the client result is returned unchanged.
-                    failures.collectFrom(result);
+                    buildTreeFailureCollector.collectFrom(result);
                     return result.getClientResult();
                 }
 
