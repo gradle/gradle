@@ -65,7 +65,18 @@ public interface BuildState {
     boolean isImplicitBuild();
 
     /**
-     * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
+     * Is this a user-facing build whose sources users address and edit directly?
+     *
+     * <p>Returns {@code false} for implicit builds that Gradle manages and reproduces itself and
+     * that are not intended to be edited by users, most notably source-dependency (VCS) builds.
+     *
+     * <p>This governs whether a build takes part in user-facing behavior:
+     * <ul>
+     *     <li>it is exposed to the IDE / Tooling API build model (see {@code DefaultBuildTreeModelCreator} and
+     *         {@code GradleBuildBuilder});</li>
+     *     <li>its tasks can be targeted by task selectors (see {@code DefaultBuildTaskSelector});</li>
+     *     <li>its root directory is registered for file system watching (see {@code VirtualFileSystemServices}).</li>
+     * </ul>
      */
     boolean isImportableBuild();
 

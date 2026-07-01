@@ -43,6 +43,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -78,6 +79,7 @@ import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -99,7 +101,6 @@ import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -217,7 +218,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 OperatingSystem.current(),
                 nativeCapabilities,
                 fileEvents,
-                fileWatchingFilter.getImmutableLocations()::contains)
+                fileWatchingFilter::isImmutableLocation)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     root,
@@ -228,8 +229,9 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(root));
             listenerManager.addListener((BuildAddedListener) buildState -> {
-                    File buildRootDir = buildState.getBuildRootDir();
-                    virtualFileSystem.registerWatchableHierarchy(buildRootDir);
+                    if (buildState.isImportableBuild()) {
+                        virtualFileSystem.registerWatchableHierarchy(buildState.getBuildRootDir());
+                    }
                 }
             );
             return virtualFileSystem;
@@ -348,8 +350,18 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             StringInterner stringInterner,
             VirtualFileSystem root,
             FileSystemAccess.WriteListener writeListener,
-            DirectorySnapshotterStatistics.Collector statisticsCollector
+            DirectorySnapshotterStatistics.Collector statisticsCollector,
+            ProjectCacheDir projectCacheDir,
+            FileWatchingFilter fileWatchingFilter
         ) {
+            fileWatchingFilter.addCurrentSessionImmutableLocation(projectCacheDir.getDir());
+            listenerManager.addListener(new BuildSessionLifecycleListener() {
+                @Override
+                public void beforeComplete() {
+                    fileWatchingFilter.sessionFinished();
+                }
+            });
+
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
                 hasher,
                 stringInterner,

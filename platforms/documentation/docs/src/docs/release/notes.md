@@ -360,6 +360,23 @@ Kotlin DSL script compilation continues to be cached as before.
 
 See the [Type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) section in the Gradle User Manual for more details.
 
+#### File system watching now works with a custom project cache directory
+
+[File system watching](userguide/file_system_watching.html) lets Gradle skip work between builds by tracking file changes from the operating system.
+The project cache directory, by default `.gradle/` in the root project, stores per-project state that Gradle reuses across builds.
+
+Some teams move this state out of the project tree using `--project-cache-dir` or `org.gradle.projectcachedir`, for example to keep build state on a separate or faster file system, or to share a project across users on CI.
+Until now, doing so was incompatible with file system watching, so these users could not benefit from it.
+
+Gradle has decoupled the two.
+File system watching works with any project cache directory location, including one on a file system that does not support watching:
+
+```bash
+$ ./gradlew build --watch-fs --project-cache-dir /custom/path
+```
+
+See the [Excluding files and directories](userguide/file_system_watching.html#sec:excluding_files_and_directories) section in the Gradle User Manual for more details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ========================================================== -->
