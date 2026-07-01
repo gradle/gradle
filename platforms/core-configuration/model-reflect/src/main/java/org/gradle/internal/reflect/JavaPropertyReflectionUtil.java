@@ -33,11 +33,15 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 public class JavaPropertyReflectionUtil {
 
-    private static final WeakHashMap<Class<?>, Set<String>> PROPERTY_CACHE = new WeakHashMap<Class<?>, Set<String>>();
+    private static final ClassValue<Set<String>> PROPERTY_CACHE = new ClassValue<Set<String>>() {
+        @Override
+        protected Set<String> computeValue(Class<?> type) {
+            return ClassInspector.inspect(type).getPropertyNames();
+        }
+    };
 
     /**
      * Locates the property with the given name as a readable property. Searches only public properties.
@@ -115,15 +119,7 @@ public class JavaPropertyReflectionUtil {
     }
 
     public static Set<String> propertyNames(Object target) {
-        Class<?> targetType = target.getClass();
-        synchronized (PROPERTY_CACHE) {
-            Set<String> cached = PROPERTY_CACHE.get(targetType);
-            if (cached == null) {
-                cached = ClassInspector.inspect(targetType).getPropertyNames();
-                PROPERTY_CACHE.put(targetType, cached);
-            }
-            return cached;
-        }
+        return PROPERTY_CACHE.get(target.getClass());
     }
 
     public static boolean hasDefaultToString(Object object) {

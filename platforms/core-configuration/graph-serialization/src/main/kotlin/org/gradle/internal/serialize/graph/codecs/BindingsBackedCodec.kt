@@ -26,7 +26,6 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SerializerCodec
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.withDebugFrame
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 
@@ -52,7 +51,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    val encodings = ConcurrentHashMap<Class<*>, TaggedEncoding>()
+    val encodings = object : ClassValue<TaggedEncoding>() {
+        override fun computeValue(type: Class<*>): TaggedEncoding = computeEncoding(type)
+    }
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
@@ -111,7 +112,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     private
     fun taggedEncodingFor(type: Class<*>): TaggedEncoding =
-        encodings.computeIfAbsent(type, ::computeEncoding)
+        encodings.get(type)
 
     private
     fun computeEncoding(type: Class<*>): TaggedEncoding {

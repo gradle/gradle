@@ -22,7 +22,6 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.ObjectOutputStream
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.util.concurrent.ConcurrentHashMap
 
 
 /**
@@ -32,14 +31,14 @@ import java.util.concurrent.ConcurrentHashMap
 @ServiceScope(Scope.BuildTree::class)
 class JavaSerializationEncodingLookup {
     private
-    val encodings = ConcurrentHashMap<Class<*>, EncodingDetails>()
+    val encodings = object : ClassValue<EncodingDetails>() {
+        override fun computeValue(type: Class<*>): EncodingDetails = calculateEncoding(type)
+    }
 
     /**
      * Returns the proper encoding provider for the given type, or null, if not covered by Java Object serialization.
      */
-    fun encodingFor(type: Class<*>): Encoding? {
-        return encodings.computeIfAbsent(type) { t -> calculateEncoding(t) }.encoding
-    }
+    fun encodingFor(type: Class<*>): Encoding? = encodings.get(type).encoding
 
     private
     fun calculateEncoding(type: Class<*>): EncodingDetails {

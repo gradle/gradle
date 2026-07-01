@@ -18,12 +18,8 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -70,19 +66,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
 public class ModelRuleExtractor {
-    private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
-            .weakKeys()
-            .build(new CacheLoader<Class<?>, CachedRuleSource>() {
-                @Override
-                public CachedRuleSource load(Class<?> source) {
-                    return doExtract(source);
-                }
-            });
+    private final ClassValue<CachedRuleSource> ruleSourceCache = new ClassValue<CachedRuleSource>() {
+        @Override
+        protected CachedRuleSource computeValue(Class<?> source) {
+            return doExtract(source);
+        }
+    };
 
     private final Iterable<MethodModelRuleExtractor> handlers;
     private final ManagedProxyFactory proxyFactory;
@@ -107,13 +100,7 @@ public class ModelRuleExtractor {
      * @throws InvalidModelRuleDeclarationException On badly formed rule source class.
      */
     public <T> ExtractedRuleSource<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
-        try {
-            return cache.get(source).newInstance(source);
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
+        return ruleSourceCache.get(source).newInstance(source);
     }
 
     private <T> CachedRuleSource doExtract(final Class<T> source) {

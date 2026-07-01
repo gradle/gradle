@@ -76,19 +76,19 @@ class ModelRuleSourceDetectorTest extends Specification {
     def "does not hold strong reference"() {
         given:
         def cl = new GroovyClassLoader(getClass().classLoader)
-        addClass(cl, impl)
+        def classRef = addClass(cl, impl)
 
         expect:
-        detector.cache.size() == 1
+        classRef.get() != null
 
         when:
         cl.clearCache()
+        cl = null
 
         then:
         ConcurrentTestUtil.poll(10) {
             System.gc()
-            detector.cache.cleanUp()
-            detector.cache.size() == 0
+            classRef.get() == null
         }
 
         where:
@@ -133,10 +133,10 @@ class ModelRuleSourceDetectorTest extends Specification {
         detector.getDeclaredSources(brokenOuterClass).toList() == []
     }
 
-    private void addClass(GroovyClassLoader cl, String impl) {
+    private java.lang.ref.WeakReference<Class<?>> addClass(GroovyClassLoader cl, String impl) {
         def type = cl.parseClass(impl)
         detector.getDeclaredSources(type)
-        type = null
+        return new java.lang.ref.WeakReference<Class<?>>(type)
     }
 
 }
