@@ -12,6 +12,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
+    api(projects.coreApi)
     api(projects.processServicesApi)
     api(projects.stdlibJavaExtensions)
 
