@@ -22,7 +22,8 @@ Isolated Projects is an incubating feature aimed at improving Gradle scalability
 
 When the Isolated Projects feature is enabled, the projects in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>> are "isolated" from each other.
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of other projects.
-This constraint unlocks two things: parallel project configuration and finer-grained caching of configuration results.
+This constraint allows safely running project configuration in parallel, improving performance.
+Further optimizations, such as finer-grained caching of configuration results, are possible but are not yet available.
 
 You can enable the feature by setting `org.gradle.isolated-projects` to `true` in `gradle.properties`,
 or passing the `--isolated-projects` flag on the command line:
@@ -248,6 +249,26 @@ The current implementation of Isolated Projects has a number of limitations that
 * The configuration phase might require more memory to process more work in parallel.
 * Changes to included builds invalidate all cached results, even unrelated ones.
 * Tooling model caching is local only: no sharing across checkouts or remote caching.
+
+[[sec:evaluating]]
+== Evaluating Isolated Projects for your build
+
+The benefit Isolated Projects brings depends on the size and shape of your build, your hardware, and your workflow (see <<sec:performance,performance benefits and limitations>>).
+Rather than predicting the gain from the structure of your build, the most reliable approach is to measure it directly:
+
+. Enable the feature
++
+Make the build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, then enable Isolated Projects.
+
+. Get an early estimate before completing the migration
++
+You don't have to fix every <<sec:constraint_violations,violation>> before measuring.
+Use the <<sec:dangerously_ignore_problems,_dangerously ignore problems_ mode>> to gauge the speed-up for your actual workflows — both running tasks and IDE sync — while violations are still present.
+
+. Compare configuration-phase times
++
+Measure the configuration phase with and without the feature using a <<inspect.adoc#inspecting_build_scans,Build Scan or profile report>>.
+Keep the ceiling in mind: Isolated Projects can only speed up the <<build_lifecycle.adoc#configuration,configuration phase>>, so its upper bound is the share of build time that phase represents.
 
 [[sec:constraints]]
 == Isolated Projects constraints
@@ -794,4 +815,21 @@ However, the current implementation doesn't leverage that yet.
 Instead, all projects are configured in parallel unless the entire configuration phase is skipped on a Configuration Cache hit.
 
 The Configure on Demand flag is _ignored_ when Isolated Projects is enabled.
+
+[[sec:faq]]
+== Frequently asked questions
+
+Common questions about adopting Isolated Projects.
+
+[[sec:faq_project_dependencies]]
+=== Does a complex project dependency graph limit the benefit of Isolated Projects?
+
+No.
+A common misconception is that Isolated Projects optimizes builds by following dependencies between projects, so that a deep or highly-connected dependency graph would limit the benefit.
+
+The benefit comes from <<sec:performance,parallelizing the configuration phase>>.
+It is driven by the number of projects and the cost of configuring them.
+All projects are always configured regardless of how they depend on each other, and the configuration parallelism is bounded by the project hierarchy (see <<sec:current_limitations,current limitations>>).
+
+The benefit varies from build to build, so the best way to find out what you'll gain is to <<sec:evaluating,measure it for your build>>.
 
