@@ -32,8 +32,6 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -83,33 +81,27 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     @Override
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
-            // Failures that resilient model building defers behind partial results are reported here as they happen.
-            List<DeferredBuildFailure> deferredFailures = Collections.synchronizedList(new ArrayList<>());
-            modelCreator.beforeTasks(action, deferredFailures::add);
+            // Failures that resilient model building holds behind partial results are collected here as they happen.
+            ResilientFailureCollector failures = new ResilientFailureCollector();
+            modelCreator.beforeTasks(action, failures);
             ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
             // Allow the model action to run even if tasks failed
-            ExecutionResult<T> modelResult = runFromBuildModel(action, deferredFailures::add);
+            ExecutionResult<T> modelResult = runFromBuildModel(action, failures);
             ExecutionResult<T> workResult = modelResult.withFailures(taskRunResult);
-            // The deferred failures must still fail the build.
-            return failBuildWith(workResult, deferredFailures);
+            // The held failures must still fail the build.
+            return failBuildWith(workResult, failures);
         });
     }
 
-    private static <T> ExecutionResult<T> failBuildWith(ExecutionResult<T> workResult, List<DeferredBuildFailure> deferredFailures) {
+    private static <T> ExecutionResult<T> failBuildWith(ExecutionResult<T> workResult, ResilientFailureCollector failures) {
         // A model builder failure is only ever observed here, so it always fails the build.
-        List<Throwable> modelBuilderFailures = deferredFailures.stream()
-            .filter(failure -> !failure.isConfigurationFailure())
-            .map(DeferredBuildFailure::getFailure)
-            .collect(Collectors.toList());
-        ExecutionResult<T> result = workResult.withFailures(ExecutionResult.maybeFailed(modelBuilderFailures));
+        ExecutionResult<T> result = workResult.withFailures(ExecutionResult.maybeFailed(failures.getModelBuilderFailures()));
 
         // A configuration failure is normally reported by the requested work. Surface the ones resilient model
         // building swallowed (e.g. an IDE sync that runs no tasks) only when the build is not already failing, to
         // avoid reporting it twice. The same failure is observed once per queried project, so de-duplicate by identity.
         if (workResult.getFailures().isEmpty()) {
-            List<Throwable> configurationFailures = deferredFailures.stream()
-                .filter(DeferredBuildFailure::isConfigurationFailure)
-                .map(DeferredBuildFailure::getFailure)
+            List<Throwable> configurationFailures = failures.getConfigurationFailures().stream()
                 .distinct()
                 .collect(Collectors.toList());
             result = result.withFailures(ExecutionResult.maybeFailed(configurationFailures));
@@ -118,8 +110,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @SuppressWarnings("DataFlowIssue")
-    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener) {
-        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action, deferredFailureListener));
+    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures) {
+        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action, failures));
         return model.getFailure().isPresent()
             ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))
             : ExecutionResult.succeeded(model.get());

@@ -35,7 +35,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
@@ -60,20 +59,20 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     }
 
     @Override
-    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener) {
-        action.beforeTasks(new DefaultBuildTreeModelController(deferredFailureListener));
+    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures) {
+        action.beforeTasks(new DefaultBuildTreeModelController(failures));
     }
 
     @Override
-    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener) {
-        return action.fromBuildModel(new DefaultBuildTreeModelController(deferredFailureListener));
+    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures) {
+        return action.fromBuildModel(new DefaultBuildTreeModelController(failures));
     }
 
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
-        private final Consumer<DeferredBuildFailure> deferredFailureListener;
+        private final ResilientFailureCollector failures;
 
-        public DefaultBuildTreeModelController(Consumer<DeferredBuildFailure> deferredFailureListener) {
-            this.deferredFailureListener = deferredFailureListener;
+        public DefaultBuildTreeModelController(ResilientFailureCollector failures) {
+            this.failures = failures;
         }
 
         @Override
@@ -90,15 +89,19 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public ToolingModelBuilderResultInternal call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
-                    ToolingModelScopeResult result = scope.getModel(modelRequestContext,
-                        modelRequestContext.getParameter()
-                            .map(parameterCarrierFactory::createCarrier)
-                            .orElse(null));
-                    // A failure deferred behind a partial result is reported here, at the build-tree model boundary,
-                    // so the build still fails when it finishes, while the client result is returned unchanged.
-                    DeferredBuildFailure deferredFailure = result.getDeferredFailure();
-                    if (deferredFailure != null) {
-                        deferredFailureListener.accept(deferredFailure);
+                    ToolingModelParameterCarrier parameter = modelRequestContext.getParameter()
+                        .map(parameterCarrierFactory::createCarrier)
+                        .orElse(null);
+                    ToolingModelScopeResult result = scope.getModel(modelRequestContext, parameter);
+                    // A failure held behind a partial result is reported here, at the build-tree model boundary, so
+                    // the build still fails when it finishes, while the client result is returned unchanged.
+                    Throwable modelBuilderFailure = result.getModelBuilderFailure();
+                    if (modelBuilderFailure != null) {
+                        failures.addModelBuilderFailure(modelBuilderFailure);
+                    }
+                    Throwable configurationFailure = result.getConfigurationFailure();
+                    if (configurationFailure != null) {
+                        failures.addConfigurationFailure(configurationFailure);
                     }
                     return result.getClientResult();
                 }

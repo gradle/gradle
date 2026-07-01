@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
-import org.gradle.internal.buildtree.DeferredBuildFailure;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.tooling.provider.model.UnknownModelException;
@@ -79,7 +78,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
      */
     private static ToolingModelScopeResult configurationFailureResult(FailureFactory failureFactory, Throwable configurationFailure, @Nullable Object model) {
         ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.create(configurationFailure)));
-        return ToolingModelScopeResult.of(clientResult, DeferredBuildFailure.ofConfiguration(configurationFailure));
+        return ToolingModelScopeResult.withConfigurationFailure(clientResult, configurationFailure);
     }
 
     private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
@@ -157,7 +156,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 throw (UnknownModelException) failure;
             }
             ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
-            return ToolingModelScopeResult.of(clientResult, DeferredBuildFailure.ofModelBuilder(failure));
+            return ToolingModelScopeResult.withModelBuilderFailure(clientResult, failure);
         }
 
         @Override
