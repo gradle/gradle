@@ -97,17 +97,18 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
-            // Force configuration of the target project to ensure all builders have been registered
-            Try<Void> projectConfiguration = ownerBuildConfiguration.isSuccessful()
-                ? tryRunConfiguration(targetProject::ensureConfigured)
-                : ownerBuildConfiguration;
+            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
+
+            // Configuring the target project itself scopes the failure to that project rather than the whole-build aggregate, which is what we want for per-project models.
+            Try<Void> projectConfiguration = canRunEvenIfProjectNotFullyConfigured && !ownerBuildConfiguration.isSuccessful()
+                ? ownerBuildConfiguration
+                : tryRunConfiguration(targetProject::ensureConfigured);
 
             // We need to query the delegate builder lazily, since builders may not be registered if project configuration fails
             ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
 
             Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, targetProject, project);
-            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
             return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
         }
     }

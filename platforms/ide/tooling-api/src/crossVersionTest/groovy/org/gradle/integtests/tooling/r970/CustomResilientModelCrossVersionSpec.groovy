@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r940
+package org.gradle.integtests.tooling.r970
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
+import org.gradle.integtests.tooling.r940.TestResilientModelAction
 
 import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.ROOT_BUILD_FIRST
 
 @ToolingApiVersion('>=9.3.0')
-@TargetGradleVersion('>=9.4.0')
+@TargetGradleVersion('>=9.7.0')
 class CustomResilientModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [
@@ -78,8 +79,26 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
-    @TargetGradleVersion('>=9.4.0 <9.7.0')
-    def "can query custom model for included build without build configuration errors, even if main project configuration fails#description #queryStrategy"() {
+    def "can query custom model for included build, reporting only each project's own configuration failure#description #queryStrategy"() {
+        given:
+        setupBuildWhereProjectBAppliesABrokenPlugin()
+
+        when:
+        def result = fetchCustomModelPerProject(queryStrategy, extraGradleProperties)
+
+        then:
+        result.successfullyQueriedProjects == expectedSuccesfulProjects
+        result.failedToQueryProjects == expectedFailedProjects
+
+        where:
+        description                 | queryStrategy         | extraGradleProperties        | expectedSuccesfulProjects         | expectedFailedProjects
+        ""                          | ROOT_BUILD_FIRST      | []                           | ['root', 'a', 'c', 'build-logic'] | ['b']
+        ""                          | EDITABLE_BUILDS_FIRST | []                           | ['build-logic', 'root', 'a', 'c'] | ['b']
+        " with configure-on-demand" | ROOT_BUILD_FIRST      | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic'] | ['b']
+        " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS | ['build-logic', 'root', 'a', 'c'] | ['b']
+    }
+
+    private void setupBuildWhereProjectBAppliesABrokenPlugin() {
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -106,7 +125,6 @@ class CustomPlugin implements Plugin<Project> {
             plugins {
                 id("java")
             }
-
         """
         file("b/build.gradle.kts") << """
             plugins {
@@ -118,87 +136,13 @@ class CustomPlugin implements Plugin<Project> {
                 id("java")
             }
         """
-
-        when:
-        def result = succeeds {
-            action(new TestResilientModelAction(CustomModel, queryStrategy))
-                .withArguments(
-                    "--init-script=${file('init.gradle').absolutePath}",
-                    *extraGradleProperties
-                )
-                .run()
-        }
-
-        then:
-        result.failedToQueryProjects == expectedFailedProjects
-        result.successfullyQueriedProjects == expectedSuccesfulProjects
-
-        where:
-        description                 | queryStrategy         | extraGradleProperties        | expectedSuccesfulProjects         | expectedFailedProjects
-        ""                          | ROOT_BUILD_FIRST      | []                           | ['build-logic']                   | ['root', 'a', 'b', 'c']
-        ""                          | EDITABLE_BUILDS_FIRST | []                           | ['build-logic']                   | ['root', 'a', 'b', 'c']
-        " with configure-on-demand" | ROOT_BUILD_FIRST      | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic'] | ['b']
-        " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS | ['build-logic', 'root', 'a', 'c'] | ['b']
     }
 
-    def "can query custom model for included build without build configuration errors, even if main settings fail#description #queryStrategy"() {
-        settingsKotlinFile << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-            plugins {
-                id("build-logic")
-            }
-            rootProject.name = "root"
-            include("a")
-        """
-
-        def included = file("build-logic")
-        included.file("settings.gradle.kts") << """
-            rootProject.name = "build-logic"
-
-            pluginManagement {
-                $repositoriesBlock
-            }
-
-            dependencyResolutionManagement {
-                $repositoriesBlock
-            }
-        """
-        included.file("build.gradle.kts") << """
-            plugins {
-                `kotlin-dsl`
-            }
-        """
-        included.file("src/main/kotlin/build-logic.gradle.kts") << """
-            broken !!!
-        """
-        file("a/build.gradle.kts") << """
-            plugins {
-                id("java")
-            }
-        """
-
-        when:
-        def result = succeeds {
+    private fetchCustomModelPerProject(queryStrategy, List<String> extraGradleProperties) {
+        succeeds {
             action(new TestResilientModelAction(CustomModel, queryStrategy))
-                .withArguments(
-                    "--init-script=${file('init.gradle').absolutePath}",
-                    *extraGradleProperties
-                )
+                .withArguments("--init-script=${file('init.gradle').absolutePath}", *extraGradleProperties)
                 .run()
         }
-
-        then:
-        result.successfullyQueriedProjects == ['build-logic']
-        // Since the settings file fails to configure, only root of main project can be seen
-        result.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
-
-        where:
-        description                 | queryStrategy         | extraGradleProperties
-        ""                          | ROOT_BUILD_FIRST      | []
-        ""                          | EDITABLE_BUILDS_FIRST | []
-        " with configure-on-demand" | ROOT_BUILD_FIRST      | IP_CONFIGURE_ON_DEMAND_FLAGS
-        " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS
     }
 }
