@@ -118,7 +118,6 @@ public class ResolutionFailureHandler {
 
     // region Component Selection failures
     // TODO: Route more of these failures through this handler in order to standardize their description logic
-
     public AbstractResolutionFailureException componentRejected(ComponentState component, List<String> conflictResolutions) {
         AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(component.getModule());
         String legacyErrorMsg = component.getRejectedErrorMessage();
@@ -126,13 +125,12 @@ public class ResolutionFailureHandler {
         return describeFailure(failure);
     }
 
-    public AbstractResolutionFailureException nodeRejected(NodeState node) {
+    public AbstractResolutionFailureException nodeRejectedDueToCapabilityConflict(NodeState node) {
         AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(node.getComponent().getModule());
         String legacyErrorMsg = node.getRejectedErrorMessage();
-        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection, Collections.emptyList(), legacyErrorMsg);
+        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.CAPABILITY_CONFLICT, assessedSelection, Collections.emptyList(), legacyErrorMsg);
         return describeFailure(failure);
     }
-
     // endregion Component Selection failures
 
     // region Variant Selection failures

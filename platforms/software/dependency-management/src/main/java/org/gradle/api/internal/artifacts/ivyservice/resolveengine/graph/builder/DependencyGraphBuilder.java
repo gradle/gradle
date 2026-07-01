@@ -320,7 +320,7 @@ public class DependencyGraphBuilder {
                 } else if (Iterables.any(selected.getNodes(), node -> node.getReplacement() == null)) {
                     for (NodeState node : selected.getNodes()) {
                         if (node.isRejectedForCapabilityConflict()) {
-                            GradleException error = resolutionFailureHandler.nodeRejected(node);
+                            GradleException error = resolutionFailureHandler.nodeRejectedDueToCapabilityConflict(node);
                             node.getIncomingEdges().forEach(edge -> edge.failWith(error));
                         }
                     }
