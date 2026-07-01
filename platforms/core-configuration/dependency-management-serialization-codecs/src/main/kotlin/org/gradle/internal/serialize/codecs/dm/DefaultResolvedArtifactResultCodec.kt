@@ -17,9 +17,9 @@
 package org.gradle.internal.serialize.codecs.dm
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.component.Artifact
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
+import org.gradle.internal.Describables
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -29,19 +29,28 @@ import org.gradle.internal.serialize.graph.writeFile
 /**
  * [Codec] for [DefaultResolvedArtifactResult] used for serializing resolved artifacts to the configuration cache.
  */
-class DefaultResolvedArtifactResultCodec : Codec<DefaultResolvedArtifactResult> {
+class DefaultResolvedArtifactResultCodec(
+    private val attributesCodec: ImmutableAttributesCodec,
+    private val capabilitiesCodec: ImmutableCapabilitiesCodec
+) : Codec<DefaultResolvedArtifactResult> {
+
     override suspend fun WriteContext.encode(value: DefaultResolvedArtifactResult) {
         write(value.id)
-        write(value.variant)
+        attributesCodec.run { encode(value.attributes) }
+        capabilitiesCodec.run { encode(value.capabilities) }
+        writeString(value.variant.displayName)
         writeClass(value.type)
         writeFile(value.file)
     }
 
     override suspend fun ReadContext.decode(): DefaultResolvedArtifactResult {
         val id = read() as ComponentArtifactIdentifier
-        val variant = read() as ResolvedVariantResult
+        val attributes = attributesCodec.run { decode() }
+        val capabilities = capabilitiesCodec.run { decode() }
+        val displayName = readString()
         @Suppress("UNCHECKED_CAST") val type = readClass() as Class<out Artifact>
         val file = readFile()
-        return DefaultResolvedArtifactResult(id, variant, type, file)
+        return DefaultResolvedArtifactResult(id, attributes, capabilities, Describables.of(displayName), type, file)
     }
+
 }

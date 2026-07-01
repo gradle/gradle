@@ -271,7 +271,7 @@ class DefaultConfigurationCacheCodecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
             bind(DefaultComponentArtifactsResultCodec())
-            bind(DefaultResolvedArtifactResultCodec())
+            bind(DefaultResolvedArtifactResultCodec(immutableAttributesCodec, immutableCapabilitiesCodec))
             bind(DefaultUnresolvedComponentResultCodec())
 
             val graphStructureCodec = DefaultGraphStructureCodec(

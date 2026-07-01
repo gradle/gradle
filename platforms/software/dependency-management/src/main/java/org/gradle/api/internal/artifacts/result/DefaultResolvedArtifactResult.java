@@ -17,46 +17,47 @@ package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
+import java.util.Optional;
 
 public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
+
     private final ComponentArtifactIdentifier identifier;
-    private final ResolvedVariantResult variant;
+    private final ImmutableAttributes attributes;
+    private final ImmutableCapabilities capabilities;
+    private final DisplayName displayName;
     private final Class<? extends Artifact> type;
     private final File file;
 
-    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,
-                                         AttributeContainer variantAttributes,
-                                         ImmutableList<Capability> capabilities,
-                                         DisplayName variantDisplayName,
-                                         Class<? extends Artifact> type,
-                                         File file) {
+    private final ResolvedVariantResult variantView;
+
+    public DefaultResolvedArtifactResult(
+        ComponentArtifactIdentifier identifier,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        DisplayName displayName,
+        Class<? extends Artifact> type,
+        File file
+    ) {
         this.identifier = identifier;
-        this.variant = new DefaultResolvedVariantResult(identifier.getComponentIdentifier(), variantDisplayName, variantAttributes, capabilities, null);
+        this.attributes = attributes;
+        this.capabilities = capabilities;
+        this.displayName = displayName;
         this.type = type;
         this.file = file;
-    }
-
-    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,
-                                         ResolvedVariantResult variant,
-                                         Class<? extends Artifact> type,
-                                         File file) {
-        this.identifier = identifier;
-        this.variant = variant;
-        this.type = type;
-        this.file = file;
-    }
-
-    @Override
-    public String toString() {
-        return identifier.getDisplayName();
+        this.variantView = new ArtifactVariantView();
     }
 
     @Override
@@ -65,17 +66,72 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     }
 
     @Override
-    public Class<? extends Artifact> getType() {
-        return type;
-    }
-
-    @Override
     public File getFile() {
         return file;
     }
 
     @Override
-    public ResolvedVariantResult getVariant() {
-        return variant;
+    public ImmutableAttributes getAttributes() {
+        return attributes;
     }
+
+    @Override
+    public ImmutableCapabilities getCapabilities() {
+        return capabilities;
+    }
+
+    @Override
+    public String toString() {
+        return identifier.getDisplayName();
+    }
+
+    // Below methods to be deprecated in 10.x
+
+    @Override
+    public Class<? extends Artifact> getType() {
+        return type;
+    }
+
+    @Override
+    public ResolvedVariantResult getVariant() {
+        return variantView;
+    }
+
+    private class ArtifactVariantView implements ResolvedVariantResult {
+
+        private volatile @Nullable ImmutableList<Capability> capabilitiesList = null;
+
+        @Override
+        public ComponentIdentifier getOwner() {
+            return identifier.getComponentIdentifier();
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName.getDisplayName();
+        }
+
+        @Override
+        public List<Capability> getCapabilities() {
+            ImmutableList<Capability> capabilities = capabilitiesList;
+            if (capabilities == null) {
+                ImmutableList<Capability> copy = ImmutableList.copyOf(DefaultResolvedArtifactResult.this.capabilities);
+                this.capabilitiesList = copy;
+                return copy;
+            }
+            return capabilities;
+        }
+
+        @Override
+        public Optional<ResolvedVariantResult> getExternalVariant() {
+            return Optional.empty();
+        }
+
+    }
+
 }
