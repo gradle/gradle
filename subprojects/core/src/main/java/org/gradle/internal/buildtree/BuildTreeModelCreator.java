@@ -18,20 +18,17 @@ package org.gradle.internal.buildtree;
 
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Responsible for creating a model from the build tree model.
+ * <p>
+ * Failures that resilient model building hides behind partial results are reported to the given listener as they are
+ * observed. They must still fail the build, even though partial models were returned to the client.
  */
 public interface BuildTreeModelCreator {
-    <T> void beforeTasks(BuildTreeModelAction<? extends T> action);
+    <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener);
 
     @Nullable
-    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action);
-
-    /**
-     * Returns the failures that resilient model building hid behind partial results since the last call, and clears
-     * them. They must still fail the build, even though partial models were returned to the client.
-     */
-    List<ResilientModelFailure> drainModelBuildingFailures();
+    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener);
 }

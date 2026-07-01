@@ -117,6 +117,6 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
             Object fromBuildModel(BuildTreeModelController controller) {
                 return controller.getModel(target, new ToolingModelRequestContext(modelName, parameter, false))
             }
-        })
+        }, { } as Consumer<ResilientModelFailure>)
     }
 }

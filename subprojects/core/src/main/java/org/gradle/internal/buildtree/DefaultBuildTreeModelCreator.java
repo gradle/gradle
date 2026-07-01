@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
@@ -33,9 +32,9 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
@@ -44,9 +43,6 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
     private final BuildStateRegistry buildStateRegistry;
     private final BuildOperationRunner buildOperationRunner;
-
-    private final Object failuresLock = new Object();
-    private final List<ResilientModelFailure> resilientFailures = new ArrayList<>();
 
     public DefaultBuildTreeModelCreator(
         BuildState defaultTarget,
@@ -63,34 +59,22 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     }
 
     @Override
-    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action) {
-        action.beforeTasks(new DefaultBuildTreeModelController());
+    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener) {
+        action.beforeTasks(new DefaultBuildTreeModelController(resilientFailureListener));
     }
 
     @Override
-    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action) {
-        return action.fromBuildModel(new DefaultBuildTreeModelController());
-    }
-
-    @Override
-    public List<ResilientModelFailure> drainModelBuildingFailures() {
-        synchronized (failuresLock) {
-            List<ResilientModelFailure> drained = ImmutableList.copyOf(resilientFailures);
-            resilientFailures.clear();
-            return drained;
-        }
-    }
-
-    private void recordResilientFailure(@Nullable ResilientModelFailure failure) {
-        if (failure == null) {
-            return;
-        }
-        synchronized (failuresLock) {
-            resilientFailures.add(failure);
-        }
+    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener) {
+        return action.fromBuildModel(new DefaultBuildTreeModelController(resilientFailureListener));
     }
 
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
+        private final Consumer<ResilientModelFailure> resilientFailureListener;
+
+        public DefaultBuildTreeModelController(Consumer<ResilientModelFailure> resilientFailureListener) {
+            this.resilientFailureListener = resilientFailureListener;
+        }
+
         @Override
         public GradleInternal getConfiguredModel() {
             return defaultTarget.withToolingModels(false, BuildToolingModelController::getConfiguredModel);
@@ -109,9 +93,12 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                         modelRequestContext.getParameter()
                             .map(parameterCarrierFactory::createCarrier)
                             .orElse(null));
-                    // A failure hidden behind a partial result travels with it; record it here, at the build-tree
+                    // A failure hidden behind a partial result travels with it; report it here, at the build-tree
                     // model boundary, so the build still fails when it finishes.
-                    recordResilientFailure(result.getResilientFailure());
+                    ResilientModelFailure resilientFailure = result.getResilientFailure();
+                    if (resilientFailure != null) {
+                        resilientFailureListener.accept(resilientFailure);
+                    }
                     return result;
                 }
 

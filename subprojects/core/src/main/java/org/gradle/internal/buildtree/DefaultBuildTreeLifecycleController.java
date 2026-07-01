@@ -32,6 +32,8 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -81,13 +83,15 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     @Override
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
-            modelCreator.beforeTasks(action);
+            // Failures that resilient model building hides behind partial results are reported here as they happen.
+            List<ResilientModelFailure> resilientFailures = Collections.synchronizedList(new ArrayList<>());
+            modelCreator.beforeTasks(action, resilientFailures::add);
             ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
             // Allow the model action to run even if tasks failed
-            ExecutionResult<T> modelResult = runFromBuildModel(action);
+            ExecutionResult<T> modelResult = runFromBuildModel(action, resilientFailures::add);
             ExecutionResult<T> workResult = modelResult.withFailures(taskRunResult);
-            // Failures that resilient model building hid behind partial results must still fail the build.
-            return failBuildWith(workResult, modelCreator.drainModelBuildingFailures());
+            // The hidden failures must still fail the build.
+            return failBuildWith(workResult, resilientFailures);
         });
     }
 
@@ -114,8 +118,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @SuppressWarnings("DataFlowIssue")
-    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action) {
-        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action));
+    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener) {
+        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action, resilientFailureListener));
         return model.getFailure().isPresent()
             ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))
             : ExecutionResult.succeeded(model.get());

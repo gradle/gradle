@@ -20,23 +20,22 @@ import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
 import org.gradle.internal.buildtree.ResilientModelFailure
 import org.gradle.internal.cc.impl.models.BuildTreeModel
+import java.util.function.Consumer
 
 
 class ConfigurationCacheAwareBuildTreeModelCreator(
     private val delegate: BuildTreeModelCreator,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeModelCreator {
-    override fun drainModelBuildingFailures(): List<ResilientModelFailure> = delegate.drainModelBuildingFailures()
-
-    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>) {
+    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>, resilientFailureListener: Consumer<ResilientModelFailure>) {
         cache.maybePrepareModel {
-            delegate.beforeTasks(action)
+            delegate.beforeTasks(action, resilientFailureListener)
         }
     }
 
-    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>): T? {
+    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>, resilientFailureListener: Consumer<ResilientModelFailure>): T? {
         return cache.loadOrCreateModel {
-            val model = delegate.fromBuildModel(action)
+            val model = delegate.fromBuildModel(action, resilientFailureListener)
             if (model == null) BuildTreeModel.NullModel else BuildTreeModel.Model(model)
         }.result()
     }
