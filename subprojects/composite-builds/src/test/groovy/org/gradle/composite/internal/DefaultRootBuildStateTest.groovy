@@ -21,10 +21,13 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
+import org.gradle.execution.BuildWorkExecutor
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.BuildWorkPreparer
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeServices
@@ -54,7 +57,7 @@ class DefaultRootBuildStateTest extends Specification {
     DefaultRootBuildState build
 
     def setup() {
-        _ * controllerFactory.newInstance(_, _) >> controller
+        _ * controllerFactory.newInstance(_, _.get(GradleInternal.class), _.get(ListenerManager.class), _.get(BuildModelController.class), _.get(GradleInternal.class).getServices().get(BuildWorkPreparer.class), _.get(GradleInternal.class).getServices().get(BuildWorkExecutor.class)) >> controller
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def services = new DefaultServiceRegistry()
         services.add(buildOperationRunner)

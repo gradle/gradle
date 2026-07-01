@@ -16,7 +16,6 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -55,6 +54,7 @@ import static org.gradle.util.Path.path;
 @SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State implements StateTransitionController.State {
+        NotCreated,
         // Configuring the build, can access build model
         Configure,
         // Scheduling tasks for execution
@@ -69,7 +69,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
 
     private final ExceptionAnalyser exceptionAnalyser;
-    private final BuildListener buildListener;
     private final BuildModelLifecycleListener buildModelLifecycleListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
@@ -84,7 +83,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         GradleInternal gradle,
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
-        BuildListener buildListener,
         BuildModelLifecycleListener buildModelLifecycleListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
@@ -94,7 +92,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.gradle = gradle;
         this.modelController = buildModelController;
         this.exceptionAnalyser = exceptionAnalyser;
-        this.buildListener = buildListener;
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
         this.buildModelLifecycleListener = buildModelLifecycleListener;
@@ -353,7 +350,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
                 reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
             }
             BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
-            return ExecutionResult.maybeFailing(() -> buildListener.buildFinished(buildResult));
+            return ExecutionResult.maybeFailing(() -> gradle.getBuildListenerBroadcaster().buildFinished(buildResult));
         });
     }
 

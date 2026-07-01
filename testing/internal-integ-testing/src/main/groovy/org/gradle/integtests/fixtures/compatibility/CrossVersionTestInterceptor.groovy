@@ -15,11 +15,16 @@
  */
 package org.gradle.integtests.fixtures.compatibility
 
+import org.gradle.api.internal.GradleInternal
+import org.gradle.execution.BuildWorkExecutor
 import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
+import org.gradle.internal.build.BuildModelController
+import org.gradle.internal.build.BuildWorkPreparer
+import org.gradle.internal.event.ListenerManager
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 
@@ -74,7 +79,7 @@ class CrossVersionTestInterceptor extends AbstractCompatibilityTestInterceptor {
 
     private static Closure getAnnotationClosure(Class target, Class annotation, Closure defaultValue) {
         def a = target.getAnnotation(annotation)
-        a ? a.value().newInstance(target, target) : defaultValue
+        a ? a.value().newInstance(target, target.get(GradleInternal.class), target.get(ListenerManager.class), target.get(BuildModelController.class), target.get(GradleInternal.class).getServices().get(BuildWorkPreparer.class), target.get(GradleInternal.class).getServices().get(BuildWorkExecutor.class)) : defaultValue
     }
 
     private static class PreviousVersionExecution extends AbstractMultiTestInterceptor.Execution {

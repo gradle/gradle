@@ -16,6 +16,9 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -25,5 +28,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildLifecycleControllerFactory {
-    BuildLifecycleController newInstance(BuildDefinition buildDefinition, ServiceRegistry buildScopeServices);
+    BuildLifecycleController newInstance(BuildDefinition buildDefinition, GradleInternal gradle, ListenerManager listenerManager, BuildModelController buildModelController, BuildWorkPreparer workPreparer, BuildWorkExecutor workExecutor);
 }

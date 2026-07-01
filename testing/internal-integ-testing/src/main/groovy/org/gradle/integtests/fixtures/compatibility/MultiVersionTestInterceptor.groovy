@@ -16,9 +16,14 @@
 
 package org.gradle.integtests.fixtures.compatibility
 
+import org.gradle.api.internal.GradleInternal
+import org.gradle.execution.BuildWorkExecutor
 import org.gradle.integtests.fixtures.DefaultVersionedTool
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.internal.build.BuildModelController
+import org.gradle.internal.build.BuildWorkPreparer
+import org.gradle.internal.event.ListenerManager
 import org.spockframework.runtime.extension.IMethodInvocation
 
 /**
@@ -41,7 +46,7 @@ class MultiVersionTestInterceptor extends AbstractContextualMultiVersionTestInte
         if (versions != null) {
             return versionsFrom(versions.value() as List)
         } else if (coverage != null) {
-            return versionsFrom(coverage.value().newInstance(target, target).call() as List)
+            return versionsFrom(coverage.value().newInstance(target, target.get(GradleInternal.class), target.get(ListenerManager.class), target.get(BuildModelController.class), target.get(GradleInternal.class).getServices().get(BuildWorkPreparer.class), target.get(GradleInternal.class).getServices().get(BuildWorkExecutor.class)).call() as List)
         } else {
             throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
