@@ -80,8 +80,10 @@ public class LineFilter extends Reader {
         builder.append(result);
         if (eol) {
             if (crlfSeparator) {
+                // \r\n is preserved
                 builder.append("\r\n");
             } else {
+                // \n is preservec, and a lone '\r' (old Mac style) is normalized to '\n'
                 builder.append('\n');
             }
         }
