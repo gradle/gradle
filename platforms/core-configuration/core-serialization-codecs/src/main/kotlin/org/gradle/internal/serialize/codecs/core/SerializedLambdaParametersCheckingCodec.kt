@@ -25,8 +25,6 @@ import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
-import org.gradle.internal.serialize.graph.encodeBean
-import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.logUnsupported
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.objectweb.asm.Type
