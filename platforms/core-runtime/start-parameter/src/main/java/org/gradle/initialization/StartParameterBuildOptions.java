@@ -95,6 +95,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption(),
+        new TaskGraphLimitOption(),
         new ParallelToolingModelBuildingOption()
     );
 
@@ -1028,6 +1029,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setTaskGraph(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
+    }
+
+    public static class TaskGraphLimitOption extends IntegerBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "task-graph-limit";
+
+        public TaskGraphLimitOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Limits the depth of the task graph output. Has no effect unless --task-graph is also specified."));
+        }
+
+        @Override
+        public void applyTo(int value, StartParameterInternal settings, @Nullable Origin origin) {
+            settings.setTaskGraphLimit(value);
         }
 
         @Override

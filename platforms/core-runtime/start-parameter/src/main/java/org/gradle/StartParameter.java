@@ -95,6 +95,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean dryRun;
     private boolean rerunTasks;
     private boolean taskGraph;
+    private int taskGraphLimit = Integer.MAX_VALUE;
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
@@ -335,6 +336,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.welcomeMessageConfiguration = welcomeMessageConfiguration;
         p.dryRun = dryRun;
         p.taskGraph = taskGraph;
+        p.taskGraphLimit = taskGraphLimit;
         return p;
     }
 
@@ -713,6 +715,30 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Returns the maximum depth of the task graph printed by {@code --task-graph}.
+     * Defaults to {@link Integer#MAX_VALUE} (unlimited).
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    public int getTaskGraphLimit() {
+        return taskGraphLimit;
+    }
+
+    /**
+     * Sets the maximum depth of the task graph printed by {@code --task-graph}.
+     * A value of {@link Integer#MAX_VALUE} means unlimited.
+     *
+     * @param taskGraphLimit the maximum depth; must be a positive integer
+     * @since 9.7.0
+     */
+    @Incubating
+    public void setTaskGraphLimit(int taskGraphLimit) {
+        onMutableCall("setTaskGraphLimit(int)");
+        this.taskGraphLimit = taskGraphLimit;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -812,6 +838,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
             + ", taskGraph=" + taskGraph
+            + ", taskGraphLimit=" + taskGraphLimit
             + ", profile=" + profile
             + ", continueOnFailure=" + continueOnFailure
             + ", offline=" + offline

@@ -64,6 +64,17 @@ class BuildActionSerializerTest extends SerializerSpec {
             .collect { it.name }
     }
 
+    def "serializes taskGraphLimit int build option"() {
+        def startParameter = new StartParameterInternal()
+        startParameter.taskGraphLimit = 3
+        def action = new ExecuteBuildAction(startParameter)
+
+        expect:
+        def result = serialize(action, BuildActionSerializer.create())
+        result instanceof ExecuteBuildAction
+        result.startParameter.taskGraphLimit == 3
+    }
+
     def "serializes BuildModelAction"() {
         def startParameter = new StartParameterInternal()
         startParameter.taskNames = ['a', 'b']
