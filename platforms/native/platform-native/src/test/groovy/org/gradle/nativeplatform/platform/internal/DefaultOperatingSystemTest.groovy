@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.platform.internal
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.OperatingSystemFamily
 import spock.lang.Specification
 
 class DefaultOperatingSystemTest extends Specification {
@@ -44,6 +45,18 @@ class DefaultOperatingSystemTest extends Specification {
         "sunos"   | OperatingSystem.SOLARIS
         "solaris" | OperatingSystem.SOLARIS
         "freebsd" | OperatingSystem.FREE_BSD
+    }
+
+    def "maps operating systems to family names"() {
+        expect:
+        new DefaultOperatingSystem(name).toFamilyName() == familyName
+
+        where:
+        name      | familyName
+        "windows" | OperatingSystemFamily.WINDOWS
+        "linux"   | OperatingSystemFamily.LINUX
+        "osx"     | OperatingSystemFamily.MACOS
+        "freebsd" | OperatingSystemFamily.FREE_BSD
     }
 
     def "can create arbitrary operating system"() {
