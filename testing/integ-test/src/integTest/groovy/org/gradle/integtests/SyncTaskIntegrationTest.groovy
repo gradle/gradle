@@ -65,6 +65,112 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         file('dest').directory
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'on its first execution against a destination, an empty source leaves pre-existing unrelated content untouched'() {
+        given:
+        // 'source' is never created, so it resolves to an empty file tree (simulating a misconfigured 'from').
+        file('dest/unrelated.txt').text = 'do not delete me'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        // The task attempts to run (Sync's source is never skip-when-empty), but since there is no record of
+        // this task ever having synced into 'dest' before, the safety guard makes it a no-op: it reports
+        // setDidWork(false), which the engine surfaces as UP-TO-DATE, and 'dest' is left untouched.
+        skipped ':sync'
+        file('dest/unrelated.txt').text == 'do not delete me'
+        file('dest').assertHasDescendants('unrelated.txt')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'Copy task is unaffected and stays NO-SOURCE with stale outputs when source becomes empty'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            task copy(type: Copy) {
+                from 'source'
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'copy'
+        file('source/foo.txt').delete()
+        run 'copy'
+
+        then:
+        skipped ':copy'
+        file('dest/foo.txt').exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'deletes stale outputs when a child source dir becomes empty'() {
+        given:
+        file('source/sub/foo.txt').text = 'foo'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/sub/foo.txt').exists()
+
+        when:
+        file('source/sub/foo.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file('dest/sub/foo.txt').exists()
+        file('dest/sub').directory
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'with includeEmptyDirs=false an emptied child source dir is not synced to destination'() {
+        given:
+        file('source/sub/foo.txt').text = 'foo'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                includeEmptyDirs = false
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/sub/foo.txt').exists()
+
+        when:
+        file('source/sub/foo.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file('dest/sub/foo.txt').exists()
+        !file('dest/sub').exists()
+    }
+
     def 'copies files and removes extra files from destDir'() {
         given:
         defaultSourceFileTree()
@@ -133,6 +239,85 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             'dir1/extraDir/extra.txt',
             'emptyDir'
         )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'preserved files survive while non-preserved stale files are deleted once the destination has sync history'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+        file('dest').create {
+            preservedDir { file 'keep.txt' }
+        }
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                preserve {
+                    include 'preservedDir/**'
+                }
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/foo.txt').exists()
+        file('dest/preservedDir/keep.txt').exists()
+
+        when:
+        file('source/foo.txt').delete()
+        run 'sync'
+
+        then:
+        // 'dest' has sync history from the previous run, so the safety guard does not apply: the real copy
+        // action runs, honoring the preserve spec. foo.txt is stale (not in the now-empty source, not preserved)
+        // and is deleted, while preservedDir/keep.txt matches the preserve spec and survives.
+        executedAndNotSkipped ':sync'
+        !file('dest/foo.txt').exists()
+        file('dest/preservedDir/keep.txt').exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'preserved files are now retained when the source is fully emptied, regardless of whether the destination is build-managed'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+        file('source/keep.txt').text = 'keep'
+
+        buildFile """
+            apply plugin: 'base'
+            task sync(type: Sync) {
+                from 'source'
+                into layout.buildDirectory.dir('dest')
+                preserve {
+                    include 'keep.txt'
+                }
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        file('build/dest/foo.txt').exists()
+        file('build/dest/keep.txt').exists()
+
+        when:
+        file('source/foo.txt').delete()
+        file('source/keep.txt').delete()
+        run 'sync'
+
+        then:
+        // Previously, a build-managed destination with a fully empty source relied on the engine's preserve-blind
+        // stale-output cleanup, which deleted 'keep.txt' too (a known inconsistency vs. a non-build-managed
+        // destination). Now Sync's source is never skip-when-empty, so it never takes that engine-only cleanup
+        // path: its own copy()/SyncCopyActionDecorator always runs once history exists, and correctly honors
+        // preserve() regardless of build-managed status. keep.txt now survives, matching the non-build-managed case.
+        executedAndNotSkipped ':sync'
+        !file('build/dest/foo.txt').exists()
+        file('build/dest/keep.txt').exists()
     }
 
     def 'only excluding non-preserved files works as expected'() {
