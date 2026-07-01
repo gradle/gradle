@@ -76,4 +76,51 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
         dependency                                     | reference                                             | output
         "org.jetbrains.kotlinx:kotlinx-datetime:0.4.0" | "kotlinx.datetime.LocalDateTime(2025, 1, 1, 1, 1, 1)" | "2025-01-01T01:01:01"
     }
+
+    def "preserves identity of Kotlin object singletons"() {
+        buildKotlinFile """
+            sealed class SealedObject {
+                object A : SealedObject()
+                object B : SealedObject()
+            }
+
+            object TopLevelObject
+
+            abstract class FooTask : DefaultTask() {
+                @get:Internal
+                val sealedField: SealedObject = SealedObject.A
+                @get:Internal
+                val objectField: TopLevelObject = TopLevelObject
+
+                @TaskAction
+                fun foo() {
+                    println("sealed identity = \${sealedField === SealedObject.A}")
+                    println("object identity = \${objectField === TopLevelObject}")
+                    val matched = when (sealedField) {
+                        SealedObject.A -> "A"
+                        SealedObject.B -> "B"
+                    }
+                    println("when matched = \$matched")
+                }
+            }
+
+            tasks.register("foo", FooTask::class)
+        """
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("sealed identity = true")
+        outputContains("object identity = true")
+        outputContains("when matched = A")
+
+        when: "the configuration cache entry is reused and the fields are deserialized"
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("sealed identity = true")
+        outputContains("object identity = true")
+        outputContains("when matched = A")
+    }
 }

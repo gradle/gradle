@@ -140,6 +140,7 @@ import org.gradle.internal.serialize.codecs.dm.transform.TransformStepSpecCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedExternalArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedProjectArtifactSetCodec
+import org.gradle.internal.serialize.codecs.stdlib.KotlinObjectCodec
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
@@ -342,6 +343,7 @@ class DefaultConfigurationCacheCodecs(
         bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
         bind(ValueObjectCodec)
+        bind(KotlinObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,
