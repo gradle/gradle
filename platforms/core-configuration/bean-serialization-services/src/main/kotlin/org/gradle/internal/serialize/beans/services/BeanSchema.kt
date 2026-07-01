@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
+import org.gradle.internal.reflection.access.ObjectOpener
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
@@ -37,29 +38,34 @@ val unsupportedFieldDeclaredTypes = listOf(
 
 
 internal
-fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
+fun relevantStateOf(beanType: Class<*>, objectOpener: ObjectOpener): List<RelevantField> =
     when (IConventionAware::class.java.isAssignableFrom(beanType)) {
-        true -> applyConventionMappingTo(beanType, relevantFieldsOf(beanType))
-        else -> relevantFieldsOf(beanType)
+        true -> applyConventionMappingTo(beanType, relevantFieldsOf(beanType, objectOpener), objectOpener)
+        else -> relevantFieldsOf(beanType, objectOpener)
     }
 
 
 private
-fun relevantFieldsOf(beanType: Class<*>) =
+fun relevantFieldsOf(beanType: Class<*>, objectOpener: ObjectOpener) =
     relevantTypeHierarchyOf(beanType)
         .flatMap(Class<*>::relevantFields)
-        .onEach(Field::makeAccessible)
+        .onEach { objectOpener.makeAccessible(it) }
         .map { RelevantField(it, unsupportedFieldTypeFor(it)) }
         .toList()
 
 
 private
-fun applyConventionMappingTo(taskType: Class<*>, relevantFields: List<RelevantField>): List<RelevantField> =
+fun applyConventionMappingTo(
+    taskType: Class<*>,
+    relevantFields: List<RelevantField>,
+    objectOpener: ObjectOpener
+): List<RelevantField> =
     conventionAwareFieldsOf(taskType).toMap().let { flags ->
         relevantFields.map { relevantField ->
             relevantField.run {
                 flags[field]?.let { flagField ->
-                    copy(isExplicitValueField = flagField.apply(Field::makeAccessible))
+                    objectOpener.makeAccessible(flagField)
+                    copy(isExplicitValueField = flagField)
                 }
             } ?: relevantField
         }

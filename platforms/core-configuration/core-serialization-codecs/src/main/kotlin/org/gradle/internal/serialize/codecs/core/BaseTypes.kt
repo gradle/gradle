@@ -17,14 +17,15 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.guava.guavaTypes
 import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 
 
-fun BindingsBuilder.baseTypes() {
+fun BindingsBuilder.baseTypes(objectOpener: ObjectOpener) {
     stdlibTypes()
     guavaTypes()
-    bind(JavaRecordCodec)
+    bind(JavaRecordCodec(objectOpener))
     bind(BuildIdentifierSerializer())
 }

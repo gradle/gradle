@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.unsupportedFieldTypeFor
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -32,11 +33,16 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
 
 
-object JavaRecordCodec : EncodingProducer, Decoding {
+class JavaRecordCodec(
+    private val objectOpener: ObjectOpener
+) : EncodingProducer, Decoding {
+
+    private
+    val encoding = JavaRecordEncoding(objectOpener)
 
     override fun encodingForType(type: Class<*>): Encoding? =
         // need to check by name because it's only present in Java 14+
-        JavaRecordEncoding.takeIf { type.superclass?.canonicalName == "java.lang.Record" }
+        encoding.takeIf { type.superclass?.canonicalName == "java.lang.Record" }
 
     @Suppress("SpreadOperator")
     override suspend fun ReadContext.decode(): Any? {
@@ -46,7 +52,7 @@ object JavaRecordCodec : EncodingProducer, Decoding {
         val args = readFields(fields)
         val types = fields.map { it.type }.toTypedArray()
         return try {
-            recordType.getDeclaredConstructor(*types).apply { isAccessible = true }.newInstance(*args.toTypedArray())
+            recordType.getDeclaredConstructor(*types).apply { objectOpener.makeAccessible(this) }.newInstance(*args.toTypedArray())
         } catch (ex: Exception) {
             throw IllegalStateException("Failed to create instance of ${recordType.name} with args $args", ex)
         }
@@ -80,12 +86,14 @@ object JavaRecordCodec : EncodingProducer, Decoding {
 
 
 private
-object JavaRecordEncoding : Encoding {
+class JavaRecordEncoding(
+    private val objectOpener: ObjectOpener
+) : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
         val recordType = value::class.java
         writeClass(recordType)
         for (field in recordType.relevantFields) {
-            field.isAccessible = true
+            objectOpener.makeAccessible(field)
             val fieldName = field.name
             val fieldValue = field.get(value)
             unsupportedFieldTypeFor(field)?.let {

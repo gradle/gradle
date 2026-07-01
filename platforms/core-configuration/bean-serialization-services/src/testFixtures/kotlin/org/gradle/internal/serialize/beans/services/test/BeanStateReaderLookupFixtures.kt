@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.beans.services.test
 
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.beans.services.BeanConstructors
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
@@ -24,5 +25,6 @@ import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 fun beanStateReaderLookupForTesting(): BeanStateReaderLookup =
     DefaultBeanStateReaderLookup(
         BeanConstructors(org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory()),
-        org.gradle.util.TestUtil.instantiatorFactory()
+        org.gradle.util.TestUtil.instantiatorFactory(),
+        ObjectOpener.agentless()
     )

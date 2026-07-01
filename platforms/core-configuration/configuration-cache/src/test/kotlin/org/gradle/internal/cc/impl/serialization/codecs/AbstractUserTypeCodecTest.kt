@@ -32,6 +32,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
@@ -159,7 +160,7 @@ abstract class AbstractUserTypeCodecTest {
             codec = codec,
             encoder = encoder,
             classEncoder = DefaultClassEncoder(mock()),
-            beanStateWriterLookup = DefaultBeanStateWriterLookup(),
+            beanStateWriterLookup = DefaultBeanStateWriterLookup(ObjectOpener.agentless()),
             isIntegrityCheckEnabled = integrityCheck,
             logger = mock(),
             tracer = null,
@@ -230,11 +231,12 @@ abstract class AbstractUserTypeCodecTest {
         includedTaskGraph = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
-        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
+        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
         transformStepNodeFactory = mock(),
         problems = mock(),
         taskDependencyFactory = mock(),
-        moduleIdentifierFactory = mock()
+        moduleIdentifierFactory = mock(),
+        objectOpener = ObjectOpener.agentless()
     )
 
     private
