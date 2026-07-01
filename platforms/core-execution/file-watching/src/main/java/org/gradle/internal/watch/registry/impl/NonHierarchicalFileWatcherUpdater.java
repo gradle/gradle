@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,9 +70,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         removedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
-                String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                decrement(previousWatchedRoot, changedWatchedDirectories);
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+                // Reuse the canonical key stored on add, so removal needs no filesystem access.
+                String base = snapshot.getAbsolutePath();
+                String watchedRootKey = watchedDirectoryForSnapshot.remove(base);
+                decrement(watchedRootKey, changedWatchedDirectories);
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(resolveDescendant(base, watchedRootKey, path), changedWatchedDirectories)));
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
@@ -81,9 +84,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
                 if (!watchableHierarchies.isInWatchableHierarchy(pathToWatchForRoot)) {
                     return;
                 }
-                watchedDirectoryForSnapshot.put(snapshot.getAbsolutePath(), pathToWatchForRoot);
-                increment(pathToWatchForRoot, changedWatchedDirectories);
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
+                // Canonicalize the watched root once; its subdirectories reuse it via resolveDescendant.
+                String base = snapshot.getAbsolutePath();
+                String watchedRootKey = canonicalize(pathToWatchForRoot);
+                watchedDirectoryForSnapshot.put(base, watchedRootKey);
+                increment(watchedRootKey, changedWatchedDirectories);
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(resolveDescendant(base, watchedRootKey, path), changedWatchedDirectories)));
             });
         if (changedWatchedDirectories.isEmpty()) {
             return false;
@@ -97,11 +103,13 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         // Most of the changes already happened in `handleVirtualFileSystemContentsChanged`.
         // Here we only need to update watches for the roots of the hierarchies.
         Map<String, Integer> changedWatchDirectories = new HashMap<>();
-        watchedWatchableHierarchies.forEach(absolutePath -> decrement(absolutePath, changedWatchDirectories));
+        // watchedWatchableHierarchies holds canonical keys, so they can be decremented directly.
+        watchedWatchableHierarchies.forEach(key -> decrement(key, changedWatchDirectories));
         watchedWatchableHierarchies.clear();
         newWatchedFiles.visitRoots(absolutePath -> {
-            watchedWatchableHierarchies.add(absolutePath);
-            increment(absolutePath, changedWatchDirectories);
+            String key = canonicalize(absolutePath);
+            watchedWatchableHierarchies.add(key);
+            increment(key, changedWatchDirectories);
         });
         if (!changedWatchDirectories.isEmpty()) {
             updateWatchedDirectories(changedWatchDirectories);
@@ -166,12 +174,29 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         }
     }
 
-    private static void decrement(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) - 1));
+    private static String canonicalize(String absolutePath) {
+        try {
+            return new File(absolutePath).getCanonicalPath();
+        } catch (IOException e) {
+            return absolutePath;
+        }
     }
 
-    private static void increment(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) + 1));
+    // Resolves a descendant of base without another getCanonicalPath() call. Symlinked subtrees are
+    // skipped while visiting, so canonicalize(base + suffix) == canonicalBase + suffix.
+    private static String resolveDescendant(String base, String canonicalBase, String descendantPath) {
+        if (canonicalBase.equals(base)) {
+            return descendantPath;
+        }
+        return canonicalBase + descendantPath.substring(base.length());
+    }
+
+    private static void decrement(String key, Map<String, Integer> changedWatchedDirectories) {
+        changedWatchedDirectories.compute(key, (k, value) -> zeroToNull(nullToZero(value) - 1));
+    }
+
+    private static void increment(String key, Map<String, Integer> changedWatchedDirectories) {
+        changedWatchedDirectories.compute(key, (k, value) -> zeroToNull(nullToZero(value) + 1));
     }
 
     @Nullable

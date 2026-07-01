@@ -89,6 +89,43 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         0 * _
     }
 
+    def "deduplicates watches for symlinked directories resolving to the same path"() {
+        // Reproduces https://github.com/gradle/gradle/issues/27940
+        // When an included build has a symlink (e.g. build-logic/conventions/gradle -> ../../gradle),
+        // both the real path and the symlink path may be requested for watching.
+        // The watcher should canonicalize paths so the same physical directory is only watched once.
+        def rootDir = file("root").createDir()
+        def realDir = rootDir.file("real-dir").createDir()
+        realDir.file("file.txt").createFile()
+
+        // Create a symlink that points to the same directory
+        def symlinkDir = rootDir.file("link-dir")
+        symlinkDir.createLink(realDir)
+
+        when:
+        registerWatchableHierarchies([rootDir])
+        then:
+        0 * _
+
+        when:
+        // Add a snapshot via the real path
+        addSnapshot(snapshotRegularFile(realDir.file("file.txt")))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [realDir]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
+        0 * _
+
+        when:
+        // Add a snapshot via the symlink path - this should NOT trigger another startWatching
+        // for the same physical directory, since it canonicalizes to realDir
+        def fileViaSymlink = new File(symlinkDir, "file.txt")
+        addSnapshot(snapshotRegularFile(fileViaSymlink))
+        then:
+        // No additional startWatching calls because the canonical path is already watched
+        0 * _
+    }
+
     def "removes content on unsupported file systems at the end of the build"() {
         def watchableHierarchy = file("watchable").createDir()
         def watchableContent = watchableHierarchy.file("some/dir/file.txt").createFile()
