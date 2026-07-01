@@ -243,7 +243,7 @@ tailrec fun findUnknownPluginInCauseChain(t: Throwable?): UnknownPluginException
 private
 fun lifecyclePluginHint(pluginId: String, documentationRegistry: DocumentationRegistry): String = "\n" +
     "If this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
-    "either move the `gradle.lifecycle.beforeProject` registration into a settings convention plugin " +
+    "either move the `gradle.lifecycle` callback registration into a settings convention plugin " +
     "published from that build (recommended), or declare the plugin in the settings `plugins {}` block " +
     "(e.g. `plugins { id(\"$pluginId\") apply false }`) to make it available to `gradle.lifecycle` callbacks.\n" +
     documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:lifecycle_callbacks_with_included_plugin_builds")

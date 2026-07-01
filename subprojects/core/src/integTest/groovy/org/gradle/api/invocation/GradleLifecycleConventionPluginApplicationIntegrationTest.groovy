@@ -63,10 +63,10 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
         """
     }
 
-    def "fails with hint when applying included-build plugin via beforeProject without settings plugins {} declaration"() {
+    def "fails with hint when applying included-build plugin via #lifeCycleCallback without settings plugins {} declaration"() {
         given:
         settingsKotlinFile << """
-            gradle.lifecycle.beforeProject {
+            gradle.lifecycle.${lifeCycleCallback} {
                 apply(plugin = "${CONVENTION_PLUGIN_ID}")
             }
         """
@@ -80,6 +80,9 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
         failureCauseContains("settings convention plugin")
         failureCauseContains("plugins { id(\"${CONVENTION_PLUGIN_ID}\") apply false }")
         failureCauseContains("userguide/isolated_projects.html#sec:lifecycle_callbacks_with_included_plugin_builds")
+
+        where:
+        lifeCycleCallback << ["beforeProject", "afterProject"]
     }
 
     def "applying buildSrc plugin via beforeProject works without any settings declaration"() {
