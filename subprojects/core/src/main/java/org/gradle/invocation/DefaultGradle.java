@@ -41,7 +41,6 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossBuildModelAccess;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
@@ -576,10 +575,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Inject
     protected abstract ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
-
-    @Override
-    @Inject
-    public abstract ProjectRegistry getProjectRegistry();
 
     @Inject
     protected abstract TextUriResourceLoader.Factory getResourceLoaderFactory();

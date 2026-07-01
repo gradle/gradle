@@ -36,11 +36,16 @@ public class TaskNameResolver {
      */
     public boolean tryFindUnqualifiedTaskCheaply(String name, ProjectState project) {
         // don't evaluate children, see if we know it's without validating it
-        for (ProjectState current : project.getAllProjects()) {
-            if (current.fromMutableState(p -> p.getTasks().getNames().contains(name))) {
+        if (project.fromMutableState(p -> p.getTasks().getNames().contains(name))) {
+            return true;
+        }
+
+        for (ProjectState child : project.getUnorderedChildProjects()) {
+            if (tryFindUnqualifiedTaskCheaply(name, child)) {
                 return true;
             }
         }
+
         return false;
     }
 

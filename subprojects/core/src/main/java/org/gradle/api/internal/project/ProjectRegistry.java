@@ -18,10 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * A registry of all projects in a build, accessible by path.
@@ -30,11 +27,10 @@ import java.util.Set;
  * {@link org.gradle.internal.build.BuildProjectRegistry}, which operate on {@link ProjectState}
  * instances instead of raw {@link ProjectInternal} instances.
  */
+@Deprecated
 @ServiceScope(Scope.Build.class)
 @UsedByScanPlugin("ImportJUnitXmlReports")
-public interface ProjectRegistry extends HoldsProjectState {
-
-    void addProject(ProjectInternal project);
+public interface ProjectRegistry {
 
     // This is only here because it is used by the Develocity plugin in ImportJUnitXmlReports.
     // The ProjectRegistry and ProjectIdentifier types are legacy and should be
@@ -42,14 +38,5 @@ public interface ProjectRegistry extends HoldsProjectState {
     @Deprecated
     @UsedByScanPlugin("ImportJUnitXmlReports")
     @Nullable ProjectIdentifier getProject(String path);
-
-    /**
-     * Prefer {@link ProjectStateRegistry#findProject(Path)}.
-     */
-    @Nullable ProjectInternal getProjectInternal(String path);
-
-    Set<ProjectInternal> getAllProjects(String path);
-
-    Set<ProjectInternal> getSubProjects(String path);
 
 }
