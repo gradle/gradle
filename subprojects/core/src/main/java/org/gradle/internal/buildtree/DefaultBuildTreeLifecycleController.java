@@ -92,7 +92,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             });
             if (!beforeTasksResult.getFailures().isEmpty()) {
                 ExecutionResult<T> workResult = beforeTasksResult.asFailure();
-                return failBuildWith(workResult, failureCollector);
+                return attachCollectedFailures(workResult, failureCollector);
             }
 
             // Run tasks
@@ -103,11 +103,11 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             ExecutionResult<T> workResult = modelResult.withFailures(taskRunResult);
 
             // The held failures must still fail the build.
-            return failBuildWith(workResult, failureCollector);
+            return attachCollectedFailures(workResult, failureCollector);
         });
     }
 
-    private static <T> ExecutionResult<T> failBuildWith(ExecutionResult<T> workResult, ResilientBuildTreeFailureCollector failures) {
+    private static <T> ExecutionResult<T> attachCollectedFailures(ExecutionResult<T> workResult, ResilientBuildTreeFailureCollector failures) {
         // A model builder failure is only ever observed here, so it always fails the build.
         ExecutionResult<T> result = workResult.withFailures(ExecutionResult.maybeFailed(failures.getModelBuilderFailures()));
 
