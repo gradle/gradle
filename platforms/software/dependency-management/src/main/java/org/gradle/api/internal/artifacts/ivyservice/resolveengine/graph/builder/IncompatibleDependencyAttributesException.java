@@ -82,17 +82,12 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
             SelectorState selector = edge.getSelector();
             boolean isConstraint = edge.getDependencyMetadata().isConstraint();
             for (String path : MessageBuilderHelper.formattedPathsTo(edge)) {
-                String quotelessPath = stripSingleQuotesFromPath(path);
-                fmt.node(quotelessPath + " " + formatAttributeQuery(selector, attribute, value, isConstraint));
+                fmt.node(path + " " + formatAttributeQuery(selector, attribute, value, isConstraint));
             }
         }
         fmt.endChildren();
 
         return fmt.toString();
-    }
-
-    private static String stripSingleQuotesFromPath(String path) {
-        return path.replaceAll("'([^()]+)' \\(", "$1 (");
     }
 
     private static @Nullable Object findRequestedAttributeValue(EdgeState edge, Attribute<?> attribute) {

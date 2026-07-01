@@ -53,7 +53,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         failure.assertHasCause("""Module 'test:b' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project 'test'' (compileClasspath)]""")
+   Cannot select module because of conflict with root project 'test' (compileClasspath). All provide capability 'org:capability:1.0'.""")
     }
 
     def 'fails to resolve undeclared test fixture'() {
