@@ -2,7 +2,7 @@ log4j:log4j:1.2.16 FAILED
    Failures:
       - Could not resolve log4j:log4j:1.2.16.
           - Module 'log4j:log4j' has been rejected:
-               Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by ['org.slf4j:log4j-over-slf4j:1.7.10' (compile)]
+               Cannot select module because of conflict with org.slf4j:log4j-over-slf4j:1.7.10 (compile). All provide capability 'log4j:log4j:1.2.16'.
           - Capability conflicts are explained in more detail at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sub:capabilities.
           - Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sec:selecting-between-candidates.
 
@@ -14,7 +14,7 @@ org.slf4j:log4j-over-slf4j:1.7.10 FAILED
    Failures:
       - Could not resolve org.slf4j:log4j-over-slf4j:1.7.10.
           - Module 'org.slf4j:log4j-over-slf4j' has been rejected:
-               Cannot select module with conflict on capability 'log4j:log4j:1.7.10' also provided by ['log4j:log4j:1.2.16' (compile)]
+               Cannot select module because of conflict with log4j:log4j:1.2.16 (compile). All provide capability 'log4j:log4j:1.7.10'.
           - Capability conflicts are explained in more detail at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sub:capabilities.
           - Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sec:selecting-between-candidates.
 

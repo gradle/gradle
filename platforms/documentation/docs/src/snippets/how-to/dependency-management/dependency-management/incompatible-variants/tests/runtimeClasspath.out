@@ -31,12 +31,12 @@ project ':producer'
    Failures:
       - Could not resolve project ':producer'.
           - Module 'org.gradle.demo:producer' has been rejected:
-               Cannot select module with conflict on capability 'org.gradle.demo:producer-db-support:1.0' also provided by ['project ':producer'' (postgresSupportRuntimeElements)]
+               Cannot select module because of conflict with project ':producer' (postgresSupportRuntimeElements). All provide capability 'org.gradle.demo:producer-db-support:1.0'.
           - Capability conflicts are explained in more detail at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sub:capabilities.
           - Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sec:selecting-between-candidates.
       - Could not resolve project ':producer'.
           - Module 'org.gradle.demo:producer' has been rejected:
-               Cannot select module with conflict on capability 'org.gradle.demo:producer-db-support:1.0' also provided by ['project ':producer'' (mysqlSupportRuntimeElements)]
+               Cannot select module because of conflict with project ':producer' (mysqlSupportRuntimeElements). All provide capability 'org.gradle.demo:producer-db-support:1.0'.
           - Capability conflicts are explained in more detail at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sub:capabilities.
           - Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/0.0.0/userguide/component_capabilities.html#sec:selecting-between-candidates.
 

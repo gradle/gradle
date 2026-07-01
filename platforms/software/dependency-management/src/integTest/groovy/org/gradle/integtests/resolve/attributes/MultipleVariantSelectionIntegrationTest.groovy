@@ -195,9 +195,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:test:1.0 (runtime). All provide capability 'org:test:1.0'.""")
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (api)]""")
+   Cannot select module because of conflict with org:test:1.0 (api). All provide capability 'org:test:1.0'.""")
     }
 
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
@@ -336,9 +336,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:test:1.0 (runtime). All provide capability 'org.test:cap:1.0'.""")
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api)]""")
+   Cannot select module because of conflict with org:test:1.0 (api). All provide capability 'org.test:cap:1.0'.""")
     }
 
     def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {
@@ -581,9 +581,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (runtime)]""")
+   Cannot select module because of conflict with org:foo:1.1 (runtime). All provide capability 'org:foo:1.1'.""")
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (api)]""")
+   Cannot select module because of conflict with org:foo:1.1 (api). All provide capability 'org:foo:1.1'.""")
     }
 
     def "selects a single variant of the same component when asking for a consumer specific attribute"() {
@@ -747,9 +747,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.0' also provided by ['org:bar:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:bar:1.0 (runtime). All provide capability 'org:foo:1.0'.""")
         failure.assertHasCause("""Module 'org:bar' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.0' also provided by ['org:foo:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:foo:1.0 (runtime). All provide capability 'org:foo:1.0'.""")
     }
 
     def "detects conflicts between 2 variants of 2 different components with the same capability"() {
@@ -796,9 +796,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:blah:1.0' also provided by ['org:bar:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:bar:1.0 (runtime). All provide capability 'org:blah:1.0'.""")
         failure.assertHasCause("""Module 'org:bar' has been rejected:
-   Cannot select module with conflict on capability 'org:blah:1.0' also provided by ['org:foo:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:foo:1.0 (runtime). All provide capability 'org:blah:1.0'.""")
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/8386")

@@ -55,9 +55,9 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib:3.2.5' (runtime)]""")
+   Cannot select module because of conflict with cglib:cglib:3.2.5 (runtime). All provide capability 'cglib:cglib:3.2.5'.""")
         failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib-nodep:3.2.5' (runtime)]""")
+   Cannot select module because of conflict with cglib:cglib-nodep:3.2.5 (runtime). All provide capability 'cglib:cglib:3.2.5'.""")
     }
 
     def "can detect conflict with capability in different versions and upgrade to latest version (#rule)"() {
@@ -147,7 +147,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project 'test'' (conf)]""")
+   Cannot select module because of conflict with root project 'test' (conf). All provide capability 'org:capability:1.0'.""")
     }
 
     /**
@@ -191,9 +191,9 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause("""Module 'org:testA' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:testB:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:testB:1.0 (runtime). All provide capability 'org.test:cap:1.0'.""")
         failure.assertHasCause("""Module 'org:testB' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:testA:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:testA:1.0 (runtime). All provide capability 'org.test:cap:1.0'.""")
     }
 
     def "considers all candidates for conflict resolution"() {

@@ -108,7 +108,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 variant = 'default'
             }
             failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib:3.2.5' ($variant)]""")
+   Cannot select module because of conflict with cglib:cglib:3.2.5 ($variant). All provide capability 'cglib:cglib:3.2.5'.""")
         }
 
         where:
@@ -223,11 +223,11 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 variant = 'default'
             }
             failure.assertHasCause("""Module 'org.apache:groovy' has been rejected:
-   Cannot select module with conflict on capability 'org.apache:groovy:1.0' also provided by ['org.apache:groovy-all:1.0' ($variant)]""")
+   Cannot select module because of conflict with org.apache:groovy-all:1.0 ($variant). All provide capability 'org.apache:groovy:1.0'.""")
             failure.assertHasCause("""Module 'org.apache:groovy-json' has been rejected:
-   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by ['org.apache:groovy-all:1.0' ($variant)]""")
+   Cannot select module because of conflict with org.apache:groovy-all:1.0 ($variant). All provide capability 'org.apache:groovy-json:1.0'.""")
             failure.assertHasCause("""Module 'org.apache:groovy-all' has been rejected:
-   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by ['org.apache:groovy-json:1.0' ($variant)]""")
+   Cannot select module because of conflict with org.apache:groovy-json:1.0 ($variant). All provide capability 'org.apache:groovy-json:1.0'.""")
         }
 
         where:
@@ -346,11 +346,11 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 variant = 'default'
             }
             failure.assertHasCause("""Module 'org.apache:groovy' has been rejected:
-   Cannot select module with conflict on capability 'org.apache:groovy:1.0' also provided by ['org.apache:groovy-all:1.0' ($variant)]""")
+   Cannot select module because of conflict with org.apache:groovy-all:1.0 ($variant). All provide capability 'org.apache:groovy:1.0'.""")
             failure.assertHasCause("""Module 'org.apache:groovy-json' has been rejected:
-   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by ['org.apache:groovy-all:1.0' ($variant)]""")
+   Cannot select module because of conflict with org.apache:groovy-all:1.0 ($variant). All provide capability 'org.apache:groovy-json:1.0'.""")
             failure.assertHasCause("""Module 'org.apache:groovy-all' has been rejected:
-   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by ['org.apache:groovy-json:1.0' ($variant)]""")
+   Cannot select module because of conflict with org.apache:groovy-json:1.0 ($variant). All provide capability 'org.apache:groovy-json:1.0'.""")
         }
 
         where:
@@ -496,9 +496,9 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             }
         } else {
             failure.assertHasCause("""Module 'org:testA' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:testB:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:testB:1.0 (runtime). All provide capability 'org.test:cap:1.0'.""")
             failure.assertHasCause("""Module 'org:testB' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:testA:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:testA:1.0 (runtime). All provide capability 'org.test:cap:1.0'.""")
         }
 
         where:
