@@ -1084,11 +1084,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter) {
-            applyServiceInjectionToGetter(property, null, getter);
-        }
-
-        @Override
-        public void applyServiceInjectionToGetter(PropertyMetadata property, @Nullable final Class<? extends Annotation> annotation, MethodMetadata getter) {
             // GENERATE public <type> <getter>() { if (<field> == null) { <field> = <services>>.get(<service-type>>); } return <field> }
             final String getterName = getter.getName();
             Type returnType = getType(getter.getReturnType());
@@ -1111,14 +1106,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _GETSTATIC(generatedType, constantFieldName, JAVA_REFLECT_TYPE_DESCRIPTOR);
                 }
 
-                if (annotation == null) {
-                    // get(<type>)
-                    _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", RETURN_OBJECT_FROM_TYPE);
-                } else {
-                    // get(<type>, <annotation>)
-                    _LDC(getType(annotation));
-                    _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE, CLASS_TYPE));
-                }
+                // get(<type>)
+                _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", RETURN_OBJECT_FROM_TYPE);
 
                 // (<type>)<service>
                 _CHECKCAST(serviceType);
@@ -1141,11 +1130,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             } else {
                 return BytecodeFragment.NO_OP;
             }
-        }
-
-        @Override
-        public void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter) {
-            applyServiceInjectionToSetter(property, setter);
         }
 
         private String getConstantNameForGenericReturnType(java.lang.reflect.Type genericReturnType, String getterName) {
@@ -1977,14 +1961,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyServiceInjectionToSetter(PropertyMetadata property, Method setter) {
-        }
-
-        @Override
-        public void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter) {
-        }
-
-        @Override
-        public void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter) {
         }
 
         @Override
