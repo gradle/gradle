@@ -87,13 +87,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
             String specPropertyName = specPropertyNameBuilder.toString();
 
-            TaskInputFilePropertyBuilder source = getInputs().files((Callable<FileTree>) resolver::getSource)
+            getInputs().files((Callable<FileTree>) resolver::getSource)
                 .withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
-                .ignoreEmptyDirectories(false);
-            if (skipWhenSourceIsEmpty()) {
-                source.skipWhenEmpty();
-            }
+                .ignoreEmptyDirectories(false)
+                .skipWhenEmpty(skipWhenSourceIsEmpty());
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
