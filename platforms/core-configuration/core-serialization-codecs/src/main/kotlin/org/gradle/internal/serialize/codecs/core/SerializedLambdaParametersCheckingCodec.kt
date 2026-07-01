@@ -22,6 +22,7 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.WideningCodec
 import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
 import org.gradle.internal.serialize.graph.logUnsupported
 import org.gradle.internal.serialize.graph.withPropertyTrace
@@ -37,10 +38,10 @@ import kotlin.reflect.KClass
  * If some of them are not, it logs a problem.
  *
  * The lambda is encoded straightforwardly as a bean, and, upon decoding, the bean is expected to be the [SerializedLambda].
- * Beside the compliance checks, the values are encoded or decoded as beans without any special handling.
+ * Besides the compliance checks, the values are encoded or decoded as beans without any special handling.
  *
  * Dispatches through [WideningCodec] registrations to determine which parameter types
- * cannot survive a configuration cache roundtrip — keeping the codec interface as the
+ * cannot survive a configuration cache round-trip — keeping the codec interface as the
  * single source of truth for unsupported value-type semantics.
  */
 object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
