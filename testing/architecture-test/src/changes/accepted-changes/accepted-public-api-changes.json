@@ -21,6 +21,30 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt.embeddedKotlin(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String)",
+            "acceptation": "Fix #12172: return Dependency from DependencyHandler.embeddedKotlin to support dependencyConfiguration overloads",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt.kotlin$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,int,java.lang.Object)",
+            "acceptation": "Fix #12172: return Dependency from DependencyHandler.kotlin to support dependencyConfiguration overloads",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt.kotlin(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String)",
+            "acceptation": "Fix #12172: return Dependency from DependencyHandler.kotlin to support dependencyConfiguration overloads",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }
