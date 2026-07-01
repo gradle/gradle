@@ -238,6 +238,47 @@ System.out.println("CLASSPATH: " + System.getenv("CLASSPATH"));
         outputContains('CLASSPATH: \n')
     }
 
+    @Requires(OsTestPreconditions.Windows)
+    @Issue("https://github.com/gradle/gradle/issues/38082")
+    def "Windows start script fails cleanly when JAVA_HOME is invalid"() {
+        given:
+        def startScriptDir = file('build/install/sample/bin')
+        def outputFile = file('script-output.txt')
+        def invalidJavaHome = file('invalid-java-home')
+
+        when:
+        succeeds('installDist')
+        runViaWindowsStartScript(startScriptDir, [JAVA_OPTS: '', JAVA_HOME: invalidJavaHome.canonicalPath], outputFile)
+
+        then:
+        def scriptOutput = outputFile.text
+        scriptOutput.contains('ERROR: JAVA_HOME is set to an invalid directory')
+        // The script must stop after the error rather than falling through to :execute and
+        // trying to launch the missing java.exe, which prints "cannot find the path/file
+        // specified".
+        !scriptOutput.contains('cannot find the')
+    }
+
+    @Requires(OsTestPreconditions.Windows)
+    @Issue("https://github.com/gradle/gradle/issues/38082")
+    def "Windows start script fails cleanly when no 'java' command can be found"() {
+        given:
+        def startScriptDir = file('build/install/sample/bin')
+        def outputFile = file('script-output.txt')
+
+        when:
+        succeeds('installDist')
+        runViaWindowsStartScript(startScriptDir, [JAVA_OPTS: '', JAVA_HOME: '', PATH: ''], outputFile)
+
+        then:
+        def scriptOutput = outputFile.text
+        scriptOutput.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH")
+        // The script must stop here, not fall through to :findJavaFromJavaHome (which would print
+        // the invalid-directory message) and then :execute.
+        !scriptOutput.contains('ERROR: JAVA_HOME is set to an invalid directory')
+        !scriptOutput.contains('cannot find the')
+    }
+
     ExecutionResult runViaUnixStartScript(TestFile startScriptDir) {
         buildFile << """
 task execStartScript(type: Exec) {
@@ -263,16 +304,34 @@ task execStartScript(type: Exec) {
         return succeeds('execStartScript')
     }
 
-    ExecutionResult runViaWindowsStartScript(TestFile startScriptDir) {
-        String escapedStartScriptDir = startScriptDir.canonicalPath.replaceAll('\\\\', '\\\\\\\\')
-        buildFile << """
-task execStartScript(type: Exec) {
-    workingDir '$escapedStartScriptDir'
-    commandLine 'cmd.exe', '/d', '/c', 'sample.bat'
-    environment JAVA_OPTS: ''
-}
-"""
+    ExecutionResult runViaWindowsStartScript(TestFile startScriptDir, Map<String, String> environment = [JAVA_OPTS: ''], TestFile outputFile = null) {
+        String envLines = environment.collect { name, value ->
+            value.isEmpty()
+                ? "environment.keySet().removeIf { it.equalsIgnoreCase('${name}') }"
+                : "environment '${name}', '${escapeForGroovy(value)}'"
+        }.join('\n')
+        // When an output file is given we expect a possibly non-zero exit, so ignore it and
+        // redirect the script's combined output to a file the test can read back.
+        String captureLines = outputFile == null ? '' :
+            """
+            ignoreExitValue = true
+            standardOutput = new FileOutputStream(file('${outputFile.name}'))
+            errorOutput = standardOutput
+            """
+        buildFile <<
+            """
+            task execStartScript(type: Exec) {
+                workingDir '${escapeForGroovy(startScriptDir.canonicalPath)}'
+                commandLine System.getenv('ComSpec'), '/d', '/c', 'sample.bat'
+                $envLines
+                $captureLines
+            }
+            """
         return succeeds('execStartScript')
+    }
+
+    private static String escapeForGroovy(String path) {
+        return path.replaceAll('\\\\', '\\\\\\\\')
     }
 
     def "compile only dependencies are not included in distribution"() {
