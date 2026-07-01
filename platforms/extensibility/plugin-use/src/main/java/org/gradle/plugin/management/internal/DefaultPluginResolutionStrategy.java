@@ -16,10 +16,12 @@
 
 package org.gradle.plugin.management.internal;
 
+import kotlin.Unit;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
 import org.gradle.plugin.use.PluginId;
@@ -31,9 +33,11 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
     private final Map<PluginId, String> pluginVersions = new HashMap<>();
-    private boolean locked;
+    private final IsolatedProjectsProblemsReporter problems;
+    private volatile boolean locked;
 
-    public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
+    public DefaultPluginResolutionStrategy(ListenerManager listenerManager, IsolatedProjectsProblemsReporter problems) {
+        this.problems = problems;
         listenerManager.addListener(new InternalBuildAdapter(){
             @Override
             public void projectsLoaded(Gradle gradle) {
@@ -65,6 +69,19 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
 
     @Override
     public void setDefaultPluginVersion(PluginId id, String version) {
+        if (locked) {
+            problems.report(factory ->
+                factory.problem(null, messageBuilder -> {
+                    messageBuilder
+                        .text("Cannot set a default plugin version after projects have been loaded ")
+                        .text("when Isolated Projects is enabled. The default version for plugin ")
+                        .reference(id.toString())
+                        .text(" was set too late.");
+                    return Unit.INSTANCE;
+                }).exception().build()
+            );
+            return;
+        }
         String existing = pluginVersions.get(id);
         if (existing != null && !existing.equals(version)) {
             throw new IllegalArgumentException("Cannot provide multiple default versions for the same plugin.");

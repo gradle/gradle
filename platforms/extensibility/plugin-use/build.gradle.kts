@@ -6,6 +6,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.classloaders)
+    api(projects.configurationProblemsBase)
     api(projects.coreApi)
     api(projects.core)
     api(projects.dependencyManagement)
@@ -29,6 +30,7 @@ dependencies {
     implementation(projects.jvmServices)
     implementation(projects.startParameter)
 
+    implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.resourcesHttp))
