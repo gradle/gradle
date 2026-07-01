@@ -155,6 +155,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             equal(contextualLabel, that.contextualLabel) &&
             equal(solutions, that.solutions) &&
             equal(originLocations, that.originLocations) &&
+            equal(contextualLocations, that.contextualLocations) &&
             equal(details, that.details) &&
             equal(exception, that.exception) &&
             equal(additionalData, that.additionalData) &&
@@ -163,7 +164,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData, writtenToConsole);
+        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, details, exception, additionalData, writtenToConsole);
     }
 
     @Override
