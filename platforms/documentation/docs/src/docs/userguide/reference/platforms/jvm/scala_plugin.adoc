@@ -28,8 +28,8 @@ Note that if you want to benefit from the <<java_library_plugin.adoc#sec:java_li
 To use the Scala plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:scala_tasks]]
@@ -107,8 +107,8 @@ Scala source files for the given source set. May also contain Java source files 
 Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test source files.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
-include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaCustomizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaCustomizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
 ====
 
 [[sec:scala_version]]
@@ -121,8 +121,8 @@ The `scalaToolchainRuntimeClasspath` configuration resolves the dependencies dec
 NOTE: Direct dependencies on the Scala SDK do not need to be declared when the `scalaVersion` property is set.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=scala-version]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=scala-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/kotlin",files="build.gradle.kts[tags=scala-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/groovy",files="build.gradle[tags=scala-version]"]
 ====
 
 Configuring Gradle to use Scala 3 is no different from Scala 2.
@@ -144,8 +144,8 @@ Omitting the Scala version from the `scala` extension will be deprecated in a fu
 Scala 2 projects need to declare a `scala-library` dependency.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
 ====
 
 Scala 3 projects need to declare a `scala3-library_3` dependency instead:

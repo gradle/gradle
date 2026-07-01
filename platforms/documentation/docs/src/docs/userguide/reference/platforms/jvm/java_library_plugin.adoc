@@ -25,8 +25,8 @@ All the source sets, tasks and configurations exposed by the Java plugin are imp
 To use the Java Library plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaLibraryQuickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaLibraryQuickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:java_library_separation]]
@@ -38,8 +38,8 @@ The plugin exposes two <<dependency_configurations.adoc#sub:what-are-dependency-
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaLibraryQuickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaLibraryQuickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile classpath of consumers. Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
