@@ -471,6 +471,23 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
++
+You can configure manifest attributes on a `Jar` task:
++
+====
+include::sample[dir="snippets/reference/platforms/jvm/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+include::sample[dir="snippets/reference/platforms/jvm/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+====
++
+Manifest attribute values are evaluated lazily when the manifest is written.
+In the example above, `archiveVersion` and `buildCommit` are resolved only when the `jar` task generates the manifest.
++
+You can also create a standalone `Manifest` instance with the `java` extension and share it between JARs:
++
+====
+include::sample[dir="snippets/reference/platforms/jvm/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+include::sample[dir="snippets/reference/platforms/jvm/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+====
 
 [[sec:java_test]]
 == Testing

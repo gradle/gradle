@@ -1,18 +1,32 @@
+import java.util.jar.JarFile
+
 plugins {
     java
 }
 version = "1.0"
 
 // tag::add-to-manifest[]
+val buildCommit = providers.gradleProperty("buildCommit").orElse("unspecified")
+
 tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "Gradle",
-            "Implementation-Version" to archiveVersion
+            "Implementation-Version" to archiveVersion,
+            "Build-Commit" to buildCommit
         )
     }
 }
 // end::add-to-manifest[]
+
+tasks.register("printManifestAttribute") {
+    dependsOn(tasks.jar)
+    doLast {
+        JarFile(tasks.jar.get().archiveFile.get().asFile).use { jarFile ->
+            logger.quiet(jarFile.manifest.mainAttributes.getValue("Build-Commit"))
+        }
+    }
+}
 
 // tag::custom-manifest[]
 val sharedManifest = java.manifest {

@@ -484,6 +484,9 @@ include::sample[dir="snippets/reference/platforms/jvm/manifest/kotlin",files="bu
 include::sample[dir="snippets/reference/platforms/jvm/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
 ====
 
+Manifest attribute values are evaluated lazily when the manifest is written.
+In the example above, `archiveVersion` and `buildCommit` are resolved only when the `jar` task generates the manifest.
+
 See link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] for the configuration options it provides.
 
 You can also create standalone instances of `Manifest`. One reason for doing so is to share manifest information between JARs. The following example demonstrates how to share common attributes between JARs:
