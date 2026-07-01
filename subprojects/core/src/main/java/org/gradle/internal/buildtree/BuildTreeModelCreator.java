@@ -25,8 +25,8 @@ import org.jspecify.annotations.Nullable;
  * observed. They must still fail the build, even though partial models were returned to the client.
  */
 public interface BuildTreeModelCreator {
-    <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures);
+    <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures);
 
     @Nullable
-    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures);
+    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures);
 }

@@ -82,7 +82,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             // Failures that resilient model building holds behind partial results are collected here as they happen.
-            ResilientFailureCollector failures = new ResilientFailureCollector();
+            ResilientBuildTreeFailureCollector failures = new ResilientBuildTreeFailureCollector();
             modelCreator.beforeTasks(action, failures);
             ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
             // Allow the model action to run even if tasks failed
@@ -93,7 +93,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         });
     }
 
-    private static <T> ExecutionResult<T> failBuildWith(ExecutionResult<T> workResult, ResilientFailureCollector failures) {
+    private static <T> ExecutionResult<T> failBuildWith(ExecutionResult<T> workResult, ResilientBuildTreeFailureCollector failures) {
         // A model builder failure is only ever observed here, so it always fails the build.
         ExecutionResult<T> result = workResult.withFailures(ExecutionResult.maybeFailed(failures.getModelBuilderFailures()));
 
@@ -110,7 +110,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @SuppressWarnings("DataFlowIssue")
-    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures) {
+    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures) {
         Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action, failures));
         return model.getFailure().isPresent()
             ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))

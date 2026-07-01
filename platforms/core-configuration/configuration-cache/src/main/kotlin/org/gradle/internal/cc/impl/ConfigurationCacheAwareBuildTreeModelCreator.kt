@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
-import org.gradle.internal.buildtree.ResilientFailureCollector
+import org.gradle.internal.buildtree.ResilientBuildTreeFailureCollector
 import org.gradle.internal.cc.impl.models.BuildTreeModel
 
 
@@ -26,13 +26,13 @@ class ConfigurationCacheAwareBuildTreeModelCreator(
     private val delegate: BuildTreeModelCreator,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeModelCreator {
-    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>, failures: ResilientFailureCollector) {
+    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>, failures: ResilientBuildTreeFailureCollector) {
         cache.maybePrepareModel {
             delegate.beforeTasks(action, failures)
         }
     }
 
-    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>, failures: ResilientFailureCollector): T? {
+    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>, failures: ResilientBuildTreeFailureCollector): T? {
         return cache.loadOrCreateModel {
             val model = delegate.fromBuildModel(action, failures)
             if (model == null) BuildTreeModel.NullModel else BuildTreeModel.Model(model)

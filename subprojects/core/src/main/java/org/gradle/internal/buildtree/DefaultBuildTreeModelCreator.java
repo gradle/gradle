@@ -59,19 +59,19 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     }
 
     @Override
-    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures) {
+    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures) {
         action.beforeTasks(new DefaultBuildTreeModelController(failures));
     }
 
     @Override
-    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientFailureCollector failures) {
+    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, ResilientBuildTreeFailureCollector failures) {
         return action.fromBuildModel(new DefaultBuildTreeModelController(failures));
     }
 
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
-        private final ResilientFailureCollector failures;
+        private final ResilientBuildTreeFailureCollector failures;
 
-        public DefaultBuildTreeModelController(ResilientFailureCollector failures) {
+        public DefaultBuildTreeModelController(ResilientBuildTreeFailureCollector failures) {
             this.failures = failures;
         }
 
@@ -93,16 +93,9 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                         .map(parameterCarrierFactory::createCarrier)
                         .orElse(null);
                     ToolingModelScopeResult result = scope.getModel(modelRequestContext, parameter);
-                    // A failure held behind a partial result is reported here, at the build-tree model boundary, so
+                    // A failure held behind a partial result is collected here, at the build-tree model boundary, so
                     // the build still fails when it finishes, while the client result is returned unchanged.
-                    Throwable modelBuilderFailure = result.getModelBuilderFailure();
-                    if (modelBuilderFailure != null) {
-                        failures.addModelBuilderFailure(modelBuilderFailure);
-                    }
-                    Throwable configurationFailure = result.getConfigurationFailure();
-                    if (configurationFailure != null) {
-                        failures.addConfigurationFailure(configurationFailure);
-                    }
+                    failures.collectFrom(result);
                     return result.getClientResult();
                 }
 
