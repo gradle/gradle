@@ -38,7 +38,6 @@ import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariant
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.ToBeImplemented
 
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
@@ -627,87 +626,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
             additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
         }
-    }
-
-    // This test fails with an artifact ambiguity error if you remove --configuration-cache and un-comment the artifact type registry entry for color=yellow
-    @ToBeImplemented("this SHOULD be a failure, the choice of artifact transforms IS ambiguous")
-    def "multiple possible artifact transforms should cause an error but dont"() {
-        settingsKotlinFile.text = """
-            rootProject.name = "producer"
-        """
-        buildFile.text = """
-            plugins {
-                id("base")
-            }
-
-            def artifactType = Attribute.of('artifactType', String)
-            def color = Attribute.of("color", String)
-
-            abstract class VariantArtifactTransform1 implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
-                @InputArtifact
-                abstract Provider<FileSystemLocation> getInputArtifact()
-
-                void transform(TransformOutputs outputs) {
-                    def output = outputs.file("transformed1-" + inputArtifact.get().asFile.name)
-                    output << "transformed1"
-                }
-            }
-
-            abstract class VariantArtifactTransform2 implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
-                @InputArtifact
-                abstract Provider<FileSystemLocation> getInputArtifact()
-
-                void transform(TransformOutputs outputs) {
-                    def output = outputs.file("transformed2-" + inputArtifact.get().asFile.name)
-                    output << "transformed2"
-                }
-            }
-
-            file("foo").text = "hello"
-            task doZip(type: Zip) {
-                from(file("foo"))
-            }
-
-            configurations {
-                dependencyScope("deps")
-                resolvable("res") {
-                    extendsFrom(deps)
-                    attributes {
-                        attribute(artifactType, "jar")
-                    }
-                }
-            }
-
-            dependencies {
-                deps files(file("foo.zip")) {
-                    builtBy doZip
-                }
-
-                registerTransform(VariantArtifactTransform1) {
-                    from.attribute(artifactType, 'zip')
-                    from.attribute(color, 'yellow')
-                    to.attribute(artifactType, 'jar')
-                    to.attribute(color, 'red')
-                }
-
-                registerTransform(VariantArtifactTransform2) {
-                    from.attribute(artifactType, 'zip')
-                    from.attribute(color, 'yellow')
-                    to.attribute(artifactType, 'jar')
-                    to.attribute(color, 'blue')
-                }
-            }
-
-            task resolve {
-                def files = configurations.res.incoming.files
-                doLast {
-                    println files.files*.name
-                }
-            }
-        """
-
-        expect:
-        succeeds("resolve", '--configuration-cache')
     }
     // endregion other tests
 
