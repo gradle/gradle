@@ -37,7 +37,7 @@ public interface ToolingModelScope {
      * <p>
      * Can configure the target build or project to locate the corresponding model builder.
      *
-     * @return the created model (null is a valid model)
+     * @return the created model result, including any {@link ToolingModelScopeResult#getDeferredFailure() deferred build failure}
      */
-    ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter);
+    ToolingModelScopeResult getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter);
 }

@@ -26,6 +26,7 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -116,17 +117,15 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelScopeResult getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
             Object model = buildModelWithParameter(parameter);
-            if (!(model instanceof ToolingModelBuilderResultInternal)) {
-                return ToolingModelBuilderResultInternal.of(model);
-            }
-
-            ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
+            ToolingModelBuilderResultInternal clientResult = model instanceof ToolingModelBuilderResultInternal
+                ? (ToolingModelBuilderResultInternal) model
+                : ToolingModelBuilderResultInternal.of(model);
             if (!modelRequestContext.inResilientContext()) {
-                resultInternal.throwFailureIfPresent();
+                clientResult.throwFailureIfPresent();
             }
-            return resultInternal;
+            return ToolingModelScopeResult.of(clientResult);
         }
 
         private Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {

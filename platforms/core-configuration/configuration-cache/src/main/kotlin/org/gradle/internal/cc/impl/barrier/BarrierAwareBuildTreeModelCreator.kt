@@ -17,7 +17,7 @@ package org.gradle.internal.cc.impl.barrier
 
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
-import org.gradle.internal.buildtree.ResilientModelFailure
+import org.gradle.internal.buildtree.DeferredBuildFailure
 import java.util.function.Consumer
 
 /**
@@ -27,15 +27,15 @@ internal class BarrierAwareBuildTreeModelCreator(
     private val runner: VintageConfigurationTimeActionRunner,
     private val delegate: BuildTreeModelCreator
 ) : BuildTreeModelCreator {
-    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>, resilientFailureListener: Consumer<ResilientModelFailure>) {
+    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>, deferredFailureListener: Consumer<DeferredBuildFailure>) {
         runner.runConfigurationTimeAction {
-            delegate.beforeTasks(action, resilientFailureListener)
+            delegate.beforeTasks(action, deferredFailureListener)
         }
     }
 
-    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>, resilientFailureListener: Consumer<ResilientModelFailure>): T? {
+    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>, deferredFailureListener: Consumer<DeferredBuildFailure>): T? {
         return runner.runConfigurationTimeAction {
-            delegate.fromBuildModel(action, resilientFailureListener)
+            delegate.fromBuildModel(action, deferredFailureListener)
         }
     }
 }

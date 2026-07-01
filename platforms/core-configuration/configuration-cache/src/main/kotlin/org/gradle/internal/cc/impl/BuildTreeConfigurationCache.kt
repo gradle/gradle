@@ -22,8 +22,8 @@ import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.util.Path
 
 
@@ -65,8 +65,8 @@ interface BuildTreeConfigurationCache {
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult
 
     /**
      * Loads cached dependency resolution metadata for the given project, if available, or else runs the given function to create it and then writes the result to the cache.

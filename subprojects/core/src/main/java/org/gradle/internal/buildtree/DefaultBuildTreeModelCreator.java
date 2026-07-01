@@ -29,6 +29,7 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -59,20 +60,20 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     }
 
     @Override
-    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener) {
-        action.beforeTasks(new DefaultBuildTreeModelController(resilientFailureListener));
+    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener) {
+        action.beforeTasks(new DefaultBuildTreeModelController(deferredFailureListener));
     }
 
     @Override
-    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener) {
-        return action.fromBuildModel(new DefaultBuildTreeModelController(resilientFailureListener));
+    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener) {
+        return action.fromBuildModel(new DefaultBuildTreeModelController(deferredFailureListener));
     }
 
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
-        private final Consumer<ResilientModelFailure> resilientFailureListener;
+        private final Consumer<DeferredBuildFailure> deferredFailureListener;
 
-        public DefaultBuildTreeModelController(Consumer<ResilientModelFailure> resilientFailureListener) {
-            this.resilientFailureListener = resilientFailureListener;
+        public DefaultBuildTreeModelController(Consumer<DeferredBuildFailure> deferredFailureListener) {
+            this.deferredFailureListener = deferredFailureListener;
         }
 
         @Override
@@ -89,17 +90,17 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public ToolingModelBuilderResultInternal call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
-                    ToolingModelBuilderResultInternal result = scope.getModel(modelRequestContext,
+                    ToolingModelScopeResult result = scope.getModel(modelRequestContext,
                         modelRequestContext.getParameter()
                             .map(parameterCarrierFactory::createCarrier)
                             .orElse(null));
-                    // A failure hidden behind a partial result travels with it; report it here, at the build-tree
-                    // model boundary, so the build still fails when it finishes.
-                    ResilientModelFailure resilientFailure = result.getResilientFailure();
-                    if (resilientFailure != null) {
-                        resilientFailureListener.accept(resilientFailure);
+                    // A failure deferred behind a partial result is reported here, at the build-tree model boundary,
+                    // so the build still fails when it finishes, while the client result is returned unchanged.
+                    DeferredBuildFailure deferredFailure = result.getDeferredFailure();
+                    if (deferredFailure != null) {
+                        deferredFailureListener.accept(deferredFailure);
                     }
-                    return result;
+                    return result.getClientResult();
                 }
 
                 @Override

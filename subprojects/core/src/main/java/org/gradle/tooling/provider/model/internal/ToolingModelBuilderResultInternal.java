@@ -17,7 +17,6 @@
 package org.gradle.tooling.provider.model.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.buildtree.ResilientModelFailure;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
@@ -31,10 +30,6 @@ import java.util.List;
  * {@link ToolingModelBuilder} can optionally return a {@link ToolingModelBuilderResultInternal} instead of a raw model.
  * {@link ToolingModelBuilderResultInternal} is then unpacked before the model is returned to the client.
  * <p>
- * A partial result produced by resilient model building can also carry a {@link #getResilientFailure() resilient
- * failure}: a failure that was hidden from the client but must still fail the build once model building finishes.
- * Carrying it with the result keeps the data-flow explicit in the types instead of in shared state.
- * <p>
  * <strong>This class is intentionally not {@code Serializable}</strong>. It must not travel over the Tooling API serialization boundary.
  */
 @NullMarked
@@ -43,13 +38,10 @@ public class ToolingModelBuilderResultInternal {
     @Nullable
     private final Object model;
     private final List<Failure> failures;
-    @Nullable
-    private final ResilientModelFailure resilientFailure;
 
-    private ToolingModelBuilderResultInternal(@Nullable Object model, List<Failure> failures, @Nullable ResilientModelFailure resilientFailure) {
+    private ToolingModelBuilderResultInternal(@Nullable Object model, List<Failure> failures) {
         this.model = model;
         this.failures = failures;
-        this.resilientFailure = resilientFailure;
     }
 
     public void throwFailureIfPresent() {
@@ -72,21 +64,6 @@ public class ToolingModelBuilderResultInternal {
         return failures;
     }
 
-    /**
-     * A failure hidden behind this partial result that must still fail the build, or {@code null} if there is none.
-     */
-    @Nullable
-    public ResilientModelFailure getResilientFailure() {
-        return resilientFailure;
-    }
-
-    /**
-     * Returns a copy of this result that also carries the given resilient failure.
-     */
-    public ToolingModelBuilderResultInternal withResilientFailure(ResilientModelFailure resilientFailure) {
-        return new ToolingModelBuilderResultInternal(model, failures, resilientFailure);
-    }
-
     public static ToolingModelBuilderResultInternal attachFailures(@Nullable Object model, List<Failure> additionalFailures) {
         if (model instanceof ToolingModelBuilderResultInternal) {
             ToolingModelBuilderResultInternal result = (ToolingModelBuilderResultInternal) model;
@@ -94,20 +71,20 @@ public class ToolingModelBuilderResultInternal {
                 .addAll(additionalFailures)
                 .addAll(result.getFailures())
                 .build();
-            return new ToolingModelBuilderResultInternal(result.getModel(), merged, result.resilientFailure);
+            return of(result.getModel(), merged);
         }
         return of(model, ImmutableList.copyOf(additionalFailures));
     }
 
     public static ToolingModelBuilderResultInternal of(@Nullable Object model) {
-        return new ToolingModelBuilderResultInternal(model, ImmutableList.of(), null);
+        return new ToolingModelBuilderResultInternal(model, ImmutableList.of());
     }
 
     public static ToolingModelBuilderResultInternal of(@Nullable Object model, List<Failure> failures) {
-        return new ToolingModelBuilderResultInternal(model, ImmutableList.copyOf(failures), null);
+        return new ToolingModelBuilderResultInternal(model, ImmutableList.copyOf(failures));
     }
 
     public static ToolingModelBuilderResultInternal of(List<Failure> failures) {
-        return new ToolingModelBuilderResultInternal(null, ImmutableList.copyOf(failures), null);
+        return new ToolingModelBuilderResultInternal(null, ImmutableList.copyOf(failures));
     }
 }

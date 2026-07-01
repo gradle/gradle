@@ -19,16 +19,17 @@ package org.gradle.internal.buildtree;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * A failure that resilient model building hid behind a partial model result returned to the client. It travels back
- * with that result so the build can still fail once model building finishes. See {@link BuildTreeModelCreator}.
+ * A build failure that resilient model building did not throw straight away, so that a partial model could still be
+ * returned to the client. It is collected while models are built and reported when the build finishes, so the build
+ * still fails.
  */
 @NullMarked
-public final class ResilientModelFailure {
+public final class DeferredBuildFailure {
 
     private final Throwable failure;
     private final boolean configurationFailure;
 
-    private ResilientModelFailure(Throwable failure, boolean configurationFailure) {
+    private DeferredBuildFailure(Throwable failure, boolean configurationFailure) {
         this.failure = failure;
         this.configurationFailure = configurationFailure;
     }
@@ -36,15 +37,15 @@ public final class ResilientModelFailure {
     /**
      * A tooling model builder threw after its target project had configured successfully.
      */
-    public static ResilientModelFailure ofModelBuilder(Throwable failure) {
-        return new ResilientModelFailure(failure, false);
+    public static DeferredBuildFailure ofModelBuilder(Throwable failure) {
+        return new DeferredBuildFailure(failure, false);
     }
 
     /**
      * A project or the build itself failed to configure.
      */
-    public static ResilientModelFailure ofConfiguration(Throwable failure) {
-        return new ResilientModelFailure(failure, true);
+    public static DeferredBuildFailure ofConfiguration(Throwable failure) {
+        return new DeferredBuildFailure(failure, true);
     }
 
     public Throwable getFailure() {

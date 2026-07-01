@@ -27,8 +27,8 @@ import java.util.function.Consumer;
  * observed. They must still fail the build, even though partial models were returned to the client.
  */
 public interface BuildTreeModelCreator {
-    <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener);
+    <T> void beforeTasks(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener);
 
     @Nullable
-    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<ResilientModelFailure> resilientFailureListener);
+    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action, Consumer<DeferredBuildFailure> deferredFailureListener);
 }

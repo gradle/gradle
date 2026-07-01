@@ -75,7 +75,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
@@ -331,8 +331,8 @@ class DefaultConfigurationCache internal constructor(
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal {
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult {
         return intermediateModels.loadOrCreateIntermediateModel(project, modelRequestContext, parameter, creator)
     }
 
