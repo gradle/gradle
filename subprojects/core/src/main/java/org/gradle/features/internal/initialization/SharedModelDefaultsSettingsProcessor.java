@@ -21,9 +21,9 @@ import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.SettingsLocation;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.SettingsState;
+import org.gradle.internal.initialization.BuildLocation;
 
 public class SharedModelDefaultsSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor delegate;
@@ -33,8 +33,8 @@ public class SharedModelDefaultsSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameterInternal startParameter) {
-        SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+    public SettingsState process(GradleInternal gradle, BuildLocation buildLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameterInternal startParameter) {
+        SettingsState state = delegate.process(gradle, buildLocation, buildRootClassLoaderScope, startParameter);
         SettingsInternal settings = state.getSettings();
         ((SharedModelDefaultsInternal)settings.getDefaults()).processRegistrations();
         return state;

@@ -21,10 +21,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildTreeServices;
+import org.gradle.internal.initialization.BuildLocation;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -148,7 +148,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
 
     @Override
     public File getBuildRootDir() {
-        return getBuildServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildServices().get(BuildLocation.class).getBuildRootDirectory();
     }
 
     @Override

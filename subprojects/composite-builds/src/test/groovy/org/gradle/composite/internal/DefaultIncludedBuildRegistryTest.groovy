@@ -24,7 +24,6 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
@@ -41,6 +40,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeServices
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exception.ExceptionAnalyser
+import org.gradle.internal.initialization.BuildLocation
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -105,15 +105,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildController = buildController()
         services.add(buildController)
         def rootDir = tmpDir.createDir("root")
-        def rootBuildLayout = Mock(BuildLayout) {
-            rootDirectory >> rootDir
+        def rootBuildLocation = Mock(BuildLocation) {
+            buildRootDirectory >> rootDir
         }
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        1 * buildLayoutFactory.getLayoutFor(_) >> rootBuildLayout
+        1 * buildLayoutFactory.locationFor(_) >> rootBuildLocation
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild
         }
@@ -349,15 +349,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     private BuildLifecycleController buildController(SettingsInternal settings, GradleInternal gradle) {
         def buildController = Stub(BuildLifecycleController)
         def services = Stub(ServiceRegistry)
-        def buildLayout = Stub(BuildLayout)
+        def buildLocation = Stub(BuildLocation)
 
         _ * buildController.gradle >> gradle
         if (settings != null) {
             _ * gradle.settings >> settings
         }
         _ * gradle.services >> services
-        _ * services.get(BuildLayout) >> buildLayout
-        _ * buildLayout.rootDirectory >> tmpDir.file("root-dir")
+        _ * services.get(BuildLocation) >> buildLocation
+        _ * buildLocation.buildRootDirectory >> tmpDir.file("root-dir")
         _ * services.get(PublicBuildPath) >> Stub(PublicBuildPath)
 
         return buildController

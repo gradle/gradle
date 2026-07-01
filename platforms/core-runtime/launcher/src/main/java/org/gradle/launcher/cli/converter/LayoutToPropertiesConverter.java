@@ -20,12 +20,12 @@ import org.gradle.api.Project;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.initialization.BuildLocation;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
@@ -89,13 +89,13 @@ public class LayoutToPropertiesConverter {
     }
 
     private void configureFromBuildDir(BuildLayoutResult layoutResult, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
+        BuildLocation buildLocation = buildLayoutFactory.locationFor(layoutResult.toLayoutConfiguration());
+        maybeConfigureFrom(new File(buildLocation.getBuildRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
     private void configureFromDaemonJVMProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        configureFrom(new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
+        BuildLocation buildLocation = buildLayoutFactory.locationFor(layoutResult.toLayoutConfiguration());
+        configureFrom(new File(buildLocation.getBuildRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
     }
 
     private void configureFrom(File propertiesFile, Map<String, String> result) {

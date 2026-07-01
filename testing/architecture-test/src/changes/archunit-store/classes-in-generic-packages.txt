@@ -260,4 +260,5 @@ Class <org.gradle.internal.Transformers> is in a generic package in (Transformer
 Class <org.gradle.internal.TriAction> is in a generic package in (TriAction.java:0)
 Class <org.gradle.internal.Try> is in a generic package in (Try.java:0)
 Class <org.gradle.internal.UncheckedException> is in a generic package in (UncheckedException.java:0)
+Class <org.gradle.internal.initialization.BuildLocation> is in a generic package in (BuildLocation.java:0)
 Class <org.gradle.internal.initialization.BuildLogicFiles> is in a generic package in (BuildLogicFiles.java:0)
