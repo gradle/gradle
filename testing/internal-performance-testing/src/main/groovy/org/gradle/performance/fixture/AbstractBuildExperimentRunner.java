@@ -32,6 +32,7 @@ import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.ScenarioDefinition;
+import org.gradle.profiler.gradle.GradleBuildInvocationResult;
 import org.gradle.profiler.report.Format;
 import org.gradle.profiler.result.BuildInvocationResult;
 
@@ -194,6 +195,9 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             if (currentIteration > scenarioDefinition.getWarmUpCount()) {
                 MeasuredOperation measuredOperation = new MeasuredOperation();
                 measuredOperation.setTotalTime(Duration.millis(invocationResult.getExecutionTime().toMillis()));
+                if (invocationResult instanceof GradleBuildInvocationResult gradleResult) {
+                    measuredOperation.setBuildOperationData(gradleResult.getBuildOperationExecutionData());
+                }
                 results.add(measuredOperation);
             }
             scenarioReporter.accept(invocationResult);

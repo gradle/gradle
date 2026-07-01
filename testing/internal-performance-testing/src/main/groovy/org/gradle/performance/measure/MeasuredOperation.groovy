@@ -18,10 +18,13 @@ package org.gradle.performance.measure
 
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
+import org.gradle.profiler.buildops.BuildOperationExecutionData
+import org.gradle.profiler.buildops.BuildOperationMeasurement
 
 @ToString(includeNames = true)
 @CompileStatic
 class MeasuredOperation {
     Amount<Duration> totalTime
+    Map<BuildOperationMeasurement, BuildOperationExecutionData> buildOperationData = [:]
     Exception exception
 }
