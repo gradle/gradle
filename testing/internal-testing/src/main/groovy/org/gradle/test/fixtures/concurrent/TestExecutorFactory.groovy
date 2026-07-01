@@ -36,6 +36,11 @@ class TestExecutorFactory implements ExecutorFactory {
     }
 
     @Override
+    ManagedExecutor createDaemon(String displayName) {
+        return new TestManagedExecutor(executor)
+    }
+
+    @Override
     ManagedExecutor create(String displayName, int fixedSize) {
         // Ignores size of thread pool
         return new TestManagedExecutor(executor)

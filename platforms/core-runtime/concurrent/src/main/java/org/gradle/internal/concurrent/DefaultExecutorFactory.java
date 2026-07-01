@@ -63,6 +63,16 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     }
 
     @Override
+    public ManagedExecutor createDaemon(String displayName) {
+        ManagedExecutor executor = new TrackedManagedExecutor(
+            Executors.newCachedThreadPool(newDaemonThreadFactory(displayName)),
+            new ExecutorPolicy.CatchAndRecordFailures()
+        );
+        executors.add(executor);
+        return executor;
+    }
+
+    @Override
     public ManagedExecutor create(String displayName, int fixedSize) {
         TrackedManagedExecutor executor = new TrackedManagedExecutor(createExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
@@ -104,6 +114,10 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
 
     private ThreadFactory newThreadFactory(String displayName) {
         return new ThreadFactoryImpl(displayName, threadFactoryContextClassloader);
+    }
+
+    private ThreadFactory newDaemonThreadFactory(String displayName) {
+        return new ThreadFactoryImpl(displayName, threadFactoryContextClassloader, true);
     }
 
     private class TrackedManagedExecutor extends ManagedExecutorImpl {

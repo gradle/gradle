@@ -19,6 +19,7 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -26,6 +27,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.streams.StreamsHandler
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -40,6 +42,7 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import java.util.concurrent.RejectedExecutionException
 
 @UsesNativeServices
 @Timeout(60)
@@ -77,6 +80,40 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             assert it[0].class == ExecHandleShutdownHookAction
             true
         }
+    }
+
+    void "exec process threads are daemon so a wedged output forwarder cannot block JVM exit"() {
+        // A forwarder reading a process pipe held open by a reparented grandchild can park in an
+        // uninterruptible native read() that the JVM cannot unblock. Such threads must be daemon so
+        // they never prevent a worker JVM from exiting. Build the handle through the production
+        // factory path so the assertion covers the executor the real code uses.
+        given:
+        def factory = DefaultClientExecHandleBuilderFactory.of(
+            TestFiles.pathToFileResolver(),
+            new DefaultExecutorFactory(),
+            buildCancellationToken
+        )
+        def execHandle = factory.newExecHandleBuilder()
+            .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
+            .setTimeout(20000)
+            .setWorkingDir(tmpDir.getTestDirectory())
+            .environment('CLASSPATH', mergeClasspath())
+            .args(args(SlowApp.class))
+            .build()
+
+        when:
+        execHandle.start()
+        def execThreads = []
+        ConcurrentTestUtil.poll(10) {
+            execThreads = Thread.getAllStackTraces().keySet().findAll { it.name.startsWith("Exec process") }
+            assert !execThreads.isEmpty()
+        }
+
+        then:
+        execThreads.every { it.daemon }
+
+        cleanup:
+        execHandle.abort()
     }
 
     void "waiting for process returns quickly if process already completed"() {
@@ -265,6 +302,38 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         and:
         execHandle.waitForFinish().exitValue != 0
+    }
+
+    void "does not hang when the executor rejects the post-exit completion"() {
+        given:
+        def rejecting = new RejectingExecutor(executor)
+        def execHandle = handle(rejecting).args(args(ShortApp.class)).build()
+
+        when:
+        execHandle.start()
+        rejecting.process = execHandle.execHandleRunner.process
+        execHandle.waitForFinish()
+
+        then:
+        // The executor is gone, so the completion can't run: the handle fails rather than hanging
+        // (the class @Timeout guards against a regression to an indefinite block).
+        thrown(ProcessExecutionException)
+        execHandle.state == ExecHandleState.FAILED
+    }
+
+    void "does not hang when aborting and the executor rejects the post-exit completion"() {
+        given:
+        def rejecting = new RejectingExecutor(executor)
+        def execHandle = handle(rejecting).args(args(SlowApp.class)).build()
+        execHandle.start()
+        rejecting.process = execHandle.execHandleRunner.process
+
+        when:
+        execHandle.abort()
+
+        then:
+        thrown(ProcessExecutionException)
+        execHandle.state == ExecHandleState.FAILED
     }
 
     void "clients can listen to notifications"() {
@@ -529,7 +598,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private ClientExecHandleBuilder handle() {
-        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+        handle(executor)
+    }
+
+    private ClientExecHandleBuilder handle(Executor exec) {
+        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), exec, buildCancellationToken)
             .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
             .setTimeout(20000) //sanity timeout
             .setWorkingDir(tmpDir.getTestDirectory())
@@ -563,6 +636,36 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     public static class SlowApp {
         public static void main(String[] args) throws InterruptedException {
             Thread.sleep(10000L)
+        }
+    }
+
+    public static class ShortApp {
+        public static void main(String[] args) throws InterruptedException {
+            Thread.sleep(500L)
+        }
+    }
+
+    /**
+     * Simulates an executor that was stopped while a process was still running: rejects any
+     * submission made once {@link #process} has exited. Startup submissions (the runner and the
+     * stream pumps) happen while the process is alive and are delegated; only the post-exit
+     * completion submission is rejected.
+     */
+    static class RejectingExecutor implements Executor {
+        private final Executor delegate
+        volatile Process process
+
+        RejectingExecutor(Executor delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        void execute(Runnable command) {
+            def p = process
+            if (p != null && !p.isAlive()) {
+                throw new RejectedExecutionException("executor stopped (test)")
+            }
+            delegate.execute(command)
         }
     }
 

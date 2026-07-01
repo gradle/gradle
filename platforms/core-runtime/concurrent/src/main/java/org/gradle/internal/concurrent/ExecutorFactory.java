@@ -34,6 +34,14 @@ public interface ExecutorFactory {
     ManagedExecutor create(String displayName);
 
     /**
+     * Creates an executor whose threads are daemon threads. Otherwise behaves like {@link #create(String)}.
+     *
+     * @param displayName The display name for this executor. Used for thread names, logging and error message.
+     * @return The executor.
+     */
+    ManagedExecutor createDaemon(String displayName);
+
+    /**
      * Creates an executor which can run multiple tasks concurrently. It is the caller's responsibility to stop the executor.
      *
      * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
