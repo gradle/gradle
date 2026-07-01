@@ -19,7 +19,6 @@ import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
@@ -160,9 +159,4 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * Resets the lifecycle for this Gradle object.
      */
     void resetState();
-
-    // We technically don't need this overload, but some plugins using GradleInternal break at runtime if we remove it
-    // E.g. see https://github.com/quarkusio/quarkus/issues/54851
-    @Override
-    ProjectInternal getRootProject() throws IllegalStateException;
 }
