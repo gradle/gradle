@@ -66,6 +66,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.api.internal.services.DefaultBuiltInServices;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
@@ -511,6 +514,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     @Inject
     public abstract BuildServiceRegistry getSharedServices();
+
+    @Override
+    public BuiltInServices getBuiltInServices() {
+        // SPIKE: built directly from the build-scoped registry.
+        return new DefaultBuiltInServices(getServices());
+    }
+
+    @Inject
+    @Override
+    public abstract ExecOperations getExecOperations();
 
     @Override
     public Collection<IncludedBuild> getIncludedBuilds() {

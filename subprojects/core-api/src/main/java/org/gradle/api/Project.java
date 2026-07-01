@@ -46,6 +46,8 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -1100,6 +1102,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @HiddenInDefinition
     ObjectFactory getObjects();
+
+    /**
+     * Returns the built-in services that Gradle makes available at the project level.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    BuiltInServices getBuiltInServices();
+
+    /**
+     * Returns the {@link ExecOperations} service, to execute external processes.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    ExecOperations getExecOperations();
 
     /**
      * Provides access to various important directories for this project.

@@ -51,6 +51,9 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.api.internal.services.DefaultBuiltInServices;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -316,6 +319,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public ServiceRegistry getServices() {
         return services;
     }
+
+    @Override
+    public BuiltInServices getBuiltInServices() {
+        // SPIKE: built directly from the settings-scoped registry.
+        return new DefaultBuiltInServices(services);
+    }
+
+    @Inject
+    @Override
+    public abstract ExecOperations getExecOperations();
 
     @Inject
     protected abstract ScriptHandlerFactory getScriptHandlerFactory();

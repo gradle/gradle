@@ -37,6 +37,8 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.services.BuiltInServices
+import org.gradle.process.ExecOperations
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -322,6 +324,12 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun getSharedServices(): BuildServiceRegistry =
         delegate.sharedServices
+
+    override fun getBuiltInServices(): BuiltInServices =
+        delegate.builtInServices
+
+    override fun getExecOperations(): ExecOperations =
+        delegate.execOperations
 
     override fun getProviders(): ProviderFactory =
         delegate.providers

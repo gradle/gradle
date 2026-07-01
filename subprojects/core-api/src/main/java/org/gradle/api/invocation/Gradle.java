@@ -32,6 +32,8 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.service.scopes.Scope;
@@ -392,6 +394,22 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @since 6.1
      */
     BuildServiceRegistry getSharedServices();
+
+    /**
+     * Returns the built-in services that Gradle makes available at the build level.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    BuiltInServices getBuiltInServices();
+
+    /**
+     * Returns the {@link ExecOperations} service, to execute external processes.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    ExecOperations getExecOperations();
 
     /**
      * Returns the included builds for this build.

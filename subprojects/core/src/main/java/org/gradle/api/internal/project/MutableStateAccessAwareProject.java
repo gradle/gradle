@@ -26,6 +26,8 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Project;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
@@ -641,6 +643,16 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public ObjectFactory getObjects() {
         return delegate.getObjects();
+    }
+
+    @Override
+    public BuiltInServices getBuiltInServices() {
+        return delegate.getBuiltInServices();
+    }
+
+    @Override
+    public ExecOperations getExecOperations() {
+        return delegate.getExecOperations();
     }
 
     @Override

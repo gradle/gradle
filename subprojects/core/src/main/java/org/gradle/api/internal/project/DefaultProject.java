@@ -28,6 +28,9 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Project;
+import org.gradle.api.internal.services.DefaultBuiltInServices;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Task;
@@ -980,6 +983,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
+    public abstract ExecOperations getExecOperations();
+
+    @Inject
+    @Override
     public abstract ProjectLayout getLayout();
 
     @Override
@@ -1269,6 +1276,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ServiceRegistry getServices() {
         return services;
+    }
+
+    @Override
+    public BuiltInServices getBuiltInServices() {
+        // SPIKE: built directly from the project-scoped registry.
+        return new DefaultBuiltInServices(services);
     }
 
     @Override

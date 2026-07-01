@@ -29,6 +29,8 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuiltInServices;
+import org.gradle.process.ExecOperations;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
@@ -313,6 +315,22 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @HiddenInDefinition
     Gradle getGradle();
+
+    /**
+     * Returns the built-in services that Gradle makes available at the settings level.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    BuiltInServices getBuiltInServices();
+
+    /**
+     * Returns the {@link ExecOperations} service, to execute external processes.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    ExecOperations getExecOperations();
 
     /**
      * Includes a build at the specified path to the composite build.

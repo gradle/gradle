@@ -33,6 +33,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.services.BuiltInServices
+import org.gradle.process.ExecOperations
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -320,6 +322,16 @@ class CrossBuildConfigurationReportingGradle(
     override fun getSharedServices(): BuildServiceRegistry {
         onBuildMutableStateAccess("getSharedServices")
         return delegate.getSharedServices()
+    }
+
+    override fun getBuiltInServices(): BuiltInServices {
+        onBuildMutableStateAccess("getBuiltInServices")
+        return delegate.getBuiltInServices()
+    }
+
+    override fun getExecOperations(): ExecOperations {
+        onBuildMutableStateAccess("getExecOperations")
+        return delegate.execOperations
     }
 
     override fun getIncludedBuilds(): Collection<IncludedBuild> {

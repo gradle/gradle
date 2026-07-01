@@ -30,6 +30,7 @@ public abstract class GradleCoreProblemGroup {
     private static final ProblemGroup CONFIGURATION_USAGE_PROBLEM_GROUP = ProblemGroup.create("configuration-usage", "Configuration usage");
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
     private static final ProblemGroup SCRIPTS_PROBLEM_GROUP = ProblemGroup.create("scripts", "Scripts");
+    private static final ProblemGroup SERVICES_PROBLEM_GROUP = ProblemGroup.create("services", "Services");
 
     public static CompilationProblemGroup compilation() {
         return COMPILATION_PROBLEM_GROUP;
@@ -69,6 +70,10 @@ public abstract class GradleCoreProblemGroup {
 
     public static ProblemGroup scripts() {
         return SCRIPTS_PROBLEM_GROUP;
+    }
+
+    public static ProblemGroup services() {
+        return SERVICES_PROBLEM_GROUP;
     }
 
     public interface CompilationProblemGroup {
