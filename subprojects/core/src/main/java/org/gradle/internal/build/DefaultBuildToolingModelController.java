@@ -128,7 +128,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             return ToolingModelScopeResult.of(clientResult);
         }
 
-        private Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {
+        protected Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
             if (parameter == null) {
                 return builder.build(null);

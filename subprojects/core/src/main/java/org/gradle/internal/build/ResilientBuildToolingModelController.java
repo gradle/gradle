@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
 import org.gradle.internal.buildtree.DeferredBuildFailure;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
@@ -34,8 +33,6 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -117,10 +114,6 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         private final FailureFactory failureFactory;
         private final Try<Void> ownerBuildConfiguration;
 
-        // Set by the model builder (during super.getModel) when it hides a failure behind a partial result.
-        @Nullable
-        private DeferredBuildFailure builderFailure;
-
         public ResilientProjectToolingScope(
             ProjectState targetProject,
             ToolingModelRequestContext toolingModelRequestContext,
@@ -133,89 +126,47 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         }
 
         @Override
-        public ToolingModelScopeResult getModel(ToolingModelRequestContext modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelScopeResult getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
             // If settings evaluation fails the project is never created, so return the failure before locating a builder.
             if (!targetProject.isCreated()) {
                 checkArgument(!ownerBuildConfiguration.isSuccessful(), "Project has not been created, but build configuration has succeeded, this is a bug, please report.");
                 return configurationFailureResult(failureFactory, ownerBuildConfiguration.getFailure().get(), null);
             }
-            ToolingModelScopeResult result = super.getModel(modelName, parameter);
-            return builderFailure != null ? result.withDeferredFailure(builderFailure) : result;
-        }
 
-        @Override
-        ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
-            // Force configuration of the target project to ensure all builders have been registered
+            // Force configuration of the target project so that all builders have been registered.
             Try<Void> projectConfiguration = ownerBuildConfiguration.isSuccessful()
                 ? tryRunConfiguration(targetProject::ensureConfigured)
                 : ownerBuildConfiguration;
 
-            // We need to query the delegate builder lazily, since builders may not be registered if project configuration fails
-            ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
-            ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
-
-            Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, targetProject, project);
-            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
-            return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured, failure -> builderFailure = failure);
-        }
-    }
-
-    private static class ResilientToolingModelBuilder implements ToolingModelBuilderLookup.Builder {
-
-        private final Lazy<ToolingModelBuilderLookup.Builder> delegate;
-        private final Try<Void> projectConfiguration;
-        private final FailureFactory failureFactory;
-        private final boolean canRunEvenIfProjectNotFullyConfigured;
-        private final Consumer<DeferredBuildFailure> deferredFailureSink;
-
-        public ResilientToolingModelBuilder(
-            Supplier<ToolingModelBuilderLookup.Builder> delegate,
-            Try<Void> projectConfiguration,
-            FailureFactory failureFactory,
-            boolean canRunEvenIfProjectNotFullyConfigured,
-            Consumer<DeferredBuildFailure> deferredFailureSink
-        ) {
-            this.delegate = Lazy.unsafe().of(delegate);
-            this.projectConfiguration = projectConfiguration;
-            this.failureFactory = failureFactory;
-            this.canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured;
-            this.deferredFailureSink = deferredFailureSink;
-        }
-
-        @Override
-        public @Nullable Class<?> getParameterType() {
-            return delegate.get().getParameterType();
-        }
-
-        @Override
-        public Object build(@Nullable Object parameter) {
-            if (projectConfiguration.isSuccessful()) {
-                // The project configured successfully, but the model builder itself may still fail. Return that failure
-                // to the client and defer it so it fails the build - it is a model builder failure, not a configuration one.
-                return tryBuildModel(parameter).getOrMapFailure(this::asModelBuilderFailure);
+            if (!projectConfiguration.isSuccessful()) {
+                // Configuration failed. Defer it so the build fails, mirroring a non-resilient sync. For models that
+                // tolerate a partially-configured project, still build the model on a best-effort basis.
+                Object model = canRunEvenIfProjectNotFullyConfigured(modelName)
+                    ? Try.ofFailable(() -> buildModelWithParameter(parameter)).getOrMapFailure(failure -> null)
+                    : null;
+                return configurationFailureResult(failureFactory, projectConfiguration.getFailure().get(), model);
             }
 
-            // Configuration failed. Return it to the client and defer it so the build fails, mirroring a non-resilient
-            // sync. For models that tolerate a partially-configured project, still build the model on a best-effort
-            // basis, but never let a model builder failure mask the configuration failure.
-            Throwable configurationFailure = projectConfiguration.getFailure().get();
-            deferredFailureSink.accept(DeferredBuildFailure.ofConfiguration(configurationFailure));
-            Object model = canRunEvenIfProjectNotFullyConfigured ? tryBuildModel(parameter).getOrMapFailure(failure -> null) : null;
-            return ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.create(configurationFailure)));
+            // The project configured successfully, but the model builder itself may still fail. Defer such a failure so
+            // it fails the build; an UnknownModelException stays a per-model client failure and does not fail the build.
+            return Try.ofFailable(() -> super.getModel(modelRequestContext, parameter)).getOrMapFailure(this::asModelBuilderFailure);
         }
 
-        private Try<Object> tryBuildModel(@Nullable Object parameter) {
-            return Try.ofFailable(() -> delegate.get().build(parameter));
-        }
-
-        private ToolingModelBuilderResultInternal asModelBuilderFailure(Throwable failure) {
-            // A missing model builder (UnknownModelException) is a legitimate per-model result for the client, not a
-            // build failure. Let it propagate so the caller reports it as a per-model failure without failing the build.
+        private ToolingModelScopeResult asModelBuilderFailure(Throwable failure) {
             if (failure instanceof UnknownModelException) {
                 throw (UnknownModelException) failure;
             }
-            deferredFailureSink.accept(DeferredBuildFailure.ofModelBuilder(failure));
-            return ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
+            ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
+            return ToolingModelScopeResult.of(clientResult, DeferredBuildFailure.ofModelBuilder(failure));
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
+            // Configuration has already been forced by getModel, so just locate the builder. Use the mutable model even
+            // after a failure, since builders may still be registered when the project configured only partially.
+            ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
+            ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, parameter, targetProject, project);
         }
     }
 }
