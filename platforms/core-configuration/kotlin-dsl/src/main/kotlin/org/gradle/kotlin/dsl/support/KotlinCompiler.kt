@@ -552,7 +552,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         }
 
         incrementalCompilationCache.markCompilationStarted(scriptIdentity)
-        if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
+        /*if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
             try {
                 runCompilation(incremental = true)
             } catch (e: Exception) {
@@ -563,7 +563,8 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             }
         } else {
             runCompilation(incremental = false)
-        }
+        }*/
+        runCompilation(incremental = true)
         incrementalCompilationCache.markCompilationComplete(scriptIdentity)
 
         // ... then copy into the workspace [destinationDirectory] (which changes every time the immutable compilation workspace changes).
