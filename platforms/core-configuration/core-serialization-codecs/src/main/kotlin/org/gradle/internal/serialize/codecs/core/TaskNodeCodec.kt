@@ -236,7 +236,15 @@ class TaskNodeCodec(
     private
     suspend fun WriteContext.writeTaskActions(task: TaskInternal) {
         withVirtualPropertyTrace(TaskVirtualProperty.ACTIONS) {
-            writeCollection(task.taskActions)
+            // Dummy use of the rollback infrastructure to exercise it on the happy path: open a
+            // scope around the action write and always commit (relaying the bytes and replaying any
+            // deferred problems), regardless of whether problems were recorded.
+            val scope = beginRollbackScope()
+            try {
+                writeCollection(task.taskActions)
+            } finally {
+                scope.commit()
+            }
         }
     }
 

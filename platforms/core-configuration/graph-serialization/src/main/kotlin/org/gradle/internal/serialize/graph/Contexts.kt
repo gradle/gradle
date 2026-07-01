@@ -75,7 +75,10 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder,
 
-    specialEncoders: SpecialEncoders = SpecialEncoders()
+    specialEncoders: SpecialEncoders = SpecialEncoders(),
+
+    private
+    val rollbackSupport: WriteRollback? = null
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener, name), CloseableWriteContext, Encoder by encoder {
 
@@ -130,6 +133,66 @@ class DefaultWriteContext(
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
+
+    private
+    var currentScope: WriteRollbackScope? = null
+
+    override fun beginRollbackScope(): WriteRollbackScope {
+        val rollback = rollbackSupport
+            ?: throw UnsupportedOperationException("This write context does not support rollback.")
+        check(currentScope == null) { "A rollback scope is already open; nested rollback scopes are not supported." }
+
+        // Only state written inline into this stream needs to be reverted. The current isolate's
+        // identities and the shared identities are such state; circularReferences is self-healing
+        // (paired enter/leave), and side-file dedup (strings, shared objects) is intentionally not
+        // reverted (its definitions live in separate files, so stale entries are harmless orphans).
+        val markedIdentities = buildList {
+            add(sharedIdentities)
+            currentIsolateOrNull?.identities?.let { add(it) }
+        }
+        markedIdentities.forEach { it.mark() }
+
+        val previousListener = currentProblemsListener
+        val buffering = BufferingProblemsListener(previousListener)
+        currentProblemsListener = buffering
+
+        rollback.beginScope()
+
+        return Scope(rollback, markedIdentities, previousListener, buffering).also { currentScope = it }
+    }
+
+    private
+    inner class Scope(
+        private val rollback: WriteRollback,
+        private val markedIdentities: List<WriteIdentities>,
+        private val previousListener: ProblemsListener,
+        private val buffering: BufferingProblemsListener
+    ) : WriteRollbackScope {
+
+        override fun commit() {
+            finish {
+                rollback.commitScope()
+                markedIdentities.forEach { it.discardMark() }
+            }
+            buffering.replay()
+        }
+
+        override fun rollback(): List<PropertyProblem> {
+            finish {
+                rollback.rollbackScope()
+                markedIdentities.forEach { it.restoreToMark() }
+            }
+            return buffering.bufferedProblems()
+        }
+
+        private
+        fun finish(action: () -> Unit) {
+            check(currentScope === this) { "This rollback scope is not the active one." }
+            action()
+            currentProblemsListener = previousListener
+            currentScope = null
+        }
+    }
 }
 
 
@@ -334,11 +397,15 @@ abstract class AbstractIsolateContext<T>(
     private val explicitName: String? = null
 ) : MutableIsolateContext {
 
-    private
+    protected
     var currentProblemsListener: ProblemsListener = problemsListener
 
     private
     var currentIsolate: T? = null
+
+    protected
+    val currentIsolateOrNull: T?
+        get() = currentIsolate
 
     private
     var currentCodec = codec

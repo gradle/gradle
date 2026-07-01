@@ -69,6 +69,18 @@ interface WriteContext : MutableIsolateContext, Encoder {
      * @see ClassEncoder.encodeClassLoader
      */
     fun writeClassLoader(classLoader: ClassLoader?) = Unit
+
+    /**
+     * Opens a scope that can revert everything written after this point.
+     *
+     * The returned scope must be finished with exactly one [WriteRollbackScope.commit] or
+     * [WriteRollbackScope.rollback], in the same coroutine frame and only after the guarded write
+     * has returned or thrown. Nesting is not supported.
+     *
+     * @throws UnsupportedOperationException if this context does not support rollback.
+     */
+    fun beginRollbackScope(): WriteRollbackScope =
+        throw UnsupportedOperationException("This write context does not support rollback.")
 }
 
 
