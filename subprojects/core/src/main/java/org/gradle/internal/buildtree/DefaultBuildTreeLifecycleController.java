@@ -99,8 +99,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
 
             // Allow the model action to run even if tasks failed
-            ExecutionResult<T> modelResult = runModelAction(() -> modelCreator.fromBuildModel(action, failureCollector));
-            ExecutionResult<T> workResult = modelResult.withFailures(taskRunResult);
+            ExecutionResult<T> buildActionResult = runModelAction(() -> modelCreator.fromBuildModel(action, failureCollector));
+            ExecutionResult<T> workResult = buildActionResult.withFailures(taskRunResult);
 
             // The held failures must still fail the build.
             return attachCollectedFailures(workResult, failureCollector);
@@ -111,9 +111,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         // A model builder failure is only ever observed here, so it always fails the build.
         ExecutionResult<T> result = workResult.withFailures(ExecutionResult.maybeFailed(failures.getModelBuilderFailures()));
 
-        // A configuration failure is normally reported by the requested work. Surface the ones resilient model
-        // building swallowed (e.g. an IDE sync that runs no tasks) only when the build is not already failing, to
-        // avoid reporting it twice. The same failure is observed once per queried project, so de-duplicate by identity.
+        // Only surface swallowed configuration failures when the build isn't already failing - otherwise the work
+        // reports them - and de-duplicate by identity, since the same failure is seen once per queried project.
         if (workResult.getFailures().isEmpty()) {
             List<Throwable> configurationFailures = failures.getConfigurationFailures().stream()
                 .distinct()
