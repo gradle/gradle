@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -84,6 +85,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.FilteringServiceLookup;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -121,6 +123,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             .parent(buildServices)
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
             .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
+            .userTypeFilter(
+                clazz -> !clazz.isAssignableFrom(DependencyResolutionManagement.class),
+                FilteringServiceLookup.FilterAction.permitFilteredServices(type -> {
+                    System.out.println("Should not inject " + type);
+                })
+            )
             .build();
     }
 

@@ -43,9 +43,9 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
-import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -405,7 +405,12 @@ public class DefaultTransform implements Transform {
     private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
         ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
-        services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
+        ImmutableList<TransformServiceLookup.InjectionPoint> injectionPoints = TransformServiceLookup.getInjectionPoints(
+            inputArtifactProvider,
+            requiresDependencies ? transformDependencies : null,
+            inputChanges
+        );
+        services = new TransformServiceLookup(services, injectionPoints);
         return instanceFactory.newInstance(services);
     }
 
@@ -439,9 +444,19 @@ public class DefaultTransform implements Transform {
 
         private final ImmutableList<InjectionPoint> injectionPoints;
         private final ServiceLookup delegate;
+        private final ServiceLookup userTypeFilteredView;
 
-        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformDependencies transformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
+        public TransformServiceLookup(ServiceLookup delegate, ImmutableList<InjectionPoint> injectionPoints) {
             this.delegate = delegate;
+            this.injectionPoints = injectionPoints;
+
+            ServiceLookup filteredDelegate = delegate.withUserTypeFilter();
+            this.userTypeFilteredView = filteredDelegate == delegate
+                ? this
+                : new TransformServiceLookup(filteredDelegate, injectionPoints);
+        }
+
+        private static ImmutableList<InjectionPoint> getInjectionPoints(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (transformDependencies != null) {
@@ -450,7 +465,7 @@ public class DefaultTransform implements Transform {
             if (inputChanges != null) {
                 builder.add(InjectionPoint.injectedByType(InputChanges.class, () -> inputChanges));
             }
-            this.injectionPoints = builder.build();
+            return builder.build();
         }
 
         @Nullable
@@ -490,6 +505,11 @@ public class DefaultTransform implements Transform {
                 return result;
             }
             return delegate.get(serviceType, annotatedWith);
+        }
+
+        @Override
+        public ServiceLookup withUserTypeFilter() {
+            return userTypeFilteredView;
         }
 
         private static class InjectionPoint {

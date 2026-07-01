@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * A builder for a {@link ServiceRegistry}.
@@ -54,6 +55,8 @@ public class ServiceRegistryBuilder {
     private String displayName;
     private Class<? extends Scope> scope;
     private boolean strict;
+    private Predicate<Class<?>> filter;
+    private FilteringServiceLookup.FilterAction filterAction;
 
     private ServiceRegistryBuilder() {
     }
@@ -156,6 +159,19 @@ public class ServiceRegistryBuilder {
     }
 
     /**
+     * Sets a filter to apply to services injected into user-provided classes during instantiation,
+     * and a corresponding action to handle types that are not matched by the filter.
+     */
+    public ServiceRegistryBuilder userTypeFilter(
+        Predicate<Class<?>> filter,
+        FilteringServiceLookup.FilterAction filterAction
+    ) {
+        this.filter = filter;
+        this.filterAction = filterAction;
+        return this;
+    }
+
+    /**
      * Creates a service registry with the provided configuration.
      * <p>
      * The registry <b>should be {@link CloseableServiceRegistry#close() closed}</b> when it is no longer required
@@ -172,6 +188,9 @@ public class ServiceRegistryBuilder {
 
         for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);
+        }
+        if (filter != null && filterAction != null) {
+            registry.setUserTypeFilter(filter, filterAction);
         }
         return registry;
     }

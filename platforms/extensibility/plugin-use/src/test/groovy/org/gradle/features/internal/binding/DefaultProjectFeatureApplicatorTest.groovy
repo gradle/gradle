@@ -23,17 +23,17 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.model.ObjectFactoryFactory
-import org.gradle.api.provider.Property
-import org.gradle.features.binding.BuildModel
-import org.gradle.features.binding.Definition
 import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.internal.Cast
 import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
@@ -239,6 +239,11 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         @Override
         Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
             throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ServiceLookup withUserTypeFilter() {
+            return this
         }
     }
 }
