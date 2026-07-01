@@ -21,6 +21,7 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.io.NullOutputStream
@@ -71,6 +72,7 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompil
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
+import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.name.NameUtils
@@ -95,9 +97,15 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
+private const val KEEPALIVE_FLAG = true
+
 // Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
 // KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
 private const val INCREMENTAL_COMPILATION_ENABLED = true
+
+private val systemProperties: Map<String, String> = mapOf(
+    KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property to KEEPALIVE_FLAG.toString(),
+)
 
 private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
 private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompilerImpl> = mutableMapOf()
@@ -501,9 +509,11 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     private lateinit var buildSession: KotlinToolchains.BuildSession
 
     init {
-        toolchains = KotlinToolchains.loadImplementation(classLoader)
-        if (!::buildSession.isInitialized) {
-            buildSession = toolchains.createBuildSession()
+        SystemProperties.getInstance().withSystemProperties(systemProperties) {
+            toolchains = KotlinToolchains.loadImplementation(classLoader)
+            if (!::buildSession.isInitialized) {
+                buildSession = toolchains.createBuildSession()
+            }
         }
     }
 
@@ -523,51 +533,53 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String
     ) {
-        if (incrementalCompilationCache.wasPreviousCompilationInterrupted(scriptIdentity)) {
-            logger.info("Previous compilation of '{}' was interrupted; discarding its outputs and rebuilding.", scriptIdentity)
-            incrementalCompilationCache.discardOutputsAndIncrementalState(scriptIdentity)
-        }
-
-        // Route BTA at a stable per-scriptIdentity output dir...
-        val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
-
-        fun runCompilation(incremental: Boolean) {
-            val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
-
-            operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
-
-            operationBuilder.compilerArguments.let {
-                it.configureScriptEnvironment(classPath, template, implicitImports)
-                it.configureLanguageVersion(compilerOptions)
-                it.configureMisc()
+        SystemProperties.getInstance().withSystemProperties(systemProperties) {
+            if (incrementalCompilationCache.wasPreviousCompilationInterrupted(scriptIdentity)) {
+                logger.info("Previous compilation of '{}' was interrupted; discarding its outputs and rebuilding.", scriptIdentity)
+                incrementalCompilationCache.discardOutputsAndIncrementalState(scriptIdentity)
             }
 
-            operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
+            // Route BTA at a stable per-scriptIdentity output dir...
+            val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
 
-            if (incremental) {
-                operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
+            fun runCompilation(incremental: Boolean) {
+                val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
+
+                operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+
+                operationBuilder.compilerArguments.let {
+                    it.configureScriptEnvironment(classPath, template, implicitImports)
+                    it.configureLanguageVersion(compilerOptions)
+                    it.configureMisc()
+                }
+
+                operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
+
+                if (incremental) {
+                    operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
+                }
+
+                buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
             }
 
-            buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
-        }
-
-        incrementalCompilationCache.markCompilationStarted(scriptIdentity)
-        if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
-            try {
-                runCompilation(incremental = true)
-            } catch (e: Exception) {
-                logger.info("Incremental compilation of '{}' failed; falling back to a full compile.", scriptIdentity, e)
-                messageRenderer.errors.clear()
-                incrementalCompilationCache.discardIncrementalState(scriptIdentity)
+            incrementalCompilationCache.markCompilationStarted(scriptIdentity)
+            if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
+                try {
+                    runCompilation(incremental = true)
+                } catch (e: Exception) {
+                    logger.info("Incremental compilation of '{}' failed; falling back to a full compile.", scriptIdentity, e)
+                    messageRenderer.errors.clear()
+                    incrementalCompilationCache.discardIncrementalState(scriptIdentity)
+                    runCompilation(incremental = false)
+                }
+            } else {
                 runCompilation(incremental = false)
             }
-        } else {
-            runCompilation(incremental = false)
-        }
-        incrementalCompilationCache.markCompilationComplete(scriptIdentity)
+            incrementalCompilationCache.markCompilationComplete(scriptIdentity)
 
-        // ... then copy into the workspace [destinationDirectory] (which changes every time the immutable compilation workspace changes).
-        copyOutputs(btaOutputDir, destinationDirectory)
+            // ... then copy into the workspace [destinationDirectory] (which changes every time the immutable compilation workspace changes).
+            copyOutputs(btaOutputDir, destinationDirectory)
+        }
     }
 
     private fun copyOutputs(src: Path, dst: Path) {
