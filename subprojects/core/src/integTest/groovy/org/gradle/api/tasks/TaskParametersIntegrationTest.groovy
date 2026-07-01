@@ -451,7 +451,23 @@ task someTask {
             solutions == ['Execution optimizations are disabled to ensure correctness.']
             additionalData.asMap == ['type': 'USER_CODE_DIRECT']
         }
+        // The validation problem is reported twice: once while resolving mutations (no task context) and once
+        // during task execution (attached to task ':invalid'). Since the reporting task is now part of a problem's
+        // identity, the two are no longer collapsed by deduplication and both are reported.
         verifyAll(receivedProblem(2)) {
+            severity == Severity.WARNING
+            fqid == 'root:test-problem'
+            definition.id.displayName == 'test problem'
+            contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem"
+            details == 'This is a test.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/id.html#section"
+            solutions == []
+            additionalData.asMap == [
+                'typeName': 'InvalidTask',
+                'propertyName': 'inputFile',
+            ]
+        }
+        verifyAll(receivedProblem(3)) {
             severity == Severity.WARNING
             fqid == 'root:test-problem'
             definition.id.displayName == 'test problem'
