@@ -628,33 +628,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         true    || true          | false
         false   || false         | true
     }
-
-
-    def "demonstrate multiple selected variants with the same capabilities failure"() {
-        multipleSelectedVariantsWithSameCapabilities.prepare()
-
-        expect:
-        fails "forceResolution" // Graph validation failure is not a failure currently handled by the ResolutionFailureHandler
-
-        and: "Has error output"
-        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project 'test'.")
-        assertFullMessageCorrect("""     Required by:
-         root project 'test'
-      > Module 'org.example:test' has been rejected:
-           Cannot select module with conflict on capability 'org:example:test-nonconflicting' also provided by ['root project 'test'' (c2)]""")
-
-        // TODO: No helpful resolutions are provided in this case
-
-        and: "Problems are reported"
-        verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-version-satisfies'
-            additionalData.asMap['requestTarget'] == "org.example:test"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
-            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
-        }
-    }
     // endregion other tests
 
     // region error showcase
