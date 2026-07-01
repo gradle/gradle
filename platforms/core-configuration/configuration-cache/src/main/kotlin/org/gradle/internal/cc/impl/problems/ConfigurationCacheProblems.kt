@@ -81,6 +81,14 @@ val isolatedProjectsDangerouslyIgnoreProblemsSentences = listOf(
     "Do not use this to produce artifacts."
 )
 
+val configurationCacheWarnModeSentences = listOf(
+    "Configuration Cache warn mode is ENABLED.",
+    "Configuration Cache problems are being ignored.",
+    "Build outputs may be incorrect and the build may crash unexpectedly.",
+    "Use this only to discover configuration cache problems.",
+    "Do not use this to produce artifacts."
+)
+
 
 private
 val isolatedProjectsDangerouslyIgnoreProblemsDocumentation =
@@ -364,6 +372,21 @@ class ConfigurationCacheProblems(
     }
 
     private
+    fun reportConfigurationCacheWarnMode() {
+        val message = configurationCacheWarnModeSentences.joinToString(" ")
+        problemsService.internalReporter.internalCreate {
+            id(
+                "configuration-cache-warn-mode",
+                "Configuration Cache warn mode is enabled",
+                configCacheValidation
+            )
+            contextualLabel(message)
+        }.also {
+            problemsService.internalReporter.report(it)
+        }
+    }
+
+    private
     fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
         problem.documentationSection?.let {
             documentedAt(Documentation.userManual(it.page, it.anchor).url)
@@ -496,6 +519,10 @@ class ConfigurationCacheProblems(
             if (isIsolatedProjectsDangerouslyIgnoreProblems) {
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
                 reportDangerouslyIgnoringProblems()
+            }
+
+            if (isWarningMode) {
+                reportConfigurationCacheWarnMode()
             }
         }
 
