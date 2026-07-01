@@ -25,6 +25,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.DecompressionCoordinator;
 import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
@@ -227,6 +228,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         ExecFactory createExecFactory(
             FileResolver fileResolver,
             FileCollectionFactory fileCollectionFactory,
+            FilePropertyFactory filePropertyFactory,
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ExecutorFactory executorFactory,
@@ -236,6 +238,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             return DefaultExecActionFactory.of(
                 fileResolver,
                 fileCollectionFactory,
+                filePropertyFactory,
                 instantiator,
                 executorFactory,
                 temporaryFileProvider,

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
@@ -97,6 +98,11 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     default ProcessForkOptions executable(Object executable) {
         getDelegate().executable(executable);
         return this;
+    }
+
+    @Override
+    default DirectoryProperty getWorkingDirectory() {
+        return getDelegate().getWorkingDirectory();
     }
 
     @Override

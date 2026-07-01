@@ -23,6 +23,7 @@ import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.TestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -266,7 +267,7 @@ End of search list."""
     def "handles failure to execute g++"() {
         given:
         def visitor = Mock(DiagnosticsVisitor)
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def execResult = Mock(ExecResult)
 
         and:
@@ -403,7 +404,7 @@ End of search list."""
     }
 
     void runsCompiler(String output, String error) {
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
@@ -412,7 +413,7 @@ End of search list."""
     }
 
     void mapsPath(TestFile cygpath, String from, String to) {
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def execResult = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.commandLine(cygpath.absolutePath, '-w', from)

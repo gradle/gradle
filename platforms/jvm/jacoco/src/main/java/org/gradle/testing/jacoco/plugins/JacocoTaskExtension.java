@@ -339,7 +339,7 @@ public abstract class JacocoTaskExtension {
     @ToBeReplacedByLazyProperty
     public String getAsJvmArg() {
         StringBuilder builder = new StringBuilder();
-        ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
+        ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDirectory().get().getAsFile());
         builder.append("-javaagent:");
         builder.append(agent.getJar().getAbsolutePath());
         builder.append('=');

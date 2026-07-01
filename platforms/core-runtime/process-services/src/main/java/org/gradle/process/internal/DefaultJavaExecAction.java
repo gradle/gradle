@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
@@ -349,6 +350,11 @@ public class DefaultJavaExecAction implements JavaExecAction {
     public ProcessForkOptions executable(Object executable) {
         javaExecHandleBuilder.setExecutable(executable);
         return this;
+    }
+
+    @Override
+    public DirectoryProperty getWorkingDirectory() {
+        return javaExecHandleBuilder.getWorkingDirectory();
     }
 
     @Override

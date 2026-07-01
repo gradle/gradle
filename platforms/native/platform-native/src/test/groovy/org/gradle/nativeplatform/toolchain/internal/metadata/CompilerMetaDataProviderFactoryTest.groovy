@@ -19,12 +19,15 @@ package org.gradle.nativeplatform.toolchain.internal.metadata
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CompilerMetaDataProviderFactoryTest extends Specification {
 
     def execActionFactory = Mock(ExecActionFactory)
-    def execAction = Mock(ExecAction)
+    def execAction = Mock(ExecAction) {
+        getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty()
+    }
     def execResult = Mock(ExecResult)
     def factory = new CompilerMetaDataProviderFactory(execActionFactory)
 

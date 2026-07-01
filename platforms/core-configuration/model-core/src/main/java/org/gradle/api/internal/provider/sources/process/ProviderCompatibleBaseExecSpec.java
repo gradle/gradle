@@ -102,19 +102,19 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
     @Override
     public void setWorkingDir(File dir) {
         DelegatingBaseExecSpec.super.setWorkingDir(dir);
-        workingDirectory = getWorkingDir();
+        workingDirectory = getWorkingDirectory().get().getAsFile();
     }
 
     @Override
     public void setWorkingDir(Object dir) {
         DelegatingBaseExecSpec.super.setWorkingDir(dir);
-        workingDirectory = getWorkingDir();
+        workingDirectory = getWorkingDirectory().get().getAsFile();
     }
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
         DelegatingBaseExecSpec.super.workingDir(dir);
-        workingDirectory = getWorkingDir();
+        workingDirectory = getWorkingDirectory().get().getAsFile();
         return this;
     }
 
