@@ -25,7 +25,7 @@ import org.junit.Test
 import java.lang.reflect.Proxy
 
 
-class FindCodecThatWidensIncompatiblyTest {
+class WideningCodecUnsupportedReportingTest {
     private interface Base
     private open class Mid : Base
     private class Leaf : Mid()
