@@ -78,8 +78,8 @@ class LightweightChecks(
                             echo "BOT_TEAMCITY_GITHUB_TOKEN not set; skipping PR body scan."
                         fi
 
-                        "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                        "$defaultJavaBinary" .teamcity/scripts/CheckAiAttribution.java \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckAiAttribution.java \
                             --pr-body-file "${'$'}PR_BODY_FILE"
                         """.trimIndent()
                 }
