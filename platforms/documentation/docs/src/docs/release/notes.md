@@ -158,6 +158,15 @@ Since `destinationDirectory` is a task output property, other tasks can consume 
 The new property is [incubating](userguide/feature_lifecycle.html#feature_preview). `destinationDir` continues to work and will be deprecated once `destinationDirectory` is promoted.
 
 See [`Copy.destinationDirectory`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:destinationDirectory) and [`Sync.destinationDirectory`](dsl/org.gradle.api.tasks.Sync.html#org.gradle.api.tasks.Sync:destinationDirectory) in the DSL Reference for more details.
+#### `Sync` now deletes stale outputs when its source becomes empty
+
+Previously, a [`Sync`](javadoc/org/gradle/api/tasks/Sync.html) task with no source files was reported as `NO-SOURCE` and skipped, which left any previously synced files sitting in the destination directory indefinitely.
+
+`Sync` now always runs, even when its source is empty, so that a destination it has already synced into is correctly reconciled with the (now empty) source and stale files are deleted, exactly as `Sync` is documented to do.
+
+To guard against the common misconfiguration where `from` accidentally resolves to nothing (for example, a mistyped path) while `into` points at some pre-existing, unrelated directory, `Sync` only performs this cleanup for a destination it has a recorded history of syncing into before. The very first time a `Sync` task runs against a given destination, an empty source is treated as suspicious, and the task does nothing rather than risk deleting content it never put there.
+
+See the [upgrading guide](userguide/upgrading_version_9.html#sync_runs_when_source_is_empty) for details on this behavior change and how to opt back into the old skip behavior.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
