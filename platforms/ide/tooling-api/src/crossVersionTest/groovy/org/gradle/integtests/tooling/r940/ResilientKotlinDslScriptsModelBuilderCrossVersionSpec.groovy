@@ -742,6 +742,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "resilient Kotlin DSL can be queried with null target #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
@@ -770,6 +771,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "no resilient Kotlin DSL model is returned if settings fails with null target #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)

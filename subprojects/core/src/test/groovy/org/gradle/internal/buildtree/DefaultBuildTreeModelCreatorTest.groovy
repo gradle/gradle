@@ -23,6 +23,7 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import spock.lang.Specification
 
 import javax.annotation.Nullable
@@ -40,7 +41,7 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
 
         def modelScope = Mock(ToolingModelScope) {
             getModel(_, _) >> { ToolingModelRequestContext modelName, @Nullable ToolingModelParameterCarrier parameter ->
-                model
+                ToolingModelScopeResult.of(model)
             }
         }
         def modelController = Mock(BuildToolingModelController) {
@@ -117,6 +118,6 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
             Object fromBuildModel(BuildTreeModelController controller) {
                 return controller.getModel(target, new ToolingModelRequestContext(modelName, parameter, false))
             }
-        })
+        }, new ResilientBuildTreeFailureCollector())
     }
 }

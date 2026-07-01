@@ -19,12 +19,14 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -72,7 +74,16 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             .mapFailure(failure -> buildConfiguration.getFailure().orElse(failure))
             // If getting the default project succeeded, let's try to locate a builder
             .flatMap(project -> doLocate(checkNotNull(project), toolingModelContext, buildConfiguration));
-        return checkNotNull(toolingModelScope.get());
+        return toolingModelScope.getOrMapFailure(failure -> onDefaultScopeResolutionFailed(failure, toolingModelContext));
+    }
+
+    /**
+     * Called when a builder cannot be located for the default target, e.g. because settings failed to load and no
+     * project could be created. The default behaviour is to fail fast; resilient model building overrides this to
+     * surface the failure through a model result instead.
+     */
+    protected ToolingModelScope onDefaultScopeResolutionFailed(Throwable failure, ToolingModelRequestContext toolingModelContext) {
+        throw UncheckedException.throwAsUncheckedException(failure);
     }
 
     @Override
@@ -106,20 +117,18 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelScopeResult getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
             Object model = buildModelWithParameter(parameter);
-            if (!(model instanceof ToolingModelBuilderResultInternal)) {
-                return ToolingModelBuilderResultInternal.of(model);
-            }
-
-            ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
+            ToolingModelBuilderResultInternal clientResult = model instanceof ToolingModelBuilderResultInternal
+                ? (ToolingModelBuilderResultInternal) model
+                : ToolingModelBuilderResultInternal.of(model);
             if (!modelRequestContext.inResilientContext()) {
-                resultInternal.throwFailureIfPresent();
+                clientResult.throwFailureIfPresent();
             }
-            return resultInternal;
+            return ToolingModelScopeResult.of(clientResult);
         }
 
-        private Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {
+        protected Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
             if (parameter == null) {
                 return builder.build(null);

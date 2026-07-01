@@ -20,6 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.integtests.tooling.r940.TestResilientModelAction
+import org.gradle.tooling.BuildException
+import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.model.GradleProject
 
 import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.ROOT_BUILD_FIRST
@@ -36,7 +38,7 @@ class ResilientGradleProjectCrossVersionSpec extends KotlinDslPluginRelatedTooli
         settingsFile.delete()
     }
 
-    def "can query GradleProject for included build, even if main project configuration fails#description"() {
+    def "resilient sync fails the build but still returns partial GradleProject models when main project configuration fails#description"() {
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -75,16 +77,24 @@ class ResilientGradleProjectCrossVersionSpec extends KotlinDslPluginRelatedTooli
             }
         """
 
+        def capturedResult = null
+
         when:
-        def result = succeeds {
-            action(new TestResilientModelAction(GradleProject, ROOT_BUILD_FIRST))
+        // A configuration failure must be propagated to the client as a BuildException, while the partial models
+        // gathered during resilient model building are still delivered.
+        fails {
+            action()
+                .buildFinished(new TestResilientModelAction(GradleProject, ROOT_BUILD_FIRST), { capturedResult = it } as IntermediateResultHandler)
+                .build()
                 .withArguments(*extraGradleProperties)
+                .forTasks()
                 .run()
         }
 
         then:
-        result.successfullyQueriedProjects == ['build-logic']
-        result.failedToQueryProjects == ['root', 'a', 'b', 'c']
+        thrown(BuildException)
+        capturedResult.successfullyQueriedProjects == ['build-logic']
+        capturedResult.failedToQueryProjects == ['root', 'a', 'b', 'c']
 
         where:
         description | extraGradleProperties
@@ -92,7 +102,7 @@ class ResilientGradleProjectCrossVersionSpec extends KotlinDslPluginRelatedTooli
         " with IP"  | IP_ENABLED
     }
 
-    def "can query GradleProject for included build, even if main settings fail#description"() {
+    def "resilient sync fails the build but still returns partial GradleProject models when main settings fail#description"() {
         settingsKotlinFile << """
             pluginManagement {
                 includeBuild("build-logic")
@@ -130,17 +140,23 @@ class ResilientGradleProjectCrossVersionSpec extends KotlinDslPluginRelatedTooli
             }
         """
 
+        def capturedResult = null
+
         when:
-        def result = succeeds {
-            action(new TestResilientModelAction(GradleProject, ROOT_BUILD_FIRST))
+        fails {
+            action()
+                .buildFinished(new TestResilientModelAction(GradleProject, ROOT_BUILD_FIRST), { capturedResult = it } as IntermediateResultHandler)
+                .build()
                 .withArguments(*extraGradleProperties)
+                .forTasks()
                 .run()
         }
 
         then:
-        result.successfullyQueriedProjects == ['build-logic']
+        thrown(BuildException)
+        capturedResult.successfullyQueriedProjects == ['build-logic']
         // Since the settings file fails to configure, only the root of the main project can be seen
-        result.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
+        capturedResult.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
 
         where:
         description | extraGradleProperties

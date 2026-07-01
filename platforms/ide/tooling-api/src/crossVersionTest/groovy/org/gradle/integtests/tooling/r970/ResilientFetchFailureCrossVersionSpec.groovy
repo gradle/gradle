@@ -20,6 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
+import org.gradle.tooling.BuildException
+import org.gradle.tooling.IntermediateResultHandler
 
 @ToolingApiVersion('>=9.7.0')
 @TargetGradleVersion('>=9.7.0')
@@ -29,6 +31,8 @@ class ResilientFetchFailureCrossVersionSpec extends KotlinDslPluginRelatedToolin
         "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",
         "-Dorg.gradle.unsafe.isolated-projects=true"
     ]
+
+    private FetchFailureTreeAction.Result fetchResult
 
     def setup() {
         settingsFile.delete()
@@ -109,9 +113,11 @@ class CustomPlugin implements Plugin<Project> {
 
     def "an eager configuration failure converts to the same whole tree text for every project"() {
         when:
-        def result = fetchFailures()
+        fetchFailures()
 
         then: "eager configuration aborts at the first failure and attaches it to every project"
+        thrown(BuildException)
+        def result = fetchResult
         result.failedToQueryProjects.toSet() == ['root', 'a', 'b', 'c'] as Set
 
         and: "every failed project shares the same whole failure tree text"
@@ -127,9 +133,11 @@ class CustomPlugin implements Plugin<Project> {
 
     def "configure-on-demand wrappers differ per project but the shared included build cause is identical"() {
         when:
-        def result = fetchFailures(CONFIGURE_ON_DEMAND_ON)
+        fetchFailures(CONFIGURE_ON_DEMAND_ON)
 
         then: "only the projects applying the broken convention plugin fail, each lazily"
+        thrown(BuildException)
+        def result = fetchResult
         result.failedToQueryProjects.toSet() == ['b', 'c'] as Set
         result.successfullyQueriedProjects.containsAll(['root', 'a', 'build-logic'])
 
@@ -150,9 +158,11 @@ class CustomPlugin implements Plugin<Project> {
         result.rootDescriptionByProject['c'].contains("Caused by:")
     }
 
-    private FetchFailureTreeAction.Result fetchFailures(List<String> extraGradleProperties = []) {
-        succeeds {
-            action(new FetchFailureTreeAction(CustomModel))
+    private void fetchFailures(List<String> extraGradleProperties = []) {
+        fails {
+            action()
+                .buildFinished(new FetchFailureTreeAction(CustomModel), { fetchResult = it } as IntermediateResultHandler)
+                .build()
                 .withArguments("--init-script=${file('init.gradle').absolutePath}", *extraGradleProperties)
                 .run()
         }

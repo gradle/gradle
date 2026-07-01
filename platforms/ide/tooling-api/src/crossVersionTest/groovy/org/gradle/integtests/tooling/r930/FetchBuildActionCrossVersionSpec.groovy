@@ -106,6 +106,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         dsl << [GROOVY, KOTLIN]
     }
 
+    @TargetGradleVersion("<9.7.0")
     def "returns a failure if a model builder throws an exception with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder("throw new RuntimeException('broken builder')")
@@ -122,7 +123,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages == ["broken builder"]
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "returns a failure if project configuration fails due to #description with #dsl DSL"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -189,7 +190,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -221,7 +222,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' method returns the same failed result as other fetch methods with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder()

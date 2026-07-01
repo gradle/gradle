@@ -30,8 +30,8 @@ import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.tooling.provider.model.UnknownModelException
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 
 
 /**
@@ -67,8 +67,8 @@ class IntermediateModelController(
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal {
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult {
         val key = ModelKey(project?.buildTreePath, modelRequestContext.modelName, parameter?.hash, modelRequestContext.inResilientContext())
         return loadOrCreateValue(key) {
             try {

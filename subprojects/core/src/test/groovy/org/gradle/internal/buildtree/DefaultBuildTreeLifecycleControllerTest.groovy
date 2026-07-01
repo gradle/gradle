@@ -96,7 +96,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
 
         and:
-        1 * modelCreator.fromBuildModel(action) >> "result"
+        1 * modelCreator.fromBuildModel(action, _) >> "result"
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
@@ -134,7 +134,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         0 * workController.scheduleAndRunRequestedTasks(null)
 
         and:
-        1 * modelCreator.fromBuildModel(action) >> "result"
+        1 * modelCreator.fromBuildModel(action, _) >> "result"
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
@@ -152,7 +152,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * modelCreator.fromBuildModel(_) >> { throw failure }
+        1 * modelCreator.fromBuildModel(_, _) >> { throw failure }
 
         and:
         1 * finishExecutor.finishBuildTree(_) >> { arguments ->
@@ -181,7 +181,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         def modelAction = Mock(BuildTreeModelAction)
 
         given:
-        _ * modelCreator.fromBuildModel(modelAction) >> {
+        _ * modelCreator.fromBuildModel(modelAction, _) >> {
             controller.beforeBuild(action)
         }
 

@@ -29,7 +29,7 @@ import java.util.Map;
 
 import static org.gradle.integtests.tooling.r940.KotlinModelAction.queryResilientKotlinDslScriptsModel;
 
-class KotlinModelOnNullTargetAction implements BuildAction<KotlinModel>, Serializable {
+public class KotlinModelOnNullTargetAction implements BuildAction<KotlinModel>, Serializable {
     @Override
     public KotlinModel execute(BuildController controller) {
         GradleBuild build = controller.fetch(GradleBuild.class).getModel();

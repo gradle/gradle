@@ -498,7 +498,11 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         fetchModelFails(IdeaProject)
 
         then:
+        // From Gradle 9.7 the configuration failure captured during resilient model building is also propagated,
+        // so the build now reports the plugin application failure in addition to the Isolated Projects message.
+        failure.assertHasFailures(2)
         failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        failureHasCause("Failed to apply plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin'.")
         // TODO:isolated assert model stored successfully
         // TODO:isolated check the model matches the vintage model
         // checkIdeaProject(ideaModel, originalIdeaModel)

@@ -119,10 +119,12 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         List<Supplier<ToolingModelBuilderResultInternal>> fetchActions = targets.stream()
             .map(target -> (Supplier<ToolingModelBuilderResultInternal>) () -> {
                 try {
-                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier);
+                    // Only the client-facing result is needed here; a deferred build failure (if any) is reported
+                    // to the build-tree model boundary, not on this nested fan-out path.
+                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier).getClientResult();
                 } catch (Throwable t) {
                     // Safety net for an unexpected throw; the resilient controller normally
-                    // captures configuration failures into the result wrapper itself.
+                    // captures configuration failures into the result itself.
                     return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(t)));
                 }
             })
