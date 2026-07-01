@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 @Issue("https://github.com/gradle/gradle/issues/36461")
 class GradleLifecycleConventionPluginApplicationIntegrationTest extends AbstractIntegrationSpec {
@@ -54,7 +56,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
         // Consumer settings shared by all scenarios. Each test appends its own
         // plugins {} / lifecycle declarations afterwards; imperative statements such as
         // include(...) are allowed to precede a later plugins {} block.
-        settingsKotlinFile << """
+        settingsKotlinFile """
             pluginManagement {
                 includeBuild("build-logic")
             }
@@ -65,7 +67,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
 
     def "fails with hint when applying included-build plugin via #lifeCycleCallback without settings plugins {} declaration"() {
         given:
-        settingsKotlinFile << """
+        settingsKotlinFile """
             gradle.lifecycle.${lifeCycleCallback} {
                 apply(plugin = "${CONVENTION_PLUGIN_ID}")
             }
@@ -85,6 +87,32 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
         lifeCycleCallback << ["beforeProject", "afterProject"]
     }
 
+    def "hint on a missing plugin in a #lifeCycleCallback callback omits the included-build advice when no plugin build is included"() {
+        given:
+        // No pluginManagement.includeBuild, so there is no included plugin build: the hint should
+        // still fire with the generic advice, but without the settings-convention-plugin recommendation.
+        // Overwrite (not append to) the shared settings so the included build is dropped.
+        settingsKotlinFile.text = """
+            rootProject.name = "consumer"
+            include("sub")
+            gradle.lifecycle.${lifeCycleCallback} {
+                apply(plugin = "com.example.absent")
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failureCauseContains("Plugin with id 'com.example.absent' not found.")
+        failureCauseContains("Declare it in the settings `plugins {}` block with `apply false`")
+        failureCauseContains("userguide/isolated_projects.html#sec:lifecycle_callbacks_with_included_plugin_builds")
+        failure.assertThatCause(not(containsString("settings convention plugin")))
+
+        where:
+        lifeCycleCallback << ["beforeProject", "afterProject"]
+    }
+
     def "applying buildSrc plugin via beforeProject works without any settings declaration"() {
         given:
         file("buildSrc/build.gradle.kts") << """
@@ -93,7 +121,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
         file("buildSrc/src/main/groovy/${CONVENTION_PLUGIN_ID}.gradle") << CONVENTION_PLUGIN_SRC
         // Unlike pluginManagement.includeBuild, buildSrc is built eagerly and its classpath is
         // exported to all projects, so the callback can apply the plugin with no includeBuild and
-        // no plugins {} declaration. Override the shared settings to drop the unused included build.
+        // no plugins {} declaration. Overwrite the shared settings to drop the unused included build.
         settingsKotlinFile.text = """
             rootProject.name = "consumer"
             include("sub")
@@ -112,7 +140,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
 
     def "applying included-build plugin via beforeProject works when declared in settings plugins {} block"() {
         given:
-        settingsKotlinFile << """
+        settingsKotlinFile """
             plugins {
                 id("${CONVENTION_PLUGIN_ID}") apply false
             }
@@ -145,7 +173,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
                 it.apply plugin: '${CONVENTION_PLUGIN_ID}'
             }
         """
-        settingsKotlinFile << """
+        settingsKotlinFile """
             plugins {
                 id("my.lifecycle")
             }
@@ -175,7 +203,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
                 apply(plugin = "${CONVENTION_PLUGIN_ID}")
             }
         """
-        settingsKotlinFile << """
+        settingsKotlinFile """
             plugins {
                 id("my.lifecycle")
             }

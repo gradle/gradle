@@ -217,11 +217,11 @@ fun rethrowWithLifecyclePluginHintIfApplicable(t: Throwable, gradle: Gradle): No
 private
 fun lifecyclePluginHintFor(t: Throwable, gradle: Gradle): Throwable? {
     val gradleInternal = gradle as? GradleInternal ?: return null
-    if (!hasIncludedPluginBuilds(gradleInternal)) return null
     val unknown = findUnknownPluginInCauseChain(t) ?: return null
     val pluginId = unknown.pluginId ?: return null
     val documentationRegistry = gradleInternal.services.get(DocumentationRegistry::class.java)
-    return UnknownPluginException(unknown.message + lifecyclePluginHint(pluginId, documentationRegistry), pluginId).also { it.initCause(t) }
+    val hint = lifecyclePluginHint(pluginId, hasIncludedPluginBuilds(gradleInternal), documentationRegistry)
+    return UnknownPluginException(unknown.message + hint, pluginId).also { it.initCause(t) }
 }
 
 
@@ -241,12 +241,24 @@ tailrec fun findUnknownPluginInCauseChain(t: Throwable?): UnknownPluginException
 
 
 private
-fun lifecyclePluginHint(pluginId: String, documentationRegistry: DocumentationRegistry): String = "\n" +
-    "If this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
-    "either move the `gradle.lifecycle` callback registration into a settings convention plugin " +
-    "published from that build (recommended), or declare the plugin in the settings `plugins {}` block " +
-    "(e.g. `plugins { id(\"$pluginId\") apply false }`) to make it available to `gradle.lifecycle` callbacks.\n" +
-    documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:lifecycle_callbacks_with_included_plugin_builds")
+fun lifecyclePluginHint(pluginId: String, fromIncludedPluginBuild: Boolean, documentationRegistry: DocumentationRegistry): String {
+    // Always applicable: the plugin has to be on the project's plugin classpath before the callback runs.
+    val genericAdvice =
+        "The plugin must be on the project's plugin classpath before the `gradle.lifecycle` callback runs. " +
+            "Declare it in the settings `plugins {}` block with `apply false` " +
+            "(e.g. `plugins { id(\"$pluginId\") apply false }`) so its classpath is exported to all projects. " +
+            "For a plugin resolved from a repository, include its version (e.g. `id(\"$pluginId\") version \"...\" apply false`)."
+    // Only meaningful when the build registers a plugin-providing build via pluginManagement.includeBuild.
+    val includedBuildAdvice =
+        if (fromIncludedPluginBuild)
+            "\nIf this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
+                "you can instead move the `gradle.lifecycle` callback registration into a settings convention plugin " +
+                "published from that build (recommended)."
+        else ""
+    val documentation =
+        documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:lifecycle_callbacks_with_included_plugin_builds")
+    return "\n" + genericAdvice + includedBuildAdvice + "\n" + documentation
+}
 
 
 private
