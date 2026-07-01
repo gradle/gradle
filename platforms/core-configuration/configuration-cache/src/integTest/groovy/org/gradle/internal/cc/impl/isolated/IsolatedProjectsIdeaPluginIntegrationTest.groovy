@@ -47,7 +47,7 @@ class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjects
     }
 
     @ToBeImplemented
-    def "can apply idea plugin and scala plugin"() {
+    def "can apply idea plugin with scala plugin"() {
         settingsFile << """
             include("sub")
         """
@@ -62,10 +62,50 @@ class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjects
         """
 
         when:
-        withIsolatedProjects()
-        fails("help")
+        isolatedProjectsFailsUsing(mode, "help")
 
         then:
-        failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        fixture.assertIsolatedProjectsProblems(mode) {
+            projectsConfigured(":", ":sub")
+            problem("Plugin 'org.gradle.idea': Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        }
+
+        where:
+        mode << ALL_MODES
+    }
+
+    @ToBeImplemented
+    def "reports a single violation when multiple subprojects apply idea and scala"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile """
+            plugins { id("idea") }
+        """
+        buildFile "a/build.gradle", """
+            plugins {
+                id("idea")
+                id("scala")
+            }
+        """
+        buildFile "b/build.gradle", """
+            plugins {
+                id("idea")
+                id("scala")
+            }
+        """
+
+        when:
+        isolatedProjectsFailsUsing(mode, "help")
+
+        then:
+        fixture.assertIsolatedProjectsProblems(mode) {
+            projectsConfigured(":", ":a", ":b")
+            problem("Plugin 'org.gradle.idea': Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        }
+
+        where:
+        mode << ALL_MODES
     }
 }

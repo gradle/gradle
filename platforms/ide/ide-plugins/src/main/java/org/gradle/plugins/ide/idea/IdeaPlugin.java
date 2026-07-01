@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -48,6 +48,8 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.configuration.problems.StructuredMessage;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -514,29 +516,29 @@ public abstract class IdeaPlugin extends IdePlugin {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
-                ideaModuleDependsOnRoot(isolatedProjects);
+                if (!isolatedProjects) {
+                    ideaModuleDependsOnRoot();
+                }
             }
         });
         if (isRoot()) {
             new IdeaScalaConfigurer(project, scalaProjects -> {
                 if (!scalaProjects.isEmpty() && isolatedProjects) {
-                    failOnIncompatibleWithIsolatedProjects();
+                    reportIncompatibleWithIsolatedProjects();
                 }
-            }).configure();
+            }, isolatedProjects).configure();
         }
     }
 
-    private void ideaModuleDependsOnRoot(boolean isolatedProjects) {
-        if (isolatedProjects) {
-            failOnIncompatibleWithIsolatedProjects();
-        }
-
+    private void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
 
-    private static void failOnIncompatibleWithIsolatedProjects() {
-        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
+    private void reportIncompatibleWithIsolatedProjects() {
+        String message = "Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.";
+        getIsolatedProjectsProblemsReporter().report(problemFactory ->
+            problemFactory.problem(StructuredMessage.forText(message), new InvalidUserCodeException(message), null, true));
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
@@ -573,4 +575,7 @@ public abstract class IdeaPlugin extends IdePlugin {
 
     @Inject
     protected abstract BuildFeatures getBuildFeatures();
+
+    @Inject
+    protected abstract IsolatedProjectsProblemsReporter getIsolatedProjectsProblemsReporter();
 }

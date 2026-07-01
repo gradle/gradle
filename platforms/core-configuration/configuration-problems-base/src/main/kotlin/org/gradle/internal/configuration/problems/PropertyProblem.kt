@@ -102,6 +102,7 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 
     companion object {
 
+        @JvmStatic
         fun forText(text: String) = StructuredMessage(listOf(Text(text)))
 
         fun build(builder: StructuredMessageBuilder) = StructuredMessage(

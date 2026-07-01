@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.idea.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -34,9 +35,18 @@ class IdeaIsolatedProjectsWorkarounds {
      * Checks whether the project has the plugin applied.
      * <p>
      * The check is done bypassing the Isolated Projects validations.
+     * <p>
+     * When {@code ensureConfigured} is {@code true}, the project is configured first if it is not already.
+     * This is required under Isolated Projects, where lazy plugin-driven actions may not have visited every
+     * project by the time the check runs; it must remain {@code false} otherwise to preserve
+     * configuration-on-demand semantics.
      */
-    public static boolean hasPlugin(Project project, Class<? extends Plugin<?>> pluginClass) {
-        return ((ProjectInternal) project).getOwner().fromMutableState(p ->
+    public static boolean hasPlugin(Project project, Class<? extends Plugin<?>> pluginClass, boolean ensureConfigured) {
+        ProjectState projectState = ((ProjectInternal) project).getOwner();
+        if (ensureConfigured) {
+            projectState.ensureConfigured();
+        }
+        return projectState.fromMutableState(p ->
             p.getPluginManager().getPluginContainer().hasPlugin(pluginClass)
         );
     }
