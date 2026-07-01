@@ -258,8 +258,10 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     protected static class DescribedBuildCacheService<C, S> {
         public final C config;
         public final S service;
+        @SuppressWarnings("ExposedPrivateType")
         public final BuildCacheDescriptionImpl description;
 
+        @SuppressWarnings("ExposedPrivateType")
         public DescribedBuildCacheService(C config, S service, BuildCacheDescriptionImpl description) {
             this.config = config;
             this.service = service;

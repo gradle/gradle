@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toCollection;
 
 class ProjectConfigurationTracker implements BuildOperationTracker {
@@ -97,7 +97,7 @@ class ProjectConfigurationTracker implements BuildOperationTracker {
 
         List<InternalPluginApplicationResult> toInternalPluginApplicationResults() {
             return pluginApplicationResults.values().stream()
-                .sorted(comparing(PluginApplicationResult::getFirstApplicationId))
+                .sorted(comparingLong(PluginApplicationResult::getFirstApplicationId))
                 .map(PluginApplicationResult::toInternalPluginApplicationResult)
                 .collect(toCollection(ArrayList::new));
         }

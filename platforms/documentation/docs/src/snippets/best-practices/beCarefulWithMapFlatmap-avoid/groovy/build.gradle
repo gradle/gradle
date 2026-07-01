@@ -1,0 +1,67 @@
+// tag::common-tasks[]
+// Task that generates a file
+abstract class GeneratorTask extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void generate() {
+        outputFile.get().asFile.text = "Generated content"
+    }
+}
+
+// Task that consumes the generated file
+abstract class ConsumerTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInputFile()
+
+    @Input
+    abstract Property<String> getInputContent()
+
+    @TaskAction
+    void consume() {
+        println "Input file: ${inputFile.get().asFile}"
+        println "Content: ${inputContent.get()}"
+    }
+}
+// end::common-tasks[]
+
+// tag::config-time-read[]
+def generatorTask = tasks.register('generator', GeneratorTask) {
+    outputFile = layout.buildDirectory.file('eager-output.txt')
+}
+
+tasks.register('consumeEager', ConsumerTask) {
+    inputFile = generatorTask.flatMap { it.outputFile }
+    inputContent = generatorTask.map {
+        it.outputFile.get().asFile.text // <1>
+    }
+}
+// end::config-time-read[]
+
+// tag::derived-property[]
+abstract class ProducerTask extends DefaultTask {
+    @Internal
+    abstract DirectoryProperty getSomeDirectory()
+
+    // This property is DERIVED via map - not directly annotated
+    @OutputFile
+    Provider<RegularFile> getOutputFile() {
+        return someDirectory.map { it.file('output.txt') }
+    }
+
+    @TaskAction
+    void execute() {
+        outputFile.get().asFile.text = 'content'
+    }
+}
+
+def derivedProducer = tasks.register('produceDerived', ProducerTask) {
+    someDirectory = layout.buildDirectory.dir('output')
+}
+
+tasks.register('consumeDerived', Sync) {
+    from(derivedProducer.flatMap { it.outputFile }) // <1>
+    into(layout.buildDirectory.dir('sync'))
+}
+// end::derived-property[]

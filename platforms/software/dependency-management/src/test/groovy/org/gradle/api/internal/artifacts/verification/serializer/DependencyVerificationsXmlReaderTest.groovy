@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
+import org.gradle.test.fixtures.ExpectDeprecation
 import spock.lang.Specification
 
 class DependencyVerificationsXmlReaderTest extends Specification {
@@ -274,6 +275,9 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[0].version == null
         trustedKeys[0].fileName == "file.jar"
         trustedKeys[0].regex == true
+        // pre-1.4 files don't carry origin/reason on trusted keys
+        trustedKeys[0].origin == null
+        trustedKeys[0].reason == null
 
         trustedKeys[1].keyId == "B000000000000000000000000000000000000000"
         trustedKeys[1].group == null
@@ -302,6 +306,189 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[4].version == null
         trustedKeys[4].fileName == null
         trustedKeys[4].regex == false
+    }
+
+    def "can parse origin and reason of trusted keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/a.asc" reason="verified manually"/>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/d.asc" reason="shared key">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 3
+
+        trustedKeys[0].keyId == "A000000000000000000000000000000000000000"
+        trustedKeys[0].origin == "https://example.com/a.asc"
+        trustedKeys[0].reason == "verified manually"
+
+        trustedKeys[1].keyId == "D000000000000000000000000000000000000000"
+        trustedKeys[1].name == "m3"
+        trustedKeys[1].origin == "https://example.com/d.asc"
+        trustedKeys[1].reason == "shared key"
+
+        trustedKeys[2].keyId == "D000000000000000000000000000000000000000"
+        trustedKeys[2].name == "m4"
+        trustedKeys[2].origin == "https://example.com/d.asc"
+        trustedKeys[2].reason == "shared key"
+    }
+
+    def "trusting entries inherit the trusted key origin and reason but can override them"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/default.asc" reason="default reason">
+            <trusting name="m3" version="1.4"/>
+            <trusting name="m4" origin="https://example.com/m4.asc" reason="special reason"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 2
+
+        // inherits the key-level origin/reason
+        trustedKeys[0].name == "m3"
+        trustedKeys[0].origin == "https://example.com/default.asc"
+        trustedKeys[0].reason == "default reason"
+
+        // overrides the key-level origin/reason
+        trustedKeys[1].name == "m4"
+        trustedKeys[1].origin == "https://example.com/m4.asc"
+        trustedKeys[1].reason == "special reason"
+    }
+
+    @ExpectDeprecation("The dependency verification metadata declares a duplicate trusted key 'A000000000000000000000000000000000000000' that differs only by its origin or reason.")
+    def "trusted keys with the same coordinates are deduplicated, keeping the first origin and reason"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/first.asc" reason="first"/>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/second.asc" reason="second"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedKeys = verifier.configuration.trustedKeys
+        trustedKeys.size() == 1
+        trustedKeys[0].keyId == "A000000000000000000000000000000000000000"
+        trustedKeys[0].group == "g1"
+        trustedKeys[0].origin == "https://example.com/first.asc"
+        trustedKeys[0].reason == "first"
+    }
+
+    @ExpectDeprecation("The dependency verification metadata declares a duplicate trusted artifact (group 'g1', name 'm1') that differs only by its origin or reason.")
+    def "trusted artifacts with the same coordinates are deduplicated, keeping the first reason"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+         <trust group="g1" name="m1" reason="first"/>
+         <trust group="g1" name="m1" reason="second"/>
+      </trusted-artifacts>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        then:
+        def trustedArtifacts = verifier.configuration.trustedArtifacts
+        trustedArtifacts.size() == 1
+        trustedArtifacts[0].group == "g1"
+        trustedArtifacts[0].name == "m1"
+        trustedArtifacts[0].reason == "first"
+    }
+
+    @ExpectDeprecation("The dependency verification metadata declares a duplicate trusted PGP key 'ABCDEF0123456789ABCDEF0123456789ABCDEF01'")
+    def "artifact pgp keys with the same id are deduplicated, keeping the first origin and reason"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/first.asc" reason="first"/>
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/second.asc" reason="second"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        then:
+        def keys = verifier.verificationMetadata[0].artifactVerifications[0].trustedPgpKeys as List
+        keys.size() == 1
+        keys[0].keyId == "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+        keys[0].origin == "https://example.com/first.asc"
+        keys[0].reason == "first"
+    }
+
+    def "can parse origin and reason of artifact specific trusted pgp keys"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/key.asc" reason="trusted maintainer"/>
+            <pgp value="0123456789ABCDEF0123456789ABCDEF01234567"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        then:
+        def keys = verifier.verificationMetadata[0].artifactVerifications[0].trustedPgpKeys as List
+        keys.size() == 2
+
+        def withMetadata = keys.find { it.keyId == "ABCDEF0123456789ABCDEF0123456789ABCDEF01" }
+        withMetadata.origin == "https://example.com/key.asc"
+        withMetadata.reason == "trusted maintainer"
+
+        // pre-1.4 files don't carry origin/reason on pgp keys
+        def withoutMetadata = keys.find { it.keyId == "0123456789ABCDEF0123456789ABCDEF01234567" }
+        withoutMetadata.origin == null
+        withoutMetadata.reason == null
     }
 
     def "can parse dependency verification metadata"() {

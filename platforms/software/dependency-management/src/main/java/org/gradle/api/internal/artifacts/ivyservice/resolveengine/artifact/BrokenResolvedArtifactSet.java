@@ -25,4 +25,8 @@ public class BrokenResolvedArtifactSet extends AbstractFailedResolvedArtifactSet
     public BrokenResolvedArtifactSet(Throwable failure) {
         super(failure);
     }
+
+    public Throwable getFailure() {
+        return failure;
+    }
 }

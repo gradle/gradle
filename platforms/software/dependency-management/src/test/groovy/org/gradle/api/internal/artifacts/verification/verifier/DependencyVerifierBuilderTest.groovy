@@ -37,7 +37,7 @@ class DependencyVerifierBuilderTest extends Specification {
 
         def dependencyVerifier = new DependencyVerifierBuilder.ComponentVerificationsBuilder(moduleComponentIdentifier);
         keyIds.forEach {
-            dependencyVerifier.addTrustedKey(componentArtifactIdentified, it)
+            dependencyVerifier.addTrustedKey(componentArtifactIdentified, it, null, null)
         }
 
         when:
@@ -57,7 +57,7 @@ class DependencyVerifierBuilderTest extends Specification {
     def "ArtifactVerificationBuilder should fail if trusted GPG key is not a fingerprint but a #name"() {
         given:
         def verificationBuilder = new DependencyVerifierBuilder.ArtifactVerificationBuilder()
-        keyIds.forEach(verificationBuilder::addTrustedKey)
+        keyIds.forEach { verificationBuilder.addTrustedKey(it, null, null) }
 
         when:
         verificationBuilder.buildTrustedPgpKeys();
@@ -76,13 +76,69 @@ class DependencyVerifierBuilderTest extends Specification {
     def "ArtifactVerificationBuilder should succeed if trusted GPG key is a fingerprint"() {
         given:
         def verificationBuilder = new DependencyVerifierBuilder.ArtifactVerificationBuilder()
-        verificationBuilder.addTrustedKey("d7bf96a169f77b28c934ab1614f53f0824875d73")
+        verificationBuilder.addTrustedKey("d7bf96a169f77b28c934ab1614f53f0824875d73", null, null)
 
         when:
         verificationBuilder.buildTrustedPgpKeys();
 
         then:
         noExceptionThrown()
+    }
+
+    def "deduplicates trusted keys with the same coordinates and records those differing only by origin or reason"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+
+        when:
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, "https://example.com/first.asc", "first")
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, "https://example.com/second.asc", "second")
+
+        then:
+        builder.trustedKeys.size() == 1
+        builder.droppedDuplicateTrustEntries == ["trusted key 'A000000000000000000000000000000000000000'"]
+    }
+
+    def "deduplicates trusted artifacts with the same coordinates and records those differing only by reason"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+
+        when:
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "first")
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "second")
+
+        then:
+        builder.trustedArtifacts.size() == 1
+        builder.droppedDuplicateTrustEntries == ["trusted artifact (group 'g1', name 'm1')"]
+    }
+
+    def "does not record fully identical duplicate trust entries"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+
+        when:
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "same")
+        builder.addTrustedArtifact("g1", "m1", null, null, false, "same")
+
+        then:
+        builder.trustedArtifacts.size() == 1
+        builder.droppedDuplicateTrustEntries.isEmpty()
+    }
+
+    def "deduplicates artifact-specific pgp keys with the same id and records those differing only by origin or reason"() {
+        given:
+        def builder = new DependencyVerifierBuilder()
+        def artifact = new DefaultModuleComponentArtifactIdentifier(
+            DefaultModuleComponentIdentifier.newId(DefaultModuleVersionIdentifier.newId("org", "foo", "1.0")),
+            "foo", "jar", "jar"
+        )
+
+        when:
+        builder.addTrustedKey(artifact, "d7bf96a169f77b28c934ab1614f53f0824875d73", "https://example.com/first.asc", "first")
+        builder.addTrustedKey(artifact, "d7bf96a169f77b28c934ab1614f53f0824875d73", "https://example.com/second.asc", "second")
+
+        then:
+        builder.droppedDuplicateTrustEntries.size() == 1
+        builder.droppedDuplicateTrustEntries[0].startsWith("trusted PGP key 'D7BF96A169F77B28C934AB1614F53F0824875D73'")
     }
 
 }

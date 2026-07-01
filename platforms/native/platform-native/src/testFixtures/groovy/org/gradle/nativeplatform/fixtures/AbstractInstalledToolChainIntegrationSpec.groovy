@@ -40,12 +40,12 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
 
     def setup() {
         initScript = file("init.gradle") << """
-            allprojects { p ->
-                apply plugin: ${toolChain.pluginClass}
+            gradle.lifecycle.beforeProject { p ->
+                p.apply plugin: ${toolChain.pluginClass}
 
-                  toolChains {
+                p.toolChains {
                     ${toolChain.buildScriptConfig}
-                  }
+                }
             }
         """
         executer.beforeExecute({

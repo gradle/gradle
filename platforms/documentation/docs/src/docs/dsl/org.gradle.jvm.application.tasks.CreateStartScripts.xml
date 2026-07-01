@@ -11,6 +11,9 @@
             <tr><td>classpath</td></tr>
             <tr><td>defaultJvmOpts</td></tr>
             <tr><td>outputDir</td></tr>
+            <tr><td>outputDirectory</td></tr>
+            <tr><td>unixScriptFile</td></tr>
+            <tr><td>windowsScriptFile</td></tr>
             <tr><td>executableDir</td></tr>
             <tr><td>optsEnvironmentVar</td></tr>
             <tr><td>unixStartScriptGenerator</td></tr>

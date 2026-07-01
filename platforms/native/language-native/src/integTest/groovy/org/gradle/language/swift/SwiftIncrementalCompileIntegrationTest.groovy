@@ -33,10 +33,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     def setup() {
         // Useful for diagnosing swiftc incremental compile failures
         buildFile << """
-            allprojects {
-                tasks.withType(SwiftCompile) {
-                    compilerArgs.add('-driver-show-incremental')
-                }
+            tasks.withType(SwiftCompile).configureEach {
+                compilerArgs.add('-driver-show-incremental')
             }
         """
     }
@@ -211,10 +209,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         """
         buildFile << """
             apply plugin: 'swift-application'
-
-            project(":unused") {
-                apply plugin: 'swift-library'
-            }
+        """
+        file("unused/build.gradle") << """
+            apply plugin: 'swift-library'
         """
         file("unused/src/main/swift/Library.swift") << """
             public class Library {
@@ -289,10 +286,10 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         Assume.assumeNotNull(swiftc3, swiftc4)
 
         initScript.text = """
-            allprojects { p ->
-                apply plugin: ${swiftc3.pluginClass}
+            gradle.lifecycle.beforeProject { p ->
+                p.apply plugin: ${swiftc3.pluginClass}
 
-                toolChains {
+                p.toolChains {
                     ${swiftc3.buildScriptConfig}
                 }
             }
@@ -310,10 +307,10 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.snapshot { succeeds("compileDebugSwift") }
 
         initScript.text = """
-            allprojects { p ->
-                apply plugin: ${swiftc4.pluginClass}
+            gradle.lifecycle.beforeProject { p ->
+                p.apply plugin: ${swiftc4.pluginClass}
 
-                toolChains {
+                p.toolChains {
                     ${swiftc4.buildScriptConfig}
                 }
             }

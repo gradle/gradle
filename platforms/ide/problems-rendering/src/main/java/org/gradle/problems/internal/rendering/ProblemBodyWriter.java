@@ -40,6 +40,7 @@ class ProblemBodyWriter implements PartialProblemWriter {
     private static final int LEVEL_3_INDENT = 6;
 
     @Override
+    @SuppressWarnings("FormatStringShouldUsePlaceholders")
     public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         // contextual message, if any
         String problemSubMessage = getContextualMessage(problem);

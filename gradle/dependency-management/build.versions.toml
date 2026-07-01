@@ -40,7 +40,7 @@ gson = { module = "com.google.code.gson:gson", version = "2.13.1" }
 guava = { module = "com.google.guava:guava", version = "33.4.6-jre" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
 ideaExtPlugin = { module = "gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext", version = "1.3" }
-jacksonBom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.18.6" } # https://github.com/advisories/GHSA-72hv-8253-57qq on lower versions
+jacksonBom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.22.0" }
 jakartaXml = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
 japiCmpPlugin = { module = "me.champeau.gradle:japicmp-gradle-plugin", version = "0.4.6" }
 javaAssist = { module = "org.javassist:javassist", version = "3.30.2-GA" }
@@ -50,7 +50,7 @@ javaPoet = { module = "com.squareup:javapoet", version.ref = "javaPoet" }
 jaxb = { module = "com.sun.xml.bind:jaxb-impl", version = "4.0.5" }
 jhighlight = { module = "com.uwyn:jhighlight", version = "1.0" }
 jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.3" }
-jsoup = { module = "org.jsoup:jsoup", version = "1.15.3" }
+jsoup = { module = "org.jsoup:jsoup", version = "1.22.2" }
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
 junit = { group = "junit", name = "junit", version = "4.13.2!!" } # keep JUnit 4 transitive we have sometimes up to date
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
@@ -63,7 +63,7 @@ kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}
 kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver"}
 log4jCore = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
 mockitoKotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
-nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
+nullaway = { module = "com.uber.nullaway:nullaway", version = "0.13.7" }
 nullawayPlugin = { module = "net.ltgt.gradle:gradle-nullaway-plugin", version = "2.2.0" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "2.0.24" } # Flexmark 0.34.60 brings in a vulnerable version of pdfbox
@@ -73,7 +73,7 @@ spock = { group = "org.spockframework", name = "spock-core", version.ref = "spoc
 testRetryPlugin = { module = "org.gradle:test-retry-gradle-plugin", version = "1.6.5" }
 woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "6.4.0" } # CVE-2022-40152 on lower versions
 xalan = { module = "xalan:xalan", version = "2.7.1" }
-xerces = { module = "xerces:xercesImpl", version = "2.11.0" }
+xerces = { module = "xerces:xercesImpl", version = "2.12.2" }
 xslthl = { module = "net.sf.xslthl:xslthl", version = "2.0.1" }
 
 [plugins]

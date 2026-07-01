@@ -68,7 +68,6 @@ import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
@@ -425,7 +424,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
                 scalaRuntime,
                 scalaDoc.getClasspath()
             ));
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
+            scalaDoc.getDestinationDirectory().convention(javaPluginExtension(project).getDocsDir().dir("scaladoc"));
             scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> ReportUtilities.getApiDocTitleFor(project));
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });

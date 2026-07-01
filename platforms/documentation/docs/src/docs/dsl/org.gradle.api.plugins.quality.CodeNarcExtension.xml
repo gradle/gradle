@@ -20,6 +20,13 @@
                 </td>
             </tr>
             <tr>
+                <td>reportsDirectory</td>
+                <td>
+                    <literal><replaceable>${project.reporting.baseDirectory}</replaceable>/codenarc
+                    </literal>
+                </td>
+            </tr>
+            <tr>
                 <td>config</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/config/codenarc/codenarc.xml</literal></td>
             </tr>

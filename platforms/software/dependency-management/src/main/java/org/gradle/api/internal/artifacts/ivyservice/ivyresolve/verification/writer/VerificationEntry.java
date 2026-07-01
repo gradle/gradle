@@ -27,7 +27,7 @@ abstract class VerificationEntry implements Comparable<VerificationEntry> {
         .thenComparing(VerificationEntry::getVersion)
         .thenComparing(VerificationEntry::getFile)
         .thenComparing(VerificationEntry::getArtifactKind)
-        .thenComparing(VerificationEntry::getOrder);
+        .thenComparingInt(VerificationEntry::getOrder);
 
     protected final ModuleComponentArtifactIdentifier id;
     protected final ArtifactVerificationOperation.ArtifactKind artifactKind;

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
@@ -31,7 +32,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     def setup() {
         createDirs("lib", "app")
         settingsFile << """
@@ -1593,21 +1594,37 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForConfigurationCache(
-        issue = "https://github.com/gradle/gradle/issues/24273",
-        because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references"
-    )
     def "transforms are created as required and a new instance created for each file"() {
         given:
-        buildFile << """
+        // Replace the class-level setup buildFile to remove its allprojects block (IP-incompatible).
+        // Each project configures itself in its own build.gradle.
+        buildFile.text = """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+
             dependencies {
-                compile project(':lib')
+                attributesSchema {
+                    attribute(usage)
+                }
             }
-            project(':lib') {
-                task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
-                task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts { compile tasks.jar1, tasks.jar2 }
+
+            configurations {
+                dependencyScope('compileDeps')
+                resolvable('compile') {
+                    extendsFrom configurations.compileDeps
+                    attributes.attribute(usage, 'api')
+                }
+            }
+
+            dependencies {
+                compileDeps project(':lib')
+
+                registerTransform(Hasher) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                }
             }
 
             abstract class Hasher implements TransformAction<TransformParameters.None> {
@@ -1630,23 +1647,42 @@ Found the following transformation chains:
                 }
             }
 
-            ${configurationAndTransform('Hasher')}
-
             def configFiles = configurations.compile.incoming.files
             def configView = configurations.compile.incoming.artifactView {
                 attributes { it.attribute(artifactType, 'size') }
             }.files
 
             task queryFiles {
+                inputs.files(configFiles)
                 doLast {
                     println "files: " + configFiles.collect { it.name }
                 }
             }
 
             task queryView {
+                inputs.files(configView)
                 doLast {
                     println "files: " + configView.collect { it.name }
                 }
+            }
+        """
+
+        // :lib configures itself: a consumable 'compile' producing two jars.
+        file('lib/build.gradle') << """
+            def usage = Attribute.of('usage', String)
+
+            configurations {
+                consumable('compile') {
+                    attributes.attribute(usage, 'api')
+                }
+            }
+
+            task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
+            task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+
+            artifacts {
+                compile tasks.jar1, tasks.jar2
             }
         """
 
@@ -2995,6 +3031,9 @@ Found the following transformation chains:
             executer.withArgument("--configuration-cache")
         }
 
+        // The 'resolve' task action queries an undeclared artifact transform output, which fires the
+        // deprecation regardless of whether the build ultimately succeeds (CC=false) or fails (CC=true).
+        expectUndeclaredArtifactTransformInputDeprecation()
         if (configurationCache) {
             fails "resolve"
         } else {
@@ -3082,6 +3121,9 @@ Found the following transformation chains:
         executer.withArgument("--configuration-cache")
 
         when:
+        // The 'resolve' task action queries an undeclared artifact transform output, which fires
+        // the deprecation before the CC undeclared-project error.
+        expectUndeclaredArtifactTransformInputDeprecation()
         fails "resolve"
 
         then:
