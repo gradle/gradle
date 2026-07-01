@@ -41,16 +41,32 @@ final class StackTraceCapturer {
         if (remainingFull.getAndDecrement() > 0) {
             return new Exception();
         }
-        if (remainingBounded.getAndDecrement() > 0) {
-            return boundedCallerStackCapturer.captureCallerStack();
-        }
-        return null;
+        return captureBoundedFallback();
     }
 
+    /**
+     * Captures the caller-supplied throwable while the full budget lasts, or {@code null} once it is spent.
+     *
+     * <p>A supplied throwable is kept as the problem's exception, so it must never be replaced by a bounded
+     * capture. Past the full budget the caller should fall back to {@link #captureBoundedFallback()}, which
+     * yields a location-only throwable that must not be surfaced as the exception.</p>
+     */
     @Nullable
     Throwable captureSupplied(Supplier<? extends Throwable> factory) {
         if (remainingFull.getAndDecrement() > 0) {
             return factory.get();
+        }
+        return null;
+    }
+
+    /**
+     * Captures a cheap bounded throwable used to infer a location only (never kept as the exception), while
+     * the bounded budget lasts, or {@code null} once it is spent. Spends only the bounded budget.
+     */
+    @Nullable
+    Throwable captureBoundedFallback() {
+        if (remainingBounded.getAndDecrement() > 0) {
+            return boundedCallerStackCapturer.captureCallerStack();
         }
         return null;
     }
