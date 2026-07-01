@@ -26,6 +26,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
+import org.gradle.internal.deprecation.BuildOptionDeprecations;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.invocation.BuildAction;
@@ -92,6 +93,7 @@ public class RootBuildLifecycleBuildActionExecutor {
             StartParameterInternal startParameter = action.getStartParameter();
             try {
                 initDeprecationLogging(startParameter);
+                BuildOptionDeprecations.nagAboutDeprecatedBuildOptionProperties(startParameter);
                 maybeNagOnDeprecatedJavaRuntimeVersion();
                 RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));

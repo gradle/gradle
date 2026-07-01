@@ -97,6 +97,15 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
     def "shows no promo message when #ccSwitch is given in command-line"() {
         given:
+        if (ccSwitch.contains(ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME)) {
+            executer.expectDocumentedDeprecationWarning(
+                "The ${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME} system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Please use the ${ConfigurationCacheOption.PROPERTY_NAME} system property instead. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_unsafe_configuration_cache_properties"
+            )
+        }
         buildFile """
             tasks.register("greet") { doLast { println("Hello") } }
         """

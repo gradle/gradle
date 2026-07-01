@@ -140,6 +140,37 @@ Update your `gradle.properties` and command-line invocations to the new names.
 
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
+[[deprecated_unsafe_configuration_cache_properties]]
+==== Deprecation of `org.gradle.unsafe.configuration-cache*` properties
+
+The legacy `org.gradle.unsafe.configuration-cache*` Gradle properties (and their equivalent `-D` system properties) were replaced in Gradle 8.1 by official names without the `unsafe` segment.
+The legacy names have continued to work as silent aliases since then; they are now deprecated and will be removed in Gradle 10.
+
+Replace each legacy name with its current equivalent:
+
+[%header,cols="2*"]
+|===
+| Legacy property | Replacement
+
+| `org.gradle.unsafe.configuration-cache`
+| `org.gradle.configuration-cache`
+
+| `org.gradle.unsafe.configuration-cache-problems`
+| `org.gradle.configuration-cache.problems`
+
+| `org.gradle.unsafe.configuration-cache.max-problems`
+| `org.gradle.configuration-cache.max-problems`
+
+| `org.gradle.unsafe.configuration-cache.debug`
+| `org.gradle.internal.configuration-cache.debug`
+
+| `org.gradle.unsafe.configuration-cache.quiet`
+| `org.gradle.internal.configuration-cache.quiet`
+
+| `org.gradle.unsafe.configuration-cache.recreate-cache`
+| `org.gradle.internal.configuration-cache.recreate-cache`
+|===
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
