@@ -993,3 +993,69 @@ NOTE: Remember that the goal of Incubating features is to put them in users' han
 === Tags
 
 <<tags_reference.adoc#tag:upgrades,`#upgrades`>>
+
+[[obtain_loggers_via_logging_get_logger]]
+== Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks
+
+Always obtain a link:{javadocPath}/org/gradle/api/logging/Logger.html[`Logger`] by calling `Logging.getLogger(MyClass.class)` from inside each non-`Task` class that logs — plugins, build services, project extensions, and any other helper class — rather than reusing `project.logger` or `script.logger`.
+Inside a `Task`, use the inherited link:https://docs.gradle.org/current/dsl/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] instead.
+
+=== Explanation
+
+A logger obtained via `Logging.getLogger(MyClass.class)` is named after the class that owns it.
+A logger obtained from `Project` or `Script` is named after that Gradle type and is shared by every class that reaches it that way.
+Obtaining a class-named logger is what makes log output traceable to the code that produced it.
+
+`Task` is an exception to this rule as link:https://docs.gradle.org/current/dsl/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] already returns a named logger for the task.
+
+Reaching for the `Project`-associated logger carries additional problems:
+
+- `project.logger` accessed during task execution is not compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>, causing the same problems as noted in <<best_practices_tasks.adoc#dont_access_project_instance_inside_task,Don't access a `Project` instance during Task Execution>>.
+- A `Plugin`'s constructor has no access to `Project` either; `Project` only arrives via `apply(Project)`, so a static class-scoped logger is the only option for logging from a plugin constructor.
+- A `BuildService` has no access to `Project` at all, so `project.logger` is not reachable from inside one.
+
+Constructor-injecting a `Logger` is also not supported.
+`Logger` is not among the <<service_injection.adoc#services_for_injection,services available for injection>> into Gradle-managed types (plugins, build services).
+For a `BuildService` this surfaces as the runtime error `Services of type Logger are not available for injection into instances of type BuildService.`.
+`BuildServiceParameters` cannot carry a `Logger` either, since the concrete logger implementation is not serializable for the Configuration Cache.
+
+NOTE: Inline build scripts (`build.gradle(.kts)`) should use the script-scoped `logger` directly if there is no class to attach a static logger to.
+This recommendation applies to code in compiled classes: `buildSrc`, convention plugins, included builds, and published plugins.
+
+The `org.gradle.api.logging.Logger` interface extends `org.slf4j.Logger`, so you keep the full SLF4J API plus Gradle's `LIFECYCLE` and `QUIET` levels.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Injecting `Logger` into a `BuildService`*: Fails at task execution time with `Services of type Logger are not available for injection into instances of type BuildService`.
+<2> *Using `project.logger` from a plugin*: Yields a logger named for `Project`, not for the plugin class. The same pattern cannot be used in the plugin's constructor at all, since `Project` is not available there.
+<3> *Declaring a static `Logging.getLogger(MyTask.class)` inside a task*: Works, but is unnecessary. `Task.getLogger()` (inherited as `getLogger()`) already returns a class-named logger for the task type.
+<4> *Reading `project.logger` inside a task action*: Works without the Configuration Cache, but fails as soon as the cache is enabled because accessing `Task.project` at execution time is unsupported.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Build service logger*: A `private static final` `Logger` named after `GreetingService`. No injection required; works regardless of how the service is registered..
+<2> *Plugin logger*: A `private static final` `Logger` named after `GreetingPlugin`. Accessible from any context, including the plugin's constructor.
+<3> *Task uses the inherited `getLogger()`*: `Task.getLogger()` already returns a logger named for the task type. No static field needed.
+
+=== References
+
+- <<logging.adoc#logging,Logging>>
+- <<build_services.adoc#build_services,Shared Build Services>>
+- <<service_injection.adoc#services_for_injection,Services Available for Injection>>
+- <<configuration_cache.adoc#config_cache,Configuration Cache>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:tasks,`#tasks`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:logging,`#logging`>>
