@@ -21,10 +21,9 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
-import org.gradle.internal.buildtree.ResilientModelBuildingFailures;
+import org.gradle.internal.buildtree.ResilientModelFailure;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
@@ -33,8 +32,6 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -66,11 +63,10 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected ToolingModelScope onDefaultScopeResolutionFailed(Throwable failure, ToolingModelRequestContext toolingModelContext) {
-        // A build-level configuration failure (e.g. a failing settings script) is not tied to a specific project,
-        // so no project scope could be created. Surface it through a result so the failure is returned to the client
-        // and carried as a build failure to fail the build when it finishes, while partial models are still returned.
-        return new ResilientFailedConfigurationScope(failure, failureFactory);
+    protected ToolingModelScope onDefaultScopeResolutionFailed(Throwable configurationFailure, ToolingModelRequestContext toolingModelContext) {
+        // A build-level configuration failure (e.g. a failing settings script) is not tied to a project, so no project
+        // scope could be created. Return it as a result instead of throwing, so the client still gets partial models.
+        return new FixedResultScope(configurationFailureResult(failureFactory, configurationFailure, null));
     }
 
     @Override
@@ -78,14 +74,28 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         return Try.successful(new ResilientProjectToolingScope(targetProject, toolingModelContext, buildConfiguration, failureFactory));
     }
 
-    private static class ResilientFailedConfigurationScope implements ToolingModelScope {
+    /**
+     * Builds a result that returns a configuration failure to the client and carries it as a {@link ResilientModelFailure}
+     * so the build still fails once model building finishes.
+     */
+    private static ToolingModelBuilderResultInternal configurationFailureResult(FailureFactory failureFactory, Throwable configurationFailure, @Nullable Object model) {
+        return ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.create(configurationFailure)))
+            .withResilientFailure(ResilientModelFailure.ofConfiguration(configurationFailure));
+    }
 
-        private final Throwable configurationFailure;
-        private final FailureFactory failureFactory;
+    private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
+        // Some internal model builders can run even if the project is not fully configured.
+        return MODELS_ALLOWED_TO_RUN_FOR_PARTIALLY_CONFIGURED_PROJECTS.contains(modelName);
+    }
 
-        public ResilientFailedConfigurationScope(Throwable configurationFailure, FailureFactory failureFactory) {
-            this.configurationFailure = configurationFailure;
-            this.failureFactory = failureFactory;
+    /**
+     * A scope that always returns the same fixed result, used when a builder cannot even be located.
+     */
+    private static class FixedResultScope implements ToolingModelScope {
+        private final ToolingModelBuilderResultInternal result;
+
+        public FixedResultScope(ToolingModelBuilderResultInternal result) {
+            this.result = result;
         }
 
         @Nullable
@@ -96,8 +106,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         @Override
         public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
-            return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(configurationFailure)))
-                .withBuildFailures(ResilientModelBuildingFailures.configurationFailure(configurationFailure));
+            return result;
         }
     }
 
@@ -119,12 +128,10 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         @Override
         public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelName, @Nullable ToolingModelParameterCarrier parameter) {
-            // If evaluation of settings fails, a project could not be created, and we should return the failure before locateBuilder is called
+            // If settings evaluation fails the project is never created, so return the failure before locating a builder.
             if (!targetProject.isCreated()) {
                 checkArgument(!ownerBuildConfiguration.isSuccessful(), "Project has not been created, but build configuration has succeeded, this is a bug, please report.");
-                // Return the configuration failure in the fetch result, and carry it as a build failure so the build fails when it finishes
-                return ToolingModelBuilderResultInternal.of(getConfigurationFailure(failureFactory, ownerBuildConfiguration))
-                    .withBuildFailures(configurationFailureOf(ownerBuildConfiguration));
+                return configurationFailureResult(failureFactory, ownerBuildConfiguration.getFailure().get(), null);
             }
             return super.getModel(modelName, parameter);
         }
@@ -144,22 +151,6 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
             return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
         }
-    }
-
-    private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
-        // Some internal model builders can run even if the project is not fully configured.
-        return MODELS_ALLOWED_TO_RUN_FOR_PARTIALLY_CONFIGURED_PROJECTS.contains(modelName);
-    }
-
-    private static List<Failure> getConfigurationFailure(FailureFactory failureFactory, Try<Void> configuration) {
-        Optional<Throwable> failure = configuration.getFailure();
-        return failure.map(e -> ImmutableList.of(failureFactory.create(e))).orElseGet(ImmutableList::of);
-    }
-
-    private static ResilientModelBuildingFailures configurationFailureOf(Try<Void> configuration) {
-        return configuration.getFailure()
-            .map(ResilientModelBuildingFailures::configurationFailure)
-            .orElseGet(ResilientModelBuildingFailures::empty);
     }
 
     private static class ResilientToolingModelBuilder implements ToolingModelBuilderLookup.Builder {
@@ -189,33 +180,30 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         @Override
         public Object build(@Nullable Object parameter) {
             if (projectConfiguration.isSuccessful()) {
-                // The project configured successfully, but the model builder itself may still fail. Such a failure is
-                // not a configuration failure, so carry it as a build failure to fail the build, while still returning
-                // the failure in the fetch result to the client.
-                return tryBuildModel(parameter).getOrMapFailure(this::asSoftFailure);
+                // The project configured successfully, but the model builder itself may still fail. Return that failure
+                // to the client and carry it so it fails the build - it is a model builder failure, not a configuration one.
+                return tryBuildModel(parameter).getOrMapFailure(this::asModelBuilderFailure);
             }
 
-            // Configuration failed. Carry it as a build failure so the build fails when it finishes (mirroring
-            // non-resilient sync), while still returning the failure in the fetch result. For models that tolerate a
-            // partially-configured project, still build the model on a best-effort basis, but never let a model
-            // builder failure mask the configuration failure that is reported below.
+            // Configuration failed. Return it to the client and carry it so the build fails, mirroring a non-resilient
+            // sync. For models that tolerate a partially-configured project, still build the model on a best-effort
+            // basis, but never let a model builder failure mask the configuration failure.
             Object model = canRunEvenIfProjectNotFullyConfigured ? tryBuildModel(parameter).getOrMapFailure(failure -> null) : null;
-            return ToolingModelBuilderResultInternal.attachFailures(model, getConfigurationFailure(failureFactory, projectConfiguration))
-                .withBuildFailures(configurationFailureOf(projectConfiguration));
+            return configurationFailureResult(failureFactory, projectConfiguration.getFailure().get(), model);
         }
 
         private Try<Object> tryBuildModel(@Nullable Object parameter) {
             return Try.ofFailable(() -> delegate.get().build(parameter));
         }
 
-        private ToolingModelBuilderResultInternal asSoftFailure(Throwable failure) {
+        private ToolingModelBuilderResultInternal asModelBuilderFailure(Throwable failure) {
             // A missing model builder (UnknownModelException) is a legitimate per-model result for the client, not a
             // build failure. Let it propagate so the caller reports it as a per-model failure without failing the build.
             if (failure instanceof UnknownModelException) {
                 throw (UnknownModelException) failure;
             }
             return ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)))
-                .withBuildFailures(ResilientModelBuildingFailures.modelBuilderFailure(failure));
+                .withResilientFailure(ResilientModelFailure.ofModelBuilder(failure));
         }
     }
 }

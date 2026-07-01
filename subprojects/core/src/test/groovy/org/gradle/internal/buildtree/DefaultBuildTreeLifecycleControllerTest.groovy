@@ -38,7 +38,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
     def setup() {
         buildController.gradle >> gradle
-        modelCreator.drainModelBuildingFailures() >> ResilientModelBuildingFailures.empty()
+        modelCreator.drainModelBuildingFailures() >> []
     }
 
     def "runs tasks"() {

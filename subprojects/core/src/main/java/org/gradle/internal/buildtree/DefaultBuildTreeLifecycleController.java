@@ -32,9 +32,11 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private enum State implements StateTransitionController.State {
@@ -80,28 +82,35 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
-            ExecutionResult<Void> taskRunResult = ExecutionResult.succeeded();
-            if (runTasks) {
-                taskRunResult = runTasks();
-            }
-            // Allow model action to run even if tasks failed
+            ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
+            // Allow the model action to run even if tasks failed
             ExecutionResult<T> modelResult = runFromBuildModel(action);
-
-            // Failures captured during resilient model building travel back with the model results. Fold them onto
-            // the execution result so they reach finishBuildTree through the normal failure channel. The "build
-            // already failing" check must use only the work/action failures, before the model builder failures below.
-            boolean buildAlreadyFailing = !taskRunResult.getFailures().isEmpty() || !modelResult.getFailures().isEmpty();
-            ResilientModelBuildingFailures resilientFailures = modelCreator.drainModelBuildingFailures();
-            modelResult = modelResult.withFailures(taskRunResult);
-            // Model builder failures are always propagated.
-            modelResult = modelResult.withFailures(ExecutionResult.maybeFailed(resilientFailures.getModelBuilderFailures()));
-            // Configuration failures are normally swallowed when no tasks run; propagate them unless the build is
-            // already failing because of the same configuration failure (e.g. tasks were requested and configuration failed).
-            if (!buildAlreadyFailing) {
-                modelResult = modelResult.withFailures(ExecutionResult.maybeFailed(resilientFailures.getConfigurationFailures()));
-            }
-            return modelResult;
+            ExecutionResult<T> workResult = modelResult.withFailures(taskRunResult);
+            // Failures that resilient model building hid behind partial results must still fail the build.
+            return failBuildWith(workResult, modelCreator.drainModelBuildingFailures());
         });
+    }
+
+    private static <T> ExecutionResult<T> failBuildWith(ExecutionResult<T> workResult, List<ResilientModelFailure> resilientFailures) {
+        // A model builder failure is only ever observed here, so it always fails the build.
+        List<Throwable> modelBuilderFailures = resilientFailures.stream()
+            .filter(failure -> !failure.isConfigurationFailure())
+            .map(ResilientModelFailure::getFailure)
+            .collect(Collectors.toList());
+        ExecutionResult<T> result = workResult.withFailures(ExecutionResult.maybeFailed(modelBuilderFailures));
+
+        // A configuration failure is normally reported by the requested work. Surface the ones resilient model
+        // building swallowed (e.g. an IDE sync that runs no tasks) only when the build is not already failing, to
+        // avoid reporting it twice. The same failure is observed once per queried project, so de-duplicate by identity.
+        if (workResult.getFailures().isEmpty()) {
+            List<Throwable> configurationFailures = resilientFailures.stream()
+                .filter(ResilientModelFailure::isConfigurationFailure)
+                .map(ResilientModelFailure::getFailure)
+                .distinct()
+                .collect(Collectors.toList());
+            result = result.withFailures(ExecutionResult.maybeFailed(configurationFailures));
+        }
+        return result;
     }
 
     @SuppressWarnings("DataFlowIssue")

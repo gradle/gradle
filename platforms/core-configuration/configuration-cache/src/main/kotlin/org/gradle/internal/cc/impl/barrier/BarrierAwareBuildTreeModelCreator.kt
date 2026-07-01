@@ -17,7 +17,7 @@ package org.gradle.internal.cc.impl.barrier
 
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
-import org.gradle.internal.buildtree.ResilientModelBuildingFailures
+import org.gradle.internal.buildtree.ResilientModelFailure
 
 /**
  * Prepares models while managing the configuration time barrier in the vintage mode.
@@ -26,7 +26,7 @@ internal class BarrierAwareBuildTreeModelCreator(
     private val runner: VintageConfigurationTimeActionRunner,
     private val delegate: BuildTreeModelCreator
 ) : BuildTreeModelCreator {
-    override fun drainModelBuildingFailures(): ResilientModelBuildingFailures = delegate.drainModelBuildingFailures()
+    override fun drainModelBuildingFailures(): List<ResilientModelFailure> = delegate.drainModelBuildingFailures()
 
     override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>) {
         runner.runConfigurationTimeAction {
