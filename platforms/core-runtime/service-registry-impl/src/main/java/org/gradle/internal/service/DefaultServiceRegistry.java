@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Formatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -65,7 +66,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry extends AbstractServiceRegistry implements CloseableServiceRegistry {
+public class DefaultServiceRegistry extends AbstractServiceRegistry implements CloseableServiceRegistry, ServiceRegistryIntrospection {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
@@ -137,6 +138,24 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     @Override
     ServiceProvider asServiceProvider() {
         return thisAsServiceProvider;
+    }
+
+    @Override
+    public Set<Class<?>> getAllServiceTypes() {
+        // thisAsServiceProvider composes this registry's own services with the parent chain,
+        // so this walks every reachable scope. Reads type metadata only; no service is realized.
+        Set<Class<?>> types = new HashSet<Class<?>>();
+        thisAsServiceProvider.collectServiceTypes(types);
+        return types;
+    }
+
+    @Override
+    public Set<Class<?>> getOwnServiceTypes() {
+        // Only this registry's own services - no parent traversal. For a project-scoped registry this
+        // is exactly the project-scoped services. Reads type metadata only; no service is realized.
+        Set<Class<?>> types = new HashSet<Class<?>>();
+        ownServices.collectServiceTypes(types);
+        return types;
     }
 
     private static ServiceProvider toParentServices(ServiceRegistry serviceRegistry) {
@@ -461,6 +480,17 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
                 visitor = serviceProvider.getAll(serviceType, token, visitor);
             }
             return visitor;
+        }
+
+        @Override
+        public void collectServiceTypes(Set<Class<?>> dest) {
+            // providersByType is keyed by every type each registered service can be resolved as
+            // (declared types plus their supertypes/interfaces). Read the current snapshot once.
+            @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
+            for (Map.Entry<Class<?>, PersistentArray<ServiceProvider>> entry : providersByType) {
+                dest.add(entry.getKey());
+            }
         }
 
         @Override
@@ -1076,6 +1106,13 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         }
 
         @Override
+        public void collectServiceTypes(Set<Class<?>> dest) {
+            for (ServiceProvider serviceProvider : serviceProviders) {
+                serviceProvider.collectServiceTypes(dest);
+            }
+        }
+
+        @Override
         public void stop() {
             try {
                 CompositeStoppable.stoppable(Arrays.asList(serviceProviders)).stop();
@@ -1108,6 +1145,11 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         @Override
         public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
             return parent.getAll(serviceType, token, visitor);
+        }
+
+        @Override
+        public void collectServiceTypes(Set<Class<?>> dest) {
+            parent.collectServiceTypes(dest);
         }
 
         @Override

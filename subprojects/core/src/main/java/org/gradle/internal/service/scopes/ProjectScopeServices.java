@@ -33,8 +33,10 @@ import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ProblemReportingSharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
@@ -75,7 +77,9 @@ import org.gradle.configuration.project.DefaultProjectConfigurationActionContain
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -200,6 +204,18 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         boolean isRootProject = project.getParent() == null;
         toolingModelBuilderRegistrants.forEach(provider -> provider.registerForProject(registry, isRootProject));
         return registry;
+    }
+
+    @Provides
+    protected SharedModelDefaults decorateSharedModelDefaults(
+        SharedModelDefaults buildScopedSharedModelDefaults,
+        IsolatedProjectsProblemsReporter isolatedProjectsProblemsReporter,
+        BuildModelParameters buildModelParameters
+    ) {
+        if (buildModelParameters.isIsolatedProjects()) {
+            return new ProblemReportingSharedModelDefaults(buildScopedSharedModelDefaults, isolatedProjectsProblemsReporter, project.getIdentityPath());
+        }
+        return buildScopedSharedModelDefaults;
     }
 
     @Provides
