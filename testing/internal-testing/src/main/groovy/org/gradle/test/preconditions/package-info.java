@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@GroovyNullMarked
+@NullMarked
 package org.gradle.test.preconditions;
 
-import org.gradle.util.GroovyNullMarked;
+import org.jspecify.annotations.NullMarked;
