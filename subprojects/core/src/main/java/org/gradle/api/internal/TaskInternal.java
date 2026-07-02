@@ -27,10 +27,12 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -102,6 +104,19 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     StandardOutputCapture getStandardOutputCapture();
+
+    /**
+     * Returns this task's logging manager if one has already been created, without creating one.
+     *
+     * <p>Unlike {@link #getLogging()}, this never forces lazy creation of the per-task logging
+     * manager. It is used during configuration cache serialization to read any registered
+     * standard output/error listeners without allocating a manager for every task.
+     *
+     * @return the task's logging manager, or {@code null} if none has been created yet
+     */
+    @Internal
+    @Nullable
+    LoggingManagerInternal getLoggingManager();
 
     @Override
     TaskInputsInternal getInputs();

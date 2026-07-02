@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.services;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -34,6 +35,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import java.io.Closeable;
 import java.io.OutputStream;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultLoggingManager implements LoggingManagerInternal, Closeable {
@@ -158,6 +160,16 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     public LoggingManagerInternal enableUserStandardOutputListeners() {
         enableStdOutListeners = true;
         return this;
+    }
+
+    @Override
+    public List<StandardOutputListener> getStandardOutputListeners() {
+        return ImmutableList.copyOf(stdoutListeners);
+    }
+
+    @Override
+    public List<StandardOutputListener> getStandardErrorListeners() {
+        return ImmutableList.copyOf(stderrListeners);
     }
 
     @Override

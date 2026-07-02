@@ -28,6 +28,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.specs.Spec
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -42,6 +43,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
@@ -56,6 +58,7 @@ import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.readStringsSet
@@ -71,7 +74,8 @@ import org.gradle.util.internal.DeferredUtil
 
 
 class TaskNodeCodec(
-    private val userTypesCodec: Codec<Any?>
+    private val userTypesCodec: Codec<Any?>,
+    private val serializeTaskLoggingListeners: Boolean
 ) : Codec<LocalTaskNode> {
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
@@ -117,6 +121,7 @@ class TaskNodeCodec(
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
                     writeRequiredServices(task)
+                    writeTaskLoggingListeners(task)
                 }
             }
         }
@@ -156,6 +161,7 @@ class TaskNodeCodec(
             readDestroyablesOf(task)
             readLocalStateOf(task)
             readRequiredServices(task)
+            readTaskLoggingListeners(task)
         }
 
         return task
@@ -294,6 +300,33 @@ class TaskNodeCodec(
             task.localState.register(readNonNull<FileCollection>())
         }
     }
+
+    private
+    suspend fun WriteContext.writeTaskLoggingListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
+            val loggingManager = task.loggingManager
+            if (loggingManager == null || !serializeTaskLoggingListeners) {
+                writeCollection(emptyList<StandardOutputListener>())
+                writeCollection(emptyList<StandardOutputListener>())
+            } else {
+                writeCollection(loggingManager.standardOutputListeners)
+                writeCollection(loggingManager.standardErrorListeners)
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.readTaskLoggingListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
+            val stdoutListeners = readList { readNonNull<StandardOutputListener>() }
+            val stderrListeners = readList { readNonNull<StandardOutputListener>() }
+            if (stdoutListeners.isNotEmpty() || stderrListeners.isNotEmpty()) {
+                val loggingManager = task.logging as LoggingManagerInternal
+                stdoutListeners.forEach { loggingManager.addStandardOutputListener(it) }
+                stderrListeners.forEach { loggingManager.addStandardErrorListener(it) }
+            }
+        }
+    }
 }
 
 
@@ -321,6 +354,7 @@ enum class TaskVirtualProperty(val traceName: String) {
     ACTIONS("actions"),
     CACHE_IF("cacheIf specs"),
     DO_NOT_CACHE_IF("doNotCacheIf specs"),
+    LOGGING_LISTENERS("logging listeners"),
     ONLY_IF("onlyIf specs"),
     UP_TO_DATE("upToDate specs"),
 }
