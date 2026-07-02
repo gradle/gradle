@@ -15,17 +15,17 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.launcher.daemon.client.DaemonStopClient;
+import org.gradle.launcher.daemon.client.ManagedDaemons;
 
 public class StopDaemonAction implements Runnable {
-    private final DaemonStopClient client;
+    private final ManagedDaemons managedDaemons;
 
-    public StopDaemonAction(DaemonStopClient client) {
-        this.client = client;
+    public StopDaemonAction(ManagedDaemons managedDaemons) {
+        this.managedDaemons = managedDaemons;
     }
 
     @Override
     public void run() {
-        client.stop();
+        managedDaemons.stopAll();
     }
 }

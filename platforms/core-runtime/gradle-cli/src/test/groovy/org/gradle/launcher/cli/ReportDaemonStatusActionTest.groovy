@@ -16,19 +16,19 @@
 
 package org.gradle.launcher.cli
 
-import org.gradle.launcher.daemon.client.ReportDaemonStatusClient
+import org.gradle.launcher.daemon.client.ManagedDaemons
 import spock.lang.Specification
 
 class ReportDaemonStatusActionTest extends Specification {
-    final ReportDaemonStatusClient client = Mock(ReportDaemonStatusClient)
-    final ReportDaemonStatusAction action = new ReportDaemonStatusAction(client)
+    final ManagedDaemons managedDaemons = Mock(ManagedDaemons)
+    final ReportDaemonStatusAction action = new ReportDaemonStatusAction(managedDaemons)
 
-    def executesStopCommand() {
+    def reportsDaemonStatus() {
         when:
         action.run()
 
         then:
-        1 * client.listAll()
+        1 * managedDaemons.reportStatus()
         0 * _._
     }
 }

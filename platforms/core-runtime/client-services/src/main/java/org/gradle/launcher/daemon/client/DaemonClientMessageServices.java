@@ -94,6 +94,11 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
     }
 
     @Provides
+    ManagedDaemons createManagedDaemons(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonStopClient stopClient, ReportDaemonStatusClient statusClient) {
+        return new DefaultManagedDaemons(registry, connector, idGenerator, stopClient, statusClient);
+    }
+
+    @Provides
     DaemonConnector createDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
         return new DefaultDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
     }

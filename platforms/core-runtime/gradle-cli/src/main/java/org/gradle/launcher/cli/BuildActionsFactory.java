@@ -49,8 +49,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.DaemonStopClient;
-import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
+import org.gradle.launcher.daemon.client.ManagedDaemons;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
@@ -128,17 +127,17 @@ class BuildActionsFactory implements CommandLineActionCreator {
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {
-        ServiceRegistry clientSharedServices = createGlobalClientServices();
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices, daemonParameters.getBaseDir());
-        DaemonStopClient stopClient = clientServices.get(DaemonStopClient.class);
-        return new StopDaemonAction(stopClient);
+        return new StopDaemonAction(managedDaemons(daemonParameters));
     }
 
     private Runnable showDaemonStatus(DaemonParameters daemonParameters) {
+        return new ReportDaemonStatusAction(managedDaemons(daemonParameters));
+    }
+
+    private ManagedDaemons managedDaemons(DaemonParameters daemonParameters) {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices, daemonParameters.getBaseDir());
-        ReportDaemonStatusClient statusClient = clientServices.get(ReportDaemonStatusClient.class);
-        return new ReportDaemonStatusAction(statusClient);
+        return clientServices.get(ManagedDaemons.class);
     }
 
     private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {

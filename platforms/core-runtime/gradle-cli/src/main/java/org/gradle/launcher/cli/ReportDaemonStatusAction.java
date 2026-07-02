@@ -16,17 +16,17 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
+import org.gradle.launcher.daemon.client.ManagedDaemons;
 
 public class ReportDaemonStatusAction implements Runnable {
-    private final ReportDaemonStatusClient statusClient;
+    private final ManagedDaemons managedDaemons;
 
-    public ReportDaemonStatusAction(ReportDaemonStatusClient statusClient) {
-        this.statusClient = statusClient;
+    public ReportDaemonStatusAction(ManagedDaemons managedDaemons) {
+        this.managedDaemons = managedDaemons;
     }
 
     @Override
     public void run() {
-        statusClient.listAll();
+        managedDaemons.reportStatus();
     }
 }
