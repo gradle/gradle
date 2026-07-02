@@ -38,6 +38,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
     def setup() {
         buildController.gradle >> gradle
+        modelCreator.beforeTasks(_) >> new BuildTreeModelCreatorResult(null, [], [])
     }
 
     def "runs tasks"() {
@@ -96,7 +97,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
 
         and:
-        1 * modelCreator.fromBuildModel(action) >> "result"
+        1 * modelCreator.fromBuildModel(action) >> new BuildTreeModelCreatorResult("result", [], [])
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
@@ -115,6 +116,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.failed(failure))
+        1 * modelCreator.fromBuildModel(action) >> new BuildTreeModelCreatorResult(null, [], [])
         0 * action._
 
         and:
@@ -134,7 +136,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         0 * workController.scheduleAndRunRequestedTasks(null)
 
         and:
-        1 * modelCreator.fromBuildModel(action) >> "result"
+        1 * modelCreator.fromBuildModel(action) >> new BuildTreeModelCreatorResult("result", [], [])
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
