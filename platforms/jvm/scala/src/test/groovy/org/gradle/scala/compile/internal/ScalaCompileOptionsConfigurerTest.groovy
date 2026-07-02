@@ -66,6 +66,24 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         11            | false             | '2.12.14'           | '-target:jvm-1.11'
         11            | false             | '2.13.0'            | '-target:jvm-1.11'
 
+        8             | false             | '2.12.16'           | '-target:8'
+        9             | false             | '2.12.16'           | '-target:9'
+        11            | false             | '2.12.16'           | '-target:11'
+
+        8             | false             | '2.12.17'           | '-release:8'
+        9             | false             | '2.12.17'           | '-release:9'
+        11            | false             | '2.12.17'           | '-release:11'
+        11            | false             | '2.12.18'           | '-release:11'
+
+        8             | true              | '2.12.16'           | '-target:8'
+        9             | true              | '2.12.16'           | '-target:8'
+        11            | true              | '2.12.16'           | '-target:8'
+
+        8             | true              | '2.12.17'           | '-target:8'
+        9             | true              | '2.12.17'           | '-target:8'
+        11            | true              | '2.12.17'           | '-target:8'
+        11            | true              | '2.12.18'           | '-target:8'
+
         8             | false             | '2.13.1'            | '-target:8'
         9             | false             | '2.13.1'            | '-target:9'
         11            | false             | '2.13.1'            | '-target:11'
