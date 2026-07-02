@@ -20,385 +20,288 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
-import org.gradle.internal.SystemProperties
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.classloader.ClassLoaderFactory
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
-import org.jetbrains.kotlin.K1Deprecation
-import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
-import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
-import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-import org.jetbrains.kotlin.cli.create
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
-import org.jetbrains.kotlin.codegen.CompilationException
-import org.jetbrains.kotlin.com.intellij.openapi.Disposable
-import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
-import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.jetbrains.kotlin.config.AnalysisFlags
-import org.jetbrains.kotlin.config.ApiVersion
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.SAM_CONVERSIONS
-import org.jetbrains.kotlin.config.JvmAnalysisFlags
-import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
-import org.jetbrains.kotlin.config.JvmDefaultMode
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
+import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
+import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation.Companion.COMPILER_MESSAGE_RENDERER
+import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration.Companion.BACKUP_CLASSES
+import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration.Companion.KEEP_IC_CACHES_IN_MEMORY
+import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
+import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
+import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.SourcesChanges
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.LANGUAGE_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.Jsr305
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.CLASSPATH
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_DEFAULT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_TARGET
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_REFLECT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_STDLIB
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.SCRIPT_TEMPLATES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_ALLOW_UNSTABLE_DEPENDENCIES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_JSR305
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SCRIPT_RESOLVER_ENVIRONMENT
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget as BtaJvmTarget
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration.Companion.PRECISE_JAVA_TRACKING
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
-import org.jetbrains.kotlin.config.LanguageVersion
-import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
-import org.jetbrains.kotlin.load.java.Jsr305Settings
-import org.jetbrains.kotlin.load.java.ReportLevel
 import org.jetbrains.kotlin.name.NameUtils
-import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverComponentRegistrar
-import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys
-import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
-import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingK2CompilerPluginRegistrar
-import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerFromEnvironment
-import org.jetbrains.kotlin.scripting.compiler.plugin.toCompilerMessageSeverity
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
+import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.net.URLClassLoader
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import kotlin.io.path.Path
 import kotlin.reflect.KClass
-import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.reflect.jvm.jvmName
+import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.ScriptDiagnostic
-import kotlin.script.experimental.api.SourceCode
-import kotlin.script.experimental.api.baseClass
-import kotlin.script.experimental.api.defaultImports
-import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.isError
-import kotlin.script.experimental.api.with
-import kotlin.script.experimental.host.ScriptingHostConfiguration
-import kotlin.script.experimental.host.configurationDependencies
-import kotlin.script.experimental.host.getScriptingClass
-import kotlin.script.experimental.host.toScriptSource
-import kotlin.script.experimental.jvm.JvmDependency
-import kotlin.script.experimental.jvm.JvmGetScriptingClass
-import kotlin.script.experimental.jvm.updateClasspath
-import kotlin.script.experimental.jvmhost.BasicJvmScriptClassFilesGenerator
-import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
-import kotlin.script.experimental.jvmhost.JvmScriptCompiler
+import kotlin.script.experimental.util.PropertiesCollection
 
-fun scriptDefinitionFromTemplate(
-    template: KClass<out Any>,
-    implicitImports: List<String>,
-    implicitReceiver: KClass<*>? = null,
-    classPath: List<File> = listOf()
-): ScriptDefinition {
-    val hostConfiguration = ScriptingHostConfiguration {
-        getScriptingClass(JvmGetScriptingClass())
-        configurationDependencies(JvmDependency(classPath))
-    }
-    return ScriptDefinition.FromConfigurations(
-        hostConfiguration = hostConfiguration,
-        compilationConfiguration = ScriptCompilationConfiguration {
-            baseClass(template)
-            defaultImports(implicitImports)
-            hostConfiguration(hostConfiguration)
-            implicitReceiver?.let {
-                implicitReceivers(it)
-            }
-        },
-        evaluationConfiguration = null
-    )
+// Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
+// KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
+private const val INCREMENTAL_COMPILATION_ENABLED = true
+
+private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
+private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompilerImpl> = mutableMapOf()
+
+internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: ClassLoaderFactory): KotlinCompiler {
+    val classLoader = KotlinCompiler::class.java.classLoader
+    return compilerInstances.computeIfAbsent(Pair(moduleRegistry, classLoaderFactory), { KotlinCompilerImpl(moduleRegistry, classLoader) })
 }
 
+internal fun cleanupKotlinCompilers() {
+    compilerInstances.values.forEach { kotlinCompiler -> kotlinCompiler.clean() }
+    compilerInstances.clear()
 
-internal
-fun compileKotlinScriptToDirectory(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    scriptFile: File,
-    scriptDef: ScriptDefinition,
-    classPath: List<File>,
-    logger: Logger,
-    pathTranslation: (String) -> String
-): String {
-
-    compileKotlinScriptModuleTo(
-        outputDirectory,
-        compilerOptions,
-        "buildscript",
-        listOf(scriptFile.path),
-        scriptDef,
-        classPath,
-        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
-    )
-
-    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    classloaderInstances.values.forEach { classLoader -> classLoader.close() }
+    classloaderInstances.clear()
 }
 
+internal interface KotlinCompiler {
+    fun compileKotlinScriptToDirectory(
+        outputDirectory: File,
+        compilerOptions: KotlinCompilerOptions,
+        scriptFile: File,
+        implicitImports: List<String>,
+        template: KClass<out Any>,
+        classPath: List<File>,
+        logger: Logger,
+        fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String,
+        pathTranslation: (String) -> String
+    ): String
+
+    fun implicitReceiverOf(template: KClass<*>): KClass<*>?
+}
 
 private
-fun compileKotlinScriptModuleTo(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    moduleName: String,
-    scriptFiles: Collection<String>,
-    scriptDef: ScriptDefinition,
-    classPath: Iterable<File>,
-    messageCollector: LoggingMessageCollector
-) {
-    withRootDisposable {
-        withCompilationExceptionHandler(messageCollector) {
-            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                addScriptingCompilerComponents()
-                add(SamWithReceiverConfigurationKeys.SAM_WITH_RECEIVER_ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
-                add(AssignmentConfigurationKeys.ASSIGNMENT_ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
-            }
+class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: ClassLoader) : KotlinCompiler {
 
-            val environment = kotlinCoreEnvironmentFor(configuration)
+    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry, classLoader) }
+    private val btaCompiler by lazyBTACompiler
 
-            val host = BasicJvmScriptingHost(
-                compiler = JvmScriptCompiler(scriptDef.hostConfiguration, ScriptJvmCompilerFromEnvironment(environment)),
-                evaluator = BasicJvmScriptClassFilesGenerator(outputDirectory)
-            )
-            val compilationConfiguration = scriptDef.compilationConfiguration.with {
-                updateClasspath(classPath.toList())
-            }
-            scriptFiles.forEach {
-                val script = File(it).toScriptSource()
-                host.eval(script, compilationConfiguration, scriptDef.evaluationConfiguration)
-                    .reportToMessageCollectorAndThrowOnErrors(script, messageCollector)
-            }
-        }
-    }
-}
-
-
-private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(script: SourceCode, messageCollector: MessageCollector): ResultWithDiagnostics<*> = also {
-    val lines = if (it.reports.isEmpty()) null else script.text.lines()
-    val scriptErrors = ArrayList<ScriptCompilationError>()
-    for (report in it.reports) {
-        val location = report.location
-        val sourcePath = report.sourcePath
-        val compilerMessageLocation = if (location != null && sourcePath != null) {
-            CompilerMessageLocation.create(
-                sourcePath,
-                location.start.line, location.start.col,
-                lines?.getOrNull(location.start.line - 1)
-            )
-        } else null
-
-        if (report.isError() || report.severity == ScriptDiagnostic.Severity.WARNING) {
-            scriptErrors.add(ScriptCompilationError(report.message, compilerMessageLocation))
-        }
-        messageCollector.report(
-            report.severity.toCompilerMessageSeverity(),
-            report.render(withSeverity = false, withLocation = location == null || sourcePath == null),
-            compilerMessageLocation
+    override fun compileKotlinScriptToDirectory(
+        outputDirectory: File,
+        compilerOptions: KotlinCompilerOptions,
+        scriptFile: File,
+        implicitImports: List<String>,
+        template: KClass<out Any>,
+        classPath: List<File>,
+        logger: Logger,
+        fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String,
+        pathTranslation: (String) -> String
+    ): String {
+        compileKotlinScriptToDirectory(
+            outputDirectory,
+            compilerOptions,
+            scriptFile,
+            implicitImports,
+            template,
+            classPath,
+            messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation),
+            fileSystemAccess,
+            classpathSnapshotCache,
+            incrementalCompilationCache,
+            scriptIdentity
         )
+
+        return NameUtils.getScriptNameForFile(scriptFile.name).asString()
     }
-    if (it is ResultWithDiagnostics.Failure || (messageCollector.hasErrors() && scriptErrors.isNotEmpty())) {
-        throw ScriptCompilationException(scriptErrors)
+
+    private val receiverCache: MutableMap<KClass<*>, KClass<*>> = mutableMapOf()
+
+    override fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
+        return receiverCache.getOrPut(template) {
+            val compilationConfigurationClass: KClass<out ScriptCompilationConfiguration>? = template.annotations.firstNotNullOfOrNull { (it as? KotlinScript)?.compilationConfiguration }
+            return compilationConfigurationClass?.let {
+                val compileConfiguration = scriptConfigInstance(compilationConfigurationClass)
+                compileConfiguration?.get(ScriptCompilationConfiguration.implicitReceivers)?.firstOrNull()?.fromClass
+            }
+        }
     }
+
+
+    private
+    fun compileKotlinScriptToDirectory(
+        outputDirectory: File,
+        compilerOptions: KotlinCompilerOptions,
+        scriptFile: File,
+        implicitImports: List<String>,
+        template: KClass<out Any>,
+        classPath: List<File>,
+        messageRenderer: LoggingMessageRenderer,
+        fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String
+    ) {
+        Output.withRedirecting(messageRenderer.log) {
+            btaCompiler.compile(
+                listOf(Path(scriptFile.path)),
+                outputDirectory.toPath(),
+                compilerOptions,
+                classPath,
+                template,
+                implicitImports,
+                messageRenderer,
+                fileSystemAccess,
+                classpathSnapshotCache,
+                incrementalCompilationCache,
+                scriptIdentity
+            )
+            if (messageRenderer.errors.isNotEmpty()) {
+                throw ScriptCompilationException(messageRenderer.errors)
+            }
+        }
+    }
+
+    fun clean() {
+        if (lazyBTACompiler.isInitialized()) {
+            btaCompiler.clean()
+        }
+        receiverCache.clear()
+    }
+
 }
 
 
-private
-inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
-    val rootDisposable = newDisposable()
-    try {
-        return action(rootDisposable)
-    } finally {
-        dispose(rootDisposable)
-    }
-}
+private object Output {
 
-
-private
-inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
-    try {
-        val log = messageCollector.log
+    inline fun <T> withRedirecting(logger: Logger, action: () -> T): T {
         return when {
-            log.isDebugEnabled -> {
-                loggingOutputTo(log::debug) { action() }
+            logger.isDebugEnabled -> {
+                loggingOutputTo(logger::debug) { action() }
             }
 
             else -> {
                 ignoringOutputOf { action() }
             }
         }
-    } catch (ex: CompilationException) {
-        messageCollector.report(
-            CompilerMessageSeverity.EXCEPTION,
-            ex.localizedMessage,
-            MessageUtil.psiElementToMessageLocation(ex.element)
-        )
-
-        throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
-    }
-}
-
-
-private
-inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
-    redirectingOutputTo({ LoggingOutputStream(log) }, action)
-
-
-private
-inline fun <T> ignoringOutputOf(action: () -> T): T =
-    redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
-
-
-private
-inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
-    redirecting(System.err, System::setErr, outputStream()) {
-        redirecting(System.out, System::setOut, outputStream()) {
-            action()
-        }
     }
 
-
-private
-inline fun <T> redirecting(
-    stream: PrintStream,
-    set: (PrintStream) -> Unit,
-    to: OutputStream,
-    action: () -> T
-): T = try {
-    set(PrintStream(to, true))
-    action()
-} finally {
-    set(stream)
-    to.flush()
-}
-
-
-private
-class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 
     private
-    val buffer = ByteArrayOutputStream()
+    inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+        redirectingOutputTo({ LoggingOutputStream(log) }, action)
 
-    override fun write(b: Int) = buffer.write(b)
 
-    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+    private
+    inline fun <T> ignoringOutputOf(action: () -> T): T =
+        redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
 
-    override fun flush() {
-        buffer.run {
-            val string = toString("utf8")
-            if (string.isNotBlank()) {
-                log(string)
+
+    private
+    inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
+        redirecting(System.err, System::setErr, outputStream()) {
+            redirecting(System.out, System::setOut, outputStream()) {
+                action()
             }
-            reset()
+        }
+
+
+    private
+    inline fun <T> redirecting(
+        stream: PrintStream,
+        set: (PrintStream) -> Unit,
+        to: OutputStream,
+        action: () -> T
+    ): T = try {
+        set(PrintStream(to, true))
+        action()
+    } finally {
+        set(stream)
+        to.flush()
+    }
+
+
+    private
+    class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
+
+        private
+        val buffer = ByteArrayOutputStream()
+
+        override fun write(b: Int) = buffer.write(b)
+
+        override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+
+        override fun flush() {
+            buffer.run {
+                val string = toString("utf8")
+                if (string.isNotBlank()) {
+                    log(string)
+                }
+                reset()
+            }
+        }
+
+        override fun close() {
+            flush()
         }
     }
-
-    override fun close() {
-        flush()
-    }
 }
-
-
-@OptIn(CompilerConfiguration.Internals::class)
-private
-fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
-    CompilerConfiguration.create().apply {
-        put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
-        put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
-        put(JDK_HOME, File(System.getProperty("java.home")))
-        put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-        addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
-        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
-        put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
-    }
-
-
-@VisibleForTesting
-fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
-    return JvmTarget.fromString(majorVersion)
-        ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JvmTarget.JVM_26
-}
-
-
-private
-fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOptions) = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_2_2,
-    apiVersion = ApiVersion.KOTLIN_2_2,
-    analysisFlags = mapOf(
-        AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
-        AnalysisFlags.skipPrereleaseCheck to true,
-        AnalysisFlags.allowUnstableDependencies to true,
-        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
-        JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
-            jsr305 = Jsr305Settings(globalLevel = ReportLevel.STRICT, migrationLevel = ReportLevel.STRICT),
-            getReportLevelForAnnotation = { ReportLevel.STRICT }
-        ),
-    ),
-)
-
-
-private
-fun CompilerConfiguration.setModuleName(name: String) {
-    put(CommonConfigurationKeys.MODULE_NAME, name)
-}
-
-
-@OptIn(ExperimentalCompilerApi::class)
-private
-fun CompilerConfiguration.addScriptingCompilerComponents() {
-    @Suppress("DEPRECATION_ERROR")
-    add(
-        org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar.PLUGIN_COMPONENT_REGISTRARS,
-        ScriptingCompilerConfigurationComponentRegistrar()
-    )
-    add(
-        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
-        ScriptingK2CompilerPluginRegistrar()
-    )
-    add(
-        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
-        SamWithReceiverComponentRegistrar()
-    )
-    add(
-        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
-        AssignmentComponentRegistrar()
-    )
-}
-
-
-@OptIn(K1Deprecation::class)
-private
-fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
-    return SystemProperties.getInstance().withSystemProperty(
-        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
-        "true"
-    ) {
-        KotlinCoreEnvironment.createForProduction(
-            this,
-            configuration,
-            EnvironmentConfigFiles.JVM_CONFIG_FILES
-        )
-    }
-}
-
-
-@OptIn(K1Deprecation::class)
-internal
-fun disposeKotlinCompilerContext() =
-    KotlinCoreEnvironment.disposeApplicationEnvironment()
 
 
 private
@@ -406,21 +309,21 @@ fun messageCollectorFor(
     log: Logger,
     allWarningsAsErrors: Boolean,
     pathTranslation: (String) -> String,
-): LoggingMessageCollector =
+): LoggingMessageRenderer =
     messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
 
 
 private
 fun messageCollectorFor(
     log: Logger,
-    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
+    onCompilerWarning: CompilerWarning = CompilerWarning.WARN,
     pathTranslation: (String) -> String = { it }
-): LoggingMessageCollector =
-    LoggingMessageCollector(log, onCompilerWarning, pathTranslation)
+): LoggingMessageRenderer =
+    LoggingMessageRenderer(log, onCompilerWarning, pathTranslation)
 
 
 internal
-data class ScriptCompilationError(val message: String, val location: CompilerMessageSourceLocation?)
+data class ScriptCompilationError(val message: String, val location: SourceLocation?)
 
 
 internal
@@ -428,8 +331,8 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     val errors: List<ScriptCompilationError> by unsafeLazy {
         scriptCompilationErrors.filter { it.location == null } +
-            scriptCompilationErrors.filter { it.location != null }
-                .sortedBy { it.location!!.line }
+                scriptCompilationErrors.filter { it.location != null }
+                    .sortedBy { it.location!!.line }
     }
 
     init {
@@ -437,14 +340,14 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
     }
 
     val firstErrorLine
-        get() = errors.asSequence().mapNotNull { it.location?.line }.firstOrNull()
+        get() = errors.firstNotNullOfOrNull { it.location?.line }
 
     override val message: String
         get() = (
-            listOf("Script compilation $errorPlural:")
-                + indentedErrorMessages()
-                + "${errors.size} $errorPlural"
-            )
+                listOf("Script compilation $errorPlural:")
+                        + indentedErrorMessages()
+                        + "${errors.size} $errorPlural"
+                )
             .joinToString("\n\n")
 
     private
@@ -458,17 +361,17 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
         } ?: error.message
 
     private
-    fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
+    fun errorAt(location: SourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
-            "^ $message".lines().joinToString(
-                prefix = columnIndent,
-                separator = "\n$columnIndent  $INDENT"
-            )
+                "^ $message".lines().joinToString(
+                    prefix = columnIndent,
+                    separator = "\n$columnIndent  $INDENT"
+                )
     }
 
     private
-    fun lineNumber(location: CompilerMessageSourceLocation) =
+    fun lineNumber(location: SourceLocation) =
         location.line.toString().padStart(maxLineNumberStringLength, '0')
 
     private
@@ -490,32 +393,26 @@ const val INDENT = "  "
 
 
 private
-enum class EmbeddedKotlinCompilerWarning {
+enum class CompilerWarning {
     FAIL, WARN, DEBUG
 }
 
 
 private
 fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
-    if (allWarningsAsErrors) EmbeddedKotlinCompilerWarning.FAIL
-    else EmbeddedKotlinCompilerWarning.WARN
+    if (allWarningsAsErrors) CompilerWarning.FAIL
+    else CompilerWarning.WARN
 
 
 private
-class LoggingMessageCollector(
+class LoggingMessageRenderer(
     val log: Logger,
-    private val onCompilerWarning: EmbeddedKotlinCompilerWarning,
+    private val onCompilerWarning: CompilerWarning,
     private val pathTranslation: (String) -> String,
-) : MessageCollector {
-
+) : CompilerMessageRenderer {
     val errors = arrayListOf<ScriptCompilationError>()
 
-    override fun hasErrors() = errors.isNotEmpty()
-
-    override fun clear() = errors.clear()
-
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
-
+    override fun render(severity: Severity, message: String, location: SourceLocation?): String {
         fun msg() =
             location?.run {
                 path.let(pathTranslation).let { path ->
@@ -527,30 +424,29 @@ class LoggingMessageCollector(
             } ?: message
 
         fun taggedMsg() =
-            "${severity.presentableName[0]}: ${msg()}"
+            "${severity.name[0].lowercase()}: ${msg()}"
 
-        fun onError() {
+        fun onError(): String {
             errors += ScriptCompilationError(message, location)
-            log.error { taggedMsg() }
+            return taggedMsg().also { log.error { it } }
         }
 
-        fun onWarning() {
-            when (onCompilerWarning) {
-                EmbeddedKotlinCompilerWarning.FAIL -> onError()
-                EmbeddedKotlinCompilerWarning.WARN -> log.warn { taggedMsg() }
-                EmbeddedKotlinCompilerWarning.DEBUG -> log.debug { taggedMsg() }
+        fun onWarning(): String {
+            return when (onCompilerWarning) {
+                CompilerWarning.FAIL -> onError()
+                CompilerWarning.WARN -> taggedMsg().also { log.warn { it } }
+                CompilerWarning.DEBUG -> taggedMsg().also { log.debug { it } }
             }
         }
 
-        when (severity) {
-            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> onError()
-            in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> onWarning()
-            CompilerMessageSeverity.WARNING -> onWarning()
-            CompilerMessageSeverity.INFO -> log.info { msg() }
-            else -> log.debug { taggedMsg() }
+        return when (severity) {
+            Severity.ERROR -> onError()
+            Severity.WARNING -> onWarning()
+            Severity.INFO -> msg().also { log.info { it } }
+            Severity.DEBUG -> taggedMsg().also { log.debug { it } }
         }
     }
+
 }
 
 
@@ -562,3 +458,266 @@ fun compilerMessageFor(path: String, line: Int, column: Int, message: String) =
 private
 fun clickableFileUrlFor(path: String): String =
     ConsoleRenderer().asClickableFileUrl(File(path))
+
+
+private
+inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
+    kclass.objectInstance ?: run {
+        val noArgsConstructor = kclass.java.constructors.singleOrNull { it.parameters.isEmpty() }
+        noArgsConstructor?.let {
+            try {
+                it.isAccessible = true
+            } catch (_: RuntimeException) {
+            }
+            it.newInstance() as T
+        }
+    }
+
+
+@VisibleForTesting
+fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
+    return JvmTarget.fromString(majorVersion)
+        ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
+        else JvmTarget.JVM_26
+}
+
+
+@VisibleForTesting
+fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
+    // Match on string value: the two enums agree on values ("1.8", "9", ... "26") but not on names (e.g. JVM_1_8 vs JVM1_8).
+    BtaJvmTarget.entries.first { it.stringValue == description }
+
+
+@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
+private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
+
+    companion object {
+        private const val MODULE_NAME = "buildscript"
+        private val logger = LoggerFactory.getLogger(BTACompiler::class.java)
+    }
+
+    private lateinit var toolchains: KotlinToolchains
+    private lateinit var buildSession: KotlinToolchains.BuildSession
+
+    init {
+        toolchains = KotlinToolchains.loadImplementation(classLoader)
+        if (!::buildSession.isInitialized) {
+            buildSession = toolchains.createBuildSession()
+        }
+    }
+
+    private val plugins: List<CompilerPlugin> = createPlugins()
+
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(
+        sources: List<Path>,
+        destinationDirectory: Path,
+        compilerOptions: KotlinCompilerOptions,
+        classPath: List<File>,
+        template: KClass<out Any>,
+        implicitImports: List<String>,
+        messageRenderer: LoggingMessageRenderer,
+        fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String
+    ) {
+        if (incrementalCompilationCache.wasPreviousCompilationInterrupted(scriptIdentity)) {
+            logger.info("Previous compilation of '{}' was interrupted; discarding its outputs and rebuilding.", scriptIdentity)
+            incrementalCompilationCache.discardOutputsAndIncrementalState(scriptIdentity)
+        }
+
+        // Route BTA at a stable per-scriptIdentity output dir...
+        val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
+
+        fun runCompilation(incremental: Boolean) {
+            val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
+
+            operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+
+            operationBuilder.compilerArguments.let {
+                it.configureScriptEnvironment(classPath, template, implicitImports)
+                it.configureLanguageVersion(compilerOptions)
+                it.configureMisc()
+            }
+
+            operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
+
+            if (incremental) {
+                operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
+            }
+
+            buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
+        }
+
+        incrementalCompilationCache.markCompilationStarted(scriptIdentity)
+        if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
+            try {
+                runCompilation(incremental = true)
+            } catch (e: Exception) {
+                logger.info("Incremental compilation of '{}' failed; falling back to a full compile.", scriptIdentity, e)
+                messageRenderer.errors.clear()
+                incrementalCompilationCache.discardIncrementalState(scriptIdentity)
+                runCompilation(incremental = false)
+            }
+        } else {
+            runCompilation(incremental = false)
+        }
+        incrementalCompilationCache.markCompilationComplete(scriptIdentity)
+
+        // ... then copy into the workspace [destinationDirectory] (which changes every time the immutable compilation workspace changes).
+        copyOutputs(btaOutputDir, destinationDirectory)
+    }
+
+    private fun copyOutputs(src: Path, dst: Path) {
+        Files.walk(src).use { stream ->
+            stream.forEach { srcPath ->
+                if (srcPath == src) return@forEach
+                val target = dst.resolve(src.relativize(srcPath))
+                if (Files.isDirectory(srcPath)) {
+                    Files.createDirectories(target)
+                } else {
+                    Files.createDirectories(target.parent)
+                    // Copy, not link: [dst] is the immutable-workspace snapshot one layer up and must
+                    // stay isolated. A hard/sym link would share storage with [src] (`outputs/<hash>/`),
+                    // which BTA rewrites in place on the next recompile — mutating the already-published
+                    // workspace entry and invalidating the output hashes recorded for it. A reflink/CoW
+                    // clone would be both safe and fast, but the JDK copy API can't request it.
+                    Files.copy(srcPath, target, REPLACE_EXISTING)
+                }
+            }
+        }
+    }
+
+    fun clean() {
+        if (::buildSession.isInitialized) {
+            buildSession.close()
+        }
+    }
+
+    private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
+        this[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
+        this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath.
+        this[CLASSPATH] = classPath.map { it.toPath() }
+
+        this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
+        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = listOf(resolverEnvironmentStringFor(listOf(kotlinDslImplicitImports to implicitImports)))
+
+        this[COMPILER_PLUGINS] = plugins
+    }
+
+    private fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
+        this[LANGUAGE_VERSION] = KotlinVersion.V2_2
+        this[API_VERSION] = KotlinVersion.V2_2
+        this[JVM_TARGET] = compilerOptions.jvmTarget.toKotlinJvmTarget().toBuildToolsApiJvmTarget()
+
+        this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
+        this[X_SKIP_PRERELEASE_CHECK] = true
+        this[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
+        this[JVM_DEFAULT] = JvmDefaultMode.ENABLE
+
+        this.also { // apply java type enhancement settings
+            it[X_JSR305] = listOf(Jsr305.Global(Jsr305.Mode.STRICT), Jsr305.UnderMigration(Jsr305.Mode.STRICT))
+        }
+    }
+
+    private fun JvmCompilerArguments.Builder.configureMisc() {
+        this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
+        this[X_USE_FIR_LT] = false
+        this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
+
+        this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
+    }
+
+    /**
+     * Wires snapshot-based incremental compilation into [this] operation builder.
+     *
+     * The IC working directory is keyed by [scriptIdentity] so IC state persists across edits to
+     * the same script. Paired with the stable per-[scriptIdentity] BTA output directory (see
+     * [compile]); the kotlin-dsl workspace cache's content-addressed destination one layer up
+     * gets populated by copy.
+     */
+    private fun JvmCompilationOperation.Builder.configureIncrementalCompilation(
+        scriptIdentity: String,
+        classPath: List<File>,
+        fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+    ) {
+        val icWorkingDirectory = scriptIcRootFor(scriptIdentity, incrementalCompilationCache)
+        val dependencySnapshots = classPath.map { snapshotClasspathEntry(it.toPath(), fileSystemAccess, classpathSnapshotCache) }
+
+        val icConfig = snapshotBasedIcConfigurationBuilder(
+            workingDirectory = icWorkingDirectory,
+            sourcesChanges = SourcesChanges.ToBeCalculated,
+            dependenciesSnapshotFiles = dependencySnapshots,
+        ).apply {
+            // kotlin-dsl never compiles Java sources.
+            this[PRECISE_JAVA_TRACKING] = false
+
+            // BACKUP_CLASSES=true rolls back partial outputs on an in-process compile failure. Off here:
+            // thrown failures are already covered by the full-compile fallback, and a hard crash mid-emit
+            // (which its in-process rollback couldn't undo anyway) by the interrupted-compile marker — both in compile().
+            this[BACKUP_CLASSES] = false
+
+            // Keep IC caches in memory and flush them together rather than writing each key through
+            // during the compile — faster. A crash before that flush leaves ic-state stale or uncommitted,
+            // which is safe: the interrupted-compile marker (compile()) discards it and rebuilds cold.
+            this[KEEP_IC_CACHES_IN_MEMORY] = true
+        }.build()
+
+        this[INCREMENTAL_COMPILATION] = icConfig
+    }
+
+    private fun snapshotClasspathEntry(entry: Path, fileSystemAccess: FileSystemAccess, snapshotCache: KotlinDslClasspathEntrySnapshotCache): Path {
+        // Key by the entry's content hash (covers both jar files and class directories), so identical
+        // bytes share one snapshot file and in-place rewrites invalidate the cached snapshot correctly.
+        val contentHash = fileSystemAccess.read(entry.toAbsolutePath().toString()).hash
+        return snapshotCache.snapshotFileFor(contentHash) { path ->
+            BtaClasspathSnapshotter.snapshot(toolchains.jvm, buildSession, entry, path)
+        }
+    }
+
+    private fun scriptIcRootFor(scriptIdentity: String, cache: KotlinDslIncrementalCompilationCache): Path =
+        cache.scriptCacheDirectory(scriptIdentity)
+
+    private fun createPlugins(): List<CompilerPlugin> {
+        fun pathOfJar(moduleRegistry: ModuleRegistry, jarName: String): Path? {
+            val module = moduleRegistry.findModule(jarName)
+            val jarUri = module?.implementationClasspath?.asURIs?.firstOrNull()
+            if (jarUri != null) {
+                return Paths.get(jarUri)
+            }
+
+            return null
+        }
+
+        val scriptingPlugin = pathOfJar(moduleRegistry, "kotlin-scripting-compiler-embeddable")?.let {
+            CompilerPlugin(
+                pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
+                classpath = listOf(it),
+                rawArguments = listOf(),
+                orderingRequirements = setOf()
+            )
+        }
+        val samWithReceiverPlugin = pathOfJar(moduleRegistry, "kotlin-sam-with-receiver-compiler-plugin")?.let {
+            CompilerPlugin(
+                pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
+                classpath = listOf(it),
+                rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            )
+        }
+        val assignmentPlugin = pathOfJar(moduleRegistry, "kotlin-assignment-compiler-plugin-embeddable")?.let {
+            CompilerPlugin(
+                pluginId = AssignmentPluginNames.PLUGIN_ID,
+                classpath = listOf(it),
+                rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            )
+        }
+
+        return listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
+    }
+}

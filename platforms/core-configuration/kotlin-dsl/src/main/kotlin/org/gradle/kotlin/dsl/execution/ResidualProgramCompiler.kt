@@ -18,10 +18,14 @@ package org.gradle.kotlin.dsl.execution
 
 import checkAllMetadataInClasspath
 import org.gradle.api.Project
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
@@ -34,7 +38,6 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
@@ -59,17 +62,18 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
-import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
+import org.gradle.kotlin.dsl.support.kotlinCompiler
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import kotlin.reflect.KClass
 
 
@@ -90,10 +94,14 @@ class ResidualProgramCompiler(
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
-    private val implicitImports: List<String> = emptyList(),
-    private val logger: Logger = interpreterLogger,
-    private val temporaryFileProvider: TemporaryFileProvider,
+    private val implicitImports: List<String>,
+    private val logger: Logger,
+    private val moduleRegistry: ModuleRegistry,
+    private val classLoaderFactory: ClassLoaderFactory,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
+    private val fileSystemAccess: FileSystemAccess,
+    private val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+    private val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
@@ -214,16 +222,16 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitCollectProjectScriptDependencies(source: ProgramSource) {
-        val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition, classPath + stage1BlocksClassPath)
-        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+        val scriptTemplate = stage1ScriptTemplate
+        val compiledScriptClass = compileStage1(source, scriptTemplate, classPath + stage1BlocksClassPath)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptTemplate)
     }
 
     private
     fun MethodVisitor.emitEval(source: ProgramSource) {
-        val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition)
-        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+        val scriptTemplate = stage1ScriptTemplate
+        val compiledScriptClass = compileStage1(source, scriptTemplate)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptTemplate)
     }
 
     private
@@ -242,7 +250,7 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitStage1Sequence(stage1Seq: List<Program.Stage1>) {
-        val scriptDefinition = buildscriptWithPluginsScriptDefinition
+        val scriptTemplate = buildscriptWithPluginsScriptTemplate
         val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
         val firstElement = stage1Seq.first()
         val compiledBuildscriptWithPluginsBlock =
@@ -250,11 +258,11 @@ class ResidualProgramCompiler(
                 firstElement.fragment.source.map {
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
-                scriptDefinition,
+                scriptTemplate,
                 stage1BlocksClassPath
             )
 
-        val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
+        val implicitReceiverType = kotlinCompiler(moduleRegistry, classLoaderFactory).implicitReceiverOf(scriptTemplate)!!
         compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -360,13 +368,13 @@ class ResidualProgramCompiler(
         invokeApplyPluginsTo()
     }
 
-    fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
+    fun emitStage2ProgramFor(scriptText: String, originalPath: String) {
 
-        val scriptDefinition = stage2ScriptDefinition
+        val scriptTemplate = stage2ScriptTemplate
         val compiledScriptClass = compileScript(
-            scriptFile,
+            scriptText,
             originalPath,
-            scriptDefinition,
+            scriptTemplate,
             StableDisplayNameFor.stage2
         )
 
@@ -374,7 +382,7 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
-                emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+                emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptTemplate)
             }
         }
     }
@@ -556,7 +564,7 @@ class ResidualProgramCompiler(
     fun compilePlugins(program: Program.Plugins) =
         compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.range) },
-            pluginsScriptDefinition,
+            pluginsScriptTemplate,
             stage1BlocksClassPath
         )
 
@@ -577,10 +585,10 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitInstantiationOfCompiledScriptClass(
         compiledScriptClass: InternalName,
-        scriptDefinition: ScriptDefinition
+        scriptTemplate: KClass<out Any>
     ) {
 
-        val implicitReceiverType = implicitReceiverOf(scriptDefinition)
+        val implicitReceiverType = kotlinCompiler(moduleRegistry, classLoaderFactory).implicitReceiverOf(scriptTemplate)
         compiledScriptClassInstantiation(compiledScriptClass) {
 
             // ${compiledScriptClass}(scriptHost)
@@ -689,48 +697,63 @@ class ResidualProgramCompiler(
     private
     fun compileStage1(
         source: ProgramSource,
-        scriptDefinition: ScriptDefinition,
+        scriptTemplate: KClass<out Any>,
         compileClassPath: ClassPath = classPath
     ): InternalName =
-        temporaryFileProvider.withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
-            val originalScriptPath = source.path
-            compileScript(
-                scriptFile,
-                originalScriptPath,
-                scriptDefinition,
-                StableDisplayNameFor.stage1,
-                compileClassPath
-            )
-        }
+        compileScript(source.text, source.path, scriptTemplate, StableDisplayNameFor.stage1, compileClassPath)
 
+    @OptIn(ExperimentalCompilerArgument::class)
     private
     fun compileScript(
-        scriptFile: File,
+        scriptText: String,
         originalPath: String,
-        scriptDefinition: ScriptDefinition,
+        scriptTemplate: KClass<out Any>,
         stage: String,
         compileClassPath: ClassPath = classPath
     ): InternalName {
-        return InternalName.from(
-            compileBuildOperationRunner(originalPath, stage) {
-                checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
-                compileKotlinScriptToDirectory(
-                    outputDir,
-                    compilerOptions,
-                    scriptFile,
-                    scriptDefinition,
-                    compileClassPath.asFiles,
-                    logger
-                ) { path ->
-                    if (path == scriptFile.path) originalPath
-                    else path
+        val scriptIdentity = computeScriptIdentity(originalPath, stage)
+        return incrementalCompilationCache.withStableScriptFileFor(scriptIdentity, originalPath, scriptText) { scriptFile ->
+            InternalName.from(
+                compileBuildOperationRunner(originalPath, stage) {
+                    checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
+                    kotlinCompiler(moduleRegistry, classLoaderFactory).compileKotlinScriptToDirectory(
+                        outputDir,
+                        compilerOptions,
+                        scriptFile,
+                        implicitImports,
+                        scriptTemplate,
+                        compileClassPath.asFiles,
+                        logger,
+                        fileSystemAccess,
+                        classpathEntrySnapshotCache,
+                        incrementalCompilationCache,
+                        scriptIdentity
+                    ) { path ->
+                        if (path == scriptFile.path) originalPath
+                        else path
+                    }
+                }.let { compiledScriptClassName ->
+                    packageName
+                        ?.let { "$it.$compiledScriptClassName" }
+                        ?: compiledScriptClassName
                 }
-            }.let { compiledScriptClassName ->
-                packageName
-                    ?.let { "$it.$compiledScriptClassName" }
-                    ?: compiledScriptClassName
-            }
-        )
+            )
+        }
+    }
+
+    private fun computeScriptIdentity(originalPath: String, stage: String): String {
+        // The identity must vary with everything that affects what bytecode this compile would
+        // emit:
+        //  - stage descriptor: stage-1 (buildscript/plugins block) and stage-2 (body) compile different
+        //    sources against different classpaths.
+        //  - [programTarget] (Project/Settings/Gradle): which build-model object the script
+        //    configures.
+        //  - [programKind] (TopLevel/ScriptPlugin): a top-level script vs one applied via
+        //    `apply(from = …)`.
+        //  - [compilerOptions]: when these change (e.g. `allWarningsAsErrors` flips), warnings
+        //    that should be errors would be hidden behind the prior cache hit (don't use the
+        //    hashCode of `compilerOptions`, it changes from one Daemon instance to another).
+        return "$originalPath#$stage#${programTarget}#${programKind}#${compilerOptions}"
     }
 
     /**
@@ -747,53 +770,58 @@ class ResidualProgramCompiler(
     }
 
     private
-    val stage1ScriptDefinition
-        get() = scriptDefinitionFromTemplate(
-            when (programTarget) {
-                ProgramTarget.Project -> CompiledKotlinBuildscriptBlock::class
-                ProgramTarget.Settings -> CompiledKotlinSettingsBuildscriptBlock::class
-                ProgramTarget.Gradle -> CompiledKotlinInitscriptBlock::class
-            }
-        )
+    val stage1ScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildscriptBlock::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsBuildscriptBlock::class
+            ProgramTarget.Gradle -> CompiledKotlinInitscriptBlock::class
+        }
+    
+    private
+    val stage2ScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildScript::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsScript::class
+            ProgramTarget.Gradle -> CompiledKotlinInitScript::class
+        }
 
     private
-    val stage2ScriptDefinition
-        get() = scriptDefinitionFromTemplate(
-            when (programTarget) {
-                ProgramTarget.Project -> CompiledKotlinBuildScript::class
-                ProgramTarget.Settings -> CompiledKotlinSettingsScript::class
-                ProgramTarget.Gradle -> CompiledKotlinInitScript::class
-            }
-        )
+    val pluginsScriptTemplate
+        get() = CompiledKotlinPluginsBlock::class
 
-    private
-    val pluginsScriptDefinition
-        get() = scriptDefinitionFromTemplate(CompiledKotlinPluginsBlock::class)
+    private val buildscriptWithPluginsScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
+            else -> TODO("Unsupported program target: `$programTarget`")
+        }
 
-    private
-    fun implicitReceiverOf(scriptDefinition: ScriptDefinition): KClass<*>? =
-        implicitReceiverOf(scriptDefinition.baseClassType.fromClass!!)
+}
 
-    private
-    val buildscriptWithPluginsScriptDefinition
-        get() = scriptDefinitionFromTemplate(
-            when (programTarget) {
-                ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
-                ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
-                else -> TODO("Unsupported program target: `$programTarget`")
-            }
-        )
 
-    private
-    fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
-        scriptDefinitionFromTemplate(
-            template,
-            implicitImports,
-            implicitReceiverOf(template),
-            classPath.asFiles
-        )
+/**
+ * Materialises [scriptText] at a stable per-[scriptIdentity] path under the kotlin-dsl IC cache
+ * and invokes [action] with that file. The path persists across builds.
+ *
+ * Runs under [scriptIdentity]'s lock (see [KotlinDslIncrementalCompilationCache.withScriptState]),
+ * so two processes sharing `GRADLE_USER_HOME` that compile the same script won't race.
+ */
+private
+fun <T> KotlinDslIncrementalCompilationCache.withStableScriptFileFor(
+    scriptIdentity: String,
+    scriptPath: String,
+    scriptText: String,
+    action: (File) -> T
+): T = withScriptState(scriptIdentity) {
+    val target = scriptSourceFile(scriptIdentity, scriptFileNameFor(scriptPath))
+    Files.write(target, scriptText.toByteArray(StandardCharsets.UTF_8))
+    action(target.toFile())
+}
 
-    private
-    fun implicitReceiverOf(template: KClass<*>) =
-        template.annotations.firstNotNullOfOrNull { (it as? ImplicitReceiver)?.type }
+
+private
+fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
+    val index = lastIndexOf('/')
+    if (index != -1) substring(index + 1, length)
+    else substringAfterLast('\\')
 }

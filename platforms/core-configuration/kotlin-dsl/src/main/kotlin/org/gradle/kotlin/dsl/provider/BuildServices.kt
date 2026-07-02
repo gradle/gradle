@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
@@ -42,9 +43,11 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
-import org.gradle.kotlin.dsl.normalization.KotlinDslCompileAvoidanceClasspathHashCache
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.plugin.management.internal.PluginHandler
@@ -105,6 +108,8 @@ object BuildServices : ServiceRegistrationProvider {
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationRunner: BuildOperationRunner,
+        moduleRegistry: ModuleRegistry,
+        classLoaderFactory: ClassLoaderFactory,
         cachedClasspathTransformer: CachedClasspathTransformer,
         scriptExecutionListener: ScriptExecutionListener,
         executionEngine: ExecutionEngine,
@@ -117,7 +122,10 @@ object BuildServices : ServiceRegistrationProvider {
         startParameterInternal: StartParameterInternal,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-        propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+        fileSystemAccess: FileSystemAccess,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -133,6 +141,8 @@ object BuildServices : ServiceRegistrationProvider {
             implicitImports,
             progressLoggerFactory,
             buildOperationRunner,
+            moduleRegistry,
+            classLoaderFactory,
             cachedClasspathTransformer,
             scriptExecutionListener,
             executionEngine,
@@ -144,7 +154,10 @@ object BuildServices : ServiceRegistrationProvider {
             buildLayoutFactory.getBuildTreeRootDir(startParameterInternal),
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
-            propertyUpgradeReportConfig
+            propertyUpgradeReportConfig,
+            fileSystemAccess,
+            classpathSnapshotCache,
+            incrementalCompilationCache
         )
 
     // project.gradle.root.settings may not be available when we compile scripts,
@@ -156,7 +169,7 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createCompileClasspathHasher(
-        kotlinDslCompileAvoidanceClasspathHashCache: KotlinDslCompileAvoidanceClasspathHashCache,
+        classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         fileCollectionSnapshotter: FileCollectionSnapshotter,
         fileCollectionFactory: FileCollectionFactory,
         classpathFingerprinter: ClasspathFingerprinter
@@ -164,7 +177,7 @@ object BuildServices : ServiceRegistrationProvider {
         DefaultClasspathHasher(
             fileCollectionSnapshotter,
             if (isKotlinScriptCompilationAvoidanceEnabled) {
-                KotlinCompileClasspathFingerprinter(kotlinDslCompileAvoidanceClasspathHashCache)
+                KotlinCompileClasspathFingerprinter(classpathSnapshotCache)
             } else {
                 classpathFingerprinter
             },

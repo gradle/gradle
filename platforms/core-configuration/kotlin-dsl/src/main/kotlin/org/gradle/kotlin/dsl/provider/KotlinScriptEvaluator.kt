@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -30,6 +31,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
@@ -55,7 +57,10 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -106,6 +111,8 @@ class StandardKotlinScriptEvaluator(
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
     private val buildOperationRunner: BuildOperationRunner,
+    private val moduleRegistry: ModuleRegistry,
+    private val classLoaderFactory: ClassLoaderFactory,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
@@ -117,7 +124,10 @@ class StandardKotlinScriptEvaluator(
     private val buildTreeRootDir: Path,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+    private val fileSystemAccess: FileSystemAccess,
+    private val classpathSnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+    private val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -162,8 +172,24 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir), buildOperationRunner)
-            false -> Interpreter(InterpreterHost(gradleProperties, buildTreeRootDir), buildOperationRunner)
+            true -> Interpreter(
+                InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir),
+                buildOperationRunner,
+                moduleRegistry,
+                classLoaderFactory,
+                fileSystemAccess,
+                classpathSnapshotCache,
+                incrementalCompilationCache
+            )
+            false -> Interpreter(
+                InterpreterHost(gradleProperties, buildTreeRootDir),
+                buildOperationRunner,
+                moduleRegistry,
+                classLoaderFactory,
+                fileSystemAccess,
+                classpathSnapshotCache,
+                incrementalCompilationCache
+            )
         }
     }
 

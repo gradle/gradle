@@ -16,17 +16,28 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.classpath.RuntimeApiInfo
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.cache.CleanupFrequency
+import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory
+import org.gradle.cache.internal.DefaultFineGrainedCacheCleanupStrategyFactory
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
@@ -34,6 +45,10 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotStore
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationStore
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
@@ -43,11 +58,13 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Path
+import java.util.function.Supplier
 
 
 /**
@@ -109,7 +126,15 @@ class SimplifiedKotlinScriptEvaluator(
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost(), TestBuildOperationRunner()).eval(
+        Interpreter(
+            InterpreterHost(),
+            TestBuildOperationRunner(),
+            TestModuleRegistry(),
+            DefaultClassLoaderFactory(),
+            TestFiles.fileSystemAccess(),
+            sharedTestClasspathSnapshotCache,
+            sharedTestIncrementalCompilationCache
+        ).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),
@@ -146,7 +171,17 @@ class SimplifiedKotlinScriptEvaluator(
 
     private
     fun scriptSourceFor(script: String): ScriptSource = mock {
-        on { fileName } doReturn "script.gradle.kts"
+        // Derive fileName from a hash of the script + this evaluator's classpath so that
+        // distinct (script, classpath) pairs get distinct scriptIdentities downstream
+        // (compileScript builds `"$fileName#$stage"`). Without this, every test fixture
+        // evaluator shared `script.gradle.kts` and polluted BTA's per-identity IC state
+        // through [sharedTestIncrementalCompilationCache] — different tests compiling
+        // different scripts under the same identity made IC's source-snapshot / output dir
+        // unsafe to share. The hash isolates them; classpath snapshotting (the dominant
+        // cold cost) is still amortised because that's keyed by classpath-entry content.
+        val classpathFingerprint = scriptCompilationClassPath.asFiles.joinToString { it.absolutePath }
+        val identityHash = Hashing.md5().hashString(script + "\u0000" + classpathFingerprint)
+        on { fileName } doReturn "$identityHash/script.gradle.kts"
         on { className } doReturn "Script_gradle"
         on { shortDisplayName } doReturn Describables.of("<test script>")
         on { resource } doReturn StringTextResource("<test script>", script)
@@ -247,3 +282,99 @@ class DummyCompiledScript(override val program: Class<*>) : CompiledScript {
 val testRuntimeClassPath: ClassPath by lazy {
     ClasspathUtil.getClasspath(SimplifiedKotlinScriptEvaluator::class.java.classLoader)
 }
+
+
+/**
+ * A test-only [KotlinDslIncrementalCompilationCache] and [KotlinDslClasspathEntrySnapshotCache] paired
+ * with the [Closeable] stores that own their underlying [org.gradle.cache.PersistentCache]s. Tests
+ * must [close] this once they are done, or the file locks and on-disk state will leak for the
+ * duration of the test JVM.
+ */
+internal class TestIncrementalCompilationCache(
+    val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+    private val incrementalCompilationStore: KotlinDslIncrementalCompilationStore,
+    val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+    private val classpathEntrySnapshotStore: KotlinDslClasspathEntrySnapshotStore,
+) : AutoCloseable {
+    override fun close() {
+        incrementalCompilationStore.close()
+        classpathEntrySnapshotStore.close()
+    }
+}
+
+
+/**
+ * Builds a real [KotlinDslIncrementalCompilationCache] and [KotlinDslClasspathEntrySnapshotCache] for
+ * tests, rooted at [rootDir]. Wires the same primitives Gradle uses in production but with in-memory
+ * test fakes for the cache factories, so each test gets isolated caches without touching the real
+ * user-home cache.
+ *
+ * Returns an [AutoCloseable] wrapper — the caller is responsible for closing it (typically in
+ * `@After` / `@AfterClass`, or via `close()` on whatever owns the cache).
+ */
+internal fun testIncrementalCompilationCache(rootDir: File): TestIncrementalCompilationCache {
+    rootDir.mkdirs()
+    val cacheBuilderFactory = DefaultGlobalScopedCacheBuilderFactory(rootDir, DefaultUnscopedCacheBuilderFactory(TestInMemoryCacheFactory()))
+    val fileAccessTimeJournal = ModificationTimeFileAccessTimeJournal()
+    val cacheCleanupStrategyFactory = DefaultCacheCleanupStrategyFactory(TestBuildOperationRunner())
+    val fineGrainedCacheCleanupStrategyFactory = DefaultFineGrainedCacheCleanupStrategyFactory(
+        cacheCleanupStrategyFactory,
+        fileAccessTimeJournal
+    )
+    // These caches back unit tests, not a real Gradle invocation, so age-based eviction has no place
+    // here: NEVER means close() never sweeps. It keeps tests deterministic (the per-JVM shared cache
+    // is reused across the whole suite, and cleanup tests drive the soft/hard-delete passes themselves
+    // rather than racing a sweep on close). The retention supplier is therefore never consulted.
+    val createdResources = mock<CacheResourceConfigurationInternal> {
+        on { entryRetentionTimestampSupplier } doReturn Supplier { 0L }
+    }
+    val cacheConfigurations = mock<CacheConfigurationsInternal> {
+        on { getCreatedResources() } doReturn createdResources
+        on { cleanupFrequency } doReturn Providers.of(CleanupFrequency.NEVER)
+    }
+    val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, fineGrainedCacheCleanupStrategyFactory)
+    val cache = KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
+    val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+    val snapshotCache = KotlinDslClasspathEntrySnapshotCache(snapshotStore.snapshotsCacheDirectory, snapshotStore.fileAccessTracker)
+    return TestIncrementalCompilationCache(cache, store, snapshotCache, snapshotStore)
+}
+
+
+/**
+ * A per-JVM [KotlinDslIncrementalCompilationCache] and [KotlinDslClasspathEntrySnapshotCache] for unit
+ * tests. The classpath snapshotting that `configureIncrementalCompilation` does is ~5 s for the
+ * kotlin-dsl test runtime classpath; the lazy here amortises it across every test in the same JVM
+ * fork.
+ *
+ * Rooted at a unique per-JVM directory under `java.io.tmpdir` (PID-suffixed) so concurrent Gradle
+ * test forks don't contend on the same on-disk cache lock — without per-fork isolation,
+ * [org.gradle.cache.PersistentCache]'s exclusive-on-write lock effectively serialises the test
+ * forks. The directory is deleted on JVM shutdown.
+ *
+ * Tests that need cache isolation (e.g. asserting on cache-state side effects) should use
+ * [testIncrementalCompilationCache] with their own directory instead.
+ */
+private val sharedTestCaches: TestIncrementalCompilationCache by lazy {
+    val pid = ProcessHandle.current().pid()
+    val dir = File(System.getProperty("java.io.tmpdir"), "kotlin-dsl-ic-test-$pid").also { it.mkdirs() }
+    val testCache = testIncrementalCompilationCache(dir)
+    Runtime.getRuntime().addShutdownHook(Thread {
+        try {
+            testCache.close()
+        } catch (_: Throwable) {
+        }
+        try {
+            dir.deleteRecursively()
+        } catch (_: Throwable) {
+        }
+    })
+    testCache
+}
+
+
+internal val sharedTestIncrementalCompilationCache: KotlinDslIncrementalCompilationCache
+    get() = sharedTestCaches.incrementalCompilationCache
+
+
+internal val sharedTestClasspathSnapshotCache: KotlinDslClasspathEntrySnapshotCache
+    get() = sharedTestCaches.classpathEntrySnapshotCache

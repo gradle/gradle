@@ -128,11 +128,11 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         result.baseModel.kotlinDslBaseScriptModel != null
 
         where:
-        typeOfFailure | error                                    | expectedReportedError                            | apiType
-        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/ | ApiType.FETCH
-        "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/       | ApiType.FETCH
-        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/ | ApiType.GET_MODEL
-        "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/       | ApiType.GET_MODEL
+        typeOfFailure | error                                   | expectedReportedError                         | apiType
+        "compilation" | "broken"                                | /Script compilation error:\s+Line 1: broken/  | ApiType.FETCH
+        "runtime"     | "throw RuntimeException(\"broken\")"    | /Settings file '.*?' line: 1\s+broken/        | ApiType.FETCH
+        "compilation" | "broken"                                | /Script compilation error:\s+Line 1: broken/  | ApiType.GET_MODEL
+        "runtime"     | "throw RuntimeException(\"broken\")"    | /Settings file '.*?' line: 1\s+broken/        | ApiType.GET_MODEL
     }
 
     def "GradleDslBaseScriptModel can be obtained even after a project #typeOfFailure failure with #apiType"() {
@@ -155,11 +155,11 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         result.baseModel.kotlinDslBaseScriptModel != null
 
         where:
-        typeOfFailure | error                                    | expectedReportedError                         | apiType
-        "compilation" | "broken !!!"                             | "A problem occurred configuring root project" | ApiType.FETCH
-        "runtime"     | "throw RuntimeException(\"broken !!!\")" | "A problem occurred configuring root project" | ApiType.FETCH
-        "compilation" | "broken !!!"                             | "A problem occurred configuring root project" | ApiType.GET_MODEL
-        "runtime"     | "throw RuntimeException(\"broken !!!\")" | "A problem occurred configuring root project" | ApiType.GET_MODEL
+        typeOfFailure | error                                   | expectedReportedError                         | apiType
+        "compilation" | "broken"                                | "A problem occurred configuring root project" | ApiType.FETCH
+        "runtime"     | "throw RuntimeException(\"broken\")"    | "A problem occurred configuring root project" | ApiType.FETCH
+        "compilation" | "broken"                                | "A problem occurred configuring root project" | ApiType.GET_MODEL
+        "runtime"     | "throw RuntimeException(\"broken\")"    | "A problem occurred configuring root project" | ApiType.GET_MODEL
     }
 
     static class FetchBaseModelAfterSettingsEvaluationAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {

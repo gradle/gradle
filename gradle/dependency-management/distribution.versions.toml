@@ -123,6 +123,7 @@ kotlinAssignmentCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "k
 kotlinBuildToolsApi = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-api", version.ref = "kotlin" }
 kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-impl", version.ref = "kotlin" }
 kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlinCompilerRunner = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-runner", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinGradlePluginApi = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
 kotlinMetadataJvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }

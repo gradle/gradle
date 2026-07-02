@@ -22,7 +22,9 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.kotlin.dsl.support.disposeKotlinCompilerContext
+import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
+import org.jetbrains.kotlin.K1Deprecation
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 
 
 /**
@@ -40,9 +42,18 @@ class KotlinCompilerContextDisposer(
 
     override fun stop() {
         listenerManager.removeListener(this)
+        // Guaranteed cleanup: covers config failure, config-cache hits and tooling-api paths that never reach projectsEvaluated.
+        cleanup()
     }
 
     override fun projectsEvaluated(gradle: Gradle) {
-        disposeKotlinCompilerContext()
+        // Eager cleanup: reclaim the compiler before task execution on the happy path. stop() repeats this idempotently.
+        cleanup()
+    }
+
+    @OptIn(K1Deprecation::class)
+    private fun cleanup() {
+        KotlinCoreEnvironment.disposeApplicationEnvironment()
+        cleanupKotlinCompilers()
     }
 }
