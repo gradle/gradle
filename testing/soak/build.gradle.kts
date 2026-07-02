@@ -21,6 +21,7 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.logging)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(projects.toolingApi)
     integTestImplementation(libs.commonsCompress)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(testLibs.jetty)
