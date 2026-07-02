@@ -399,6 +399,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-management-tool",
+    "path": "platforms/core-runtime/daemon-management-tool",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-messaging",
     "path": "platforms/core-runtime/daemon-messaging",
     "unitTests": true,
