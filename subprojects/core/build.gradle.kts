@@ -247,7 +247,6 @@ dependencies {
     integTestImplementation(projects.daemonServices)
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
-    integTestImplementation(testLibs.jetty)
     integTestImplementation(testLibs.littleproxy)
     integTestImplementation(testFixtures(projects.domainObjectCollections))
     integTestImplementation(testFixtures(projects.native))

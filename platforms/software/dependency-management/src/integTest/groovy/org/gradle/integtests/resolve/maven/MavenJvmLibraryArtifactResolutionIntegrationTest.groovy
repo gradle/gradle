@@ -260,7 +260,7 @@ Searched in the following locations:
         then:
         fails("verify")
         failure.assertHasCause("Could not determine artifacts for some.group:some-artifact:1.0")
-        failure.assertHasCause("Could not HEAD '${sourceArtifact.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not HEAD '${sourceArtifact.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         fixture.clearExpectations()
@@ -290,7 +290,7 @@ Searched in the following locations:
         fails("verify")
         failure.assertHasCause("Could not download some-artifact-1.0-javadoc.jar (some.group:some-artifact:1.0)")
         failure.assertHasCause("Could not get resource '${javadocArtifact.uri}'")
-        failure.assertHasCause("Could not GET '${javadocArtifact.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${javadocArtifact.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         fixture.clearExpectations()

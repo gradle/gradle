@@ -101,7 +101,6 @@ dependencies {
     }
 
     integTestImplementation(projects.native)
-    integTestImplementation(testLibs.jetty)
 
     integTestRuntimeOnly(providedLibs.maven3Compat)
 

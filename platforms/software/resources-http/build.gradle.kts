@@ -31,7 +31,6 @@ dependencies {
     runtimeOnly(projects.coreApi)
 
     testImplementation(projects.internalIntegTesting)
-    testImplementation(testLibs.jettyWebApp)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 

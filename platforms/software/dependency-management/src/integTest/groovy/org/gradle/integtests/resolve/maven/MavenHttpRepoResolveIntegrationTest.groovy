@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.test.fixtures.server.http.HttpRequest
+import org.gradle.test.fixtures.server.http.HttpResponse
+
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -23,8 +26,6 @@ import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
@@ -417,7 +418,7 @@ task retrieve(type: Sync) {
 
         when:
         server.expect('/repo/group/projectA/1.0/projectA-1.0.pom', false, ['GET'], new HttpServer.ActionSupport('Not Modified') {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+            void handle(HttpRequest request, HttpResponse response) {
                 response.sendError(304, 'Not Modified')
             }
         })

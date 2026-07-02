@@ -17,26 +17,24 @@
 package org.gradle.test.fixtures.server.http
 
 import groovy.transform.CompileStatic
-import org.eclipse.jetty.security.HashLoginService
-import org.eclipse.jetty.security.UserStore
-import org.eclipse.jetty.util.security.Credential
 
 @CompileStatic
-class TestUserRealm extends HashLoginService {
+class TestUserRealm {
     public static final String REALM_NAME = 'test'
-    public static final String ROLE = 'test'
-    private final UserStore userStore
 
     final String username
     final String password
 
     TestUserRealm(String username, String password) {
-        super(REALM_NAME)
-        userStore = new UserStore()
-        setUserStore(userStore)
         this.username = username
         this.password = password
-        userStore.addUser(username, Credential.getCredential(password), [ROLE] as String[])
     }
 
+    String getName() {
+        return REALM_NAME
+    }
+
+    boolean authenticate(String username, String password) {
+        return this.username == username && this.password == password
+    }
 }

@@ -39,12 +39,7 @@ dependencies {
 
     api(libs.groovy)
     api(testLibs.hamcrest)
-    api(testLibs.jettyWebApp) {
-        because("Part of the public API via HttpServer")
-    }
     api(libs.jansi)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyUtil)
     api(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
@@ -59,7 +54,6 @@ dependencies {
         exclude(module = "groovy-all")
     }
     api(testLibs.samplesDiscovery)
-    api(testLibs.servletApi)
     api(libs.slf4jApi)
     api(testLibs.spock) {
         because("Part of the public API")
@@ -109,7 +103,6 @@ dependencies {
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(testLibs.jettyServlet)
     implementation(testLibs.junit5JupiterApi)
     implementation(testLibs.littleproxy)
     implementation(testLibs.mavenResolverSupplier) {

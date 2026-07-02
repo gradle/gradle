@@ -17,16 +17,10 @@
 package org.gradle.test.fixtures.server.http
 
 import groovy.transform.CompileStatic
-import org.eclipse.jetty.http.HttpHeader
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.handler.AbstractHandler
 
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 @CompileStatic
-class LoggingHandler extends AbstractHandler {
+class LoggingHandler {
     private final Set<String> authenticationAttempts
     private final Set<Map<String, String>> allHeaders
     private final boolean logRequests
@@ -37,27 +31,25 @@ class LoggingHandler extends AbstractHandler {
         this.allHeaders = allHeaders
     }
 
-    @Override
-    void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        Map<String, String> entries = request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
-        allHeaders.add(entries)
+    void log(HttpRequest request) {
+        // HTTP header names are case-insensitive, and com.sun.net.httpserver canonicalises them
+        // (e.g. "TestHttpHeaderName" -> "Testhttpheadername"), so record them case-insensitively.
+        Map<String, String> entries = new TreeMap<>(String.CASE_INSENSITIVE_ORDER)
+        request.getHeaderNames().each { String name -> entries.put(name, request.getHeader(name)) }
+        synchronized (allHeaders) {
+            allHeaders.add(entries)
+        }
         String authorization = getAuthorizationHeader(request)
-        if (authorization != null) {
-            synchronized (authenticationAttempts) {
-                authenticationAttempts << authorization.split(" ")[0]
-            }
-        } else {
-            synchronized (authenticationAttempts) {
-                authenticationAttempts << "None"
-            }
+        synchronized (authenticationAttempts) {
+            authenticationAttempts << (authorization != null ? authorization.split(" ")[0] : "None")
         }
         if (logRequests) {
-            println("handling http request: $request.method $target${request.queryString ? "?" + request.queryString : ''}")
+            String query = request.queryString
+            println("handling http request: ${request.method} ${request.pathInfo}${query ? "?" + query : ''}")
         }
     }
 
-    protected static String getAuthorizationHeader(HttpServletRequest request) {
-        def header = request.getHeader(HttpHeader.AUTHORIZATION.asString())
-        return header
+    protected static String getAuthorizationHeader(HttpRequest request) {
+        return request.getHeader("Authorization")
     }
 }

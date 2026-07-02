@@ -239,7 +239,7 @@ task retrieve(type: Sync) {
 
         then:
         failure.assertHasCause("Could not resolve group:projectA:1.+.")
-        failure.assertHasCause("Could not GET '${projectA.pom.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${projectA.pom.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
@@ -251,7 +251,7 @@ task retrieve(type: Sync) {
 
         then:
         failure.assertHasCause("Could not download projectA-1.1.jar (group:projectA:1.1)")
-        failure.assertHasCause("Could not GET '${projectA.artifact.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${projectA.artifact.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
@@ -392,7 +392,7 @@ Searched in the following locations:
         then:
         failure.assertHasCause('Could not resolve group:projectA:1.+')
         failure.assertHasCause('Could not resolve group:projectA:1.1')
-        failure.assertHasCause("Could not GET '${repo1.uri}/group/projectA/1.1/projectA-1.1.pom'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${repo1.uri}/group/projectA/1.1/projectA-1.1.pom'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()

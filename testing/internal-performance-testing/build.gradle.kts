@@ -42,8 +42,6 @@ dependencies {
     api(libs.groovy)
     api(libs.jacksonAnnotations)
     api(libs.jatl)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyWebApp)
     api(libs.jspecify)
     api(testLibs.junit)
     api(testLibs.spock)
@@ -64,12 +62,10 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(testLibs.commonsMath)
     implementation(testLibs.hikariCP)
-    implementation(testLibs.jettyUtil)
     implementation(testLibs.joptSimple)
     implementation(testLibs.junit5JupiterApi)
 
     runtimeOnly(libs.jclToSlf4j)
-    runtimeOnly(testLibs.jetty)
     runtimeOnly(testLibs.mySqlConnector)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {

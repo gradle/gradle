@@ -19,15 +19,29 @@ package org.gradle.test.fixtures.server.http
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class SslPreHandler {
+class SslConfiguration {
+    private List<String> includeProtocols = ["TLSv1.2"]
+    private final List<String> excludeProtocols = []
 
-    private final List<Runnable> consumers = []
-
-    void registerCustomizer(Runnable consumer) {
-        consumers << consumer
+    void setIncludeProtocols(String... protocols) {
+        this.includeProtocols = protocols.toList()
     }
 
-    void handshakeStarted() {
-        consumers.each { it.run() }
+    List<String> getIncludeProtocols() {
+        return includeProtocols
+    }
+
+    void addExcludeProtocols(String... protocols) {
+        this.excludeProtocols.addAll(protocols)
+    }
+
+    List<String> getExcludeProtocols() {
+        return excludeProtocols
+    }
+
+    List<String> getEffectiveProtocols() {
+        List<String> effective = new ArrayList<>(includeProtocols)
+        effective.removeAll(excludeProtocols)
+        return effective
     }
 }

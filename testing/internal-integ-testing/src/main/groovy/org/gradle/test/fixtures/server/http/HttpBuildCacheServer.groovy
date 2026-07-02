@@ -17,36 +17,22 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.base.Preconditions
-import org.eclipse.jetty.servlet.FilterHolder
-import org.eclipse.jetty.webapp.WebAppContext
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
 
-import javax.servlet.DispatcherType
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture {
     private final TestDirectoryProvider provider
-    private final WebAppContext webapp
     private TestFile cacheDir
-    private int blockIncomingConnectionsForSeconds = 0
+    int blockIncomingConnectionsForSeconds = 0
     private final List<Responder> responders = []
 
     HttpBuildCacheServer(TestDirectoryProvider provider) {
         this.provider = provider
-        this.webapp = new WebAppContext()
-        // The following code is because of a problem under Windows: the file descriptors are kept open under JDK 11
-        // even after server shutdown, which prevents from deleting the test directory
-        this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false")
     }
 
     TestFile getCacheDir() {
@@ -62,46 +48,68 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     @Override
-    WebAppContext getCustomHandler() {
-        return webapp
-    }
-
-    private void addFilters() {
-        if (blockIncomingConnectionsForSeconds > 0) {
-            this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
-        }
-        def filter = new Filter() {
+    HttpResourceHandler getCustomHandler() {
+        return new HttpResourceHandler() {
             @Override
-            void init(FilterConfig filterConfig) throws ServletException {
-
-            }
-
-            @Override
-            void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            void handle(String target, HttpRequest request, HttpResponse response) throws IOException {
+                if (blockIncomingConnectionsForSeconds > 0) {
+                    try {
+                        new CountDownLatch(1).await(blockIncomingConnectionsForSeconds, TimeUnit.SECONDS)
+                    } catch (InterruptedException ignore) {
+                    }
+                }
                 for (responder in responders) {
-                    if (!responder.respond(request as HttpServletRequest, response as HttpServletResponse)) {
+                    if (!responder.respond(request, response)) {
                         return
                     }
                 }
-                chain.doFilter(request, response)
-            }
-
-            @Override
-            void destroy() {
-
+                serve(request, response)
             }
         }
-        webapp.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
+    }
 
-        // TODO: Find Jetty 9 idiomatic way to get rid of this filter
-        this.webapp.addFilter(RestFilter, "/*", EnumSet.of(DispatcherType.REQUEST))
+    private void serve(HttpRequest request, HttpResponse response) {
+        File file = new File(cacheDir, request.pathInfo)
+        switch (request.method) {
+            case 'GET':
+                if (file.isFile()) {
+                    byte[] bytes = file.bytes
+                    response.setContentLength(bytes.length)
+                    response.setContentType("application/octet-stream")
+                    response.outputStream << bytes
+                } else {
+                    response.sendError(404)
+                }
+                break
+            case 'PUT':
+                if (file.exists()) {
+                    file.delete()
+                }
+                file.parentFile.mkdirs()
+                file.withOutputStream { out ->
+                    out << request.inputStream
+                }
+                response.setStatus(204)
+                break
+            case 'DELETE':
+                if (!file.exists()) {
+                    response.sendError(404)
+                } else if (file.delete()) {
+                    response.setStatus(204)
+                } else {
+                    response.sendError(500)
+                }
+                break
+            default:
+                response.sendError(405)
+        }
     }
 
     interface Responder {
         /**
          * Return false to prevent further processing.
          */
-        boolean respond(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+        boolean respond(HttpRequest request, HttpResponse response) throws IOException
     }
 
     HttpBuildCacheServer addResponder(Responder responder) {
@@ -112,8 +120,6 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     @Override
     void start() {
         cacheDir = provider.testDirectory.createDir('http-cache-dir')
-        webapp.resourceBase = cacheDir
-        addFilters()
         HttpServerFixture.super.start()
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.caching.http.internal
 
-import org.eclipse.jetty.server.Response
 import org.gradle.caching.internal.services.BuildCacheControllerFactory
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -90,7 +89,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         httpBuildCacheServer.addResponder { req, res ->
             if (req.method == "PUT") {
                 1024.times { req.inputStream.read() }
-                (res as Response).httpChannel.connection.close()
+                res.closeConnection()
                 false
             } else {
                 true
@@ -113,7 +112,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         httpBuildCacheServer.addResponder { req, res ->
             if (req.method == "PUT" && count++ > 0) {
                 1024.times { req.inputStream.read() }
-                (res as Response).httpChannel.connection.close()
+                res.closeConnection()
                 false
             } else {
                 true
@@ -139,7 +138,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         def requests = 0
         httpBuildCacheServer.addResponder { req, res ->
             if (requests++ == 0) {
-                (res as Response).httpChannel.connection.close()
+                res.closeConnection()
                 false
             } else {
                 true
@@ -179,7 +178,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run("customTask", "customTask2")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
+        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Internal Server Error/
 
         and:
         requestCounter.get() == 1
@@ -198,7 +197,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run("-D${BuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
+        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Internal Server Error/
 
         and:
         requestCounter.get() == 4 // {MISS,STORE} * 2
