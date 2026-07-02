@@ -21,6 +21,7 @@ import org.gradle.model.internal.manage.schema.SpecializedMapSchema
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class SpecializedModelMapStrategyTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 

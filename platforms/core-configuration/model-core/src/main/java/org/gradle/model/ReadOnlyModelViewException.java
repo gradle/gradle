@@ -24,8 +24,11 @@ import org.gradle.model.internal.type.ModelType;
 
 /**
  * Thrown when an attempt is made to change the value of a model element that is not writable at the time.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public class ReadOnlyModelViewException extends GradleException {
     public ReadOnlyModelViewException(String message) {
         super(message);

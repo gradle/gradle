@@ -26,6 +26,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class DefaultCppSourceSetTest extends Specification {
     def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, new DefaultComponentSpecIdentifier("project", "cpp"), TestUtil.objectFactory())
 

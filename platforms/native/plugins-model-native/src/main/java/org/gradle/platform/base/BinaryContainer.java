@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.model.ModelMap;
 
 /**
- * A physical binary artifact, which can run on a particular platform or runtime.
+ * A container for project binaries, which represent physical artifacts that can run on a particular platform or runtime.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
-public interface Binary {
-    /**
-     * Returns a human-consumable display name for this binary.
-     */
-    String getDisplayName();
-}
+@Deprecated
+public interface BinaryContainer extends ModelMap<BinarySpec> {}

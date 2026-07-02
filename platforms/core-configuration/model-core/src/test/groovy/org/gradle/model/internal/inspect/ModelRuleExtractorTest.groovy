@@ -30,6 +30,7 @@ import java.beans.Introspector
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE, STRUCT_BINDINGS_STORE)
     ModelRegistry registry = new DefaultModelRegistry(extractor, null)

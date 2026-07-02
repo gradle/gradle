@@ -16,8 +16,8 @@
 
 package org.gradle.language.c.internal;
 
-import org.gradle.language.c.CSourceSet;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 
-public class DefaultCSourceSet extends AbstractHeaderExportingDependentSourceSet implements CSourceSet {
+@SuppressWarnings("deprecation")
+public class DefaultCSourceSet extends AbstractHeaderExportingDependentSourceSet implements org.gradle.language.c.CSourceSet {
 }

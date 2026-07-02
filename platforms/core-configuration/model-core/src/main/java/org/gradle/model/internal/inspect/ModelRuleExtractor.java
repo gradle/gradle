@@ -30,10 +30,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.RuleInput;
-import org.gradle.model.RuleSource;
-import org.gradle.model.RuleTarget;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -74,6 +70,7 @@ import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
+@SuppressWarnings("deprecation")
 public class ModelRuleExtractor {
     private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
             .weakKeys()
@@ -106,7 +103,7 @@ public class ModelRuleExtractor {
      *
      * @throws InvalidModelRuleDeclarationException On badly formed rule source class.
      */
-    public <T> ExtractedRuleSource<T> extract(Class<T> source) throws InvalidModelRuleDeclarationException {
+    public <T> ExtractedRuleSource<T> extract(Class<T> source) throws org.gradle.model.InvalidModelRuleDeclarationException {
         try {
             return cache.get(source).newInstance(source);
         } catch (ExecutionException e) {
@@ -125,7 +122,7 @@ public class ModelRuleExtractor {
 
         StructSchema<T> schema = getSchema(source, context);
         if (schema == null) {
-            throw new InvalidModelRuleDeclarationException(problems.format());
+            throw new org.gradle.model.InvalidModelRuleDeclarationException(problems.format());
         }
 
         // sort for determinism
@@ -135,9 +132,9 @@ public class ModelRuleExtractor {
         ImmutableList.Builder<ModelProperty<?>> implicitInputs = ImmutableList.builder();
         ModelProperty<?> target = null;
         for (ModelProperty<?> property : schema.getProperties()) {
-            if (property.isAnnotationPresent(RuleTarget.class)) {
+            if (property.isAnnotationPresent(org.gradle.model.RuleTarget.class)) {
                 target = property;
-            } else if (property.isAnnotationPresent(RuleInput.class) && !(property.getSchema() instanceof ScalarValueSchema)) {
+            } else if (property.isAnnotationPresent(org.gradle.model.RuleInput.class) && !(property.getSchema() instanceof ScalarValueSchema)) {
                 implicitInputs.add(property);
             }
             for (WeaklyTypeReferencingMethod<?, ?> method : property.getAccessors()) {
@@ -155,7 +152,7 @@ public class ModelRuleExtractor {
         }
 
         if (context.hasProblems()) {
-            throw new InvalidModelRuleDeclarationException(problems.format());
+            throw new org.gradle.model.InvalidModelRuleDeclarationException(problems.format());
         }
 
         StructBindings<T> bindings = structBindingsStore.getBindings(schema.getType());
@@ -168,8 +165,8 @@ public class ModelRuleExtractor {
     }
 
     private <T> StructSchema<T> getSchema(Class<T> source, RuleSourceValidationProblemCollector problems) {
-        if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
-            problems.add("Rule source classes must directly extend " + RuleSource.class.getName());
+        if (!org.gradle.model.RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(org.gradle.model.RuleSource.class)) {
+            problems.add("Rule source classes must directly extend " + org.gradle.model.RuleSource.class.getName());
         }
 
         ModelSchema<T> schema = schemaStore.getSchema(source);

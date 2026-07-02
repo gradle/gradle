@@ -19,6 +19,7 @@ import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.NativeLibraryRequirement
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class NativeDependencyNotationParserTest extends Specification {
     def parser = NativeDependencyNotationParser.parser()
     def requirement = Mock(NativeLibraryRequirement)

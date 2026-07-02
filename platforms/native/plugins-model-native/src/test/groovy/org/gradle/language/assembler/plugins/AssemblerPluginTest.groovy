@@ -29,6 +29,7 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec
 import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
+@SuppressWarnings("deprecation")
 class AssemblerPluginTest extends PlatformBaseSpecification {
 
     def "creates asm source set with conventional locations for components"() {

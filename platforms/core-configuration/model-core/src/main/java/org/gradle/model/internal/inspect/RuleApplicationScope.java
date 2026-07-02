@@ -16,12 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.Each;
-import org.gradle.model.Path;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public enum RuleApplicationScope {
     /**
      * Rule should be applied to the scope element only.
@@ -46,9 +44,9 @@ public enum RuleApplicationScope {
         RuleApplicationScope result = null;
         for (int paramIndex = 0; paramIndex < parameterAnnotations.size(); paramIndex++) {
             List<Annotation> annotations = parameterAnnotations.get(paramIndex);
-            boolean annotatedWithEach = hasAnnotation(annotations, Each.class);
+            boolean annotatedWithEach = hasAnnotation(annotations, org.gradle.model.Each.class);
             if (paramIndex == subjectParamIndex) {
-                if (annotatedWithEach && hasAnnotation(annotations, Path.class)) {
+                if (annotatedWithEach && hasAnnotation(annotations, org.gradle.model.Path.class)) {
                     problems.add(ruleDefinition, "Rule subject must not be annotated with both @Path and @Each.");
                 }
                 result = annotatedWithEach ? DESCENDANTS : SELF;

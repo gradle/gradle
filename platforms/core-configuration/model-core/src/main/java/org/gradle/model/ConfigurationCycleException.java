@@ -21,8 +21,11 @@ import org.gradle.api.Incubating;
 
 /**
  * Thrown when a cycle is encountered while configuring a model element.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public class ConfigurationCycleException extends GradleException {
     public ConfigurationCycleException(String message) {
         super(message);

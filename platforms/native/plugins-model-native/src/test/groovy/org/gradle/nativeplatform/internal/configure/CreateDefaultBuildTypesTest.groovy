@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.BuildTypeContainer
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class CreateDefaultBuildTypesTest extends Specification {
     def buildTypes = Mock(BuildTypeContainer)
     def rule = new NativeComponentModelPlugin.Rules()

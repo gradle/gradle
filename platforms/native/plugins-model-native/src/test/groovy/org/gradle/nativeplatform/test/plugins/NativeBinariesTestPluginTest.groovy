@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.PlatformBaseSpecification
 
+@SuppressWarnings("deprecation")
 class NativeBinariesTestPluginTest extends PlatformBaseSpecification {
     def "registers NativeTestSuiteBinarySpec"() {
         when:

@@ -19,6 +19,7 @@ package org.gradle.language.objectivec.plugins
 import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@SuppressWarnings("deprecation")
 class ObjectiveCLangPluginTest extends AbstractLanguagePluginSpec {
 
     @Override

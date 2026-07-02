@@ -23,41 +23,36 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
-@SuppressWarnings("this-escape")
-public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
+@SuppressWarnings({"this-escape", "deprecation"})
+public class ComponentSpecFactory extends BaseInstanceFactory<org.gradle.platform.base.ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
     public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
                                 final CollectionCallbackActionDecorator collectionCallbackActionDecorator, final DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        super(ComponentSpec.class);
+        super(org.gradle.platform.base.ComponentSpec.class);
         this.projectIdentifier = projectIdentifier;
-        registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
+        registerFactory(DefaultComponentSpec.class, new ImplementationFactory<org.gradle.platform.base.ComponentSpec, DefaultComponentSpec>() {
             @Override
-            public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
+            public <T extends DefaultComponentSpec> T create(ModelType<? extends org.gradle.platform.base.ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
                 ComponentSpecIdentifier id = getId(findOwner(componentNode), name);
                 return DefaultComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
             }
         });
-        registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
+        registerFactory(org.gradle.platform.base.binary.BaseBinarySpec.class, new ImplementationFactory<org.gradle.platform.base.BinarySpec, org.gradle.platform.base.binary.BaseBinarySpec>() {
             @Override
-            public <T extends BaseBinarySpec> T create(ModelType<? extends BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {
+            public <T extends org.gradle.platform.base.binary.BaseBinarySpec> T create(ModelType<? extends org.gradle.platform.base.BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {
                 MutableModelNode componentNode = findOwner(binaryNode);
                 ComponentSpecIdentifier id = getId(componentNode, name);
-                return BaseBinarySpec.create(
+                return org.gradle.platform.base.binary.BaseBinarySpec.create(
                     publicType.getConcreteClass(),
                     implementationType.getConcreteClass(),
                     id,
@@ -69,11 +64,11 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
                     domainObjectCollectionFactory);
             }
         });
-        registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
+        registerFactory(org.gradle.language.base.sources.BaseLanguageSourceSet.class, new ImplementationFactory<org.gradle.language.base.LanguageSourceSet, org.gradle.language.base.sources.BaseLanguageSourceSet>() {
             @Override
-            public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
+            public <T extends org.gradle.language.base.sources.BaseLanguageSourceSet> T create(ModelType<? extends org.gradle.language.base.LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
                 ComponentSpecIdentifier id = getId(findOwner(node), sourceSetName);
-                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, objectFactory));
+                return Cast.uncheckedCast(org.gradle.language.base.sources.BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, objectFactory));
             }
         });
     }

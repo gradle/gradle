@@ -22,8 +22,11 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 
 /**
  * Represents a particular binary artifact.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeBinary extends Binary {
     /**
      * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.

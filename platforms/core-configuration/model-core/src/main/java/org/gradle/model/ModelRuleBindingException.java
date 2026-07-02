@@ -23,8 +23,11 @@ import org.gradle.api.Incubating;
  * Thrown when there is a problem binding the model element references of a model rule.
  * <p>
  * Should always be thrown as the cause of a {@link org.gradle.model.InvalidModelRuleException}.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public class ModelRuleBindingException extends GradleException {
 
     public ModelRuleBindingException(String message) {

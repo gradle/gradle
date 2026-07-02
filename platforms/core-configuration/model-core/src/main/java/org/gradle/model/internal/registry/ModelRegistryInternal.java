@@ -17,14 +17,14 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.collect.Multimap;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 
+@SuppressWarnings("deprecation")
 interface ModelRegistryInternal extends ModelRegistry {
     String getProjectPath();
 
-    ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules);
+    ExtractedRuleSource<?> newRuleSource(Class<? extends org.gradle.model.RuleSource> rules);
 
     void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions);
 

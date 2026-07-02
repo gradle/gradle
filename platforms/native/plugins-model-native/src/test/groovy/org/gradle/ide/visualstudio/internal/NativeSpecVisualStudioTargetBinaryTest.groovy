@@ -54,6 +54,7 @@ import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.Proj
 import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.NONE
 
 @UsesNativeServices
+@SuppressWarnings("deprecation")
 class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)

@@ -21,13 +21,10 @@ import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.VariantAspect;
@@ -39,7 +36,8 @@ import java.util.TreeMap;
 
 // TODO - bust up this hierarchy and compose using interfaces instead
 @ServiceScope(Scope.Global.class)
-public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends ReportRenderer<BinarySpec, TextReportBuilder> {
+@SuppressWarnings("deprecation")
+public abstract class AbstractBinaryRenderer<T extends org.gradle.platform.base.BinarySpec> extends ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> {
     private final ModelSchemaStore schemaStore;
 
     protected AbstractBinaryRenderer(ModelSchemaStore schemaStore) {
@@ -47,7 +45,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     @Override
-    public void render(BinarySpec binary, TextReportBuilder builder) {
+    public void render(org.gradle.platform.base.BinarySpec binary, TextReportBuilder builder) {
         String heading = StringUtils.capitalize(binary.getDisplayName());
         if (!binary.isBuildable()) {
             heading += " (not buildable)";
@@ -103,7 +101,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     protected void renderTasks(T binary, TextReportBuilder builder) {
     }
 
-    private void renderBuildAbility(BinarySpec binary, TextReportBuilder builder) {
+    private void renderBuildAbility(org.gradle.platform.base.BinarySpec binary, TextReportBuilder builder) {
         BinaryBuildAbility buildAbility = ((BinarySpecInternal) binary).getBuildAbility();
         if (!buildAbility.isBuildable()) {
             TreeFormatter formatter = new TreeFormatter();
@@ -116,7 +114,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         if (((BinarySpecInternal) binary).isLegacyBinary()) {
             return;
         }
-        ModelMap<LanguageSourceSet> sources = binary.getSources();
+        org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet> sources = binary.getSources();
         if (!sources.isEmpty()) {
             SourceSetRenderer sourceSetRenderer = new SourceSetRenderer();
             builder.collection("source sets", sources.values(), sourceSetRenderer, "source sets");

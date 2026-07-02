@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-
-public interface SharedLibraryBinarySpecInternal extends SharedLibraryBinarySpec, NativeBinarySpecInternal {
+@SuppressWarnings("deprecation")
+public interface SharedLibraryBinarySpecInternal extends org.gradle.nativeplatform.SharedLibraryBinarySpec, NativeBinarySpecInternal {
 }

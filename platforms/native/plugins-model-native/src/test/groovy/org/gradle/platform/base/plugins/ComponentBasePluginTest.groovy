@@ -22,6 +22,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
+@SuppressWarnings("deprecation")
 class ComponentBasePluginTest extends PlatformBaseSpecification {
     def "can apply plugin by id"() {
         when:

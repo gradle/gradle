@@ -16,18 +16,17 @@
 
 package org.gradle.nativeplatform.test.googletest.internal;
 
-import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 
-public class DefaultGoogleTestTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements GoogleTestTestSuiteBinarySpec {
+@SuppressWarnings("deprecation")
+public class DefaultGoogleTestTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec {
     @Override
-    public GoogleTestTestSuiteSpec getComponent() {
-        return getComponentAs(GoogleTestTestSuiteSpec.class);
+    public org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec getComponent() {
+        return getComponentAs(org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec.class);
     }
 
     @Override
-    public GoogleTestTestSuiteSpec getTestSuite() {
+    public org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec getTestSuite() {
         return getComponent();
     }
 }

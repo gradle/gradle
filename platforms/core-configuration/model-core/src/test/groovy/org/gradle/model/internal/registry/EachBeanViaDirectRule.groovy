@@ -16,13 +16,10 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.Each;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-
-class EachBeanViaDirectRule extends RuleSource {
-    @Mutate
-    void mutateBeans(@Each DefaultModelRegistryTest.Bean bean) {
+@SuppressWarnings("deprecation")
+class EachBeanViaDirectRule extends org.gradle.model.RuleSource {
+    @org.gradle.model.Mutate
+    void mutateBeans(@org.gradle.model.Each DefaultModelRegistryTest.Bean bean) {
         bean.name = "bean"
     }
 }

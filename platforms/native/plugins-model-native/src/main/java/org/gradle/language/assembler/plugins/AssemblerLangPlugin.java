@@ -36,8 +36,11 @@ import java.util.Map;
 
 /**
  * Adds core Assembler language support.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public abstract class AssemblerLangPlugin implements Plugin<Project> {
 
     @Override

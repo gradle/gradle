@@ -17,25 +17,23 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
 import org.jspecify.annotations.Nullable;
 
-public interface BinarySpecInternal extends BinarySpec {
+@SuppressWarnings("deprecation")
+public interface BinarySpecInternal extends org.gradle.platform.base.BinarySpec {
     /**
      * The unique identifier of this binary.
      */
     LibraryBinaryIdentifier getId();
 
-    @Nullable
-    ComponentSpec getComponent();
+    org.gradle.platform.base.@Nullable ComponentSpec getComponent();
 
     /**
      * Returns a name for this binary that is unique for all binaries in the current project.
      */
     String getProjectScopedName();
 
-    Class<? extends BinarySpec> getPublicType();
+    Class<? extends org.gradle.platform.base.BinarySpec> getPublicType();
 
     void setBuildable(boolean buildable);
 

@@ -27,6 +27,7 @@ import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class SourceSetRendererTest extends Specification {
 
     SourceSetRenderer renderer = new SourceSetRenderer()

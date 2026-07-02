@@ -37,6 +37,7 @@ import java.lang.annotation.Annotation
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     Class<?> ruleClass = Rules

@@ -17,7 +17,6 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.BiAction;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -27,11 +26,12 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
+@SuppressWarnings("deprecation")
 public class NativeBinaries {
 
     public static void createNativeBinaries(
         NativeComponentSpec component,
-        ModelMap<NativeBinarySpec> binaries,
+        org.gradle.model.ModelMap<NativeBinarySpec> binaries,
         NativeDependencyResolver resolver,
         FileCollectionFactory fileCollectionFactory,
         BinaryNamingScheme namingScheme,
@@ -49,7 +49,7 @@ public class NativeBinaries {
 
     private static <T extends NativeBinarySpec> void createNativeBinary(
         Class<T> type,
-        ModelMap<NativeBinarySpec> binaries,
+        org.gradle.model.ModelMap<NativeBinarySpec> binaries,
         final NativeDependencyResolver resolver,
         final FileCollectionFactory fileCollectionFactory,
         final BinaryNamingScheme namingScheme,

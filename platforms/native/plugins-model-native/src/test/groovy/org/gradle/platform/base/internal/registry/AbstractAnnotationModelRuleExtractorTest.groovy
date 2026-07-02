@@ -42,6 +42,7 @@ import org.gradle.model.internal.type.ModelType
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
+@SuppressWarnings("deprecation")
 public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRegistrySpec {
     def ruleDefinition = Mock(MethodRuleDefinition)
 

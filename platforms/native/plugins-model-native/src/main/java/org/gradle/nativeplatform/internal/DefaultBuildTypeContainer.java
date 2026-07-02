@@ -19,17 +19,16 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.BuildTypeContainer;
 
-public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<BuildType> implements BuildTypeContainer {
+@SuppressWarnings("deprecation")
+public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<org.gradle.nativeplatform.BuildType> implements org.gradle.nativeplatform.BuildTypeContainer {
 
     public DefaultBuildTypeContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(BuildType.class, instantiator, collectionCallbackActionDecorator);
+        super(org.gradle.nativeplatform.BuildType.class, instantiator, collectionCallbackActionDecorator);
     }
 
     @Override
-    protected BuildType doCreate(String name) {
+    protected org.gradle.nativeplatform.BuildType doCreate(String name) {
         return getInstantiator().newInstance(DefaultBuildType.class, name);
     }
 }

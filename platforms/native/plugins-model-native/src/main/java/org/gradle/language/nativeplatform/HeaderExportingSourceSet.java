@@ -21,8 +21,11 @@ import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A source set that exposes headers
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface HeaderExportingSourceSet extends LanguageSourceSet {
     /**
      * The headers as a directory set.

@@ -21,13 +21,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.nativeplatform.NativeDependencySet;
 
 import java.io.File;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class SourceSetNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
     private final FileCollectionFactory fileCollectionFactory;
@@ -40,24 +38,24 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
     @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
-            if (resolution.getInput() instanceof LanguageSourceSet) {
-                LanguageSourceSet input = (LanguageSourceSet) resolution.getInput();
+            if (resolution.getInput() instanceof org.gradle.language.base.LanguageSourceSet) {
+                org.gradle.language.base.LanguageSourceSet input = (org.gradle.language.base.LanguageSourceSet) resolution.getInput();
                 resolution.setNativeDependencySet(createNativeDependencySet(input));
             }
         }
         delegate.resolve(nativeBinaryResolveResult);
     }
 
-    private NativeDependencySet createNativeDependencySet(LanguageSourceSet sourceSet) {
-        if (sourceSet instanceof HeaderExportingSourceSet) {
-            return new LanguageSourceSetNativeDependencySet((HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
+    private org.gradle.nativeplatform.NativeDependencySet createNativeDependencySet(org.gradle.language.base.LanguageSourceSet sourceSet) {
+        if (sourceSet instanceof org.gradle.language.nativeplatform.HeaderExportingSourceSet) {
+            return new LanguageSourceSetNativeDependencySet((org.gradle.language.nativeplatform.HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
         }
         return EmptyNativeDependencySet.INSTANCE;
     }
 
-    private static class EmptyNativeDependencySet implements NativeDependencySet {
+    private static class EmptyNativeDependencySet implements org.gradle.nativeplatform.NativeDependencySet {
 
-        private static final NativeDependencySet INSTANCE = new EmptyNativeDependencySet();
+        private static final org.gradle.nativeplatform.NativeDependencySet INSTANCE = new EmptyNativeDependencySet();
 
         @Override
         public FileCollection getIncludeRoots() {
@@ -75,11 +73,11 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         }
     }
 
-    private static class LanguageSourceSetNativeDependencySet implements NativeDependencySet {
-        private final HeaderExportingSourceSet sourceSet;
+    private static class LanguageSourceSetNativeDependencySet implements org.gradle.nativeplatform.NativeDependencySet {
+        private final org.gradle.language.nativeplatform.HeaderExportingSourceSet sourceSet;
         private final FileCollectionFactory fileCollectionFactory;
 
-        private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
+        private LanguageSourceSetNativeDependencySet(org.gradle.language.nativeplatform.HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
             this.sourceSet = sourceSet;
             this.fileCollectionFactory = fileCollectionFactory;
         }

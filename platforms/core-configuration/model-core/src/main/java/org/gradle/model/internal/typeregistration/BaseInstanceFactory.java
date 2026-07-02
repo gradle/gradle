@@ -22,7 +22,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
-import org.gradle.model.Managed;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -38,6 +37,7 @@ import java.util.Set;
 
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
+@SuppressWarnings("deprecation")
 public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private final ModelType<PUBLIC> baseInterface;
     private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = new LinkedHashMap<>();
@@ -159,7 +159,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     }
 
     private static boolean isManaged(ModelType<?> type) {
-        return type.isAnnotationPresent(Managed.class);
+        return type.isAnnotationPresent(org.gradle.model.Managed.class);
     }
 
     public interface ImplementationFactory<PUBLIC, BASEIMPL> {
@@ -259,7 +259,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             walkTypeHierarchy(internalViewRegistration.getInternalView().getConcreteClass(), new TypeVisitor<V>() {
                 @Override
                 public TypeVisitResult visitType(Class<? super V> type) {
-                    if (!type.isAnnotationPresent(Managed.class)
+                    if (!type.isAnnotationPresent(org.gradle.model.Managed.class)
                         && !type.isAssignableFrom(delegateType.getConcreteClass())) {
                         throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because the default implementation type '%s' does not implement unmanaged internal view '%s', "
                                 + "internal view was registered by %s",

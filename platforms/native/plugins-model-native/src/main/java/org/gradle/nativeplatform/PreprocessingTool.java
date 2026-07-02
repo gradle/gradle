@@ -20,11 +20,15 @@ import org.gradle.api.Incubating;
 
 import java.util.Map;
 
+// TODO:HH This should be moved back into languageNative project
+
 /**
  * A tool that permits configuration of the C preprocessor.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
-// TODO:HH This should be moved back into languageNative project
 @Incubating
+@Deprecated
 public interface PreprocessingTool extends Tool {
     /**
      * The set of preprocessor macros to define when compiling this binary.

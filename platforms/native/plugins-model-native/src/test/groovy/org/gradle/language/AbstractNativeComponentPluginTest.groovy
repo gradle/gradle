@@ -29,6 +29,7 @@ import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
+@SuppressWarnings("deprecation")
 abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecification {
     abstract Class<? extends Plugin> getPluginClass()
 

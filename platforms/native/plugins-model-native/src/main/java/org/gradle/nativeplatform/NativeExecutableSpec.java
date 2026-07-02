@@ -20,8 +20,11 @@ import org.gradle.platform.base.ApplicationSpec;
 
 /**
  * Definition of a native executable component that is to be built by Gradle.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeExecutableSpec extends ApplicationSpec, NativeComponentSpec, TargetedNativeComponent {
     
 }

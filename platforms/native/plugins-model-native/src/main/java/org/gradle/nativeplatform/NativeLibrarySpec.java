@@ -20,8 +20,11 @@ import org.gradle.platform.base.LibrarySpec;
 
 /**
  * Definition of a native library component that is to be built by Gradle.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeLibrarySpec extends LibrarySpec, NativeComponentSpec, TargetedNativeComponent {
     /**
      * Converts this library to a native library requirement that uses the shared library variant. This is the default.

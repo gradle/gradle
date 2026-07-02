@@ -29,6 +29,7 @@ import org.gradle.util.internal.ClosureBackedAction
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
+@SuppressWarnings("deprecation")
 class ModelSetModelProjectionTest extends ProjectRegistrySpec {
     @Managed
     interface NamedThing {

@@ -24,6 +24,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
+@SuppressWarnings("deprecation")
 class BinaryBasePluginTest extends PlatformBaseSpecification {
     def "applies component base plugin only"() {
         when:

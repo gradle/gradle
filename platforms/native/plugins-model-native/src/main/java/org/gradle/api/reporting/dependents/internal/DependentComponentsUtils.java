@@ -18,11 +18,8 @@ package org.gradle.api.reporting.dependents.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
@@ -31,6 +28,7 @@ import java.util.Set;
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
+@SuppressWarnings("deprecation")
 public class DependentComponentsUtils {
 
     public static String getBuildScopedTerseName(ComponentSpecIdentifier id) {
@@ -48,19 +46,18 @@ public class DependentComponentsUtils {
         return projectPath + Project.PATH_SEPARATOR;
     }
 
-
-    public static Set<ComponentSpec> getAllComponents(ModelRegistry registry) {
-        Set<ComponentSpec> components = new LinkedHashSet<>();
-        ComponentSpecContainer componentSpecs = modelElement(registry, "components", ComponentSpecContainer.class);
+    public static Set<org.gradle.platform.base.ComponentSpec> getAllComponents(ModelRegistry registry) {
+        Set<org.gradle.platform.base.ComponentSpec> components = new LinkedHashSet<>();
+        org.gradle.platform.base.ComponentSpecContainer componentSpecs = modelElement(registry, "components", org.gradle.platform.base.ComponentSpecContainer.class);
         if (componentSpecs != null) {
             components.addAll(componentSpecs.values());
         }
         return components;
     }
 
-    public static Set<ComponentSpec> getAllTestSuites(ModelRegistry registry) {
-        Set<ComponentSpec> components = new LinkedHashSet<>();
-        ModelMap<ComponentSpec> testSuites = modelElement(registry, "testSuites", modelMap(ComponentSpec.class));
+    public static Set<org.gradle.platform.base.ComponentSpec> getAllTestSuites(ModelRegistry registry) {
+        Set<org.gradle.platform.base.ComponentSpec> components = new LinkedHashSet<>();
+        org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec> testSuites = modelElement(registry, "testSuites", modelMap(org.gradle.platform.base.ComponentSpec.class));
         if (testSuites != null) {
             components.addAll(testSuites.values());
         }
