@@ -30,20 +30,28 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     private final BuildStateRegistry buildStateRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildLifecycleController buildLifecycleController;
+    private final ResilientModelBuildingFailureCollector modelBuildingFailureCollector;
 
     public DefaultBuildTreeFinishExecutor(
         BuildStateRegistry buildStateRegistry,
         ExceptionAnalyser exceptionAnalyser,
-        BuildLifecycleController buildLifecycleController
+        BuildLifecycleController buildLifecycleController,
+        ResilientModelBuildingFailureCollector modelBuildingFailureCollector
     ) {
         this.buildStateRegistry = buildStateRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildLifecycleController = buildLifecycleController;
+        this.modelBuildingFailureCollector = modelBuildingFailureCollector;
     }
 
     @Override
     @Nullable
     public RuntimeException finishBuildTree(List<Throwable> failures) {
+        // Whether the build is already failing because of the requested work (e.g. tasks were requested and
+        // configuration failed). In that case a configuration failure captured during resilient model building is
+        // already reported by the work, so it must not be added again.
+        boolean buildAlreadyFailing = !failures.isEmpty();
+
         List<Throwable> finishNestedBuildsFailures = new ArrayList<>(failures);
 
         buildStateRegistry.visitBuilds(buildState -> {
@@ -52,6 +60,18 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
                 finishNestedBuildsFailures.addAll(result.getFailures());
             }
         });
+
+        // Model builder failures captured during resilient model building are not part of the build's lifecycle
+        // state, so add them so the build fails when it finishes
+        finishNestedBuildsFailures.addAll(modelBuildingFailureCollector.getAndClearModelBuilderFailures());
+
+        // Configuration failures captured during resilient model building are normally swallowed when no tasks run.
+        // Add them so the build fails as it would in a non-resilient sync, unless the build is already failing due
+        // to a configuration error (e.g. tasks were requested and configuration failed), to avoid reporting it twice.
+        List<Throwable> configurationFailures = modelBuildingFailureCollector.getAndClearConfigurationFailures();
+        if (!buildAlreadyFailing) {
+            finishNestedBuildsFailures.addAll(configurationFailures);
+        }
 
         RuntimeException reportableFailure = exceptionAnalyser.transform(finishNestedBuildsFailures);
         ExecutionResult<Void> finishResult = buildLifecycleController.finishBuild(reportableFailure);
