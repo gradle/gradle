@@ -1,0 +1,12 @@
+// tag::settings-file[]
+pluginManagement {
+    includeBuild('build-logic')
+}
+
+plugins {
+    id('my.lifecycle')
+}
+
+include('sub1')
+include('sub2')
+// end::settings-file[]

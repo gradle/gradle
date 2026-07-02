@@ -361,6 +361,9 @@ include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=beforeproject]"]
 ====
 
+TIP: When <<isolated_projects.adoc#isolated_projects,Isolated Projects>> is enabled and the plugin you want to apply lives in a build registered via `pluginManagement.includeBuild(...)`, additional setup is required.
+See <<isolated_projects.adoc#sec:lifecycle_callbacks_with_included_plugin_builds,Applying convention plugins from an included build>>.
+
 [[after_project]]
 ==== `afterProject`
 
@@ -371,6 +374,9 @@ include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=afterproject]"]
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=afterproject]"]
 ====
+
+TIP: When <<isolated_projects.adoc#isolated_projects,Isolated Projects>> is enabled and the plugin you want to apply lives in a build registered via `pluginManagement.includeBuild(...)`, additional setup is required.
+See <<isolated_projects.adoc#sec:lifecycle_callbacks_with_included_plugin_builds,Applying convention plugins from an included build>>.
 
 [[projects_evaluated]]
 ==== `projectsEvaluated`

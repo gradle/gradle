@@ -93,6 +93,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(Configuration.class)))
         .and(not(declaredIn(FileCollection.class)))
         .and(not(declaredIn(ConfigurableFileCollection.class)))
+        .and(not(declaredIn(assignableTo(Exception.class)))) // exceptions are not migrated to lazy properties
         .and(are(declaredIn(class_with_any_mutable_property)))
         .and(are(ArchUnitFixture.getters))
         .and(not(annotatedWith(Inject.class)))
