@@ -2092,6 +2092,16 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class AbstractPropertyBeanWithForwarderSetter {
+        public abstract Property<String> getProp();
+
+        // A concrete setter that forwards into the lazy property. There is no backing field
+        // for the abstract getter to read, so this setter cannot be managing one itself.
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
     interface InterfaceWithTypeParameter<T> {
         @Inject
         T getThing();
