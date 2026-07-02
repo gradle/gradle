@@ -107,14 +107,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 pluginApplyActions.add(new ApplyAction(request, resolved));
             }
 
-            String pluginVersion = resolved.getPluginVersion();
-            if (pluginVersion != null) {
-                pluginVersionTracker.setPluginVersionAt(
-                    classLoaderScope,
-                    resolved.getPluginId().getId(),
-                    pluginVersion
-                );
-            }
+            pluginVersionTracker.setPluginVersionAt(classLoaderScope, resolved.getPluginId().getId(), resolved.getPluginVersion(), resolved.isLocal());
         }
 
         // Configure the resolution
