@@ -91,28 +91,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'Copy task is unaffected and stays NO-SOURCE with stale outputs when source becomes empty'() {
-        given:
-        file('source/foo.txt').text = 'foo'
-
-        buildFile """
-            task copy(type: Copy) {
-                from 'source'
-                into 'dest'
-            }
-        """
-
-        when:
-        run 'copy'
-        file('source/foo.txt').delete()
-        run 'copy'
-
-        then:
-        skipped ':copy'
-        file('dest/foo.txt').exists()
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37597")
     def 'deletes stale outputs when a child source dir becomes empty'() {
         given:
         file('source/sub/foo.txt').text = 'foo'
@@ -281,7 +259,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'preserved files are now retained when the source is fully emptied, regardless of whether the destination is build-managed'() {
+    def 'preserve() is honored when the source is fully emptied, even for a build-managed destination'() {
         given:
         file('source/foo.txt').text = 'foo'
         file('source/keep.txt').text = 'keep'
@@ -310,11 +288,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         run 'sync'
 
         then:
-        // Previously, a build-managed destination with a fully empty source relied on the engine's preserve-blind
-        // stale-output cleanup, which deleted 'keep.txt' too (a known inconsistency vs. a non-build-managed
-        // destination). Now Sync's source is never skip-when-empty, so it never takes that engine-only cleanup
-        // path: its own copy()/SyncCopyActionDecorator always runs once history exists, and correctly honors
-        // preserve() regardless of build-managed status. keep.txt now survives, matching the non-build-managed case.
+        // preserve() is honored the same way for a build-managed destination as for any other: keep.txt
+        // survives, while foo.txt is stale (not in the now-empty source, not preserved) and is deleted.
         executedAndNotSkipped ':sync'
         !file('build/dest/foo.txt').exists()
         file('build/dest/keep.txt').exists()
