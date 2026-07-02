@@ -36,7 +36,12 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSupplier
+import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -56,6 +61,7 @@ import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.reportIfUnsupportedPropertyValueType
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.decodeBean
@@ -405,8 +411,14 @@ class PropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultProperty<*>) {
         encodePreservingIdentityOf(value) {
-            writeClass(value.type)
-            providerCodec.run { encodeProvider(value.provider) }
+            val type = value.type
+            val unsupported = reportIfUnsupportedPropertyValueType(Property::class.java, type)
+            writeClass(type)
+            if (unsupported) {
+                providerCodec.run { encodeValue(ExecutionTimeValue.missing<Any>()) }
+            } else {
+                providerCodec.run { encodeProvider(value.provider) }
+            }
         }
     }
 
@@ -491,8 +503,12 @@ class ListPropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultListProperty<*>) {
         encodePreservingIdentityOf(value) {
+            val unsupported = reportIfUnsupportedPropertyValueType(ListProperty::class.java, value.elementType)
             writeClass(value.elementType)
-            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+            providerCodec.run {
+                if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(value.calculateExecutionTimeValue())
+            }
         }
     }
 
@@ -517,8 +533,12 @@ class SetPropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultSetProperty<*>) {
         encodePreservingIdentityOf(value) {
+            val unsupported = reportIfUnsupportedPropertyValueType(SetProperty::class.java, value.elementType)
             writeClass(value.elementType)
-            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+            providerCodec.run {
+                if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(value.calculateExecutionTimeValue())
+            }
         }
     }
 
@@ -543,11 +563,26 @@ class MapPropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultMapProperty<*, *>) {
         encodePreservingIdentityOf(value) {
+            val keyUnsupported = reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.keyType) { _, v ->
+                mapPropertyResolutionFor("key", v)
+            }
+            val valueUnsupported = reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.valueType) { _, v ->
+                mapPropertyResolutionFor("value", v)
+            }
             writeClass(value.keyType)
             writeClass(value.valueType)
-            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+            providerCodec.run {
+                if (keyUnsupported || valueUnsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(value.calculateExecutionTimeValue())
+            }
         }
     }
+
+    // MapProperty's user-facing fix names BOTH the offending type and whether the
+    // problem is with the map's key or the map's value, so users can act precisely
+    // — overriding the codec's bean-field-oriented `wideningFix`.
+    private fun mapPropertyResolutionFor(kind: String, valueType: Class<*>): String =
+        "Avoid using ${valueType.simpleName} as a MapProperty $kind."
 
     override suspend fun ReadContext.decodeThis(): DefaultMapProperty<*, *> {
         return decodePreservingIdentity { id ->

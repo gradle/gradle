@@ -81,12 +81,11 @@ private
 class GeneratedTreeSpec(val spec: GeneratedSingletonFileTree.Spec) : FileTreeSpec()
 
 
-class FileTreeCodec(
+open class FileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val fileOperations: FileOperations
 ) : Codec<FileTreeInternal> {
-
     override suspend fun WriteContext.encode(value: FileTreeInternal) {
         encodePreservingIdentityOf(value) {
             write(rootSpecOf(value))

@@ -18,11 +18,12 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.WideningCodec
+import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
 import org.gradle.internal.serialize.graph.logUnsupported
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.objectweb.asm.Type
@@ -37,9 +38,11 @@ import kotlin.reflect.KClass
  * If some of them are not, it logs a problem.
  *
  * The lambda is encoded straightforwardly as a bean, and, upon decoding, the bean is expected to be the [SerializedLambda].
- * Beside the compliance checks, the values are encoded or decoded as beans without any special handling.
+ * Besides the compliance checks, the values are encoded or decoded as beans without any special handling.
  *
- * @see [org.gradle.internal.serialize.beans.services.unsupportedFieldDeclaredTypes]
+ * Dispatches through [WideningCodec] registrations to determine which parameter types
+ * cannot survive a configuration cache round-trip — keeping the codec interface as the
+ * single source of truth for unsupported value-type semantics.
  */
 object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     override suspend fun ReadContext.decode(): SerializedLambda {
@@ -98,17 +101,43 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
     }
 
     private
-    fun IsolateContext.checkLambdaCapturedArgTypesAreSupported(value: SerializedLambda) {
+    fun WriteContext.checkLambdaCapturedArgTypesAreSupported(value: SerializedLambda) {
         val signature = value.implMethodSignature
         val paramTypes: Array<Type> = getArgumentTypes(signature)
 
         // Treat all parameters equally, regardless of whether they are implicit captured parameters or the lambda signature ones.
         // If any of them is of an unsupported type, a build that runs from the serialized state won't be able to provide an instance anyway.
         paramTypes.forEach { paramType ->
-            unsupportedTypes[paramType]?.let { unsupportedKClass ->
+            unsupportedWidenedTypeFor(paramType)?.let { unsupportedKClass ->
                 logUnsupportedLambdaParameterType(unsupportedKClass)
             }
         }
+    }
+
+    /**
+     * Returns the parameter type as a [KClass] when its registered codec is a
+     * widening codec whose decoded type cannot be assigned back to that
+     * parameter type — meaning the lambda invocation post-deserialization would
+     * receive a value of the wrong type. Returns null when the parameter is a
+     * primitive, unloadable, has no codec, or roundtrips compatibly.
+     *
+     * Unlike the bean and record checks, this does not carve out the
+     * "declared type is a subtype of decoded type" case. Lambda invocation
+     * has no runtime type-assignment fallback: if the codec produces the
+     * supertype where the lambda body expects the subtype, the call site
+     * fails with a `ClassCastException` that is much harder to diagnose than
+     * a store-time rejection.
+     */
+    private
+    fun WriteContext.unsupportedWidenedTypeFor(paramType: Type): KClass<*>? {
+        if (paramType.sort != Type.OBJECT) return null
+        val paramClass = try {
+            Class.forName(paramType.className, false, this.javaClass.classLoader)
+        } catch (_: ClassNotFoundException) {
+            return null
+        }
+        findCodecThatWidensIncompatibly(paramClass) ?: return null
+        return paramClass.kotlin
     }
 
     private
@@ -124,10 +153,6 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
             reference(baseType)
         }
     }
-
-    private
-    val unsupportedTypes: Map<Type, KClass<*>> =
-        unsupportedFieldDeclaredTypes.associateBy { Type.getType(it.java) }
 
     private
     val capturingClassField: Field by lazy {

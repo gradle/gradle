@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.CodecLookup
 import org.gradle.internal.serialize.graph.DecodingProvider
 import org.gradle.internal.serialize.graph.EncodingProvider
 import org.gradle.internal.serialize.graph.ReadContext
@@ -40,7 +41,7 @@ import kotlin.reflect.KClass
  *
  * @see Binding.tag
  */
-class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
+class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?>, CodecLookup {
 
     internal
     companion object {
@@ -51,8 +52,18 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         const val SENTINEL_VALUE: Byte = 0
     }
 
+    // Shared cache for taggedEncodingFor and encodingForType. Hits store the matching
+    // TaggedEncoding; misses store the noMatch sentinel so subsequent lookups for the
+    // same type stay O(1). taggedEncodingFor turns an observed noMatch into a thrown
+    // IllegalArgumentException; encodingForType turns it into a null return.
     private
     val encodings = ConcurrentHashMap<Class<*>, TaggedEncoding>()
+
+    private
+    val noMatch: TaggedEncoding = TaggedEncoding(-1, object : Encoding {
+        override suspend fun WriteContext.encode(value: Any): Unit =
+            error("noMatch sentinel must not be invoked")
+    })
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
@@ -110,8 +121,32 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     }
 
     private
-    fun taggedEncodingFor(type: Class<*>): TaggedEncoding =
-        encodings.computeIfAbsent(type, ::computeEncoding)
+    fun taggedEncodingFor(type: Class<*>): TaggedEncoding {
+        val tagged = encodings.computeIfAbsent(type, ::computeEncoding)
+        require(tagged !== noMatch) { "Don't know how to serialize an object of type ${type.name}." }
+        return tagged
+    }
+
+    /**
+     * Returns the encoding registered for the given runtime [type], or null if
+     * no binding matches. The lookup mirrors the dispatch used by [encode] —
+     * both hits and misses are cached per-type via `computeIfAbsent`, so
+     * concurrent callers see consistent, idempotent results.
+     *
+     * Intended for store-time diagnostics (for example, checking whether the
+     * codec that will handle a value declares a [WideningCodec.decodedType]
+     * incompatible with the field receiving it). Calling code must cast the
+     * returned encoding to `WideningCodec<*>` (or similar) to inspect metadata.
+     *
+     * Returns [Encoding] rather than [TaggedEncoding] because the tag is a
+     * serialization-internal concern — only [encode] needs it, to write the
+     * discriminator byte before delegating. Diagnostic callers don't write
+     * to the encoder, so the tag would be dead information.
+     */
+    override fun encodingForType(type: Class<*>): Encoding? {
+        val tagged = encodings.computeIfAbsent(type, ::computeEncoding)
+        return if (tagged === noMatch) null else tagged.encoding
+    }
 
     private
     fun computeEncoding(type: Class<*>): TaggedEncoding {
@@ -121,7 +156,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                 return TaggedEncoding(binding.tag, encoding)
             }
         }
-        throw IllegalArgumentException("Don't know how to serialize an object of type ${type.name}.")
+        return noMatch
     }
 
     private

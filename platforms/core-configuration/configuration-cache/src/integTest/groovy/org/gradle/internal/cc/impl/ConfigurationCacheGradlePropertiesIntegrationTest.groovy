@@ -16,6 +16,12 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.cc.impl.fixtures.GradlePropertiesFixture
 import org.gradle.internal.cc.impl.fixtures.GradlePropertiesIncludedBuildFixture
@@ -24,7 +30,6 @@ import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements GradlePropertiesFixture {
-
     def configurationCache = newConfigurationCacheFixture()
 
     def "detects dynamic Gradle property access in settings script"() {
@@ -742,5 +747,485 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains "Bar: one"
         // Must be cache miss
+    }
+
+    def "reports sensible error when task has #annotation Property of Configuration"() {
+        buildFile << """
+            abstract class BrokenPrintTask extends DefaultTask {
+                $annotation
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() {
+                    println "Files: = " + conf.get().files
+                }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("printFiles", BrokenPrintTask) {
+                conf.set(configurations.getByName('myConf'))
+            }
+        """
+
+        when:
+        configurationCacheFails "printFiles"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "printFiles", "BrokenPrintTask")
+
+        where:
+        annotation << ["@Input", "@Internal", "@InputFiles", "@Classpath"]
+    }
+
+    def "reports sensible error when concrete task has concrete Property of Configuration"() {
+        buildFile << """
+            import javax.inject.Inject
+
+            class ConcreteConfTask extends DefaultTask {
+                @Internal
+                final Property<Configuration> conf
+
+                @Inject
+                ConcreteConfTask(ObjectFactory objects) {
+                    conf = objects.property(Configuration)
+                }
+
+                @TaskAction
+                void run() {
+                    println "Conf: " + conf.get().name
+                }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("concreteConf", ConcreteConfTask) {
+                conf.set(configurations.getByName('myConf'))
+            }
+        """
+
+        when:
+        configurationCacheFails "concreteConf"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "concreteConf", "ConcreteConfTask")
+    }
+
+    def "reports sensible error when task has #annotation Property of SourceDirectorySet"() {
+        buildFile << """
+            abstract class SdsTask extends DefaultTask {
+                $annotation
+                abstract Property<SourceDirectorySet> getSds()
+
+                @TaskAction
+                void run() {
+                    println "SDS: " + sds.get().name
+                }
+            }
+
+            tasks.register("sdsTask", SdsTask) {
+                sds.set(objects.sourceDirectorySet('sources', 'source files'))
+            }
+        """
+
+        when:
+        configurationCacheFails "sdsTask"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, SourceDirectorySet, "sdsTask", "SdsTask")
+
+        where:
+        annotation << ["@Input", "@Internal", "@InputFiles", "@Classpath"]
+    }
+
+    def "reports sensible error task indirectly holds a Property of unsupported type"() {
+        buildFile << """
+            abstract class ConfHolder {
+                @Internal
+                abstract Property<Configuration> getConf()
+            }
+
+            abstract class BeanHolderTask extends DefaultTask {
+                @Nested
+                abstract ConfHolder getHolder()
+
+                @TaskAction
+                void run() {
+                    println "Conf: " + holder.conf.get().name
+                }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("beanHolder", BeanHolderTask) {
+                holder.conf.set(configurations.getByName('myConf'))
+            }
+        """
+
+        when:
+        configurationCacheFails "beanHolder"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "beanHolder", "BeanHolderTask")
+    }
+
+    def "reports sensible error when Property of unsupported type is captured without custom task"() {
+        buildFile << """
+            interface ConfHolder {
+                Property<Configuration> getConf()
+            }
+
+            def holder = objects.newInstance(ConfHolder)
+            holder.conf.set(configurations.create('myConf'))
+
+            tasks.named("tasks") {
+                doLast {
+                    println "Conf: " + holder.conf.get().name
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "tasks"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "tasks", "TaskReportTask")
+    }
+
+    def "reports error only once when multiple properties of same unsupported type exist"() {
+        buildFile << """
+            abstract class MultiConfTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getFirst()
+
+                @Input
+                abstract Property<Configuration> getSecond()
+
+                @InputFiles
+                abstract Property<Configuration> getThird()
+
+                @Classpath
+                abstract Property<Configuration> getFourth()
+
+                @TaskAction
+                void run() {
+                    println "First: " + first.get().name
+                    println "Second: " + second.get().name
+                    println "Third: " + third.get().name
+                    println "Fourth: " + fourth.get().name
+                }
+            }
+
+            configurations.create('confA')
+            configurations.create('confB')
+            configurations.create('confC')
+            configurations.create('confD')
+
+            tasks.register("multiConf", MultiConfTask) {
+                first.set(configurations.getByName('confA'))
+                second.set(configurations.getByName('confB'))
+                third.set(configurations.getByName('confC'))
+                fourth.set(configurations.getByName('confD'))
+            }
+        """
+
+        when:
+        configurationCacheFails "multiConf"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "multiConf", "MultiConfTask")
+    }
+
+    def "unset Property of unsupported type does not cause an error"() {
+        // An unset abstract managed property's backing field is null (lazy initialization never triggered).
+        // The codec framework writes a null marker directly, so PropertyCodec is never invoked
+        // and the unsupported type check does not fire.
+        buildFile << """
+            abstract class UnsetConfTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() {
+                    println "Present: " + conf.isPresent()
+                }
+            }
+
+            tasks.register("unsetConf", UnsetConfTask)
+        """
+
+        when:
+        configurationCacheRun "unsetConf"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Present: false"
+    }
+
+    def "following resolution advice fixes Property of #typeName"() {
+        def buildScript = { String propertyDeclaration, String wiring ->
+            """
+            abstract class PrintFiles extends DefaultTask {
+                ${propertyDeclaration}
+
+                @TaskAction
+                void run() {
+                    println "task ran"
+                }
+            }
+
+            ${sourceSetup}
+
+            tasks.register("printFiles", PrintFiles) {
+                ${wiring}
+            }
+            """
+        }
+
+        given: "a broken build using Property<$typeName>"
+        buildFile << buildScript(
+            "@Internal abstract Property<${typeName}> getInputFiles()",
+            "inputFiles.set(${sourceExpression})"
+        )
+
+        when: "configuration cache store fails"
+        configurationCacheFails "printFiles"
+
+        then: "error identifies the problem and suggests a fix"
+        assertHasUnsupportedPropertyValueType(Property, unsupportedType, "printFiles", "PrintFiles")
+
+        when: "the property type is changed following the resolution advice"
+        buildFile.text = buildScript(
+            "@InputFiles abstract ConfigurableFileCollection getInputFiles()",
+            "inputFiles.from(${sourceExpression})"
+        )
+
+        and: "configuration cache stores successfully"
+        configurationCacheRun "printFiles"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: "configuration cache loads successfully"
+        configurationCacheRun "printFiles"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        where:
+        typeName             | unsupportedType    | sourceSetup                                                                                    | sourceExpression
+        "Configuration"      | Configuration      | "configurations.create('myConf')"                                                              | "configurations.getByName('myConf')"
+        "SourceDirectorySet" | SourceDirectorySet | "def sds = objects.sourceDirectorySet('sources', 'source files')\nsds.srcDir('src/main/java')" | "sds"
+    }
+
+    // region Collection Properties with unsupported element types
+    def "reports sensible error when task has #propertyKind.simpleName of unsupported #typeSimpleName"() {
+        buildFile << buildScript
+
+        when:
+        configurationCacheFails taskName
+
+        then:
+        assertHasUnsupportedPropertyValueType(propertyKind, unsupportedType, taskName, taskType, mapKeyOrValue)
+
+        where:
+        propertyKind | unsupportedType | typeSimpleName  | taskName         | taskType            | mapKeyOrValue | buildScript
+        ListProperty | Configuration   | "Configuration" | "listConfTask"   | "ListConfTask"      | null          | listPropertyBuildScript()
+        SetProperty  | Configuration   | "Configuration" | "setConfTask"    | "SetConfTask"       | null          | setPropertyBuildScript()
+        MapProperty  | Configuration   | "Configuration" | "mapConfTask"    | "MapConfTask"       | "value"       | mapPropertyValueBuildScript()
+        MapProperty  | Configuration   | "Configuration" | "mapKeyConfTask" | "MapKeyConfTask"    | "key"         | mapPropertyKeyBuildScript()
+    }
+
+    private static String listPropertyBuildScript() {
+        """
+            abstract class ListConfTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([])*.name }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("listConfTask", ListConfTask) {
+                confs.add(configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String setPropertyBuildScript() {
+        """
+            abstract class SetConfTask extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([])*.name }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("setConfTask", SetConfTask) {
+                confs.add(configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String mapPropertyValueBuildScript() {
+        """
+            abstract class MapConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<String, Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("mapConfTask", MapConfTask) {
+                confs.put("main", configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String mapPropertyKeyBuildScript() {
+        """
+            abstract class MapKeyConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, String> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("mapKeyConfTask", MapKeyConfTask) {
+                confs.put(configurations.getByName('myConf'), "main")
+            }
+        """
+    }
+    // endregion Collection Properties with unsupported element types
+
+    def "warn mode tolerates #description with unsupported value type"() {
+        buildFile << buildScript
+
+        when:
+        configurationCacheRunLenient taskName
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withUniqueProblems(uniqueProblem)
+            problemsWithStackTraceCount = 1
+        }
+
+        and:
+        outputContains expectedOutput
+
+        where:
+        description                              | taskName         | buildScript                          | uniqueProblem                                                                                                                                                   | expectedOutput
+        "Property<Configuration>"                | "printFiles"     | propertyOfConfigurationBuildScript() | "Task `:printFiles` of type `PrintFiles`: failed to serialize value of 'field `__conf__` of task `:printFiles` of type `PrintFiles`'"                          | "Present: false"
+        "Property<SourceDirectorySet>"           | "sdsTask"        | propertyOfSdsBuildScript()           | "Task `:sdsTask` of type `SdsTask`: failed to serialize value of 'field `__sds__` of task `:sdsTask` of type `SdsTask`'"                                       | "Present: false"
+        "ListProperty<Configuration>"            | "listConfTask"   | listPropertyBuildScript()            | "Task `:listConfTask` of type `ListConfTask`: failed to serialize value of 'field `__confs__` of task `:listConfTask` of type `ListConfTask`'"                  | "Confs: []"
+        "SetProperty<Configuration>"             | "setConfTask"    | setPropertyBuildScript()             | "Task `:setConfTask` of type `SetConfTask`: failed to serialize value of 'field `__confs__` of task `:setConfTask` of type `SetConfTask`'"                      | "Confs: []"
+        "MapProperty<String, Configuration>"     | "mapConfTask"    | mapPropertyValueBuildScript()        | "Task `:mapConfTask` of type `MapConfTask`: failed to serialize value of 'field `__confs__` of task `:mapConfTask` of type `MapConfTask`'"                      | "Confs: [:]"
+        "MapProperty<Configuration, String>"     | "mapKeyConfTask" | mapPropertyKeyBuildScript()          | "Task `:mapKeyConfTask` of type `MapKeyConfTask`: failed to serialize value of 'field `__confs__` of task `:mapKeyConfTask` of type `MapKeyConfTask`'"          | "Confs: [:]"
+    }
+
+    def "MapProperty with both key and value of unsupported types reports a problem for each"() {
+        // Distinct key (Configuration) and value (SourceDirectorySet) types — the build
+        // script exercises both code paths by construction. Each parameterized row in
+        // the previous test verifies a single branch in isolation, so combined with
+        // totalProblemsCount = 2 here we have defense in depth against a regression
+        // that drops one of the two checks.
+        //
+        // The CC problem aggregator dedupes deferred problems by message + trace before
+        // either the HTML report or the fail-mode cause chain are built. Since both
+        // calls share the same field trace and the StructuredMessage is the same
+        // ("failed to serialize value of <trace>"), only one problem survives dedup —
+        // hence withUniqueProblems = 1 and problemsWithStackTraceCount = 1. The
+        // totalProblemsCount counter increments before dedup, so it reflects every
+        // onProblem call and is the most reliable cross-mode signal.
+        buildFile << """
+            abstract class MapKeyValueConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, SourceDirectorySet> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('keyConf')
+
+            tasks.register("mapKeyValueConfTask", MapKeyValueConfTask) {
+                confs.put(configurations.getByName('keyConf'), objects.sourceDirectorySet('sources', 'source files'))
+            }
+        """
+
+        when:
+        configurationCacheRunLenient "mapKeyValueConfTask"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 2
+            withUniqueProblems(
+                "Task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`: failed to serialize value of 'field `__confs__` of task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`'"
+            )
+            problemsWithStackTraceCount = 1
+        }
+
+        and:
+        outputContains "Confs: [:]"
+    }
+
+    private static String propertyOfConfigurationBuildScript() {
+        """
+            abstract class PrintFiles extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() { println "Present: " + conf.isPresent() }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("printFiles", PrintFiles) {
+                conf.set(configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String propertyOfSdsBuildScript() {
+        """
+            abstract class SdsTask extends DefaultTask {
+                @Internal
+                abstract Property<SourceDirectorySet> getSds()
+
+                @TaskAction
+                void run() { println "Present: " + sds.isPresent() }
+            }
+
+            tasks.register("sdsTask", SdsTask) {
+                sds.set(objects.sourceDirectorySet('sources', 'source files'))
+            }
+        """
+    }
+
+    private void assertHasUnsupportedPropertyValueType(Class<?> propertyKind, Class<?> unsupportedType, String taskPath, String taskType, String mapKeyOrValue = null) {
+        failure.assertHasCause(
+            "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}. The value type of this property (${unsupportedType.name}) is not supported with the configuration cache:"
+        )
+        if (MapProperty.isAssignableFrom(propertyKind)) {
+            assert mapKeyOrValue in ['key', 'value']: "MapProperty assertions must declare whether the problem is with the key or the value"
+            failure.assertHasResolution("Avoid using ${unsupportedType.simpleName} as a MapProperty ${mapKeyOrValue}.")
+        } else if (SourceDirectorySet.isAssignableFrom(unsupportedType)) {
+            failure.assertHasResolution("Use a ConfigurableFileCollection or ConfigurableFileTree instead.")
+        } else {
+            failure.assertHasResolution("Use a ConfigurableFileCollection instead.")
+        }
     }
 }

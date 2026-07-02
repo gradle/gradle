@@ -26,7 +26,6 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readPropertyValue
-import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ModelObject
 import java.lang.reflect.Field
@@ -87,9 +86,6 @@ class BeanPropertyReader(
     suspend fun ReadContext.readFieldOf(bean: Any, relevantField: RelevantField) {
         val field = relevantField.field
         val fieldName = field.name
-        relevantField.unsupportedFieldType?.let {
-            reportUnsupportedFieldType(it, "deserialize", fieldName)
-        }
         readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
             set(bean, field, fieldValue)
         }
