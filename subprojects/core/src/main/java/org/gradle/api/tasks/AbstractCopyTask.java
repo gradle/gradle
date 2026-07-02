@@ -91,7 +91,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
                 .ignoreEmptyDirectories(false)
-                .skipWhenEmpty(skipWhenSourceIsEmpty());
+                .skipWhenEmpty(shouldSkipWhenSourceIsEmpty());
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
@@ -117,13 +117,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected abstract CopyAction createCopyAction();
 
     /**
-     * Whether this task should be skipped with NO-SOURCE when its source files are empty.
-     * {@link Sync} overrides this to always run, since deleting stale outputs is part of its contract.
-     *
-     * <p>This is intentionally package-private and not part of the public API: the behavior is a fixed
-     * contract of each task type rather than something builds are meant to reconfigure.
+     * Whether this task should be skipped when its source files are empty.
      */
-    boolean skipWhenSourceIsEmpty() {
+    /* package */ boolean shouldSkipWhenSourceIsEmpty() {
         return true;
     }
 
