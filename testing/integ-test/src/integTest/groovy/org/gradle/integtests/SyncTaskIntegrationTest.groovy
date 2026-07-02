@@ -149,6 +149,62 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         !file('dest/sub').exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    // A source made up only of empty directories still counts as real content: Sync creates the corresponding
+    // empty directories in the destination on its first run, consistent with the default includeEmptyDirs = true.
+    def 'a source of only empty directories is synced on first run when includeEmptyDirs is true'() {
+        given:
+        file('source').create {
+            emptyDir {}
+        }
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/emptyDir').directory
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    // Sync's stale-output cleanup on an empty source applies to untracked tasks too, exactly as it does for a
+    // normal, tracked Sync task.
+    def 'deletes stale outputs when source becomes empty even for an untracked task'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                doNotTrackState('exercising the empty-source guard without execution history')
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/foo.txt').exists()
+
+        when:
+        file('source/foo.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file('dest/foo.txt').exists()
+        file('dest').directory
+    }
+
     def 'copies files and removes extra files from destDir'() {
         given:
         defaultSourceFileTree()
