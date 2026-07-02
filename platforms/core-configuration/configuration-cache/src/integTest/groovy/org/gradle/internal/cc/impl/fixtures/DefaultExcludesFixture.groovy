@@ -125,7 +125,23 @@ class DefaultExcludesFixture {
             dir.file(dsl.fileNameFor("settings"))
         }
 
-        static String addDefaultExclude(String excludedFileName) {
+        /**
+         * Snippet to be inserted into a settings.gradle(.kts) file to register an additional default exclude.
+         * Uses the modern Settings.fileSystemDefaultExcludes API.
+         */
+        static String addDefaultExcludeForSettings(String excludedFileName) {
+            """
+            fileSystemDefaultExcludes.add("**/${excludedFileName}")
+            """
+        }
+
+        /**
+         * Snippet to be inserted into a build.gradle(.kts) file to register an additional default exclude.
+         * Uses the deprecated org.apache.tools.ant.DirectoryScanner static-state API because there is no
+         * project-scoped equivalent of Settings.fileSystemDefaultExcludes. This snippet still works during
+         * the deprecation cycle for the few tests that need to exercise this build-script path.
+         */
+        static String addDefaultExcludeForBuildScript(String excludedFileName) {
             """
             ${DirectoryScanner.name}.addDefaultExclude("**/${excludedFileName}")
             """
@@ -146,7 +162,7 @@ class DefaultExcludesFixture {
 
         @Override
         void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl) {
-            settingsFile(spec.testDirectory, dsl) << addDefaultExclude(excludedFileName())
+            settingsFile(spec.testDirectory, dsl) << addDefaultExcludeForSettings(excludedFileName())
         }
 
         @Override
@@ -171,7 +187,7 @@ class DefaultExcludesFixture {
         void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl) {
             TestFile includedBuildDir = spec.testDirectory.file("build-logic")
             settingsFile(spec.testDirectory, dsl) << 'includeBuild("build-logic")'
-            settingsFile(includedBuildDir, dsl) << addDefaultExclude(excludedFileName())
+            settingsFile(includedBuildDir, dsl) << addDefaultExcludeForSettings(excludedFileName())
         }
 
         @Override
@@ -195,7 +211,7 @@ class DefaultExcludesFixture {
         @Override
         void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl) {
             TestFile buildSrcDir = spec.testDirectory.file("buildSrc")
-            settingsFile(buildSrcDir, dsl) << addDefaultExclude(excludedFileName())
+            settingsFile(buildSrcDir, dsl) << addDefaultExcludeForSettings(excludedFileName())
         }
 
         @Override

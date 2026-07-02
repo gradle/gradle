@@ -19,7 +19,6 @@ package org.gradle.internal.service.scopes;
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.file.FileSystems;
-import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
@@ -61,6 +60,7 @@ import org.gradle.internal.file.DefaultFileSystemDefaultExcludesProvider;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.file.excludes.GradleDefaultExcludes;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -254,7 +254,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 virtualFileSystem,
                 writeListener,
                 statisticsCollector,
-                DirectoryScanner.getDefaultExcludes()
+                GradleDefaultExcludes.DEFAULT_EXCLUDES
             );
             listenerManager.addListener(defaultFileSystemAccess);
 
@@ -369,7 +369,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 root,
                 writeListener,
                 statisticsCollector,
-                DirectoryScanner.getDefaultExcludes()
+                GradleDefaultExcludes.DEFAULT_EXCLUDES
             );
 
             listenerManager.addListener(buildSessionsScopedVirtualFileSystem);

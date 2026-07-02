@@ -26,6 +26,7 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.initialization.files.FileSystemDefaultExcludes
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ExtensionContainer
@@ -33,6 +34,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.toolchain.management.ToolchainManagement
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -176,5 +178,12 @@ abstract class SettingsDelegate : Settings {
 
     override fun defaults(action: Action<in SharedModelDefaults>) {
         delegate.defaults(action)
+    }
+
+    override fun getFileSystemDefaultExcludes(): SetProperty<String> =
+        delegate.fileSystemDefaultExcludes
+
+    override fun fileSystemDefaultExcludes(action: Action<in FileSystemDefaultExcludes>) {
+        delegate.fileSystemDefaultExcludes(action)
     }
 }
