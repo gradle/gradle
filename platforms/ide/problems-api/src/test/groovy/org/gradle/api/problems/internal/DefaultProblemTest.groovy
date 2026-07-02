@@ -66,9 +66,10 @@ class DefaultProblemTest extends Specification {
         newProblem != problem
 
         where:
-        changedAspect | changeClosure
-        "locations"   | { it.fileLocation("file") }
-        "details"     | { it.details("details") }
+        changedAspect     | changeClosure
+        "locations"       | { it.fileLocation("file") }
+        "task location"   | { it.taskLocation(":someTask") }
+        "details"         | { it.details("details") }
     }
 
 
