@@ -114,6 +114,37 @@ Null-checks against the result are no longer required.
 No source change is needed in typical builds.
 If you have custom code that branched on `getParameters() == null` to detect a parameterless action, replace it with `getParameters() instanceof WorkParameters.None` (or the equivalent `None` type).
 
+[[sync_runs_when_source_is_empty]]
+==== `Sync` task is no longer skipped when its source files are empty
+
+Previously, a link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] task with no source files was reported as `NO-SOURCE` and skipped, leaving any previously synced files in its destination directory in place indefinitely.
+
+`Sync` now always runs its copy action, even when its source is empty. Once a `Sync` task has successfully synced into a given destination directory at least once, a later run with an empty source deletes stale files from that destination — anything not covered by its `preserve()` filter.
+
+If you rely on the previous skip behavior for a `Sync` task that has already run against its destination, configure it to short-circuit explicitly:
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named<Sync>("mySync") {
+    onlyIf { !source.isEmpty }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named('mySync') {
+    onlyIf { !source.empty }
+}
+----
+=====
+====
+
 === Deprecations
 
 [[deprecated_unsafe_isolated_projects_properties]]

@@ -91,7 +91,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
                 .ignoreEmptyDirectories(false)
-                .skipWhenEmpty();
+                .skipWhenEmpty(shouldSkipWhenSourceIsEmpty());
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
@@ -115,6 +115,13 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     protected abstract CopyAction createCopyAction();
+
+    /**
+     * Whether this task should be skipped when its source files are empty.
+     */
+    /* package */ boolean shouldSkipWhenSourceIsEmpty() {
+        return true;
+    }
 
     @Inject
     protected abstract Instantiator getInstantiator();

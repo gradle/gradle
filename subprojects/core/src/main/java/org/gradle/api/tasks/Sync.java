@@ -32,6 +32,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Synchronizes the contents of a destination directory with some source directories and files.
@@ -70,6 +71,34 @@ import java.io.File;
 public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
+
+    @Override
+    boolean shouldSkipWhenSourceIsEmpty() {
+        return false;
+    }
+
+    @Override
+    protected void copy() {
+        File destinationDir = getDestinationDir();
+        if (destinationDir != null && getSource().isEmpty() && !hasPreviousOutputFilesUnder(destinationDir)) {
+            // No source, and no record of ever having synced into this exact destination before: most likely
+            // a misconfigured `from` pointed at an unrelated, pre-existing directory. Do nothing rather than
+            // risk wiping out content this task never put there.
+            setDidWork(false);
+            return;
+        }
+        super.copy();
+    }
+
+    private boolean hasPreviousOutputFilesUnder(File destinationDir) {
+        Path destinationPath = destinationDir.toPath();
+        for (File previousOutputFile : getOutputs().getPreviousOutputFiles()) {
+            if (previousOutputFile.toPath().startsWith(destinationPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     protected CopyAction createCopyAction() {
