@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import gradlebuild.startscript.tasks.GradleStartScriptGenerator
+
 plugins {
     id("gradlebuild.distribution.implementation-java")
     id("gradlebuild.launchable-jar")
@@ -49,4 +51,11 @@ gradleModule {
     computedRuntimes {
         client = true
     }
+}
+
+// Ship as a distinct `bin/daemon-management-tool` launcher instead of the default `bin/gradle`.
+tasks.named<GradleStartScriptGenerator>("startScripts") {
+    scriptBaseName = "daemon-management-tool"
+    applicationName = "Gradle Daemon Management Tool"
+    optsEnvironmentVar = "DAEMON_MANAGEMENT_TOOL_OPTS"
 }

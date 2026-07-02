@@ -30,6 +30,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -69,6 +70,26 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
     @get:Input
     abstract val scriptTemplateGitRef: Property<String>
 
+    /**
+     * Base name of the generated scripts (produces {@code <baseName>} and {@code <baseName>.bat}).
+     * Defaults to {@code gradle}. Override to ship a second executable under a different name.
+     */
+    @get:Input
+    @get:Optional
+    abstract val scriptBaseName: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val applicationName: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val optsEnvironmentVar: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val appNameSystemProperty: Property<String>
+
     @get:OutputDirectory
     abstract val startScriptsDir: DirectoryProperty
 
@@ -79,21 +100,22 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
     @TaskAction
     fun generate() {
         logging.captureStandardOutput(LogLevel.INFO)
+        val baseName = scriptBaseName.getOrElse("gradle")
         val generator = StartScriptGenerator(createUnixStartScriptGenerator(), createWindowsStartScriptGenerator())
-        generator.setApplicationName("Gradle")
+        generator.setApplicationName(applicationName.getOrElse("Gradle"))
         generator.setGitRef(scriptTemplateGitRef.get())
-        generator.setOptsEnvironmentVar("GRADLE_OPTS")
+        generator.setOptsEnvironmentVar(optsEnvironmentVar.getOrElse("GRADLE_OPTS"))
         generator.setEntryPoint(ExecutableJar("lib/$launcherJarName"))
-        generator.setScriptRelPath("bin/gradle")
+        generator.setScriptRelPath("bin/$baseName")
         generator.setClasspath(emptyList())
-        generator.setAppNameSystemProperty("org.gradle.appname")
+        generator.setAppNameSystemProperty(appNameSystemProperty.getOrElse("org.gradle.appname"))
         generator.setDefaultJvmOpts(listOf("-Xmx64m", "-Xms64m"))
 
-        val unixScriptFile = startScriptsDir.file("gradle").get().asFile
+        val unixScriptFile = startScriptsDir.file(baseName).get().asFile
         generator.generateUnixScript(unixScriptFile)
         unixScriptFile.injectAgentOptions(TextUtil.getUnixLineSeparator())
 
-        val windowsScriptFile = startScriptsDir.file("gradle.bat").get().asFile
+        val windowsScriptFile = startScriptsDir.file("$baseName.bat").get().asFile
         generator.generateWindowsScript(windowsScriptFile)
         windowsScriptFile.injectAgentOptions(TextUtil.getWindowsLineSeparator())
     }

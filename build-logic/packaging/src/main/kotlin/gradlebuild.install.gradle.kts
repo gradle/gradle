@@ -42,7 +42,7 @@ fun validateInstallDir(installDir: Directory) = installDir.also { dir ->
         return@also
     }
     val binDirFiles = dirFile.resolve("bin").list()
-    if (binDirFiles != null && binDirFiles.isNotEmpty() && binDirFiles.all { it.matches(Regex("^gradle.*")) }) {
+    if (binDirFiles != null && binDirFiles.isNotEmpty() && binDirFiles.all { it.matches(Regex("^(gradle|daemon-management-tool).*")) }) {
         val libDir = dirFile.resolve("lib")
         if (libDir.list()?.any { it.matches(Regex("^gradle.*\\.jar")) } == true) {
             return@also

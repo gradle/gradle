@@ -32,6 +32,7 @@ object GradleDistributionSpecs {
      */
     fun Project.binDistributionSpec() = copySpec {
         val gradleScriptPath = configurations.getByName("gradleScriptPath")
+        val toolScriptPath = configurations.getByName("toolScriptPath")
         val coreRuntimeClasspath = configurations.getByName("coreRuntimeClasspath")
         val generateCoreRuntimeModuleProperties = tasks.named("generateCoreRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
         val runtimeClasspath = configurations.getByName("runtimeClasspath")
@@ -51,6 +52,7 @@ object GradleDistributionSpecs {
 
         into("bin") {
             from(gradleScriptPath)
+            from(toolScriptPath)
             filePermissions { unix("0755") }
         }
 

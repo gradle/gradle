@@ -19,6 +19,9 @@ dependencies {
     runtime(projects.gradleCliMain) {
         because("This is the entry point of the `gradle` command. It bootstraps the implementation.")
     }
+    runtime(projects.daemonManagementTool) {
+        because("This is the entry point of the standalone daemon management tool (bin/daemon-management-tool).")
+    }
     runtime(projects.toolingApiProvider) {
         because("This is the entry point of the tooling API provider, which is the version-specific client part of the tooling API.")
     }
