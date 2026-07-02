@@ -253,6 +253,20 @@ See the [Timestamp for files inside archives](userguide/working_with_files.html#
 Authors of custom [`BuildCacheService`](javadoc/org/gradle/caching/BuildCacheService.html) implementations can now obtain cache entry content as an `InputStream` via [`BuildCacheEntryWriter.getInputStream()`](javadoc/org/gradle/caching/BuildCacheEntryWriter.html#getInputStream()), as an alternative to writing to an `OutputStream` via `writeTo`.
 Consuming an `InputStream` can be more efficient for I/O, especially for asynchronous HTTP clients.
 
+#### Lazy file property variants for common task types
+
+Several built-in Gradle [task types and extensions](userguide/working_with_files.html#sec:lazy_file_property_variants) now expose renamed lazy variants of their file and directory properties, such as `DirectoryProperty` and `RegularFileProperty` siblings of their existing eager `File` getters.
+The original eager getters remain as backward-compatible bridges, so existing builds need no changes and new build logic can wire lazy values directly:
+
+```kotlin
+tasks.named<Javadoc>("javadoc") {
+    // Lazy variant: wire from another provider without forcing eager evaluation.
+    destinationDirectory = layout.buildDirectory.dir("docs/javadoc")
+}
+```
+
+See the [Lazy file property variants on built-in tasks](userguide/working_with_files.html#sec:lazy_file_property_variants) section in the Gradle User Manual for the full list of renamed properties.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
