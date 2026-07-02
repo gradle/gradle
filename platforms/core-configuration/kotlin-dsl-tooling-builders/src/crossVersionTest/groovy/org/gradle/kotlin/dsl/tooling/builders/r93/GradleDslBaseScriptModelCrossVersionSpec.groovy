@@ -135,6 +135,7 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/       | ApiType.GET_MODEL
     }
 
+    @TargetGradleVersion(">=9.3 <9.7.0")
     def "GradleDslBaseScriptModel can be obtained even after a project #typeOfFailure failure with #apiType"() {
         assumeApiSupportedOnVersion(apiType)
 
