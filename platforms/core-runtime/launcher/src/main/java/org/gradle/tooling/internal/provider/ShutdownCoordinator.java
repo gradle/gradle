@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
-import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
+import org.gradle.launcher.daemon.client.ManagedDaemonsExecuter;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -46,10 +46,10 @@ import java.util.Set;
 @ServiceScope(Scope.Global.class)
 public class ShutdownCoordinator implements DaemonStartListener {
     private final Map<File, Set<DaemonConnectDetails>> daemons = new HashMap<>();
-    private final DaemonStopClientExecuter client;
+    private final ManagedDaemonsExecuter client;
     private final File incorrectDaemonRegistryPath;
 
-    public ShutdownCoordinator(DaemonStopClientExecuter client) {
+    public ShutdownCoordinator(ManagedDaemonsExecuter client) {
         this.client = client;
         this.incorrectDaemonRegistryPath = new DaemonParameters(new BuildLayoutConverter().defaultValues().getGradleUserHomeDir(), null).getBaseDir();
     }
@@ -73,7 +73,7 @@ public class ShutdownCoordinator implements DaemonStartListener {
             Set<DaemonConnectDetails> startedDaemons = daemons.get(daemonBaseDir);
             if (startedDaemons != null && !startedDaemons.isEmpty()) {
                 try {
-                    client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+                    client.execute(requestSpecificLoggingServices, daemonBaseDir, managedDaemons -> managedDaemons.stopWhenIdle(startedDaemons));
                 } finally {
                     startedDaemons.clear();
                 }
@@ -96,7 +96,7 @@ public class ShutdownCoordinator implements DaemonStartListener {
             // when the test process stops. This is treated as an error.
             for (Set<DaemonConnectDetails> startedDaemons : daemons.values()) {
                 try {
-                    client.execute(requestSpecificLoggingServices, incorrectDaemonRegistryPath, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+                    client.execute(requestSpecificLoggingServices, incorrectDaemonRegistryPath, managedDaemons -> managedDaemons.stopWhenIdle(startedDaemons));
                 } finally {
                     startedDaemons.clear();
                 }

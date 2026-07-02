@@ -37,7 +37,7 @@ import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
+import org.gradle.launcher.daemon.client.ManagedDaemonsExecuter;
 import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -54,15 +54,15 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonStopClientExecuter daemonStopClient) {
-        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(daemonStopClient);
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, ManagedDaemonsExecuter managedDaemonsExecuter) {
+        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(managedDaemonsExecuter);
         listenerManager.addListener(shutdownCoordinator);
         return shutdownCoordinator;
     }
 
     @Provides
-    DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory) {
-        return new DaemonStopClientExecuter(daemonClientFactory);
+    ManagedDaemonsExecuter createManagedDaemonsExecuter(DaemonClientFactory daemonClientFactory) {
+        return new ManagedDaemonsExecuter(daemonClientFactory);
     }
 
     @Provides

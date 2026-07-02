@@ -15,10 +15,15 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
+import org.gradle.launcher.daemon.protocol.ReportStatus
+import org.gradle.launcher.daemon.protocol.Status
 import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.launcher.daemon.protocol.StopWhenIdle
+import org.gradle.launcher.daemon.protocol.Success
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import spock.lang.Specification
@@ -28,42 +33,17 @@ class DefaultManagedDaemonsTest extends Specification {
     def registry = Mock(DaemonRegistry)
     def connector = Mock(DaemonConnector)
     def idGenerator = Stub(IdGenerator) { generateId() >> UUID.randomUUID() }
-    def stopClient = Mock(DaemonStopClient)
-    def statusClient = Mock(ReportDaemonStatusClient)
+    def documentationRegistry = Stub(DocumentationRegistry) { getDocumentationRecommendationFor(_, _, _) >> "" }
 
-    def managed = new DefaultManagedDaemons(registry, connector, idGenerator, stopClient, statusClient)
+    def managed = new DefaultManagedDaemons(registry, connector, idGenerator, documentationRegistry)
 
     def daemonInfo(long pid) {
         Mock(DaemonInfo) { getPid() >> pid }
     }
 
-    def "stopAll delegates to the stop client"() {
-        when:
-        managed.stopAll()
-
-        then:
-        1 * stopClient.stop()
-    }
-
-    def "reportStatus delegates to the status client"() {
-        when:
-        managed.reportStatus()
-
-        then:
-        1 * statusClient.listAll()
-    }
-
-    def "stopAllWhenIdle gracefully stops the registered daemons"() {
-        given:
-        def a = daemonInfo(100)
-        def b = daemonInfo(200)
-        registry.getAll() >> [a, b]
-
-        when:
-        managed.stopAllWhenIdle()
-
-        then:
-        1 * stopClient.gracefulStop({ it as List == [a, b] })
+    private DaemonClientConnection connectionFor() {
+        def details = Stub(DaemonConnectDetails) { getToken() >> new byte[16] }
+        Mock(DaemonClientConnection) { getDaemon() >> details }
     }
 
     def "getDaemons exposes a handle per registry entry"() {
@@ -74,35 +54,98 @@ class DefaultManagedDaemonsTest extends Specification {
         managed.getDaemons()*.pid == [100L, 200L]
     }
 
-    def "a handle stop() dispatches a Stop over the protocol"() {
-        given:
-        def info = daemonInfo(100)
-        def connection = connectionFor()
-        connector.maybeConnect(info) >> connection
-        registry.getAll() >> [info]
-        def handle = managed.getDaemons().first()
-
+    def "stopAll reports when there are no daemons"() {
         when:
-        handle.stop()
+        managed.stopAll()
 
         then:
+        1 * connector.maybeConnect(_ as ExplainingSpec) >> null
+        0 * _._
+    }
+
+    def "stopAll dispatches Stop to each daemon until none remain"() {
+        given:
+        def connection = connectionFor()
+        connection.getDaemon() >> Stub(DaemonConnectDetails) { getUid() >> "uid-1"; getToken() >> new byte[16] }
+
+        when:
+        managed.stopAll()
+
+        then:
+        2 * connector.maybeConnect(_ as ExplainingSpec) >>> [connection, null]
         1 * connection.dispatch({ it instanceof Stop })
         1 * connection.stop()
     }
 
-    def "a handle stopWhenIdle() dispatches a StopWhenIdle over the protocol"() {
+    def "stopAllWhenIdle dispatches StopWhenIdle to the registered daemons"() {
+        given:
+        def a = daemonInfo(100)
+        def connection = connectionFor()
+        registry.getAll() >> [a]
+        connector.maybeConnect(a) >> connection
+
+        when:
+        managed.stopAllWhenIdle()
+
+        then:
+        1 * connection.dispatch({ it instanceof StopWhenIdle })
+    }
+
+    def "stopWhenIdle dispatches StopWhenIdle to the given daemons"() {
+        given:
+        def daemon = Stub(DaemonConnectDetails) { getToken() >> new byte[16] }
+        def connection = connectionFor()
+        connector.maybeConnect(daemon) >> connection
+
+        when:
+        managed.stopWhenIdle([daemon])
+
+        then:
+        1 * connection.dispatch({ it instanceof StopWhenIdle })
+    }
+
+    def "reportStatus queries each daemon and prints even when empty"() {
+        given:
+        registry.getAll() >> []
+        registry.getStopEvents() >> []
+
+        when:
+        managed.reportStatus()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "a handle getStatus queries the daemon over the protocol"() {
+        given:
+        def info = daemonInfo(100)
+        def connection = connectionFor()
+        connector.maybeConnect(info) >> connection
+        connection.receive() >> new Success(new Status(100L, "9.9", "IDLE"))
+        registry.getAll() >> [info]
+        def handle = managed.getDaemons().first()
+
+        when:
+        def status = handle.status
+
+        then:
+        1 * connection.dispatch({ it instanceof ReportStatus })
+        status.status == "IDLE"
+    }
+
+    def "a handle stop() dispatches a Stop"() {
         given:
         def info = daemonInfo(100)
         def connection = connectionFor()
         connector.maybeConnect(info) >> connection
         registry.getAll() >> [info]
-        def handle = managed.getDaemons().first()
 
         when:
-        handle.stopWhenIdle()
+        managed.getDaemons().first().stop()
 
         then:
-        1 * connection.dispatch({ it instanceof StopWhenIdle })
+        1 * connection.dispatch({ it instanceof Stop })
+        1 * connection.stop()
     }
 
     def "a handle for an unreachable daemon is a no-op / null status"() {
@@ -121,10 +164,5 @@ class DefaultManagedDaemonsTest extends Specification {
 
         then:
         noExceptionThrown()
-    }
-
-    private DaemonClientConnection connectionFor() {
-        def details = Stub(DaemonConnectDetails) { getToken() >> new byte[16] }
-        Mock(DaemonClientConnection) { getDaemon() >> details }
     }
 }

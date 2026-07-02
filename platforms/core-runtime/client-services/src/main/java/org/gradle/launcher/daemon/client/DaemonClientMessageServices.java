@@ -47,7 +47,7 @@ import java.util.UUID;
  *
  * Clients created with these services cannot start new daemons.
  *
- * @see DaemonStopClient
+ * @see ManagedDaemons
  * @see NotifyDaemonAboutChangedPathsClient
  */
 @NullMarked
@@ -79,23 +79,13 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
     }
 
     @Provides
-    DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator<UUID> idGenerator) {
-        return new DaemonStopClient(connector, idGenerator);
-    }
-
-    @Provides
     NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
         return new NotifyDaemonAboutChangedPathsClient(connector, idGenerator, daemonRegistry);
     }
 
     @Provides
-    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
-        return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
-    }
-
-    @Provides
-    ManagedDaemons createManagedDaemons(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonStopClient stopClient, ReportDaemonStatusClient statusClient) {
-        return new DefaultManagedDaemons(registry, connector, idGenerator, stopClient, statusClient);
+    ManagedDaemons createManagedDaemons(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
+        return new DefaultManagedDaemons(registry, connector, idGenerator, documentationRegistry);
     }
 
     @Provides

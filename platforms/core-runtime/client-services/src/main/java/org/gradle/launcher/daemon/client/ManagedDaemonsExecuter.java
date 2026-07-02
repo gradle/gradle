@@ -26,23 +26,22 @@ import java.io.File;
 import java.util.function.Consumer;
 
 /**
- * Manages the lifecycle for creating {@link DaemonStopClient}s and using them.
+ * Manages the lifecycle for creating a {@link ManagedDaemons} for a given daemon base directory and using it.
  */
 @NullMarked
 @ServiceScope(Scope.Global.class)
-public class DaemonStopClientExecuter {
+public class ManagedDaemonsExecuter {
 
     private final DaemonClientFactory daemonClientFactory;
 
-    public DaemonStopClientExecuter(DaemonClientFactory daemonClientFactory) {
+    public ManagedDaemonsExecuter(DaemonClientFactory daemonClientFactory) {
         this.daemonClientFactory = daemonClientFactory;
     }
 
-    public void execute(ServiceRegistry loggingServices, File daemonBaseDir, Consumer<DaemonStopClient> action) {
+    public void execute(ServiceRegistry loggingServices, File daemonBaseDir, Consumer<ManagedDaemons> action) {
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
         try {
-            DaemonStopClient daemonStopClient = clientServices.get(DaemonStopClient.class);
-            action.accept(daemonStopClient);
+            action.accept(clientServices.get(ManagedDaemons.class));
         } finally {
             CompositeStoppable.stoppable(clientServices).stop();
         }

@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.launcher.daemon.client.ReportDaemonStatusClient
+import org.gradle.launcher.daemon.client.ManagedDaemons
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
@@ -34,7 +34,7 @@ class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
         then:
         out =~ """^$DaemonMessages.NO_DAEMONS_RUNNING
 
-$ReportDaemonStatusClient.STATUS_FOOTER.*""".toString()
+$ManagedDaemons.STATUS_FOOTER.*""".toString()
     }
 
     def "reports idle, busy and stopped statuses of daemons"() {

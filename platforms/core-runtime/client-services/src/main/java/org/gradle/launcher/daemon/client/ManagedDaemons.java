@@ -15,8 +15,10 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -29,6 +31,11 @@ import java.util.List;
  */
 @NullMarked
 public interface ManagedDaemons {
+
+    /**
+     * Footer printed after the {@code --status} listing, noting that only current-version daemons are shown.
+     */
+    String STATUS_FOOTER = "Only Daemons for the current Gradle version are displayed.";
 
     /**
      * The daemons currently recorded in the registry, as individually controllable handles.
@@ -44,6 +51,12 @@ public interface ManagedDaemons {
      * Requests that all daemons stop once idle. Returns without waiting for them to stop.
      */
     void stopAllWhenIdle();
+
+    /**
+     * Requests that the given daemons stop once idle. Returns without waiting for them to stop. Used to
+     * gracefully shut down a specific set of daemons (for example the ones a Tooling API provider started).
+     */
+    void stopWhenIdle(Collection<? extends DaemonConnectDetails> daemons);
 
     /**
      * Prints the status of running and recently stopped daemons (the {@code gradle --status} listing).
