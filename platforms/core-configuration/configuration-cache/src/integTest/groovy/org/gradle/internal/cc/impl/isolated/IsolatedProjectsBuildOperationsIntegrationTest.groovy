@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
+import org.gradle.tooling.model.GradleProject
 
 class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
@@ -178,6 +179,86 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             originBuildInvocationId != null
         }
         outputContains("file '${buildFileA.relativePathFromBase}' has changed")
+    }
+
+    def "emits fingerprint check operation when creating preferred subproject build file"() {
+        given:
+        settingsFile """
+            include("a")
+            include("b")
+        """
+
+        def buildFileA = file("a/build.gradle")
+        buildFile("a/build.gradle.kts", """
+            // using Kotlin DSL
+        """)
+        buildFile("b/build.gradle", """
+            // project b
+        """)
+
+        withIsolatedProjects()
+        fetchModel(GradleProject)
+
+        when: "a newly preferred build file is created"
+        buildFile(buildFileA, """
+            // now using Groovy DSL
+        """)
+        withIsolatedProjects()
+        fetchModel(GradleProject)
+
+        then: "the build scope is not invalidated and project :a is invalidated"
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
+            buildInvalidationReasons == []
+            projectInvalidationReasons.any {
+                it.projectPath == ":a" &&
+                    it.invalidationReasons == [[message: "the file system entry '${buildFileA.relativePathFromBase}' has been created"]]
+            }
+            originBuildInvocationId != null
+        }
+        outputContains("the file system entry '${buildFileA.relativePathFromBase}' has been created")
+    }
+
+    def "emits fingerprint check operation when invalidating applied subproject script"() {
+        given:
+        settingsFile """
+            include("a")
+            include("b")
+        """
+
+        def appliedScriptA = file("a/plugin.gradle")
+        buildFile("a/build.gradle", """
+            apply from: 'plugin.gradle'
+        """)
+        buildFile(appliedScriptA, """
+            println("project a plugin")
+        """)
+
+        buildFile("b/build.gradle", """
+            // project b
+        """)
+
+        withIsolatedProjects()
+        fetchModel(GradleProject)
+
+        when: "an applied script plugin is invalidated"
+        buildFile(appliedScriptA, """
+            println("project a plugin updated")
+        """)
+        withIsolatedProjects()
+        fetchModel(GradleProject)
+
+        then: "the build scope is not invalidated and project :a is invalidated"
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
+            buildInvalidationReasons == []
+            projectInvalidationReasons.any {
+                it.projectPath == ":a" &&
+                    it.invalidationReasons == [[message: "file '${appliedScriptA.relativePathFromBase}' has changed"]]
+            }
+            originBuildInvocationId != null
+        }
+        outputContains("file '${appliedScriptA.relativePathFromBase}' has changed")
     }
 
     def "emits fingerprint check operation when invalidating multiple subprojects"() {
@@ -342,6 +423,45 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
         outputDoesNotContain("project dependency ':b' has changed")
     }
 
+    def "single subproject build script edit only invalidates that project under parallel IP"() {
+        given:
+        settingsFile """
+            rootProject.name = 'root'
+            include("a")
+        """
+
+        def buildFileA = buildFile "a/build.gradle", """
+            // project a
+        """
+
+        executer.beforeExecute {
+            it.withArgument("-Dorg.gradle.internal.isolated-projects.parallel=true")
+            it.withArgument("-Dorg.gradle.workers.max=8")
+            it.withArgument(ENABLE_CLI)
+        }
+
+        and: "first model fetch populates the configuration cache"
+        fetchModel(GradleProject)
+
+        when: "the subproject's build script is edited"
+        buildFileA.text = """
+            // project a updated
+        """
+        fetchModel(GradleProject)
+
+        then: "only the edited project is invalidated, not the build scope"
+        with(operations.only(ConfigurationCacheCheckFingerprintBuildOperationType).result) {
+            status == "PARTIAL"
+            buildInvalidationReasons == []
+            projectInvalidationReasons.size() == 1
+            projectInvalidationReasons[0].buildPath == ":"
+            projectInvalidationReasons[0].projectPath == ":a"
+            projectInvalidationReasons[0].invalidationReasons == [[message: "file '${buildFileA.relativePathFromBase}' has changed".toString()]]
+            originBuildInvocationId != null
+        }
+        outputContains("file '${buildFileA.relativePathFromBase}' has changed")
+    }
+
     def "emits fingerprint check operation when invalidating included build"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -375,13 +495,13 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     buildPath: ":a",
                     projectPath: ":",
                     invalidationReasons: [
-                        [message: "file '${buildFileA.relativePathFromBase}' has changed"]
+                        [message: "the file system entry '${buildFileA.relativePathFromBase}' has been created"]
                     ]
                 ]
             ]
             originBuildInvocationId != null
         }
-        outputContains("file '${buildFileA.relativePathFromBase}' has changed")
+        outputContains("the file system entry '${buildFileA.relativePathFromBase}' has been created")
     }
 
     private def fetchAllModels() {
