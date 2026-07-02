@@ -275,7 +275,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     private SettingsState createEmptySettings(GradleInternal gradle, StartParameterInternal startParameter, ClassLoaderScope classLoaderScope) {
         logger.debug("Creating empty settings for build: '{}'", gradle.getIdentityPath());
-        StartParameterInternal noSearchParameter = startParameter.newInstance();
+        StartParameterInternal noSearchParameter = startParameter.newInstanceInternal();
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(noSearchParameter.toBuildLayoutConfiguration());

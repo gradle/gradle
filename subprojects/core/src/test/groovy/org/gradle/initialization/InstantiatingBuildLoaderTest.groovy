@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -43,7 +44,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     File rootProjectDir
     File childProjectDir
     ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-    StartParameter startParameter = new StartParameter()
+    StartParameter startParameter = new StartParameterInternal()
     ProjectDescriptorInternal rootDescriptor
     ProjectInternal rootProject
     ProjectDescriptorInternal childDescriptor
