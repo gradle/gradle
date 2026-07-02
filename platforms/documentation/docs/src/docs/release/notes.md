@@ -115,6 +115,30 @@ tasks.register<NewTask>("after") {
 }
 ```
 
+#### Source dependencies are compatible with the Configuration Cache
+
+Source dependencies let a build resolve a dependency by building it directly from a version control repository, declared with a `sourceControl { vcsMappings { ... } }` block in the settings file.
+Builds that used source dependencies were previously incompatible with the [Configuration Cache](userguide/configuration_cache.html).
+
+Source dependencies now work with the Configuration Cache.
+A build that maps a dependency to a Git repository stores and reuses a Configuration Cache entry like any other build:
+
+```kotlin
+// settings.gradle.kts
+sourceControl {
+    vcsMappings {
+        withModule("org.example:lib") {
+            from(GitVersionControlSpec::class) {
+                url = uri("https://github.com/example/lib.git")
+            }
+        }
+    }
+}
+```
+
+When a source dependency is selected with a dynamic selector — a branch, `latest.integration`, or a version range — the resolved commit can move between builds, so Gradle always invalidates the Configuration Cache entry for that build and re-resolves it, mirroring how [dynamic versions](userguide/dependency_versions.html) of external dependencies are handled.
+A source dependency pinned to a static version reuses the cached entry until an input such as the `vcsMappings` configuration or the resolved upstream commit changes.
+
 ### Isolated Projects improvements
 Gradle provides [Isolated Projects](userguide/isolated_projects.html), an incubating feature that enables parallel project configuration.
 

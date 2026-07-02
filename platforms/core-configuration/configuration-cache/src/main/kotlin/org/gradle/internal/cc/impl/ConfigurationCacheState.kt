@@ -61,7 +61,6 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.DocumentationSection
-import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -78,7 +77,6 @@ import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.logNotImplemented
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
@@ -93,7 +91,6 @@ import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
-import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -405,6 +402,7 @@ class ConfigurationCacheState(
             write(gradle.settings.settingsScript.resource.file)
             writeBuildDefinition(state.buildDefinition)
             write(state.identityPath)
+            writeBoolean(state.isImplicitBuild)
         }
         // Encode the build state using the contextualized IO service for the nested build
         gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
@@ -422,7 +420,12 @@ class ConfigurationCacheState(
             val settingsFile = read() as File?
             val definition = readIncludedBuildDefinition(rootBuild)
             val buildPath = read() as Path
-            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
+            val isImplicit = readBoolean()
+            if (isImplicit) {
+                rootBuild.addImplicitIncludedBuild(definition, settingsFile, buildPath)
+            } else {
+                rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
+            }
         }
         return readNestedBuildState(build)
     }
@@ -694,7 +697,6 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
             writeStartParameterOf(gradle)
-            writeChildBuilds(gradle)
         }
     }
 
@@ -706,7 +708,6 @@ class ConfigurationCacheState(
         return withGradleIsolate(gradle, userTypesCodec) {
             // per build
             readStartParameterOf(gradle)
-            readChildBuilds()
         }
     }
 
@@ -723,29 +724,6 @@ class ConfigurationCacheState(
         // operations, problem reports, build scans), since scheduling -- which resolves and populates the
         // names on a store run -- does not run on a hit.
         gradle.startParameter.setTaskNames(readStrings())
-    }
-
-    private
-    fun WriteContext.writeChildBuilds(gradle: GradleInternal) {
-        if (gradle.serviceOf<VcsMappingsStore>().asResolver().hasRules()) {
-            logNotImplemented(
-                feature = "source dependencies",
-                documentationSection = NotYetImplementedSourceDependencies
-            )
-            writeBoolean(true)
-        } else {
-            writeBoolean(false)
-        }
-    }
-
-    private
-    fun ReadContext.readChildBuilds() {
-        if (readBoolean()) {
-            logNotImplemented(
-                feature = "source dependencies",
-                documentationSection = NotYetImplementedSourceDependencies
-            )
-        }
     }
 
     private

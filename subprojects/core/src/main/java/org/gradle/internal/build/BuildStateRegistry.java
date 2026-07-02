@@ -112,6 +112,13 @@ public interface BuildStateRegistry {
     IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition);
 
     /**
+     * Creates an implicit included build with a known build path.
+     *
+     * This is used when loaded from the Configuration Cache when the path of the build is already known.
+     */
+    IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition, Path buildPath);
+
+    /**
      * Locates the buildSrc build for the given build, if present. Returns null if the given build does not have an associated buildSrc build.
      */
     @Nullable

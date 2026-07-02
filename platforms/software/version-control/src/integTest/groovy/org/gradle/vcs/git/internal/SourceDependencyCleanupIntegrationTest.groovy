@@ -68,12 +68,14 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
                 conf "org.test:dep:" + repoVersion
             }
             task assertVersion {
-                dependsOn configurations.conf
+                def confFiles = configurations.conf
+                def expectedVersion = repoVersion
+                dependsOn confFiles
                 doLast {
-                    def files = zipTree(configurations.conf.singleFile).files
-                    def versionFile = files.find { it.name == "version" }
-                    assert versionFile
-                    assert versionFile.text == repoVersion
+                    // The dep build sets its project version (and hence its jar name) from the
+                    // checked-out "version" file, so the resolved artifact name verifies the
+                    // correct commit was checked out without reading project state at execution time.
+                    assert confFiles.singleFile.name == "dep-\${expectedVersion}.jar"
                 }
             }
         """

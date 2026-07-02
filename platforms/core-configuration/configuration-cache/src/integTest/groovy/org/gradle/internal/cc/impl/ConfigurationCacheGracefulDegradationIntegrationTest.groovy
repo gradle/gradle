@@ -51,11 +51,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         def configurationCache = newConfigurationCacheFixture()
 
         given:
-        // any way to trigger graceful degradation will do
-        enableSourceDependencies()
-
         buildFile """
-        class TaskWithLazyProperty extends DefaultTask {
+        ${taskWithInjectedDegradationController()}
+        abstract class TaskWithLazyProperty extends DegradingTask {
             private String value
             @Input
             String getLazyValue() {
@@ -66,6 +64,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             }
         }
         tasks.register("lazy", TaskWithLazyProperty) { task ->
+           getDegradationController().requireConfigurationCacheDegradation(task, provider { "Project access" })
            doLast {
                println("Value is " + task.lazyValue)
            }
@@ -84,17 +83,21 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         def configurationCache = newConfigurationCacheFixture()
 
         given:
-        // any way to trigger graceful degradation will do
-        enableSourceDependencies()
-
         buildKotlinFile """
+        import javax.inject.Inject
+        import org.gradle.api.internal.ConfigurationCacheDegradationController
+
         abstract class TaskWithLazyProperty: DefaultTask() {
+            @get:Inject
+            abstract val degradationController: ConfigurationCacheDegradationController
+
             @get:Input
             val lazyValue: String by lazy {
                 this.project.name
             }
         }
         tasks.register("lazy", TaskWithLazyProperty::class) {
+            degradationController.requireConfigurationCacheDegradation(this, provider { "Project access" })
             doLast {
                 println("Value is " + lazyValue)
             }
@@ -189,27 +192,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         args                                                          | expectedOutputs                                               | degradationReason
         ["-DaccessTaskProject=true"]                                  | ["Task's project accessed!"]                                  | "Project access."
         ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
-    }
-
-    def "features may cause CC degradation"() {
-        enableSourceDependencies()
-
-        when:
-        configurationCacheRun("help")
-
-        then:
-        configurationCache.assertNoConfigurationCache()
-
-        and:
-        // feature degradation is reported as a report problem, but it is silently suppressed from the console
-        problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result.output).assertContents {
-            totalProblemsCount = 1
-            withProblem("Feature 'source dependencies' is incompatible with the configuration cache.")
-        }
-
-        and:
-        assertConfigurationCacheDegradation()
     }
 
     def "CC problems in warning mode are not hidden by CC degradation"() {
@@ -680,17 +662,4 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
     }
 
-    private void enableSourceDependencies() {
-        settingsFile("""
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:sourceModule") {
-                        from(GitVersionControlSpec) {
-                            url = "some-repo"
-                        }
-                    }
-                }
-            }
-        """)
-    }
 }

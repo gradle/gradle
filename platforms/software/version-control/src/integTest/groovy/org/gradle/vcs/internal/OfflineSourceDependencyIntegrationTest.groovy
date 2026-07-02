@@ -38,9 +38,10 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     compile 'test:test:1.2'
                 }
+                def compileFiles = configurations.compile
                 tasks.register('resolve') {
-                    inputs.files configurations.compile
-                    doLast { configurations.compile.each { } }
+                    inputs.files compileFiles
+                    doLast { compileFiles.each { } }
                 }
             }
             sourceControl.vcsMappings.withModule('test:test') {
