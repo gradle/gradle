@@ -140,6 +140,20 @@ Update your `gradle.properties` and command-line invocations to the new names.
 
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
+[[variants_with_no_artifacts]]
+==== Primary variants without artifacts are no longer removed when secondary variants are present
+
+You can define <<variant_aware_resolution.adoc#sec:secondary-variants,secondary variants>> for a consumable primary variant that has no artifacts.
+
+In earlier versions of Gradle, doing so would cause the primary variant to be silently excluded from variant selection, because it lacked artifacts.
+Starting with Gradle 10.0, such primary variants are now considered during variant selection, even if they have no artifacts.
+
+To preserve the previous outcome of variant selection in this case, Gradle automatically tags such configurations with a new `org.gradle.fallback-variant` attribute: the empty primary receives `org.gradle.fallback-variant=true` and each secondary receives `org.gradle.fallback-variant=false`. A default schema disambiguation rule prefers `false` over `true` when both values are candidates, so a secondary still wins whenever a secondary is compatible with the consumer's request — matching the pre-Gradle 10.0 outcome where the primary was simply absent.
+
+When the consumer explicitly requests a value for `org.gradle.fallback-variant`, the rule honors that request. This gives consumers an escape hatch: a consumer that wants the empty primary can request `org.gradle.fallback-variant=true` on the resolvable configuration to opt into it.
+
+NOTE: A configuration whose primary declares its own artifacts is unaffected — Gradle does not tag those configurations.
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 

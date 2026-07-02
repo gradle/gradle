@@ -286,8 +286,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         buildFile << """
             $header
 
-            def flavor = Attribute.of('flavor', String)
-
             dependencies {
                 compile project(':a')
             }
@@ -330,10 +328,12 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'free' but the consumer didn't ask for it
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
   - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
-          - Provides flavor 'paid' but the consumer didn't ask for it""")
+          - Provides flavor 'paid' but the consumer didn't ask for it
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
 
         where:
         expression << ALL_EXPRESSIONS
@@ -395,11 +395,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         expect:
         fails("show")
-        failure.assertHasCause("""No variants of project ':a' match the consumer attributes:
-  - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
-      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
-  - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
-      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         // Eager expressions (Set<File>) resolve all transitive dependencies and report all failures.
         // Lazy FileCollection expressions only report the direct dependency failure.
@@ -419,7 +414,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
           - Doesn't say anything about usage (required 'compile')""")
         } else {
             // Lazy FileCollection expressions resolve the project dependency graph but not external or file dependencies
-            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
 
         where:

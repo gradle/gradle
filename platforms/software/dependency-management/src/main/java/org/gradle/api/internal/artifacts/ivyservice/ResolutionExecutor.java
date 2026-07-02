@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
@@ -146,6 +147,7 @@ public class ResolutionExecutor {
     private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
     private final AttributeDesugaring attributeDesugaring;
     private final NamedObjectInstantiator namedObjectInstantiator;
+    private final FallbackVariantSupport fallbackVariantSupport;
 
     @Inject
     public ResolutionExecutor(
@@ -178,7 +180,8 @@ public class ResolutionExecutor {
         VariantTransformRegistry transformRegistry,
         ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
         AttributeDesugaring attributeDesugaring,
-        NamedObjectInstantiator namedObjectInstantiator
+        NamedObjectInstantiator namedObjectInstantiator,
+        FallbackVariantSupport fallbackVariantSupport
     ) {
         this.dependencyGraphResolver = dependencyGraphResolver;
         this.storeFactory = storeFactory;
@@ -210,6 +213,7 @@ public class ResolutionExecutor {
         this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
         this.attributeDesugaring = attributeDesugaring;
         this.namedObjectInstantiator = namedObjectInstantiator;
+        this.fallbackVariantSupport = fallbackVariantSupport;
     }
 
     /**
@@ -401,7 +405,8 @@ public class ResolutionExecutor {
             params.getArtifactTypeRegistry(),
             resolvedVariantCache,
             graphVariantSelector,
-            transformRegistry
+            transformRegistry,
+            fallbackVariantSupport
         );
     }
 

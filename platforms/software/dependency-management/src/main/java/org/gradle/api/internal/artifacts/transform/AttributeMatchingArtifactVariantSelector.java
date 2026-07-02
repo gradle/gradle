@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.attributes.FallbackVariant;
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -26,6 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,19 +48,22 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler failureHandler;
     private final TransformationChainSelector transformationChainSelector;
+    private final FallbackVariantSupport fallbackVariantSupport;
 
     public AttributeMatchingArtifactVariantSelector(
         ImmutableAttributesSchema consumerSchema,
         ConsumerProvidedVariantFinder transformationChainBuilder,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler failureHandler
+        ResolutionFailureHandler failureHandler,
+        FallbackVariantSupport fallbackVariantSupport
     ) {
         this.consumerSchema = consumerSchema;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.failureHandler = failureHandler;
         this.transformationChainSelector = new TransformationChainSelector(transformationChainBuilder, failureHandler);
+        this.fallbackVariantSupport = fallbackVariantSupport;
     }
 
     @Override
@@ -81,19 +87,26 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
         ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
-        // Check for matching variant without using artifact transforms.  If we found only one match, return it.
-        // If we found multiple matches, there is ambiguity.
-        List<ResolvedVariant> matchingVariants = matcher.matchMultipleCandidates(producer.getCandidates(), targetAttributes);
-        if (matchingVariants.size() == 1) {
-            return matchingVariants.get(0).getArtifacts();
-        } else if (matchingVariants.size() > 1) {
-            throw failureHandler.ambiguousArtifactsFailure(matcher, producer, targetAttributes, matchingVariants);
+        // Two-pass strategy when any candidate carries the org.gradle.fallback-variant attribute:
+        // first try with fallback-variant=false injected on the consumer side, which prunes the
+        // auto-tagged primary at the compatibility check. If that pass produces an answer (direct
+        // match, ambiguity, or transform chain), use it. Otherwise fall through to a second pass
+        // with the original (unaugmented) request, so that an empty fallback primary can still
+        // act as a "nothing to resolve" backstop when neither a secondary nor a transform chain
+        // can satisfy the request. See FallbackVariantSupport for the producer-side tagging contract.
+        if (anyCandidateCarriesFallbackVariant(producer.getCandidates())) {
+            ImmutableAttributes augmentedAttrs = fallbackVariantSupport.augmentConsumerWithDefault(targetAttributes, attributesFactory);
+            ResolvedArtifactSet augmentedResult = tryMatchOrTransform(producer, augmentedAttrs, matcher, true);
+            if (augmentedResult != null) {
+                return augmentedResult;
+            }
         }
 
-        // We found no matching variant.  Attempt to select a chain of transformations that produces a suitable virtual variant.
-        Optional<TransformedVariant> selectedTransformationChain = transformationChainSelector.selectTransformationChain(producer, targetAttributes, matcher);
-        if (selectedTransformationChain.isPresent()) {
-            return producer.transformCandidate(selectedTransformationChain.get().getRoot(), selectedTransformationChain.get().getTransformedVariantDefinition());
+        // Augmented pass produced no match and no transform chain. Try using the original attributes for
+        // matching so that the fallback primary can still satisfy a no-op resolution.
+        ResolvedArtifactSet result = tryMatchOrTransform(producer, targetAttributes, matcher, false);
+        if (result != null) {
+            return result;
         }
 
         // At this point, there is no possibility of a match for the request.  That could be okay if allowed, else it's a failure.
@@ -102,5 +115,42 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         } else {
             throw failureHandler.noCompatibleArtifactFailure(matcher, producer, targetAttributes);
         }
+    }
+
+    /**
+     * Attempts a single matching pass with the given consumer attributes.
+     * <p>
+     * Returns the matched artifact set when matching or a transform chain succeeds, or {@code null} when neither
+     * direct matching nor a transform chain produced a candidate (signalling that the caller
+     * may try a different attribute set or escalate to a failure).
+     *
+     * @param augmentedTry Whether this request includes an injected fallback variant attribute
+     */
+    @Nullable
+    private ResolvedArtifactSet tryMatchOrTransform(
+        ResolvedVariantSet producer,
+        ImmutableAttributes attrs,
+        AttributeMatcher matcher,
+        boolean augmentedTry
+    ) {
+        List<ResolvedVariant> matchingVariants = matcher.matchMultipleCandidates(producer.getCandidates(), attrs);
+        if (matchingVariants.size() == 1) {
+            return matchingVariants.get(0).getArtifacts();
+        } else if (matchingVariants.size() > 1) {
+            var reportAttrs = augmentedTry ? fallbackVariantSupport.removeFallbackVariant(attrs, attributesFactory) : attrs;
+            throw failureHandler.ambiguousArtifactsFailure(matcher, producer, reportAttrs, matchingVariants);
+        }
+
+        Optional<TransformedVariant> selectedTransformationChain = transformationChainSelector.selectTransformationChain(producer, attrs, matcher);
+        return selectedTransformationChain.map(transformedVariant -> producer.transformCandidate(transformedVariant.getRoot(), transformedVariant.getTransformedVariantDefinition())).orElse(null);
+    }
+
+    private static boolean anyCandidateCarriesFallbackVariant(List<? extends ResolvedVariant> candidates) {
+        for (ResolvedVariant candidate : candidates) {
+            if (candidate.getAttributes().findEntry(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName()) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }
