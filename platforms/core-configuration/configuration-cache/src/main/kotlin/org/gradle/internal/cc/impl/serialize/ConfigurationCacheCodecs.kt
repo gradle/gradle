@@ -340,10 +340,10 @@ class DefaultConfigurationCacheCodecs(
 
     private
     fun Bindings.completeWithStatefulCodecs() = append {
+        bind(KotlinObjectCodec)
         bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
         bind(ValueObjectCodec)
-        bind(KotlinObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,

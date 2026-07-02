@@ -21,6 +21,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.Decoding
 import org.gradle.internal.serialize.graph.codecs.Encoding
 import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 
@@ -33,25 +34,33 @@ object KotlinObjectCodec : EncodingProducer, Decoding {
     const val INSTANCE_FIELD_NAME = "INSTANCE"
 
     override fun encodingForType(type: Class<*>): Encoding? =
-        KotlinObjectEncoding.takeIf { type.isKotlinObject() }
+        KotlinObjectEncoding.takeIf { type.singletonInstanceField() != null }
 
     override suspend fun ReadContext.decode(): Any? {
         val objectClass = readClass()
-        val instanceField = objectClass.getDeclaredField(INSTANCE_FIELD_NAME).apply { isAccessible = true }
-        return instanceField.get(null)
+        val instanceField = objectClass.singletonInstanceField()
+            ?: error("Cannot find the singleton instance field of Kotlin object ${objectClass.name}.")
+        return instanceField.apply { isAccessible = true }.get(null)
     }
 
     private
-    fun Class<*>.isKotlinObject(): Boolean {
+    fun Class<*>.singletonInstanceField(): Field? {
         if (!isAnnotationPresent(Metadata::class.java)) {
-            return false
+            return null
         }
-        val field = declaredFields.firstOrNull { it.name == INSTANCE_FIELD_NAME } ?: return false
-        return field.type == this &&
-            Modifier.isStatic(field.modifiers) &&
-            Modifier.isFinal(field.modifiers) &&
-            Modifier.isPublic(field.modifiers)
+        return instanceFieldNamed(INSTANCE_FIELD_NAME, declaredIn = this)
+            ?: enclosingClass?.let { instanceFieldNamed(simpleName, declaredIn = it) }
     }
+
+    private
+    fun Class<*>.instanceFieldNamed(name: String, declaredIn: Class<*>): Field? =
+        declaredIn.declaredFields.firstOrNull {
+            it.name == name &&
+                it.type == this &&
+                Modifier.isStatic(it.modifiers) &&
+                Modifier.isFinal(it.modifiers) &&
+                Modifier.isPublic(it.modifiers)
+        }
 }
 
 
