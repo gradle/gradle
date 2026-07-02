@@ -1,0 +1,3 @@
+rootProject.name = "strictly-overlapping-ranges"
+
+include("moduleA")

@@ -1,0 +1,6 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.httpcomponents:httpclient:4.5.13
+|    +--- org.apache.httpcomponents:httpcore:4.4.13
+|    +--- commons-logging:commons-logging:1.2
+|    \--- commons-codec:commons-codec:1.11 -> 1.15
+\--- commons-codec:commons-codec:1.15 (c)

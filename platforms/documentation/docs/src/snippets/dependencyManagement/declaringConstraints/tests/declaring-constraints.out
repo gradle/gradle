@@ -1,0 +1,12 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- com.fasterxml.jackson.core:jackson-databind -> 2.16.1
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.16.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.16.1
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.16.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.16.1 (c)
+|    |         \--- com.fasterxml.jackson.core:jackson-databind:2.16.1 (c)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.16.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.16.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.16.1 (*)
++--- com.fasterxml.jackson.core:jackson-databind:2.16.1 (c)
+\--- com.fasterxml.jackson.core:jackson-annotations:2.16.1 (c)

@@ -1,0 +1,6 @@
+> Task :showConstraints
+
+Constraints published by this platform:
+  com.google.code.gson:gson:2.10.1
+  org.apache.commons:commons-lang3:3.14.0
+  org.slf4j:slf4j-api:2.0.9

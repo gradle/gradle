@@ -31,32 +31,43 @@ TIP: Use constraints when you want to control versions centrally and avoid addin
 You can declare constraints:
 
 - Alongside <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,dependencies>> in a single project (scoped to the same configuration buckets like `implementation`, `runtimeOnly`, `testImplementation`, etc.).
-- Centrally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform>> (recommended for multi-project builds) using the `java-platform` plugin:
-
++
 ====
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/recommender/kotlin/platform",files="build.gradle.kts[tags=full-platform]"]
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
+include::sample[dir="snippets/dependencyManagement/constraintsAlongsideDependencies/kotlin",files="build.gradle.kts[tags=constraints-alongside-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/constraintsAlongsideDependencies/groovy",files="build.gradle[tags=constraints-alongside-dependencies]"]
+====
+- Centrally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform>> (recommended for multi-project builds) using the `java-platform` plugin:
++
+====
+include::sample[dir="snippets/java-platform/constraintsInPlatform/kotlin",files="build.gradle.kts[tags=constraints-in-platform]"]
+include::sample[dir="snippets/java-platform/constraintsInPlatform/groovy",files="build.gradle[tags=constraints-in-platform]"]
 ====
 
 You cannot declare constraints in <<version_catalogs.adoc#version-catalog,version catalogs>>.
+A catalog *can*, however, declare <<dependency_versions.adoc#sec:rich-version-constraints,rich versions>>, including `strictly`, `prefer`, and `reject`, on its version entries.
 
 [[sec:declaring-constraints-dependencies]]
 == Declaring constraints alongside direct dependencies
 
-Constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by *bucket configurations*>> (e.g., `implementation`, `runtimeOnly`).
+Constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by *configurations*>> (e.g., `implementation`, `runtimeOnly`).
 They apply whenever that dependency is encountered during resolution.
 
 The `constraints {}` block is used within the `dependencies {}` block to declare these constraints:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kotlin",files="build.gradle.kts[tags=use-plugin,constraints]"]
-include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=use-plugin,constraints]"]
+include::sample[dir="snippets/dependencyManagement/declaringConstraints/kotlin",files="build.gradle.kts[tags=direct-constraints]"]
+include::sample[dir="snippets/dependencyManagement/declaringConstraints/groovy",files="build.gradle[tags=direct-constraints]"]
 ====
 
-1. `api("commons-httpclient:commons-httpclient:3.1")`: ensures ≥ 3.1 for `api`.
-2. `runtime("org.postgresql:postgresql:42.2.5")`: ensures ≥ 42.2.5 for `runtime`.
+Here, `jackson-databind` is declared without a version.
+The constraint ensures that when it is resolved, Gradle selects at least version `2.16.1`:
 
-If multiple requirements exist, Gradle picks a version that satisfies all.
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/declaringConstraints/tests/declaring-constraints.out[]
+----
+
+If multiple constraints or dependencies require different versions of the same module, Gradle picks a version that satisfies all.
 If none exists, resolution *fails* with an error describing the conflict.
 
 [[sec:adding-constraints-transitive-deps]]
@@ -65,33 +76,219 @@ If none exists, resolution *fails* with an error describing the conflict.
 Use constraints to select transitive modules *without* introducing them as direct dependencies:
 
 ====
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
-include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
+include::sample[dir="snippets/dependencyManagement/constraintsOnTransitiveDependencies/kotlin",files="build.gradle.kts[tags=transitive-constraints]"]
+include::sample[dir="snippets/dependencyManagement/constraintsOnTransitiveDependencies/groovy",files="build.gradle[tags=transitive-constraints]"]
 ====
+
+Here, `httpclient:4.5.13` pulls in `commons-codec:1.11` as a transitive dependency.
+The constraint upgrades it to `1.15` without adding `commons-codec` as a direct dependency:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/constraintsOnTransitiveDependencies/tests/constraints-on-transitive-dependencies.out[]
+----
 
 If `commons-codec` isn’t brought in transitively, the constraint is a no-op (it doesn’t add the module).
 If it is brought in, the constraint guides the version selection.
 
-[[sec:rich_versions_and_strict_versions_for_constraints]]
-== Rich versions and strict versions for constraints
+== Transitivity and precedence of constraints
 
-You can attach <<dependency_versions.adoc#sec:rich-version-constraints,*rich versions*>> to constraints:
+Dependency constraints are transitive.
+
+If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` resolves:
+
+[source,text]
+----
+library A
+├── library B
+│   └── constraint: module C >= 3  // <1>
+└── module C:2                     // <2>
+----
+<1> `library B` declares a constraint requiring `module C` version `3` or higher.
+<2> `library A` depends on `module C` version `2` directly, but the transitive constraint from `library B` upgrades it to version `3`.
+
+== Rich versions for constraints
+
+By default, a constraint expresses "at least this version", so Gradle can still upgrade past it.
+
+For tighter control, attach a <<dependency_versions.adoc#sec:rich-version-constraints,*rich version*>> to the constraint:
+
+* `strictly` — pins to an exact version (or range); no other dependency can upgrade past it.
+* `prefer` — indicates the preferred version, but allows Gradle to select a different one if needed.
+* `reject` — excludes specific versions from consideration.
+
+For example, using `strictly` to prevent any upgrade past a known-good version:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-strictly]"]
 include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
 ====
 
-[[sec:transitivity_of_constraints]]
-== Transitivity of constraints
+[[sec:strictly-constraint-precedence]]
+=== Competing `strictly` declarations
 
-Dependency constraints are transitive.
+When more than one `strictly` declaration applies to the same dependency, Gradle's behavior depends on *where* those declarations sit in the dependency graph.
+Same-level declarations compose by intersection; declarations at different depths follow a precedence rule.
 
-If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` depends on.
+[[sec:strictly-same-level]]
+==== Same level: intersection
 
-For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `module C version 3`.
+When multiple `strictly` declarations on the same module are made at the same level, for example, a direct dependency and a constraint in the same project, or two constraints side by side, Gradle takes the *intersection* of their accepted versions and resolves to the highest version inside it.
 
-[[sec:publishing_constraints]]
+A direct dependency with a wide strict range, combined with a constraint that narrows it:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelRanges/kotlin",files="build.gradle.kts[tags=same-level-ranges]"]
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelRanges/groovy",files="build.gradle[tags=same-level-ranges]"]
+====
+
+The direct declaration's `[4.0, 5.0[` intersected with the constraint's `[4.3, 4.5[` gives `[4.3, 4.5[`; the resolved version is the highest available there:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlySameLevelRanges/tests/strictlySameLevelRanges.out[]
+----
+
+The intersection behavior is the same when both declarations are constraints rather than one being a direct dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelTwoConstraints/kotlin",files="build.gradle.kts[tags=same-level-two-constraints]"]
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelTwoConstraints/groovy",files="build.gradle[tags=same-level-two-constraints]"]
+====
+
+Both constraints are honored, and the resolved version satisfies both:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlySameLevelTwoConstraints/tests/strictlySameLevelTwoConstraints.out[]
+----
+
+If the two same-level ranges do not overlap, the intersection is empty and resolution fails:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelNoOverlap/kotlin",files="build.gradle.kts[tags=same-level-no-overlap]"]
+include::sample[dir="snippets/dependencyManagement/strictlySameLevelNoOverlap/groovy",files="build.gradle[tags=same-level-no-overlap]"]
+====
+
+The dependency report marks both declarations as `FAILED`:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlySameLevelNoOverlap/tests/strictlySameLevelNoOverlap.out[]
+----
+
+[[sec:strictly-across-depths]]
+==== Across graph depths: the root-most wins outright
+
+When the competing `strictly` declarations sit at different depths in the dependency graph, Gradle does *not* take the intersection.
+The declaration closer to the root fully overrides the deeper one, even when the deeper declaration's range is more restrictive and would have produced a version that satisfies both.
+
+In this example, the root project declares a wide strict range as a direct dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/kotlin",files="build.gradle.kts[tags=overlapping-root]"]
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/groovy",files="build.gradle[tags=overlapping-root]"]
+====
+
+A subproject contributes a narrower strict range, fully inside the root's:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/kotlin/moduleA",files="build.gradle.kts[tags=overlapping-module]"]
+include::sample[dir="snippets/dependencyManagement/strictlyOverlappingRanges/groovy/moduleA",files="build.gradle[tags=overlapping-module]"]
+====
+
+The resolved version comes from the root's range only:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyOverlappingRanges/tests/strictlyOverlappingRanges.out[]
+----
+
+The selection `4.5.14` is the maximum of the root's `[4.0, 5.0[` range, and it is *outside* the subproject's `[4.3, 4.5[` strict declaration.
+The subproject's `strictly` was silently dropped.
+
+The same rule applies when the ranges do not overlap at all, the deeper `strictly` is dropped rather than causing a conflict:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="build.gradle.kts[tags=strictly-precedence-root]"]
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="build.gradle[tags=strictly-precedence-root]"]
+====
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="moduleA/build.gradle.kts[tags=strictly-precedence-module]"]
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="moduleA/build.gradle[tags=strictly-precedence-module]"]
+====
+
+The root's pinned `4.4` wins over the subproject's `4.5`, and the subproject's declaration is dropped instead of triggering a conflict failure:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyConstraintPrecedence/tests/strictlyConstraintPrecedence.out[]
+----
+
+The rule also holds for any depth — root-most wins, all deeper `strictly` declarations are dropped together.
+This three-level example has the root, a direct subproject, and a transitive subproject each declaring a `strictly` on the same module:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/kotlin",files="build.gradle.kts[tags=three-levels-root]"]
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/groovy",files="build.gradle[tags=three-levels-root]"]
+====
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/kotlin/moduleA",files="build.gradle.kts[tags=three-levels-moduleA]"]
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/groovy/moduleA",files="build.gradle[tags=three-levels-moduleA]"]
+====
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/kotlin/moduleB",files="build.gradle.kts[tags=three-levels-moduleB]"]
+include::sample[dir="snippets/dependencyManagement/strictlyThreeLevels/groovy/moduleB",files="build.gradle[tags=three-levels-moduleB]"]
+====
+
+Both `moduleA`'s and `moduleB`'s strict declarations are dropped; the root's range alone governs the result:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyThreeLevels/tests/strictlyThreeLevels.out[]
+----
+
+[NOTE]
+====
+Gradle's conflict-resolution rules differ between same-level and cross-depth `strictly` declarations.
+At the same level, declarations compose by intersection (or fail when the intersection is empty).
+Across depths, the root-most declaration takes complete precedence and any deeper `strictly` is silently dropped.
+This protects a project's right to control the versions of its direct dependencies without negotiation with the components it depends on.
+====
+
+[[sec:strictly-from-platform]]
+=== `strictly` constraints from platforms
+
+When a platform declares a `strictly` constraint and a consumer imports it with `platform()`, the strict version is <<platforms.adoc#sec:endorsing-platform-strict-versions,endorsed by default>>; Gradle treats it as if the consumer declared it directly.
+
+A platform that pins `guava` to an exact version:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/kotlin/platform",files="build.gradle.kts[tags=platform-strictly]"]
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/groovy/platform",files="build.gradle[tags=platform-strictly]"]
+====
+
+A consumer that imports the platform and depends on `guava`:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/kotlin",files="build.gradle.kts[tags=consumer-endorsed]"]
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/groovy",files="build.gradle[tags=consumer-endorsed]"]
+====
+
+The dependency tree confirms that `guava` resolves to `33.0.0-jre`, the version pinned by the platform:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyFromPlatform/tests/strictlyFromPlatform.out[]
+----
+
+If the consumer or any transitive dependency requests a version outside the `strictly` constraint (e.g., `guava:33.1.0-jre`), resolution will fail.
+
+To disable this behavior, use `doNotEndorseStrictVersions()` on the platform dependency, see <<platforms.adoc#sec:endorsing-platform-strict-versions,Strict Version Endorsement>>.
+
 == Publishing constraints
 
 Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.

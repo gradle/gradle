@@ -1,0 +1,13 @@
+// tag::constraints-in-platform[]
+plugins {
+    id 'java-platform'
+}
+
+dependencies {
+    constraints {
+        api 'com.google.guava:guava:33.0.0-jre'
+        api 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+        api 'org.slf4j:slf4j-api:2.0.9'
+    }
+}
+// end::constraints-in-platform[]
