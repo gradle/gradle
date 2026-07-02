@@ -78,15 +78,23 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
     }
 
     public ServiceLookup capturingRegistry(ImplicitInputRecorder registrar) {
-        return new DefaultCapturingServiceLookup(registrar);
+        return new DefaultCapturingServiceLookup(delegate, registrar);
     }
 
-    private class DefaultCapturingServiceLookup implements ServiceLookup {
+    private static class DefaultCapturingServiceLookup implements ServiceLookup {
 
         private final ImplicitInputRecorder registrar;
+        private final ServiceLookup delegate;
+        private final ServiceLookup userTypeFilteredView;
 
-        private DefaultCapturingServiceLookup(ImplicitInputRecorder registrar) {
+        private DefaultCapturingServiceLookup(ServiceLookup delegate, ImplicitInputRecorder registrar) {
             this.registrar = registrar;
+            this.delegate = delegate;
+
+            ServiceLookup filteredDelegate = delegate.withUserTypeFilter();
+            this.userTypeFilteredView = filteredDelegate == delegate
+                ? this
+                : new DefaultCapturingServiceLookup(filteredDelegate, registrar);
         }
 
         @Override
@@ -108,6 +116,10 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
             return service;
         }
 
+        @Override
+        public ServiceLookup withUserTypeFilter() {
+            return userTypeFilteredView;
+        }
     }
 
 }

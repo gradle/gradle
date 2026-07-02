@@ -18,9 +18,11 @@ package org.gradle.util.internal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractCollection;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -643,4 +645,58 @@ public abstract class CollectionUtils {
             }
         };
     }
+
+    /**
+     * Return a new collection joining the given collections together. The returned collection
+     * is a live view of the underlying collections, and does not support mutations.
+     */
+    public static <T> Collection<T> concat(Collection<T> first, Collection<T> second) {
+        if (first.isEmpty()) {
+            return second;
+        } else if (second.isEmpty()) {
+            return first;
+        }
+
+        return new AbstractCollection<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                return new ConcatIterator<>(first.iterator(), second.iterator());
+            }
+
+            @Override
+            public int size() {
+                return first.size() + second.size();
+            }
+        };
+    }
+
+    @NullMarked
+    private static class ConcatIterator<T> implements Iterator<T> {
+
+        private final Iterator<T> first;
+        private final Iterator<T> second;
+
+        private ConcatIterator(Iterator<T> first, Iterator<T> second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (first.hasNext()) {
+                return true;
+            }
+            return second.hasNext();
+        }
+
+        @Override
+        public T next() {
+            if (first.hasNext()) {
+                return first.next();
+            }
+            return second.next();
+        }
+
+    }
+
 }
