@@ -19,6 +19,7 @@ package org.gradle.vcs.git.internal
 
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
@@ -62,7 +63,10 @@ class GitVersionControlSystemSpec extends Specification {
         anotherSource << 'Goodbye world!'
         c2 = repo.commit('Second Commit')
         repoHead = GitVersionRef.from(repo.head)
-        repoSpec = new DefaultGitVersionControlSpec()
+        FileResolver fileResolver = Mock(FileResolver) {
+            resolveUri(_) >> { args -> args[0] instanceof URI ? args[0] : new URI(args[0].toString()) }
+        }
+        repoSpec = new DefaultGitVersionControlSpec(fileResolver)
         repoSpec.url = repo.url
 
         submoduleRepo.workTree.file("foo.txt") << "hello from submodule"
