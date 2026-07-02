@@ -1451,12 +1451,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
-// KGP uses this method to create a container for the Kotlin DSL
-//        DeprecationLogger.deprecateMethod(Project.class, "container(Class)").
-//            replaceWith("objects.domainObjectContainer(Class)").
-//            willBeRemovedInGradle10().
-//            withUpgradeGuideSection(9, "project_container_methods").
-//            nagUser();
+        DeprecationLogger.deprecateMethod(Project.class, "container(Class)").
+            replaceWith("objects.domainObjectContainer(Class)").
+            willBeRemovedInGradle10().
+            withUpgradeGuideSection(9, "project_container_methods").
+            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainerUndecorated(type);
     }
 
