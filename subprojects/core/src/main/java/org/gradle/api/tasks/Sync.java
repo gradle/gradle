@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
@@ -28,6 +30,7 @@ import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
@@ -83,14 +86,42 @@ public abstract class Sync extends AbstractCopyTask {
     @Override
     protected void copy() {
         File destinationDir = getDestinationDir();
-        if (destinationDir != null && getSource().isEmpty() && !hasPreviousOutputFilesUnder(destinationDir)) {
+        boolean isUntracked = getReasonNotToTrackState().isPresent();
+        if (!isUntracked && destinationDir != null && isSourceEmpty() && !hasPreviousOutputFilesUnder(destinationDir)) {
             // No source, and no record of ever having synced into this exact destination before: most likely
             // a misconfigured `from` pointed at an unrelated, pre-existing directory. Do nothing rather than
             // risk wiping out content this task never put there.
+            //
+            // Untracked tasks (doNotTrackState()/@UntrackedTask) are exempt: Gradle never records execution
+            // history for them, so "no previous output" would otherwise always be true, permanently disabling
+            // this cleanup. An untracked task already forgoes Gradle's incremental/up-to-date guarantees.
             setDidWork(false);
             return;
         }
         super.copy();
+    }
+
+    /**
+     * Whether the source contains no files and no directories, consistent with the source input property's own
+     * {@code ignoreEmptyDirectories(false)} configuration — unlike {@link org.gradle.api.file.FileCollection#isEmpty()},
+     * which only counts regular files and would otherwise treat a source made up solely of empty directories as empty.
+     */
+    private boolean isSourceEmpty() {
+        MutableBoolean found = new MutableBoolean();
+        getSource().getAsFileTree().visit(new EmptyFileVisitor() {
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                found.set(true);
+                fileDetails.stopVisiting();
+            }
+
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                found.set(true);
+                dirDetails.stopVisiting();
+            }
+        });
+        return !found.get();
     }
 
     private boolean hasPreviousOutputFilesUnder(File destinationDir) {
