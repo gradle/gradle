@@ -35,6 +35,9 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:inputs-and-outputs]]
 `#inputs-and-outputs`:: Items that are related to Gradle <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
 
+[[tag:logging]]
+`#logging` :: Items that are related to producing <<logging.adoc#logging,log output>> from Gradle code (tasks, plugins, build services, and helper classes), including how loggers are obtained and named.
+
 [[tag:plugins]]
 `#plugins` :: Items that explain the proper way to <<plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
 
