@@ -88,7 +88,7 @@ object BuildServices : ServiceRegistrationProvider {
 
     private
     fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
-        getLayoutFor(gradle.startParameter.toBuildLayoutConfiguration()).settingsDir
+        locationFor(gradle.startParameter.toBuildLayoutConfiguration()).buildRootDirectory
 }
 
 internal object ProjectServices : ServiceRegistrationProvider {

@@ -39,11 +39,10 @@ class BuildLayoutFactoryTest extends Specification {
         def settingsFile = currentDir.createFile(settingsFilename)
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == settingsFile
-        !layout.buildDefinitionMissing
+        def location = locator.locationFor(currentDir, true)
+        location.buildRootDirectory == currentDir
+        location.settingsFile == settingsFile
+        !location.buildDefinitionMissing
 
         where:
         settingsFilename << TEST_CASES
@@ -60,11 +59,10 @@ class BuildLayoutFactoryTest extends Specification {
         currentDir.mkdirs()
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == new File(currentDir, "settings.gradle") // this is the current behaviour
-        layout.buildDefinitionMissing
+        def location = locator.locationFor(currentDir, true)
+        location.buildRootDirectory == currentDir
+        location.settingsFile == new File(currentDir, "settings.gradle") // this is the current behaviour
+        location.buildDefinitionMissing
 
         cleanup: "temporary tree"
         tmpDir.deleteDir()
@@ -81,11 +79,10 @@ class BuildLayoutFactoryTest extends Specification {
         tmpDir.createFile(settingsFilename)
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == subDir
-        layout.settingsDir == subDir
-        layout.settingsFile == settingsFile
-        !layout.buildDefinitionMissing
+        def location = locator.locationFor(currentDir, true)
+        location.buildRootDirectory == subDir
+        location.settingsFile == settingsFile
+        !location.buildDefinitionMissing
 
         where:
         settingsFilename << TEST_CASES
@@ -102,11 +99,10 @@ class BuildLayoutFactoryTest extends Specification {
         tmpDir.createFile(settingsFilename)
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == settingsFile
-        !layout.buildDefinitionMissing
+        def location = locator.locationFor(currentDir, true)
+        location.buildRootDirectory == currentDir
+        location.settingsFile == settingsFile
+        !location.buildDefinitionMissing
 
         where:
         settingsFilename << TEST_CASES
@@ -122,11 +118,10 @@ class BuildLayoutFactoryTest extends Specification {
         tmpDir.createFile(settingsFilename)
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, false)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == new File(currentDir, "settings.gradle") // this is the current behaviour
-        layout.buildDefinitionMissing
+        def location = locator.locationFor(currentDir, false)
+        location.buildRootDirectory == currentDir
+        location.settingsFile == new File(currentDir, "settings.gradle") // this is the current behaviour
+        location.buildDefinitionMissing
 
         where:
         settingsFilename << TEST_CASES
@@ -143,11 +138,10 @@ class BuildLayoutFactoryTest extends Specification {
         def currentDir = tmpDir.newFolder("sub", "current")
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == FileUtils.canonicalize(new File(currentDir, "settings.gradle"))
-        layout.buildDefinitionMissing
+        def location = locator.locationFor(currentDir, true)
+        location.buildRootDirectory == currentDir
+        location.settingsFile == FileUtils.canonicalize(new File(currentDir, "settings.gradle"))
+        location.buildDefinitionMissing
 
         cleanup:
         tmpDir.delete()
@@ -165,11 +159,10 @@ class BuildLayoutFactoryTest extends Specification {
         def config = startParameter.toBuildLayoutConfiguration()
 
         expect:
-        def layout = locator.getLayoutFor(config)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == new File(currentDir, settingsFilename) // this is the current behaviour
-        !layout.buildDefinitionMissing
+        def location = locator.locationFor(config)
+        location.buildRootDirectory == currentDir
+        location.settingsFile == new File(currentDir, settingsFilename) // this is the current behaviour
+        !location.buildDefinitionMissing
 
         where:
         settingsFilename << TEST_CASES

@@ -51,10 +51,10 @@ public class ConnectionConfigurationUtil {
     }
 
     public static File determineRootDir(ConnectionParameters connectionParameters) {
-        return new BuildLayoutFactory().getLayoutFor(
+        return new BuildLayoutFactory().locationFor(
             connectionParameters.getProjectDir(),
             connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
-        ).getRootDirectory();
+        ).getBuildRootDirectory();
     }
 
     public static File determineRealUserHomeDir(ConnectionParameters connectionParameters) {

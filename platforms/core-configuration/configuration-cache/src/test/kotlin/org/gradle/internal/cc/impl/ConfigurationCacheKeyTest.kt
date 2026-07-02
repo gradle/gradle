@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.buildoption.DefaultInternalOptions
@@ -30,6 +29,7 @@ import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.initialization.BuildLocation
 import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -252,7 +252,7 @@ class ConfigurationCacheKeyTest {
         val internalOptions = DefaultInternalOptions(mapOf())
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
-                BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
+                BuildTreeLocations(BuildLocation(file("root"), null, DefaultScriptFileResolver())),
                 startParameter,
                 internalOptions,
                 BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter), internalOptions),

@@ -1,5 +1,3 @@
-import org.gradle.initialization.layout.BuildLayout
-
 rootProject.name = "services"
 
 // tag::build-layout[]

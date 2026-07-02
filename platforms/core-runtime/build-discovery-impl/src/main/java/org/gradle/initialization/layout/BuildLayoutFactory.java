@@ -16,6 +16,7 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.initialization.BuildLocation;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
@@ -42,30 +43,52 @@ public class BuildLayoutFactory {
     }
 
     /**
-     * Determines the layout of the build, given a current directory and some other configuration.
+     * Determines the location of the build, given a current directory and some other configuration.
      */
-    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
+    public BuildLocation locationFor(File currentDir, boolean shouldSearchUpwards) {
         boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
-        BuildLayout layout = searchUpwards ? findLayoutRecursively(currentDir) : findLayout(currentDir);
-        return layout != null ? layout : getLayoutWithDefaultSettingsFile(currentDir);
+        BuildLocation location = searchUpwards ? findLocationRecursively(currentDir) : findLocation(currentDir);
+        return location != null ? location : getLocationWithDefaultSettingsFile(currentDir);
+    }
+
+    /**
+     * Determines the location of the build, given a current directory and some other configuration.
+     */
+    public BuildLocation locationFor(BuildLayoutConfiguration configuration) {
+        if (configuration.isUseEmptySettings()) {
+            return location(configuration.getCurrentDir(), null);
+        }
+        return locationFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
+     *
+     * @deprecated Use {@link #locationFor(File, boolean)} instead. {@link BuildLayout} is a deprecated service.
      */
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
+        return new BuildLayout(locationFor(currentDir, shouldSearchUpwards));
+    }
+
+    /**
+     * Determines the layout of the build, given a current directory and some other configuration.
+     *
+     * @deprecated Use {@link #locationFor(BuildLayoutConfiguration)} instead. {@link BuildLayout} is a deprecated service.
+     */
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
-        if (configuration.isUseEmptySettings()) {
-            return layout(configuration.getCurrentDir(), null);
-        }
-        return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
+        return new BuildLayout(locationFor(configuration));
     }
 
     @Nullable
-    private BuildLayout findLayoutRecursively(File dir) {
+    private BuildLocation findLocationRecursively(File dir) {
         while (dir != null) {
-            BuildLayout layout = findLayout(dir);
-            if (layout != null) {
-                return layout;
+            BuildLocation location = findLocation(dir);
+            if (location != null) {
+                return location;
             }
             dir = dir.getParentFile();
         }
@@ -73,25 +96,25 @@ public class BuildLayoutFactory {
     }
 
     @Nullable
-    private BuildLayout findLayout(File dir) {
+    private BuildLocation findLocation(File dir) {
         ScriptResolutionResult resolutionResult = scriptFileResolver.resolveScriptFile(dir, BuildLogicFiles.SETTINGS_FILE_BASENAME);
         if (resolutionResult.isScriptFound()) {
-            return layout(dir, resolutionResult);
+            return location(dir, resolutionResult);
         } else {
             return null;
         }
     }
 
-    private BuildLayout getLayoutWithDefaultSettingsFile(File dir) {
+    private BuildLocation getLocationWithDefaultSettingsFile(File dir) {
         ScriptResolutionResult resolution = ScriptResolutionResult.fromSingleFile(
             BuildLogicFiles.SETTINGS_FILE_BASENAME,
             FileUtils.canonicalize(new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE))
         );
-        return layout(dir, resolution);
+        return location(dir, resolution);
     }
 
-    private BuildLayout layout(File rootDir, @Nullable ScriptResolutionResult settingsFileResolution) {
-        return new BuildLayout(rootDir, settingsFileResolution, scriptFileResolver);
+    private BuildLocation location(File rootDir, @Nullable ScriptResolutionResult settingsFileResolution) {
+        return new BuildLocation(rootDir, settingsFileResolution, scriptFileResolver);
     }
 
     private static boolean isBuildSrc(File dir) {

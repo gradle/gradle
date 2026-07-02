@@ -151,7 +151,7 @@ object BuildServices : ServiceRegistrationProvider {
     // e.g. init scripts or scripts for included builds
     // we need to compute the root directory from the start parameters
     private fun BuildLayoutFactory.getBuildTreeRootDir(startParameter: StartParameterInternal): Path =
-        getLayoutFor(startParameter.toBuildLayoutConfiguration()).rootDirectory
+        locationFor(startParameter.toBuildLayoutConfiguration()).buildRootDirectory
             .toPath().toAbsolutePath().normalize()
 
     @Provides

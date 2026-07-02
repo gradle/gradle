@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.internal.initialization.BuildLocation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -42,11 +43,11 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsState process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameterInternal startParameter) {
+    public SettingsState process(final GradleInternal gradle, final BuildLocation buildLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameterInternal startParameter) {
         return buildOperationRunner.call(new CallableBuildOperation<SettingsState>() {
             @Override
             public SettingsState call(BuildOperationContext context) {
-                SettingsState state = settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+                SettingsState state = settingsProcessor.process(gradle, buildLocation, buildRootClassLoaderScope, startParameter);
                 context.setResult(RESULT);
                 return state;
             }
@@ -64,12 +65,12 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
 
                         @Override
                         public String getSettingsDir() {
-                            return settingsLocation.getSettingsDir().getAbsolutePath();
+                            return buildLocation.getBuildRootDirectory().getAbsolutePath();
                         }
 
                         @Override
                         public String getSettingsFile() {
-                            File settingsFile = settingsLocation.getSettingsFile();
+                            File settingsFile = buildLocation.getSettingsFile();
                             return settingsFile != null ? settingsFile.getPath() : null;
                         }
 

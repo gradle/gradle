@@ -26,11 +26,11 @@ import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.build.BuildIncluder
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.initialization.BuildLocation
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.scripts.ScriptFileResolver
@@ -47,7 +47,7 @@ class DefaultSettingsPreparerTest extends Specification {
 
     private projectRootDir = tmpDir.testDirectory
 
-    private mockBuildLayout = new BuildLayout(projectRootDir, null, Stub(ScriptFileResolver))
+    private mockBuildLocation = new BuildLocation(projectRootDir, null, Stub(ScriptFileResolver))
     private classLoaderScope = Stub(ClassLoaderScope)
     private startParameterInternal = new StartParameterInternal()
     private gradle = Stub(GradleInternal) {
@@ -61,8 +61,8 @@ class DefaultSettingsPreparerTest extends Specification {
     private projectDescriptorRegistry = Stub(ProjectDescriptorRegistry) {
         getAllProjects() >> Collections.singleton(Stub(ProjectDescriptorInternal) {
             getPath() >> ":"
-            getProjectDir() >> mockBuildLayout.settingsDir
-            getBuildFile() >> new File(mockBuildLayout.settingsDir, "build.gradle")
+            getProjectDir() >> mockBuildLocation.buildRootDirectory
+            getBuildFile() >> new File(mockBuildLocation.buildRootDirectory, "build.gradle")
         })
     }
 
@@ -72,7 +72,7 @@ class DefaultSettingsPreparerTest extends Specification {
     private settingsProcessor = Stub(SettingsProcessor) {
         // When we process, we're interested in retaining the start parameter in
         // the resulting state, so we can test it, so create a new mock and configure it
-        process(gradle, mockBuildLayout, classLoaderScope, _) >> { g, settingsLocation, cls, startParameter ->
+        process(gradle, mockBuildLocation, classLoaderScope, _) >> { g, buildLocation, cls, startParameter ->
             def resultSettings = Stub(SettingsInternal) {
                 getProjectRegistry() >> projectDescriptorRegistry
                 getSettingsScript() >> Stub(ScriptSource) { getDisplayName() >> "foo" }
@@ -96,7 +96,7 @@ class DefaultSettingsPreparerTest extends Specification {
         settingsProcessor,
         Stub(BuildStateRegistry),
         Stub(ProjectStateRegistry),
-        Stub(BuildLayoutFactory) { getLayoutFor(_) >> mockBuildLayout },
+        Stub(BuildLayoutFactory) { locationFor(_) >> mockBuildLocation },
         Stub(GradlePropertiesController),
         Stub(BuildIncluder),
         Stub(InitScriptHandler),
@@ -123,7 +123,7 @@ class DefaultSettingsPreparerTest extends Specification {
 
     def "preparing settings for the init task uses new empty settings"() {
         given:
-        startParameterInternal.setCurrentDir(mockBuildLayout.settingsDir)
+        startParameterInternal.setCurrentDir(mockBuildLocation.buildRootDirectory)
         startParameterInternal.setTaskNames(["init"])
 
         when:

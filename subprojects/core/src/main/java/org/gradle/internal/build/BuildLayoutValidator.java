@@ -21,9 +21,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.initialization.BuildLocation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -53,8 +53,8 @@ public class BuildLayoutValidator {
     }
 
     public void validate(StartParameterInternal startParameter) {
-        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
-        if (!buildLayout.isBuildDefinitionMissing()) {
+        BuildLocation buildLocation = buildLayoutFactory.locationFor(startParameter.toBuildLayoutConfiguration());
+        if (!buildLocation.isBuildDefinitionMissing()) {
             // All good
             return;
         }
