@@ -119,9 +119,7 @@ If you have custom code that branched on `getParameters() == null` to detect a p
 
 Previously, a link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] task with no source files was reported as `NO-SOURCE` and skipped, leaving any previously synced files in its destination directory in place indefinitely.
 
-`Sync` now always runs its copy action, even when its source is empty. Once a `Sync` task has successfully synced into a given destination directory at least once, a later run with an empty source deletes stale files from that destination — anything not covered by its `preserve()` filter — exactly as `Sync` is documented to do for any other source change.
-
-As a safety measure, this cleanup only happens for a destination the task has synced into before. The very first execution of a `Sync` task against a given destination directory is left untouched if its source is empty: nothing is deleted, and no assumption is made about pre-existing, unrelated content sitting at that destination.
+`Sync` now always runs its copy action, even when its source is empty. Once a `Sync` task has successfully synced into a given destination directory at least once, a later run with an empty source deletes stale files from that destination — anything not covered by its `preserve()` filter.
 
 If you rely on the previous skip behavior for a `Sync` task that has already run against its destination, configure it to short-circuit explicitly:
 ====

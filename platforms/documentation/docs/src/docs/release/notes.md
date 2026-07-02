@@ -253,16 +253,6 @@ See the [Timestamp for files inside archives](userguide/working_with_files.html#
 Authors of custom [`BuildCacheService`](javadoc/org/gradle/caching/BuildCacheService.html) implementations can now obtain cache entry content as an `InputStream` via [`BuildCacheEntryWriter.getInputStream()`](javadoc/org/gradle/caching/BuildCacheEntryWriter.html#getInputStream()), as an alternative to writing to an `OutputStream` via `writeTo`.
 Consuming an `InputStream` can be more efficient for I/O, especially for asynchronous HTTP clients.
 
-#### `Sync` now deletes stale outputs when its source becomes empty
-
-Previously, a [`Sync`](javadoc/org/gradle/api/tasks/Sync.html) task with no source files was reported as `NO-SOURCE` and skipped, which left any previously synced files sitting in the destination directory indefinitely.
-
-`Sync` now always runs, even when its source is empty, so that a destination it has already synced into is correctly reconciled with the (now empty) source and stale files are deleted, exactly as `Sync` is documented to do.
-
-To guard against the common misconfiguration where `from` accidentally resolves to nothing (for example, a mistyped path) while `into` points at some pre-existing, unrelated directory, `Sync` only performs this cleanup for a destination it has a recorded history of syncing into before. The very first time a `Sync` task runs against a given destination, an empty source is treated as suspicious, and the task does nothing rather than risk deleting content it never put there.
-
-See the [upgrading guide](userguide/upgrading_version_9.html#sync_runs_when_source_is_empty) for details on this behavior change and how to opt back into the old skip behavior.
-
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
