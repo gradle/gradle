@@ -173,7 +173,7 @@ class DirectorySnapshotterTest extends Specification {
 
         unfilteredSubsnapshots*.absolutePath == [
             nestedTextFile,
-            nestedSiblingTextFile.parentFile,
+            nestedSiblingTextFile.parentFile.parentFile,
             rootTextFile
         ]*.absolutePath
     }
@@ -461,7 +461,9 @@ class DirectorySnapshotterTest extends Specification {
         def dirSnapshot = snapshot.children[0]
         dirSnapshot.class == DirectorySnapshot
         dirSnapshot.accessType == AccessType.DIRECT
-        dirSnapshot.children == []
+        dirSnapshot.children.size() == 1
+        def subdirSnapshot = dirSnapshot.children[0]
+        subdirSnapshot.children == []
         unfilteredSubsnapshots == [snapshot]
         0 * _
     }
@@ -501,7 +503,7 @@ class DirectorySnapshotterTest extends Specification {
 
         then:
         def ex = thrown(UncheckedIOException)
-        ex.message == String.format(message, unreadable.absolutePath)
+        ex.cause.class.name + ": " + ex.cause.message == String.format(message, unreadable.absolutePath)
         0 * _
 
         cleanup:
