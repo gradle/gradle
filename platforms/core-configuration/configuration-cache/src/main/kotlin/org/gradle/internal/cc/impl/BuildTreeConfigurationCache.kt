@@ -22,8 +22,8 @@ import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.util.Path
 
 
@@ -65,8 +65,8 @@ interface BuildTreeConfigurationCache {
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult
 
     /**
      * Loads cached dependency resolution metadata for the given project, if available, or else runs the given function to create it and then writes the result to the cache.
@@ -77,6 +77,12 @@ interface BuildTreeConfigurationCache {
      * Flushes any remaining state to the cache and closes any resources
      */
     fun finalizeCacheEntry()
+
+    /**
+     * Requests that the current cache entry is discarded instead of stored, because model building produced failures
+     * and the resulting partial configuration must not be reused. Has no effect when an existing entry is loaded.
+     */
+    fun requestEntryDiscard()
 
     // This is a temporary property to allow migration from a root build scoped cache to a build tree scoped cache
     val isLoaded: Boolean

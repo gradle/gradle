@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
+import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.cc.impl.models.BuildTreeModel
 
 
@@ -25,16 +26,42 @@ class ConfigurationCacheAwareBuildTreeModelCreator(
     private val delegate: BuildTreeModelCreator,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeModelCreator {
-    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>) {
+    override fun beforeTasks(action: BuildTreeModelAction<*>): BuildTreeModelCreatorResult<Void> {
+        // maybePrepareModel runs the delegate only on a cache miss; on a hit the failures stay empty.
+        var configurationFailures = emptyList<Throwable>()
+        var modelBuilderFailures = emptyList<Throwable>()
+
         cache.maybePrepareModel {
-            delegate.beforeTasks(action)
+            val delegateResult = delegate.beforeTasks(action)
+            configurationFailures = delegateResult.configurationFailures
+            modelBuilderFailures = delegateResult.modelBuilderFailures
         }
+
+        return discardEntryIfFailed(BuildTreeModelCreatorResult<Void>(null, configurationFailures, modelBuilderFailures))
     }
 
-    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>): T? {
-        return cache.loadOrCreateModel {
-            val model = delegate.fromBuildModel(action)
-            if (model == null) BuildTreeModel.NullModel else BuildTreeModel.Model(model)
+    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>): BuildTreeModelCreatorResult<T> {
+        // loadOrCreateModel runs the delegate only on a cache miss; on a hit the model is loaded and the failures stay empty.
+        var configurationFailures = emptyList<Throwable>()
+        var modelBuilderFailures = emptyList<Throwable>()
+
+        val model: T? = cache.loadOrCreateModel {
+            val delegateResult = delegate.fromBuildModel(action)
+            configurationFailures = delegateResult.configurationFailures
+            modelBuilderFailures = delegateResult.modelBuilderFailures
+            val builtModel = delegateResult.model
+            if (builtModel == null) BuildTreeModel.NullModel else BuildTreeModel.Model(builtModel)
         }.result()
+
+        return discardEntryIfFailed(BuildTreeModelCreatorResult(model, configurationFailures, modelBuilderFailures))
+    }
+
+    private fun <T : Any> discardEntryIfFailed(result: BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
+        if (result.hasFailures()) {
+            // The action produced partial models with failures, so the entry must not be reused: discard it so the
+            // next build re-runs the action and re-reports the failures.
+            cache.requestEntryDiscard()
+        }
+        return result
     }
 }
