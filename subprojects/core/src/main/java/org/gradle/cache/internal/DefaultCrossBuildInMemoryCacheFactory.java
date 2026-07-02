@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -251,40 +252,56 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     /**
-     * Retains strong references to the keys and values via the key's ClassLoader. This allows the ClassLoader to be collected.
+     * Stores each value so that it lives only as long as its key {@link Class}, allowing classes and
+     * their classloaders to be garbage collected. The storage scope depends on how the class was loaded.
      */
     private static class DefaultClassMap<V> extends AbstractCrossBuildInMemoryCache<Class<?>, V> {
-        // Currently retains strong references to types that are not loaded using a VisitableURLClassLoader
-        // This is fine for JVM types, but a problem when a custom ClassLoader is used (which should probably be deprecated instead of supported)
-        private final Map<Class<?>, V> leakyValues = new ConcurrentHashMap<>();
+        // Holds values for classes from custom classloaders, tying each entry's lifetime to its class.
+        // ClassValue can only compute its entry, never have it set, so the value goes in an AtomicReference that retainValue sets.
+        private final ClassValue<AtomicReference<V>> classValueCache = new ClassValue<AtomicReference<V>>() {
+            @Override
+            protected AtomicReference<V> computeValue(Class<?> type) {
+                return new AtomicReference<>();
+            }
+        };
+
+        // Bootstrap classes are never unloaded, so a strong reference here cannot leak a classloader.
+        private final Map<Class<?>, V> bootstrapClassLoaderValues = new ConcurrentHashMap<>();
 
         @Override
         protected void retainValuesFromCurrentSession(Stream<V> values) {
-            // Ignore
+            // Ignore: each value is retained for the lifetime of its key class
         }
 
         @Override
         protected void discardRetainedValues() {
-            throw new UnsupportedOperationException();
+            // Class-scoped entries are collected with their classes; only the bootstrap map must be cleared explicitly
+            bootstrapClassLoaderValues.clear();
         }
 
         @Override
         protected void retainValue(Class<?> key, V v) {
-            getCacheScope(key).put(key, v);
+            ClassLoader classLoader = key.getClassLoader();
+            if (classLoader == null) {
+                bootstrapClassLoaderValues.put(key, v);
+            } else if (classLoader instanceof VisitableURLClassLoader) {
+                ((VisitableURLClassLoader) classLoader).getUserData(this, ConcurrentHashMap::new).put(key, v);
+            } else {
+                classValueCache.get(key).set(v);
+            }
         }
 
         @Nullable
         @Override
         protected V maybeGetRetainedValue(Class<?> key) {
-            return getCacheScope(key).get(key);
-        }
-
-        private Map<Class<?>, V> getCacheScope(Class<?> type) {
-            ClassLoader classLoader = type.getClassLoader();
-            if (classLoader instanceof VisitableURLClassLoader) {
-                return ((VisitableURLClassLoader) classLoader).getUserData(this, ConcurrentHashMap::new);
+            ClassLoader classLoader = key.getClassLoader();
+            if (classLoader == null) {
+                return bootstrapClassLoaderValues.get(key);
+            } else if (classLoader instanceof VisitableURLClassLoader) {
+                return ((VisitableURLClassLoader) classLoader).<Map<Class<?>, V>>getUserData(this, ConcurrentHashMap::new).get(key);
+            } else {
+                return classValueCache.get(key).get();
             }
-            return leakyValues;
         }
     }
 
