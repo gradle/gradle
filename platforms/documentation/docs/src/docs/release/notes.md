@@ -82,16 +82,6 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-#### `Sync` now deletes stale outputs when its source becomes empty
-
-Previously, a [`Sync`](javadoc/org/gradle/api/tasks/Sync.html) task with no source files was reported as `NO-SOURCE` and skipped, which left any previously synced files sitting in the destination directory indefinitely.
-
-`Sync` now always runs, even when its source is empty, so that a destination it has already synced into is correctly reconciled with the (now empty) source and stale files are deleted, exactly as `Sync` is documented to do.
-
-To guard against the common misconfiguration where `from` accidentally resolves to nothing (for example, a mistyped path) while `into` points at some pre-existing, unrelated directory, `Sync` only performs this cleanup for a destination it has a recorded history of syncing into before. The very first time a `Sync` task runs against a given destination, an empty source is treated as suspicious, and the task does nothing rather than risk deleting content it never put there.
-
-See the [upgrading guide](userguide/upgrading_version_9.html#sync_runs_when_source_is_empty) for details on this behavior change and how to opt back into the old skip behavior.
-
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
