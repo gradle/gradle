@@ -1,0 +1,57 @@
+<link id="hljs-theme" rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css"
+      integrity="sha512-RDtnAhiPytLVV3AwzHkGVMVI4szjtSjxxyhDaH3gqdHPIw5qwQld1MVGuMu1EYoof+CaEccrO3zUVb13hQFU/A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer">
+<script>
+(function() {
+  var THEMES = {
+    light: {
+      href: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css',
+      integrity: 'sha512-RDtnAhiPytLVV3AwzHkGVMVI4szjtSjxxyhDaH3gqdHPIw5qwQld1MVGuMu1EYoof+CaEccrO3zUVb13hQFU/A=='
+    },
+    dark: {
+      href: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css',
+      integrity: 'sha512-Xn1b0y/BrCD7usnEh6r9CcKxHXFVleVUjGDnfc95zDDwFUwtOz3lJC/XtJcuLRNyrMQJEEToFfwjC9Ue/aWY/g=='
+    }
+  };
+  var mql = window.matchMedia('(prefers-color-scheme: dark)');
+  var hljsEl = document.getElementById('hljs-theme');
+  function applyTheme(dark) {
+    var t = dark ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    if (hljsEl) {
+      hljsEl.href = THEMES[t].href;
+      hljsEl.integrity = THEMES[t].integrity;
+      hljsEl.crossOrigin = 'anonymous';
+    }
+  }
+  applyTheme(mql.matches);
+  mql.addEventListener('change', function(e) { applyTheme(e.matches); });
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"
+        integrity="sha512-EBLzUL8XLl+va/zAsmXwS7Z2B1F9HUHkZwyS/VKwh3S7T/U0nF4BaU29EP/ZSf6zgiIxYAnKLu6bJ8dqpmX5uw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js"
+        integrity="sha512-G6iETlA7Rg1Z7KZFmG68IxKR81lXlDYESQ3wxy/aeKHaowjIHBGG03C79OveDgTsBN6h/2GNtQFNi8QDOAgmHg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"
+        integrity="sha512-D1t3zJUQv7fxejF9PdzegIA4GlxUgNi+Flze3CCJySdS0AHAxG/1GfB67OnQA9y18Tz9FSoXwmYh+pbq4ubEOA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js"
+        integrity="sha512-m3dC7AFgO1uAIgONIQ3eSoEEeeiuvXAjXgTaKNv9M0VgEa0uimzpst078j9GrcFfyX685Qd0rDdJTt8bY2xRbw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js"
+        integrity="sha512-DTx6faal3nhEB55v+yn8UnXCxaxCdMR6gBZ0zzXhGD2qvtgf6xbW5iA7G4CUn78R9PoPzTelR7xIQwGNUJAv2w=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js"
+        integrity="sha512-wI2qRbd2sgbDlMjuQqB/fqV+hNhCsnJWZQcro9nxCywSeLEvdQtgNW8fU2a4ngAykLsepOCuiQIqxgQzkX8mAQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script>if (typeof hljs !== 'undefined') { hljs.highlightAll(); }</script>

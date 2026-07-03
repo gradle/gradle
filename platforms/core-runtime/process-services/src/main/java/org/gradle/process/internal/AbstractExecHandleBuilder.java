@@ -20,7 +20,6 @@ import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,21 +28,15 @@ import java.util.List;
 @Deprecated
 public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
 
-    protected final ClientExecHandleBuilder delegate;
-    private boolean ignoreExitValue;
+    protected final ExecAction delegate;
 
-    AbstractExecHandleBuilder(ClientExecHandleBuilder delegate) {
-        this.delegate = delegate;
+    AbstractExecHandleBuilder(ExecAction execAction) {
+        this.delegate = execAction;
     }
-
-    public abstract List<String> getAllArguments();
 
     @Override
     public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
+        return delegate.getCommandLine();
     }
 
     @Override
@@ -81,18 +74,17 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
 
     @Override
     public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
+        return delegate.isIgnoreExitValue();
     }
 
     @Override
     public AbstractExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
+        delegate.setIgnoreExitValue(ignoreExitValue);
         return this;
     }
 
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
-        delegate.setDisplayName(displayName);
-        return this;
+        throw new UnsupportedOperationException("setDisplayName() is not supported");
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
@@ -101,24 +93,21 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
-        delegate.streamsHandler(streamsHandler);
-        return this;
+        throw new UnsupportedOperationException("streamsHandler() is not supported");
     }
 
     /**
      * Merge the process' error stream into its output stream
      */
     public AbstractExecHandleBuilder redirectErrorStream() {
-        delegate.redirectErrorStream();
-        return this;
+        throw new UnsupportedOperationException("redirectErrorStream() is not supported");
     }
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
-        delegate.setTimeout(timeoutMillis);
-        return this;
+        throw new UnsupportedOperationException("setTimeout() is not supported");
     }
 
     public ExecHandle build() {
-        return delegate.build();
+        return delegate.buildHandle();
     }
 }

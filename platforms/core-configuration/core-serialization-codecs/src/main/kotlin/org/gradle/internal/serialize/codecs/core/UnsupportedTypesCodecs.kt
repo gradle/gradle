@@ -120,7 +120,6 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ResolvedConfiguration>())
     bind(unsupported<LenientConfiguration>())
     bind(unsupported<ResolvableDependencies>())
-    bind(unsupported<ResolutionResult>())
     bind(unsupported<DependencyConstraintSet>())
     bind(unsupported<RepositoryHandler>())
     bind(unsupported<ArtifactRepository>())

@@ -105,7 +105,7 @@ private constructor(
      * @see [DependencyHandler.add]
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     operator fun String.invoke(
         group: String,
         name: String,
@@ -132,7 +132,7 @@ private constructor(
      * @see [DependencyHandler.add]
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     inline operator fun String.invoke(
         group: String,
         name: String,
@@ -241,7 +241,7 @@ private constructor(
      * @see [DependencyHandler.add]
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     operator fun Configuration.invoke(
         group: String,
         name: String,
@@ -267,7 +267,7 @@ private constructor(
      * @since 8.3
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
@@ -295,7 +295,7 @@ private constructor(
     @JvmName("invokeDependencyScope")
     @Incubating
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
         name: String,
@@ -322,7 +322,7 @@ private constructor(
      * @see [DependencyHandler.add]
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     inline operator fun Configuration.invoke(
         group: String,
         name: String,
@@ -351,7 +351,7 @@ private constructor(
      * @since 8.3
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(
         group: String,
         name: String,
@@ -383,7 +383,7 @@ private constructor(
     @JvmName("invokeDependencyScope")
     @Incubating
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     inline operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(
         group: String,
         name: String,

@@ -168,7 +168,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             Clock clock,
             UserInputReader inputReader
         ) {
-            if (startParameter.isNonInteractive() || !requestMetaData.isInteractiveConsole()) {
+            if (!startParameter.isInteractive() || !requestMetaData.isInteractiveConsole()) {
                 return new NonInteractiveUserInputHandler();
             }
 

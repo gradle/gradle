@@ -21,6 +21,7 @@ import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class SwiftcMetadataProviderTest extends Specification {
@@ -67,7 +68,7 @@ Target: x86_64-unknown-linux-gnu
     def "handles failure to execute swiftc"() {
         given:
         def visitor = new TreeFormatter()
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def execResult = Mock(ExecResult)
 
         and:
@@ -93,7 +94,7 @@ Target: x86_64-unknown-linux-gnu
     }
 
     SearchResult<SwiftcMetadata> output(String output) {
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }

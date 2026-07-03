@@ -481,7 +481,7 @@ val Project.hierarchy: Sequence<Project>
     }
 
 
-private
+internal
 val Project.isLocationAwareEditorHintsEnabled: Boolean
     get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 

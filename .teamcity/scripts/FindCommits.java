@@ -53,10 +53,13 @@ public class FindCommits {
 
         String targetRef = "refs/remotes/origin/" + targetBranch;
 
-        if (!refExists(targetRef)) {
-            System.err.println("Target ref " + targetRef + " not present locally; fetching origin/" + targetBranch + "...");
-            run("git", "fetch", "origin", targetBranch);
-        }
+        // Always refresh the target branch. A stale local origin/<target> ref
+        // (which the CI checkout mirror often has) points at an old commit, so the
+        // merge-base below is computed against outdated history and the commit range
+        // balloons to include commits that are already on the target branch - e.g.
+        // history pulled in by a release->master merge - which are not part of this PR.
+        System.err.println("Fetching origin/" + targetBranch + " to refresh " + targetRef + "...");
+        run("git", "fetch", "origin", targetBranch);
 
         String targetSha = stdout("git", "rev-parse", targetRef).trim();
         String headSha = stdout("git", "rev-parse", "HEAD").trim();
@@ -86,11 +89,6 @@ public class FindCommits {
 
         // One SHA per line to stdout so callers can pipe safely.
         System.out.print(stdout("git", "rev-list", baseSha + ".." + prHead));
-    }
-
-    private static boolean refExists(String ref) throws IOException, InterruptedException {
-        ExecResult r = exec("git", "rev-parse", "--verify", ref);
-        return r.exitCode == 0;
     }
 
     private static void run(String... cmd) throws IOException, InterruptedException {

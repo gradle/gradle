@@ -43,11 +43,11 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             return null;
         }
 
-        boolean isStdoutATerminal = terminals.isTerminal(Stdout);
-        boolean isStderrATerminal = terminals.isTerminal(Stderr);
-        boolean disableUnicodeSupportDetection = isWindowsWithNonUnicodeCodePage();
-
         try {
+            boolean isStdoutATerminal = terminals.isTerminal(Stdout);
+            boolean isStderrATerminal = terminals.isTerminal(Stderr);
+            boolean disableUnicodeSupportDetection = isWindowsWithNonUnicodeCodePage();
+
             if (isStdoutATerminal) {
                 return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout), disableUnicodeSupportDetection);
             } else if (isStderrATerminal) {
@@ -57,7 +57,8 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             }
         } catch (NativeException ex) {
             // if a native terminal exists but cannot be resolved, use dumb terminal settings
-            // this can happen if a terminal is in use that does not have its terminfo installed
+            // this can happen if a terminal is in use that does not have its terminfo installed,
+            // or if the output stream's handle cannot be queried (e.g. a redirected stdout on Windows)
             return null;
         }
     }

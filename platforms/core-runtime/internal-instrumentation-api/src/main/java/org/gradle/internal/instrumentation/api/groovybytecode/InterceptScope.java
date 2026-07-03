@@ -37,6 +37,7 @@ public abstract class InterceptScope {
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     protected final CallType callType;
 
     private InterceptScope(CallType callType) {

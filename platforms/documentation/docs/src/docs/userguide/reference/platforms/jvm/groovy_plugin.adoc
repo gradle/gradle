@@ -29,8 +29,8 @@ Note that if you want to benefit from the <<java_library_plugin.adoc#sec:java_li
 To use the Groovy plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:groovy_tasks]]

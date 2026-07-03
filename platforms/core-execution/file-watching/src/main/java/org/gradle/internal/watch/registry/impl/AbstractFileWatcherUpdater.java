@@ -128,6 +128,11 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
+    public void removeProbeFiles() {
+        probeRegistry.removeProbeFiles();
+    }
+
+    @Override
     public void triggerWatchProbe(String path) {
         probeRegistry.triggerWatchProbe(path);
     }

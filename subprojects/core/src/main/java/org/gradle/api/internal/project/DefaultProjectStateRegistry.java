@@ -176,7 +176,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         synchronized (lock) {
             ProjectState projectState = projectsById.get(identifier);
             if (projectState == null) {
-                throw new IllegalArgumentException(identifier.getDisplayName() + " not found.");
+                throw new UnknownProjectStateException(identifier);
             }
             return projectState;
         }

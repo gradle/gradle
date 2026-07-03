@@ -847,10 +847,6 @@ public class NodeState implements DependencyGraphNode {
         return replacement;
     }
 
-    boolean shouldIncludedInGraphResult() {
-        return isSelected() && !component.getModule().isVirtualPlatform();
-    }
-
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
         if (metadata.isExternalVariant()) {
             // If the current node represents an external variant, we must not consider its excludes

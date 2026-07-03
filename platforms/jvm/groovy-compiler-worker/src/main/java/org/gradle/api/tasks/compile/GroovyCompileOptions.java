@@ -17,7 +17,11 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -27,6 +31,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -58,10 +63,6 @@ public abstract class GroovyCompileOptions implements Serializable {
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
     private Map<String, Boolean> optimizationOptions = new HashMap<>();
-
-    private File stubDir;
-
-    private File configurationScript;
 
     private boolean javaAnnotationProcessing;
 
@@ -187,14 +188,23 @@ public abstract class GroovyCompileOptions implements Serializable {
      *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
+     *
+     * @since 9.7.0
      */
-    @Nullable
+    @Incubating
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    @ToBeReplacedByLazyProperty
+    public abstract RegularFileProperty getConfigurationScriptFile();
+
+    /**
+     * Returns the path to the groovy configuration file.
+     */
+    @ReplacedBy("configurationScriptFile")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getConfigurationScriptFile() instead", willBeDeprecated = true)
     public File getConfigurationScript() {
-        return configurationScript;
+        return getConfigurationScriptFile().isPresent() ? getConfigurationScriptFile().get().getAsFile() : null;
     }
 
     /**
@@ -203,7 +213,8 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @see #getConfigurationScript()
      */
     public void setConfigurationScript(@Nullable File configurationFile) {
-        this.configurationScript = configurationFile;
+        getConfigurationScriptFile().set(configurationFile);
+        getConfigurationScriptFile().convention(getObjectFactory().fileProperty().fileValue(configurationFile));
     }
 
     /**
@@ -313,12 +324,22 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @Internal
-    @ToBeReplacedByLazyProperty
     // TOOD:LPTR Should be just a relative path
+    public abstract DirectoryProperty getStubDirectory();
+
+    /**
+     * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
+     * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
+     */
+    @ReplacedBy("stubDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getStubDirectory() instead", willBeDeprecated = true)
     public File getStubDir() {
-        return stubDir;
+        return getStubDirectory().isPresent() ? getStubDirectory().get().getAsFile() : null;
     }
 
     /**
@@ -326,7 +347,8 @@ public abstract class GroovyCompileOptions implements Serializable {
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
      */
     public void setStubDir(File stubDir) {
-        this.stubDir = stubDir;
+        getStubDirectory().set(stubDir);
+        getStubDirectory().convention(getObjectFactory().directoryProperty().fileValue(stubDir));
     }
 
     /**

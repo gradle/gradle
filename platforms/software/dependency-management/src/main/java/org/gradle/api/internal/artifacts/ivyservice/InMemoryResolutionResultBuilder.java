@@ -52,7 +52,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode node) {
+    public void visitNode(DependencyGraphNode node) {
         DependencyGraphComponent component = node.getOwner();
         if (visitedComponents.add(component.getResultId())) {
             builder.addComponent(

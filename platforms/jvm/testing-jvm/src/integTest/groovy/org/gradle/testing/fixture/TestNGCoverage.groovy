@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.util.internal.VersionNumber
 
 class TestNGCoverage {
-    final static String NEWEST = '7.5'
+    final static String NEWEST = '7.10.2'
 
     private static final String FIXED_ILLEGAL_ACCESS = '5.14.6' // Oldest version to support JDK 16+ without explicit --add-opens
 
@@ -38,6 +38,10 @@ class TestNGCoverage {
     private static final String BEFORE_BROKEN_PRESERVE_ORDER = '6.1.1' // Latest version before introduction of cbeust/testng#639 bug
     private static final String FIXED_BROKEN_PRESERVE_ORDER = '6.9.4'  // Fixes cbeust/testng#639 for preserve-order
 
+    private static final String LAST_BEFORE_NEW_EXECUTOR_API = '7.5' // Last version with setExecutorFactoryClass(String)
+
+    private static final String FIRST_REQUIRING_JDK_11 = '7.6' // TestNG 7.6.0 dropped Java 8 support and requires JDK 11+
+
     public static final Set<String> ALL_VERSIONS = [
         '5.12.1', // Newest version without TestNG#setConfigFailurePolicy method (Added in 5.13)
         FIXED_ILLEGAL_ACCESS,
@@ -45,6 +49,7 @@ class TestNGCoverage {
         FIXED_BROKEN_PRESERVE_ORDER,
         BROKEN_ICLASS_LISTENER,
         FIXED_ICLASS_LISTENER,
+        LAST_BEFORE_NEW_EXECUTOR_API,
         NEWEST
       ]
 
@@ -62,6 +67,9 @@ class TestNGCoverage {
         } else if (javaVersion < JavaVersion.VERSION_1_7) {
             // 6.8.21 was the last version to compile to JDK 5 bytecode. Afterwards (6.9.4) TestNG compiled to JDK 7 bytecode.
             return versions.findAll { VersionNumber.parse(it) <= VersionNumber.parse('6.8.21')}
+        } else if (javaVersion < JavaVersion.VERSION_11) {
+            // TestNG 7.6.0 and later require JDK 11+, so they cannot run on Java 8/9/10.
+            return versions.findAll { VersionNumber.parse(it) < VersionNumber.parse(FIRST_REQUIRING_JDK_11) }
         } else {
             return versions
         }

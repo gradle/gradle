@@ -267,6 +267,7 @@ public class KillLeakingJavaProcesses {
         }
     }
 
+    @SuppressWarnings("CatchAndPrintStackTrace")
     private static ByteArrayOutputStream connectStream(InputStream forkedProcessOutput, CountDownLatch latch) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(os, true);

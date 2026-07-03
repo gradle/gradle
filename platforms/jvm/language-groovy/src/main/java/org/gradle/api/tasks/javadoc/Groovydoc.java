@@ -16,17 +16,22 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.internal.tasks.GroovydocParameters;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -36,7 +41,11 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -66,8 +75,6 @@ public abstract class Groovydoc extends SourceTask {
 
     private FileCollection classpath;
 
-    private File destinationDir;
-
     private boolean use;
 
     private boolean noTimestamp = true;
@@ -87,12 +94,43 @@ public abstract class Groovydoc extends SourceTask {
     private Set<Link> links = new LinkedHashSet<Link>();
 
     @Inject
+    @SuppressWarnings("this-escape")
+    public Groovydoc() {
+        getJavaLauncher().convention(getJavaToolchainService().launcherFor(spec -> {}));
+    }
+
+    @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    /**
+     * The Java launcher used to start the worker process for generating Groovydoc.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    @Nested
+    public abstract Property<JavaLauncher> getJavaLauncher();
+
+    /**
+     * Returns the amount of memory allocated to this task.
+     * Ex. 512m, 1G
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    @Internal
+    public abstract Property<String> getMaxMemory();
 
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDirectory().get().getAsFile();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
@@ -105,7 +143,15 @@ public abstract class Groovydoc extends SourceTask {
         fsOperations.delete(spec -> spec.delete(tmpDir));
         fsOperations.copy(spec -> spec.from(getSource()).into(tmpDir));
 
-        getWorkerExecutor().classLoaderIsolation().submit(GroovydocAntAction.class, parameters -> {
+        JavaLauncher launcher = getJavaLauncher().get();
+        int javaVersionMajor = launcher.getMetadata().getLanguageVersion().asInt();
+        getWorkerExecutor().processIsolation(spec -> {
+            spec.getForkOptions().setExecutable(launcher.getExecutablePath().getAsFile().getAbsolutePath());
+            spec.getForkOptions().jvmArgs(JpmsConfiguration.forGroovyWorker(javaVersionMajor));
+            if (getMaxMemory().isPresent()) {
+                spec.getForkOptions().setMaxHeapSize(getMaxMemory().get());
+            }
+        }).submit(GroovydocAntAction.class, parameters -> {
             parameters.getAntLibraryClasspath().from(getClasspath());
             parameters.getAntLibraryClasspath().from(getGroovyClasspath());
             parameters.getSource().convention(getSource());
@@ -160,18 +206,30 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the directory to generate the documentation into.
      *
      * @return The directory to generate the documentation into
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
+    public abstract DirectoryProperty getDestinationDirectory();
+
+    /**
+     * Returns the directory to generate the documentation into.
+     *
+     * @return The directory to generate the documentation into
+     */
+    @ReplacedBy("destinationDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
     public File getDestinationDir() {
-        return destinationDir;
+        return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
     }
 
     /**
      * Sets the directory to generate the documentation into.
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        getDestinationDirectory().set(destinationDir);
+        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
 
     /**

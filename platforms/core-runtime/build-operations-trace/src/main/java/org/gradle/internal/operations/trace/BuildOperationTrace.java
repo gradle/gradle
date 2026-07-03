@@ -33,6 +33,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
@@ -235,6 +237,7 @@ public class BuildOperationTrace implements Stoppable {
                     .addSerializer(Class.class, new JsonClassSerializer())
                     .addSerializer(Throwable.class, new JsonThrowableSerializer())
                     .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
+                    .addSerializer(ComponentArtifactIdentifier.class, new JsonComponentArtifactIdentifierSerializer())
                     .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
                 )
                 .registerModule(new JavaTimeModule())
@@ -573,6 +576,31 @@ public class BuildOperationTrace implements Stoppable {
                 builder.put(attribute, Cast.uncheckedCast(Objects.requireNonNull(attributeContainer.getAttribute(attribute))));
             }
             serializers.defaultSerializeValue(builder.build(), gen);
+        }
+    }
+
+    /**
+     * A custom serializer is needed because some {@link ComponentArtifactIdentifier} implementations —
+     * notably {@code OpaqueComponentArtifactIdentifier} for file-collection dependencies — implement
+     * both {@link ComponentArtifactIdentifier} and {@link ComponentIdentifier} on the same object, so
+     * {@link ComponentArtifactIdentifier#getComponentIdentifier()} returns {@code this}.
+     * <p>
+     * Default bean serialization would recurse into that self-reference and fail with a Jackson cycle error.
+     * <p>
+     * For self-referential cases, write only {@code displayName}. Otherwise delegate the
+     * {@code componentIdentifier} field to standard serialization so non-cyclic implementations keep
+     * their normal nested form.
+     */
+    private static class JsonComponentArtifactIdentifierSerializer extends JsonSerializer<ComponentArtifactIdentifier> {
+        @Override
+        public void serialize(ComponentArtifactIdentifier id, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeStartObject();
+            gen.writeStringField("displayName", id.getDisplayName());
+            ComponentIdentifier componentId = id.getComponentIdentifier();
+            if (componentId != id) {
+                gen.writeObjectField("componentIdentifier", componentId);
+            }
+            gen.writeEndObject();
         }
     }
 

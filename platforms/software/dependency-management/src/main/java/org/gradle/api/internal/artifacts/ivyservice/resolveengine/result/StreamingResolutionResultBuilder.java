@@ -173,7 +173,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode node) {
+    public void visitNode(DependencyGraphNode node) {
         store.write(encoder -> {
             DependencyGraphComponent component = node.getOwner();
             boolean adhoc = component.getResolveState().isAdHoc();

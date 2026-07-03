@@ -33,7 +33,6 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServicesGroovy)
-    implementation(projects.io)
     implementation(projects.logging)
 
     implementation(libs.ant)

@@ -397,3 +397,5 @@ As expected, the `apiProductionElements` variant is selected along with the `pro
 ----
 include::{snippetsPath}/reference/dependency-management/advanced/artifactViews-simple/tests/artifactview-attributes.out[]
 ----
+
+TIP: Variant reselection operates on the components already in the resolved graph and does not follow `available-at` pointers in Gradle Module Metadata. See <<../controlling-dependency-resolution/artifact_views.adoc#sec:performing_variant_reselection, Performing variant reselection>> for details and a recommended workaround.

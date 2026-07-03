@@ -21,6 +21,7 @@ import gradlebuild.docs.dsl.source.GenerateDefaultImports;
 import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -36,10 +37,12 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.ysb33r.grolifant.api.core.jvm.ExecutionMode;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -140,8 +143,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: Break the paths assumed here
             Map<String, Object> attributes = new HashMap<>();
-            // TODO: This breaks the provider
-            attributes.put("stylesdir", stylesDir.get().getAsFile().getAbsolutePath());
+            attributes.put("stylesdir", (Callable<String>) stylesDir.map(d -> d.getAsFile().getAbsolutePath())::get);
             attributes.put("stylesheet", "manual.css");
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
@@ -156,21 +158,16 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("encoding", "utf-8");
             attributes.put("idprefix", "");
             attributes.put("website", "https://gradle.org");
-            // TODO: This breaks the provider
-            attributes.put("javaApi", extension.getJavadocs().getJavaApi().get().toString());
+            attributes.put("javaApi", (Callable<String>) extension.getJavadocs().getJavaApi().map(uri -> uri.toString())::get);
             attributes.put("jdkDownloadUrl", "https://jdk.java.net/");
-            // TODO: This is coupled to extension.getJavadocs().getJavaApi()
-            attributes.put("javadocReferenceUrl", "https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html");
-            // TODO: This is coupled to extension.getJavadocs().getJavaApi()
-            attributes.put("minJdkVersion", "17");
+            attributes.put("javadocReferenceUrl", (Callable<String>) extension.getJavadocs().getJavadocReferenceUrl().map(uri -> uri.toString())::get);
+            attributes.put("minJdkVersion", (Callable<String>) extension.getJavadocs().getMinJdkVersion().map(v -> v.toString())::get);
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
 
-            // TODO: This breaks if the version is changed later.
-            attributes.put("gradleVersion", project.getVersion().toString());
-            attributes.put("gradleVersion90", "9.0.0");
-            attributes.put("gradleVersion8", "8.14.4");
+            attributes.put("gradleVersion", (Callable<String>) extension.getGradleVersion()::get);
+            attributes.put("gradleVersion8", (Callable<String>) extension.getGradleVersion8()::get);
             attributes.put("snippetsPath", "snippets");
             task.attributes(attributes);
         });
@@ -199,10 +196,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.setIncludeEmptyDirs(false);
             });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
-            task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
-                sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
-                sub.into("img");
-            });
+            stageUserManualImages(task, extension);
             task.from(extension.getUserManual().getResources());
 
             task.from(generateDocinfo);
@@ -217,10 +211,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         TaskProvider<AsciidoctorTask> userguideSinglePageHtml = tasks.register("userguideSinglePageHtml", AsciidoctorTask.class, task -> {
             task.setDescription("Generates HTML single-page user manual.");
-            configureForUserGuideSinglePage(task, extension, project);
+            configureForUserGuideSinglePage(task, extension);
             task.outputOptions(options -> options.setBackends(singletonList("html5")));
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
+            task.getOutputDirProperty().set(extension.getUserManual().getStagingRoot().dir("render-single-html"));
         });
 
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
@@ -236,10 +229,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 patternSet.exclude("snippets/**/*.adoc");
             });
 
-            // TODO: This breaks the provider
-            task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-multi").get().getAsFile());
+            task.getSourceDirProperty().set(extension.getUserManual().getStagedDocumentation());
+            task.getOutputDirProperty().set(extension.getUserManual().getStagingRoot().dir("render-multi"));
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
@@ -250,8 +241,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "../kotlin-dsl");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            // TODO: This breaks the provider
-            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
+            attributes.put("samples-dir", (Callable<File>) extension.getUserManual().getStagedDocumentation().getAsFile()::get);
             task.attributes(attributes);
         });
 
@@ -263,11 +253,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.from(userguideSinglePageHtml);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
-            // TODO: Eliminate this duplication with the flatten task
-            task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
-                sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
-                sub.into("img");
-            });
+            stageUserManualImages(task, extension);
             task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
                 sub.include("**/*.js");
                 sub.into("js");
@@ -284,29 +270,32 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
+    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
         task.onlyIf(t -> !extension.getQuickFeedback().get());
 
         task.sources(patternSet -> patternSet.include("userguide_single.adoc"));
 
-        // TODO: This breaks the provider
-        task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
+        task.getSourceDirProperty().set(extension.getUserManual().getStagedDocumentation());
 
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
-        // TODO: This breaks if version is changed later
-        String versionUrl = DOCS_GRADLE_ORG + project.getVersion();
-        attributes.put("groovyDslPath", versionUrl + "/dsl");
-        attributes.put("javadocPath", versionUrl + "/javadoc");
-        attributes.put("kotlinDslPath", versionUrl + "/kotlin-dsl");
+        attributes.put("groovyDslPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/dsl")::get);
+        attributes.put("javadocPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/javadoc")::get);
+        attributes.put("kotlinDslPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/kotlin-dsl")::get);
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-        // TODO: This breaks the provider
-        attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
+        attributes.put("samples-dir", (Callable<File>) extension.getUserManual().getStagedDocumentation().getAsFile()::get);
         task.attributes(attributes);
+    }
+
+    private static void stageUserManualImages(CopySpec spec, GradleDocumentationExtension extension) {
+        spec.from(extension.getUserManual().getRoot().dir("img"), sub -> {
+            sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
+            sub.into("img");
+        });
     }
 
     private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {

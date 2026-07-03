@@ -83,7 +83,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         extension.ruleSets == ["category/java/errorprone.xml"]
         extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
-        extension.reportsDir == project.file("build/reports/pmd")
+        extension.reportsDirectory.get().asFile == project.file("build/reports/pmd")
         !extension.ignoreFailures
         extension.maxFailures.get() == 0
         extension.rulesMinimumPriority.get() == 5

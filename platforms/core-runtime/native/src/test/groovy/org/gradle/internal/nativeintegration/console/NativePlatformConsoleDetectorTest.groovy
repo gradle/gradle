@@ -118,4 +118,16 @@ class NativePlatformConsoleDetectorTest extends Specification {
         where:
         terminal << [Terminals.Output.Stdout, Terminals.Output.Stderr]
     }
+
+    def "returns null when failing to detect whether #terminal is a terminal"() {
+        given:
+        // e.g. a redirected stdout on Windows whose handle information cannot be queried
+        terminals.isTerminal(terminal) >> { throw new NativeException("could not get handle file information") }
+
+        expect:
+        detector.console == null
+
+        where:
+        terminal << [Terminals.Output.Stdout, Terminals.Output.Stderr]
+    }
 }

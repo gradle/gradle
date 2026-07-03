@@ -83,6 +83,7 @@ import org.gradle.internal.serialize.codecs.core.ListPropertyCodec
 import org.gradle.internal.serialize.codecs.core.LoggerCodec
 import org.gradle.internal.serialize.codecs.core.MapEntrySnapshotCodec
 import org.gradle.internal.serialize.codecs.core.MapPropertyCodec
+import org.gradle.internal.serialize.codecs.core.NamedCodec
 import org.gradle.internal.serialize.codecs.core.NullValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.OrdinalNodeCodec
 import org.gradle.internal.serialize.codecs.core.PathToFileResolverCodec
@@ -109,6 +110,7 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
@@ -204,7 +206,8 @@ class DefaultConfigurationCacheCodecs(
     moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: ProblemsInternal
+    problems: ProblemsInternal,
+    private val objectOpener: ObjectOpener
 ) : ConfigurationCacheCodecs {
 
     private
@@ -223,7 +226,7 @@ class DefaultConfigurationCacheCodecs(
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
 
-            baseTypes()
+            baseTypes(objectOpener)
 
             bind(HASHCODE_SERIALIZER)
 
@@ -239,7 +242,7 @@ class DefaultConfigurationCacheCodecs(
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
             groovyCodecs()
-            bind(SerializedLambdaParametersCheckingCodec)
+            bind(SerializedLambdaParametersCheckingCodec(objectOpener))
 
             // Dependency management types
             val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)
@@ -270,7 +273,7 @@ class DefaultConfigurationCacheCodecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
             bind(DefaultComponentArtifactsResultCodec())
-            bind(DefaultResolvedArtifactResultCodec())
+            bind(DefaultResolvedArtifactResultCodec(immutableAttributesCodec, immutableCapabilitiesCodec))
             bind(DefaultUnresolvedComponentResultCodec())
 
             val graphStructureCodec = DefaultGraphStructureCodec(
@@ -313,6 +316,8 @@ class DefaultConfigurationCacheCodecs(
             bind(BeanSpecCodec)
 
             bind(RegisteredFlowActionCodec)
+
+            bind(NamedCodec(managedFactoryRegistry))
         }
 
         userTypesBindings = makeUserTypeBindings {
@@ -337,7 +342,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
         bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
@@ -353,7 +358,7 @@ class DefaultConfigurationCacheCodecs(
 
     private
     val internalTypesBindings = Bindings.of {
-        baseTypes()
+        baseTypes(objectOpener)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
@@ -397,7 +402,7 @@ class DefaultConfigurationCacheCodecs(
         buildStateRegistry: BuildStateRegistry
     ) = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::userTypesCodec),
             BuildServiceProviderCodec(buildStateRegistry),
             FlowProvidersCodec
         )
@@ -409,7 +414,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun nestedProviderCodecForFingerprint() = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::fingerprintTypesCodec),
             UnsupportedFingerprintBuildServiceProviderCodec,
             UnsupportedFingerprintFlowProviders
         )

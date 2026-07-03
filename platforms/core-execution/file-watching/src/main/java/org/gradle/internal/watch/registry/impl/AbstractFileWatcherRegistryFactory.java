@@ -32,6 +32,18 @@ import java.util.function.Predicate;
 public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativeFileEventFunctions<W>, W extends FileWatcher> implements FileWatcherRegistryFactory {
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
+    /**
+     * The directory, relative to a watched hierarchy's root, in which the watch probe file is created.
+     *
+     * <p>The probe must live <em>inside the watched hierarchy</em>: arming it writes a file and we rely on
+     * the OS reporting that change through the watch registered for the hierarchy - that is how we verify the
+     * hierarchy actually receives file system events.
+     *
+     * With default settings, the directory is the same as project cache dir (.gradle), but they are unrelated.
+     */
+    private static final String PROBE_DIRECTORY_NAME = ".gradle";
+    private static final String PROBE_FILE_NAME = "file-system.probe";
+
     protected final T fileEventFunctions;
     private final Predicate<String> immutableLocationsFilter;
 
@@ -51,9 +63,8 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
     public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
-            // TODO How can we avoid hard-coding ".gradle" here?
-            FileWatcherProbeRegistry probeRegistry = new DefaultFileWatcherProbeRegistry(buildDir ->
-                new File(new File(buildDir, ".gradle"), "file-system.probe"));
+            FileWatcherProbeRegistry probeRegistry = new DefaultFileWatcherProbeRegistry(watchableHierarchyRoot ->
+                new File(new File(watchableHierarchyRoot, PROBE_DIRECTORY_NAME), PROBE_FILE_NAME));
             W watcher = createFileWatcher(fileEvents);
             WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);

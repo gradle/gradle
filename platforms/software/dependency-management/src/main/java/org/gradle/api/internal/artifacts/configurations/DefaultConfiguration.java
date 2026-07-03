@@ -28,7 +28,6 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
@@ -62,6 +61,7 @@ import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
@@ -225,7 +225,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        PublishArtifactNotationParser artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -571,6 +571,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private class ConfigurationResolutionAccess implements ResolutionAccess {
 
         @Override
+        public Path getIdentityPath() {
+            return identityPath;
+        }
+
+        @Override
         public ResolutionHost getHost() {
             return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), configurationServices.getExceptionMapper());
         }
@@ -579,11 +584,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         public ImmutableAttributes getAttributes() {
             configurationAttributes.freeze();
             return configurationAttributes.asImmutable();
-        }
-
-        @Override
-        public ResolutionStrategy.SortOrder getDefaultSortOrder() {
-            return getResolutionStrategy().getSortOrder();
         }
 
         @Override

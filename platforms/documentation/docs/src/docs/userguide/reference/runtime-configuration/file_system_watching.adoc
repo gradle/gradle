@@ -46,6 +46,10 @@ To disable file system watching:
 
 Gradle automatically excludes some common directories (like `.git`, `.gradle`, and `build/`) from file system watching.
 
+Locations managed by Gradle are never watched, because Gradle is their only writer and keeps the virtual file system up to date directly.
+This includes Gradle's global caches and the _project cache directory_ — the `.gradle` directory in the root project, or a custom location configured with `--project-cache-dir`.
+Because the project cache directory is not watched, it can be placed on any file system, including one that does not support watching, without affecting file system watching.
+
 There is no public mechanism to configure additional file system watch excludes.
 
 To reduce unnecessary watching and re-execution, consider limiting the inputs of specific tasks using link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html#exclude(java.lang.String...)[`fileTree.exclude()`].
@@ -89,6 +93,10 @@ When enabled by default, file system watching acts conservatively when it encoun
 This can happen if you mount a project directory or subdirectory from a network drive.
 Gradle doesn't retain information about unsupported file systems between builds when enabled by default.
 If you explicitly enable file system watching, Gradle retains information about unsupported file systems between builds.
+
+To verify that the operating system actually delivers events for a watched directory, Gradle writes a small probe file (`file-system.probe`).
+This probe is always created in the `.gradle` directory under the build root.
+The probe is removed when the build finishes.
 
 [[symlinks]]
 === Symlinks

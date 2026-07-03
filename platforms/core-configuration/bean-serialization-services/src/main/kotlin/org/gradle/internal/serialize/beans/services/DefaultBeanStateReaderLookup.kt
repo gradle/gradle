@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.beans.services
 
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.graph.BeanStateReader
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -27,12 +28,13 @@ import java.util.concurrent.ConcurrentHashMap
 @ServiceScope(Scope.BuildTree::class)
 class DefaultBeanStateReaderLookup(
     private val constructors: BeanConstructors,
-    private val instantiatorFactory: InstantiatorFactory
+    private val instantiatorFactory: InstantiatorFactory,
+    private val objectOpener: ObjectOpener
 ) : BeanStateReaderLookup {
 
     private
     val beanStateReaders = ConcurrentHashMap<Class<*>, BeanStateReader>()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory, objectOpener) }
 }

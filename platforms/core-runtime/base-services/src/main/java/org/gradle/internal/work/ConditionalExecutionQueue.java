@@ -25,7 +25,7 @@ import org.gradle.internal.concurrent.Stoppable;
 public interface ConditionalExecutionQueue<T> extends Stoppable {
     /**
      * Submit a new conditional execution to the queue.  The execution will occur asynchronously when the provided
-     * resource lock (see {@link ConditionalExecution#getResourceLock()}) can be acquired.  On completion,
+     * resource lock (see {@link ConditionalExecution}) can be acquired.  On completion,
      * {@link ConditionalExecution#complete()} will be called.
      */
     void submit(ConditionalExecution<T> execution);

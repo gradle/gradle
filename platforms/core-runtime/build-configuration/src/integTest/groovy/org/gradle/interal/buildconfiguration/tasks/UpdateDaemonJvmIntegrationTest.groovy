@@ -29,8 +29,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import java.util.stream.Stream
 
@@ -420,6 +420,25 @@ tasks.named("updateDaemonJvm") {
 
         then:
         assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"] : "https://example.xyz/content", ["WINDOWS", "AARCH64"] : "https://example.xyz/content"])
+    }
+
+    def "can run updateDaemonJvm with configuration cache when languageVersion is derived from a ValueSource"() {
+        given:
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
+        file(".java-version") << Jvm.current().javaVersionMajor
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    languageVersion = providers.fileContents(layout.projectDirectory.file(".java-version")).asText.map { JavaLanguageVersion.of(it.trim()) }
+    vendor = JvmVendorSpec.ADOPTIUM
+}
+""")
+
+        when:
+        run "updateDaemonJvm", "--configuration-cache"
+
+        then:
+        assertJvmCriteria(Jvm.current().javaVersion, "ADOPTIUM")
+        assertToolchainDownloadUrlsProperties(fromConstantUrl())
     }
 
     Map<List<String>, String> fromConstantUrl() {

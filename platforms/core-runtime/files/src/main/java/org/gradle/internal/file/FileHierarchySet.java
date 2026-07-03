@@ -130,6 +130,7 @@ public abstract class FileHierarchySet {
             this.rootNode = new Node(path);
         }
 
+        @SuppressWarnings("ExposedPrivateType")
         PrefixFileSet(Node rootNode) {
             this.rootNode = rootNode;
         }
@@ -171,7 +172,6 @@ public abstract class FileHierarchySet {
             return plus(toAbsolutePath(rootDir));
         }
 
-        @SuppressWarnings("ReferenceEquality")
         @Override
         public FileHierarchySet plus(String absolutePath) {
             Node newRoot = rootNode.plus(removeTrailingSeparator(absolutePath));

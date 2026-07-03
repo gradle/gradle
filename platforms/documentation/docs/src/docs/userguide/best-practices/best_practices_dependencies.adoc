@@ -540,8 +540,8 @@ Avoid creating consumable and resolvable configurations without attributes:
 In `producer/build.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="producer/build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="producer/build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="producer/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="producer/build.gradle[tags=avoid-this]"]
 ====
 
 <1> *No attributes declared on the configuration in the producer build*: This consumable configuration lacks attributes to describe what it provides.
@@ -549,8 +549,8 @@ include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes
 In `consumer/build.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="consumer/build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="consumer/build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="consumer/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="consumer/build.gradle[tags=avoid-this]"]
 ====
 
 <1> *No attributes declared on the configuration in the consumer build*: This resolvable configuration lacks attributes to describe what it needs.
@@ -565,8 +565,8 @@ Always declare attributes on consumable and resolvable configurations:
 ++++
 <div style="text-align: right;">
   <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin">
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidConfigurationsWithoutAttributes-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidConfigurationsWithoutAttributes-do/kotlin">
     <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
   </a>
 </div>
@@ -575,8 +575,8 @@ Always declare attributes on consumable and resolvable configurations:
 In `producer/build.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin",files="producer/build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/groovy",files="producer/build.gradle[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-do/kotlin",files="producer/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-do/groovy",files="producer/build.gradle[tags=do-this]"]
 ====
 
 <1> *New Attribute type defined in producer*: The consumable configuration defines a new `custom` attribute that contains project-specific variant identification information.  The new Attribute is also added to the Gradle Attribute schema to ensure type-safety.
@@ -585,8 +585,8 @@ include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes
 In `consumer/build.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin",files="consumer/build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/groovy",files="consumer/build.gradle[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-do/kotlin",files="consumer/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-do/groovy",files="consumer/build.gradle[tags=do-this]"]
 ====
 
 <1> *The project dependency does not use configuration name*: It is no longer necessary to specify the configuration name in the dependency declaration, as variant-aware dependency resolution will be used to select the correct variant.

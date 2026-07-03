@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -29,7 +30,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
@@ -77,16 +80,28 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             ambiguousVariants.put(candidate.getDisplayName(), candidate);
         }
-        if (failure.getRequestedAttributes().isEmpty()) {
+        Set<CapabilitySelector> capabilitySelectors = failure.getCapabilitySelectors();
+        boolean hasAttributes = !failure.getRequestedAttributes().isEmpty();
+        boolean hasCapabilities = !capabilitySelectors.isEmpty();
+        if (!hasAttributes && !hasCapabilities) {
             formatter.node("Cannot choose between the available variants of ");
         } else {
-            String node = "The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap());
-            if (listAvailableVariants) {
-                node = node + ". However we cannot choose between the following variants of ";
-            } else {
-                node = node + ". There are several available matching variants of ";
+            StringBuilder node = new StringBuilder("The consumer was configured to find ");
+            if (hasAttributes) {
+                node.append(describer.describeAttributeSet(failure.getRequestedAttributes().asMap()));
+                if (hasCapabilities) {
+                    node.append(" and ");
+                }
             }
-            formatter.node(node);
+            if (hasCapabilities) {
+                node.append(describeCapabilitySelectors(capabilitySelectors));
+            }
+            if (listAvailableVariants) {
+                node.append(". However we cannot choose between the following variants of ");
+            } else {
+                node.append(". There are several available matching variants of ");
+            }
+            formatter.node(node.toString());
         }
         formatter.append(style(StyledTextOutput.Style.Info, failure.describeRequestTarget()));
         if (listAvailableVariants) {
@@ -95,9 +110,30 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
                 formatter.node(configuration);
             }
             formatter.endChildren();
-            formatter.node("All of them match the consumer attributes");
+            formatter.node(describeMatchSummary(hasAttributes, capabilitySelectors));
         }
         return ambiguousVariants;
+    }
+
+    private static String describeCapabilitySelectors(Set<CapabilitySelector> selectors) {
+        if (selectors.size() == 1) {
+            return "capability " + selectors.iterator().next().getDisplayName();
+        }
+        return "capabilities [" + selectors.stream()
+            .map(CapabilitySelector::getDisplayName)
+            .sorted()
+            .collect(Collectors.joining(", ")) + "]";
+    }
+
+    private static String describeMatchSummary(boolean hasAttributes, Set<CapabilitySelector> capabilitySelectors) {
+        if (capabilitySelectors.isEmpty()) {
+            return "All of them match the consumer attributes";
+        }
+        String capabilityWord = capabilitySelectors.size() == 1 ? "capability" : "capabilities";
+        if (hasAttributes) {
+            return "All of them match the consumer attributes and required " + capabilityWord;
+        }
+        return "All of them match the required " + capabilityWord;
     }
 
     private void formatUnselectable(

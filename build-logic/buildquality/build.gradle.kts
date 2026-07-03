@@ -25,11 +25,14 @@ dependencies {
     }
     implementation(buildLibs.kgp)
     compileOnly(buildLibs.kotlinCompilerEmbeddable) {
-        because("Required by IncubatingApiReportTask")
+        because("Required by IncubatingApiReportTask and Gradle10RemovalReportTask")
     }
     implementation(buildLibs.develocityPlugin) {
         because("Arch-test plugin configures the PTS extension")
     }
 
     testImplementation(buildLibs.commonsLang3)
+    testImplementation(buildLibs.kotlinCompilerEmbeddable) {
+        because("RemovalReportWorkActionTest parses Kotlin sources via KotlinSourceParser")
+    }
 }

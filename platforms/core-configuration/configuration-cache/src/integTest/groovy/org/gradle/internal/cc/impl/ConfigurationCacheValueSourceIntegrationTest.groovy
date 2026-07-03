@@ -928,6 +928,52 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCache.assertStateLoaded()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38255")
+    def "chained value source providers work with configuration cache"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildKotlinFile """
+            import org.gradle.api.provider.ValueSource
+            import org.gradle.api.provider.ValueSourceParameters
+
+            abstract class MyValueSource : ValueSource<String, MyValueSource.Params> {
+                interface Params : ValueSourceParameters {
+                    val value: Property<String>
+                    val defaultValue: Property<String>
+                }
+                override fun obtain(): String {
+                    return parameters.value.orElse(parameters.defaultValue).get()
+                }
+            }
+
+            tasks.register("myTask") {
+                var defaultValue = providers.of(MyValueSource::class) {
+                    parameters.value.set("hello world")
+                }
+                var value = providers.of(MyValueSource::class) {
+                    parameters.defaultValue.set(defaultValue)
+                }
+                doLast {
+                    println(value.get())
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("hello world")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("hello world")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/32828")
     def "value source whose parameters reference an extension's nested bean does not deadlock on store/load"() {
         given:

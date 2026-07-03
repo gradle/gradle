@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -59,6 +60,26 @@ class AgentControl {
             return false;
         }
         return callStaticAgentMethod(installTransformer, transformer);
+    }
+
+    /**
+     * Retrieves the {@link Instrumentation} instance the agent captured at startup.
+     *
+     * @return the instance, or {@code null} if the agent is not loaded into this JVM
+     */
+    @Nullable
+    public static Instrumentation getInstrumentation() {
+        Method getInstrumentation = findAgentMethod(INSTRUMENTATION_AGENT_CLASS_NAME, "getInstrumentation");
+        if (getInstrumentation == null) {
+            return null;
+        }
+        try {
+            return (Instrumentation) getInstrumentation.invoke(null);
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.unwrapAndRethrow(e);
+        }
     }
 
     @Nullable

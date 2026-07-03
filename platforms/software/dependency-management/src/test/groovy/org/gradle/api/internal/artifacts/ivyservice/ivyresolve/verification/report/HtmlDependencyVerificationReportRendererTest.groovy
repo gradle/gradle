@@ -209,6 +209,27 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | 'Artifact was signed with key abcd (not found) but this key is not in your trusted key list'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "missing key error includes the other-trusted-keys note in the HTML report"() {
+        given:
+        def trustedKeys = new SignatureVerificationFailure.TrustedKeys("org", "foo",
+            ["AAAA1111AAAA1111AAAA1111AAAA1111AAAA1111"] as Set,
+            ["BBBB2222BBBB2222BBBB2222BBBB2222BBBB2222"] as Set)
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(signatureFailureWithTrustedKeys(trustedKeys))
+        }
+
+        when:
+        generateReport(noKeyServerRenderer)
+
+        def errors = errorsFor(":someConfiguration")
+        then:
+        verifyAll(errors[0]) {
+            problem == "Key abcd123 (not found) couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys. (1 other key is already trusted for module 'org:foo'; 1 other key is already trusted for group 'org')"
+        }
+    }
+
     @Unroll("reports verification errors with key server (#failure)")
     def "reports verification errors with key server"() {
         given:
@@ -371,6 +392,10 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     private static RepositoryAwareVerificationFailure signatureFailure(String repo = "Maven", Map<String, SignatureVerificationFailure.SignatureError> errors = ['abcd123': signatureError()]) {
         return wrap(repo, new SignatureVerificationFailure(dummyFile, dummyFileSig, errors, new DummyKeyService()))
+    }
+
+    private static RepositoryAwareVerificationFailure signatureFailureWithTrustedKeys(SignatureVerificationFailure.TrustedKeys trustedKeys, Map<String, SignatureVerificationFailure.SignatureError> errors = ['abcd123': signatureError()], String repo = "Maven") {
+        return wrap(repo, new SignatureVerificationFailure(dummyFile, dummyFileSig, errors, new DummyKeyService(), trustedKeys))
     }
 
     private static SignatureVerificationFailure.SignatureError signatureError(SignatureVerificationFailure.FailureKind kind = MISSING_KEY) {

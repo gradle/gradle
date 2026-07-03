@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
@@ -27,7 +28,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 /**
@@ -46,17 +46,18 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    TestFile homeDir
+
+    // Use the Gradle user home shared by the whole build's integration tests instead of a fresh TestKit home per
+    // test. A fresh home forced every test method to re-download the full Android/Kotlin dependency set (~1GB)
+    // from the mirror. These tests run serially (maxParallelForks = 1), so sharing the home - and reusing its
+    // daemons across methods - is safe.
+    static final TestFile SHARED_GRADLE_USER_HOME = IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir
 
     String kotlinVersion = KOTLIN_VERSIONS.latestStable
 
-    def setup() {
-        homeDir = temporaryFolder.createDir("test-kit-home")
-    }
-
-    def cleanup() {
+    def cleanupSpec() {
         // The daemons started by test kit need to be killed, so no locked files are left behind.
-        DaemonLogsAnalyzer.newAnalyzer(homeDir.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
+        DaemonLogsAnalyzer.newAnalyzer(SHARED_GRADLE_USER_HOME.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
     }
 
     protected void setupCopyOfAndroidProject(TestFile targetDir) {
@@ -98,7 +99,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
 
         def runner = agpRunner(agpVersion, *runnerArgs)
             .withProjectDir(projectDir)
-            .withTestKitDir(homeDir)
+            .withTestKitDir(SHARED_GRADLE_USER_HOME)
             .withJdkWarningChecksDisabled() // Kapt seems to be accessing JDK internals. See KT-49187
 
         if (JavaVersion.current().isJava9Compatible()) {
@@ -125,9 +126,6 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         } else {
             throw new UnsupportedOperationException("Unsupported operating system: ${OperatingSystem.current().name}")
         }
-        runner.maybeExpectLegacyDeprecationWarning(
-            "Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.google.protobuf:protoc:4.29.2:${protobufClassifier}@exe\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
-        )
 
         runner
     }

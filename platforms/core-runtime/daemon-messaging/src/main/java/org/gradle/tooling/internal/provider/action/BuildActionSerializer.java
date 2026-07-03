@@ -176,7 +176,7 @@ public class BuildActionSerializer {
             valueSerializer.write(encoder, startParameter.getParallelToolingModelBuilding());
             encoder.writeNullableString(startParameter.getDevelocityUrl());
             encoder.writeNullableString(startParameter.getDevelocityPluginVersion());
-            encoder.writeBoolean(startParameter.isNonInteractive());
+            encoder.writeBoolean(startParameter.isInteractive());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -281,7 +281,7 @@ public class BuildActionSerializer {
             startParameter.setParallelToolingModelBuilding(valueSerializer.read(decoder));
             startParameter.setDevelocityUrl(decoder.readNullableString());
             startParameter.setDevelocityPluginVersion(decoder.readNullableString());
-            startParameter.setNonInteractive(decoder.readBoolean());
+            startParameter.setInteractive(decoder.readBoolean());
 
             return startParameter;
         }

@@ -38,8 +38,8 @@ import static org.gradle.util.Matchers.containsText
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @Requires(TestEnvironmentPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
-@ToBeFixedForIsolatedProjects(because = "downstream of multi-project build abort due to configure projects from root")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements VerifiesGenericTestReportResults {
+    @ToBeFixedForIsolatedProjects(because = "configures the :app project from the root build script")
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
         buildFile << """
@@ -60,6 +60,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         failure.assertHasCause("Working directory '${file('app/does-not-exist')}' does not exist.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configures the :app project from the root build script")
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
         buildFile << """

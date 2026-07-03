@@ -155,6 +155,119 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "missing key error reports count of other keys already trusted for the same group (terse output=#terse)"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", "org")
+        }
+
+        given:
+        terseConsoleOutput(terse)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        assertVerificationError(terse) {
+            whenTerse """Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+            whenVerbose """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for group 'org')
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for group 'org')
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+        }
+        assertConfigCacheDiscarded()
+        where:
+        terse << [true, false]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "missing key error pluralizes the trusted-key count correctly"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", "org")
+            addGloballyTrustedKey("1111111111111111111111111111111111111111", "org")
+            addGloballyTrustedKey("2222222222222222222222222222222222222222", "org")
+        }
+
+        given:
+        terseConsoleOutput(false)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (3 other keys are already trusted for group 'org')
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (3 other keys are already trusted for group 'org')
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "missing key error distinguishes keys trusted for the module from keys trusted for the group"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", "org")
+            addGloballyTrustedKey("1111111111111111111111111111111111111111", "org", "foo")
+        }
+
+        given:
+        terseConsoleOutput(false)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for module 'org:foo'; 1 other key is already trusted for group 'org')
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for module 'org:foo'; 1 other key is already trusted for group 'org')
+
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+    }
+
     def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
         given:
         terseConsoleOutput(false)

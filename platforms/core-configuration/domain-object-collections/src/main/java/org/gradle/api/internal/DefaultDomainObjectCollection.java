@@ -203,7 +203,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         while (iterator.hasNext()) {
             // only create an intermediate collection if there's something to copy
             if (copied == null) {
-                copied = new ArrayList<>(estimatedSize());
+                // Don't size the copy with estimatedSize(): it realizes pending elements (size() on a
+                // collection provider resolves its value), which would make configureEach eager. This copy
+                // only ever holds the realized elements yielded by iteratorNoFlush(), so a default-capacity
+                // list is correct and keeps configureEach lazy, as documented.
+                copied = new ArrayList<>();
             }
             copied.add(iterator.next());
         }

@@ -98,10 +98,9 @@ class Gradleception(
         }
 
         if (buildJvm.version != BuildToolBuildJvm.version) {
-            steps.gradleWrapper {
+            steps.script {
                 name = "UPDATE_DAEMON_JVM_CRITERIA_FILE"
-                tasks = "updateDaemonJvm --jvm-version=${buildJvm.version.major}"
-                gradleParams = defaultParameters
+                scriptContent = "echo 'toolchainVersion=${buildJvm.version.major}' > gradle/gradle-daemon-jvm.properties"
             }
         }
 

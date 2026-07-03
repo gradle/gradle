@@ -62,7 +62,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode node) {
+    public void visitNode(DependencyGraphNode node) {
         boolean hasTransitiveIncomingEdge = false;
         ImmutableList.Builder<ArtifactSet> builder = null;
         ArtifactSet implicitArtifactSet = ArtifactSet.EMPTY;

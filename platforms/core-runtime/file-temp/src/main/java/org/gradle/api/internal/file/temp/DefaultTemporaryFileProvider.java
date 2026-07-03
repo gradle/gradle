@@ -72,6 +72,17 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     }
 
     @Override
+    public File createOwnerOnlyTemporaryFile(String prefix, @Nullable String suffix, String... path) {
+        File dir = newTemporaryFile(path);
+        forceMkdir(dir);
+        try {
+            return TempFiles.createOwnerOnlyTempFile(prefix, suffix, dir);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
     public File createTemporaryDirectory(String prefix, @Nullable String suffix, String... path) {
         File dir = newTemporaryFile(path);
         forceMkdir(dir);

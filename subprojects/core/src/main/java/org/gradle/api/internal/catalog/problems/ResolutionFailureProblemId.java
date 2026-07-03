@@ -29,6 +29,7 @@ import org.jspecify.annotations.NullMarked;
 public enum ResolutionFailureProblemId implements Describable {
     // Component Selection failures
     NO_VERSION_SATISFIES("No version satisfies the constraints"),
+    CAPABILITY_CONFLICT("Module rejected due to a capability conflict"),
 
     // Variant Selection failures
     CONFIGURATION_NOT_COMPATIBLE("Configuration selected by name is not compatible"),

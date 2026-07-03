@@ -31,7 +31,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
     private ConsoleUnicodeSupport consoleUnicodeSupport = ConsoleUnicodeSupport.Auto;
-    private boolean isNonInteractive;
+    private boolean interactive = true;
     private WarningMode warningMode = WarningMode.Summary;
 
     @Override
@@ -75,13 +75,13 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     }
 
     @Override
-    public boolean isNonInteractive() {
-        return isNonInteractive;
+    public boolean isInteractive() {
+        return interactive;
     }
 
     @Override
-    public void setNonInteractive(boolean nonInteractive) {
-        isNonInteractive = nonInteractive;
+    public void setInteractive(boolean interactive) {
+        this.interactive = interactive;
     }
 
     @Override

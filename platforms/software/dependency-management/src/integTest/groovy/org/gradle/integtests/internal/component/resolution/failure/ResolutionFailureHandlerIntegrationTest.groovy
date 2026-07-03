@@ -84,6 +84,34 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
+
+    def "demonstrate multiple selected variants with the same capabilities failure"() {
+        multipleSelectedVariantsWithSameCapabilities.prepare()
+
+        expect:
+        fails "forceResolution"
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'test'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'test'
+      > Module 'org.example:test' has been rejected:
+           Cannot select module with conflict on capability 'org:example:test-nonconflicting' also provided by ['root project 'test'' (c2)]""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/component_capabilities.html#sub:capabilities.")
+        assertSuggestsViewingDocs("Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/component_capabilities.html#sec:selecting-between-candidates.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:capability-conflict'
+            additionalData.asMap['requestTarget'] == "org.example:test"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CAPABILITY_CONFLICT.name()
+            additionalData.asMap['problemDisplayName'] == "Module rejected due to a capability conflict"
+        }
+    }
     // endregion Component Selection failures
 
     // region Variant Selection failures
@@ -678,6 +706,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactSelectionException.class, AmbiguousArtifactTransformsFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
     private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactSelectionException.class, AmbiguousArtifactsFailure.class, this.&setupAmbiguousArtifactsFailureForProject)
 
+    private final Demonstration multipleSelectedVariantsWithSameCapabilities = new Demonstration("Multiple selected variants with the same capabilities", VariantSelectionByAttributesException.class, ConfigurationNotCompatibleFailure.class, this.&setupMultipleConfigurationsWithSameCapabilities)
+
     private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible graph variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
 
     private final List<Demonstration> demonstrations = [
@@ -695,7 +725,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactTransforms,
         ambiguousArtifactVariants,
 
-        incompatibleArtifactVariants
+        incompatibleArtifactVariants,
+        multipleSelectedVariantsWithSameCapabilities
     ]
     // endregion error showcase
 
@@ -705,6 +736,47 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         settingsKotlinFile << """
             rootProject.name = "example"
+        """
+    }
+
+    private void setupMultipleConfigurationsWithSameCapabilities() {
+        settingsKotlinFile << """
+            rootProject.name = "test"
+        """
+
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+
+            configurations {
+                create("c1") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-nonconflicting")
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                create("c2") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c1")))
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c2")))
+            }
+
+            ${forceConsumerResolution()}
         """
     }
 

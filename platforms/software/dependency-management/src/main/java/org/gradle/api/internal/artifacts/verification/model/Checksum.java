@@ -43,9 +43,9 @@ import java.util.Set;
 public class Checksum {
     private final ChecksumKind kind;
     private final String value;
-    private final Set<String> alternatives;
-    private final String origin;
-    private final String reason;
+    private final @Nullable Set<String> alternatives;
+    private final @Nullable String origin;
+    private final @Nullable String reason;
     private final int hashCode;
 
     public Checksum(ChecksumKind kind, String value, @Nullable Set<String> alternatives, @Nullable String origin, @Nullable String reason) {

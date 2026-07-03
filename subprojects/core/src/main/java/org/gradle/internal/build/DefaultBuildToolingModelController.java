@@ -150,6 +150,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     protected static class ProjectToolingScope extends AbstractToolingScope {
         protected final ProjectState targetProject;
         protected final String modelName;

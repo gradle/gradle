@@ -699,6 +699,17 @@ fun classLoaderScopeOf(scriptTarget: Any) = when (scriptTarget) {
 }
 
 
+/**
+ * Computes the hash that identifies [schema] for accessor caching.
+ *
+ * The hash is independent of the order in which entries appear within each schema category: every
+ * category is sorted before hashing. This is required because the schema is collected from live,
+ * mutable containers whose iteration order is not stable across configuration modes. For example,
+ * tasks come from `DefaultTaskCollection.getCollectionSchema()` as realized-then-pending, so a task
+ * realized under one mode but not another (`test` is realized by Isolated Projects' project-metadata
+ * serialization, but stays lazy otherwise) shifts position. Without order-independence the same
+ * schema would yield different accessor `<hash>` directories.
+ */
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
     putAll(schema.tasks)
@@ -720,29 +731,35 @@ fun Hasher.putConfigurationEntries(configurations: List<ConfigurationEntry<Strin
 private
 fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
     putInt(entries.size)
-    entries.forEach { entry ->
-        putString(entry.target.kotlinString)
-        putString(entry.name)
-        putString(entry.type.kotlinString)
-    }
+    entries
+        .sortedWith(compareBy({ it.target.kotlinString }, { it.name }, { it.type.kotlinString }))
+        .forEach { entry ->
+            putString(entry.target.kotlinString)
+            putString(entry.name)
+            putString(entry.type.kotlinString)
+        }
 }
 
 private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElementFactoryEntry<SchemaType>>) {
     putInt(entries.size)
-    entries.forEach { entry ->
-        putString(entry.factoryName)
-        putString(entry.containerReceiverType.kotlinString)
-        putString(entry.publicType.kotlinString)
-    }
+    entries
+        .sortedWith(compareBy({ it.factoryName }, { it.containerReceiverType.kotlinString }, { it.publicType.kotlinString }))
+        .forEach { entry ->
+            putString(entry.factoryName)
+            putString(entry.containerReceiverType.kotlinString)
+            putString(entry.publicType.kotlinString)
+        }
 }
 
 private fun Hasher.putProjectFeatureEntries(entries: List<ProjectFeatureEntry<SchemaType>>) {
     putInt(entries.size)
-    entries.forEach { entry ->
-        putString(entry.featureName)
-        putString(entry.ownDefinitionType.kotlinString)
-        putString(entry.targetDefinitionType.kotlinString)
-    }
+    entries
+        .sortedWith(compareBy({ it.featureName }, { it.ownDefinitionType.kotlinString }, { it.targetDefinitionType.kotlinString }))
+        .forEach { entry ->
+            putString(entry.featureName)
+            putString(entry.ownDefinitionType.kotlinString)
+            putString(entry.targetDefinitionType.kotlinString)
+        }
 }
 
 

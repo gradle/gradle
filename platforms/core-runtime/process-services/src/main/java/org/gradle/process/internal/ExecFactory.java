@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
@@ -47,6 +48,8 @@ public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaE
         Builder withFileResolver(FileResolver fileResolver);
 
         Builder withFileCollectionFactory(FileCollectionFactory fileCollectionFactory);
+
+        Builder withFilePropertyFactory(FilePropertyFactory filePropertyFactory);
 
         Builder withInstantiator(Instantiator instantiator);
 
