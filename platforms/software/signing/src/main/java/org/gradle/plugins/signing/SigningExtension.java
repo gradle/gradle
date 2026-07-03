@@ -30,7 +30,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -47,6 +46,7 @@ import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider;
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
+import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.DeferredUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -109,7 +109,6 @@ public abstract class SigningExtension {
         this.configuration = doGetDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
-        project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
     }
 
     public final Project getProject() {
@@ -160,7 +159,7 @@ public abstract class SigningExtension {
      */
     @ToBeReplacedByLazyProperty
     public boolean isRequired() {
-        return castToBoolean(force(required));
+        return castToBoolean(DeferredUtil.unpack(required));
     }
 
     /**
@@ -347,8 +346,16 @@ public abstract class SigningExtension {
 
     /**
      * Adds conventions to the given spec, using this settings object's default signatory and signature type as the default signatory and signature type for the spec.
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     protected void addSignatureSpecConventions(SignatureSpec spec) {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "addSignatureSpecConventions(SignatureSpec)")
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser();
+
         if (!(spec instanceof IConventionAware)) {
             throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not convention aware");
         }
@@ -522,7 +529,7 @@ public abstract class SigningExtension {
      * @return The executed {@link SignOperation sign operation}
      */
     public SignOperation sign(final PublishArtifact... publishArtifacts) {
-        return doSignOperation(operation -> operation.sign(publishArtifacts));
+        return sign(operation -> operation.sign(publishArtifacts));
     }
 
     /**
@@ -536,7 +543,7 @@ public abstract class SigningExtension {
      * @return The executed {@link SignOperation sign operation}.
      */
     public SignOperation sign(final File... files) {
-        return doSignOperation(operation -> operation.sign(files));
+        return sign(operation -> operation.sign(files));
     }
 
     /**
@@ -552,7 +559,7 @@ public abstract class SigningExtension {
      * @return The executed {@link SignOperation sign operation}.
      */
     public SignOperation sign(final String classifier, final File... files) {
-        return doSignOperation(operation -> operation.sign(classifier, files));
+        return sign(operation -> operation.sign(classifier, files));
     }
 
     /**
@@ -567,7 +574,7 @@ public abstract class SigningExtension {
      * @return The executed {@link SignOperation sign operation}.
      */
     public SignOperation sign(@DelegatesTo(SignOperation.class) Closure<?> closure) {
-        return doSignOperation(closure);
+        return sign(ConfigureUtil.configureUsing(closure));
     }
 
     /**
@@ -584,23 +591,45 @@ public abstract class SigningExtension {
      */
     @Incubating
     public SignOperation sign(Action<SignOperation> setup) {
-        return doSignOperation(setup);
-    }
-
-    protected SignOperation doSignOperation(@DelegatesTo(SignOperation.class) final Closure<?> setup) {
-        return doSignOperation(operation -> operation.configure(setup));
-    }
-
-    protected SignOperation doSignOperation(Action<SignOperation> setup) {
-        final SignOperation operation = objectFactory().newInstance(SignOperationInternal.class);
-        addSignatureSpecConventions(operation);
+        SignOperation operation = project.getObjects().newInstance(SignOperationInternal.class);
+        operation.setSignatory(getSignatory());
+        operation.setSignatureType(getSignatureType());
+        operation.setRequired(isRequired());
         setup.execute(operation);
         operation.execute();
         return operation;
     }
 
-    private ObjectFactory objectFactory() {
-        return project.getObjects();
+    /**
+     * Perform a sign operation.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
+    protected SignOperation doSignOperation(@DelegatesTo(SignOperation.class) final Closure<?> setup) {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "doSignOperation(Closure)")
+            .withAdvice("Use sign(Action) instead.")
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser();
+
+        return sign(operation -> operation.configure(setup));
+    }
+
+    /**
+     * Perform a sign operation.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
+    protected SignOperation doSignOperation(Action<SignOperation> setup) {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "doSignOperation(Action)")
+            .withAdvice("Use sign(Action) instead.")
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser();
+
+        return sign(setup);
     }
 
     @ToBeReplacedByLazyProperty
@@ -608,11 +637,8 @@ public abstract class SigningExtension {
         return signatories;
     }
 
-    private Object force(Object maybeCallable) {
-        return DeferredUtil.unpack(maybeCallable);
-    }
-
     private static class DefaultDerivedArtifactFile implements PublicationInternal.DerivedArtifact {
+
         private final Signature signature;
         private final Sign signTask;
 
@@ -631,5 +657,7 @@ public abstract class SigningExtension {
             return signTask.isEnabled()
                 && signTask.getOnlyIf().isSatisfiedBy(signTask);
         }
+
     }
+
 }
