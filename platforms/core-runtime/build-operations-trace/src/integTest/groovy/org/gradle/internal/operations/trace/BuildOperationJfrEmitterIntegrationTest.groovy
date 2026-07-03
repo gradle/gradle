@@ -27,7 +27,7 @@ class BuildOperationJfrEmitterIntegrationTest extends DaemonIntegrationSpec {
 
     def "emits build operation events into an active JFR recording"() {
         given:
-        def jfr = startJfrRecording()
+        def jfr = withJfrRecording()
         enableBuildOperationEmission()
 
         when:
@@ -45,7 +45,7 @@ class BuildOperationJfrEmitterIntegrationTest extends DaemonIntegrationSpec {
     def "JFR build operation events agree with the BuildOperationTrace"() {
         given:
         def operations = newBuildOperationsFixture()
-        def jfr = startJfrRecording()
+        def jfr = withJfrRecording()
         enableBuildOperationEmission()
 
         when:
@@ -74,7 +74,7 @@ class BuildOperationJfrEmitterIntegrationTest extends DaemonIntegrationSpec {
     def "emits nothing when the feature is not enabled"() {
         given:
         // An active recording, but the emission flag is left off.
-        def jfr = startJfrRecording()
+        def jfr = withJfrRecording()
 
         when:
         succeeds("help")
@@ -88,7 +88,7 @@ class BuildOperationJfrEmitterIntegrationTest extends DaemonIntegrationSpec {
         executer.withArgument("-D${BuildOperationJfrEmitter.SYSPROP}=true")
     }
 
-    private File startJfrRecording() {
+    private File withJfrRecording() {
         def jfrFile = file("build.jfr")
         // Ask the daemon JVM to dump the recording to a known path on exit.
         // withBuildJvmOpts appends to the args already set by GRADLE_OPTS so the
