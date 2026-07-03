@@ -54,9 +54,7 @@ public class BuildOperationJfrEmitter implements Closeable {
     /**
      * In-flight events keyed by operation id.
      *
-     * <p>A build operation may start on one thread and finish on another.
-     * The {@link BuildOperationListener} contract only guarantees the two signals are serialized, not that they share a thread.
-     * A per-thread map would silently drop such operations, so we key across threads.
+     * <p> A build operation may start on one thread and finish on another, therefore, we need a synchronized map
      */
     private final Map<Long, BuildOperationJfrEvent> inFlightEvents = new ConcurrentHashMap<>();
 
