@@ -22,6 +22,7 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 import jdk.jfr.Timestamp;
+import org.jspecify.annotations.Nullable;
 
 /**
  * JFR event describing a single Gradle build operation.
@@ -78,6 +79,7 @@ class BuildOperationJfrEvent extends Event {
     /**
      * Message from the exception, or null
      */
+    @Nullable
     @Label("Failure Message")
     String failureMessage;
 
