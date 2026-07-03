@@ -120,6 +120,27 @@ class StageTrigger(
                     enabled = enableTriggers
                 }
             }
+
+            // Ensure stale legacy release branches are still verified weekly,
+            // even when there are no pending changes.
+            if (stage.stageName == StageName.READY_FOR_RELEASE && model.branch.isLegacyRelease) {
+                triggers.schedule {
+                    schedulingPolicy =
+                        weekly {
+                            dayOfWeek = ScheduleTrigger.DAY.Sunday
+                            // releaseNx runs at (N-4):00 to avoid different branches running at the same time,
+                            // see promotion.determineNightlyPromotionTriggerHour
+                            hour = 4
+                        }
+                    triggerBuild = always()
+                    withPendingChangesOnly = false
+                    branchFilter = determineBranchFilter(listOf(model.branch.branchName))
+                    // https://github.com/gradle/gradle-private/issues/4105
+                    // force not reuse the previous builds
+                    enforceCleanCheckout = true
+                    enabled = enableTriggers
+                }
+            }
         }
 
         dependencies {
