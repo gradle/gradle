@@ -86,6 +86,7 @@ class BuildOperationJfrEvent extends Event {
     /**
      * FQN of the exception class, or null
      */
+    @Nullable
     @Label("Failure Type")
     String failureType;
 }
