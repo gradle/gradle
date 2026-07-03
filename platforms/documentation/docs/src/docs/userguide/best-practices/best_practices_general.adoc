@@ -998,7 +998,7 @@ NOTE: Remember that the goal of Incubating features is to put them in users' han
 == Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks
 
 Always obtain a link:{javadocPath}/org/gradle/api/logging/Logger.html[`Logger`] by calling `Logging.getLogger(MyClass.class)` from inside each non-`Task` class that logs — plugins, build services, project extensions, and any other helper class — rather than reusing `project.logger` or `script.logger`.
-Inside a `Task`, use the inherited link:https://docs.gradle.org/current/dsl/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] instead.
+Inside a `Task`, use the inherited link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] instead.
 
 === Explanation
 
@@ -1006,7 +1006,7 @@ A logger obtained via `Logging.getLogger(MyClass.class)` is named after the clas
 A logger obtained from `Project` or `Script` is named after that Gradle type and is shared by every class that reaches it that way.
 Obtaining a class-named logger is what makes log output traceable to the code that produced it.
 
-`Task` is an exception to this rule as link:https://docs.gradle.org/current/dsl/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] already returns a named logger for the task.
+`Task` is an exception to this rule as link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] already returns a named logger for the task.
 
 Reaching for the `Project`-associated logger carries additional problems:
 
@@ -1045,7 +1045,7 @@ include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-do
 include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
-<1> *Build service logger*: A `private static final` `Logger` named after `GreetingService`. No injection required; works regardless of how the service is registered..
+<1> *Build service logger*: A `private static final` `Logger` named after `GreetingService`. No injection required; works regardless of how the service is registered.
 <2> *Plugin logger*: A `private static final` `Logger` named after `GreetingPlugin`. Accessible from any context, including the plugin's constructor.
 <3> *Task uses the inherited `getLogger()`*: `Task.getLogger()` already returns a logger named for the task type. No static field needed.
 
