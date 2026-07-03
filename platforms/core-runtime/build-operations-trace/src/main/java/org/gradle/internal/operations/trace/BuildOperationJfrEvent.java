@@ -36,7 +36,7 @@ class BuildOperationJfrEvent extends Event {
     /**
      * The name of the JFR event type.
      */
-    static final String NAME = "org.gradle.BuildOperation";
+    static final String NAME = "org.gradle.internal.operations.BuildOperation";
 
     /**
      * Unique ID of the operation
