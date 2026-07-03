@@ -128,7 +128,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private void signTask(final AbstractArchiveTask archiveTask) {
         dependsOn(archiveTask);
-        addSignature(new Signature(() -> archiveTask.getArchiveFile().get().getAsFile(), () -> archiveTask.getArchiveClassifier().getOrNull(), this, this));
+        addSignature(new Signature(null, () -> archiveTask.getArchiveFile().get().getAsFile(), () -> archiveTask.getArchiveClassifier().getOrNull(), null, this, this));
     }
 
     /**
@@ -142,7 +142,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private void signArtifact(PublishArtifact publishArtifact) {
         dependsOn(publishArtifact);
-        addSignature(new Signature(publishArtifact, this, this));
+        addSignature(new Signature(publishArtifact, publishArtifact::getFile, publishArtifact::getClassifier, publishArtifact::getName, this, this));
     }
 
     /**
@@ -161,7 +161,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private void addSignatures(String classifier, File[] files) {
         for (File file : files) {
-            addSignature(new Signature(file, classifier, this, this));
+            addSignature(new Signature(null, () -> file, () -> classifier, null, this, this));
         }
     }
 

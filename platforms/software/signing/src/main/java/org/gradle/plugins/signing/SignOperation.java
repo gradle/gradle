@@ -102,11 +102,10 @@ abstract public class SignOperation implements SignatureSpec {
      * Registers signatures for the given artifacts.
      *
      * @return this
-     * @see Signature#Signature(File, SignatureSpec, Object...)
      */
     public SignOperation sign(PublishArtifact... artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            signatures.add(new Signature(artifact, this));
+            signatures.add(new Signature(artifact, artifact::getFile, artifact::getClassifier, artifact::getName, this));
         }
         return this;
     }
@@ -115,11 +114,10 @@ abstract public class SignOperation implements SignatureSpec {
      * Registers signatures for the given files.
      *
      * @return this
-     * @see Signature#Signature(File, SignatureSpec, Object...)
      */
     public SignOperation sign(File... files) {
         for (File file : files) {
-            signatures.add(new Signature(file, this));
+            signatures.add(new Signature(null, () -> file, null, null, this));
         }
         return this;
     }
@@ -128,11 +126,10 @@ abstract public class SignOperation implements SignatureSpec {
      * Registers signatures (with the given classifier) for the given files
      *
      * @return this
-     * @see Signature#Signature(PublishArtifact, SignatureSpec, Object...)
      */
     public SignOperation sign(String classifier, File... files) {
         for (File file : files) {
-            signatures.add(new Signature(file, classifier, this));
+            signatures.add(new Signature(null, () -> file, () -> classifier, null, this));
         }
         return this;
     }

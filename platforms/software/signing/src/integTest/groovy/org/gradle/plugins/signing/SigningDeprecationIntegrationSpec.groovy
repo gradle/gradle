@@ -180,4 +180,74 @@ class SigningDeprecationIntegrationSpec extends SigningIntegrationSpec {
         succeeds("help")
     }
 
+    def "constructing a Signature with a file is deprecated"() {
+        given:
+        buildFile << """
+            def signTask = tasks.register("sign", Sign).get()
+            new Signature(file("file.txt"), signTask)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Constructing a Signature object has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_signature_constructors")
+        succeeds("help")
+    }
+
+    def "constructing a Signature with a file and classifier is deprecated"() {
+        given:
+        buildFile << """
+            def signTask = tasks.register("sign", Sign).get()
+            new Signature(file("file.txt"), "sources", signTask)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Constructing a Signature object has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_signature_constructors")
+        succeeds("help")
+    }
+
+    def "constructing a Signature with closures is deprecated"() {
+        given:
+        buildFile << """
+            def signTask = tasks.register("sign", Sign).get()
+            new Signature({ file("file.txt") }, { "sources" }, signTask)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Constructing a Signature object has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_signature_constructors")
+        succeeds("help")
+    }
+
+    def "constructing a Signature with callables is deprecated"() {
+        given:
+        buildFile << """
+            def signTask = tasks.register("sign", Sign).get()
+            java.util.concurrent.Callable<File> toSign = { file("file.txt") }
+            java.util.concurrent.Callable<String> classifier = { "sources" }
+            new Signature(toSign, classifier, signTask)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Constructing a Signature object has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_signature_constructors")
+        succeeds("help")
+    }
+
+    def "constructing a Signature with a publish artifact is deprecated"() {
+        given:
+        buildFile << """
+            configurations {
+                someConfig {
+                    outgoing {
+                        artifact(file("file.txt"))
+                    }
+                }
+            }
+            def artifact = configurations.someConfig.artifacts.first()
+            def signTask = tasks.register("sign", Sign).get()
+            new Signature(artifact, signTask)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Constructing a Signature object has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_signature_constructors")
+        succeeds("help")
+    }
+
 }

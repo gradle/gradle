@@ -79,6 +79,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @see #getType()
      */
+    @Deprecated
     private String type;
 
     /**
@@ -115,15 +116,31 @@ public class Signature extends AbstractPublishArtifact {
      * @param toSign The artifact that is to be signed
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
-        this(toSign, toSign::getFile, toSign::getClassifier, toSign::getName, signatureSpec, tasks);
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
+        this.toSignGenerator = toSign::getFile;
+        this.classifierGenerator = toSign::getClassifier;
+        this.nameGenerator = toSign::getName;
+        this.signatureSpec = signatureSpec;
+        this.source = toSign;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     Signature(Buildable source, Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec, Object... tasks) {
         // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(toSign, classifier, name, signatureSpec);
+        this.toSignGenerator = toSign;
+        this.classifierGenerator = classifier;
+        this.nameGenerator = name;
+        this.signatureSpec = signatureSpec;
         this.source = source;
     }
 
@@ -133,11 +150,19 @@ public class Signature extends AbstractPublishArtifact {
      * @param toSign The file that is to be signed
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(returning(toSign), null, null, signatureSpec);
+        this.toSignGenerator = returning(toSign);
+        this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -147,11 +172,20 @@ public class Signature extends AbstractPublishArtifact {
      * @param classifier The classifier to assign to the signature (should match the files)
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(returning(toSign), returning(classifier), null, signatureSpec);
+        this.toSignGenerator = returning(toSign);
+        this.classifierGenerator = returning(classifier);
+        this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -163,13 +197,20 @@ public class Signature extends AbstractPublishArtifact {
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -181,18 +222,20 @@ public class Signature extends AbstractPublishArtifact {
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(toSign, classifier, null, signatureSpec);
-    }
-
-    private void init(Callable<File> toSign, Callable<String> classifier, @Nullable Callable<String> name, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
-        this.nameGenerator = name;
         this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
