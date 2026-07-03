@@ -93,6 +93,99 @@ class DependencyVerifierTest extends Specification {
         0 * result.failWith(_)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "trustedKeysFor collects group-scoped keys whose group constraint matches, normalized to upper case"() {
+        given:
+        def verifier = verifierWithTrustedKeys([
+            trustedKey("abcdef0123456789abcdef0123456789abcdef01", "org"),
+            trustedKey("1111111111111111111111111111111111111111", "org"),
+            trustedKey("2222222222222222222222222222222222222222", "com.other"),
+        ])
+
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("org", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01", "1111111111111111111111111111111111111111"] as Set
+        trusted.moduleScopedKeyIds.isEmpty()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "trustedKeysFor distinguishes module-scoped keys from group-scoped keys"() {
+        given:
+        def verifier = verifierWithTrustedKeys([
+            trustedKey("abcdef0123456789abcdef0123456789abcdef01", "org"),
+            moduleTrustedKey("1111111111111111111111111111111111111111", "org", "foo"),
+            moduleTrustedKey("2222222222222222222222222222222222222222", "org", "bar"),
+        ])
+
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("org", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        trusted.moduleScopedKeyIds == ["1111111111111111111111111111111111111111"] as Set
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "trustedKeysFor counts a key with no group constraint as trusted for the group"() {
+        given:
+        def verifier = verifierWithTrustedKeys([
+            trustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", null),
+        ])
+
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("any.group", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        trusted.moduleScopedKeyIds.isEmpty()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "trustedKeysFor honors regex constraints on group and module"() {
+        given:
+        def verifier = verifierWithTrustedKeys([
+            trustedKey("ABCDEF0123456789ABCDEF0123456789ABCDEF01", 'com\\.example.*', true),
+            moduleTrustedKey("1111111111111111111111111111111111111111", 'com\\.example.*', 'foo.*', true),
+        ])
+
+        expect:
+        verifier.trustedKeysFor(artifactId("com.example.foo", "foobar")).groupScopedKeyIds == ["ABCDEF0123456789ABCDEF0123456789ABCDEF01"] as Set
+        verifier.trustedKeysFor(artifactId("com.example.foo", "foobar")).moduleScopedKeyIds == ["1111111111111111111111111111111111111111"] as Set
+        verifier.trustedKeysFor(artifactId("org.other", "foobar")).groupScopedKeyIds.isEmpty()
+        verifier.trustedKeysFor(artifactId("org.other", "foobar")).moduleScopedKeyIds.isEmpty()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20100")
+    def "trustedKeysFor is empty when there are no trusted keys"() {
+        when:
+        def trusted = verifier.trustedKeysFor(artifactId("org", "foo"))
+
+        then:
+        trusted.groupScopedKeyIds.isEmpty()
+        trusted.moduleScopedKeyIds.isEmpty()
+    }
+
+    private static DependencyVerifier verifierWithTrustedKeys(List<DependencyVerificationConfiguration.TrustedKey> keys) {
+        new DependencyVerifier([:], new DependencyVerificationConfiguration(true, true, [], true, [], [] as Set, keys, null), [])
+    }
+
+    private static ModuleComponentArtifactIdentifier artifactId(String group, String name, String version = "1.0") {
+        new ModuleComponentFileArtifactIdentifier(
+            DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version),
+            "${name}-${version}.jar"
+        )
+    }
+
+    private static DependencyVerificationConfiguration.TrustedKey trustedKey(String keyId, String group, boolean regex = false) {
+        new DependencyVerificationConfiguration.TrustedKey(keyId, group, null, null, null, regex, null, null)
+    }
+
+    private static DependencyVerificationConfiguration.TrustedKey moduleTrustedKey(String keyId, String group, String name, boolean regex = false) {
+        new DependencyVerificationConfiguration.TrustedKey(keyId, group, name, null, null, regex, null, null)
+    }
+
     private void artifact(String group, String name, String version) {
         artifact = new ModuleComponentFileArtifactIdentifier(
             DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version),

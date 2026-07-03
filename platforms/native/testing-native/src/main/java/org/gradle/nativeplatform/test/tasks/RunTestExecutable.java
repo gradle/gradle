@@ -51,7 +51,7 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
         // Make convention mapping work
         getOutputDir().mkdirs();
         setExecutable(getExecutable());
-        setWorkingDir(getOutputDir());
+        getWorkingDirectory().set(getOutputDir());
 
         try {
             super.exec();

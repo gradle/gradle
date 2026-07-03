@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.problems.Severity
 import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.problems.Severity
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
@@ -26,7 +26,6 @@ import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -1000,7 +999,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         (outputDirs.parentFile.name as Set).size() == 2
     }
 
-    @UnsupportedWithConfigurationCache(because = "Under CC, project references from included builds are not found when transforms are resolved from the configuration cache entry")
     def "workspace id of project transforms is unique per build with included builds"() {
         // The setup here is in a way that the project path of the project dependency in the same build
         // is the same as the buildTreePath of the substituted project dependency in the included build.

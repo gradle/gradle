@@ -390,7 +390,6 @@
             <trusting group="org.apache.commons" name="commons-lang3"/>
             <trusting group="org.apache.commons" name="commons-text"/>
          </trusted-key>
-         <trusted-key id="B801E2F8EF035068EC1139CC29579F18FA8FD93B" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="B8D44699D150AAD887FDCF8BD6131C504DEBCC09" group="com.kohlschutter.junixsocket"/>
          <trusted-key id="B91AB7D2121DC6B0A61AA182D7742D58455ECC7C" group="org.codehaus.plexus" name="plexus-classworlds"/>
          <trusted-key id="BA926F64CA647B6D853A38672E2010F8A7FF4A41">
@@ -403,13 +402,13 @@
          <trusted-key id="BD95A93175BFE816FC152DE5F9FD57A03B80305D" group="com.lihaoyi"/>
          <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE">
             <trusting group="com.google.guava"/>
-            <trusting group="com.google.j2objc" name="j2objc-annotations"/>
             <trusting group="com.google.testing.compile" name="compile-testing"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="BE685132AFD2740D9095F9040CC0B712FEE75827" group="org.assertj" name="assertj-core"/>
          <trusted-key id="C0612048F3393B80B22639B4F067A2FD751AE3E4" group="io.github.davidburstrom.contester" name="contester-breakpoint"/>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
+         <trusted-key id="C3259D20DAEC4ACE6D57CC83340B090F727518D8" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="C328250FE23A2420814521EC0EB69F76FD171538" group="io.airlift" name="slice"/>
          <trusted-key id="C3EB67E869C31CC00755038F0A07E0E55E45F65B" group="jcifs" name="jcifs"/>
          <trusted-key id="C44A68FD10FF456C91E2757D18088D07854014B3" group="org.scala-lang.modules" name="scala-parallel-collections_2.13"/>

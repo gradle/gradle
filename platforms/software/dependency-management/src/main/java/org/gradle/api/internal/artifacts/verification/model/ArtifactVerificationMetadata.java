@@ -23,7 +23,7 @@ public interface ArtifactVerificationMetadata {
 
     List<Checksum> getChecksums();
 
-    Set<String> getTrustedPgpKeys();
+    Set<TrustedPgpKey> getTrustedPgpKeys();
 
     Set<IgnoredKey> getIgnoredPgpKeys();
 }

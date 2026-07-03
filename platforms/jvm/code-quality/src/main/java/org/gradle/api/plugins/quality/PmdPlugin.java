@@ -19,14 +19,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -36,7 +34,6 @@ import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -176,30 +173,26 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
-        ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             String name = report.getName();
             boolean shouldRequireByDefault = name.equals("html") || name.equals("xml");
             report.getRequired().convention(shouldRequireByDefault);
-            report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String ext;
-                    switch (name) {
-                        case "codeClimate":
-                            ext = "codeclimate.json";
-                            break;
-                        case "sarif":
-                            ext = "sarif.json";
-                            break;
-                        default:
-                            ext = name;
-                    }
-                    String reportFileName = baseName + "." + ext;
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
-            );
+            report.getOutputLocation().convention(reportsDir.map(dir -> {
+                String ext;
+                switch (name) {
+                    case "codeClimate":
+                        ext = "codeclimate.json";
+                        break;
+                    case "sarif":
+                        ext = "sarif.json";
+                        break;
+                    default:
+                        ext = name;
+                }
+                String reportFileName = baseName + "." + ext;
+                return dir.file(reportFileName);
+            }));
         }));
     }
 

@@ -137,7 +137,7 @@ public interface Dependencies {
         String suggestedNotation = (group == null ? "" : group)  + ":" + name + (version == null ? "" : ":" + version);
 
         DeprecationLogger.deprecateAction("Declaring dependencies using multi-string notation")
-            .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".")
+            .withAdvice("Please use single-string notation (\"" + suggestedNotation + "\") or DependencyFactory instead.")
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(9, "dependency_multi_string_notation")
             .nagUser();

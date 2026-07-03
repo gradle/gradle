@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
         return describableAttributes;
     }
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "AlreadyChecked"})
     @Override
     public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
         Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);

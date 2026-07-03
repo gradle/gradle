@@ -32,8 +32,8 @@ Instead of applying it directly to your project, you should look into the `java-
 To use the Java plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaQuickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaQuickstart/groovy", files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:java_tasks]]

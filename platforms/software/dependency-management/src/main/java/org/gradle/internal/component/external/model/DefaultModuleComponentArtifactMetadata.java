@@ -18,8 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
@@ -68,8 +67,8 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
+    public TaskDependencyContainer getBuildDependencies() {
+        return TaskDependencyContainer.EMPTY;
     }
 
     @Override

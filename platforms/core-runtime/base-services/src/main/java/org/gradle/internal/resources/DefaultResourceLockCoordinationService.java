@@ -91,6 +91,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
+    @SuppressWarnings("InterruptedInCatchBlock")
     public boolean withStateLock(Function<ResourceLockState, ResourceLockState.Disposition> stateLockAction) {
         synchronized (lock) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();

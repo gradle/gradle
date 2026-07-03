@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 
 import java.util.Optional;
@@ -45,7 +45,7 @@ public interface ComponentArtifactMetadata {
     /**
      * Collects the build dependencies of this artifact, which are required to build this artifact
      */
-    TaskDependency getBuildDependencies();
+    TaskDependencyContainer getBuildDependencies();
 
     /**
      * Allows metadata with non-standard packaging to add a "fallback" artifact, to be resolved only when resolution fails.

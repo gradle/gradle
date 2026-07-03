@@ -92,7 +92,7 @@ class DefaultConfigurationContainerTest extends Specification {
                 metaDataProvider,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
-        ),
+        ).create(),
         userCodeApplicationContext
     )
 

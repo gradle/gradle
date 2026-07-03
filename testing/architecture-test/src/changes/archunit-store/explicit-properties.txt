@@ -18,11 +18,13 @@ Method <org.gradle.api.tasks.AbstractCopyTask.getDirPermissions()> is not abstra
 Method <org.gradle.api.tasks.AbstractCopyTask.getFilePermissions()> is not abstract
 Method <org.gradle.api.tasks.AbstractCopyTask.getSource()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getExecutionResult()> is not abstract
+Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDirectory()> is not abstract
 Method <org.gradle.api.tasks.Delete.getTargetFiles()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getBootstrapClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getExecutionResult()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArguments()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getWorkingDirectory()> is not abstract
 Method <org.gradle.api.tasks.SourceTask.getSource()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFile()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getClasspath()> is not abstract
@@ -55,6 +57,7 @@ Method <org.gradle.api.tasks.testing.Test.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getStableClasspath()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getTestClassesDirs()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getTestFrameworkProperty()> is not abstract
+Method <org.gradle.api.tasks.testing.Test.getWorkingDirectory()> is not abstract
 Method <org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.getXcodeProjectLocations()> is not abstract
 Method <org.gradle.internal.deployment.RunApplication.getClasspath()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getClasspath()> is not abstract

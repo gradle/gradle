@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
@@ -56,7 +55,7 @@ class VariantResolvingArtifactSetTest extends Specification {
     def "returns empty set when component id does not match spec"() {
         when:
         def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
-        def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { false }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
+        def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { false }, selectFromAll, false)
         def selected = artifactSet.select(services, spec)
 
         then:
@@ -76,7 +75,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         }
 
         when:
-        def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, false, false, ResolutionStrategy.SortOrder.DEFAULT)
+        def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, false, false)
         def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
         services.getArtifactVariantSelector() >> new ArtifactVariantSelector() {
             @Override
@@ -107,7 +106,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
 
         when:
-        def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
+        def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, selectFromAll, false)
         def selected = artifactSet.select(services, spec)
 
         then:

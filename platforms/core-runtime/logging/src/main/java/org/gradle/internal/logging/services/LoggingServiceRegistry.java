@@ -80,7 +80,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      *
      * <p>Does nothing until started.</p>
      *
-     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(org.gradle.api.logging.configuration.ConsoleOutput)} to enable this.</p>
+     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole} to enable this.</p>
      */
     public static ServiceRegistry newCommandLineProcessLogging() {
         ServiceRegistry loggingServices = createCommandLineLogging();

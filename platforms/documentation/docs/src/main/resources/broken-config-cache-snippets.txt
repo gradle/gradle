@@ -1,0 +1,53 @@
+# Snippets excluded when docsTest runs with the configuration cache executer
+# (i.e. when enableConfigurationCacheForDocsTests=true).
+#
+# All entries listed here are treated identically by the build:
+#   - excluded by default
+#   - opt in with -PrunBrokenConfigurationCacheDocsTests=true to run them
+#
+# Category headers exist so reviewers can tell which entries are permanent
+# vs. temporary. The parser ignores blank lines and lines starting with '#'.
+
+# --- Unsupported features ---
+# Features not planned to support CC in the first stable release
+# (Ant integration, deprecated native plugins, custom-logger snippet).
+snippet-reference-other-topics-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget
+snippet-reference-other-topics-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget
+snippet-reference-other-topics-depends-on-ant-target_groovy_dependsOnAntTarget
+snippet-reference-other-topics-depends-on-ant-target_kotlin_dependsOnAntTarget
+snippet-reference-other-topics-depends-on-task_groovy_dependsOnTask
+snippet-reference-other-topics-depends-on-task_kotlin_dependsOnTask
+snippet-reference-other-topics-hello_groovy_antHello
+snippet-reference-other-topics-hello_kotlin_antHello
+snippet-reference-other-topics-rename-task_groovy_renameAntDelegate
+snippet-reference-other-topics-rename-task_kotlin_renameAntDelegate
+snippet-reference-other-topics-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig
+snippet-reference-other-topics-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig
+snippet-reference-other-topics-ant-logging_groovy_antLogging
+snippet-reference-other-topics-ant-logging_kotlin_antLogging
+snippet-reference-runtime-configuration-custom-logger_groovy_customLogger.groovy
+snippet-reference-runtime-configuration-custom-logger_kotlin_customLogger.kotlin
+snippet-reference-platforms-native-cpp_groovy_nativeComponentReport
+snippet-reference-platforms-native-cunit_groovy_assembleDependentComponents
+snippet-reference-platforms-native-cunit_groovy_assembleDependentComponentsReport
+snippet-reference-platforms-native-cunit_groovy_buildDependentComponents
+snippet-reference-platforms-native-cunit_groovy_buildDependentComponentsReport
+snippet-reference-platforms-native-cunit_groovy_completeCUnitExample
+snippet-reference-platforms-native-cunit_groovy_dependentComponentsReport
+snippet-reference-platforms-native-cunit_groovy_dependentComponentsReportAll
+
+# --- Third-party failures ---
+# Add entries when a third-party plugin version blocks CC.
+# Remove the entry when the plugin updates to a CC-compatible version.
+# (currently empty)
+
+# --- Not yet supported ---
+# Features the CC will support eventually. Each entry should link to a tracking issue.
+# https://github.com/gradle/gradle/issues/22879 — extracts build logic into a method called at execution time
+snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod
+snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod
+
+# --- To be fixed ---
+# These should be made CC-compatible. Tracked separately from the categories above.
+snippet-optimizing-builds-build-cache-configure-task_groovy_configureTask
+snippet-optimizing-builds-build-cache-configure-task_kotlin_configureTask

@@ -217,7 +217,7 @@ fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> =
     } ?: emptyList()
 
 
-private
+internal
 fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.EditorReport>): List<EditorReport> =
     internalReports.map { internalReport ->
         StandardEditorReport(

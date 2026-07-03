@@ -66,6 +66,7 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)
+    implementation(projects.reflectionServices)
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)

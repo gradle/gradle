@@ -32,56 +32,6 @@ import spock.lang.Issue
  * file more appropriate for the feature they are testing.
  */
 class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
-
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1283947029")
-    def "resolution result represents failure to resolve dynamic selected module version when platform has constraint on that module"() {
-        mavenRepo.module("test", "module1", "11.1.0.1").publish()
-
-        settingsFile << "include 'plat'"
-        file("plat/build.gradle") << """
-            plugins {
-                id("java-platform")
-            }
-
-            dependencies {
-                constraints {
-                    api "test:module1:11.1.0.1"
-                }
-            }
-        """
-
-        buildFile << """
-            plugins {
-                id("jvm-ecosystem")
-            }
-
-            configurations {
-                dependencyScope("implementation")
-                resolvable("runtimeClasspath") {
-                    extendsFrom implementation
-                }
-            }
-
-            tasks.register('resolve') {
-                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
-                doLast {
-                    println root.get()
-                }
-            }
-
-            ${mavenTestRepository()}
-
-            dependencies {
-                implementation 'test:module1:11.2.0.+'
-                implementation platform(project(":plat"))
-            }
-        """
-
-        expect:
-        succeeds("resolve")
-    }
-
     @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/22326")
     def "capability conflict skip"() {

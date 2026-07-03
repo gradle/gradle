@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 import org.jspecify.annotations.Nullable;
@@ -36,32 +37,32 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
 
     @Override
     public BaseExecSpec setStandardInput(InputStream inputStream) {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
+        throw new InvalidUserCodeException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
     public InputStream getStandardInput() {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
+        throw new InvalidUserCodeException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
     public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
+        throw new InvalidUserCodeException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
     public OutputStream getStandardOutput() {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
+        throw new InvalidUserCodeException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
     public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
+        throw new InvalidUserCodeException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
     public OutputStream getErrorOutput() {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
+        throw new InvalidUserCodeException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
@@ -101,19 +102,19 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
     @Override
     public void setWorkingDir(File dir) {
         DelegatingBaseExecSpec.super.setWorkingDir(dir);
-        workingDirectory = getWorkingDir();
+        workingDirectory = getWorkingDirectory().get().getAsFile();
     }
 
     @Override
     public void setWorkingDir(Object dir) {
         DelegatingBaseExecSpec.super.setWorkingDir(dir);
-        workingDirectory = getWorkingDir();
+        workingDirectory = getWorkingDirectory().get().getAsFile();
     }
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
         DelegatingBaseExecSpec.super.workingDir(dir);
-        workingDirectory = getWorkingDir();
+        workingDirectory = getWorkingDirectory().get().getAsFile();
         return this;
     }
 

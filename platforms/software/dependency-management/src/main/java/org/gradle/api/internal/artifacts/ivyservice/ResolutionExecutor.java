@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -244,7 +243,6 @@ public class ResolutionExecutor {
             params.getResolutionHost(),
             params.getConfigurationIdentity(),
             params.getRootVariant().getAttributes(),
-            params.getDefaultSortOrder(),
             graphResults,
             visitedArtifacts,
             futureCompleteResults,
@@ -331,7 +329,6 @@ public class ResolutionExecutor {
             params.getResolutionHost(),
             params.getConfigurationIdentity(),
             params.getRootVariant().getAttributes(),
-            params.getDefaultSortOrder(),
             graphResults,
             visitedArtifacts,
             domainObjectContext,
@@ -364,8 +361,7 @@ public class ResolutionExecutor {
 
     private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolutionParameters params) {
         ImmutableAttributes requestAttributes = params.getRootVariant().getAttributes();
-        ResolutionStrategy.SortOrder sortOrder = params.getDefaultSortOrder();
-        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
+        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false);
     }
 
     private ResolvedArtifactsGraphVisitor artifactVisitorFor(ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry) {
@@ -433,6 +429,7 @@ public class ResolutionExecutor {
             legacyParams.getDependencySubstitutionRules(),
             params.getModuleConflictResolutionStrategy(),
             legacyParams.getCapabilityConflictResolutionRules(),
+            params.getSortOrder(),
             params.isFailingOnDynamicVersions(),
             params.isFailingOnChangingVersions(),
             params.getFailureResolutions(),

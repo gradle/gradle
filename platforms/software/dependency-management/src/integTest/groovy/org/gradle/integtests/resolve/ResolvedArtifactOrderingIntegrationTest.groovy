@@ -219,8 +219,75 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             }
         """
 
+        then:
+        checkArtifacts("unordered", ['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
+        checkArtifacts("consumerFirst", ['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
+        checkArtifacts("dependencyFirst", [modD, modC, 'c.jar', 'c-lib.jar', 'b.jar', 'b-lib.jar', modB, 'a.jar', 'a-lib.jar', modA, 'root-lib.jar'])
+    }
+
+    def "enhanced ordering produces BFS for default and topological for consumer-first"() {
+        when:
+        enableEnhancedOrdering()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modD).publish()
 
         then:
-        checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
+        checkArtifacts("unordered", [modA, modB, modD, modC])
+        checkArtifacts("consumerFirst", [modA, modB, modC, modD])
+        checkArtifacts("dependencyFirst", [modD, modC, modB, modA])
     }
+
+    def "enhanced ordering BFS differs from topological with two shortcut edges"() {
+        when:
+        enableEnhancedOrdering()
+        def modE = mavenRepo.module("org.test", "E").publish()
+        def modD = mavenRepo.module("org.test", "D").dependsOn(modE).publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modC).dependsOn(modE).publish()
+
+        then:
+        checkArtifacts("unordered", [modA, modB, modC, modE, modD])
+        checkArtifacts("consumerFirst", [modA, modB, modC, modD, modE])
+        checkArtifacts("dependencyFirst", [modE, modD, modC, modB, modA])
+    }
+
+    def "enhanced ordering handles cycles"() {
+        when:
+        enableEnhancedOrdering()
+        def modD = mavenRepo.module("org.test", "D")
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        modD.dependsOn(modB).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).publish()
+
+        then:
+        checkArtifacts("unordered", [modA, modB, modC, modD])
+        checkArtifacts("consumerFirst", [modA, modB, modC, modD])
+        checkArtifacts("dependencyFirst", [modD, modC, modB, modA])
+    }
+
+    def "enhanced ordering ignores constraint edges"() {
+        when:
+        enableEnhancedOrdering()
+        def modC = mavenRepo.module("org.test", "C").publish()
+        def modE = mavenRepo.module("org.test", "E").dependsOn(modC).publish()
+        def modD = mavenRepo.module("org.test", "D").dependsOn(modE).publish()
+        def modB = mavenRepo.module("org.test", "B").withModuleMetadata().dependencyConstraint(modC).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modD).publish()
+
+        then:
+        checkArtifacts("unordered", [modA, modB, modD, modE, modC])
+        checkArtifacts("consumerFirst", [modA, modB, modD, modE, modC])
+        checkArtifacts("dependencyFirst", [modC, modE, modD, modB, modA])
+    }
+
+    private void enableEnhancedOrdering() {
+        settingsFile << """
+            enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
+        """
+    }
+
 }

@@ -193,8 +193,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 getAttributes(),
                 componentFilter,
                 reselectVariants,
-                allowNoMatchingVariants,
-                resolutionAccess.getDefaultSortOrder()
+                allowNoMatchingVariants
             ));
         }
 

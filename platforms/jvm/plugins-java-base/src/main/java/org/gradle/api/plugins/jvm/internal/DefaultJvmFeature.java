@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -87,6 +87,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private final ProjectInternal project;
     private final JvmPluginServices jvmPluginServices;
     private final JvmLanguageUtilities jvmLanguageUtilities;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
 
     // Tasks
     private final TaskProvider<Jar> jar;
@@ -135,6 +136,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
         this.jvmPluginServices = project.getServices().get(JvmPluginServices.class);
         this.jvmLanguageUtilities = project.getServices().get(JvmLanguageUtilities.class);
+        this.publishArtifactNotationParser = project.getServices().get(PublishArtifactNotationParser.class);
 
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
@@ -152,7 +154,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
-        PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
+        PublishArtifact jarArtifact = publishArtifactNotationParser.parseNotation(jar);
         this.apiElements = createApiElements(configurations, jarArtifact, compileJava);
         this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava);
 

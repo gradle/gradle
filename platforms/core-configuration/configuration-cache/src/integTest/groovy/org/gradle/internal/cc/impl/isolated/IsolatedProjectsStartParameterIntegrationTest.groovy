@@ -249,7 +249,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         ["setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.INTERNAL_EXCEPTIONS)", "setShowStacktrace(ShowStacktrace)"],
         ["setConsoleOutput(org.gradle.api.logging.configuration.ConsoleOutput.Auto)", "setConsoleOutput(ConsoleOutput)"],
         ["setConsoleUnicodeSupport(org.gradle.api.logging.configuration.ConsoleUnicodeSupport.Auto)", "setConsoleUnicodeSupport(ConsoleUnicodeSupport)"],
-        ["setNonInteractive(false)", "setNonInteractive(boolean)"],
+        ["setInteractive(true)", "setInteractive(boolean)"],
         ["setWarningMode(org.gradle.api.logging.configuration.WarningMode.Summary)", "setWarningMode(WarningMode)"],
         ["setProjectCacheDir(null)", "setProjectCacheDir(File)"],
         ["setExcludedTaskNames([])", "setExcludedTaskNames(Iterable)"],

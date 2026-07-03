@@ -54,6 +54,35 @@ class LightweightChecks(
                         doesNotEqual("teamcity.build.branch", BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
                     }
                 }
+                script {
+                    name = "CHECK_AI_ATTRIBUTION"
+                    scriptContent =
+                        """
+                        set -eu
+
+                        PR_BODY_FILE="${'$'}(mktemp)"
+                        trap 'rm -f "${'$'}PR_BODY_FILE"' EXIT
+
+                        # Fetch the body of every open PR that contains the current HEAD SHA.
+                        # Silently no-op when the token is unset (master/branch builds without a PR).
+                        if [ -n "${'$'}{BOT_TEAMCITY_GITHUB_TOKEN:-}" ]; then
+                            curl --silent --show-error --fail-with-body \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                -H "Authorization: Bearer ${'$'}BOT_TEAMCITY_GITHUB_TOKEN" \
+                                "https://api.github.com/repos/gradle/gradle/commits/%build.vcs.number%/pulls" \
+                                | jq -r '.[] | select(.state == "open") | .body // empty' \
+                                > "${'$'}PR_BODY_FILE" \
+                                || echo "Warning: failed to fetch PR body; skipping PR body scan."
+                        else
+                            echo "BOT_TEAMCITY_GITHUB_TOKEN not set; skipping PR body scan."
+                        fi
+
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckAiAttribution.java \
+                            --pr-body-file "${'$'}PR_BODY_FILE"
+                        """.trimIndent()
+                }
                 if (model.branch.isMaster) {
                     script {
                         name = "CHECK_BAD_MERGE"

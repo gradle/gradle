@@ -297,19 +297,23 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
+    @SuppressWarnings("ExposedPrivateType")
     Set<ContentSpec> getIncludeSpecs() {
         return includeSpecs;
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     void setIncludeSpecs(@Nullable Set<ContentSpec> includeSpecs) {
         this.includeSpecs = includeSpecs;
     }
 
     @Nullable
+    @SuppressWarnings("ExposedPrivateType")
     Set<ContentSpec> getExcludeSpecs() {
         return excludeSpecs;
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     void setExcludeSpecs(@Nullable Set<ContentSpec> excludeSpecs) {
         this.excludeSpecs = excludeSpecs;
     }

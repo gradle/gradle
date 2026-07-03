@@ -16,17 +16,22 @@
 
 package org.gradle.api.internal.artifacts.resolver;
 
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.util.Path;
 
 /**
  * An internal lazy reference to a graph resolution. Provides access to the inputs and
  * outputs of a graph resolution.
  */
 public interface ResolutionAccess {
+
+    /**
+     * The identity path of resolution.
+     */
+    Path getIdentityPath();
 
     /**
      * Get the owner of the resolution.
@@ -38,11 +43,6 @@ public interface ResolutionAccess {
      * request attributes from further mutation but will not perform resolution.
      */
     ImmutableAttributes getAttributes();
-
-    /**
-     * Get the default artifact sort order for this resolution.
-     */
-    ResolutionStrategy.SortOrder getDefaultSortOrder();
 
     /**
      * Get the raw results of the resolution. The returned results are lazy. Calling

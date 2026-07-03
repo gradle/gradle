@@ -21,7 +21,7 @@ import java.util.Locale;
 
 public class IgnoredKey implements Comparable<IgnoredKey> {
     private final String keyId;
-    private final String reason;
+    private final @Nullable String reason;
 
     public IgnoredKey(String keyId, @Nullable String reason) {
         this.keyId = keyId.toUpperCase(Locale.ROOT);

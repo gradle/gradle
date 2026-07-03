@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -41,16 +41,25 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 import java.io.File;
 
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<Object, IvyArtifact>> {
+
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final IvyPublicationCoordinates publicationCoordinates;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
 
-    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, IvyPublicationCoordinates publicationCoordinates, TaskDependencyFactory taskDependencyFactory) {
+    public IvyArtifactNotationParserFactory(
+        Instantiator instantiator,
+        FileResolver fileResolver,
+        IvyPublicationCoordinates publicationCoordinates,
+        TaskDependencyFactory taskDependencyFactory,
+        PublishArtifactNotationParser publishArtifactNotationParser
+    ) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.publicationCoordinates = publicationCoordinates;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.publishArtifactNotationParser = publishArtifactNotationParser;
     }
 
     @Override
@@ -105,7 +114,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
     private class ProviderNotationConverter implements NotationConverter<Provider<?>, IvyArtifact> {
         @Override
         public void convert(Provider<?> publishArtifact, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
-            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, new LazyPublishArtifact(publishArtifact, fileResolver, taskDependencyFactory), publicationCoordinates, taskDependencyFactory);
+            PublishArtifact delegate = publishArtifactNotationParser.parseNotation(publishArtifact);
+            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, delegate, publicationCoordinates, taskDependencyFactory);
             result.converted(artifact);
         }
 
@@ -163,4 +173,5 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
             visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
+
 }

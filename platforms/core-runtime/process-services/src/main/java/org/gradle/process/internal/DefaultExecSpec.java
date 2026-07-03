@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -35,8 +36,8 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
 
     @Inject
     @SuppressWarnings("this-escape")
-    public DefaultExecSpec(PathToFileResolver resolver) {
-        super(resolver);
+    public DefaultExecSpec(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        super(objectFactory, resolver);
     }
 
     public void copyTo(ExecSpec targetSpec) {

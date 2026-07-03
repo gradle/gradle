@@ -1,6 +1,8 @@
+// tag::use-plugin[]
 plugins {
     id 'groovy'
 }
+// end::use-plugin[]
 
 repositories {
     mavenCentral()

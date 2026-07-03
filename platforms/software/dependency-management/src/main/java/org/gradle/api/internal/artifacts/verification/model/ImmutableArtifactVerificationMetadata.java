@@ -24,11 +24,11 @@ import java.util.Set;
 public class ImmutableArtifactVerificationMetadata implements ArtifactVerificationMetadata {
     private final String artifactName;
     private final List<Checksum> checksums;
-    private final Set<String> trustedPgpKeys;
+    private final Set<TrustedPgpKey> trustedPgpKeys;
     private final Set<IgnoredKey> ignoredPgpKeys;
     private final int hashCode;
 
-    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums, Set<String> trustedPgpKeys, Set<IgnoredKey> ignoredPgpKeys) {
+    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums, Set<TrustedPgpKey> trustedPgpKeys, Set<IgnoredKey> ignoredPgpKeys) {
         this.artifactName = artifactName;
         this.checksums = ImmutableList.copyOf(checksums);
         this.trustedPgpKeys = ImmutableSet.copyOf(trustedPgpKeys);
@@ -47,7 +47,7 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
     }
 
     @Override
-    public Set<String> getTrustedPgpKeys() {
+    public Set<TrustedPgpKey> getTrustedPgpKeys() {
         return trustedPgpKeys;
     }
 

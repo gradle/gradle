@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -39,14 +39,22 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import java.io.File;
 
 public class MavenArtifactNotationParserFactory implements Factory<NotationParser<Object, MavenArtifact>> {
+
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
 
-    public MavenArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public MavenArtifactNotationParserFactory(
+        Instantiator instantiator,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        PublishArtifactNotationParser publishArtifactNotationParser
+    ) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.publishArtifactNotationParser = publishArtifactNotationParser;
     }
 
     @Override
@@ -105,7 +113,8 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     private class ProviderNotationConverter implements NotationConverter<Provider<?>, MavenArtifact> {
         @Override
         public void convert(Provider<?> artifactTaskProvider, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
-            MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, new LazyPublishArtifact(artifactTaskProvider, fileResolver, taskDependencyFactory), taskDependencyFactory);
+            PublishArtifact delegate = publishArtifactNotationParser.parseNotation(artifactTaskProvider);
+            MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, delegate, taskDependencyFactory);
             result.converted(artifact);
         }
 
@@ -163,4 +172,5 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
+
 }

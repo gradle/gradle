@@ -143,7 +143,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     public void apply(String pluginId) {
         PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
         if (plugin == null) {
-            throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
+            throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.", pluginId);
         }
         doApply(plugin);
     }

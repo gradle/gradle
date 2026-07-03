@@ -16,7 +16,8 @@
 
 package org.gradle.internal.service
 
-import org.gradle.util.GroovyNullMarked
+
+import org.jspecify.annotations.NullMarked
 import spock.lang.Specification
 
 class ServiceRegistryTest extends Specification implements ServiceRegistryFixture {
@@ -525,7 +526,7 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         return parent
     }
 
-    @GroovyNullMarked
+    @NullMarked
     private static class ServiceWrapper implements Service {
         private final Object instance
 

@@ -17,6 +17,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -273,6 +274,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.setExecutable(executable);
     }
 
+    public DirectoryProperty getWorkingDirectory() {
+        return javaOptions.getWorkingDirectory();
+    }
+
     @Nullable
     public File getWorkingDir() {
         return javaOptions.getWorkingDir();
@@ -526,7 +531,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
         execHandleBuilder.setExecutable(getExecutable());
-        execHandleBuilder.setWorkingDir(getWorkingDir());
+        execHandleBuilder.setWorkingDir(getWorkingDirectory().get().getAsFile());
         execHandleBuilder.setEnvironment(getEnvironment());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }

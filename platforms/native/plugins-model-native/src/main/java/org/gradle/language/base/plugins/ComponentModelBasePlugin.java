@@ -109,7 +109,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
         project.getPluginManager().withPlugin("org.gradle.visual-studio", appliedPlugin -> {
             project.getPluginManager().apply(VisualStudioExtensionRules.class);
-            if (project == project.getRootProject()) {
+            if (project == project.getRootProject()) { // FIXME: verify this is safe even if the root project is decorated - https://github.com/gradle/gradle/pull/38269#discussion_r3473033760
                 project.getPluginManager().apply(VisualStudioPluginRootRules.class);
             }
             project.getPluginManager().apply(VisualStudioPluginProjectRules.class);
