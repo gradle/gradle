@@ -31,7 +31,7 @@ class IsolatedProjectsPluginResolutionStrategyIntegrationTest extends AbstractIs
         strategy.setDefaultPluginVersion(org.gradle.plugin.use.internal.DefaultPluginId.of("com.example.foo"), "1.0")
     """
 
-    private static final String EXPECTED_VIOLATION = "Cannot set a default plugin version after projects have been loaded when Isolated Projects is enabled. The default version for plugin 'com.example.foo' was set too late."
+    private static final String EXPECTED_VIOLATION = "Cannot set a default plugin version for plugin 'com.example.foo' after projects have been loaded when Isolated Projects is enabled."
 
     def "reports a violation when a default plugin version is set after projects are loaded"() {
         given:

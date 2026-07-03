@@ -73,10 +73,9 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
             problems.report(factory ->
                 factory.problem(null, messageBuilder -> {
                     messageBuilder
-                        .text("Cannot set a default plugin version after projects have been loaded ")
-                        .text("when Isolated Projects is enabled. The default version for plugin ")
+                        .text("Cannot set a default plugin version for plugin ")
                         .reference(id.toString())
-                        .text(" was set too late.");
+                        .text(" after projects have been loaded when Isolated Projects is enabled.");
                     return Unit.INSTANCE;
                 }).exception().build()
             );
