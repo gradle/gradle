@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.file.archive.ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES
 
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.file.PathTraversalChecker.safePathName
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
@@ -30,7 +31,13 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 
+@Deprecated("Use the Zip task type instead. See the Gradle 9.7 upgrading guide.")
 fun zipTo(zipFile: File, baseDir: File) {
+    DeprecationLogger.deprecate("The org.gradle.kotlin.dsl.support.zipTo(File, File) function")
+        .withAdvice("Use the Zip task type instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_zip_functions")
+        .nagUser()
     zipTo(zipFile, baseDir, baseDir.walkReproducibly())
 }
 
@@ -61,7 +68,7 @@ fun File.walkReproducibly(): Sequence<File> = sequence {
 
 private
 fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
-    zipTo(zipFile, fileEntriesRelativeTo(baseDir, files))
+    zipTo(zipFile.outputStream(), fileEntriesRelativeTo(baseDir, files))
 }
 
 
@@ -79,7 +86,13 @@ fun File.normalisedPathRelativeTo(baseDir: File) =
     normaliseFileSeparators(relativeTo(baseDir).path)
 
 
+@Deprecated("Use the Zip task type instead. See the Gradle 9.7 upgrading guide.")
 fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
+    DeprecationLogger.deprecate("The org.gradle.kotlin.dsl.support.zipTo(File, Sequence) function")
+        .withAdvice("Use the Zip task type instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_zip_functions")
+        .nagUser()
     zipTo(zipFile.outputStream(), entries)
 }
 
@@ -102,7 +115,13 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
 }
 
 
+@Deprecated("Use ArchiveOperations.zipTree with a Copy task instead. See the Gradle 9.7 upgrading guide.")
 fun unzipTo(outputDirectory: File, zipFile: File) {
+    DeprecationLogger.deprecate("The org.gradle.kotlin.dsl.support.unzipTo(File, File) function")
+        .withAdvice("Use ArchiveOperations.zipTree with a Copy task instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_zip_functions")
+        .nagUser()
     ZipFile(zipFile).use { zip ->
         for (entry in zip.entries()) {
             unzipEntryTo(outputDirectory, zip, entry)
