@@ -71,12 +71,6 @@ class BuildOperationJfrEvent extends Event {
     long gradleEndTime;
 
     /**
-     * {@code true} if the operation threw an exception, {@code false} otherwise
-     */
-    @Label("Failed")
-    boolean failed;
-
-    /**
      * Message from the exception, or null
      */
     @Nullable

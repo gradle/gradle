@@ -117,7 +117,6 @@ public class BuildOperationJfrEmitter implements Closeable {
             event.gradleEndTime = finishEvent.getEndTime();
             Throwable failure = finishEvent.getFailure();
             if (failure != null) {
-                event.failed = true;
                 event.failureMessage = failure.getMessage();
                 event.failureType = failure.getClass().getName();
             }
