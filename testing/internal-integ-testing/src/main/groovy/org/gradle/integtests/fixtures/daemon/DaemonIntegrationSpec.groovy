@@ -31,6 +31,11 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
     }
 
+    /**
+     * Stops the daemon but <b>doesn't</b> wait for its exit.
+     *
+     * @see #stopDaemonAndWait()
+     */
     void stopDaemonsNow() {
         result = executer.withArguments("--stop", "--info").run()
     }
@@ -39,6 +44,8 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
      * Stops the daemon and waits for its JVM to actually exit, so that shutdown hooks have run.
      * Useful when a test relies on side effects that only happen on a graceful JVM shutdown, such
      * as a JFR recording dumped via {@code -XX:StartFlightRecording=...,dumponexit=true}.
+     *
+     * @see #stopDaemonsNow()
      */
     void stopDaemonAndWait() {
         def daemonPid = daemons.daemon.context.pid
