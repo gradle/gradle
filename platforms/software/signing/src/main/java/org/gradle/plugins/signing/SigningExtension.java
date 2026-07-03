@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -35,6 +36,7 @@ import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -65,7 +67,10 @@ public abstract class SigningExtension {
 
     /**
      * The name of the configuration that all signature artifacts will be placed into ("signatures")
+     *
+     * @deprecated This constant will be removed in Gradle 10.
      */
+    @Deprecated
     public static final String DEFAULT_CONFIGURATION_NAME = "signatures";
 
     /**
@@ -77,7 +82,10 @@ public abstract class SigningExtension {
      * The configuration that signature artifacts will be placed into.
      *
      * <p>Changing this will not affect any signing already configured.</p>
+     *
+     * @deprecated This field will be removed in Gradle 10.
      */
+    @Deprecated
     private Configuration configuration;
 
     private Object required = true;
@@ -98,7 +106,7 @@ public abstract class SigningExtension {
     @SuppressWarnings("this-escape")
     public SigningExtension(Project project) {
         this.project = project;
-        this.configuration = getDefaultConfiguration();
+        this.configuration = doGetDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
         project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
@@ -156,14 +164,33 @@ public abstract class SigningExtension {
     }
 
     /**
-     * Provides the configuration that signature artifacts are added to. Called once during construction.
+     * Provides the configuration that signature artifacts are added to.
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     protected Configuration getDefaultConfiguration() {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "getDefaultConfiguration()")
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser();
+
+        return doGetDefaultConfiguration();
+    }
+
+    private Configuration doGetDefaultConfiguration() {
         final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
-        return configuration != null
-            ? configuration
-            : configurations.consumable(DEFAULT_CONFIGURATION_NAME).get();
+        if (configuration != null) {
+            DeprecationLogger.deprecateAction("Creating the '" + DEFAULT_CONFIGURATION_NAME + "' configuration manually")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+                .nagUser();
+
+            return configuration;
+        } else {
+            return configurations.migratingLocked(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED);
+        }
     }
 
     /**
@@ -238,7 +265,18 @@ public abstract class SigningExtension {
         this.signatories = signatories;
     }
 
+    /**
+     * Set the configuration to add signatures to.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setConfiguration(Configuration configuration) {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "setConfiguration(Configuration)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         this.configuration = configuration;
     }
 
@@ -294,9 +332,16 @@ public abstract class SigningExtension {
 
     /**
      * The configuration that signature artifacts are added to.
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public Configuration getConfiguration() {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "getConfiguration()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         return configuration;
     }
 
@@ -441,11 +486,27 @@ public abstract class SigningExtension {
         }
         @SuppressWarnings("deprecation")
         final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
-        addSignaturesToConfiguration(signTask, getConfiguration());
+        doAddSignaturesToConfiguration(signTask, configuration);
         return signTask;
     }
 
+    /**
+     * Add the signatures from the Sign task as artifacts to the given configuration
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "addSignaturesToConfiguration(Sign, Configuration)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
+        return doAddSignaturesToConfiguration(task, configuration);
+    }
+
+    // Starting in Gradle 10, we can stop calling this method and remove it.
+    private static Action<? super Signature> doAddSignaturesToConfiguration(Sign task, Configuration configuration) {
         task.getSignatures().all(sig -> configuration.getArtifacts().add(sig));
         return task.getSignatures().whenObjectRemoved(sig -> configuration.getArtifacts().remove(sig));
     }
