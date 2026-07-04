@@ -177,8 +177,9 @@ This gives consumers the flexibility to choose any compatible version within the
 [[sec:endorsing-platform-strict-versions]]
 == Strict Version Endorsement
 
-When a platform declares dependencies with <<dependency_versions.adoc#sec:strict-version,`strictly`>> constraints, those constraints do not automatically propagate to the consuming project.
-By default, `platform()` enables `endorseStrictVersions`, which tells Gradle to treat the platform's `strictly` declarations as if the consuming project declared them directly.
+With platforms, by default, `strictly` versions declared in the platform are handled as if the consuming project declared them directly.
+This matters because `strictly` has <<dependency_versions.adoc#sec:strict-version-consequences,significant consequences>> for the resolved graph.
+This behavior is controlled by `endorseStrictVersions`, which `platform()` enables by default.
 
 Without endorsement, a platform's `strictly` constraints are treated as regular version recommendations in the consumer's dependency graph; they will not prevent transitive upgrades.
 
