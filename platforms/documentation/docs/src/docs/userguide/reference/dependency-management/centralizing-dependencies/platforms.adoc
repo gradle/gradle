@@ -29,7 +29,7 @@ window.location.href = redirectionRules[currentAnchor];
 </script>
 ++++
 
-Platforms ensure that all dependencies in a project align with a consistent set of versions.
+Platforms ensure that all dependencies in a project use a coordinated set of versions.
 
 [[sec:sharing-dep-versions-between-projects]]
 Platforms help you manage and enforce version consistency across modules or libraries, especially when working with a set of related dependencies that need to stay in sync.
@@ -151,7 +151,7 @@ include::{snippetsPath}/dependencyManagement/managingTransitiveDependencies-plat
 
 With modules that do not share a transitive relationship, siblings could remain at the older BOM version, leading to mismatched versions within the same group.
 
-To keep the entire group aligned, either upgrade the BOM version itself, or use `enforcedPlatform` with the newer BOM:
+To keep the group's versions coordinated, either upgrade the BOM version itself, or use `enforcedPlatform` with the newer BOM:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedPlatformAlignment/kotlin",files="build.gradle.kts[tags=enforced-platform-alignment]"]
