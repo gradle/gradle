@@ -43,8 +43,7 @@ include::sample[dir="snippets/java-platform/constraintsInPlatform/kotlin",files=
 include::sample[dir="snippets/java-platform/constraintsInPlatform/groovy",files="build.gradle[tags=constraints-in-platform]"]
 ====
 
-You cannot declare constraints in <<version_catalogs.adoc#version-catalog,version catalogs>>.
-A catalog *can*, however, declare <<dependency_versions.adoc#sec:rich-version-constraints,rich versions>>, including `strictly`, `prefer`, and `reject`, on its version entries.
+You can use <<version_catalogs.adoc#version-catalog,version catalog>> entries as constraints, and those entries can carry <<dependency_versions.adoc#sec:rich-version-constraints,rich versions>>, including `strictly`, `prefer`, and `reject`.
 
 [[sec:declaring-constraints-dependencies]]
 == Declaring constraints alongside direct dependencies

@@ -341,7 +341,8 @@ include::sample[dir="snippets/dependencyManagement/richVersionsDirectDependencie
 Without `strictly`, Gradle's default conflict resolution would select `1.10` (the highest version), because a standard `require` declaration allows upgrades.
 
 NOTE: This downgrade works because most transitive dependencies declare their requirements as `require`, which is satisfied by any version meeting or exceeding the requested one, so the `strictly` constraint can pull the resolved version back to `1.9`.
-If a transitive dependency declared `strictly("1.10")` itself, the two strict declarations would conflict and resolution would fail rather than silently downgrade.
+Even if a transitive dependency declared `strictly("1.10")` itself, the direct `strictly("1.9")` would take precedence.
+A direct `strictly` declaration wins over a transitive one.
 
 [[sec:reject-broken-version]]
 ==== Use `reject` when specific versions are known to be broken
