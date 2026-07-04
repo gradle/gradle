@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.connection.SingleUseDaemonBuildExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
@@ -42,6 +42,6 @@ class NoDaemonGradleExecuterIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertWasNotForked() {
-        outputDoesNotContain(SingleUseDaemonClient.MESSAGE)
+        outputDoesNotContain(SingleUseDaemonBuildExecuter.MESSAGE)
     }
 }

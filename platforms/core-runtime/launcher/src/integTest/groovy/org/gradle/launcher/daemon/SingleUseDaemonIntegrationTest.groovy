@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.launcher.daemon.connection.DaemonStartupMessage
-import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.connection.SingleUseDaemonBuildExecuter
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -243,12 +243,12 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private void wasForked() {
-        outputContains(SingleUseDaemonClient.MESSAGE)
+        outputContains(SingleUseDaemonBuildExecuter.MESSAGE)
         assert daemons.daemons.size() == 1
     }
 
     private void wasNotForked() {
-        outputDoesNotContain(SingleUseDaemonClient.MESSAGE)
+        outputDoesNotContain(SingleUseDaemonBuildExecuter.MESSAGE)
         outputDoesNotContain(EXPECTED_CAN_USE_CURRENT_PROCESS_MESSAGE)
         assert daemons.daemons.size() == 0
     }

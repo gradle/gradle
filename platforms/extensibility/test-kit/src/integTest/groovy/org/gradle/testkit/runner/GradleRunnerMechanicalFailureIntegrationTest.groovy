@@ -19,7 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.api.GradleException
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.launcher.daemon.connection.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.HideEnvVariableValuesInDaemonLog
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks

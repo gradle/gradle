@@ -37,7 +37,8 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
-import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.connection.DefaultDaemonBuildExecuter
+import org.gradle.launcher.daemon.connection.SingleUseDaemonBuildExecuter
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonRequestContext
@@ -208,6 +209,7 @@ class BuildActionsFactoryTest extends Specification {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
         assert executor instanceof DaemonClient
+        assert ((DaemonClient) executor).executer instanceof DefaultDaemonBuildExecuter
     }
 
     void isInProcess(def action) {
@@ -219,7 +221,8 @@ class BuildActionsFactoryTest extends Specification {
     void isSingleUseDaemon(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof SingleUseDaemonClient
+        assert executor instanceof DaemonClient
+        assert ((DaemonClient) executor).executer instanceof SingleUseDaemonBuildExecuter
     }
 
     private Runnable unwrapAction(Action<?> action) {

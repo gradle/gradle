@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.Provides;
 import org.gradle.launcher.daemon.connection.DaemonConnector;
+import org.gradle.launcher.daemon.connection.DefaultDaemonBuildExecuter;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
@@ -46,6 +47,6 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         ProcessEnvironment processEnvironment
     ) {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(daemonRequestContext);
-        return new DaemonClient(daemonConnector, outputEventListener, matchingContextSpec, getBuildStandardInput(), globalUserInputReceiver, idGenerator, processEnvironment);
+        return new DaemonClient(new DefaultDaemonBuildExecuter(daemonConnector, outputEventListener, matchingContextSpec, getBuildStandardInput(), globalUserInputReceiver, idGenerator, processEnvironment));
     }
 }

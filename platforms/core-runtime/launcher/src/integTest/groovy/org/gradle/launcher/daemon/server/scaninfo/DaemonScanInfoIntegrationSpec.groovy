@@ -20,7 +20,7 @@ package org.gradle.launcher.daemon.server.scaninfo
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.connection.SingleUseDaemonBuildExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -177,7 +177,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         then:
         executed(':capture')
-        outputContains(SingleUseDaemonClient.MESSAGE)
+        outputContains(SingleUseDaemonBuildExecuter.MESSAGE)
 
         and:
         daemons.daemon.stops()

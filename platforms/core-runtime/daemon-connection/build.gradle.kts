@@ -22,24 +22,27 @@ description = "The client-side connection to a Gradle daemon: connector, connect
     "Shared by the daemon build client and the daemon management API."
 
 dependencies {
+    api(projects.baseServices)
+    api(projects.concurrent)
     api(projects.core)
     api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
+    api(projects.logging)
     api(projects.messaging)
+    api(projects.native)
     api(projects.serialization)
     api(projects.stdlibJavaExtensions)
     api(libs.jspecify)
 
-    implementation(projects.concurrent)
+    implementation(projects.coreApi)
     implementation(projects.daemonLogging)
     implementation(projects.loggingApi)
     implementation(projects.time)
 
     implementation(libs.guava)
 
-    runtimeOnly(projects.logging)
-
+    testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.daemonProtocol))
 }
 

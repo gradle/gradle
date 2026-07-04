@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.daemon.client.clientinput;
+package org.gradle.launcher.daemon.connection;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -33,12 +33,14 @@ import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Reads input from this client stdin and forwards it to the daemon. Can either read raw content or read the user's response to some prompt.
  *
  * <p>Uses a single reader thread to perform all operations.
  */
+@NullMarked
 public class DaemonClientInputForwarder implements Stoppable {
     private final ForwardingUserInput forwarder;
     private final GlobalUserInputReceiver userInput;

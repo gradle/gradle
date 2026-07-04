@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.daemon.client.clientinput
+package org.gradle.launcher.daemon.connection
 
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.logging.console.DefaultUserInputReceiver

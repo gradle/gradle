@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,55 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.connection;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.launcher.daemon.connection.DaemonClientConnection;
-import org.gradle.launcher.daemon.connection.DaemonConnector;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.InputStream;
 import java.util.UUID;
 
-public class SingleUseDaemonClient extends DaemonClient {
+/**
+ * The {@link DaemonBuildExecuter} used when the client's JVM settings require a dedicated daemon: it forks a
+ * single-use daemon, runs the build in it, and lets that daemon terminate afterwards.
+ */
+@NullMarked
+public class SingleUseDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
     public static final String MESSAGE = "To honour the JVM settings for this build a single-use Daemon process will be forked.";
-    private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonClient.class);
+    private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonBuildExecuter.class);
+
     private final DocumentationRegistry documentationRegistry;
 
-    public SingleUseDaemonClient(
+    public SingleUseDaemonBuildExecuter(
         DaemonConnector connector,
         OutputEventListener outputEventListener,
-        ExplainingSpec<DaemonContext> compatibilitySpec,
         InputStream buildStandardInput,
         GlobalUserInputReceiver userInput,
         IdGenerator<UUID> idGenerator,
         DocumentationRegistry documentationRegistry,
         ProcessEnvironment processEnvironment
     ) {
-        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, userInput, idGenerator, processEnvironment);
+        super(connector, outputEventListener, buildStandardInput, userInput, idGenerator, processEnvironment);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, ClientBuildRequestContext buildRequestContext) {
+    public BuildActionResult execute(DaemonBuildRequest request) {
         LOGGER.lifecycle(MESSAGE + " {}", documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:disabling_the_daemon"));
 
-        DaemonClientConnection daemonConnection = getConnector().startSingleUseDaemon();
-        Build build = new Build(getIdGenerator().generateId(), daemonConnection.getDaemon().getToken(), action, buildRequestContext.getClient(), buildRequestContext.getStartTime(), buildRequestContext.isInteractiveConsole(), parameters);
-
-        return executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer());
+        DaemonClientConnection connection = getConnector().startSingleUseDaemon();
+        Build build = newBuild(nextBuildId(), connection, request);
+        return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
     }
 }

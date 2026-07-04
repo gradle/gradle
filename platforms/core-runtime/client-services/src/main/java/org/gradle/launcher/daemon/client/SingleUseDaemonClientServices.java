@@ -17,16 +17,13 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.specs.ExplainingSpec;
-import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.Provides;
 import org.gradle.launcher.daemon.connection.DaemonConnector;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonRequestContext;
+import org.gradle.launcher.daemon.connection.SingleUseDaemonBuildExecuter;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -42,7 +39,6 @@ public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
 
     @Provides
     protected DaemonClient createDaemonClient(
-        DaemonRequestContext daemonRequestContext,
         DaemonConnector daemonConnector,
         OutputEventListener outputEventListener,
         GlobalUserInputReceiver globalUserInputReceiver,
@@ -50,7 +46,6 @@ public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
         DocumentationRegistry documentationRegistry,
         ProcessEnvironment processEnvironment
     ) {
-        ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
-        return new SingleUseDaemonClient(daemonConnector, outputEventListener, matchNone, getBuildStandardInput(), globalUserInputReceiver, idGenerator, documentationRegistry, processEnvironment);
+        return new DaemonClient(new SingleUseDaemonBuildExecuter(daemonConnector, outputEventListener, getBuildStandardInput(), globalUserInputReceiver, idGenerator, documentationRegistry, processEnvironment));
     }
 }

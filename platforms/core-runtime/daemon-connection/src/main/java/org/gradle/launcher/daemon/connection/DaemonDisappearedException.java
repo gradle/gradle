@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.launcher.daemon.connection;
 
-@org.jspecify.annotations.NullMarked
-package org.gradle.internal.daemon.client.clientinput;
+import org.gradle.api.GradleException;
+
+/**
+ * Thrown when a daemon disconnects unexpectedly while a client is interacting with it.
+ */
+public class DaemonDisappearedException extends GradleException {
+
+    public static final String MESSAGE = "Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)";
+
+    public DaemonDisappearedException() {
+        super(MESSAGE);
+    }
+}

@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.launcher.daemon.connection.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
