@@ -181,7 +181,7 @@ With platforms, by default, `strictly` versions declared in the platform are han
 This matters because `strictly` has <<dependency_versions.adoc#sec:strict-version-consequences,significant consequences>> for the resolved graph.
 This behavior is controlled by `endorseStrictVersions`, which `platform()` enables by default.
 
-Without endorsement, a platform's `strictly` constraints are treated as regular version recommendations in the consumer's dependency graph; they will not prevent transitive upgrades.
+Without endorsement, a platform's `strictly` constraints are treated as regular version recommendations in the consumer's dependency graph; they will not prevent transitive upgrades outside the subgraph the platform controls.
 
 If you do not need the platform's strict constraints to propagate, you can disable endorsement:
 
