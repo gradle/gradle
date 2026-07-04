@@ -92,7 +92,8 @@ If used as an <<#sec:enforced-platform,enforced platform>>, this platform would 
 
 Gradle supports importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Bill_of_Materials_.28BOM.29_POMs[BOMs], which are POM files containing `<dependencyManagement>` sections that manage dependency versions.
 
-To qualify as a BOM, a `.pom` file must declare `<packaging>pom</packaging>` in its metadata.
+Traditionally, a BOM is a POM file with `<packaging>pom</packaging>` and a `<dependencyManagement>` block.
+Gradle, however, derives a platform variant from every Maven POM it consumes, so any POM with a `<dependencyManagement>` block can be imported as a platform, not just a traditional BOM.
 
 Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Adding Constraints On Dependencies>>.
 
