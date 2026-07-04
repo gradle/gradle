@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.connection;
 
 /**
  * Thrown when there is some problem using a daemon connection.

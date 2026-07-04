@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.launcher.daemon.client.DaemonStartupMessage;
+import org.gradle.launcher.daemon.connection.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.util.internal.CollectionUtils;

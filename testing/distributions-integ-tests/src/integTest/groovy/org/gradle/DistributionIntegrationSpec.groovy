@@ -77,6 +77,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "core-kotlin-extensions",
         "credentials",
         "credentials-api",
+        "daemon-connection",
         "daemon-logging",
         "daemon-management-api",
         "daemon-management-tool",

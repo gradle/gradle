@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.connection;
 
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope.Global;

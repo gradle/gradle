@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.management.internal;
 
-import org.gradle.launcher.daemon.client.DaemonStarter;
+import org.gradle.launcher.daemon.connection.DaemonStarter;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 
 /**

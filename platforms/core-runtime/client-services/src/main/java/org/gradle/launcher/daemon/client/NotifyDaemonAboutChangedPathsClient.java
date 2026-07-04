@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.remote.internal.Connection;
+import org.gradle.launcher.daemon.connection.DaemonClientConnection;
+import org.gradle.launcher.daemon.connection.DaemonConnector;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.protocol.Finished;

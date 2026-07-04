@@ -24,6 +24,9 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.console.GlobalUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.launcher.daemon.connection.DaemonClientConnection
+import org.gradle.launcher.daemon.connection.DaemonConnector
+import org.gradle.launcher.daemon.connection.StaleDaemonAddressException
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics

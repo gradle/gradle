@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.launcher.daemon.client.DaemonStartupMessage
+import org.gradle.launcher.daemon.connection.DaemonStartupMessage
 
 class DaemonStartupMessageIntegrationTest extends DaemonIntegrationSpec {
     def "a message is logged when a new daemon is started"() {

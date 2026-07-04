@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client
+package org.gradle.launcher.daemon.connection
 
 import org.gradle.internal.remote.internal.Connection
-import org.gradle.launcher.daemon.protocol.ReportStatus
+import org.gradle.launcher.daemon.protocol.Stop
 import spock.lang.Specification
 
-class ReportStatusDispatcherTest extends Specification {
+public class StopDispatcherTest extends Specification {
 
-    def dispatcher = new ReportStatusDispatcher()
+    def dispatcher = new StopDispatcher()
     def connection = Mock(Connection)
 
     def "ignores failed dispatch and does not receive"() {
         given:
-        def message = new ReportStatus(UUID.randomUUID(), "TOKEN".bytes)
+        def message = new Stop(UUID.randomUUID())
         connection.dispatch(message) >> { throw new RuntimeException("Cannot dispatch") }
 
         when:
@@ -40,7 +40,7 @@ class ReportStatusDispatcherTest extends Specification {
 
     def "ignores failed receive"() {
         given:
-        def message = new ReportStatus(UUID.randomUUID(), "TOKEN".bytes)
+        def message = new Stop(UUID.randomUUID())
         connection.receive() >> { throw new RuntimeException("Cannot dispatch") }
 
         when:

@@ -18,33 +18,27 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "The API for discovering and managing the Gradle daemons of the current version. " +
-    "The public `org.gradle.launcher.daemon.management` package hides the registry, connection and " +
-    "protocol details behind a small surface used by the CLI, the standalone management tool and the Tooling API."
+description = "The client-side connection to a Gradle daemon: connector, connection and protocol dispatchers. " +
+    "Shared by the daemon build client and the daemon management API."
 
 dependencies {
+    api(projects.core)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
-    api(projects.serviceLookup)
+    api(projects.enterpriseLogging)
+    api(projects.messaging)
+    api(projects.serialization)
+    api(projects.stdlibJavaExtensions)
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
-    implementation(projects.buildOperations)
     implementation(projects.concurrent)
-    implementation(projects.core)
-    implementation(projects.daemonConnection)
     implementation(projects.daemonLogging)
-    implementation(projects.daemonMessaging)
-    implementation(projects.enterpriseLogging)
-    implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.messaging)
-    implementation(projects.native)
-    implementation(projects.serialization)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
 
     implementation(libs.guava)
+
+    runtimeOnly(projects.logging)
 
     testImplementation(testFixtures(projects.daemonProtocol))
 }
@@ -58,10 +52,4 @@ gradleModule {
         client = true
         daemon = true
     }
-}
-
-packageCycles {
-    // Cycle between the public API (interfaces + the DaemonManagement factory) and the internal
-    // implementation package that implements those interfaces.
-    excludePatterns.add("org/gradle/launcher/daemon/management/internal/**")
 }

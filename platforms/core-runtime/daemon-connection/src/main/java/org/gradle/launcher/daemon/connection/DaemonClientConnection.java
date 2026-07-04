@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.connection;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;

@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.management.internal
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.internal.id.IdGenerator
-import org.gradle.launcher.daemon.client.DaemonClientConnection
-import org.gradle.launcher.daemon.client.DaemonConnector
+import org.gradle.launcher.daemon.connection.DaemonClientConnection
+import org.gradle.launcher.daemon.connection.DaemonConnector
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
 import org.gradle.launcher.daemon.protocol.ReportStatus
 import org.gradle.launcher.daemon.protocol.Status

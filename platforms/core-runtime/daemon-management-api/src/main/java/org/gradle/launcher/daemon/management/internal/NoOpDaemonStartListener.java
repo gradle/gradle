@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.management.internal;
 
-import org.gradle.launcher.daemon.client.DaemonStartListener;
+import org.gradle.launcher.daemon.connection.DaemonStartListener;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 

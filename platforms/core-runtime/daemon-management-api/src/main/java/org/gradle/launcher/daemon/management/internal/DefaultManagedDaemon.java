@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.management.internal;
 
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.launcher.daemon.client.DaemonClientConnection;
-import org.gradle.launcher.daemon.client.DaemonConnector;
-import org.gradle.launcher.daemon.client.ReportStatusDispatcher;
-import org.gradle.launcher.daemon.client.StopDispatcher;
+import org.gradle.launcher.daemon.connection.DaemonClientConnection;
+import org.gradle.launcher.daemon.connection.DaemonConnector;
+import org.gradle.launcher.daemon.connection.ReportStatusDispatcher;
+import org.gradle.launcher.daemon.connection.StopDispatcher;
 import org.gradle.launcher.daemon.management.DaemonStatus;
 import org.gradle.launcher.daemon.management.ManagedDaemon;
 import org.gradle.launcher.daemon.protocol.ReportStatus;
