@@ -57,6 +57,7 @@ public class DefaultDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
 
     @Override
     public BuildActionResult execute(DaemonBuildRequest request) {
+        JvmBuildRequest jvmRequest = requireJvmRequest(request);
         UUID buildId = nextBuildId();
         List<DaemonInitialConnectException> accumulatedExceptions = new ArrayList<>();
 
@@ -72,7 +73,7 @@ public class DefaultDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
             }
             // Compatible daemon was found, try it
             try {
-                Build build = newBuild(buildId, connection, request);
+                Build build = newBuild(buildId, connection, jvmRequest);
                 return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
@@ -86,7 +87,7 @@ public class DefaultDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
         // No existing daemon was usable, so start a new one and try it once
         final DaemonClientConnection connection = getConnector().startDaemon(compatibilitySpec);
         try {
-            Build build = newBuild(buildId, connection, request);
+            Build build = newBuild(buildId, connection, jvmRequest);
             return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again

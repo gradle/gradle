@@ -55,10 +55,11 @@ public class SingleUseDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
 
     @Override
     public BuildActionResult execute(DaemonBuildRequest request) {
+        JvmBuildRequest jvmRequest = requireJvmRequest(request);
         LOGGER.lifecycle(MESSAGE + " {}", documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:disabling_the_daemon"));
 
         DaemonClientConnection connection = getConnector().startSingleUseDaemon();
-        Build build = newBuild(nextBuildId(), connection, request);
+        Build build = newBuild(nextBuildId(), connection, jvmRequest);
         return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
     }
 }

@@ -58,7 +58,7 @@ class DefaultDaemonBuildExecuterTest extends ConcurrentSpecification {
     BuildEventConsumer eventConsumer = Stub()
 
     private DaemonBuildRequest request() {
-        new DaemonBuildRequest(action, clientMetaData, 0L, false, parameters, cancellationToken, eventConsumer)
+        new JvmBuildRequest(action, clientMetaData, 0L, false, parameters, cancellationToken, eventConsumer)
     }
 
     def "executes action"() {
@@ -200,6 +200,15 @@ class DefaultDaemonBuildExecuterTest extends ConcurrentSpecification {
         1 * connection.dispatch({ it instanceof CloseInput })
         1 * connection.stop()
         0 * connection._
+    }
+
+    def "rejects command-line (args) requests until the daemon-side parse path exists"() {
+        when:
+        executer.execute(new ArgsBuildRequest(["help"], new File("."), [:], [:], cancellationToken, eventConsumer))
+
+        then:
+        thrown(UnsupportedOperationException)
+        0 * connector._
     }
 
     def "does not loop forever finding usable daemons"() {

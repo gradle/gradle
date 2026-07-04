@@ -15,71 +15,34 @@
  */
 package org.gradle.launcher.daemon.connection;
 
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.invocation.BuildAction;
-import org.gradle.launcher.exec.BuildActionParameters;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * The transport-agnostic description of a build to run in a daemon. This carries everything the
- * {@link DaemonBuildExecuter} needs to send a build to a daemon, independent of which daemon it connects to
- * (the per-daemon authentication token is stamped on by the executer once it has a connection).
+ * A request to run a build in a daemon, independent of <em>how</em> the build is described. There are two
+ * shapes:
+ *
+ * <ul>
+ *     <li>{@link JvmBuildRequest} - an in-JVM {@code BuildAction} (what the CLI and Tooling API produce today);
+ *     <li>{@link ArgsBuildRequest} - a command line the daemon parses (what a non-JVM client can produce).
+ * </ul>
+ *
+ * The build action itself never appears on this interface, so the contract stays constructable by a client that
+ * cannot build a JVM {@code BuildAction}. The cancellation token and tooling-event consumer are collaborators
+ * supplied on the daemon side (a native client's wire signals are adapted into them), so they are common to
+ * both shapes.
  */
 @NullMarked
-public class DaemonBuildRequest {
-    private final BuildAction action;
-    private final GradleLauncherMetaData client;
-    private final long startTime;
-    private final boolean interactiveConsole;
-    private final BuildActionParameters parameters;
-    private final BuildCancellationToken cancellationToken;
-    private final BuildEventConsumer eventConsumer;
+public interface DaemonBuildRequest {
 
-    public DaemonBuildRequest(
-        BuildAction action,
-        GradleLauncherMetaData client,
-        long startTime,
-        boolean interactiveConsole,
-        BuildActionParameters parameters,
-        BuildCancellationToken cancellationToken,
-        BuildEventConsumer eventConsumer
-    ) {
-        this.action = action;
-        this.client = client;
-        this.startTime = startTime;
-        this.interactiveConsole = interactiveConsole;
-        this.parameters = parameters;
-        this.cancellationToken = cancellationToken;
-        this.eventConsumer = eventConsumer;
-    }
+    /**
+     * The token used to cancel the running build.
+     */
+    BuildCancellationToken getCancellationToken();
 
-    public BuildAction getAction() {
-        return action;
-    }
-
-    public GradleLauncherMetaData getClient() {
-        return client;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public boolean isInteractiveConsole() {
-        return interactiveConsole;
-    }
-
-    public BuildActionParameters getParameters() {
-        return parameters;
-    }
-
-    public BuildCancellationToken getCancellationToken() {
-        return cancellationToken;
-    }
-
-    public BuildEventConsumer getEventConsumer() {
-        return eventConsumer;
-    }
+    /**
+     * The consumer for tooling/build events produced during the build.
+     */
+    BuildEventConsumer getEventConsumer();
 }

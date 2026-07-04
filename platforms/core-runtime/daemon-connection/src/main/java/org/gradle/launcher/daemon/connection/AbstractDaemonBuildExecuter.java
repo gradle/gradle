@@ -93,7 +93,18 @@ abstract class AbstractDaemonBuildExecuter implements DaemonBuildExecuter {
         return idGenerator.generateId();
     }
 
-    protected Build newBuild(UUID buildId, DaemonClientConnection connection, DaemonBuildRequest request) {
+    /**
+     * Narrows a request to the in-JVM shape this executer supports. Command-line (args) requests are handled by
+     * a later phase; until then they are rejected here.
+     */
+    protected JvmBuildRequest requireJvmRequest(DaemonBuildRequest request) {
+        if (request instanceof JvmBuildRequest) {
+            return (JvmBuildRequest) request;
+        }
+        throw new UnsupportedOperationException("This daemon build executer only supports in-JVM build requests; command-line (args) requests are not yet supported.");
+    }
+
+    protected Build newBuild(UUID buildId, DaemonClientConnection connection, JvmBuildRequest request) {
         return new Build(buildId, connection.getDaemon().getToken(), request.getAction(), request.getClient(), request.getStartTime(), request.isInteractiveConsole(), request.getParameters());
     }
 
