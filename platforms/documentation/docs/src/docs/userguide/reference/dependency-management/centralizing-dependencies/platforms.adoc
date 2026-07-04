@@ -34,7 +34,7 @@ Platforms ensure that all dependencies in a project align with a consistent set 
 [[sec:sharing-dep-versions-between-projects]]
 Platforms help you manage and enforce version consistency across modules or libraries, especially when working with a set of related dependencies that need to stay in sync.
 
-NOTE: Platforms influence dependency resolution by applying or enforcing versions across the dependency graph. <<version_catalogs.adoc#version_catalogs,Version catalogs>> also centralize dependency versions but do not affect resolution — they provide type-safe accessors and consistent coordinates. For guidance on when to use each approach, see <<centralizing_catalog_platform.adoc#platforms-vs-catalog,Using Catalogs with Platforms>>.
+NOTE: Platforms influence dependency resolution by applying or enforcing versions across the dependency graph. <<version_catalogs.adoc#version-catalog,Version catalogs>> also centralize dependency versions but do not affect resolution — they provide type-safe accessors and consistent coordinates. For guidance on when to use each approach, see <<centralizing_catalog_platform.adoc#platforms-vs-catalog,Using Catalogs with Platforms>>.
 
 [[sec:using-platform-to-control-transitive-deps]]
 == Using a Platform
