@@ -162,7 +162,8 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 WARNING: `enforcedPlatform` should generally only be used in applications, not in libraries or other components consumed by others.
 
 Because `enforcedPlatform` converts all BOM constraints to `strictly`, these strict versions propagate transitively to every consumer of your project.
-Consumers who need a different version cannot simply declare it, they must either override with their own `strictly` higher in the dependency graph, or disable endorsement on the platform import with `doNotEndorseStrictVersions()`.
+Consumers who need a different version cannot simply declare it.
+They must either override with their own `strictly` higher in the dependency graph, or apply a <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>> that calls `doNotEndorseStrictVersions()` on the transitive platform dependency.
 
 If you are publishing a library that depends on specific third-party versions, prefer using <<dependency_versions.adoc#sec:rich-version-constraints,rich version declarations>> with `strictly` and a range on only the dependencies that require it:
 
