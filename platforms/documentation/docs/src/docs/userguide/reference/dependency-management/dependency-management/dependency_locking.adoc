@@ -166,7 +166,7 @@ If a transitive dependency would normally resolve to a version different from th
 * For **direct dependencies**, your declared version acts as a `require` constraint.
 The lock's `strictly` constraint must be compatible with it:
 ** If you declare version `1.0.0` (interpreted as `require 1.0.0`) and the lock state contains `1.2.0`, the lock's `strictly 1.2.0` satisfies the `require` (since `1.2.0` >= `1.0.0`), and Gradle resolves to `1.2.0`.
-** If you declare version `1.2.0` (interpreted as `require 1.2.0`) and the lock state contains `1.0.0`, the lock's `strictly 1.0.0` conflicts with your `require 1.2.0` — the declared version is higher than what the lock allows — and Gradle **fails resolution**. To resolve this, update the lock state with `--write-locks`.
+** If you declare version `1.2.0` (interpreted as `require 1.2.0`) and the lock state contains `1.0.0`, the lock's `strictly 1.0.0` conflicts with your `require 1.2.0` — the declared version is higher than what the lock allows — and Gradle **fails resolution**. To resolve this, <<#sec:generate-locks,update the lock state>>.
 
 In both cases, the mechanism is standard <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> conflict resolution between `require` and `strictly` — the lock file simply injects the `strictly` constraint automatically.
 
