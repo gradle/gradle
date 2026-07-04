@@ -95,7 +95,7 @@ Gradle supports importing https://maven.apache.org/guides/introduction/introduct
 Traditionally, a BOM is a POM file with `<packaging>pom</packaging>` and a `<dependencyManagement>` block.
 Gradle, however, derives a platform variant from every Maven POM it consumes, so any POM with a `<dependencyManagement>` block can be imported as a platform, not just a traditional BOM.
 
-Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Adding Constraints On Dependencies>>.
+Gradle treats all `<dependencyManagement>` entries in a POM consumed as a platform as constraints, like <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Adding Constraints On Dependencies>>.
 
 [[sec:regular-platform]]
 === Regular Platform
