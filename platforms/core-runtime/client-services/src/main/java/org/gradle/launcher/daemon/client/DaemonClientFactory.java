@@ -106,7 +106,8 @@ public class DaemonClientFactory {
      * Creates the services for sending simple messages to daemons.
      *
      * Currently, there are two clients which can be used from this registry:
-     * - {@link ManagedDaemons} that can be used to list, stop and stop-when-idle daemons.
+     * - the daemon management API ({@code ManagedDaemons} in the daemon-management-api subproject) that can be
+     *   used to list, stop and stop-when-idle daemons.
      * - {@link NotifyDaemonAboutChangedPathsClient} that can be used to notify daemons about changed paths.
      */
     public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, File daemonBaseDir) {

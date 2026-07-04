@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.launcher.daemon.client.ManagedDaemons
+import org.gradle.launcher.daemon.management.ManagedDaemons
 import spock.lang.Specification
 
 class StopDaemonActionTest extends Specification {

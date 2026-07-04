@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -47,7 +46,6 @@ import java.util.UUID;
  *
  * Clients created with these services cannot start new daemons.
  *
- * @see ManagedDaemons
  * @see NotifyDaemonAboutChangedPathsClient
  */
 @NullMarked
@@ -81,11 +79,6 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
     @Provides
     NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
         return new NotifyDaemonAboutChangedPathsClient(connector, idGenerator, daemonRegistry);
-    }
-
-    @Provides
-    ManagedDaemons createManagedDaemons(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
-        return new DefaultManagedDaemons(registry, connector, idGenerator, documentationRegistry);
     }
 
     @Provides

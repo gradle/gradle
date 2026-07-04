@@ -16,15 +16,18 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
-import org.gradle.launcher.daemon.client.ManagedDaemonsExecuter;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
+import org.gradle.launcher.daemon.management.DaemonManagement;
+import org.gradle.launcher.daemon.management.ManagedDaemons;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 
 import java.io.File;
@@ -46,11 +49,11 @@ import java.util.Set;
 @ServiceScope(Scope.Global.class)
 public class ShutdownCoordinator implements DaemonStartListener {
     private final Map<File, Set<DaemonConnectDetails>> daemons = new HashMap<>();
-    private final ManagedDaemonsExecuter client;
+    private final DaemonClientFactory daemonClientFactory;
     private final File incorrectDaemonRegistryPath;
 
-    public ShutdownCoordinator(ManagedDaemonsExecuter client) {
-        this.client = client;
+    public ShutdownCoordinator(DaemonClientFactory daemonClientFactory) {
+        this.daemonClientFactory = daemonClientFactory;
         this.incorrectDaemonRegistryPath = new DaemonParameters(new BuildLayoutConverter().defaultValues().getGradleUserHomeDir(), null).getBaseDir();
     }
 
@@ -73,7 +76,7 @@ public class ShutdownCoordinator implements DaemonStartListener {
             Set<DaemonConnectDetails> startedDaemons = daemons.get(daemonBaseDir);
             if (startedDaemons != null && !startedDaemons.isEmpty()) {
                 try {
-                    client.execute(requestSpecificLoggingServices, daemonBaseDir, managedDaemons -> managedDaemons.stopWhenIdle(startedDaemons));
+                    stopWhenIdle(requestSpecificLoggingServices, daemonBaseDir, startedDaemons);
                 } finally {
                     startedDaemons.clear();
                 }
@@ -96,11 +99,21 @@ public class ShutdownCoordinator implements DaemonStartListener {
             // when the test process stops. This is treated as an error.
             for (Set<DaemonConnectDetails> startedDaemons : daemons.values()) {
                 try {
-                    client.execute(requestSpecificLoggingServices, incorrectDaemonRegistryPath, managedDaemons -> managedDaemons.stopWhenIdle(startedDaemons));
+                    stopWhenIdle(requestSpecificLoggingServices, incorrectDaemonRegistryPath, startedDaemons);
                 } finally {
                     startedDaemons.clear();
                 }
             }
+        }
+    }
+
+    private void stopWhenIdle(ServiceRegistry loggingServices, File daemonBaseDir, Set<DaemonConnectDetails> startedDaemons) {
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
+        try {
+            ManagedDaemons managedDaemons = DaemonManagement.managedDaemonsFor(clientServices);
+            managedDaemons.stopWhenIdle(startedDaemons);
+        } finally {
+            CompositeStoppable.stoppable(clientServices).stop();
         }
     }
 }

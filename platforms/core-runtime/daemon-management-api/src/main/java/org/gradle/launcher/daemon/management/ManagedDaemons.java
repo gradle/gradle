@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.management;
 
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
-import org.jspecify.annotations.NullMarked;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,12 +23,14 @@ import java.util.List;
 /**
  * The entry point for accessing and managing the Gradle daemons of the current version.
  *
- * <p>This is the single abstraction that the {@code gradle --status} / {@code --stop} commands and the
- * standalone daemon management tool build on. It consolidates registry discovery and protocol-based control
- * (status, stop, stop-when-idle) so callers do not each re-implement "read the registry, connect, dispatch".
- * It is deliberately scoped to the current Gradle version; cross-version management can be layered on later.
+ * <p>This is the single abstraction that the {@code gradle --status} / {@code --stop} commands, the standalone
+ * daemon management tool, and the Tooling API build on. It consolidates registry discovery and protocol-based
+ * control (status, stop, stop-when-idle) so callers do not each re-implement "read the registry, connect,
+ * dispatch". It is deliberately scoped to the current Gradle version; cross-version management can be layered
+ * on later.
+ *
+ * <p>Obtain an instance with {@link DaemonManagement}, which hides all of the service wiring.
  */
-@NullMarked
 public interface ManagedDaemons {
 
     /**
@@ -55,6 +56,9 @@ public interface ManagedDaemons {
     /**
      * Requests that the given daemons stop once idle. Returns without waiting for them to stop. Used to
      * gracefully shut down a specific set of daemons (for example the ones a Tooling API provider started).
+     *
+     * <p>{@link DaemonConnectDetails} is still exposed here as the daemon reference type; replacing it with an
+     * API-owned reference is a follow-up once the connection details are relocated behind this layer.
      */
     void stopWhenIdle(Collection<? extends DaemonConnectDetails> daemons);
 

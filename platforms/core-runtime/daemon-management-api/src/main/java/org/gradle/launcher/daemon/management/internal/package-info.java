@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.cli;
 
-import org.gradle.launcher.daemon.management.ManagedDaemons;
-
-public class StopDaemonAction implements Runnable {
-    private final ManagedDaemons managedDaemons;
-
-    public StopDaemonAction(ManagedDaemons managedDaemons) {
-        this.managedDaemons = managedDaemons;
-    }
-
-    @Override
-    public void run() {
-        managedDaemons.stopAll();
-    }
-}
+/**
+ * Implementation of the daemon management API. These classes wire the shared daemon registry, connector and
+ * protocol dispatchers together; they are internal to this subproject and must not be referenced from outside
+ * {@code org.gradle.launcher.daemon.management}.
+ */
+@org.jspecify.annotations.NullMarked
+package org.gradle.launcher.daemon.management.internal;

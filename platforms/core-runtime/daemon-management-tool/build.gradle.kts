@@ -29,19 +29,11 @@ app {
 }
 
 dependencies {
-    implementation(projects.clientServices)
-    implementation(projects.gradleCli)
-    implementation(projects.launcher)
+    // The tool talks to daemons using only the daemon management API. Its command line parsing uses the
+    // bootstrap `cli` module. It deliberately depends on nothing else - no client-services, launcher or
+    // service-wiring internals.
     implementation(projects.cli)
-    implementation(projects.logging)
-    implementation(projects.loggingApi)
-    implementation(projects.native)
-    implementation(projects.serviceLookup)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
-    implementation(projects.daemonLogging)
-
-    compileOnly(libs.jspecify)
+    implementation(projects.daemonManagementApi)
 }
 
 gradleModule {

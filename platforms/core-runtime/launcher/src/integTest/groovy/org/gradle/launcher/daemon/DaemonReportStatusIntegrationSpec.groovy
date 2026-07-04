@@ -17,8 +17,8 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.launcher.daemon.client.ManagedDaemons
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.launcher.daemon.management.ManagedDaemons
 import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.test.fixtures.server.http.BlockingHttpServer

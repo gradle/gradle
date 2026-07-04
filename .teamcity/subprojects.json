@@ -399,6 +399,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-management-api",
+    "path": "platforms/core-runtime/daemon-management-api",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-management-tool",
     "path": "platforms/core-runtime/daemon-management-tool",
     "unitTests": false,

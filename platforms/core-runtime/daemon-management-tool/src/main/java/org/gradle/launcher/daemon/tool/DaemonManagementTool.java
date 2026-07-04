@@ -15,22 +15,11 @@
  */
 package org.gradle.launcher.daemon.tool;
 
-import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.internal.logging.LoggingManagerFactory;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
-import org.gradle.launcher.daemon.client.DaemonClientFactory;
-import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.ManagedDaemons;
-import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.daemon.logging.DaemonLogConstants;
+import org.gradle.launcher.daemon.management.DaemonManagement;
+import org.gradle.launcher.daemon.management.ManagedDaemons;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -39,9 +28,11 @@ import java.util.List;
 /**
  * A standalone command line tool to manage the Gradle daemons of the current Gradle version.
  *
- * <p>Usage: {@code daemon-management-tool [--gradle-user-home <dir>] <list|stop|stop-when-idle>}. It reuses
- * the same {@link ManagedDaemons} API and daemon protocol as {@code gradle --status} / {@code --stop}, but
- * without requiring a Gradle project or a full build invocation.
+ * <p>Usage: {@code daemon-management-tool [--gradle-user-home <dir>] [--registry-dir <dir>] <list|stop|stop-when-idle>}.
+ *
+ * <p>This tool talks to daemons using only the {@code org.gradle.launcher.daemon.management} API: it obtains a
+ * {@link ManagedDaemons} from {@link DaemonManagement} and drives it. It does not reference any registry,
+ * connection, protocol or service-wiring internals, which is the whole point of the daemon management API.
  */
 public class DaemonManagementTool {
 
@@ -59,7 +50,7 @@ public class DaemonManagementTool {
 
         String command;
         File gradleUserHome;
-        File daemonBaseDir;
+        File registryDirOverride;
         try {
             ParsedCommandLine parsedCommandLine = parser.parse(args);
             List<String> commands = parsedCommandLine.getExtraArguments();
@@ -68,57 +59,25 @@ public class DaemonManagementTool {
                 return;
             }
             command = commands.get(0);
+            if (!command.equals(LIST) && !command.equals(STOP) && !command.equals(STOP_WHEN_IDLE)) {
+                fail("Unknown command '" + command + "'.");
+                return;
+            }
             gradleUserHome = parsedCommandLine.hasOption(GRADLE_USER_HOME)
                 ? new File(parsedCommandLine.option(GRADLE_USER_HOME).getValue())
                 : new File(System.getProperty("user.home"), ".gradle");
-            daemonBaseDir = resolveDaemonBaseDir(parsedCommandLine, gradleUserHome);
+            registryDirOverride = parsedCommandLine.hasOption(REGISTRY_DIR)
+                ? new File(parsedCommandLine.option(REGISTRY_DIR).getValue())
+                : null;
         } catch (CommandLineArgumentException e) {
             fail(e.getMessage());
             return;
         }
 
-        try {
-            run(command, gradleUserHome, daemonBaseDir);
-        } catch (IllegalArgumentException e) {
-            fail(e.getMessage());
-        }
-    }
-
-    /**
-     * Resolves the daemon registry base directory, honouring (in order): the {@code --registry-dir}
-     * option, the {@code org.gradle.daemon.registry.base} system property, then the default
-     * {@code <gradleUserHome>/daemon}.
-     */
-    private static File resolveDaemonBaseDir(ParsedCommandLine parsedCommandLine, File gradleUserHome) {
-        if (parsedCommandLine.hasOption(REGISTRY_DIR)) {
-            return new File(parsedCommandLine.option(REGISTRY_DIR).getValue());
-        }
-        String registryBase = System.getProperty(DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY);
-        if (registryBase != null) {
-            return new File(registryBase);
-        }
-        return new File(gradleUserHome, DaemonLogConstants.DAEMON_LOG_DIR);
-    }
-
-    private static void run(String command, File gradleUserHome, File daemonBaseDir) {
-        NativeServices.initializeOnClient(gradleUserHome, NativeServices.NativeServicesMode.fromSystemProperties());
-        ServiceRegistry loggingServices = LoggingServiceRegistry.newCommandLineProcessLogging();
-        LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
-        loggingManager.setLevelInternal(LogLevel.LIFECYCLE);
-        loggingManager.start();
-        try {
-            ServiceRegistry basicServices = new DefaultCommandLineActionFactory().createBasicGlobalServices(loggingServices);
-            ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-                .displayName("Daemon management tool services")
-                .parent(NativeServices.getInstance())
-                .parent(basicServices)
-                .provider(new DaemonClientGlobalServices())
-                .build();
-            ServiceRegistry messageServices = globalServices.get(DaemonClientFactory.class)
-                .createMessageDaemonServices(loggingServices, daemonBaseDir);
-            execute(command, messageServices.get(ManagedDaemons.class));
-        } finally {
-            loggingManager.stop();
+        if (registryDirOverride != null) {
+            DaemonManagement.withManagedDaemons(gradleUserHome, registryDirOverride, daemons -> execute(command, daemons));
+        } else {
+            DaemonManagement.withManagedDaemons(gradleUserHome, daemons -> execute(command, daemons));
         }
     }
 
@@ -134,7 +93,7 @@ public class DaemonManagementTool {
                 daemons.stopAllWhenIdle();
                 break;
             default:
-                throw new IllegalArgumentException("Unknown command '" + command + "'.");
+                throw new IllegalStateException("Unknown command '" + command + "'.");
         }
     }
 

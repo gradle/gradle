@@ -58,6 +58,7 @@ dependencies {
     implementation(projects.processServicesBase)
     implementation(projects.classloaders)
     implementation(projects.collections)
+    implementation(projects.daemonManagementApi)
     implementation(projects.enterpriseOperations)
     implementation(projects.io)
 

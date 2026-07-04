@@ -49,13 +49,14 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.ManagedDaemons;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.management.DaemonManagement;
+import org.gradle.launcher.daemon.management.ManagedDaemons;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -137,7 +138,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private ManagedDaemons managedDaemons(DaemonParameters daemonParameters) {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices, daemonParameters.getBaseDir());
-        return clientServices.get(ManagedDaemons.class);
+        return DaemonManagement.managedDaemonsFor(clientServices);
     }
 
     private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {

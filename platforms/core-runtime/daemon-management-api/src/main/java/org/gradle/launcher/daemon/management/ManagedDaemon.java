@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.management;
 
-import org.gradle.launcher.daemon.protocol.Status;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -25,7 +23,6 @@ import org.jspecify.annotations.Nullable;
  * <p>All operations are best-effort and go over the daemon protocol on the loopback connection: they never
  * throw because the daemon had already gone away by the time it was contacted.
  */
-@NullMarked
 public interface ManagedDaemon {
 
     /**
@@ -40,7 +37,7 @@ public interface ManagedDaemon {
      * @return the status, or {@code null} if the daemon could not be reached.
      */
     @Nullable
-    Status getStatus();
+    DaemonStatus getStatus();
 
     /**
      * Requests that the daemon stop immediately.

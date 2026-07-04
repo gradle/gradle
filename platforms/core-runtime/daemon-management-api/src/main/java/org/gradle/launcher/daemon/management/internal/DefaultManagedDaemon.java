@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.management.internal;
 
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.launcher.daemon.client.DaemonClientConnection;
+import org.gradle.launcher.daemon.client.DaemonConnector;
+import org.gradle.launcher.daemon.client.ReportStatusDispatcher;
+import org.gradle.launcher.daemon.client.StopDispatcher;
+import org.gradle.launcher.daemon.management.DaemonStatus;
+import org.gradle.launcher.daemon.management.ManagedDaemon;
 import org.gradle.launcher.daemon.protocol.ReportStatus;
 import org.gradle.launcher.daemon.protocol.Status;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
@@ -30,7 +35,6 @@ import java.util.UUID;
  * Default {@link ManagedDaemon}, backed by a registry entry and the daemon protocol. Each operation opens a
  * fresh loopback connection via the {@link DaemonConnector}, dispatches a single command, and closes it.
  */
-@NullMarked
 class DefaultManagedDaemon implements ManagedDaemon {
 
     private final DaemonInfo info;
@@ -53,13 +57,17 @@ class DefaultManagedDaemon implements ManagedDaemon {
 
     @Nullable
     @Override
-    public Status getStatus() {
+    public DaemonStatus getStatus() {
         DaemonClientConnection connection = connector.maybeConnect(info);
         if (connection == null) {
             return null;
         }
         try {
-            return reportStatusDispatcher.dispatch(connection, new ReportStatus(idGenerator.generateId(), connection.getDaemon().getToken()));
+            Status status = reportStatusDispatcher.dispatch(connection, new ReportStatus(idGenerator.generateId(), connection.getDaemon().getToken()));
+            if (status == null) {
+                return null;
+            }
+            return new DaemonStatus(status.getPid(), status.getVersion(), status.getStatus());
         } finally {
             connection.stop();
         }

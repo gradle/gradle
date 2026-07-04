@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.management.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
@@ -24,9 +24,15 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
+import org.gradle.launcher.daemon.client.DaemonClientConnection;
+import org.gradle.launcher.daemon.client.DaemonConnector;
+import org.gradle.launcher.daemon.client.ReportStatusDispatcher;
+import org.gradle.launcher.daemon.client.StopDispatcher;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.management.ManagedDaemon;
+import org.gradle.launcher.daemon.management.ManagedDaemons;
 import org.gradle.launcher.daemon.protocol.ReportStatus;
 import org.gradle.launcher.daemon.protocol.Status;
 import org.gradle.launcher.daemon.protocol.Stop;
@@ -35,7 +41,6 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
-import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,8 +57,7 @@ import java.util.concurrent.TimeUnit;
  * {@code --stop} commands, the standalone management tool, and the Tooling API shutdown path all go through
  * this type.
  */
-@NullMarked
-public class DefaultManagedDaemons implements ManagedDaemons {
+class DefaultManagedDaemons implements ManagedDaemons {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultManagedDaemons.class);
     private static final int STOP_TIMEOUT_SECONDS = 30;
@@ -66,7 +70,7 @@ public class DefaultManagedDaemons implements ManagedDaemons {
     private final StopDispatcher stopDispatcher = new StopDispatcher();
     private final ReportStatusDispatcher reportStatusDispatcher = new ReportStatusDispatcher();
 
-    public DefaultManagedDaemons(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
+    DefaultManagedDaemons(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
         this.registry = registry;
         this.connector = connector;
         this.idGenerator = idGenerator;

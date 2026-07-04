@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.launcher.daemon.client.ManagedDaemons;
+import org.gradle.launcher.daemon.management.ManagedDaemons;
 
 public class ReportDaemonStatusAction implements Runnable {
     private final ManagedDaemons managedDaemons;

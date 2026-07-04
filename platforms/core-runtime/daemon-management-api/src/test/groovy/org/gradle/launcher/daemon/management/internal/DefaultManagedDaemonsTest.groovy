@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client
+package org.gradle.launcher.daemon.management.internal
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.internal.id.IdGenerator
+import org.gradle.launcher.daemon.client.DaemonClientConnection
+import org.gradle.launcher.daemon.client.DaemonConnector
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
 import org.gradle.launcher.daemon.protocol.ReportStatus
 import org.gradle.launcher.daemon.protocol.Status
@@ -130,7 +132,7 @@ class DefaultManagedDaemonsTest extends Specification {
 
         then:
         1 * connection.dispatch({ it instanceof ReportStatus })
-        status.status == "IDLE"
+        status.state == "IDLE"
     }
 
     def "a handle stop() dispatches a Stop"() {
