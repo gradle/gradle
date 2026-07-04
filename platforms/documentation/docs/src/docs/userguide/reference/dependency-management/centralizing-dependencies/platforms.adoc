@@ -133,8 +133,9 @@ A good rule to follow:
 * Use `enforcedPlatform` to pin *all* versions from a BOM as a group.
 * Use `strictly` on individual dependencies when you only need to control one or two specific modules.
 
-Mixing both approaches on the same dependency group can cause the BOM's coordinated version management to be bypassed.
-For example, if you import a BOM with `platform` and then add a `strictly` constraint on a single module from that group, the resolved versions are driven by the `strictly` constraint and transitive dependencies rather than the BOM:
+Using `platform` together with a `strictly` constraint on individual modules can bypass the BOM's coordinated version management.
+The example below imports a BOM with `platform` and applies `strictly` to only one module from the group.
+The resolved versions are then driven by the `strictly` constraint and its transitive dependencies rather than the BOM:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-platformWithStrictlyMisalignment/kotlin",files="build.gradle.kts[tags=platform-strictly-misalignment]"]
