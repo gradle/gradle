@@ -250,4 +250,21 @@ class SigningDeprecationIntegrationSpec extends SigningIntegrationSpec {
         succeeds("help")
     }
 
+    def "SigningExtension.sign with classifier is deprecated"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            signing {
+                ${signingConfiguration()}
+            }
+            def testFile = file("file.txt")
+            testFile.text = "content"
+            signing.sign("ignored-classifier", testFile)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The SigningExtension.sign(String, File...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use sign(File...) instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_sign_classifier")
+        succeeds("help")
+    }
+
 }

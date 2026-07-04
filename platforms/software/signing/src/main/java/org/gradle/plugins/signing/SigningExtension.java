@@ -557,9 +557,20 @@ public abstract class SigningExtension {
      * @param classifier The classifier to assign to the created signature artifacts.
      * @param files The publish artifacts to sign.
      * @return The executed {@link SignOperation sign operation}.
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #sign(File...)} instead.
      */
+    @Deprecated
     public SignOperation sign(final String classifier, final File... files) {
-        return sign(operation -> operation.sign(classifier, files));
+        DeprecationLogger.deprecateMethod(SigningExtension.class, "sign(String, File...)")
+            .withAdvice("Use sign(File...) instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_sign_classifier")
+            .nagUser();
+
+        return DeprecationLogger.whileDisabled(() ->
+            sign(operation -> operation.sign(classifier, files))
+        );
     }
 
     /**

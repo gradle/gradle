@@ -15,10 +15,10 @@
  */
 package org.gradle.plugins.signing;
 
-import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -28,13 +28,15 @@ import org.gradle.util.internal.ConfigureUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
- * A sign operation creates digital signatures for one or more files or {@link PublishArtifact publish artifacts}.
- *
- * <p>The external representation of the signature is specified by the {@link #getSignatureType() signature type property}, while the {@link #signatory} property specifies who is to sign. <p> A sign
- * operation manages one or more {@link Signature} objects. The {@code sign} methods are used to register things to generate signatures for. The {@link #execute()} method generates the signatures for
- * all of the registered items at that time.
+ * A sign operation creates digital signatures for one or more files.
+ * <p>
+ * The external representation of the signature is specified by {@link #getSignatureType()}, while the
+ * {@link #getSignatory()} specifies how to sign. The {@code sign} methods are used to register files to
+ * generate signatures for. The {@link #execute()} method generates the signatures for all the registered
+ * items at that time.
  */
 abstract public class SignOperation implements SignatureSpec {
 
@@ -53,7 +55,7 @@ abstract public class SignOperation implements SignatureSpec {
      */
     private boolean required;
 
-    private final List<Signature> signatures = new ArrayList<Signature>();
+    private final List<Supplier<File>> fileSources = new ArrayList<>();
 
     @ToBeReplacedByLazyProperty
     public String getDisplayName() {
@@ -105,7 +107,7 @@ abstract public class SignOperation implements SignatureSpec {
      */
     public SignOperation sign(PublishArtifact... artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            signatures.add(new Signature(artifact, artifact::getFile, artifact::getClassifier, artifact::getName, this));
+            fileSources.add(artifact::getFile);
         }
         return this;
     }
@@ -117,7 +119,7 @@ abstract public class SignOperation implements SignatureSpec {
      */
     public SignOperation sign(File... files) {
         for (File file : files) {
-            signatures.add(new Signature(null, () -> file, null, null, this));
+            fileSources.add(() -> file);
         }
         return this;
     }
@@ -126,10 +128,19 @@ abstract public class SignOperation implements SignatureSpec {
      * Registers signatures (with the given classifier) for the given files
      *
      * @return this
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #sign(File...)} instead.
      */
-    public SignOperation sign(String classifier, File... files) {
+    @Deprecated
+    public SignOperation sign(String ignoredClassifier, File... files) {
+        DeprecationLogger.deprecateMethod(SignOperation.class, "sign(String, File...)")
+            .withAdvice("Use sign(File...) instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_sign_classifier")
+            .nagUser();
+
         for (File file : files) {
-            signatures.add(new Signature(null, () -> file, () -> classifier, null, this));
+            fileSources.add(() -> file);
         }
         return this;
     }
@@ -165,21 +176,32 @@ abstract public class SignOperation implements SignatureSpec {
      * multiple times, with the signatures being generated with their current configuration each time.
      *
      * @return this
-     * @see Signature#generate()
      */
     public SignOperation execute() {
-        for (Signature signature : signatures) {
-            signature.generate();
+        for (Supplier<File> file : fileSources) {
+            signatureType.sign(signatory, file.get());
         }
         return this;
     }
 
     /**
      * The registered signatures.
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #getFilesToSign()} or {@link #getSignatureFiles()} instead.
      */
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public List<Signature> getSignatures() {
-        return new ArrayList<Signature>(signatures);
+        DeprecationLogger.deprecateMethod(SignOperation.class, "getSignatures()")
+            .withAdvice("Use getFilesToSign() or getSignatureFiles() instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_sign_operation_signatures")
+            .nagUser();
+
+        return fileSources.stream().map(fileSource ->
+            DeprecationLogger.whileDisabled(() ->
+                new Signature(null, fileSource::get, null, null, this)
+            )
+        ).toList();
     }
 
     /**
@@ -187,50 +209,48 @@ abstract public class SignOperation implements SignatureSpec {
      *
      * @return The signature.
      * @throws IllegalStateException if there is not exactly one registered signature.
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #getFilesToSign()} or {@link #getSignatureFiles()} instead.
      */
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public Signature getSingleSignature() {
-        final int size = signatures.size();
-        switch (size) {
-            case 1:
-                return signatures.get(0);
-            case 0:
-                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains no signatures.");
-            default:
-                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains " + String.valueOf(size) + " signatures.");
+        DeprecationLogger.deprecateMethod(SignOperation.class, "getSingleSignature()")
+            .withAdvice("Use getFilesToSign() or getSignatureFiles() instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_sign_operation_signatures")
+            .nagUser();
+
+        List<Signature> signatures = DeprecationLogger.whileDisabled(this::getSignatures);
+        if (signatures.size() != 1) {
+            throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains " + signatures.size() + " signatures.");
         }
+        return signatures.get(0);
     }
 
     /**
      * All of the files that will be signed by this operation.
      */
-    @NotToBeReplacedByLazyProperty(because = "Read-only file collection", willBeDeprecated = true)
+    @NotToBeReplacedByLazyProperty(because = "Read-only file collection")
     public FileCollection getFilesToSign() {
-        return newSignatureFileCollection(input -> input.getToSign());
+        return toFileCollection(
+            fileSources.stream()
+                .map(Supplier::get)
+                .toList()
+        );
     }
 
     /**
      * All of the signature files that will be generated by this operation.
      */
-    @NotToBeReplacedByLazyProperty(because = "Read-only file collection", willBeDeprecated = true)
+    @NotToBeReplacedByLazyProperty(because = "Read-only file collection")
     public FileCollection getSignatureFiles() {
-        return newSignatureFileCollection(input -> input.getFile());
-    }
-
-    private FileCollection newSignatureFileCollection(Function<Signature, File> getFile) {
-        return toFileCollection(collectSignatureFiles(getFile));
+        return toFileCollection(
+            fileSources.stream()
+                .map(fileSource -> signatureType.fileFor(fileSource.get()))
+                .toList()
+        );
     }
 
     protected abstract FileCollection toFileCollection(List<File> files);
 
-    private List<File> collectSignatureFiles(Function<Signature, File> getFile) {
-        List<File> files = new ArrayList<File>(signatures.size());
-        for (Signature signature : signatures) {
-            File file = getFile.apply(signature);
-            if (file != null) {
-                files.add(file);
-            }
-        }
-        return files;
-    }
 }

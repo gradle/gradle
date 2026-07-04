@@ -43,6 +43,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
@@ -156,6 +157,12 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
      * Configures the task to sign each of the given artifacts, using the given classifier as the classifier for the resultant signature publish artifact.
      */
     public void sign(String classifier, File... files) {
+        DeprecationLogger.deprecateMethod(Sign.class, "sign(String, File...)")
+            .withAdvice("Use sign(File...) instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_sign_classifier")
+            .nagUser();
+
         addSignatures(classifier, files);
     }
 
