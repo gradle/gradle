@@ -169,6 +169,59 @@ Whether the Build Cache is enabled is determined by the Gradle invocation (`--bu
 Enable or disable the Build Cache with the `org.gradle.caching` Gradle property instead.
 See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
 
+[[deprecate_publish_repository]]
+==== Deprecation of the `repository` property on publishing tasks
+
+The `repository` property on link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenRepository.html[`PublishToMavenRepository`] and link:{javadocPath}/org/gradle/api/publish/ivy/tasks/PublishToIvyRepository.html[`PublishToIvyRepository`] is deprecated.
+The following methods will be removed in Gradle 10:
+
+- `PublishToMavenRepository.getRepository()`
+- `PublishToMavenRepository.setRepository(MavenArtifactRepository)`
+- `PublishToIvyRepository.getRepository()`
+- `PublishToIvyRepository.setRepository(IvyArtifactRepository)`
+
+The `repository` property held an entire repository instance, which cannot be serialized to the configuration cache.
+The individual components of the repository that these tasks actually use are now modeled as proper task inputs.
+The following properties have been introduced as a replacement on both tasks:
+
+- `getRepositoryName()`
+- `getRepositoryUri()`
+- `getAllowInsecureProtocol()`
+- `getCredentials()`
+- `getAuthenticationSchemes()`
+
+Additionally, the following properties have been introduced on `PublishToIvyRepository`:
+
+- `getAdditionalArtifactPatterns()`
+- `getAdditionalIvyPatterns()`
+- `getRepositoryLayout()`
+
+The new `configureFromRepository` method on the `PublishToMavenRepository` and `PublishToIvyRepository` tasks lazily configures the above properties from a given repository.
+This is a direct replacement for `setRepository`:
+
+[source,groovy]
+----
+tasks.register<PublishToMavenRepository>("myPublishTask") {
+    // Deprecated:
+    repository = publishing.repositories["external"]
+
+    // Instead, use:
+    configureFromRepository(publishing.repositories["external"])
+}
+----
+
+Code that reads the `repository` property to identify the repository a task publishes to should use `repositoryName` or `repositoryUri` instead:
+
+[source,kotlin]
+----
+tasks.withType<PublishToMavenRepository>().configureEach {
+    // Deprecated:
+    repository == publishing.repositories["external"]
+
+    // Instead, use:
+    repositoryName.map { it == "external" }
+}
+----
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier

@@ -302,6 +302,41 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         succeeds 'publish'
     }
 
+    def "using the repository property on the publish task is deprecated"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            plugins {
+                id("ivy-publish")
+            }
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    ivy { url = "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication)
+                }
+            }
+
+            tasks.named('publishIvyPublicationToIvyRepository') {
+                def repo = repository
+                repository = repo
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The PublishToIvyRepository.getRepository method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_publish_repository")
+        executer.expectDocumentedDeprecationWarning("The PublishToIvyRepository.setRepository method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_publish_repository")
+        succeeds 'publish'
+
+        and:
+        ivyRepo.module('group', 'root', '1.0').assertPublished()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/15009")
     def "fails publishing if a variant contains a dependency on an enforced platform"() {
         settingsFile << """
