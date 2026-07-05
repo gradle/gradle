@@ -23,7 +23,6 @@ import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.exec.BuildActionResult;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.InputStream;
@@ -54,12 +53,12 @@ public class SingleUseDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
     }
 
     @Override
-    public BuildActionResult execute(DaemonBuildRequest request) {
+    public DaemonBuildResult execute(DaemonBuildRequest request) {
         JvmBuildRequest jvmRequest = requireJvmRequest(request);
         LOGGER.lifecycle(MESSAGE + " {}", documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:disabling_the_daemon"));
 
         DaemonClientConnection connection = getConnector().startSingleUseDaemon();
         Build build = newBuild(nextBuildId(), connection, jvmRequest);
-        return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
+        return new JvmBuildResult(executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer()));
     }
 }

@@ -68,7 +68,7 @@ class DefaultDaemonBuildExecuterTest extends ConcurrentSpecification {
         def result = executer.execute(request())
 
         then:
-        result == resultMessage
+        (result as JvmBuildResult).buildActionResult == resultMessage
         1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
@@ -107,7 +107,7 @@ class DefaultDaemonBuildExecuterTest extends ConcurrentSpecification {
         def result = executer.execute(request())
 
         then:
-        result.exception instanceof BuildCancelledException
+        (result as JvmBuildResult).buildActionResult.exception instanceof BuildCancelledException
         1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)

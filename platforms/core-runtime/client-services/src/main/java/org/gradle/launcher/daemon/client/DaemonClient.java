@@ -20,7 +20,9 @@ import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.daemon.connection.DaemonBuildExecuter;
 import org.gradle.launcher.daemon.connection.DaemonBuildRequest;
+import org.gradle.launcher.daemon.connection.DaemonBuildResult;
 import org.gradle.launcher.daemon.connection.JvmBuildRequest;
+import org.gradle.launcher.daemon.connection.JvmBuildResult;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -54,7 +56,7 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
      */
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, ClientBuildRequestContext requestContext) {
-        return executer.execute(new JvmBuildRequest(
+        DaemonBuildResult result = executer.execute(new JvmBuildRequest(
             action,
             requestContext.getClient(),
             requestContext.getStartTime(),
@@ -63,5 +65,6 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
             requestContext.getCancellationToken(),
             requestContext.getEventConsumer()
         ));
+        return ((JvmBuildResult) result).getBuildActionResult();
     }
 }

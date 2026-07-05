@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.connection;
 
-import org.gradle.launcher.exec.BuildActionResult;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -23,13 +22,14 @@ import org.jspecify.annotations.NullMarked;
  *
  * <p>This is the connect-and-execute half of the daemon abstraction: given a {@link DaemonBuildRequest}, an
  * implementation locates or starts a suitable daemon, sends the build, streams its output and events back, and
- * returns the {@link BuildActionResult}. It is the single seam the daemon build client goes through, and the
- * contract a cross-version or non-JVM client can implement over a different transport.
+ * returns the {@link DaemonBuildResult}. It is the single seam the daemon build client goes through, and the
+ * contract a cross-version or non-JVM client can implement over a different transport. Neither the request nor
+ * the result exposes a JVM {@code BuildAction}/{@code BuildActionResult} on this surface.
  */
 @NullMarked
 public interface DaemonBuildExecuter {
     /**
      * Connects to a daemon, runs the given build to completion, and returns its result.
      */
-    BuildActionResult execute(DaemonBuildRequest request);
+    DaemonBuildResult execute(DaemonBuildRequest request);
 }

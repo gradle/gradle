@@ -24,7 +24,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.exec.BuildActionResult;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.InputStream;
@@ -56,7 +55,7 @@ public class DefaultDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
     }
 
     @Override
-    public BuildActionResult execute(DaemonBuildRequest request) {
+    public DaemonBuildResult execute(DaemonBuildRequest request) {
         JvmBuildRequest jvmRequest = requireJvmRequest(request);
         UUID buildId = nextBuildId();
         List<DaemonInitialConnectException> accumulatedExceptions = new ArrayList<>();
@@ -74,7 +73,7 @@ public class DefaultDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
             // Compatible daemon was found, try it
             try {
                 Build build = newBuild(buildId, connection, jvmRequest);
-                return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
+                return new JvmBuildResult(executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer()));
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
                 LOGGER.debug("{}, Trying a different daemon...", e.getMessage());
@@ -88,7 +87,7 @@ public class DefaultDaemonBuildExecuter extends AbstractDaemonBuildExecuter {
         final DaemonClientConnection connection = getConnector().startDaemon(compatibilitySpec);
         try {
             Build build = newBuild(buildId, connection, jvmRequest);
-            return executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer());
+            return new JvmBuildResult(executeBuild(build, connection, request.getCancellationToken(), request.getEventConsumer()));
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again
             accumulatedExceptions.add(e);
