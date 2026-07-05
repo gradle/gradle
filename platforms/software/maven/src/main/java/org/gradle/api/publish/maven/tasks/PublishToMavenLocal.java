@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.publish.internal.PublishOperation;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
@@ -49,17 +49,16 @@ public abstract class PublishToMavenLocal extends AbstractPublishToMaven {
     public void publish() {
         MavenNormalizedPublication normalizedPublication = this.normalizedPublication.get();
         getDuplicatePublicationTracker().checkCanPublishToMavenLocal(normalizedPublication);
-        doPublish(normalizedPublication);
+
+        MavenPublisher publisher = new ValidatingMavenPublisher(getMavenPublishers().getLocalPublisher(getTemporaryDirFactory()));
+        try {
+            publisher.publish(normalizedPublication, null);
+        } catch (Exception e) {
+            throw new PublishException(
+                "Failed to publish publication '" + normalizedPublication.getName() + "' to repository 'mavenLocal'",
+                e
+            );
+        }
     }
 
-    private void doPublish(MavenNormalizedPublication normalizedPublication) {
-        new PublishOperation(normalizedPublication.getName(), "mavenLocal") {
-            @Override
-            protected void publish() {
-                MavenPublisher localPublisher = getMavenPublishers().getLocalPublisher(getTemporaryDirFactory());
-                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(localPublisher);
-                validatingPublisher.publish(normalizedPublication, null);
-            }
-        }.run();
-    }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.layout;
 
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
+import org.gradle.api.tasks.Input;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
@@ -29,6 +30,7 @@ import java.util.Set;
  * Optionally supports a Maven style layout for the 'organisation' part, replacing any dots with forward slashes.
  */
 public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout implements IvyPatternRepositoryLayout {
+
     private final Set<String> artifactPatterns = new LinkedHashSet<>();
     private final Set<String> ivyPatterns = new LinkedHashSet<>();
     private boolean m2compatible;
@@ -84,4 +86,17 @@ public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout 
             builder.addIvyResource(baseUri, pattern);
         }
     }
+
+    @Input
+    @SuppressWarnings("unused")
+    public Set<String> getArtifactPatterns() {
+        return artifactPatterns;
+    }
+
+    @Input
+    @SuppressWarnings("unused")
+    public Set<String> getIvyPatterns() {
+        return ivyPatterns;
+    }
+
 }

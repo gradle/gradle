@@ -18,24 +18,37 @@ package org.gradle.internal.authentication;
 
 import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.authentication.Authentication;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
 @NonExtensible
 public interface AuthenticationInternal extends Authentication {
+
+    @Input
+    @Override
+    String getName();
+
     boolean supports(Credentials credentials);
 
-    Credentials getCredentials();
+    @Nested
+    @Optional
+    @Nullable Credentials getCredentials();
 
-    void setCredentials(Credentials credentials);
+    void setCredentials(@Nullable Credentials credentials);
 
+    @Input
     Class<? extends Authentication> getType();
 
     boolean requiresCredentials();
 
     void addHost(String host, int port);
 
+    @Nested
     Collection<HostAndPort> getHostsForAuthentication();
 
     interface HostAndPort {
@@ -45,13 +58,17 @@ public interface AuthenticationInternal extends Authentication {
          *
          * null means "any host"
          */
-        String getHost();
+        @Input
+        @Optional
+        @Nullable String getHost();
 
         /**
          * The port that the credentials are required for
          *
          * -1 means "any port"
          */
+        @Input
         int getPort();
     }
+
 }

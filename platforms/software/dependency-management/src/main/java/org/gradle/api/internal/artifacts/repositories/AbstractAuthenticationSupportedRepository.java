@@ -118,6 +118,10 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
         return configuredAuthentication;
     }
 
+    public Provider<Collection<Authentication>> getConfiguredAuthenticationProvider() {
+        return providerFactory.provider(this::getConfiguredAuthentication);
+    }
+
     protected Collection<URI> getRepositoryUrls() {
         return Collections.emptyList();
     }
