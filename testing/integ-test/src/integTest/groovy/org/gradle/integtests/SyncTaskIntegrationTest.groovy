@@ -91,6 +91,30 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'on its first execution against a destination, an empty source leaves pre-existing unrelated content untouched even for an untracked task'() {
+        given:
+        // 'source' is never created, so it resolves to an empty file tree (simulating a misconfigured 'from').
+        file('dest/unrelated.txt').text = 'do not delete me'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                doNotTrackState('exercising the empty-source guard without execution history')
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        // No execution history for an untracked task means "no previous output", so the guard no-ops via setDidWork(false), surfaced as UP-TO-DATE.
+        skipped ':sync'
+        file('dest/unrelated.txt').text == 'do not delete me'
+        file('dest').assertHasDescendants('unrelated.txt')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
     def 'deletes stale outputs when a child source dir becomes empty'() {
         given:
         file('source/sub/foo.txt').text = 'foo'
@@ -174,9 +198,10 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    // Sync's stale-output cleanup on an empty source applies to untracked tasks too, exactly as it does for a
-    // normal, tracked Sync task.
-    def 'deletes stale outputs when source becomes empty even for an untracked task'() {
+    // An untracked task never accumulates sync history, so stale outputs from a real prior run are not
+    // auto-cleaned when the source later becomes empty -- Gradle has no way to safely tell such output apart
+    // from unrelated content that happens to already be in the destination.
+    def 'does not delete stale outputs when source becomes empty for an untracked task'() {
         given:
         file('source/foo.txt').text = 'foo'
 
@@ -200,9 +225,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         run 'sync'
 
         then:
-        executedAndNotSkipped ':sync'
-        !file('dest/foo.txt').exists()
-        file('dest').directory
+        skipped ':sync'
+        file('dest/foo.txt').exists()
     }
 
     def 'copies files and removes extra files from destDir'() {
