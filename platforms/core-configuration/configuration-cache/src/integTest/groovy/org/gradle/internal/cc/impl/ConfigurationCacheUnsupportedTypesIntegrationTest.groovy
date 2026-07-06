@@ -457,7 +457,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: failed to serialize value of field 'badField' of task ':broken' of type 'SomeTask'"
             )
-            problemsWithStackTraceCount = 1
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -838,7 +838,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
             withUniqueProblems(
                 "Task `:lenient` of type `LenientTask`: failed to serialize value of field 'classPath\$delegate' of task ':lenient' of type 'LenientTask'"
             )
-            problemsWithStackTraceCount = 1
+            problemsWithStackTraceCount = 0
         }
 
         and: "the task body ran — the build was not interrupted at store"
@@ -1268,7 +1268,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(result) {
             totalProblemsCount = 1
             withUniqueProblems(uniqueProblem)
-            problemsWithStackTraceCount = 1
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -1295,10 +1295,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         // either the HTML report or the fail-mode cause chain are built. Since both
         // calls share the same field trace and the StructuredMessage renders the same
         // (the message walks the current trace, which is identical for both calls),
-        // only one problem survives dedup — hence withUniqueProblems = 1 and
-        // problemsWithStackTraceCount = 1. The totalProblemsCount counter increments
-        // before dedup, so it reflects every onProblem call and is the most reliable
-        // cross-mode signal.
+        // only one problem survives dedup — hence withUniqueProblems = 1. The
+        // totalProblemsCount counter increments before dedup, so it reflects every
+        // onProblem call and is the most reliable cross-mode signal.
         buildFile << """
             abstract class MapKeyValueConfTask extends DefaultTask {
                 @Internal
@@ -1324,7 +1323,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
             withUniqueProblems(
                 "Task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`: failed to serialize value of field '__confs__' of task ':mapKeyValueConfTask' of type 'MapKeyValueConfTask'"
             )
-            problemsWithStackTraceCount = 1
+            problemsWithStackTraceCount = 0
         }
 
         and:

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.serialize.graph.codecs
 
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.lang.reflect.Field
 
@@ -77,8 +76,7 @@ fun WriteContext.findCodecThatWidensIncompatibly(
  * [withPropertyTrace] themselves; this keeps the trace surface explicit at
  * the call site instead of conflating it with the problem-reporting helper.
  */
-suspend fun WriteContext.reportSerializationProblem(exception: Exception) {
-    val failureFactory = ownerService<FailureFactory>()
+fun WriteContext.reportSerializationProblem(exception: Exception) {
     val message = StructuredMessage.build {
         text("failed to serialize value of ")
         trace.sequence.forEach { it.describe(this) }
@@ -88,7 +86,7 @@ suspend fun WriteContext.reportSerializationProblem(exception: Exception) {
             trace = trace,
             message = message,
             exception = exception,
-            stackTracingFailure = failureFactory.create(exception)
+            documentationSection = DocumentationSection.RequirementsDisallowedTypes
         )
     )
 }

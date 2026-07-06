@@ -16,19 +16,14 @@
 
 package org.gradle.internal.serialize.codecs.core
 
-import org.gradle.api.problems.internal.ProblemLocator
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.problems.failure.Failure
-import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.WriteIsolate
 import org.gradle.internal.serialize.graph.codecs.WideningCodec
 import org.gradle.internal.serialize.graph.codecs.reportIfUnsupportedPropertyValueType
 import org.junit.Assert.assertEquals
@@ -179,41 +174,20 @@ class ReportIfUnsupportedPropertyValueTypeTest {
 
     /**
      * Stubs the small WriteContext surface that [reportIfUnsupportedPropertyValueType]
-     * touches (codecForRuntimeType, trace, isolate.owner.service, onProblem). Every
-     * other method throws via a JDK Proxy so an accidental call is loud, not silent.
+     * touches (codecForRuntimeType, trace, onProblem). Every other method throws via
+     * a JDK Proxy so an accidental call is loud, not silent.
      */
     private fun fakeContext(
         codecs: Map<Class<*>, Any?>,
         capturedProblems: MutableList<PropertyProblem>
     ): WriteContext {
         val throwingDelegate = throwingProxy(WriteContext::class.java)
-        val isolateStub = fakeWriteIsolate()
         return object : WriteContext by throwingDelegate {
             override fun codecForRuntimeType(type: Class<*>): Any? = codecs[type]
             override var trace: PropertyTrace = PropertyTrace.Unknown
-            override val isolate: WriteIsolate get() = isolateStub
             override fun onProblem(problem: PropertyProblem) {
                 capturedProblems += problem
             }
-        }
-    }
-
-    private fun fakeWriteIsolate(): WriteIsolate {
-        val failureFactory = object : FailureFactory {
-            override fun create(failure: Throwable): Failure = throwingProxy(Failure::class.java)
-            override fun create(failure: Throwable, problemLocator: ProblemLocator): Failure = create(failure)
-        }
-        val ownerStub = object : IsolateOwner {
-            override val delegate: Any get() = error("not used")
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : Any> service(type: Class<T>): T = when (type) {
-                FailureFactory::class.java -> failureFactory as T
-                else -> error("FakeIsolateOwner: unexpected service request for $type")
-            }
-        }
-        val throwingIsolate = throwingProxy(WriteIsolate::class.java)
-        return object : WriteIsolate by throwingIsolate {
-            override val owner: IsolateOwner get() = ownerStub
         }
     }
 
