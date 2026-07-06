@@ -1085,30 +1085,121 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         assertHasUnsupportedPropertyValueType(Property, Configuration, "multiConf", "MultiConfTask")
     }
 
-    def "unset Property of unsupported type does not cause an error"() {
-        // An unset abstract managed property's backing field is null (lazy initialization never triggered).
-        // The codec framework writes a null marker directly, so PropertyCodec is never invoked
-        // and the unsupported type check does not fire.
-        buildFile << """
+    def "unset #propertyKind of unsupported type does not cause an error (#description)"() {
+        // An unset Property is stored to the cache as a missing marker, so the
+        // widening-type check that PropertyCodec would fire on load is skipped.
+        // Covers all four ways an unset Property of an unsupported type can enter
+        // the store — abstract managed (never accessed), abstract managed (accessed
+        // but never set), explicitly constructed via ObjectFactory (never set),
+        // and explicitly constructed and read at execution time.
+        buildFile << buildScript
+
+        when:
+        configurationCacheRun taskName
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains expectedOutput
+
+        where:
+        propertyKind      | description                                                     | taskName          | expectedOutput    | buildScript
+        "Property"        | "abstract managed, never accessed"                              | "unsetConf"       | "task ran"        | unsetAbstractPropertyBuildScript()
+        "Property"        | "abstract managed, accessed"                                    | "presenceConf"    | "Present: false"  | presenceAbstractPropertyBuildScript()
+        "Property"        | "explicit objects.property, never set"                          | "explicitUnset"   | "Present: false"  | unsetExplicitPropertyBuildScript()
+        "ListProperty"    | "abstract managed, never accessed"                              | "unsetListConf"   | "task ran"        | unsetAbstractListPropertyBuildScript()
+        "SetProperty"     | "abstract managed, never accessed"                              | "unsetSetConf"    | "task ran"        | unsetAbstractSetPropertyBuildScript()
+        "MapProperty"     | "abstract managed, unsupported key and value, never accessed"   | "unsetMapConf"    | "task ran"        | unsetAbstractMapPropertyBuildScript()
+    }
+
+    private static String unsetAbstractPropertyBuildScript() {
+        """
             abstract class UnsetConfTask extends DefaultTask {
                 @Internal
                 abstract Property<Configuration> getConf()
 
                 @TaskAction
-                void run() {
-                    println "Present: " + conf.isPresent()
-                }
+                void run() { println "task ran" }
             }
 
             tasks.register("unsetConf", UnsetConfTask)
         """
+    }
 
-        when:
-        configurationCacheRun "unsetConf"
+    private static String presenceAbstractPropertyBuildScript() {
+        """
+            abstract class PresenceConfTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
 
-        then:
-        configurationCache.assertStateStored()
-        outputContains "Present: false"
+                @TaskAction
+                void run() { println "Present: " + conf.isPresent() }
+            }
+
+            tasks.register("presenceConf", PresenceConfTask)
+        """
+    }
+
+    private static String unsetExplicitPropertyBuildScript() {
+        """
+            import javax.inject.Inject
+
+            abstract class ExplicitUnsetConfTask extends DefaultTask {
+                @Internal
+                final Property<Configuration> conf
+
+                @Inject
+                ExplicitUnsetConfTask(ObjectFactory objects) {
+                    conf = objects.property(Configuration)
+                }
+
+                @TaskAction
+                void run() { println "Present: " + conf.isPresent() }
+            }
+
+            tasks.register("explicitUnset", ExplicitUnsetConfTask)
+        """
+    }
+
+    private static String unsetAbstractListPropertyBuildScript() {
+        """
+            abstract class UnsetListConfTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetListConf", UnsetListConfTask)
+        """
+    }
+
+    private static String unsetAbstractSetPropertyBuildScript() {
+        """
+            abstract class UnsetSetConfTask extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetSetConf", UnsetSetConfTask)
+        """
+    }
+
+    private static String unsetAbstractMapPropertyBuildScript() {
+        """
+            abstract class UnsetMapConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, SourceDirectorySet> getConfs()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetMapConf", UnsetMapConfTask)
+        """
     }
 
     def "following resolution advice fixes Property of #typeName"() {
