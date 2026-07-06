@@ -21,6 +21,7 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.Try
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult
@@ -100,7 +101,14 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
             maybeDumpHeap("cc-miss-load")
-            TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+            if (cache.workGraphRestorationFailed) {
+                // The just-stored graph could not be fully restored, so its state is unreliable and must not be executed.
+                // No tasks run, hence no execution-phase failures here; the restoration problem fails the build through
+                // the configuration cache problem report at the end of the build (ConfigurationCacheProblems.report).
+                TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
+            } else {
+                TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+            }
         }
     }
 

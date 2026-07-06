@@ -124,6 +124,10 @@ class DefaultConfigurationCache internal constructor(
     private
     var entryDiscardRequested = false
 
+    // Did the most recent work graph load fail to fully restore the graph from the cache?
+    private
+    var workGraphRestoreFailed = false
+
     private
     val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
 
@@ -200,6 +204,9 @@ class DefaultConfigurationCache internal constructor(
 
     override val isLoaded: Boolean
         get() = cacheAction is Load
+
+    override val workGraphRestorationFailed: Boolean
+        get() = workGraphRestoreFailed
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
@@ -768,7 +775,7 @@ class DefaultConfigurationCache internal constructor(
         // when loading the task graph.
         scopeRegistryListener.dispose()
 
-        buildOperationRunner.withWorkGraphLoadOperation {
+        val finalizedGraph = buildOperationRunner.withWorkGraphLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
                 LoadResultMetadata(buildInvocationId) to workGraph
@@ -776,6 +783,8 @@ class DefaultConfigurationCache internal constructor(
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
             WorkGraphLoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
+        workGraphRestoreFailed = !startParameter.isWarningMode && problems.queryFailure() != null
+        finalizedGraph
     }
 
     private
