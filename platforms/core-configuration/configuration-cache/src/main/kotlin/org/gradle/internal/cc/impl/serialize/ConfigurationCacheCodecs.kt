@@ -445,16 +445,20 @@ class DefaultConfigurationCacheCodecs(
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
+
         // SourceDirectorySetCodec must precede FileTreeCodec: SourceDirectorySet is a
         // FileTreeInternal subtype, and the binding-walk picks the first match.
         bind(SourceDirectorySet::class, SourceDirectorySetCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
         bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
-        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory)
-        bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
+
         // ConfigurationCodec must precede FileCollectionCodec: Configuration is a
         // FileCollectionInternal subtype, and the binding-walk picks the first match.
         bind(Configuration::class, ConfigurationCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory))
+
+        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory)
+        bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
+
         bind(IntersectionPatternSetCodec)
         bind(PatternSetCodec(patternSetFactory))
     }

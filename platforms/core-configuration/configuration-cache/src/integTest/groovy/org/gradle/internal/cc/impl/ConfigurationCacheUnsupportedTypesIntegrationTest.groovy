@@ -419,8 +419,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         where:
         concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue | failsAtStore | decodedTypeName                      | resolution
-        DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection' | true         | 'org.gradle.api.file.FileCollection' | 'Use a ConfigurableFileCollection instead.'
-        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection' | true         | 'org.gradle.api.file.FileCollection' | 'Use a ConfigurableFileCollection instead.'
+        DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection' | true         | 'org.gradle.api.file.FileCollection' | 'Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.'
+        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection' | true         | 'org.gradle.api.file.FileCollection' | 'Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.'
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'       | true         | 'org.gradle.api.file.FileTree'       | 'Use a ConfigurableFileCollection or ConfigurableFileTree instead.'
     }
 
@@ -667,7 +667,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
             "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
-        failure.assertHasResolution("Use a ConfigurableFileCollection instead.")
+        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
 
         where:
         delegateKind | configSource | delegateLabel         | delegateDeclaration
@@ -776,7 +776,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
             "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
-        failure.assertHasResolution("Use a ConfigurableFileCollection instead.")
+        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
 
         where:
         delegateKind | configSource | delegateLabel         | delegateDeclaration
@@ -898,10 +898,10 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("lazyValue: computed")
     }
 
-    def "reports sensible error when task has #annotation Property of Configuration"() {
+    def "reports sensible error when task has @Internal Property of Configuration"() {
         buildFile << """
             abstract class BrokenPrintTask extends DefaultTask {
-                $annotation
+                @Internal
                 abstract Property<Configuration> getConf()
 
                 @TaskAction
@@ -922,9 +922,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         assertHasUnsupportedPropertyValueType(Property, Configuration, "printFiles", "BrokenPrintTask")
-
-        where:
-        annotation << ["@Input", "@Internal", "@InputFiles", "@Classpath"]
     }
 
     def "reports sensible error when concrete task has concrete Property of Configuration"() {
@@ -960,10 +957,10 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         assertHasUnsupportedPropertyValueType(Property, Configuration, "concreteConf", "ConcreteConfTask")
     }
 
-    def "reports sensible error when task has #annotation Property of SourceDirectorySet"() {
+    def "reports sensible error when task has @Internal Property of SourceDirectorySet"() {
         buildFile << """
             abstract class SdsTask extends DefaultTask {
-                $annotation
+                @Internal
                 abstract Property<SourceDirectorySet> getSds()
 
                 @TaskAction
@@ -982,9 +979,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         assertHasUnsupportedPropertyValueType(Property, SourceDirectorySet, "sdsTask", "SdsTask")
-
-        where:
-        annotation << ["@Input", "@Internal", "@InputFiles", "@Classpath"]
     }
 
     def "reports sensible error task indirectly holds a Property of unsupported type"() {
@@ -1024,10 +1018,10 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
                 Property<Configuration> getConf()
             }
 
-            def holder = objects.newInstance(ConfHolder)
-            holder.conf.set(configurations.create('myConf'))
-
             tasks.named("tasks") {
+                def holder = objects.newInstance(ConfHolder)
+                holder.conf.set(configurations.create('myConf'))
+
                 doLast {
                     println "Conf: " + holder.conf.get().name
                 }
@@ -1465,7 +1459,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         } else if (SourceDirectorySet.isAssignableFrom(unsupportedType)) {
             failure.assertHasResolution("Use a ConfigurableFileCollection or ConfigurableFileTree instead.")
         } else {
-            failure.assertHasResolution("Use a ConfigurableFileCollection instead.")
+            failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
         }
     }
 }

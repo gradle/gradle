@@ -32,5 +32,5 @@ interface CodecLookup {
      * so callers cast to concrete codec interfaces (for example
      * `WideningCodec<*>`) without forcing this interface to depend on them.
      */
-    fun encodingForType(type: Class<*>): Any?
+    fun encodingForType(type: Class<*>): EncodingProvider<*>?
 }

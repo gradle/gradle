@@ -47,5 +47,5 @@ class ConfigurationCodec(
 
     override val publicDecodedType: Class<*> = FileCollection::class.java
 
-    override val wideningFix: String = "Use a ConfigurableFileCollection instead."
+    override val wideningFix: String = "Use a ConfigurableFileCollection instead, or change the captured type to FileCollection."
 }

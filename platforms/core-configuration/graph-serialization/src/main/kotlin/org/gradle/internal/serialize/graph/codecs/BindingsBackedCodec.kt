@@ -139,11 +139,11 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?>, Co
      * returned encoding to `WideningCodec<*>` (or similar) to inspect metadata.
      *
      * Returns [Encoding] rather than [TaggedEncoding] because the tag is a
-     * serialization-internal concern — only [encode] needs it, to write the
+     * serialization-internal concern — only [encode] needs it to write the
      * discriminator byte before delegating. Diagnostic callers don't write
      * to the encoder, so the tag would be dead information.
      */
-    override fun encodingForType(type: Class<*>): Encoding? {
+    override fun encodingForType(type: Class<*>): EncodingProvider<*>? {
         val tagged = encodings.computeIfAbsent(type, ::computeEncoding)
         return if (tagged === noMatch) null else tagged.encoding
     }
