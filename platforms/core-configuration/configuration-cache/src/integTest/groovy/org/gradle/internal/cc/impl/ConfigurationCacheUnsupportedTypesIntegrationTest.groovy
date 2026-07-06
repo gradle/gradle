@@ -378,14 +378,10 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         then:
         if (failsAtStore) {
             // WideningCodec-driven check rejects the incompatible round-trip at store time.
-            // See assertHasUnsupportedPropertyValueType for context on why the check uses
-            // outputContains rather than assertHasCause / assertHasResolution.
-            failure.assertOutputContains(
-                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask."
+            failure.assertHasCause(
+                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask. Values of this type are restored from the configuration cache as ${decodedTypeName}, which cannot be assigned to a field of type ${baseType.name}."
             )
-            failure.assertOutputContains(
-                "Values of this type are restored from the configuration cache as ${decodedTypeName}, which cannot be assigned to a field of type ${baseType.name}."
-            )
+            failure.assertHasResolution(resolution)
         } else {
             // No WideningCodec fires for this type; the only signal is the read-time
             // type-assignment check that rejects the decoded value on load.
@@ -662,19 +658,16 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         when:
         configurationCacheFails "broken"
 
-        then: "CC detects the unsupported type inside the delegate with a clear cause"
+        then: "CC detects the unsupported type inside the delegate with a clear cause and resolution"
         // WideningCodec-driven check reports both the user's declared property type
         // (Configuration) and the restored type (FileCollection), so the user can see
         // the mismatch between what they wrote and how it comes back from the cache.
-        // See assertHasUnsupportedPropertyValueType for why the check uses
-        // outputContains rather than assertHasCause / assertHasResolution.
-        failure.assertOutputContains(
-            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :broken of type BrokenTask."
-        )
-        failure.assertOutputContains(
+        failure.assertHasCause(
+            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :broken of type BrokenTask. " +
             "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
+        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
 
         where:
         delegateKind | configSource | delegateLabel         | delegateDeclaration
@@ -778,15 +771,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         // WideningCodec-driven check reports both the user's declared property type
         // (Configuration) and the restored type (FileCollection), so the user can see
         // the mismatch between what they wrote and how it comes back from the cache.
-        // See assertHasUnsupportedPropertyValueType for why the check uses
-        // outputContains rather than assertHasCause / assertHasResolution.
-        failure.assertOutputContains(
-            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :failing of type FailingTask."
-        )
-        failure.assertOutputContains(
+        failure.assertHasCause(
+            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :failing of type FailingTask. " +
             "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
+        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
 
         where:
         delegateKind | configSource | delegateLabel         | delegateDeclaration
@@ -1456,19 +1446,16 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     private void assertHasUnsupportedPropertyValueType(Class<?> propertyKind, Class<?> unsupportedType, String taskPath, String taskType, String mapKeyOrValue = null) {
-        // With the widening problem's exception no longer attached to the deferred
-        // PropertyProblem, the summary + details surface only through the CC
-        // problem message (visible in the CC-problems summary section of the build
-        // output and the HTML report), not through the failure's cause chain. Check
-        // the console output for the folded-in summary and details lines.
-        failure.assertOutputContains(
-            "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}."
-        )
-        failure.assertOutputContains(
-            "The value type of this property (${unsupportedType.name}) is not supported with the configuration cache: values of this type are restored from the configuration cache as"
+        failure.assertHasCause(
+            "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}. The value type of this property (${unsupportedType.name}) is not supported with the configuration cache:"
         )
         if (MapProperty.isAssignableFrom(propertyKind)) {
             assert mapKeyOrValue in ['key', 'value']: "MapProperty assertions must declare whether the problem is with the key or the value"
+            failure.assertHasResolution("Avoid using ${unsupportedType.simpleName} as a MapProperty ${mapKeyOrValue}.")
+        } else if (SourceDirectorySet.isAssignableFrom(unsupportedType)) {
+            failure.assertHasResolution("Use a ConfigurableFileCollection or ConfigurableFileTree instead.")
+        } else {
+            failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
         }
     }
 }

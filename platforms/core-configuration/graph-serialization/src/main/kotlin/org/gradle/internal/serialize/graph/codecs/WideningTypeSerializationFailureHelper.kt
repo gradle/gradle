@@ -86,6 +86,7 @@ fun WriteContext.reportSerializationProblem(exception: UnsupportedTypeException)
         PropertyProblem(
             trace = trace,
             message = message,
+            exception = exception,
             documentationSection = DocumentationSection.RequirementsDisallowedTypes
         )
     )
