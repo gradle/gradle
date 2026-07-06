@@ -16,207 +16,76 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.artifacts.result.ResolvedGraphResult
-import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.cache.internal.Store
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata
-import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
 import java.lang.management.ManagementFactory
-import java.util.concurrent.Callable
-import java.util.concurrent.CyclicBarrier
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.function.Supplier
+import java.util.concurrent.CountDownLatch
 
-/**
- * Verifies that the lazily-computed {@link ResolvedGraphResult} /
- * {@link org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult} API can be
- * read concurrently without deadlocking.
- *
- * <p>The build scan and github-dependency-graph plugins read the resolution result from build
- * operation listeners, which run without holding the project lock and therefore may read the
- * same result graph in parallel. Two access paths lazily compute values while holding a monitor
- * and then call into the other object, and previously acquired these two monitors in opposite
- * orders:
- * <ul>
- *     <li>{@code getVariants()} locks the component, then calls {@code graph.getVariant()}.</li>
- *     <li>{@code getDependents()} locks the graph (in {@code getIncomingEdges()}), then calls
- *     {@code component.getDependencies()}, which locks the component.</li>
- * </ul>
- * Racing these two paths could deadlock.
- */
-class ResolutionResultConcurrencyTest extends Specification {
+class ResolutionResultConcurrencyTest extends AbstractResolutionResultBuilderTest {
 
-    class DummyStore implements Store<GraphStructure> {
-        GraphStructure load(Supplier<GraphStructure> createIfNotPresent) {
-            return createIfNotPresent.get()
-        }
-    }
-
-    def builder = new StreamingResolutionResultBuilder(
-        new DummyBinaryStore(),
-        new DummyStore(),
-        new ThisBuildTreeOnlyGraphElementStore(),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        new CapabilitySelectorSerializer(),
-        DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
-        new DefaultImmutableModuleIdentifierFactory(),
-        AttributeTestUtil.attributesFactory(),
-        TestUtil.objectInstantiator(),
-        false
-    )
-
-    int nodeIds = 0
-    int componentIds = 0
-
-    def "concurrent reads of variants and dependents do not deadlock"() {
-        given: "a resolved graph with a root depending on two other components"
-        def dep1 = node(component("org", "dep1", "1.0"))
-        def dep2 = node(component("org", "dep2", "1.0"))
+    def "reading a component's variants and dependents concurrently does not deadlock"() {
+        given: "a resolved graph and a component read from two threads"
+        def depNode = node(component("org", "dep", "1.0"))
         def root = rootNode("org", "root", "1.0")
-        root.outgoingEdges >> [dep(dep1), dep(dep2)]
-
+        root.outgoingEdges >> [dep(depNode)]
         builder.start(root)
         builder.visitNode(root)
-        builder.visitNode(dep1)
-        builder.visitNode(dep2)
+        builder.visitNode(depNode)
         builder.finish(root)
 
         def resolvedGraph = builder.getResolvedDependencyGraph([] as Set)
-        def structure = resolvedGraph.graphSource().get()
-        def componentCount = structure.components().count()
+        def graph = new ResolvedGraphResult(resolvedGraph.graphSource().get(), resolvedGraph.availableVariantsByComponent())
+        def targetComponent = graph.getComponent(0)
 
-        def executor = Executors.newFixedThreadPool(2)
+        def graphMonitorHeld = new CountDownLatch(1)
+        def variantsReaderParked = new CountDownLatch(1)
 
-        when: "the variants and dependents of every component are read in parallel on a fresh, uncached graph"
-        // The caches are one-shot: once populated the racy compute paths are never re-entered.
-        // So each iteration wraps the (immutable) structure in a fresh ResolvedGraphResult and
-        // aligns the two reader threads on a barrier to maximise the chance of interleaving.
-        200.times {
-            def graph = new ResolvedGraphResult(structure, resolvedGraph.availableVariantsByComponent())
-            def barrier = new CyclicBarrier(2)
+        def dependentsReader = new Thread({
+            synchronized (graph) {
+                graphMonitorHeld.countDown()
+                variantsReaderParked.await()
+                targetComponent.getDependents()
+            }
+        }, "dependents-reader")
 
-            Future<?> variantsReader = executor.submit({
-                barrier.await()
-                for (int i = 0; i < componentCount; i++) {
-                    graph.getComponent(i).getVariants()
-                }
-            } as Callable)
+        def variantsReader = new Thread({
+            graphMonitorHeld.await()
+            targetComponent.getVariants()
+        }, "variants-reader")
 
-            Future<?> dependentsReader = executor.submit({
-                barrier.await()
-                for (int i = 0; i < componentCount; i++) {
-                    (graph.getComponent(i) as ResolvedComponentResultInternal).getDependents()
-                }
-            } as Callable)
-
-            awaitOrReportDeadlock(variantsReader, dependentsReader)
-        }
+        when:
+        dependentsReader.start()
+        variantsReader.start()
+        graphMonitorHeld.await()
+        // Wait until the variants reader parks trying to acquire the graph monitor, then let the
+        // dependents reader (holding the graph monitor) attempt to read the same component.
+        waitUntilParkedOrDone(variantsReader)
+        variantsReaderParked.countDown()
+        failIfDeadlocked(variantsReader, dependentsReader)
 
         then:
         noExceptionThrown()
 
         cleanup:
-        executor.shutdownNow()
+        variantsReader?.interrupt()
+        dependentsReader?.interrupt()
     }
 
-    private static void awaitOrReportDeadlock(Future<?>... futures) {
-        try {
-            for (Future<?> future : futures) {
-                future.get(30, TimeUnit.SECONDS)
+    private static void waitUntilParkedOrDone(Thread thread) {
+        while (thread.alive && thread.state != Thread.State.BLOCKED) {
+            Thread.onSpinWait()
+        }
+    }
+
+    private static void failIfDeadlocked(Thread... readers) {
+        def threadMXBean = ManagementFactory.threadMXBean
+        while (readers.any { it.alive }) {
+            long[] deadlocked = threadMXBean.findDeadlockedThreads()
+            if (deadlocked != null) {
+                def dump = threadMXBean.getThreadInfo(deadlocked, true, true).join("\n")
+                throw new AssertionError("Reading the resolution result deadlocked:\n" + dump as Object)
             }
-        } catch (TimeoutException ignored) {
-            def deadlocked = ManagementFactory.threadMXBean.findDeadlockedThreads()
-            def detail = deadlocked == null
-                ? "reader threads did not complete within the timeout"
-                : "deadlocked threads: " + ManagementFactory.threadMXBean.getThreadInfo(deadlocked, true, true)
-            throw new AssertionError("Concurrent read of the resolution result deadlocked: " + detail as Object)
+            Thread.sleep(1)
         }
-    }
-
-    private DependencyGraphComponent component(String org, String name, String ver, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
-        def componentId = componentIds++
-        def componentMetadata = Stub(ComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
-        }
-
-        def componentState = Stub(ComponentGraphResolveState) {
-            getInstanceId() >> componentId
-            getId() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
-            getMetadata() >> componentMetadata
-        }
-
-        return Stub(DependencyGraphComponent) {
-            getResultId() >> componentId
-            getSelectionReason() >> reason
-            getResolveState() >> componentState
-            getSelectedVariants() >> []
-        }
-    }
-
-    private DependencyGraphEdge dep(DependencyGraphNode node) {
-        def moduleVersionId = node.owner.resolveState.metadata.moduleVersionId
-        def selector = selector(moduleVersionId.group, moduleVersionId.name, moduleVersionId.version)
-        def edge = Stub(DependencyGraphEdge)
-        _ * edge.requested >> selector.requested
-        _ * edge.selector >> selector
-        _ * edge.failure >> null
-        _ * edge.targetNodes >> [node]
-        return edge
-    }
-
-    private DependencyGraphNode node(DependencyGraphComponent component) {
-        int nodeId = nodeIds++
-        def node = Stub(DependencyGraphNode) {
-            getOwner() >> component
-            getNodeId() >> nodeId
-            getExternalVariant() >> null
-        }
-        component.selectedVariants.add(node)
-        return node
-    }
-
-    private RootGraphNode rootNode(String org, String name, String ver) {
-        def component = component(org, name, ver, ComponentSelectionReasons.root())
-        int nodeId = nodeIds++
-        def node = Stub(RootGraphNode) {
-            getOwner() >> component
-            getNodeId() >> nodeId
-            getExternalVariant() >> null
-            getMetadata() >> Mock(LocalVariantGraphResolveMetadata) {
-                getAttributes() >> AttributeTestUtil.attributes(["org.foo": "v1", "org.bar": 2, "org.baz": true])
-            }
-        }
-        component.selectedVariants.add(node)
-        return node
-    }
-
-    private DependencyGraphSelector selector(String org, String name, String ver) {
-        def selector = Stub(DependencyGraphSelector)
-        selector.requested >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(org, name), new DefaultMutableVersionConstraint(ver))
-        return selector
     }
 }
