@@ -449,7 +449,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(result) {
             totalProblemsCount = 1
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: failed to serialize value of 'field `badField` of task `:broken` of type `SomeTask`'"
+                "Task `:broken` of type `SomeTask`: failed to serialize value of field 'badField' of task ':broken' of type 'SomeTask'"
             )
             problemsWithStackTraceCount = 1
         }
@@ -830,7 +830,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(result) {
             totalProblemsCount = 1
             withUniqueProblems(
-                "Task `:lenient` of type `LenientTask`: failed to serialize value of 'field `classPath\$delegate` of task `:lenient` of type `LenientTask`'"
+                "Task `:lenient` of type `LenientTask`: failed to serialize value of field 'classPath\$delegate' of task ':lenient' of type 'LenientTask'"
             )
             problemsWithStackTraceCount = 1
         }

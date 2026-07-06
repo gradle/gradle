@@ -81,7 +81,7 @@ suspend fun WriteContext.reportSerializationProblem(exception: Exception) {
     val failureFactory = ownerService<FailureFactory>()
     val message = StructuredMessage.build {
         text("failed to serialize value of ")
-        reference(trace.toString())
+        trace.sequence.forEach { it.describe(this) }
     }
     onProblem(
         PropertyProblem(

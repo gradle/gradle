@@ -1127,12 +1127,12 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         where:
         description                              | taskName         | buildScript                          | uniqueProblem                                                                                                                                                   | expectedOutput
-        "Property<Configuration>"                | "printFiles"     | propertyOfConfigurationBuildScript() | "Task `:printFiles` of type `PrintFiles`: failed to serialize value of 'field `__conf__` of task `:printFiles` of type `PrintFiles`'"                          | "Present: false"
-        "Property<SourceDirectorySet>"           | "sdsTask"        | propertyOfSdsBuildScript()           | "Task `:sdsTask` of type `SdsTask`: failed to serialize value of 'field `__sds__` of task `:sdsTask` of type `SdsTask`'"                                       | "Present: false"
-        "ListProperty<Configuration>"            | "listConfTask"   | listPropertyBuildScript()            | "Task `:listConfTask` of type `ListConfTask`: failed to serialize value of 'field `__confs__` of task `:listConfTask` of type `ListConfTask`'"                  | "Confs: []"
-        "SetProperty<Configuration>"             | "setConfTask"    | setPropertyBuildScript()             | "Task `:setConfTask` of type `SetConfTask`: failed to serialize value of 'field `__confs__` of task `:setConfTask` of type `SetConfTask`'"                      | "Confs: []"
-        "MapProperty<String, Configuration>"     | "mapConfTask"    | mapPropertyValueBuildScript()        | "Task `:mapConfTask` of type `MapConfTask`: failed to serialize value of 'field `__confs__` of task `:mapConfTask` of type `MapConfTask`'"                      | "Confs: [:]"
-        "MapProperty<Configuration, String>"     | "mapKeyConfTask" | mapPropertyKeyBuildScript()          | "Task `:mapKeyConfTask` of type `MapKeyConfTask`: failed to serialize value of 'field `__confs__` of task `:mapKeyConfTask` of type `MapKeyConfTask`'"          | "Confs: [:]"
+        "Property<Configuration>"                | "printFiles"     | propertyOfConfigurationBuildScript() | "Task `:printFiles` of type `PrintFiles`: failed to serialize value of field '__conf__' of task ':printFiles' of type 'PrintFiles'"                            | "Present: false"
+        "Property<SourceDirectorySet>"           | "sdsTask"        | propertyOfSdsBuildScript()           | "Task `:sdsTask` of type `SdsTask`: failed to serialize value of field '__sds__' of task ':sdsTask' of type 'SdsTask'"                                         | "Present: false"
+        "ListProperty<Configuration>"            | "listConfTask"   | listPropertyBuildScript()            | "Task `:listConfTask` of type `ListConfTask`: failed to serialize value of field '__confs__' of task ':listConfTask' of type 'ListConfTask'"                   | "Confs: []"
+        "SetProperty<Configuration>"             | "setConfTask"    | setPropertyBuildScript()             | "Task `:setConfTask` of type `SetConfTask`: failed to serialize value of field '__confs__' of task ':setConfTask' of type 'SetConfTask'"                       | "Confs: []"
+        "MapProperty<String, Configuration>"     | "mapConfTask"    | mapPropertyValueBuildScript()        | "Task `:mapConfTask` of type `MapConfTask`: failed to serialize value of field '__confs__' of task ':mapConfTask' of type 'MapConfTask'"                       | "Confs: [:]"
+        "MapProperty<Configuration, String>"     | "mapKeyConfTask" | mapPropertyKeyBuildScript()          | "Task `:mapKeyConfTask` of type `MapKeyConfTask`: failed to serialize value of field '__confs__' of task ':mapKeyConfTask' of type 'MapKeyConfTask'"           | "Confs: [:]"
     }
 
     def "MapProperty with both key and value of unsupported types reports a problem for each"() {
@@ -1144,11 +1144,12 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         //
         // The CC problem aggregator dedupes deferred problems by message + trace before
         // either the HTML report or the fail-mode cause chain are built. Since both
-        // calls share the same field trace and the StructuredMessage is the same
-        // ("failed to serialize value of <trace>"), only one problem survives dedup —
-        // hence withUniqueProblems = 1 and problemsWithStackTraceCount = 1. The
-        // totalProblemsCount counter increments before dedup, so it reflects every
-        // onProblem call and is the most reliable cross-mode signal.
+        // calls share the same field trace and the StructuredMessage renders the same
+        // (the message walks the current trace, which is identical for both calls),
+        // only one problem survives dedup — hence withUniqueProblems = 1 and
+        // problemsWithStackTraceCount = 1. The totalProblemsCount counter increments
+        // before dedup, so it reflects every onProblem call and is the most reliable
+        // cross-mode signal.
         buildFile << """
             abstract class MapKeyValueConfTask extends DefaultTask {
                 @Internal
@@ -1172,7 +1173,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         problems.assertResultHasProblems(result) {
             totalProblemsCount = 2
             withUniqueProblems(
-                "Task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`: failed to serialize value of 'field `__confs__` of task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`'"
+                "Task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`: failed to serialize value of field '__confs__' of task ':mapKeyValueConfTask' of type 'MapKeyValueConfTask'"
             )
             problemsWithStackTraceCount = 1
         }
