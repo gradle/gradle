@@ -206,7 +206,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     public abstract SetProperty<String> getAdditionalIvyPatterns();
 
     /**
-     * The item organization layout to use when publishing to the repository.
+     * The layout to use when publishing to the repository.
      *
      * @since 9.8.0
      *
