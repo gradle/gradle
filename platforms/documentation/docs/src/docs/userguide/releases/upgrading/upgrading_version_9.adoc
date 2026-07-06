@@ -206,7 +206,7 @@ The following methods will be removed in Gradle 10:
 - `PublishToIvyRepository.getRepository()`
 - `PublishToIvyRepository.setRepository(IvyArtifactRepository)`
 
-The `repository` property held an entire repository instance, which cannot be serialized to the configuration cache.
+The `repository` property holds an entire repository instance, which cannot be serialized to the configuration cache.
 The individual components of the repository that these tasks actually use are now modeled as proper task inputs.
 The following properties have been introduced as a replacement on both tasks:
 
@@ -225,7 +225,11 @@ Additionally, the following properties have been introduced on `PublishToIvyRepo
 The new `configureFromRepository` method on the `PublishToMavenRepository` and `PublishToIvyRepository` tasks lazily configures the above properties from a given repository.
 This is a direct replacement for `setRepository`:
 
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
 ----
 tasks.register<PublishToMavenRepository>("myPublishTask") {
     // Deprecated:
@@ -235,9 +239,29 @@ tasks.register<PublishToMavenRepository>("myPublishTask") {
     configureFromRepository(publishing.repositories["external"])
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register("myPublishTask", PublishToMavenRepository) {
+    // Deprecated:
+    repository = publishing.repositories.external
+
+    // Instead, use:
+    configureFromRepository(publishing.repositories.external)
+}
+----
+=====
+====
 
 Code that reads the `repository` property to identify the repository a task publishes to should use `repositoryName` or `repositoryUri` instead:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
 [source,kotlin]
 ----
 tasks.withType<PublishToMavenRepository>().configureEach {
@@ -248,6 +272,22 @@ tasks.withType<PublishToMavenRepository>().configureEach {
     repositoryName.map { it == "external" }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.withType(PublishToMavenRepository).configureEach {
+    // Deprecated:
+    repository == publishing.repositories.external
+
+    // Instead, use:
+    repositoryName.map { it == "external" }
+}
+----
+=====
+====
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
