@@ -83,15 +83,14 @@ public abstract class Sync extends AbstractCopyTask {
     @Override
     protected void copy() {
         File destinationDir = getDestinationDir();
-        boolean isUntracked = getReasonNotToTrackState().isPresent();
-        if (!isUntracked && destinationDir != null && isSourceEmpty() && !hasPreviousOutputFilesUnder(destinationDir)) {
+        if (destinationDir != null && isSourceEmpty() && !hasPreviousOutputFilesUnder(destinationDir)) {
             // No source, and no record of ever having synced into this exact destination before: most likely
             // a misconfigured `from` pointed at an unrelated, pre-existing directory. Do nothing rather than
             // risk wiping out content this task never put there.
             //
-            // Untracked tasks (doNotTrackState()/@UntrackedTask) are exempt: Gradle never records execution
-            // history for them, so "no previous output" would otherwise always be true, permanently disabling
-            // this cleanup. An untracked task already forgoes Gradle's incremental/up-to-date guarantees.
+            // For an untracked task (doNotTrackState()/@UntrackedTask), Gradle never records execution history,
+            // so this condition is always true when the source is empty: such a task never auto-cleans stale
+            // outputs on an empty source, since there is no way to safely tell prior output from unrelated content.
             setDidWork(false);
             return;
         }
