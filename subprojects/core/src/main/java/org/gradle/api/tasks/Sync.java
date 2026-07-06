@@ -83,24 +83,24 @@ public abstract class Sync extends AbstractCopyTask {
     @Override
     protected void copy() {
         File destinationDir = getDestinationDir();
-        if (destinationDir != null && isSourceEmpty() && !hasPreviousOutputFilesUnder(destinationDir)) {
-            // No source, and no record of ever having synced into this exact destination before: most likely
-            // a misconfigured `from` pointed at an unrelated, pre-existing directory. Do nothing rather than
-            // risk wiping out content this task never put there.
-            //
-            // For an untracked task (doNotTrackState()/@UntrackedTask), Gradle never records execution history,
-            // so this condition is always true when the source is empty: such a task never auto-cleans stale
-            // outputs on an empty source, since there is no way to safely tell prior output from unrelated content.
-            setDidWork(false);
-            return;
+        if (destinationDir != null && !hasPreviousOutputFilesUnder(destinationDir)) {
+            // performance: check file system contents last
+            if (isSourceEmpty()) {
+                // Empty source and no record of a prior sync into this destination:
+                // possibly a misconfigured source pointing at an unrelated directory, so do nothing rather than
+                // wipe content this task never wrote. (Untracked tasks keep no history, so they always
+                // take this branch on an empty source.)
+                setDidWork(false);
+                return;
+            }
         }
         super.copy();
     }
 
     /**
-     * Whether the source contains no files and no directories, consistent with the source input property's own
-     * {@code ignoreEmptyDirectories(false)} configuration — unlike {@link org.gradle.api.file.FileCollection#isEmpty()},
-     * which only counts regular files and would otherwise treat a source made up solely of empty directories as empty.
+     * Whether the source has no files and no directories. Unlike {@link org.gradle.api.file.FileCollection#isEmpty()},
+     * which counts regular files only, this also counts empty directories (needed to honor
+     * {@code ignoreEmptyDirectories(false)}).
      */
     private boolean isSourceEmpty() {
         MutableBoolean found = new MutableBoolean();
