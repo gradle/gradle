@@ -115,7 +115,7 @@ suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: 
     val exception = UnsupportedTypeException(
         "Cannot serialize value of type ${fieldValue.javaClass.name} into field " +
             "${field.name} of ${field.declaringClass.name} in ${trace.taskDescription()}: " +
-            "its codec produces ${widening.publicDecodedType.name} on load, " +
+            "values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}, " +
             "which cannot be assigned to a field of type ${field.type.name}.",
         listOf(widening.wideningFix)
     )
@@ -155,7 +155,7 @@ suspend fun WriteContext.reportIfUnsupportedPropertyValueType(
     val exception = UnsupportedTypeException(
         "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in ${trace.taskDescription()}. " +
             "The value type of this property (${valueType.name}) is not supported with the configuration cache: " +
-            "its codec produces ${widening.publicDecodedType.name} on load.",
+            "values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}.",
         listOf(resolutionFor(widening, valueType))
     )
     reportSerializationProblem(exception)

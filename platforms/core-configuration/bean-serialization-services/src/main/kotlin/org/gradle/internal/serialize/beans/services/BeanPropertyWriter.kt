@@ -111,7 +111,7 @@ class BeanPropertyWriter(
         val propertyName = field.name.removeSuffix("\$delegate")
         val exception = UnsupportedTypeException(
             "Cannot serialize $delegateKind delegate for property '$propertyName: ${kotlinGetterReturnType.simpleName}' in ${trace.taskDescription()}. " +
-                "The codec for the delegate's value produces ${widening.publicDecodedType.name} on load, " +
+                "Values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}, " +
                 "which cannot be assigned to a property of type ${kotlinGetterReturnType.name}.",
             listOf(widening.wideningFix)
         )

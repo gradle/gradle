@@ -379,7 +379,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         if (failsAtStore) {
             // WideningCodec-driven check rejects the incompatible round-trip at store time.
             failure.assertHasCause(
-                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask: its codec produces ${decodedTypeName} on load, which cannot be assigned to a field of type ${baseType.name}."
+                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask: values of this type are restored from the configuration cache as ${decodedTypeName}, which cannot be assigned to a field of type ${baseType.name}."
             )
             failure.assertHasResolution(resolution)
         } else {
@@ -660,11 +660,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then: "CC detects the unsupported type inside the delegate with a clear cause and resolution"
         // WideningCodec-driven check reports both the user's declared property type
-        // (Configuration) and the codec's decoded type (FileCollection), so the user
-        // can see the mismatch between what they wrote and what the codec produces.
+        // (Configuration) and the restored type (FileCollection), so the user can see
+        // the mismatch between what they wrote and how it comes back from the cache.
         failure.assertHasCause(
             "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :broken of type BrokenTask. " +
-            "The codec for the delegate's value produces org.gradle.api.file.FileCollection on load, " +
+            "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
         failure.assertHasResolution("Use a ConfigurableFileCollection instead.")
@@ -769,11 +769,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         // WideningCodec-driven check reports both the user's declared property type
-        // (Configuration) and the codec's decoded type (FileCollection), so the user
-        // can see the mismatch between what they wrote and what the codec produces.
+        // (Configuration) and the restored type (FileCollection), so the user can see
+        // the mismatch between what they wrote and how it comes back from the cache.
         failure.assertHasCause(
             "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :failing of type FailingTask. " +
-            "The codec for the delegate's value produces org.gradle.api.file.FileCollection on load, " +
+            "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
         failure.assertHasResolution("Use a ConfigurableFileCollection instead.")
