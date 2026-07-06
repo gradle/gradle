@@ -98,7 +98,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("""     Required by:
          root project 'test'
       > Module 'org.example:test' has been rejected:
-           Cannot select module because of conflict with root project 'test' (c2). All provide capability 'org:example:test-nonconflicting'.""")
+           Cannot select module because of conflict with root project 'test' (c2). Both provide capability 'org:example:test-nonconflicting'.""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/current/userguide/component_capabilities.html#sub:capabilities.")

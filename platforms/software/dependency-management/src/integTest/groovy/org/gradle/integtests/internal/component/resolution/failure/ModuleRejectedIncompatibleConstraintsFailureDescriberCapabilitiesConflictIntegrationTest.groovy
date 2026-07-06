@@ -59,7 +59,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberCapabilitiesConflictI
         fails('resolve')
 
         then:
-        result.getError().contains("All provide capability 'org.gradlex:slf4j-impl:1.0'.")
+        result.getError().contains("Both provide capability 'org.gradlex:slf4j-impl:1.0'.")
         !result.getError().contains("Component is the target of multiple version constraints with conflicting requirements:")
 
         where:
@@ -122,7 +122,7 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberCapabilitiesConflictI
         fails(":resolve")
 
         then:
-        result.getError().contains("All provide capability 'org.hamcrest:hamcrest:2.2'.")
+        result.getError().contains("Both provide capability 'org.hamcrest:hamcrest:2.2'.")
         !result.getError().contains("Component is the target of multiple version constraints with conflicting requirements:")
     }
 

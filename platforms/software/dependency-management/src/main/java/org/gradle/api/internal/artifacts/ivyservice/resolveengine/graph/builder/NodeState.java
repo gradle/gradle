@@ -834,8 +834,9 @@ public class NodeState implements DependencyGraphNode {
         var multipleConflicts = conflictNodes.size() > 1;
         var conflictMsg = multipleConflicts ? "conflicts" : "conflict";
         var providedByMsg = multipleConflicts ? conflictNodes.stream().map(NodeState::getDisplayName).sorted().toList().toString() : conflictNodes.iterator().next().getDisplayName();
+        var groupNameMsg = multipleConflicts ? "All" : "Both";
         return "Module '" + id + "' has been rejected:\n" +
-            "   Cannot select module because of " + conflictMsg + " with " + providedByMsg + ". All provide capability '" + formatCapability(capabilityConflict.left) + "'.";
+            "   Cannot select module because of " + conflictMsg + " with " + providedByMsg + ". " + groupNameMsg + " provide capability '" + formatCapability(capabilityConflict.left) + "'.";
     }
 
     private static String formatCapability(Capability capability) {
