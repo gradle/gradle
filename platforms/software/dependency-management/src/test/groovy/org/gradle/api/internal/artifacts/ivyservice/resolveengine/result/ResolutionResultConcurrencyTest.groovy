@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.artifacts.result.ResolvedGraphResult
 
 import java.lang.management.ManagementFactory
@@ -37,9 +38,8 @@ class ResolutionResultConcurrencyTest extends AbstractResolutionResultBuilderTes
         builder.finish(root)
 
         def resolvedGraph = builder.getResolvedDependencyGraph([] as Set)
-        def structure = resolvedGraph.graphSource().get()
-        def graph = new ResolvedGraphResult(structure, resolvedGraph.availableVariantsByComponent())
-        def depComponent = (0..<structure.components().count()).collect { graph.getComponent(it) }.find { it.id.displayName == "org:dep:1.0" }
+        def graph = new ResolvedGraphResult(resolvedGraph.graphSource().get(), resolvedGraph.availableVariantsByComponent())
+        def depComponent = componentByDisplayName(graph, "org:dep:1.0")
 
         def graphMonitorHeld = new CountDownLatch(1)
         def variantsReaderParked = new CountDownLatch(1)
@@ -77,6 +77,12 @@ class ResolutionResultConcurrencyTest extends AbstractResolutionResultBuilderTes
         cleanup:
         variantsReader?.interrupt()
         dependentsReader?.interrupt()
+    }
+
+    private static ResolvedComponentResultInternal componentByDisplayName(ResolvedGraphResult graph, String displayName) {
+        def components = graph.structure().components()
+        def index = (0..<components.count()).find { components.id(it).displayName == displayName }
+        graph.getComponent(index)
     }
 
     private static void waitUntilParkedOrDone(Thread thread) {
