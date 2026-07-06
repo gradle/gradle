@@ -19,6 +19,7 @@ package org.gradle.internal.serialize.beans.services
 import java.lang.reflect.Field
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.jvmErasure
 
@@ -34,34 +35,51 @@ import kotlin.reflect.jvm.jvmErasure
  * compile-time machinery:
  *
  * - **Value-side** ([extractValue], [isKotlinDelegate], [delegateKindName]):
- *   look *inside* recognised delegate wrappers to retrieve and label the
- *   wrapped value.
+ *   query the delegate for the value it currently holds. All property
+ *   delegates recognised here implement [Lazy] or [ReadOnlyProperty] (which
+ *   [ReadWriteProperty] extends), so we can call the delegate's own contract
+ *   rather than reflecting into private fields.
  * - **Field-side** ([kotlinPropertyGetterReturnType]): given a `$delegate`
- *   backing field, find the corresponding Kotlin getter and return its
- *   declared return type (the user-visible property type).
+ *   backing field, use [kotlin-reflect][kotlin.reflect] to look up the
+ *   corresponding Kotlin property and return its declared type (the
+ *   user-visible property type).
  *
- * Currently supports:
+ * Recognised delegate kinds:
  * - [Lazy] (`by lazy { … }`) — the most common delegate in Gradle tasks
- * - [ReadWriteProperty] subclasses (`Delegates.observable`, `Delegates.vetoable`,
- *   `Delegates.notNull`) — via reflective access to the conventional `value` field
- * - [ReadOnlyProperty] subclasses — same reflective fallback
+ * - [ReadOnlyProperty] / [ReadWriteProperty] — covers `Delegates.observable`,
+ *   `Delegates.vetoable`, `Delegates.notNull`, and any user-defined delegate
+ *   that participates in Kotlin's standard delegate protocol
  */
 internal object KotlinDelegateInspector {
+
     /**
-     * Extracts the current value held by a Kotlin property delegate.
+     * A dummy [KProperty] passed to [ReadOnlyProperty.getValue] when we don't
+     * have the real property at hand. The built-in delegates
+     * ([kotlin.properties.ObservableProperty], `NotNullVar`) only read
+     * [KProperty.name] — the reference below is a real KProperty so `.name`
+     * is safe to read even if the delegate uses it (e.g., in an error
+     * message).
+     */
+    private val DUMMY_PROPERTY_BACKER: Nothing? = null
+
+    private val DUMMY_PROPERTY: KProperty<*> = KotlinDelegateInspector::DUMMY_PROPERTY_BACKER
+
+    /**
+     * Extracts the current value held by a Kotlin property delegate by asking
+     * the delegate itself, via its [Lazy] or [ReadOnlyProperty] contract.
      *
      * Callers must guard with [isKotlinDelegate] before calling this method.
      *
-     * @return the wrapped value, or `null` when the delegate has not yet been
-     *   initialised (e.g. un-evaluated `lazy`) or holds a null value.
+     * @return the wrapped value, or `null` when the delegate has no value
+     *   available yet — either an un-evaluated [Lazy] or a
+     *   `Delegates.notNull` that has not been assigned (its `getValue`
+     *   throws [IllegalStateException] before first assignment).
      *
-     * @throws DelegateInspectionException if [delegate] is not a recognised delegate type,
-     *   or if a recognised delegate type cannot be reflectively inspected
+     * @throws DelegateInspectionException if [delegate] is not a recognised delegate type
      */
     fun extractValue(delegate: Any): Any? = when (delegate) {
-        is Lazy<*> -> extractFromLazy(delegate)
-        is ReadWriteProperty<*, *> -> extractViaValueField(delegate)
-        is ReadOnlyProperty<*, *> -> extractViaValueField(delegate)
+        is Lazy<*> -> if (delegate.isInitialized()) delegate.value else null
+        is ReadOnlyProperty<*, *> -> extractFromPropertyDelegate(delegate)
         else -> throw DelegateInspectionException(
             "Not a recognised Kotlin property delegate: ${delegate::class.java.name}. " +
                 "Callers must guard with isKotlinDelegate() before calling extractValue()."
@@ -71,12 +89,8 @@ internal object KotlinDelegateInspector {
     /**
      * Returns `true` when [value] is a recognised Kotlin property delegate type.
      */
-    fun isKotlinDelegate(value: Any?): Boolean = when (value) {
-        is Lazy<*> -> true
-        is ReadWriteProperty<*, *> -> true
-        is ReadOnlyProperty<*, *> -> true
-        else -> false
-    }
+    fun isKotlinDelegate(value: Any?): Boolean =
+        value is Lazy<*> || value is ReadOnlyProperty<*, *>
 
     /**
      * Returns a human-readable label for the delegate kind, used in diagnostic messages.
@@ -124,57 +138,23 @@ internal object KotlinDelegateInspector {
         return property.returnType.jvmErasure.java
     }
 
-    private fun extractFromLazy(delegate: Lazy<*>): Any? =
-        if (delegate.isInitialized()) delegate.value else null
-
     /**
-     * Reflective fallback for delegates that store their value in a field named `value`.
-     * This covers [kotlin.properties.ObservableProperty] (`Delegates.observable` / `vetoable`)
-     * and the internal `NotNullVar` (`Delegates.notNull`).
+     * Asks the delegate for its current value via [ReadOnlyProperty.getValue].
+     * The built-in delegates ignore the receiver — we pass `null` — and only
+     * touch the property argument to read its name in error messages, which
+     * is why [DUMMY_PROPERTY] is a real [KProperty].
      *
-     * Walks the class hierarchy because the `value` field is typically declared in a
-     * superclass (e.g. `ObservableProperty`) while the runtime instance may be an
-     * anonymous subclass created by factory methods like [kotlin.properties.Delegates.observable].
-     *
-     * @throws DelegateInspectionException if the delegate's value cannot be reflectively accessed
+     * Returns `null` when the delegate signals "no value yet" by throwing
+     * [IllegalStateException] (this is the contract used by
+     * `Delegates.notNull` before first assignment).
      */
-    private fun extractViaValueField(delegate: Any): Any? {
-        val delegateClass = delegate.javaClass
-        val field = findValueFieldInHierarchy(delegateClass)
-            ?: throw DelegateInspectionException(
-                "Could not find 'value' field in delegate of type ${delegateClass.name}. " +
-                    "Available fields: ${describeFieldsOf(delegateClass)}"
-            )
+    private fun extractFromPropertyDelegate(delegate: ReadOnlyProperty<*, *>): Any? =
         try {
-            field.isAccessible = true
-            return field.get(delegate)
-        } catch (e: Exception) {
-            throw DelegateInspectionException(
-                "Could not read 'value' field (declared in ${field.declaringClass.name}) " +
-                    "from delegate of type ${delegateClass.name}.",
-                e
-            )
+            @Suppress("UNCHECKED_CAST")
+            (delegate as ReadOnlyProperty<Any?, Any?>).getValue(null, DUMMY_PROPERTY)
+        } catch (_: IllegalStateException) {
+            null
         }
-    }
-
-    private fun findValueFieldInHierarchy(clazz: Class<*>): java.lang.reflect.Field? {
-        var current: Class<*>? = clazz
-        while (current != null && current != Any::class.java) {
-            try {
-                return current.getDeclaredField("value")
-            } catch (_: NoSuchFieldException) {
-                current = current.superclass
-            }
-        }
-        return null
-    }
-
-    private fun describeFieldsOf(clazz: Class<*>): String =
-        generateSequence(clazz) { it.superclass }
-            .takeWhile { it != Any::class.java }
-            .flatMap { c -> c.declaredFields.map { "${c.simpleName}.${it.name}: ${it.type.simpleName}" } }
-            .joinToString(", ")
-            .ifEmpty { "(none)" }
 }
 
 

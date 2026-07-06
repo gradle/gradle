@@ -1410,10 +1410,10 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         configurationCacheRunLenient "mapKeyValueConfTask"
 
         then: "each of the two widening checks emits a distinct problem"
-        result.assertOutputContains(
+        outputContains(
             "Cannot serialize MapProperty<Configuration> in task :mapKeyValueConfTask of type MapKeyValueConfTask."
         )
-        result.assertOutputContains(
+        outputContains(
             "Cannot serialize MapProperty<SourceDirectorySet> in task :mapKeyValueConfTask of type MapKeyValueConfTask."
         )
 

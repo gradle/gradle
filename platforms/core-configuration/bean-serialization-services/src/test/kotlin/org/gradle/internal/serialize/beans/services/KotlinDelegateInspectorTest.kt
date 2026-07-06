@@ -72,12 +72,15 @@ class KotlinDelegateInspectorTest {
         KotlinDelegateInspector.extractValue("not a delegate")
     }
 
-    @Test(expected = DelegateInspectionException::class)
-    fun `extractValue throws for ReadOnlyProperty delegate without value field`() {
+    @Test
+    fun `extractValue delegates to getValue for a custom ReadOnlyProperty`() {
+        // With the field-based fallback replaced by an invocation of the
+        // delegate's own getValue contract, a custom delegate returns
+        // whatever it computes rather than tripping "no value field found".
         val delegate = object : ReadOnlyProperty<Any?, String> {
             override fun getValue(thisRef: Any?, property: KProperty<*>) = "hello"
         }
-        KotlinDelegateInspector.extractValue(delegate)
+        assertEquals("hello", KotlinDelegateInspector.extractValue(delegate))
     }
     // endregion extractValue
 
