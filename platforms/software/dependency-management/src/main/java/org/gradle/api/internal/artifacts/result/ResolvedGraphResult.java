@@ -44,7 +44,7 @@ public class ResolvedGraphResult {
 
     private @Nullable ResolvedComponentResultInternal @Nullable [] components;
     private @Nullable ResolvedVariantResult @Nullable [] variants;
-    private @Nullable List<Set<ResolvedDependencyResult>> resolvedEdgesByTarget;
+    private volatile @Nullable List<Set<ResolvedDependencyResult>> resolvedEdgesByTarget;
 
     public ResolvedGraphResult(
         GraphStructure structure,
@@ -129,11 +129,24 @@ public class ResolvedGraphResult {
     /**
      * Get all incoming edges for the component at the given index.
      */
-    public synchronized Set<ResolvedDependencyResult> getIncomingEdges(int targetComponentIndex) {
-        if (resolvedEdgesByTarget == null) {
-            resolvedEdgesByTarget = computeResolvedEdgesByTarget(structure, this::getComponent);
+    public Set<ResolvedDependencyResult> getIncomingEdges(int targetComponentIndex) {
+        List<Set<ResolvedDependencyResult>> result = resolvedEdgesByTarget;
+        if (result == null) {
+            // Compute without holding this graph's monitor, since computing the incoming edges reads
+            // each component's dependencies, which locks the component. Holding the graph monitor
+            // while locking a component, when other threads lock a component before the graph (see
+            // DefaultResolvedComponentResult.getVariants), would deadlock. Racing threads may compute
+            // the value redundantly, but only one result is published.
+            result = computeResolvedEdgesByTarget(structure, this::getComponent);
+            synchronized (this) {
+                if (resolvedEdgesByTarget == null) {
+                    resolvedEdgesByTarget = result;
+                } else {
+                    result = resolvedEdgesByTarget;
+                }
+            }
         }
-        return resolvedEdgesByTarget.get(targetComponentIndex);
+        return result.get(targetComponentIndex);
     }
 
     private static List<Set<ResolvedDependencyResult>> computeResolvedEdgesByTarget(

@@ -42,8 +42,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final IntList nodeIndices;
     private final ResolvedGraphResult graph;
 
-    private @Nullable ImmutableList<ResolvedVariantResult> variants;
-    private @Nullable ComponentDependencies dependencies;
+    private volatile @Nullable ImmutableList<ResolvedVariantResult> variants;
+    private volatile @Nullable ComponentDependencies dependencies;
 
     public DefaultResolvedComponentResult(
         int index,
@@ -107,11 +107,23 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public synchronized List<ResolvedVariantResult> getVariants() {
-        if (variants == null) {
-            variants = computeVariants(graph, nodeIndices);
+    public List<ResolvedVariantResult> getVariants() {
+        ImmutableList<ResolvedVariantResult> result = variants;
+        if (result == null) {
+            // Compute the value without holding this component's monitor, since computing it calls
+            // back into the shared graph. Holding this monitor while locking the graph, when other
+            // threads lock the graph before this component (see getDependents), would deadlock.
+            // Racing threads may compute the value redundantly, but only one result is published.
+            result = computeVariants(graph, nodeIndices);
+            synchronized (this) {
+                if (variants == null) {
+                    variants = result;
+                } else {
+                    result = variants;
+                }
+            }
         }
-        return variants;
+        return result;
     }
 
     private static ImmutableList<ResolvedVariantResult> computeVariants(
@@ -152,11 +164,21 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return getAllDependencies().variantDependencies().get(indexInComponent);
     }
 
-    private synchronized ComponentDependencies getAllDependencies() {
-        if (dependencies == null) {
-            dependencies = computeAllDependencies(graph, nodeIndices, this);
+    private ComponentDependencies getAllDependencies() {
+        ComponentDependencies result = dependencies;
+        if (result == null) {
+            // Compute outside this component's monitor to avoid a lock-ordering deadlock with the
+            // shared graph; see the comment in getVariants().
+            result = computeAllDependencies(graph, nodeIndices, this);
+            synchronized (this) {
+                if (dependencies == null) {
+                    dependencies = result;
+                } else {
+                    result = dependencies;
+                }
+            }
         }
-        return dependencies;
+        return result;
     }
 
     private static ComponentDependencies computeAllDependencies(
