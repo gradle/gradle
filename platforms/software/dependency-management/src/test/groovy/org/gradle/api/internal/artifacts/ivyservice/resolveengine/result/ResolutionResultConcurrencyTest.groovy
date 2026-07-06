@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.result.ResolvedGraphResult
 
 import java.lang.management.ManagementFactory
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicReference
 
 class ResolutionResultConcurrencyTest extends AbstractResolutionResultBuilderTest {
 
-    def "reading a component's variants and dependents concurrently does not deadlock"() {
-        given: "a resolved graph and a component read from two threads"
+    def "reading a component's variants and dependents concurrently does not deadlock and returns the correct result"() {
+        given: "a resolved graph where root depends on dep, and dep is read from two threads"
         def depNode = node(component("org", "dep", "1.0"))
         def root = rootNode("org", "root", "1.0")
         root.outgoingEdges >> [dep(depNode)]
@@ -34,23 +37,26 @@ class ResolutionResultConcurrencyTest extends AbstractResolutionResultBuilderTes
         builder.finish(root)
 
         def resolvedGraph = builder.getResolvedDependencyGraph([] as Set)
-        def graph = new ResolvedGraphResult(resolvedGraph.graphSource().get(), resolvedGraph.availableVariantsByComponent())
-        def targetComponent = graph.getComponent(0)
+        def structure = resolvedGraph.graphSource().get()
+        def graph = new ResolvedGraphResult(structure, resolvedGraph.availableVariantsByComponent())
+        def depComponent = (0..<structure.components().count()).collect { graph.getComponent(it) }.find { it.id.displayName == "org:dep:1.0" }
 
         def graphMonitorHeld = new CountDownLatch(1)
         def variantsReaderParked = new CountDownLatch(1)
+        def variants = new AtomicReference<List<ResolvedVariantResult>>()
+        def dependents = new AtomicReference<Set<? extends ResolvedDependencyResult>>()
 
         def dependentsReader = new Thread({
             synchronized (graph) {
                 graphMonitorHeld.countDown()
                 variantsReaderParked.await()
-                targetComponent.getDependents()
+                dependents.set(depComponent.getDependents())
             }
         }, "dependents-reader")
 
         def variantsReader = new Thread({
             graphMonitorHeld.await()
-            targetComponent.getVariants()
+            variants.set(depComponent.getVariants())
         }, "variants-reader")
 
         when:
@@ -63,8 +69,10 @@ class ResolutionResultConcurrencyTest extends AbstractResolutionResultBuilderTes
         variantsReaderParked.countDown()
         failIfDeadlocked(variantsReader, dependentsReader)
 
-        then:
-        noExceptionThrown()
+        then: "both reads completed and returned dep's one variant and its single incoming edge from root"
+        variants.get()*.owner*.displayName == ["org:dep:1.0"]
+        dependents.get()*.from*.id*.displayName == ["org:root:1.0"]
+        dependents.get()*.selected*.id*.displayName == ["org:dep:1.0"]
 
         cleanup:
         variantsReader?.interrupt()
