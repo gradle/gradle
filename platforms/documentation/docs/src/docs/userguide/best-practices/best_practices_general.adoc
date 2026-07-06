@@ -1006,7 +1006,9 @@ A logger obtained via `Logging.getLogger(MyClass.class)` is named after the clas
 A logger obtained from `Project` or `Script` is named after that Gradle type and is shared by every class that reaches it that way.
 Obtaining a class-named logger is what makes log output traceable to the code that produced it.
 
-`Task` is an exception to this rule as link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] already returns a named logger for the task.
+`Task` is an exception to this rule.
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:logger[`Task.getLogger()`] returns a logger whose underlying name is `org.gradle.api.Task` (shared across all tasks), but Gradle wraps it with per-task build-operation context, so console output is attributed to the specific task automatically.
+Use it inside tasks without adding a class-named static field, unless you also need the concrete task class name to appear in raw log output or external log processors.
 
 Reaching for the `Project`-associated logger carries additional problems:
 
@@ -1035,7 +1037,7 @@ include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-av
 
 <1> *Injecting `Logger` into a `BuildService`*: Fails at task execution time with `Services of type Logger are not available for injection into instances of type BuildService`.
 <2> *Using `project.logger` from a plugin*: Yields a logger named for `Project`, not for the plugin class. The same pattern cannot be used in the plugin's constructor at all, since `Project` is not available there.
-<3> *Declaring a static `Logging.getLogger(MyTask.class)` inside a task*: Works, but is unnecessary. `Task.getLogger()` (inherited as `getLogger()`) already returns a class-named logger for the task type.
+<3> *Declaring a static `Logging.getLogger(MyTask.class)` inside a task*: Works, but is redundant for typical Gradle usage. `Task.getLogger()` (inherited as `getLogger()`) provides task attribution through build-operation context, so console output is grouped under the correct task heading without a separate field.
 <4> *Reading `project.logger` inside a task action*: Works without the Configuration Cache, but fails as soon as the cache is enabled because accessing `Task.project` at execution time is unsupported.
 
 ==== Do This Instead
@@ -1047,7 +1049,7 @@ include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-do
 
 <1> *Build service logger*: A `private static final` `Logger` named after `GreetingService`. No injection required; works regardless of how the service is registered.
 <2> *Plugin logger*: A `private static final` `Logger` named after `GreetingPlugin`. Accessible from any context, including the plugin's constructor.
-<3> *Task uses the inherited `getLogger()`*: `Task.getLogger()` already returns a logger named for the task type. No static field needed.
+<3> *Task uses the inherited `getLogger()`*: `Task.getLogger()` returns a logger named `org.gradle.api.Task`, but Gradle wraps it with per-task build-operation context so console output is attributed to the specific task. No static field needed.
 
 === References
 
