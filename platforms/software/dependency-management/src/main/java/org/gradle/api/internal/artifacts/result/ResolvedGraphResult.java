@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.internal.Describables;
+import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import java.util.function.IntFunction;
  * Shared state that all components and variants of a
  * {@link org.gradle.api.artifacts.result.ResolutionResult} share.
  */
-public class ResolvedGraphResult {
+public final class ResolvedGraphResult {
 
     private final GraphStructure structure;
     private final @Nullable List<List<ResolvedVariantResult>> availableVariantsByComponent;
@@ -44,7 +45,7 @@ public class ResolvedGraphResult {
 
     private @Nullable ResolvedComponentResultInternal @Nullable [] components;
     private @Nullable ResolvedVariantResult @Nullable [] variants;
-    private volatile @Nullable List<Set<ResolvedDependencyResult>> resolvedEdgesByTarget;
+    private final Lazy<List<Set<ResolvedDependencyResult>>> resolvedEdgesByTarget;
 
     public ResolvedGraphResult(
         GraphStructure structure,
@@ -54,6 +55,9 @@ public class ResolvedGraphResult {
         this.availableVariantsByComponent = availableVariantsByComponent;
 
         this.nodesByComponent = computeNodeIndices(structure);
+        // Atomic (not locking) Lazy: a lock held while this supplier reads component dependencies
+        // would deadlock with DefaultResolvedComponentResult.
+        this.resolvedEdgesByTarget = Lazy.atomic().of(() -> computeResolvedEdgesByTarget(structure, this::getComponent));
     }
 
     /**
@@ -130,23 +134,7 @@ public class ResolvedGraphResult {
      * Get all incoming edges for the component at the given index.
      */
     public Set<ResolvedDependencyResult> getIncomingEdges(int targetComponentIndex) {
-        List<Set<ResolvedDependencyResult>> result = resolvedEdgesByTarget;
-        if (result == null) {
-            // Compute without holding this graph's monitor, since computing the incoming edges reads
-            // each component's dependencies, which locks the component. Holding the graph monitor
-            // while locking a component, when other threads lock a component before the graph (see
-            // DefaultResolvedComponentResult.getVariants), would deadlock. Racing threads may compute
-            // the value redundantly, but only one result is published.
-            result = computeResolvedEdgesByTarget(structure, this::getComponent);
-            synchronized (this) {
-                if (resolvedEdgesByTarget == null) {
-                    resolvedEdgesByTarget = result;
-                } else {
-                    result = resolvedEdgesByTarget;
-                }
-            }
-        }
-        return result.get(targetComponentIndex);
+        return resolvedEdgesByTarget.get().get(targetComponentIndex);
     }
 
     private static List<Set<ResolvedDependencyResult>> computeResolvedEdgesByTarget(

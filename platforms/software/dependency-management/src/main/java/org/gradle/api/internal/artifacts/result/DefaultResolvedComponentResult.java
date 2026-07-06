@@ -30,20 +30,20 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
+import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
+public final class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
     private final int index;
-    private final IntList nodeIndices;
     private final ResolvedGraphResult graph;
 
-    private volatile @Nullable ImmutableList<ResolvedVariantResult> variants;
-    private volatile @Nullable ComponentDependencies dependencies;
+    private final Lazy<ImmutableList<ResolvedVariantResult>> variants;
+    private final Lazy<ComponentDependencies> dependencies;
 
     public DefaultResolvedComponentResult(
         int index,
@@ -51,8 +51,12 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         ResolvedGraphResult graph
     ) {
         this.index = index;
-        this.nodeIndices = nodeIndices;
         this.graph = graph;
+
+        // Atomic (not locking) Lazy: a lock held while these suppliers call into the graph would
+        // deadlock with getIncomingEdges.
+        this.variants = Lazy.atomic().of(() -> computeVariants(graph, nodeIndices));
+        this.dependencies = Lazy.atomic().of(() -> computeAllDependencies(graph, nodeIndices, this));
     }
 
     @Override
@@ -108,22 +112,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public List<ResolvedVariantResult> getVariants() {
-        ImmutableList<ResolvedVariantResult> result = variants;
-        if (result == null) {
-            // Compute the value without holding this component's monitor, since computing it calls
-            // back into the shared graph. Holding this monitor while locking the graph, when other
-            // threads lock the graph before this component (see getDependents), would deadlock.
-            // Racing threads may compute the value redundantly, but only one result is published.
-            result = computeVariants(graph, nodeIndices);
-            synchronized (this) {
-                if (variants == null) {
-                    variants = result;
-                } else {
-                    result = variants;
-                }
-            }
-        }
-        return result;
+        return variants.get();
     }
 
     private static ImmutableList<ResolvedVariantResult> computeVariants(
@@ -165,20 +154,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     private ComponentDependencies getAllDependencies() {
-        ComponentDependencies result = dependencies;
-        if (result == null) {
-            // Compute outside this component's monitor to avoid a lock-ordering deadlock with the
-            // shared graph; see the comment in getVariants().
-            result = computeAllDependencies(graph, nodeIndices, this);
-            synchronized (this) {
-                if (dependencies == null) {
-                    dependencies = result;
-                } else {
-                    result = dependencies;
-                }
-            }
-        }
-        return result;
+        return dependencies.get();
     }
 
     private static ComponentDependencies computeAllDependencies(
