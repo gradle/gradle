@@ -78,14 +78,6 @@ class DefaultWriteContext(
     specialEncoders: SpecialEncoders = SpecialEncoders()
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener, name), CloseableWriteContext, Encoder by encoder {
-    /**
-     * Root codec captured at construction. `getCodec()` returns the currently-pushed
-     * codec, which during nested encodes may be a transient codec that does not carry
-     * the binding registry. The widening-type lookup must query the binding registry
-     * regardless of what is pushed, so we hold a stable reference here.
-     */
-    private
-    val codecLookup: CodecLookup? = codec as? CodecLookup
 
     val stringEncoder = specialEncoders.stringEncoder
 
@@ -106,7 +98,7 @@ class DefaultWriteContext(
         beanStateWriterLookup.beanStateWriterFor(beanType)
 
     override fun codecForRuntimeType(type: Class<*>): Any? =
-        codecLookup?.encodingForType(type)
+        (getCodec() as? CodecLookup)?.encodingForType(type)
 
     override val isolate: WriteIsolate
         get() = getIsolate()
