@@ -152,17 +152,27 @@ class KotlinDelegateInspectorTest {
         assertEquals(String::class.java, KotlinDelegateInspector.kotlinPropertyGetterReturnType(field))
     }
 
-    @Test(expected = DelegateInspectionException::class)
-    fun `kotlinPropertyGetterReturnType throws when field does not follow delegate naming convention`() {
-        val field = BeanWithPlainField::class.java.getDeclaredField("notADelegate")
-        KotlinDelegateInspector.kotlinPropertyGetterReturnType(field)
+    @Test
+    fun `kotlinPropertyGetterReturnType returns Boolean type for is-prefixed boolean property`() {
+        // Kotlin JVM convention: `val isXxx: Boolean` compiles to `boolean isXxx()`,
+        // NOT `boolean getIsXxx()`. A name-based getter lookup would miss it; the
+        // kotlin-reflect implementation must find it via KProperty.
+        val field = BeanWithIsPrefixedBooleanDelegate::class.java.getDeclaredField("isReady\$delegate")
+        assertEquals(java.lang.Boolean.TYPE, KotlinDelegateInspector.kotlinPropertyGetterReturnType(field))
+    }
+
+    @Test
+    fun `kotlinPropertyGetterReturnType returns declared type for private delegated property`() {
+        // A private `val hidden by lazy` still produces a $delegate field; kotlin-reflect
+        // via declaredMemberProperties can locate it, so the return type is recoverable
+        // even though the getter is private.
+        val field = BeanWithPrivateDelegate::class.java.getDeclaredField("hidden\$delegate")
+        assertEquals(String::class.java, KotlinDelegateInspector.kotlinPropertyGetterReturnType(field))
     }
 
     @Test(expected = DelegateInspectionException::class)
-    fun `kotlinPropertyGetterReturnType throws when getter cannot be found for delegate field`() {
-        // A private val produces a $delegate field but a private getter,
-        // so Class.getMethod (public-only) cannot find it.
-        val field = BeanWithPrivateDelegate::class.java.getDeclaredField("hidden\$delegate")
+    fun `kotlinPropertyGetterReturnType throws when field does not follow delegate naming convention`() {
+        val field = BeanWithPlainField::class.java.getDeclaredField("notADelegate")
         KotlinDelegateInspector.kotlinPropertyGetterReturnType(field)
     }
     // endregion kotlinPropertyGetterReturnType
@@ -196,6 +206,11 @@ class KotlinDelegateInspectorTest {
     @Suppress("unused")
     private class BeanWithPrivateDelegate {
         private val hidden by lazy { "invisible getter" }
+    }
+
+    @Suppress("unused")
+    private class BeanWithIsPrefixedBooleanDelegate {
+        val isReady by lazy { false }
     }
     // endregion test fixtures
 }

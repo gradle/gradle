@@ -19,6 +19,8 @@ package org.gradle.internal.serialize.beans.services
 import java.lang.reflect.Field
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.jvmErasure
 
 
 /**
@@ -96,14 +98,14 @@ internal object KotlinDelegateInspector {
      * Returns the declared return type of the Kotlin property backed by the given
      * `$delegate` field.
      *
-     * Kotlin compiles `val x by delegate` into a field `x$delegate` and a getter
-     * `getX()`. This method finds the getter and returns its return type so
-     * callers can compare against a codec's decoded type.
+     * Uses [kotlin-reflect][kotlin.reflect] to interrogate the declaring class,
+     * which correctly handles Kotlin's JVM naming conventions — notably boolean
+     * `val isReady by lazy {}` compiles to a getter named `isReady()` (not
+     * `getIsReady()`) and would defeat any name-based getter lookup.
      *
      * @throws DelegateInspectionException if [delegateField] does not follow the
-     *   `<name>$delegate` naming convention, or if the expected getter cannot be
-     *   found (for example, when the property is private and the getter is therefore
-     *   not visible to [Class.getMethod]).
+     *   `<name>$delegate` naming convention, or if the Kotlin property backing
+     *   the delegate cannot be found.
      */
     fun kotlinPropertyGetterReturnType(delegateField: Field): Class<*> {
         val propertyName = delegateField.name.removeSuffix("\$delegate")
@@ -113,17 +115,13 @@ internal object KotlinDelegateInspector {
                     "does not follow the Kotlin delegate naming convention (<name>\$delegate)."
             )
         }
-        val getterName = "get${propertyName.replaceFirstChar { it.uppercase() }}"
-        return try {
-            delegateField.declaringClass.getMethod(getterName).returnType
-        } catch (e: NoSuchMethodException) {
-            throw DelegateInspectionException(
-                "Could not find getter '$getterName()' on ${delegateField.declaringClass.name} " +
-                    "for delegate field '${delegateField.name}'. " +
-                    "Available methods: ${delegateField.declaringClass.methods.map { it.name }.sorted().distinct().joinToString(", ")}",
-                e
+        val property = delegateField.declaringClass.kotlin.declaredMemberProperties
+            .find { it.name == propertyName }
+            ?: throw DelegateInspectionException(
+                "Could not find Kotlin property '$propertyName' on ${delegateField.declaringClass.name} " +
+                    "for delegate field '${delegateField.name}'."
             )
-        }
+        return property.returnType.jvmErasure.java
     }
 
     private fun extractFromLazy(delegate: Lazy<*>): Any? =

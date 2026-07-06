@@ -43,6 +43,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.guava)
+    implementation(libs.kotlinReflect)
 
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.persistentCache))
