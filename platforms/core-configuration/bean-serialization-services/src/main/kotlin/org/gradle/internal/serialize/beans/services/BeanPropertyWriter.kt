@@ -82,7 +82,7 @@ class BeanPropertyWriter(
      * value yet to type-check, and the underlying Lazy codec forces the lazy
      * via `writeReplace` during the subsequent encode pass, so the type
      * concern is moot — the value that ends up in the cache is the forced one.
-     * The skip is logged at info level for diagnostic visibility. Other delegate
+     * The skip is logged at debug level for diagnostic visibility. Other delegate
      * kinds (`Delegates.observable`, `Delegates.vetoable`) carry a value from
      * construction; `Delegates.notNull` throws on read until first assignment.
      * All three are checked normally because their value (if any) is available
@@ -98,7 +98,7 @@ class BeanPropertyWriter(
         if (!field.name.endsWith("\$delegate") || !KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
         if (fieldValue is Lazy<*> && !fieldValue.isInitialized()) {
             // Deliberate skip — see KDoc above.
-            logger.info(
+            logger.debug(
                 "Skipping widening-roundtrip check for uninitialized `by lazy` delegate '{}' on {}",
                 field.name, field.declaringClass.name
             )
