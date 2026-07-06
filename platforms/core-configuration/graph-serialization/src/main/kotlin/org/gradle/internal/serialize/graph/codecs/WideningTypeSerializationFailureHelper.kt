@@ -76,16 +76,16 @@ fun WriteContext.findCodecThatWidensIncompatibly(
  * [withPropertyTrace] themselves; this keeps the trace surface explicit at
  * the call site instead of conflating it with the problem-reporting helper.
  */
-fun WriteContext.reportSerializationProblem(exception: Exception) {
+fun WriteContext.reportSerializationProblem(exception: UnsupportedTypeException) {
     val message = StructuredMessage.build {
         text("failed to serialize value of ")
         trace.sequence.forEach { it.describe(this) }
+        text(exception.detailsForProblem)
     }
     onProblem(
         PropertyProblem(
             trace = trace,
             message = message,
-            exception = exception,
             documentationSection = DocumentationSection.RequirementsDisallowedTypes
         )
     )
@@ -113,10 +113,8 @@ suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: 
     // is definitely impossible.
     if (widening.decodedType.isAssignableFrom(field.type)) return false
     val exception = UnsupportedTypeException(
-        "Cannot serialize value of type ${fieldValue.javaClass.name} into field " +
-            "${field.name} of ${field.declaringClass.name} in ${trace.taskDescription()}: " +
-            "values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}, " +
-            "which cannot be assigned to a field of type ${field.type.name}.",
+        "Cannot serialize value of type ${fieldValue.javaClass.name} into field ${field.name} of ${field.declaringClass.name} in ${trace.taskDescription()}.",
+        "Values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}, which cannot be assigned to a field of type ${field.type.name}.",
         listOf(widening.wideningFix)
     )
     withPropertyTrace(PropertyKind.Field, fieldName) {
@@ -153,9 +151,8 @@ suspend fun WriteContext.reportIfUnsupportedPropertyValueType(
 ): Boolean {
     val widening = findCodecThatWidensIncompatibly(valueType) ?: return false
     val exception = UnsupportedTypeException(
-        "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in ${trace.taskDescription()}. " +
-            "The value type of this property (${valueType.name}) is not supported with the configuration cache: " +
-            "values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}.",
+        "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in ${trace.taskDescription()}.",
+        "The value type of this property (${valueType.name}) is not supported with the configuration cache: values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}.",
         listOf(resolutionFor(widening, valueType))
     )
     reportSerializationProblem(exception)

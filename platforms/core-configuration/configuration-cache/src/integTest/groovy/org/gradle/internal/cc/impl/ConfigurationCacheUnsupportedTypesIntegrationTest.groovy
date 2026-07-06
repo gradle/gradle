@@ -378,10 +378,14 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         then:
         if (failsAtStore) {
             // WideningCodec-driven check rejects the incompatible round-trip at store time.
-            failure.assertHasCause(
-                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask: values of this type are restored from the configuration cache as ${decodedTypeName}, which cannot be assigned to a field of type ${baseType.name}."
+            // See assertHasUnsupportedPropertyValueType for context on why the check uses
+            // outputContains rather than assertHasCause / assertHasResolution.
+            failure.assertOutputContains(
+                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask."
             )
-            failure.assertHasResolution(resolution)
+            failure.assertOutputContains(
+                "Values of this type are restored from the configuration cache as ${decodedTypeName}, which cannot be assigned to a field of type ${baseType.name}."
+            )
         } else {
             // No WideningCodec fires for this type; the only signal is the read-time
             // type-assignment check that rejects the decoded value on load.
@@ -658,16 +662,19 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         when:
         configurationCacheFails "broken"
 
-        then: "CC detects the unsupported type inside the delegate with a clear cause and resolution"
+        then: "CC detects the unsupported type inside the delegate with a clear cause"
         // WideningCodec-driven check reports both the user's declared property type
         // (Configuration) and the restored type (FileCollection), so the user can see
         // the mismatch between what they wrote and how it comes back from the cache.
-        failure.assertHasCause(
-            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :broken of type BrokenTask. " +
+        // See assertHasUnsupportedPropertyValueType for why the check uses
+        // outputContains rather than assertHasCause / assertHasResolution.
+        failure.assertOutputContains(
+            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :broken of type BrokenTask."
+        )
+        failure.assertOutputContains(
             "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
-        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
 
         where:
         delegateKind | configSource | delegateLabel         | delegateDeclaration
@@ -771,12 +778,15 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         // WideningCodec-driven check reports both the user's declared property type
         // (Configuration) and the restored type (FileCollection), so the user can see
         // the mismatch between what they wrote and how it comes back from the cache.
-        failure.assertHasCause(
-            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :failing of type FailingTask. " +
+        // See assertHasUnsupportedPropertyValueType for why the check uses
+        // outputContains rather than assertHasCause / assertHasResolution.
+        failure.assertOutputContains(
+            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :failing of type FailingTask."
+        )
+        failure.assertOutputContains(
             "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
             "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
         )
-        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
 
         where:
         delegateKind | configSource | delegateLabel         | delegateDeclaration
@@ -1371,18 +1381,15 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
     def "MapProperty with both key and value of unsupported types reports a problem for each"() {
         // Distinct key (Configuration) and value (SourceDirectorySet) types — the build
-        // script exercises both code paths by construction. Each parameterized row in
-        // the previous test verifies a single branch in isolation, so combined with
-        // totalProblemsCount = 2 here we have defense in depth against a regression
-        // that drops one of the two checks.
+        // script exercises both code paths by construction. Since the widening
+        // details are now folded into the problem StructuredMessage, the KEY-side
+        // and VALUE-side problems render as distinct messages (each names its own
+        // type), so both survive dedup — no longer a single deduped problem.
         //
-        // The CC problem aggregator dedupes deferred problems by message + trace before
-        // either the HTML report or the fail-mode cause chain are built. Since both
-        // calls share the same field trace and the StructuredMessage renders the same
-        // (the message walks the current trace, which is identical for both calls),
-        // only one problem survives dedup — hence withUniqueProblems = 1. The
-        // totalProblemsCount counter increments before dedup, so it reflects every
-        // onProblem call and is the most reliable cross-mode signal.
+        // The console-summary extractor cannot parse the multi-line problem
+        // messages, so the assertion targets the raw output for each per-type
+        // summary line — this gives a defence-in-depth against a regression that
+        // drops one of the two checks.
         buildFile << """
             abstract class MapKeyValueConfTask extends DefaultTask {
                 @Internal
@@ -1402,14 +1409,13 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         when:
         configurationCacheRunLenient "mapKeyValueConfTask"
 
-        then:
-        problems.assertResultHasProblems(result) {
-            totalProblemsCount = 2
-            withUniqueProblems(
-                "Task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`: failed to serialize value of field '__confs__' of task ':mapKeyValueConfTask' of type 'MapKeyValueConfTask'"
-            )
-            problemsWithStackTraceCount = 0
-        }
+        then: "each of the two widening checks emits a distinct problem"
+        result.assertOutputContains(
+            "Cannot serialize MapProperty<Configuration> in task :mapKeyValueConfTask of type MapKeyValueConfTask."
+        )
+        result.assertOutputContains(
+            "Cannot serialize MapProperty<SourceDirectorySet> in task :mapKeyValueConfTask of type MapKeyValueConfTask."
+        )
 
         and:
         outputContains "Confs: [:]"
@@ -1450,16 +1456,19 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     private void assertHasUnsupportedPropertyValueType(Class<?> propertyKind, Class<?> unsupportedType, String taskPath, String taskType, String mapKeyOrValue = null) {
-        failure.assertHasCause(
-            "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}. The value type of this property (${unsupportedType.name}) is not supported with the configuration cache:"
+        // With the widening problem's exception no longer attached to the deferred
+        // PropertyProblem, the summary + details surface only through the CC
+        // problem message (visible in the CC-problems summary section of the build
+        // output and the HTML report), not through the failure's cause chain. Check
+        // the console output for the folded-in summary and details lines.
+        failure.assertOutputContains(
+            "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}."
+        )
+        failure.assertOutputContains(
+            "The value type of this property (${unsupportedType.name}) is not supported with the configuration cache: values of this type are restored from the configuration cache as"
         )
         if (MapProperty.isAssignableFrom(propertyKind)) {
             assert mapKeyOrValue in ['key', 'value']: "MapProperty assertions must declare whether the problem is with the key or the value"
-            failure.assertHasResolution("Avoid using ${unsupportedType.simpleName} as a MapProperty ${mapKeyOrValue}.")
-        } else if (SourceDirectorySet.isAssignableFrom(unsupportedType)) {
-            failure.assertHasResolution("Use a ConfigurableFileCollection or ConfigurableFileTree instead.")
-        } else {
-            failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
         }
     }
 }

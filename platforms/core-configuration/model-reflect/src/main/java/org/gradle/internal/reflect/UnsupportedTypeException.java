@@ -19,6 +19,7 @@ package org.gradle.internal.reflect;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,15 +30,23 @@ import java.util.List;
  */
 @Contextual
 public final class UnsupportedTypeException extends RuntimeException implements ResolutionProvider {
+    @Nullable
+    private final String msgSummary;
+    @Nullable
+    private final String msgDetails;
     private final List<String> resolutions;
 
-    public UnsupportedTypeException(String message, List<String> resolutions) {
-        super(message);
+    public UnsupportedTypeException(String msgSummary, String msgDetails, List<String> resolutions) {
+        super(msgSummary + " " + msgDetails);
+        this.msgSummary = msgSummary;
+        this.msgDetails = msgDetails;
         this.resolutions = Collections.unmodifiableList(resolutions);
     }
 
     public UnsupportedTypeException(String message, Throwable cause) {
         super(message, cause);
+        this.msgSummary = null;
+        this.msgDetails = null;
         this.resolutions = Collections.emptyList();
     }
 
@@ -45,5 +54,13 @@ public final class UnsupportedTypeException extends RuntimeException implements 
     @Override
     public List<String> getResolutions() {
         return resolutions;
+    }
+
+    public String getDetailsForProblem() {
+        if (msgSummary != null && msgDetails != null) {
+            return "\n  " + msgSummary + "\n  " + msgDetails;
+        } else {
+            return getMessage();
+        }
     }
 }

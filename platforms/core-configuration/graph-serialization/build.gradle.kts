@@ -26,6 +26,7 @@ dependencies {
     api(projects.configurationProblemsBase)
     api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
+    api(projects.modelReflect)
     api(projects.serialization)
 
     api(libs.guava)
@@ -33,7 +34,6 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.logging)
-    implementation(projects.modelReflect)
     implementation(projects.problemsApi)
     implementation(projects.stdlibKotlinExtensions)
 
