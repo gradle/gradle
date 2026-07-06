@@ -18,7 +18,6 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.reflection.access.ObjectOpener
-import org.gradle.internal.serialize.beans.services.unsupportedFieldTypeFor
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.Decoding
