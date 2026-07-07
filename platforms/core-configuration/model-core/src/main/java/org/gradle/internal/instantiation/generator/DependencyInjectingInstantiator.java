@@ -55,21 +55,22 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
 
     @NonNull
     private <T> T doCreate(Class<? extends T> type, @Nullable Describable displayName, Object[] parameters) {
+        ClassGenerator.GeneratedConstructor<? extends T> constructor;
         try {
-            ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);
-            Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
-            try {
-                return constructor.newInstance(services, this, displayName, resolvedParameters);
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            }
+            constructor = constructorSelector.forParams(type, parameters);
         } catch (Throwable t) {
             throw new ObjectInstantiationException(type, t);
         }
+        return doInstantiate(services, displayName, parameters, type, constructor);
     }
 
     public <T> InstanceFactory<T> factoryFor(final Class<T> type) {
-        final ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forType(type);
+        ClassGenerator.GeneratedConstructor<? extends T> constructor;
+        try {
+            constructor = constructorSelector.forType(type);
+        } catch (Throwable t) {
+            throw new ObjectInstantiationException(type, t);
+        }
         return new InstanceFactory<T>() {
             @Override
             public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> injectAnnotation) {
@@ -83,16 +84,7 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
 
             @Override
             public T newInstance(ServiceLookup services, Object... parameters) {
-                try {
-                    Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
-                    try {
-                        return constructor.newInstance(services, DependencyInjectingInstantiator.this, null, resolvedParameters);
-                    } catch (InvocationTargetException e) {
-                        throw e.getCause();
-                    }
-                } catch (Throwable t) {
-                    throw new ObjectInstantiationException(type, t);
-                }
+                return doInstantiate(services, null, parameters, type, constructor);
             }
 
             @Override
@@ -100,6 +92,20 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
                 return newInstance(services, params);
             }
         };
+    }
+
+    private <T> T doInstantiate(ServiceLookup providedServices, @Nullable Describable displayName, Object[] parameters, Class<? extends T> type, ClassGenerator.GeneratedConstructor<? extends T> constructor) {
+        ServiceLookup services = isUserType(type) ? providedServices.withUserTypeFilter() : providedServices;
+        try {
+            Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
+            try {
+                return constructor.newInstance(services, this, displayName, resolvedParameters);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        } catch (Throwable t) {
+            throw new ObjectInstantiationException(type, t);
+        }
     }
 
     private Object[] convertParameters(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor, ServiceLookup services, Object[] parameters) {
@@ -207,5 +213,17 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
         }
 
         return resolvedParameters;
+    }
+
+    /**
+     * Determine if the given type to instantiate is a user type or a
+     * Gradle type. User types are restricted to accessing a filtered
+     * subset of services as provided by {@link ServiceLookup#withUserTypeFilter()}.
+     */
+    private static boolean isUserType(Class<?> type) {
+        // A more robust check would use getProtectionDomain().getCodeSource()
+        // to verify whether the type lives within the distribution or not. However,
+        // this is likely more expensive, and this solution seems to work well for now.
+        return !type.getName().startsWith("org.gradle.");
     }
 }

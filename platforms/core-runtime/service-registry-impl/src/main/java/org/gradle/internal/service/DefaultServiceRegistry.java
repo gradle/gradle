@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
@@ -88,6 +89,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     private final @Nullable ServiceProvider parentServices;
     private final @Nullable String displayName;
     private final ServiceProvider thisAsServiceProvider;
+    private ServiceLookup thisWithUserTypeFilter;
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
 
@@ -118,6 +120,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
             this.inspector = parents[0] instanceof DefaultServiceRegistry ? ((DefaultServiceRegistry) parents[0]).inspector : new ClassInspector();
         }
         this.thisAsServiceProvider = allServices;
+        this.thisWithUserTypeFilter = this;
     }
 
     private static ServiceProvider setupParentServices(ServiceRegistry[] parents) {
@@ -358,6 +361,26 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         serviceRequested();
         allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<T>(serviceType, services));
         return services;
+    }
+
+    /**
+     * Sets a filter to apply to services injected into user-provided classes during instantiation,
+     * and a corresponding action to handle types that are not matched by the filter.
+     */
+    public void setUserTypeFilter(
+        Predicate<Class<?>> filter,
+        FilteringServiceLookup.FilterAction action
+    ) {
+        this.thisWithUserTypeFilter = new FilteringServiceLookup(
+            this,
+            filter,
+            action
+        );
+    }
+
+    @Override
+    public ServiceLookup withUserTypeFilter() {
+        return thisWithUserTypeFilter;
     }
 
     private static class InstanceUnpackingVisitor<T> implements ServiceProvider.Visitor {

@@ -380,5 +380,10 @@ public class InstantiationBenchmark {
         public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws IllegalArgumentException {
             throw new IllegalArgumentException("No service of type " + serviceType);
         }
+
+        @Override
+        public ServiceLookup withUserTypeFilter() {
+            return this;
+        }
     }
 }

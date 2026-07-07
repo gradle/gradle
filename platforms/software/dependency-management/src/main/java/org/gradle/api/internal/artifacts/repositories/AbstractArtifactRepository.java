@@ -239,6 +239,12 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
             throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " annotated with @" + annotatedWith.getSimpleName() + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
         }
 
+        @Override
+        public ServiceLookup withUserTypeFilter() {
+            // This service lookup only permits injecting permitted classes.
+            return this;
+        }
+
         private String availableServicesDescription() {
             return repositoryResourceAccessor != null
                 ? ObjectFactory.class.getSimpleName() + ", " + RepositoryResourceAccessor.class.getSimpleName()

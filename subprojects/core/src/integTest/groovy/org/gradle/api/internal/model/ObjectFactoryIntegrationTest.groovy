@@ -15,8 +15,14 @@
  */
 package org.gradle.api.internal.model
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.execution.TaskExecutionGraph
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+
+import javax.inject.Inject
 
 class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create instances of class using injected factory"() {
@@ -895,5 +901,89 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds()
+    }
+
+    def foo() {
+        file("included/src/main/java/foo/Plugin.java") << """
+            package foo;
+
+            import ${Project.name};
+            import ${DependencyResolutionManagement.name};
+            import ${TaskExecutionGraph.name};
+            import ${Inject.name};
+
+            public abstract class Plugin implements ${Plugin.name}<Project> {
+
+                @Inject
+                public Plugin(DependencyResolutionManagement drm, TaskExecutionGraph getGraph) {}
+
+                @Inject
+                public abstract DependencyResolutionManagement getDrm();
+
+                @Inject
+                public abstract TaskExecutionGraph getGraph();
+
+                @Override
+                public void apply(Project project) {
+                    getDrm();
+                    getGraph();
+                }
+
+            }
+        """
+        file("included/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    plugin {
+                        id = "org.plugin"
+                        implementationClass = "foo.Plugin"
+                    }
+                }
+            }
+        """
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        buildFile << """
+            plugins {
+                id("org.plugin")
+            }
+            // Constructor injection forbids types
+            class Foo {
+                @Inject
+                public Foo(DependencyResolutionManagement drm) {}
+            }
+            objects.newInstance(Foo)
+
+            // Getter injection forbids types
+            abstract class Faz {
+                @Inject
+                public abstract DependencyResolutionManagement getDrm()
+            }
+            // Have to call the getter for us to invoke the filtered settings.
+            objects.newInstance(Faz).drm
+
+            // Constructor injection does not forbid allowed types
+            class Bar {
+                @Inject
+                public Bar(TaskExecutionGraph teg) {}
+            }
+            objects.newInstance(Bar)
+
+            // Getter injection does not forbid allowed types
+            abstract class Baz {
+                @Inject
+                public abstract TaskExecutionGraph getGraph()
+            }
+            objects.newInstance(Baz).graph
+        """
+
+        expect:
+        succeeds("help")
     }
 }

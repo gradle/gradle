@@ -55,4 +55,11 @@ public interface ServiceLookup {
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
     Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException;
+
+    /**
+     * Return a service lookup that only provides services that are permitted
+     * to be injected into user-provided classes.
+     */
+    ServiceLookup withUserTypeFilter();
+
 }

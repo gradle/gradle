@@ -28,17 +28,35 @@ import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.FilteringServiceLookup;
+import org.gradle.internal.service.InstanceInjectingServiceLookup;
 import org.gradle.internal.service.ServiceLookup;
-import org.gradle.internal.service.ServiceLookupException;
-import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
+import org.gradle.util.internal.CollectionUtils;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Function;
 
 public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspection<INTERFACE, PARAMS> {
+
+    // Route the removed InternalProblems type to the service that fails with an actionable error.
+    @SuppressWarnings("deprecation")
+    private static final Class<?> DEPRECATED_INTERNAL_PROBLEMS = org.gradle.api.problems.internal.InternalProblems.class;
+
+    private static final Collection<Class<?>> DEFAULT_ALLOWED_SERVICES = Arrays.asList(
+        ExecOperations.class,
+        FileSystemOperations.class,
+        ArchiveOperations.class,
+        ObjectFactory.class,
+        ProviderFactory.class,
+        BuildServiceRegistry.class,
+        ProblemsInternal.class,
+        ManagedObjectRegistry.class,
+        DEPRECATED_INTERNAL_PROBLEMS
+    );
+
     private final Class<INTERFACE> interfaceType;
     private final Class<? extends PARAMS> noParamsType;
     private final TypeParameterInspection<INTERFACE, PARAMS> typeParameterInspection;
@@ -72,97 +90,24 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
     public ServiceLookup servicesForImplementation(
         PARAMS params,
         ServiceLookup allServices,
-        Collection<? extends Class<?>> additionalAllowedServices
+        Collection<Class<?>> additionalAllowedServices
     ) {
-        return new ServicesForIsolatedObject(interfaceType, params, allServices, additionalAllowedServices);
+        return new InstanceInjectingServiceLookup(
+            Collections.singleton(params),
+            new FilteringServiceLookup(
+                allServices,
+                CollectionUtils.concat(DEFAULT_ALLOWED_SERVICES, additionalAllowedServices),
+                FilteringServiceLookup.FilterAction.denyFilteredServices(serviceType -> {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Services of type ");
+                    formatter.appendType(serviceType);
+                    formatter.append(" are not available for injection into instances of type ");
+                    formatter.appendType(interfaceType);
+                    formatter.append(".");
+                    return formatter.toString();
+                })
+            )
+        );
     }
 
-    private static class ServicesForIsolatedObject implements ServiceLookup {
-        private final Class<?> interfaceType;
-        private final Collection<? extends Class<?>> additionalAllowedServices;
-        private final ServiceLookup allServices;
-        private final Object params;
-
-        public ServicesForIsolatedObject(
-            Class<?> interfaceType,
-            Object params,
-            ServiceLookup allServices,
-            Collection<? extends Class<?>> additionalAllowedServices
-        ) {
-            this.interfaceType = interfaceType;
-            this.additionalAllowedServices = additionalAllowedServices;
-            this.allServices = allServices;
-            this.params = params;
-        }
-
-        @Override
-        public Object find(Type serviceType) throws ServiceLookupException {
-            if (serviceType instanceof Class) {
-                Class<?> serviceClass = Cast.uncheckedNonnullCast(serviceType);
-                if (serviceClass.isInstance(params)) {
-                    return params;
-                }
-                if (serviceClass.isAssignableFrom(ExecOperations.class)) {
-                    return allServices.find(ExecOperations.class);
-                }
-                if (serviceClass.isAssignableFrom(FileSystemOperations.class)) {
-                    return allServices.find(FileSystemOperations.class);
-                }
-                if (serviceClass.isAssignableFrom(ArchiveOperations.class)) {
-                    return allServices.find(ArchiveOperations.class);
-                }
-                if (serviceClass.isAssignableFrom(ObjectFactory.class)) {
-                    return allServices.find(ObjectFactory.class);
-                }
-                if (serviceClass.isAssignableFrom(ProviderFactory.class)) {
-                    return allServices.find(ProviderFactory.class);
-                }
-                if (serviceClass.isAssignableFrom(BuildServiceRegistry.class)) {
-                    return allServices.find(BuildServiceRegistry.class);
-                }
-                if (serviceClass.isAssignableFrom(ProblemsInternal.class)) {
-                    return allServices.find(ProblemsInternal.class);
-                }
-                if (serviceClass.isAssignableFrom(ManagedObjectRegistry.class)) {
-                    return allServices.find(ManagedObjectRegistry.class);
-                }
-                for (Class<?> allowedService : additionalAllowedServices) {
-                    if (serviceClass.isAssignableFrom(allowedService)) {
-                        return allServices.find(allowedService);
-                    }
-                }
-                // Route the removed InternalProblems type to the service that fails with an actionable error.
-                @SuppressWarnings("deprecation")
-                Class<?> removedInternalProblems = org.gradle.api.problems.internal.InternalProblems.class;
-                if (serviceClass.isAssignableFrom(removedInternalProblems)) {
-                    return allServices.find(removedInternalProblems);
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-            Object result = find(serviceType);
-            if (result == null) {
-                return notFound(serviceType);
-            }
-            return result;
-        }
-
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            return notFound(serviceType);
-        }
-
-        private Object notFound(Type serviceType) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Services of type ");
-            formatter.appendType(serviceType);
-            formatter.append(" are not available for injection into instances of type ");
-            formatter.appendType(interfaceType);
-            formatter.append(".");
-            throw new UnknownServiceException(serviceType, formatter.toString());
-        }
-    }
 }
