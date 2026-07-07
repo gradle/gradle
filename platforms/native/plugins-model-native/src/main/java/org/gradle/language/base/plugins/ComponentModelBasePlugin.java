@@ -27,6 +27,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
@@ -86,7 +87,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import static com.google.common.base.Strings.emptyToNull;
 
 /**
@@ -219,7 +219,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
             @Override
             public void execute(Task task) {
-                Set<? extends Task> taskDependencies = TaskDependencyUtil.newTaskResolver().getDependencies(task, (TaskDependencyContainer) task.getTaskDependencies());
+                Set<? extends Task> taskDependencies = TaskDependencyUtil.newTaskResolver().getDependencies(task, (TaskDependencyInternal) task.getTaskDependencies());
 
                 if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();

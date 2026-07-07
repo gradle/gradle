@@ -83,7 +83,7 @@ public class BuildSrcBuildListenerFactory {
                 resolver.prepareClassPath(classpathConfiguration, resolutionContext);
                 classpathConfiguration.getDependencies().add(rootProject.getDependencyFactory().createProjectDependency());
                 TaskDependencyContainer configurationTaskDependencies = (TaskDependencyContainer) classpathConfiguration;
-                plan.addEntryDependencies(configurationTaskDependencies);
+                plan.addEntryWork(configurationTaskDependencies);
             });
         }
 
