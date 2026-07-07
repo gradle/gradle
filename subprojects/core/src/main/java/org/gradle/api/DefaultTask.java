@@ -229,7 +229,7 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
-    public TaskDependencyInternal getMustRunAfter() {
+    public TaskDependency getMustRunAfter() {
         return super.getMustRunAfter();
     }
 
@@ -244,7 +244,7 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
-    public TaskDependencyInternal getFinalizedBy() {
+    public TaskDependency getFinalizedBy() {
         return super.getFinalizedBy();
     }
 
@@ -259,7 +259,7 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
-    public TaskDependencyInternal getShouldRunAfter() {
+    public TaskDependency getShouldRunAfter() {
         return super.getShouldRunAfter();
     }
 

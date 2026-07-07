@@ -36,7 +36,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.tasks.TaskDependency;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -169,18 +169,5 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * @return the dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)}
      */
     @Internal
-    TaskDependencyInternal getLifecycleDependencies();
-
-    @Override
-    TaskDependencyInternal getTaskDependencies();
-
-    @Override
-    TaskDependencyInternal getFinalizedBy();
-
-    @Override
-    TaskDependencyInternal getMustRunAfter();
-
-    @Override
-    TaskDependencyInternal getShouldRunAfter();
-
+    TaskDependency getLifecycleDependencies();
 }

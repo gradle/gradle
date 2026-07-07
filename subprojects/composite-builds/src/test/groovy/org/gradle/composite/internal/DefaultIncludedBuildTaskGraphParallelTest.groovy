@@ -365,6 +365,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def dependencies = Stub(TaskDependencyInternal)
         _ * dependencies.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependsOn) }
         _ * task.taskDependencies >> dependencies
+        _ * task.lifecycleDependencies >> TaskDependencyInternal.EMPTY
+        _ * task.finalizedBy >> TaskDependencyInternal.EMPTY
+        _ * task.mustRunAfter >> TaskDependencyInternal.EMPTY
+        _ * task.shouldRunAfter >> TaskDependencyInternal.EMPTY
         _ * task.project >> project
         _ * task.identityPath >> projectId.buildTreePath.child("task")
         _ * task.taskIdentity >> TestTaskIdentities.create("task", DefaultTask, project)

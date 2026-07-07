@@ -51,9 +51,9 @@ public interface ExecutionPlan extends Describable, Closeable {
     void addEntryTasks(Collection<? extends Task> tasks);
 
     /**
-     * Adds the nodes specified by the given task dependency container as entry nodes to this execution plan.
+     * Adds the work specified by the given task dependency container as entry nodes to this execution plan.
      */
-    void addEntryDependencies(TaskDependencyContainer dependencies);
+    void addEntryWork(TaskDependencyContainer dependencies);
 
     /**
      * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.
