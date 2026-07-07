@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -127,7 +128,7 @@ public class LocalTaskNode extends TaskNode {
             addDependencySuccessor(targetNode);
         }
 
-        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, (TaskDependencyInternal) task.getLifecycleDependencies());
 
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskNode)) {
@@ -149,19 +150,19 @@ public class LocalTaskNode extends TaskNode {
     }
 
     private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
+        return dependencyResolver.resolveDependenciesFor(task, (TaskDependencyInternal) task.getTaskDependencies());
     }
 
     private Set<Node> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy());
+        return dependencyResolver.resolveDependenciesFor(task, (TaskDependencyInternal) task.getFinalizedBy());
     }
 
     private Set<Node> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter());
+        return dependencyResolver.resolveDependenciesFor(task, (TaskDependencyInternal) task.getMustRunAfter());
     }
 
     private Set<Node> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter());
+        return dependencyResolver.resolveDependenciesFor(task, (TaskDependencyInternal) task.getShouldRunAfter());
     }
 
     @Override

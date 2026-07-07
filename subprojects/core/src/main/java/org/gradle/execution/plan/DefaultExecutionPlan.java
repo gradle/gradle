@@ -132,7 +132,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
-    public void addEntryDependencies(TaskDependencyContainer dependencies) {
+    public void addEntryWork(TaskDependencyContainer dependencies) {
         Set<Node> nodes = dependencyResolver.resolveDependenciesFor(null, dependencies);
         addEntryNodes(nodes);
     }
