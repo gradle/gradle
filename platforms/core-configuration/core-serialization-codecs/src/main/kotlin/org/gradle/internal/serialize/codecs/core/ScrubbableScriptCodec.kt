@@ -53,8 +53,9 @@ import java.lang.reflect.Proxy
  * fields AND the base-class service delegates (`logger`/`logging`/`fileOperations`/`resources`).
  * The service delegates capture a service-only `CapturedServicesScriptHost`, whose services are
  * handled by their own codecs or re-resolved from the isolate owner ([org.gradle.api.logging.Logger]
- * via its codec; [org.gradle.api.internal.file.FileOperations] and the logging manager via
- * `ServicesCodec`). So `file(...)`, `logger`, etc. keep working at execution.
+ * via its codec; the script's [org.gradle.api.internal.file.FileOperations] via
+ * [ScriptFileOperationsCodec], which preserves its base dir; the logging manager via `ServicesCodec`).
+ * So `file(...)`, `logger`, etc. keep working at execution.
  *
  * On decode the instance is allocated without running its constructor (via the same
  * constructor-for-serialization path used by ordinary beans), so we never need a live host.

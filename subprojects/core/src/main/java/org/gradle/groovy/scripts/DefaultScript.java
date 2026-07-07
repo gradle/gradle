@@ -75,9 +75,9 @@ public abstract class DefaultScript extends BasicScript {
             FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
-                FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
-                FileCollectionFactory fileCollectionFactoryWithBase = fileCollectionFactory.withResolver(resolver);
-                fileOperations = DefaultFileOperations.createSimple(resolver, fileCollectionFactoryWithBase, services);
+                // A script with a known base dir gets a ScriptFileOperations, so the configuration
+                // cache can preserve that base dir across the cache. See #22879.
+                fileOperations = DefaultFileOperations.forScript(services, sourceFile.getParentFile());
             } else {
                 fileOperations = DefaultFileOperations.createSimple(fileLookup.getFileResolver(), fileCollectionFactory, services);
             }

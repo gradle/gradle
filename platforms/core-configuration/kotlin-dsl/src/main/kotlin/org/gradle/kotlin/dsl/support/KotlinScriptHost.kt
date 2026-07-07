@@ -183,8 +183,13 @@ fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
 
 internal
 fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
+    // A script with a known base dir gets a ScriptFileOperations, so the configuration cache can
+    // preserve that base dir across the cache instead of re-resolving it from the owner. See #22879.
+    if (baseDir != null) {
+        return DefaultFileOperations.forScript(services, baseDir)
+    }
     val fileLookup = services.get<FileLookup>()
-    val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
+    val fileResolver = fileLookup.fileResolver
     val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
     return DefaultFileOperations.createSimple(
         fileResolver,

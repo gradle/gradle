@@ -93,6 +93,7 @@ import org.gradle.internal.serialize.codecs.core.ProviderCodec
 import org.gradle.internal.serialize.codecs.core.RegisteredFlowActionCodec
 import org.gradle.internal.serialize.codecs.core.RegularFileCodec
 import org.gradle.internal.serialize.codecs.core.RegularFilePropertyCodec
+import org.gradle.internal.serialize.codecs.core.ScriptFileOperationsCodec
 import org.gradle.internal.serialize.codecs.core.ScrubbableScriptCodec
 import org.gradle.internal.serialize.codecs.core.SerializedLambdaParametersCheckingCodec
 import org.gradle.internal.serialize.codecs.core.SetPropertyCodec
@@ -245,6 +246,9 @@ class DefaultConfigurationCacheCodecs(
             groovyCodecs()
             bind(SerializedLambdaParametersCheckingCodec(objectOpener))
             bind(ScrubbableScriptCodec)
+            // Must precede ServicesCodec, which would otherwise re-resolve a script's FileOperations
+            // from the owner and lose the script's base dir. See #22879.
+            bind(ScriptFileOperationsCodec)
 
             // Dependency management types
             val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)

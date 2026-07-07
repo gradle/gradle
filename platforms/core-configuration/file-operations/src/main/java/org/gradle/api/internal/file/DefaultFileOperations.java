@@ -63,6 +63,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GFileUtils;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -312,6 +314,24 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
+        return create(fileResolver, fileTreeFactory, services, null);
+    }
+
+    /**
+     * Creates a {@link FileOperations} scoped to {@code baseDir}: relative paths passed to
+     * {@code file(...)} and friends resolve against it. Unlike {@link #createSimple}, the returned
+     * instance is a {@link ScriptFileOperations} that remembers {@code baseDir}, so the configuration
+     * cache can serialize just that directory and rebuild an equivalent instance here from the owning
+     * build's services. See <a href="https://github.com/gradle/gradle/issues/22879">#22879</a>.
+     */
+    public static ScriptFileOperations forScript(ServiceRegistry services, File baseDir) {
+        FileLookup fileLookup = services.get(FileLookup.class);
+        FileResolver fileResolver = fileLookup.getFileResolver(baseDir);
+        FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class).withResolver(fileResolver);
+        return (ScriptFileOperations) create(fileResolver, fileCollectionFactory, services, baseDir);
+    }
+
+    private static DefaultFileOperations create(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services, @Nullable File baseDir) {
         Instantiator instantiator = services.get(Instantiator.class);
         PropertyFactory propertyFactory = services.get(PropertyFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
@@ -334,6 +354,27 @@ public class DefaultFileOperations implements FileOperations {
             textResourceAdapterFactory
         );
 
+        if (baseDir != null) {
+            return new DefaultScriptFileOperations(
+                baseDir,
+                fileResolver,
+                instantiator,
+                directoryFileTreeFactory,
+                fileHasher,
+                resourceHandlerFactory,
+                fileTreeFactory,
+                propertyFactory,
+                fileSystem,
+                patternSetFactory,
+                deleter,
+                documentationRegistry,
+                taskDependencyFactory,
+                providers,
+                decompressionCoordinator,
+                temporaryFileProvider
+            );
+        }
+
         return new DefaultFileOperations(
             fileResolver,
             instantiator,
@@ -351,5 +392,58 @@ public class DefaultFileOperations implements FileOperations {
             decompressionCoordinator,
             temporaryFileProvider
         );
+    }
+
+    /**
+     * A {@link DefaultFileOperations} that remembers the base directory it was scoped to, so the
+     * configuration cache can rebuild an equivalent instance. See {@link ScriptFileOperations} and
+     * <a href="https://github.com/gradle/gradle/issues/22879">#22879</a>.
+     */
+    private static class DefaultScriptFileOperations extends DefaultFileOperations implements ScriptFileOperations {
+
+        private final File baseDir;
+
+        DefaultScriptFileOperations(
+            File baseDir,
+            FileResolver fileResolver,
+            Instantiator instantiator,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileHasher fileHasher,
+            DefaultResourceHandler.Factory resourceHandlerFactory,
+            FileCollectionFactory fileCollectionFactory,
+            PropertyFactory propertyFactory,
+            FileSystem fileSystem,
+            PatternSetFactory patternSetFactory,
+            Deleter deleter,
+            DocumentationRegistry documentationRegistry,
+            TaskDependencyFactory taskDependencyFactory,
+            ProviderFactory providers,
+            DecompressionCoordinator decompressionCoordinator,
+            TemporaryFileProvider temporaryFileProvider
+        ) {
+            super(
+                fileResolver,
+                instantiator,
+                directoryFileTreeFactory,
+                fileHasher,
+                resourceHandlerFactory,
+                fileCollectionFactory,
+                propertyFactory,
+                fileSystem,
+                patternSetFactory,
+                deleter,
+                documentationRegistry,
+                taskDependencyFactory,
+                providers,
+                decompressionCoordinator,
+                temporaryFileProvider
+            );
+            this.baseDir = baseDir;
+        }
+
+        @Override
+        public File getBaseDir() {
+            return baseDir;
+        }
     }
 }

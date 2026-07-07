@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 /**
@@ -224,8 +223,7 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         failure.assertHasCause("Invocation of 'getScriptHandler' references a KotlinScriptHost object from a Kotlin script lambda at execution time, which is unsupported with the configuration cache.")
     }
 
-    @ToBeImplemented
-    def "init script file() loses its base dir under the configuration cache"() {
+    def "init script file() keeps its base dir under the configuration cache"() {
         given:
         // resolve() routes through the init script's own file(), so this exercises the script's
         // FileOperations (rooted at the init script's dir), not the Project's file() that a bare
@@ -240,19 +238,11 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         settingsFile << ""
         executer.beforeExecute { withArgument("-I").withArgument(initScript.absolutePath) }
 
-        when: "without the configuration cache, file() resolves against the init script's own dir"
-        succeeds "checkDir"
-
-        then:
-        outputContains("RESOLVED: " + file("gradle/marker").absolutePath)
-
-        when: "with the configuration cache, the script's FileOperations is re-resolved from the owner"
-        configurationCacheRun "checkDir"
-
-        then:
-        // Known #22879 fidelity gap: resolves against the project dir, not the init script's dir.
-        // When we store the base dir and rebuild (option 2), this should become gradle/marker.
-        outputContains("RESOLVED: " + file("marker").absolutePath)
+        expect: "the stored FileOperations carries the init script's base dir, so file() resolves against it on store and reuse"
+        2.times {
+            configurationCacheRun "checkDir"
+            outputContains("RESOLVED: " + file("gradle/marker").absolutePath)
+        }
     }
 
     def "task action defined in a precompiled script plugin can capture script state"() {
