@@ -28,8 +28,8 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
+import org.gradle.kotlin.dsl.support.DefaultKotlinScriptHost
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -93,7 +93,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     fun scriptHostWith(
         target: Any = mock(),
         scriptHandler: ScriptHandlerInternal = mock()
-    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock(), mock {
+    ) = DefaultKotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock(), mock {
         on { get(ObjectFactory::class.java) } doAnswer { mock<ObjectFactory>() }
     })
 

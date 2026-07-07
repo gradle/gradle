@@ -19,11 +19,7 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
-import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.ScriptHandlerScope
@@ -33,7 +29,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
+) : DefaultKotlinScript(scriptHostServicesFor(host)), PluginAware by host.target {
 
     /**
      * The [ScriptHandler] for this script.
@@ -102,20 +98,15 @@ open class CompiledKotlinSettingsBuildscriptBlock(
 @ImplicitReceiver(Gradle::class)
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host) {
+) : DefaultKotlinScript(
+    scriptHostServicesFor(host)
+), PluginAware by PluginAwareScript(host) {
 
     /**
      * The [ScriptHandler] for this script.
      */
     open val initscript: ScriptHandler
         get() = host.scriptHandler
-
-    private
-    class InitScriptHost(val host: KotlinScriptHost<Gradle>) : Host {
-        override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
-        override fun getLogging(): LoggingManager = host.target.serviceOf()
-        override fun getFileOperations(): FileOperations = host.fileOperations
-    }
 }
 
 

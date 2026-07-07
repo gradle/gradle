@@ -36,6 +36,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
+import org.gradle.kotlin.dsl.support.DefaultKotlinScriptHost
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -241,7 +242,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope
     ) =
-        KotlinScriptHost(
+        DefaultKotlinScriptHost(
             target,
             scriptSource,
             scriptHandler,

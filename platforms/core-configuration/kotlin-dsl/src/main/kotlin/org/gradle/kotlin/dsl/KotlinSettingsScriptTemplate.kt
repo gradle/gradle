@@ -22,7 +22,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
+import org.gradle.kotlin.dsl.support.scriptHostServicesFor
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
@@ -53,7 +53,7 @@ class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandalone
 @GradleDsl
 abstract class KotlinSettingsScriptTemplate(
     private val host: KotlinScriptHost<Settings>
-) : DefaultKotlinScript(defaultKotlinScriptHostForSettings(host.target)), PluginAware by host.target {
+) : DefaultKotlinScript(scriptHostServicesFor(host)), PluginAware by host.target {
 
     /**
      * The [ScriptHandler] for this script.

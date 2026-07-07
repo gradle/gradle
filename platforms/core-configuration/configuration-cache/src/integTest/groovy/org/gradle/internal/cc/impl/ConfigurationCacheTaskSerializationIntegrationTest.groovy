@@ -650,56 +650,32 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/35721")
-    def "gives proper attribution to serialization failures in task closures"() {
+    @Issue("https://github.com/gradle/gradle/issues/22879")
+    def "task closures can call a Project-independent function defined in a Kotlin script"() {
+        // A top-level function captured by every kind of task closure below. It touches no build
+        // model, so the captured script is scrubbed rather than rejected and the closures work.
         buildKotlinFile """
-            // Just a top-level function to have lambdas capture the script
-            fun myFalse() = false
+            fun answer() = 42
 
             tasks.register("myTask") {
-                outputs.cacheIf {
-                    myFalse()
-                }
-                outputs.doNotCacheIf("reason") {
-                    myFalse()
-                }
-                outputs.upToDateWhen {
-                    myFalse()
-                }
-
-                onlyIf {
-                    myFalse()
-                }
-
-                doLast {
-                    myFalse()
-                }
+                outputs.cacheIf { answer() > 0 }
+                outputs.doNotCacheIf("reason") { answer() < 0 }
+                outputs.upToDateWhen { answer() < 0 }
+                onlyIf { answer() > 0 }
+                doLast { println("RESULT: " + answer()) }
             }
         """
 
         when:
-        configurationCacheFails "myTask"
+        configurationCacheRun "myTask"
 
         then:
-        // test HTML report directly as console output has only one unique problem as it ignores deep property traces
-        problems.htmlReport(failure.error).assertContents {
-            totalProblemsCount = 5
-            problemsWithStackTraceCount = 0
+        outputContains("RESULT: 42")
 
-            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
-                at(":myTask").at("upToDate specs")
-            }
-            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
-                at(":myTask").at("cacheIf specs")
-            }
-            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
-                at(":myTask").at("doNotCacheIf specs")
-            }
-            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
-                at(":myTask").at("onlyIf specs")
-            }
-            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
-                at(":myTask").at("actions")
-            }
-        }
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        outputContains("RESULT: 42")
     }
 }

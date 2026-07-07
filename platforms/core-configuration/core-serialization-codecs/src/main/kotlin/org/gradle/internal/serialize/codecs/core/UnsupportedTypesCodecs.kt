@@ -52,11 +52,11 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.groovy.scripts.BasicScript
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.event.AbstractBroadcastDispatch
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.flow.services.BuildWorkResultProvider
-import org.gradle.internal.scripts.GradleScript
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -101,8 +101,10 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Exchanger<*>>())
     bind(unsupported<SynchronousQueue<*>>())
 
-    // Gradle Scripts
-    bind(unsupported<GradleScript>(" Gradle script object references"))
+    // Gradle Scripts.
+    // Only Groovy scripts (BasicScript) are rejected outright. Kotlin scripts implement
+    // ScrubbableScript and are handled by ScrubbableScriptCodec instead. See #22879.
+    bind(unsupported<BasicScript>(" Gradle script object references"))
 
     // Gradle Build Model
     bind(unsupported<Gradle>())

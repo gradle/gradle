@@ -93,6 +93,7 @@ import org.gradle.internal.serialize.codecs.core.ProviderCodec
 import org.gradle.internal.serialize.codecs.core.RegisteredFlowActionCodec
 import org.gradle.internal.serialize.codecs.core.RegularFileCodec
 import org.gradle.internal.serialize.codecs.core.RegularFilePropertyCodec
+import org.gradle.internal.serialize.codecs.core.ScrubbableScriptCodec
 import org.gradle.internal.serialize.codecs.core.SerializedLambdaParametersCheckingCodec
 import org.gradle.internal.serialize.codecs.core.SetPropertyCodec
 import org.gradle.internal.serialize.codecs.core.StringValueSnapshotCodec
@@ -243,6 +244,7 @@ class DefaultConfigurationCacheCodecs(
 
             groovyCodecs()
             bind(SerializedLambdaParametersCheckingCodec(objectOpener))
+            bind(ScrubbableScriptCodec)
 
             // Dependency management types
             val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)

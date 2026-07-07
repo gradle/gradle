@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import spock.lang.Issue
 
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -238,7 +239,8 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         result.groupedOutput.task(":two").assertOutputContains("values1=[12]")
     }
 
-    def "problem when closure defined in Kotlin script captures state from the script"() {
+    @Issue("https://github.com/gradle/gradle/issues/22879")
+    def "closure defined i n Kotlin script can capture Project-independent state from the script"() {
         given:
         buildKotlinFile << """
             val message = "message"
@@ -250,15 +252,16 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         """
 
         when:
-        configurationCacheFails ":some"
+        configurationCacheRun ":some"
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Task `:some` of type `org.gradle.api.DefaultTask`: cannot serialize Gradle script object references as these are not supported with the configuration cache."
-            )
-            problemsWithStackTraceCount = 0
-        }
+        outputContains("message")
+
+        when:
+        configurationCacheRun ":some"
+
+        then:
+        outputContains("message")
     }
 
     def "task with type declared in Groovy script is up-to-date when no inputs have changed"() {

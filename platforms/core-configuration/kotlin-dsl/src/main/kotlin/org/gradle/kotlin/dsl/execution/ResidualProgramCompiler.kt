@@ -340,7 +340,7 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.loadTargetOf(expectedType: KClass<*>) {
         ALOAD(Vars.ScriptHost)
-        INVOKEVIRTUAL(
+        INVOKEINTERFACE(
             KotlinScriptHost::class.internalName,
             "getTarget",
             "()Ljava/lang/Object;"
@@ -413,7 +413,7 @@ class ResidualProgramCompiler(
         NEW(pluginRequestCollectorType)
         DUP()
         ALOAD(Vars.ScriptHost)
-        INVOKEVIRTUAL(
+        INVOKEINTERFACE(
             KotlinScriptHost::class.internalName,
             "getScriptSource",
             "()Lorg/gradle/groovy/scripts/ScriptSource;"

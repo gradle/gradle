@@ -1135,9 +1135,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         file("a/build.gradle.kts") << """
             gradle.buildFinished { }
 
+            // Capturing the project is no longer a serialization problem (#22879): the script is
+            // scrubbed and the reference is replaced by a broken stand-in. See the graceful
+            // execution-time behavior in ConfigurationCacheScriptCaptureCornerCasesIntegrationTest.
             val capturedProject = project
             tasks.register("broken") {
-                doLast { capturedProject } // serialization problem
+                doLast { capturedProject }
             }
         """
 
@@ -1145,10 +1148,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("broken")
 
         then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle.kts')}': registration of listener on 'Gradle.buildFinished' is unsupported")
-            withProblem("Task `:a:broken` of type `org.gradle.api.DefaultTask`: cannot serialize Gradle script object references as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 1
         }
     }

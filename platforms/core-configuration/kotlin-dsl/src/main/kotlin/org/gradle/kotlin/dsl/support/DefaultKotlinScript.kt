@@ -33,7 +33,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.scripts.GradleScript
+import org.gradle.internal.scripts.ScrubbableScript
 import org.gradle.kotlin.dsl.*
 import java.io.File
 import java.net.URI
@@ -45,7 +45,7 @@ import java.net.URI
  */
 open class DefaultKotlinScript internal constructor(
     host: Host
-) : KotlinScript, GradleScript {
+) : KotlinScript, ScrubbableScript {
 
     internal
     interface Host {
@@ -122,39 +122,70 @@ open class DefaultKotlinScript internal constructor(
 
 internal
 fun defaultKotlinScriptHostForProject(project: Project): DefaultKotlinScript.Host =
-    ProjectScriptHost(project)
-
-
-private
-class ProjectScriptHost(val project: Project) : DefaultKotlinScript.Host {
-    override fun getLogger(): Logger = project.logger
-    override fun getLogging(): LoggingManager = project.logging
-    override fun getFileOperations(): FileOperations = projectInternal().fileOperations
-    fun projectInternal() = (project as ProjectInternal)
-}
+    CapturedServicesScriptHost(
+        project.logger,
+        project.logging,
+        (project as ProjectInternal).fileOperations
+    )
 
 
 internal
 fun defaultKotlinScriptHostForSettings(settings: Settings): DefaultKotlinScript.Host =
-    SettingsScriptHost(settings)
-
-
-private
-class SettingsScriptHost(val settings: Settings) : DefaultKotlinScript.Host {
-    override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
-    override fun getLogging(): LoggingManager = settings.serviceOf()
-    override fun getFileOperations(): FileOperations = fileOperationsFor(settings)
-}
+    CapturedServicesScriptHost(
+        Logging.getLogger(Settings::class.java),
+        settings.serviceOf(),
+        fileOperationsFor(settings)
+    )
 
 
 internal
 fun defaultKotlinScriptHostForGradle(gradle: Gradle): DefaultKotlinScript.Host =
-    GradleScriptHost(gradle)
+    CapturedServicesScriptHost(
+        Logging.getLogger(Gradle::class.java),
+        gradle.serviceOf(),
+        fileOperationsFor(gradle, null)
+    )
 
 
-private
-class GradleScriptHost(val gradle: Gradle) : DefaultKotlinScript.Host {
-    override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
-    override fun getLogging(): LoggingManager = gradle.serviceOf()
-    override fun getFileOperations(): FileOperations = fileOperationsFor(gradle, null)
+/**
+ * Builds the [DefaultKotlinScript.Host] for a compiled script by sourcing its services from the
+ * [host] (a [KotlinScriptHost]) rather than from the raw target. Because [KotlinScriptHost] is an
+ * interface, this keeps script construction free of the target's service graph — tests can supply a
+ * mock host, and there is a single seam through which the services flow.
+ *
+ * The services are read lazily, not eagerly: [DefaultKotlinScript]'s delegates only pull a service
+ * when the script actually uses it, or when the configuration cache serializes the (`Serializable`)
+ * delegate and its `writeReplace` forces the value. So a script that never touches `file(...)`,
+ * `logger` etc. and is never stored never resolves them — which is what keeps lightweight,
+ * partial service registries (test evaluators) working. On a cache store the forced value is
+ * captured and the closure holding this `host` is dropped, so nothing reaches the build model. See
+ * #22879.
+ *
+ * (The `defaultKotlinScriptHostFor*` functions above remain for precompiled script plugins, which
+ * are applied as plain `Plugin`s and only have the target, not a [KotlinScriptHost].)
+ */
+internal
+fun scriptHostServicesFor(host: KotlinScriptHost<*>): DefaultKotlinScript.Host =
+    object : DefaultKotlinScript.Host {
+        override fun getLogger(): Logger = host.logger
+        override fun getLogging(): LoggingManager = host.logging
+        override fun getFileOperations(): FileOperations = host.fileOperations
+    }
+
+
+/**
+ * A [DefaultKotlinScript.Host] that captures its services eagerly and holds no reference to the
+ * Gradle build model (`Project`/`Settings`/`Gradle`), so it can be carried across the
+ * configuration cache: the captured services are themselves handled by their own codecs or
+ * re-resolved from the isolate owner at execution time. See #22879.
+ */
+internal
+class CapturedServicesScriptHost(
+    private val logger: Logger,
+    private val logging: LoggingManager,
+    private val fileOperations: FileOperations
+) : DefaultKotlinScript.Host {
+    override fun getLogger(): Logger = logger
+    override fun getLogging(): LoggingManager = logging
+    override fun getFileOperations(): FileOperations = fileOperations
 }

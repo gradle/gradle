@@ -21,9 +21,9 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
+import org.gradle.kotlin.dsl.support.scriptHostServicesFor
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
@@ -54,7 +54,7 @@ class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneS
 @GradleDsl
 abstract class KotlinProjectScriptTemplate(
     private val host: KotlinScriptHost<Project>
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)) {
+) : DefaultKotlinScript(scriptHostServicesFor(host)) {
 
     /**
      * The [ScriptHandler] for this script.

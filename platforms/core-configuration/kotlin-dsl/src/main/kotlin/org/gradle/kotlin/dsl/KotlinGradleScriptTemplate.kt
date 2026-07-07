@@ -22,7 +22,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
+import org.gradle.kotlin.dsl.support.scriptHostServicesFor
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.filePathPattern
@@ -51,7 +51,7 @@ class KotlinGradleScriptTemplateCompilationConfiguration : KotlinDslStandaloneSc
 )
 abstract class KotlinGradleScriptTemplate(
     private val host: KotlinScriptHost<Gradle>
-) : DefaultKotlinScript(defaultKotlinScriptHostForGradle(host.target)), PluginAware by host.target {
+) : DefaultKotlinScript(scriptHostServicesFor(host)), PluginAware by host.target {
 
     /**
      * The [ScriptHandler] for this script.

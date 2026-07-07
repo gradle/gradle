@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
@@ -30,9 +31,13 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.scripts.ScrubbableScript
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
@@ -44,21 +49,51 @@ import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.relativeTo
 
 
-class KotlinScriptHost<out T : Any> internal constructor(
-    val target: T,
-    val scriptSource: ScriptSource,
-    internal val scriptHandler: ScriptHandler,
-    internal val targetScope: ClassLoaderScope,
+/**
+ * The services and context a compiled Kotlin script needs from its target (`Project`/`Settings`/
+ * `Gradle`).
+ *
+ * This is an interface (implemented by [DefaultKotlinScriptHost]) so that the configuration cache
+ * can replace it with a broken proxy when scrubbing a captured script: every member reaches the live
+ * build model or a build-scoped service, none of which survive serialization. See #22879 and
+ * `ScrubbableScriptCodec`. At execution time on a scrubbed script the only reachable member is
+ * `scriptHandler` (via the `buildscript`/`initscript` accessors), which then fails with a clear
+ * configuration-cache problem instead of a `NullPointerException`.
+ */
+interface KotlinScriptHost<out T : Any> : ScrubbableScript.ScrubbedOut {
+    val target: T
+    val scriptSource: ScriptSource
+    val scriptHandler: ScriptHandler
+    val targetScope: ClassLoaderScope
+    val originalScriptPath: String
+    val buildTreeScriptPath: String
+    val fileOperations: FileOperations
+    val logger: Logger
+    val logging: LoggingManager
+    val processOperations: ProcessOperations
+    val objectFactory: ObjectFactory
+    val temporaryFileProvider: TemporaryFileProvider
+    val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker
+    val projectAccessorsClassPathGenerator: ProjectAccessorsClassPathGenerator
+    fun applyObjectConfigurationAction(configure: Action<in ObjectConfigurationAction>)
+    fun applyObjectConfigurationAction(options: Map<String, *>)
+}
+
+
+@Suppress("LongParameterList")
+class DefaultKotlinScriptHost<out T : Any> internal constructor(
+    override val target: T,
+    override val scriptSource: ScriptSource,
+    override val scriptHandler: ScriptHandler,
+    override val targetScope: ClassLoaderScope,
     private val baseScope: ClassLoaderScope,
     private val buildTreeRootDir: Path,
     private val serviceRegistry: ServiceRegistry
-) {
+) : KotlinScriptHost<T> {
 
-    internal
-    val originalScriptPath = scriptSource.fileName!!
+    override val originalScriptPath = scriptSource.fileName!!
 
-    internal
-    val buildTreeScriptPath: String by unsafeLazy {
+    override val buildTreeScriptPath: String by unsafeLazy {
         val location = scriptSource.resource.location
         location.file?.toPath()?.toAbsolutePath()
             ?.let { path ->
@@ -71,45 +106,50 @@ class KotlinScriptHost<out T : Any> internal constructor(
             ?: scriptSource.className // Generated class name fallback, non-relocatable
     }
 
-    internal
-    val fileOperations: FileOperations by unsafeLazy {
+    override val fileOperations: FileOperations by unsafeLazy {
         fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile)
     }
 
-    internal
-    val processOperations: ProcessOperations by unsafeLazy {
+    override val logger: Logger by unsafeLazy {
+        when (val t = target) {
+            is Project -> t.logger
+            is Settings -> Logging.getLogger(Settings::class.java)
+            is Gradle -> Logging.getLogger(Gradle::class.java)
+            else -> Logging.getLogger(t.javaClass)
+        }
+    }
+
+    override val logging: LoggingManager by unsafeLazy {
         serviceRegistry.get()
     }
 
-    internal
-    val objectFactory: ObjectFactory by unsafeLazy {
+    override val processOperations: ProcessOperations by unsafeLazy {
         serviceRegistry.get()
     }
 
-    internal
-    val temporaryFileProvider: TemporaryFileProvider by unsafeLazy {
+    override val objectFactory: ObjectFactory by unsafeLazy {
+        serviceRegistry.get()
+    }
+
+    override val temporaryFileProvider: TemporaryFileProvider by unsafeLazy {
         // GradleUserHomeTemporaryFileProvider must be used instead of the TemporaryFileProvider.
         // In this scope the TemporaryFileProvider would be provided by the ProjectScopeServices.
         // That would generate this temporary directory inside the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()
     }
 
-    internal
-    val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker by unsafeLazy {
+    override val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker by unsafeLazy {
         serviceRegistry.get<KotlinMetadataCompatibilityChecker>()
     }
 
-    internal
-    val projectAccessorsClassPathGenerator: ProjectAccessorsClassPathGenerator
+    override val projectAccessorsClassPathGenerator: ProjectAccessorsClassPathGenerator
         get() = serviceRegistry.get<ProjectAccessorsClassPathGenerator>()
 
-    internal
-    fun applyObjectConfigurationAction(configure: Action<in ObjectConfigurationAction>) {
+    override fun applyObjectConfigurationAction(configure: Action<in ObjectConfigurationAction>) {
         executeObjectConfigurationAction { configure(it) }
     }
 
-    internal
-    fun applyObjectConfigurationAction(options: Map<String, *>) {
+    override fun applyObjectConfigurationAction(options: Map<String, *>) {
         executeObjectConfigurationAction { configureByMap(options, it) }
     }
 
