@@ -1035,7 +1035,18 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         assertHasUnsupportedPropertyValueType(Property, Configuration, "tasks", "TaskReportTask")
     }
 
-    def "reports error only once when multiple properties of same unsupported type exist"() {
+    def "reports each property of an unsupported type independently"() {
+        // Every field's PropertyCodec.encodeThis runs the widening check and emits
+        // its own deferred problem. The CC problem aggregator dedupes by
+        // (message + trace); since the trace names the specific field, the four
+        // problems have distinct traces and all survive dedup — one bullet per
+        // field in the CC-problems summary.
+        //
+        // The exception message (which is what assertHasCause matches against)
+        // does NOT distinguish the fields — every one produces the same
+        // "Cannot serialize Property<Configuration> in task :multiConf ..."
+        // cause. So the strong assertion has to look at the summary bullets by
+        // field name, not at the cause chain.
         buildFile << """
             abstract class MultiConfTask extends DefaultTask {
                 @Internal
@@ -1075,7 +1086,14 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         when:
         configurationCacheFails "multiConf"
 
-        then:
+        then: "the CC problems summary reports exactly one bullet per field"
+        outputContains("Configuration cache entry discarded with 4 problems.")
+        outputContains("failed to serialize value of field '__first__' of task ':multiConf' of type 'MultiConfTask'")
+        outputContains("failed to serialize value of field '__second__' of task ':multiConf' of type 'MultiConfTask'")
+        outputContains("failed to serialize value of field '__third__' of task ':multiConf' of type 'MultiConfTask'")
+        outputContains("failed to serialize value of field '__fourth__' of task ':multiConf' of type 'MultiConfTask'")
+
+        and: "each problem carries the widening-cause + resolution surfaced by the exception"
         assertHasUnsupportedPropertyValueType(Property, Configuration, "multiConf", "MultiConfTask")
     }
 
