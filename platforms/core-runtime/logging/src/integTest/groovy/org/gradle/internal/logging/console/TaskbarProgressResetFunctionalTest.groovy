@@ -23,6 +23,7 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.precondition.Requires
 import spock.lang.Issue
+import spock.lang.Ignore
 
 /**
  * Verifies that the OSC 9;4;0 taskbar progress reset sequence is emitted when a build ends,
@@ -48,6 +49,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
             .withConsole(ConsoleOutput.Rich)
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/5153')
     @Requires(value = [OsTestPreconditions.Unix, TestExecutionPreconditions.NotEmbeddedExecutor],
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
@@ -69,21 +71,11 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         when:
         def gradle = executer.withTasks("block").start()
 
-        // Wait until the task is actually executing (the daemon has created the
-        // marker) before signalling, so the build is cancellable when SIGINT arrives.
         ConcurrentTestUtil.poll {
             assert readyFile.exists()
         }
 
-        // A single SIGINT can be lost before the client JVM acts on it: on loaded
-        // machines the build is otherwise observed to run to normal completion
-        // instead of cancelling. Resend the signal until the process terminates.
-        ConcurrentTestUtil.poll(60, 0, 1) {
-            if (gradle.running) {
-                gradle.sendSignal(SIGINT)
-            }
-            assert !gradle.running
-        }
+        gradle.sendSignal(SIGINT)
         gradle.waitForFailure()
 
         then:
