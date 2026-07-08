@@ -296,7 +296,10 @@ class DefaultConfigurationCache internal constructor(
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
-    override fun recoverFromFailedLoad(failure: Throwable) {
+    override fun recoverFromFailedLoad(failure: Throwable): Boolean {
+        if (!startParameter.isRecoverFromCacheCorruption) {
+            return false
+        }
         logger.warn(
             "The configuration cache entry could not be loaded and will be discarded. The build will proceed as if the configuration cache had missed.",
             failure
@@ -304,6 +307,7 @@ class DefaultConfigurationCache internal constructor(
         discardEntry()
         gradlePropertiesController.unloadAll()
         cacheAction = SkipStore
+        return true
     }
 
     override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {

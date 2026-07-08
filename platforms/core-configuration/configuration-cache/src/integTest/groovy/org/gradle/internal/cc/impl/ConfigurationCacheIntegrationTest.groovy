@@ -292,6 +292,32 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputDoesNotContain("will be discarded")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "fails the build on a corrupted entry when recovery is disabled"() {
+        given:
+        def disableRecovery = "-Dorg.gradle.configuration-cache.recover-from-cache-corruption=false"
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("hello") {
+                doLast { println "Hello" }
+            }
+        """
+
+        when:
+        configurationCacheRun "hello", disableRecovery
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: "the stored state is corrupted and recovery is turned off"
+        corruptWorkState(file(".gradle/configuration-cache"))
+        configurationCacheFails "hello", disableRecovery
+
+        then: "the build fails instead of recovering"
+        outputDoesNotContain("will be discarded")
+        outputDoesNotContain("Hello")
+    }
+
     def "does not configure build when task graph is already cached for requested tasks"() {
 
         def configurationCache = newConfigurationCacheFixture()
@@ -515,6 +541,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         assert !stateFiles.empty
         stateFiles.each { corrupt(it) }
     }
+
 
     //TODO: test the expected output directly
     protected static String removeVfsLogOutput(String normalizedOutput) {

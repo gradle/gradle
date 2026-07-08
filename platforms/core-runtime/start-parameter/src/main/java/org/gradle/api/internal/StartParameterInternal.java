@@ -46,6 +46,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheIgnoreInputsDuringStore = false;
     private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
     private boolean configurationCacheSkipTaskLoggingListenersSerialization = false;
+    private boolean configurationCacheRecoverFromCacheCorruption = true;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
@@ -195,6 +196,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
+        p.configurationCacheRecoverFromCacheCorruption = configurationCacheRecoverFromCacheCorruption;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheReadOnly = configurationCacheReadOnly;
@@ -349,6 +351,15 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isConfigurationCacheSkipTaskLoggingListenersSerialization() {
         return configurationCacheSkipTaskLoggingListenersSerialization;
+    }
+
+    public void setConfigurationCacheRecoverFromCacheCorruption(boolean configurationCacheRecoverFromCacheCorruption) {
+        onMutableCall("setConfigurationCacheRecoverFromCacheCorruption(boolean)");
+        this.configurationCacheRecoverFromCacheCorruption = configurationCacheRecoverFromCacheCorruption;
+    }
+
+    public boolean isConfigurationCacheRecoverFromCacheCorruption() {
+        return configurationCacheRecoverFromCacheCorruption;
     }
 
     public boolean isConfigurationCacheParallel() {

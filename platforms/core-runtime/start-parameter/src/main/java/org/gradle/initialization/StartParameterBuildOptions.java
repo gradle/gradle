@@ -80,6 +80,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheIgnoreInputsDuringStore(),
         new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
         new ConfigurationCacheSkipTaskLoggingListenersSerialization(),
+        new ConfigurationCacheRecoverFromCacheCorruptionOption(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -822,6 +823,28 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheSkipTaskLoggingListenersSerialization(value);
+        }
+    }
+
+    /**
+     * Whether Gradle recovers from a configuration cache entry that cannot be loaded (e.g. because it is corrupted) by
+     * discarding the broken entry and recomputing the requested work as a cache miss, instead of failing the build.
+     *
+     * Enabled by default. Set to {@code false} to restore the previous behavior of failing the build.
+     *
+     * @since 9.8.0
+     */
+    public static class ConfigurationCacheRecoverFromCacheCorruptionOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.recover-from-cache-corruption";
+
+        public ConfigurationCacheRecoverFromCacheCorruptionOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheRecoverFromCacheCorruption(value);
         }
     }
 

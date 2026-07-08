@@ -66,6 +66,16 @@ class ConfigurationCacheStartParameter internal constructor(
     val isDeduplicatingStrings: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.deduplicate-strings", true)
 
     /**
+     * Whether a build should recover from a configuration cache entry that cannot be loaded (e.g. because it is
+     * corrupted) by discarding the broken entry and recomputing the requested work as a cache miss, instead of
+     * failing the build.
+     *
+     * The default is `true`.
+     */
+    val isRecoverFromCacheCorruption: Boolean
+        get() = startParameter.isConfigurationCacheRecoverFromCacheCorruption
+
+    /**
      * Whether shareable objects in the configuration cache should be shared
      * in order to save space on disk and to use less memory on a cache hit.
      *
