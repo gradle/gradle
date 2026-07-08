@@ -257,6 +257,56 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         storeTimeMetadata == loadTimeMetadata
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29253")
+    def "can publish maven publication with artifact from mapped task output when configuration cache is enabled"() {
+        settingsFile "rootProject.name = 'root'"
+        buildFile """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            abstract class ProduceApk extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+
+                @TaskAction
+                void run() {
+                    def apk = outputDir.file("app.apk").get().asFile
+                    apk.parentFile.mkdirs()
+                    apk.text = "fake apk contents"
+                }
+            }
+
+            def produceApk = tasks.register("produceApk", ProduceApk) {
+                outputDir = layout.buildDirectory.dir("apk")
+            }
+
+            // Mirrors the AGP-style pattern from the issue:
+            //   variant.artifacts.get(SingleArtifact.APK).map { it.singleApk() }
+            // The outer .map yields a TransformBackedProvider whose beforeRead
+            // guard rejects reads before the producing task has run.
+            def apkFile = produceApk.flatMap { it.outputDir }.map { it.file("app.apk").asFile }
+
+            publishing {
+                publications {
+                    apks(MavenPublication) {
+                        artifact(apkFile) {
+                            classifier = "debug"
+                            extension = "apk"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publishApksPublicationToMavenLocal"
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
     private String buildFileConfiguration(String repositoriesBlock) {
         """
             apply plugin: 'maven-publish'
