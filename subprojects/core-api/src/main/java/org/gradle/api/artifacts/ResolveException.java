@@ -16,9 +16,12 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+
+import java.util.List;
 
 /**
  * <p>An opaque exception, thrown when dependency resolution fails for some reason.</p>
@@ -28,7 +31,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 @Contextual
 @HasInternalProtocol
 public class ResolveException extends DefaultMultiCauseException {
-
     /**
      * Should not be called except from Gradle internal code.
      */
@@ -36,4 +38,13 @@ public class ResolveException extends DefaultMultiCauseException {
         super(message, causes);
     }
 
+    /**
+     * Should not be called except from Gradle internal code.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    protected ResolveException(String message, Iterable<? extends Throwable> causes, List<String> resolutions) {
+        super(message, causes, resolutions);
+    }
 }

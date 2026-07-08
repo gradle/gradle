@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,15 +33,17 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     private transient @Nullable Factory<String> messageFactory;
     private @Nullable String message;
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(String message) {
         super(message);
         this.message = message;
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(String message, Throwable... causes) {
         super(message);
         this.message = message;
-        this.causes.addAll(Arrays.asList(causes));
+        addCauses(Arrays.asList(causes));
     }
 
     @SuppressWarnings("this-escape")
@@ -52,13 +53,21 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         initCauses(causes);
     }
 
+    @SuppressWarnings("this-escape")
+    public DefaultMultiCauseException(String message, Iterable<? extends Throwable> causes, List<String> resolutions) {
+        super(message, resolutions);
+        this.message = message;
+        initCauses(causes);
+    }
+
     public DefaultMultiCauseException(Factory<String> messageFactory) {
         this.messageFactory = messageFactory;
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(Factory<String> messageFactory, Throwable... causes) {
         this(messageFactory);
-        this.causes.addAll(Arrays.asList(causes));
+        addCauses(Arrays.asList(causes));
     }
 
     @SuppressWarnings("this-escape")
@@ -82,17 +91,6 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         return new HideStacktrace();
     }
 
-    @Override
-    public List<String> getResolutions() {
-        List<String> resolutions = new ArrayList<String>(causes.size()); // Typical case is 0 or 1 resolutions/cause
-        for (Throwable cause : causes) {
-            if (cause instanceof ResolutionProvider) {
-                resolutions.addAll(((ResolutionProvider) cause).getResolutions());
-            }
-        }
-        return resolutions;
-    }
-
     private static class HideStacktrace extends ThreadLocal<Boolean> {
         @Override
         protected Boolean initialValue() {
@@ -108,14 +106,30 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     @Override
     public synchronized Throwable initCause(Throwable throwable) {
         causes.clear();
+        clearResolutions();
         causes.add(throwable);
+        addResolutionsFrom(throwable);
         return this;
     }
 
     public void initCauses(Iterable<? extends Throwable> causes) {
         this.causes.clear();
+        clearResolutions();
+        addCauses(causes);
+    }
+
+    private void addCauses(Iterable<? extends Throwable> causes) {
         for (Throwable cause : causes) {
             this.causes.add(cause);
+            addResolutionsFrom(cause);
+        }
+    }
+
+    private void addResolutionsFrom(Throwable cause) {
+        if (cause instanceof ResolutionProvider) {
+            for (String resolution : ((ResolutionProvider) cause).getResolutions()) {
+                addResolution(resolution);
+            }
         }
     }
 

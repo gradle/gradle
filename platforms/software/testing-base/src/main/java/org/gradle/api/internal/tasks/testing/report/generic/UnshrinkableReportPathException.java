@@ -17,23 +17,15 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
-import java.util.List;
+import java.util.Arrays;
 
-public final class UnshrinkableReportPathException extends GradleException implements ResolutionProvider {
+public final class UnshrinkableReportPathException extends GradleException {
+    @SuppressWarnings("this-escape")
     public UnshrinkableReportPathException(String unshrinkablePath) {
         // Note: this message should not say something like "below the filesystem limit" because we use a potentially smaller limit.
         // See SafeFileLocationUtils.MAX_PATH_LENGTH.
-        super("Cannot shrink report path below required limit. Path that could not be shrunk (relative to the report directory): " + unshrinkablePath);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return List.of(
-            "Use a shorter report directory path.",
-            "Reduce nesting in your tests.",
-            "Disable the HTML report for this task."
-        );
+        super("Cannot shrink report path below required limit. Path that could not be shrunk (relative to the report directory): " + unshrinkablePath,
+            Arrays.asList("Use a shorter report directory path.", "Reduce nesting in your tests.", "Disable the HTML report for this task."));
     }
 }

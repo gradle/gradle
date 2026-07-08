@@ -17,22 +17,11 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.Arrays;
-import java.util.List;
 
-public class InsecureProtocolException extends InvalidUserCodeException implements ResolutionProvider {
-
-    private final List<String> resolutions;
-
+public class InsecureProtocolException extends InvalidUserCodeException {
     public InsecureProtocolException(String message, String... resolutions) {
-        super(message);
-        this.resolutions = Arrays.asList(resolutions);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
+        super(message, Arrays.asList(resolutions));
     }
 }

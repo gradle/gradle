@@ -15,44 +15,42 @@
  */
 package org.gradle.internal.resolve;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
-public class ModuleVersionNotFoundException extends ModuleVersionResolveException implements ResolutionProvider {
-    private List<String> resolutions = ImmutableList.of();
-
+public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
     /**
      * This is used by {@link ModuleVersionResolveException#withIncomingPaths(java.util.Collection)}.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @SuppressWarnings({"UnusedDeclaration", "this-escape"})
     public ModuleVersionNotFoundException(ComponentSelector selector, Factory<String> message, Collection<String> resolutions) {
         super(selector, message);
-        this.resolutions = ImmutableList.copyOf(resolutions);
+        for (String resolution : resolutions) {
+            addResolution(resolution);
+        }
     }
 
-
+    @SuppressWarnings("this-escape")
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
         recordPossibleResolution(attemptedLocations);
     }
 
+    @SuppressWarnings("this-escape")
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
         super(id, format(id, attemptedLocations));
         recordPossibleResolution(attemptedLocations);
     }
 
+    @SuppressWarnings("this-escape")
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations) {
         super(selector, format(selector, attemptedLocations));
         recordPossibleResolution(attemptedLocations);
@@ -157,7 +155,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
             String singleLocation = locations.iterator().next();
             String format = getFormatName(singleLocation);
             if (format != null) {
-                resolutions = ImmutableList.of(String.format("If the artifact you are trying to retrieve can be found in the repository but without metadata in '%s' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.", format));
+                addResolution(String.format("If the artifact you are trying to retrieve can be found in the repository but without metadata in '%s' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.", format));
             }
         }
     }
@@ -170,16 +168,10 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     }
 
     @Override
-    @NonNull
-    public List<String> getResolutions() {
-        return resolutions;
-    }
-
-    @Override
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, resolutions);
+            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, getResolutions());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

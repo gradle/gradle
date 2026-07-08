@@ -21,25 +21,19 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Thrown when some internal exception occurs executing a test suite.
  */
 @Contextual
 @NullMarked
-public class TestSuiteExecutionException extends GradleException implements ResolutionProvider {
+public class TestSuiteExecutionException extends GradleException {
+    @SuppressWarnings("this-escape")
     public TestSuiteExecutionException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        if (getCause() instanceof ResolutionProvider) {
-            return ((ResolutionProvider) getCause()).getResolutions();
-        } else {
-            return Collections.emptyList();
+        if (cause instanceof ResolutionProvider) {
+            for (String resolution : ((ResolutionProvider) cause).getResolutions()) {
+                addResolution(resolution);
+            }
         }
     }
 }

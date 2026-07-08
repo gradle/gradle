@@ -95,7 +95,6 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
@@ -1872,18 +1871,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
-        private final String resolution;
-
+    private static final class IllegalResolutionException extends GradleException {
+        @SuppressWarnings("this-escape")
         public IllegalResolutionException(String message) {
             super(message);
             Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
-            resolution = "For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.";
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList(resolution);
+            addResolution("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.");
         }
     }
 

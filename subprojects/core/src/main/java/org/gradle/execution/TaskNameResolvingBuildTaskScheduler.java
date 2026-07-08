@@ -26,7 +26,6 @@ import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.selection.BuildTaskSelector;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -118,14 +117,9 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     }
 
     @NullMarked
-    public static final class InitExecutionException extends GradleException implements ResolutionProvider {
+    public static final class InitExecutionException extends GradleException {
         public InitExecutionException(String message) {
-            super(message);
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList("Remove all other tasks from the command line when running init.");
+            super(message, Collections.singletonList("Remove all other tasks from the command line when running init."));
         }
     }
 }
