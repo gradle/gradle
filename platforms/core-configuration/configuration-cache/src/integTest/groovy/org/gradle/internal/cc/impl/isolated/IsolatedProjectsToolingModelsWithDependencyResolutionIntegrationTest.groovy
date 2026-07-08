@@ -16,6 +16,9 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
 class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
     def "caches BuildAction that queries model that performs dependency resolution"() {
@@ -749,5 +752,69 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
             modelsCreated(":a")
             modelsReused(":", ":b", ":c", ":d", ":buildSrc")
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "discards a corrupted reused project state entry so the next build recovers"() {
+        given:
+        withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            dependencies {
+                implementation(project(":b"))
+            }
+        """
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when: "the per-project models are stored, capturing reused state for the dependency"
+        withIsolatedProjects()
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 2
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+
+        when: "project a is invalidated (partial hit) and the reused project state of b is corrupted"
+        file("a/build.gradle") << """
+            // some change
+        """
+        corruptReusedProjectState(file(".gradle/configuration-cache"))
+        withIsolatedProjects()
+        runBuildActionFails(new FetchCustomModelForEachProject())
+
+        then: "reading the reused state fails this build, but the broken entry is discarded"
+        failureCauseContains("Could not load entry for")
+
+        when: "the build runs again"
+        withIsolatedProjects()
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then: "the discarded entry is gone, so the models are recomputed as a cache miss"
+        model2.size() == 2
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+    }
+
+    private static void corruptReusedProjectState(TestFile cacheDir) {
+        def entryDir = cacheDir.listFiles().find { it.directory && it.file("entry.bin").exists() }
+        assert entryDir != null
+        def stateFiles = entryDir.listFiles().findAll { it.name.startsWith("projectmetadata") }
+        assert !stateFiles.empty
+        stateFiles.each { it.bytes = "corrupt".bytes }
     }
 }

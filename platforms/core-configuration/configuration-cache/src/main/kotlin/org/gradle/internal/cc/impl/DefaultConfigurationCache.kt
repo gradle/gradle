@@ -342,7 +342,12 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun <T : Any> runAndDiscardEntryOnFailures(action: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
-        val result = action()
+        val result = try {
+            action()
+        } catch (e: Throwable) {
+            entryDiscardRequested = true
+            throw e
+        }
         if (result.hasFailures()) {
             // Model building produced failures, so the resulting partial configuration must not be reused:
             // discard the entry so the next build re-runs and re-reports the failures.
