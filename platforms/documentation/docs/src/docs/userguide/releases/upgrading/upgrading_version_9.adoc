@@ -377,6 +377,18 @@ In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDepend
 They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
 Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
+[[configuration_cache_recovers_from_corrupted_entries]]
+==== The Configuration Cache recovers from corrupted entries
+
+When a Configuration Cache entry cannot be loaded (for example because it is corrupted), Gradle now discards the broken entry so the requested work is recomputed as a cache miss, instead of failing repeatedly.
+
+If you rely on the previous behavior — for example to surface corruption as a build failure rather than silently recomputing — you can restore it by setting:
+
+[source,properties]
+----
+org.gradle.internal.configuration-cache.recover-from-corruption=false
+----
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
