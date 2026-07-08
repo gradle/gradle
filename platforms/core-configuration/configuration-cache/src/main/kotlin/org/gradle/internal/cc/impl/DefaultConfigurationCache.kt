@@ -296,6 +296,16 @@ class DefaultConfigurationCache internal constructor(
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
+    override fun recoverFromFailedLoad(failure: Throwable) {
+        logger.warn(
+            "The configuration cache entry could not be loaded and will be discarded. The build will proceed as if the configuration cache had missed.",
+            failure
+        )
+        discardEntry()
+        gradlePropertiesController.unloadAll()
+        cacheAction = SkipStore
+    }
+
     override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {
         if (isLoaded) {
             return BuildTreeModelCreatorResult.of(null)
@@ -632,9 +642,17 @@ class DefaultConfigurationCache internal constructor(
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
-        return entryStore.useForStateLoad {
-            checkedFingerprint(candidateEntry)
-        }.value
+        return try {
+            entryStore.useForStateLoad {
+                checkedFingerprint(candidateEntry)
+            }.value
+        } catch (failure: Exception) {
+            logger.warn(
+                "The configuration cache entry could not be checked and will be discarded. The build will proceed as if the configuration cache had missed.", failure
+            )
+            updateCandidateEntries { minus(candidateEntry) }
+            EntrySearchResult(null, CheckedFingerprint.NotFound)
+        }
     }
 
     private

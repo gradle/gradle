@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -216,6 +217,79 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         configurationCache.assertStateStored()
         outputContains("Recreating configuration cache")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "recovers from a corrupted configuration cache entry by recomputing as a cache miss"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("hello") {
+                doLast { println "Hello" }
+            }
+        """
+
+        when:
+        configurationCacheRun "hello"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Hello")
+
+        when: "the stored state is corrupted while the fingerprint stays valid, so the entry is selected for loading"
+        corruptWorkState(file(".gradle/configuration-cache"))
+        executer.withStackTraceChecksDisabled()
+        configurationCacheRun "hello"
+
+        then: "the broken entry is discarded, reported, and the build runs to completion"
+        outputContains("The configuration cache entry could not be loaded and will be discarded. The build will proceed as if the configuration cache had missed.")
+        outputContains("at org.gradle.internal.cc.impl.DefaultConfigurationCache")
+        outputContains("Hello")
+
+        when: "the build runs again"
+        configurationCacheRun "hello"
+
+        then: "the discarded entry is gone, so a fresh entry is stored as for any cache miss"
+        configurationCache.assertStateStored()
+        outputContains("Hello")
+        outputDoesNotContain("will be discarded")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "recovers from corrupted configuration cache entry metadata by recomputing as a cache miss"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register("hello") {
+                doLast { println "Hello" }
+            }
+        """
+
+        when:
+        configurationCacheRun "hello"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Hello")
+
+        when: "the entry metadata is corrupted so the entry cannot even be checked for reuse"
+        corrupt(cacheEntryDir(file(".gradle/configuration-cache")).file("entry.bin"))
+        executer.withStackTraceChecksDisabled()
+        configurationCacheRun "hello"
+
+        then: "the broken entry is discarded, reported, and a fresh entry is stored as for any cache miss"
+        outputContains("The configuration cache entry could not be checked and will be discarded. The build will proceed as if the configuration cache had missed.")
+        outputContains("at org.gradle.internal.cc.impl.DefaultConfigurationCache")
+        configurationCache.assertStateStored()
+        outputContains("Hello")
+
+        when: "the build runs again"
+        configurationCacheRun "hello"
+
+        then: "the fresh entry is reused without any recovery warning"
+        configurationCache.assertStateLoaded()
+        outputContains("Hello")
+        outputDoesNotContain("will be discarded")
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
@@ -421,6 +495,25 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
         )
+    }
+
+    private static TestFile cacheEntryDir(TestFile cacheDir) {
+        cacheDir.listFiles().findAll { it.directory && it.file("entry.bin").exists() }.with {
+            assert size() == 1
+            first()
+        }
+    }
+
+    private static void corrupt(TestFile file) {
+        assert file.exists()
+        file.bytes = "corrupt".bytes
+    }
+
+    private static void corruptWorkState(TestFile cacheDir) {
+        def keep = ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin', 'classloaderscopes.bin']
+        def stateFiles = cacheEntryDir(cacheDir).listFiles().findAll { it.name.endsWith(".bin") && it.name !in keep }
+        assert !stateFiles.empty
+        stateFiles.each { corrupt(it) }
     }
 
     //TODO: test the expected output directly

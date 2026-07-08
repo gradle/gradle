@@ -47,6 +47,13 @@ interface BuildTreeConfigurationCache {
     fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): LoadRequestedTasksResult
 
     /**
+     * Invoked when the entry selected by [loadOrScheduleRequestedTasks] could not be loaded, e.g. because it is corrupted.
+     * Reports the failure, discards the broken entry so it is never reused, and reconfigures this cache so the rest of
+     * this invocation recomputes the requested work without reusing or storing a cache entry (as if the cache had missed).
+     */
+    fun recoverFromFailedLoad(failure: Throwable)
+
+    /**
      * Prepares to load or create a model. Returns an empty result if the cached model is available or else prepares
      * to capture configuration fingerprints and validation problems, runs the given function and returns its result.
      * When the result carries failures, the cache entry is discarded instead of stored.

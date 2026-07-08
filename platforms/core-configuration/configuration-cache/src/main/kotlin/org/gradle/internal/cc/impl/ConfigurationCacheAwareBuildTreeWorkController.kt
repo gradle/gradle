@@ -24,6 +24,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
+import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 import org.gradle.internal.cc.impl.heap.HeapDumper
@@ -61,7 +62,16 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             }
 
             if (!result.isSuccessful) {
-                return@withNewWorkGraph ExecutionResult.failed(result.failure.get())
+                return@withNewWorkGraph if (cache.isLoaded) {
+                    cache.recoverFromFailedLoad(result.failure.get())
+                    resetBuildModels()
+                    workGraph.withNewWorkGraph { graph ->
+                        val finalizedGraph = workPreparer.scheduleRequestedTasks(graph, taskSelector)
+                        TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+                    }
+                } else {
+                    ExecutionResult.failed(result.failure.get())
+                }
             }
 
             // There are four outcomes:
@@ -90,12 +100,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
 
         // Store and reload the graph for the execution.
         cache.finalizeCacheEntry()
-        buildRegistry.visitBuilds { build ->
-            build.beforeModelReset().rethrow()
-        }
-        buildRegistry.visitBuilds { build ->
-            build.resetModel()
-        }
+        resetBuildModels()
 
         return workGraph.withNewWorkGraph { graph ->
             val (finalizedGraph, workGraphRestorationFailed) = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
@@ -108,6 +113,15 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             } else {
                 workExecutor.execute(finalizedGraph)
             }
+        }
+    }
+
+    private fun resetBuildModels() {
+        buildRegistry.visitBuilds { build ->
+            build.beforeModelReset().rethrow()
+        }
+        buildRegistry.visitBuilds { build ->
+            build.resetModel()
         }
     }
 
