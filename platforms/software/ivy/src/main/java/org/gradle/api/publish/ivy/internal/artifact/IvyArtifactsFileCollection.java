@@ -79,6 +79,20 @@ class IvyArtifactsFileCollection extends AbstractFileCollection implements Publi
         return entries;
     }
 
+    /**
+     * Returns a serialization entry for the given artifact: either the underlying
+     * {@link org.gradle.api.internal.provider.ProviderInternal} of a {@link LazyPublishArtifact}
+     * (for lazy artifacts whose file must not be resolved at CC-store time), or a resolved
+     * {@link java.io.File} for eager artifacts.
+     *
+     * <p><strong>Scope.</strong> The lazy-provider fast-path only matches the internal
+     * {@code PublishArtifactBasedIvyArtifact → DecoratingPublishArtifact → LazyPublishArtifact}
+     * chain produced by {@code IvyArtifactNotationParserFactory} for {@code artifact(provider)}
+     * calls. Third-party {@code PublishArtifact} implementations that are lazily backed by their
+     * own provider machinery, but do not fit this exact chain, will fall through to eager
+     * {@code artifact.getFile()} and reproduce the original CC-store failure. Fixing that class
+     * of case is out of scope of issue #29253 and is tracked by the umbrella #24329.</p>
+     */
     private static Object classify(IvyArtifact artifact) {
         if (artifact instanceof PublishArtifactBasedIvyArtifact) {
             PublishArtifact inner = ((PublishArtifactBasedIvyArtifact) artifact).getPublishArtifact();
