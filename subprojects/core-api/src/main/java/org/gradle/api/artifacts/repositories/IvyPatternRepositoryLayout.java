@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.tasks.Input;
 
 /**
  * A repository layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.
@@ -45,6 +46,7 @@ public interface IvyPatternRepositoryLayout extends RepositoryLayout {
      * Tells whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
      * Defaults to {@code false}.
      */
+    @Input
     boolean getM2Compatible();
 
     /**
@@ -54,4 +56,5 @@ public interface IvyPatternRepositoryLayout extends RepositoryLayout {
      * @param m2compatible whether a Maven style layout is to be used for the 'organisation' part
      */
     void setM2compatible(boolean m2compatible);
+
 }

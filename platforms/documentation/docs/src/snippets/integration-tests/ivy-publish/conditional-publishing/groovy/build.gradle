@@ -38,10 +38,10 @@ publishing {
 
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
-    def publishIf = provider {
-        if (repository == publishing.repositories.external)
+    def publishIf = repositoryName.map { repoName ->
+        if (repoName == "external")
             return publication == publishing.publications.binary
-        if (repository == publishing.repositories.internal)
+        if (repoName == "internal")
             return publication == publishing.publications.binaryAndSources
         return false
     }
@@ -56,14 +56,14 @@ tasks.register('publishToExternalRepository') {
     group = "publishing"
     description = "Publishes all Ivy publications to Ivy repository 'external'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
-        it.repository == publishing.repositories.external
+        it.repositoryName.get() == "external"
     }
 }
 tasks.register('publishToInternalRepository') {
     group = "publishing"
     description = "Publishes all Ivy publications to Ivy repository 'internal'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
-        it.repository == publishing.repositories.internal
+        it.repositoryName.get() == "internal"
     }
 }
 // end::shorthand-tasks[]

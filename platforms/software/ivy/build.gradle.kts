@@ -11,6 +11,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
@@ -22,7 +23,6 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
-    implementation(projects.credentialsApi)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
