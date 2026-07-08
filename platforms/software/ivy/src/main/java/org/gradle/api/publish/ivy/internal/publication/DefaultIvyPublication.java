@@ -127,7 +127,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         getComponentConfigurations().convention(getComponent().map(ivyComponentParser::parseConfigurations));
         getComponentConfigurations().finalizeValueOnRead();
 
-        this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, taskDependencyFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));

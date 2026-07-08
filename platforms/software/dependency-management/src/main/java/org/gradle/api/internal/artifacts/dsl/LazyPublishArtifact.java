@@ -103,6 +103,19 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
     }
 
+    /**
+     * Returns the underlying provider that produces this artifact's file. Exposed for
+     * configuration-cache serialization: callers that would otherwise call {@link #getFile()}
+     * at store time (which fails for providers guarded by {@code TransformBackedProvider.beforeRead})
+     * can instead capture and serialize the provider itself, deferring resolution to task
+     * execution time.
+     *
+     * @return the underlying provider; never {@code null}
+     */
+    public ProviderInternal<?> getProvider() {
+        return provider;
+    }
+
     @Override
     public TaskDependency getBuildDependencies() {
         return taskDependencyFactory.visitingDependencies(context -> context.add(provider));
