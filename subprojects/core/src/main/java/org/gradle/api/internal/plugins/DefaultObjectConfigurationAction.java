@@ -21,8 +21,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
-import org.gradle.api.internal.resources.InsecureProtocolException;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.resources.TextResourceFactory;
@@ -38,6 +38,7 @@ import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -118,17 +119,21 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             scriptUri,
             false,
             () -> {
-                throw new InsecureProtocolException(
+                throw new InvalidUserCodeException(
                     String.format("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '%s' uses an insecure protocol (HTTP). ", scriptUri),
-                    String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ", GUtil.toSecureUrl(scriptUri), scriptUri),
-                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+                    Arrays.asList(
+                        String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ", GUtil.toSecureUrl(scriptUri), scriptUri),
+                        Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+                    )
                 );
             },
             redirect -> {
-                throw new InsecureProtocolException(
+                throw new InvalidUserCodeException(
                     String.format("Applying script plugins from an insecure redirect, without explicit opt-in, is unsupported. '%s' redirects to insecure '%s'. ", scriptUri, redirect),
-                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object).",
-                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+                    Arrays.asList(
+                        "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object).",
+                        Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+                    )
                 );
             }
         );

@@ -636,7 +636,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
+            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
+            throw new GradleException(
+                "Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.",
+                Collections.singletonList("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation."));
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -1868,15 +1871,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return Arrays.stream(properUsages)
                 .map(ProperMethodUsage::buildProperName)
                 .collect(Collectors.joining(", "));
-        }
-    }
-
-    private static final class IllegalResolutionException extends GradleException {
-        @SuppressWarnings("this-escape")
-        public IllegalResolutionException(String message) {
-            super(message);
-            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
-            addResolution("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.");
         }
     }
 

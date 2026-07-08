@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -32,6 +33,7 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,15 +102,15 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
 
     private void validateScriptPlugin(Project project, PrecompiledGroovyScript scriptPlugin) {
         if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE) || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new PrecompiledScriptException(
+            throw new GradleException(
                 String.format("The precompiled plugin (%s) cannot start with '%s'.", project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE),
-                PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+                Collections.singletonList(PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage()));
         }
         Plugin<?> existingPlugin = project.getPlugins().findPlugin(scriptPlugin.getId());
         if (existingPlugin != null && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new PrecompiledScriptException(
+            throw new GradleException(
                 String.format("The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId()),
-                PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+                Collections.singletonList(PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage()));
         }
     }
 

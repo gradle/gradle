@@ -106,7 +106,6 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     @Override
     public synchronized Throwable initCause(Throwable throwable) {
         causes.clear();
-        clearResolutions();
         causes.add(throwable);
         addResolutionsFrom(throwable);
         return this;
@@ -114,7 +113,6 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     public void initCauses(Iterable<? extends Throwable> causes) {
         this.causes.clear();
-        clearResolutions();
         addCauses(causes);
     }
 
