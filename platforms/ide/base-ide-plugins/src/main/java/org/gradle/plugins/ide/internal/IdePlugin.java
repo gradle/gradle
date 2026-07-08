@@ -34,6 +34,7 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.process.ExecOperations;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -80,9 +81,10 @@ public abstract class IdePlugin implements Plugin<Project> {
     @Override
     public void apply(Project target) {
         project = target;
-        if (registersLifecycleTasks()) {
-            lifecycleTask = target.getTasks().register(getLifecycleTaskName());
-            cleanTask = target.getTasks().register(cleanName(getLifecycleTaskName()), Delete.class, new Action<Delete>() {
+        String lifecycleTaskName = getLifecycleTaskName();
+        if (lifecycleTaskName != null) {
+            lifecycleTask = target.getTasks().register(lifecycleTaskName);
+            cleanTask = target.getTasks().register(cleanName(lifecycleTaskName), Delete.class, new Action<Delete>() {
                 @Override
                 public void execute(Delete task) {
                     task.setGroup("IDE");
@@ -213,14 +215,14 @@ public abstract class IdePlugin implements Plugin<Project> {
         });
     }
 
-    protected abstract String getLifecycleTaskName();
-
     /**
-     * Whether this plugin registers its lifecycle and clean tasks. The idea and eclipse plugins no longer
-     * generate files and register no tasks at all; they feed IDEs through the Tooling API models instead.
+     * The name of the lifecycle task this plugin registers, or {@code null} if it registers no tasks.
+     * The idea and eclipse plugins no longer generate files and register no tasks at all; they feed
+     * IDEs through the Tooling API models instead.
      */
-    protected boolean registersLifecycleTasks() {
-        return true;
+    @Nullable
+    protected String getLifecycleTaskName() {
+        return null;
     }
 
     public boolean isRoot() {

@@ -57,7 +57,6 @@ import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
-import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.testing.base.TestingExtension;
 
@@ -116,16 +115,6 @@ public abstract class IdeaPlugin extends IdePlugin {
 
     public IdeaModel getModel() {
         return ideaModel;
-    }
-
-    @Override
-    protected String getLifecycleTaskName() {
-        return "idea";
-    }
-
-    @Override
-    protected boolean registersLifecycleTasks() {
-        return false;
     }
 
     // TODO: decide what to do with the scala/idea plugin combination. Removing IdeaScalaConfigurer (whose output

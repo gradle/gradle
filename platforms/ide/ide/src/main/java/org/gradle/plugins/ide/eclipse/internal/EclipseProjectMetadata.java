@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
@@ -30,12 +29,10 @@ import java.util.Set;
 public class EclipseProjectMetadata implements IdeProjectMetadata {
     private final EclipseModel eclipseModel;
     private final File projectDir;
-    private final TaskProvider<? extends Task> generatorTask;
 
-    public EclipseProjectMetadata(EclipseModel eclipseModel, File projectDir, TaskProvider<? extends Task> generatorTask) {
+    public EclipseProjectMetadata(EclipseModel eclipseModel, File projectDir) {
         this.eclipseModel = eclipseModel;
         this.projectDir = projectDir;
-        this.generatorTask = generatorTask;
     }
 
     @Override
@@ -54,7 +51,7 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
 
     @Override
     public Set<? extends Task> getGeneratorTasks() {
-        return Collections.singleton(generatorTask.get());
+        return Collections.emptySet();
     }
 
     public boolean hasJavaTestFixtures() {
