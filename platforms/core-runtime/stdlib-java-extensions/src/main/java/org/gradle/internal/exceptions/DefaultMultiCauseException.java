@@ -125,8 +125,11 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     private void addResolutionsFrom(Throwable cause) {
         if (cause instanceof ResolutionProvider) {
-            for (String resolution : ((ResolutionProvider) cause).getResolutions()) {
-                addResolution(resolution);
+            List<String> causeResolutions = ((ResolutionProvider) cause).getResolutions();
+            if (causeResolutions != null) {
+                for (String resolution : causeResolutions) {
+                    addResolution(resolution);
+                }
             }
         }
     }
