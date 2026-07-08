@@ -85,9 +85,10 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                     .filter(c -> c.commandLineMatches(requestedTaskNames))
                     .findFirst();
                 exclusiveTaskInvoked.ifPresent(builtInCommand -> {
-                    GradleException ex = new InitExecutionException(
+                    GradleException ex = new GradleException(
                             "Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task is not allowed. " +
-                            "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.");
+                            "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.",
+                            Collections.singletonList("Remove all other tasks from the command line when running init."));
                     ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
                     throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                         spec.contextualLabel(ex.getMessage());
@@ -116,10 +117,4 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
         }
     }
 
-    @NullMarked
-    public static final class InitExecutionException extends GradleException {
-        public InitExecutionException(String message) {
-            super(message, Collections.singletonList("Remove all other tasks from the command line when running init."));
-        }
-    }
 }

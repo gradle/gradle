@@ -124,14 +124,9 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
      */
     protected void checkNotObserved() {
         if (cachedVariants != null) {
-            throw new MetadataModificationException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
-        }
-    }
-
-    public static final class MetadataModificationException extends GradleException {
-        @SuppressWarnings("this-escape")
-        public MetadataModificationException(String message) {
-            super(message, Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage()));
+            throw new GradleException(
+                "Gradle Module Metadata can't be modified after an eagerly populated publication.",
+                Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage()));
         }
     }
 
