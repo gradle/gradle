@@ -76,10 +76,23 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             //  from DefaultConfigurationCacheHost so a decision based on the configured
             //  configuration cache strategy (none, store or load) can be taken early on.
             //  The listener only needs to be attached in the `store` state.
-            scopeSpecs.clear()
-            loaders.clear()
+            releaseRecordedState()
             listenerManager.remove(this)
             disposed = true
+        }
+    }
+
+    /**
+     * Resumes recording [ClassLoaderScopeSpec]s after [dispose], starting from a clean slate.
+     */
+    fun reattach() {
+        synchronized(lock) {
+            if (!disposed) {
+                return
+            }
+            releaseRecordedState()
+            listenerManager.add(this)
+            disposed = false
         }
     }
 
@@ -148,6 +161,12 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
         }
+    }
+
+    private
+    fun releaseRecordedState() {
+        scopeSpecs.clear()
+        loaders.clear()
     }
 
     private
