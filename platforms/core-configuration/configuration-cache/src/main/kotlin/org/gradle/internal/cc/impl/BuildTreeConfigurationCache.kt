@@ -37,6 +37,8 @@ interface BuildTreeConfigurationCache {
 
     /**
      * Loads the scheduled tasks from the cache entry, when there is one to reuse.
+     *
+     * An entry that cannot be read is discarded.
      */
     fun maybeLoadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): LoadOutcome
 
@@ -94,6 +96,8 @@ interface BuildTreeConfigurationCache {
         data class Reused(val graph: BuildTreeWorkGraph.FinalizedGraph) : LoadOutcome
 
         object Missed : LoadOutcome
+
+        data class Discarded(val failure: Throwable) : LoadOutcome
     }
 
     sealed interface ScheduleOutcome {

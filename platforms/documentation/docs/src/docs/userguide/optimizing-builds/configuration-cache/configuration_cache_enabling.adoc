@@ -386,5 +386,16 @@ To temporarily revert to the previous behavior, set the Gradle property:
 org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
 ----
 
+3. Starting with Gradle 9.8.0, when a Configuration Cache entry cannot be loaded (for example because it is corrupted), Gradle discards the broken entry and recomputes the requested work as a cache miss, instead of failing the build.
++
+Prior to Gradle 9.8.0, such an entry caused the build to fail repeatedly until the cache was deleted manually (for example with `rm -rf .gradle/configuration-cache`).
++
+To restore the previous behavior and surface corruption as a build failure, set the Gradle property:
++
+[source,properties]
+----
+org.gradle.internal.configuration-cache.recover-from-corruption=false
+----
+
 Use these opt-out options sparingly and only when they do not impact task execution results.
 These options are intended as temporary workarounds and will be removed in future Gradle releases.

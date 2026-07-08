@@ -19,9 +19,12 @@ package org.gradle.internal.cc.impl.fixtures
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsExecutionResultFixture
+import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
     static final String WARN_PROBLEMS_CLI_OPT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
+
+    static final String DISABLE_CC_RECOVERY = "-Dorg.gradle.internal.configuration-cache.recover-from-corruption=false"
 
     protected ConfigurationCacheProblemsExecutionResultFixture problems
 
@@ -36,5 +39,9 @@ abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends Abs
         // Verify that the test (or fixtures) has cleaned up state correctly
         assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
         assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
+    }
+
+    protected TestFile getConfigurationCacheDir() {
+        file(".gradle/configuration-cache")
     }
 }
