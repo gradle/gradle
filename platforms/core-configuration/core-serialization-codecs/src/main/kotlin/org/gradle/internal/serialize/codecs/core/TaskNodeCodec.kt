@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GeneratedSubclasses
@@ -426,8 +427,8 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
  * via `FileParameterUtils.resolveInputFileValue`.
  *
  * One exception are [Provider] values. These are handled specially by the validation logic, so we have to preserve
- * the shape. And yes, this means that `files(absentProvider)` fails and `files(listOf(absentProvider))` works.
- * An exception to the exception is [TaskProvider], which it cannot be serialized directly but only inside a file collection.
+ * their shape, including when providers appear inside ordinary collections or arrays.
+ * An exception to the exception is [TaskProvider], which cannot be serialized directly but only inside a file collection.
  * It is always present, so wrapping it is okay.
  *
  * Only applied to [InputFilePropertyType.FILES] — [InputFilePropertyType.FILE] and [InputFilePropertyType.DIRECTORY]
@@ -436,10 +437,15 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
  */
 private
 fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
-    if (value == null || filePropertyType != InputFilePropertyType.FILES || !needsFileCollectionWrapper(value)) {
+    if (value == null || filePropertyType != InputFilePropertyType.FILES) {
         return value
     }
-    return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
+    val fileCollectionFactory = isolate.owner.serviceOf<FileCollectionFactory>()
+    return if (containsProviderRequiringValidation(value)) {
+        adaptProviderContainingInputFileValue(value, fileCollectionFactory)
+    } else {
+        fileCollectionFactory.resolvingLeniently(value)
+    }
 }
 
 
@@ -449,10 +455,18 @@ fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyTy
  * Only applied to the multi-valued [OutputFilePropertyType.FILES] and [OutputFilePropertyType.DIRECTORIES] —
  * [OutputFilePropertyType.FILE] and [OutputFilePropertyType.DIRECTORY] expect a single path-like value on read,
  * so wrapping in a [FileCollection] would break `outputs.file(...)` / `outputs.dir(...)`.
+ *
+ * [Map] values are kept as maps so mapped output property names survive configuration-cache restore.
  */
 private
 fun WriteContext.adaptOutputFileValueForSerialization(value: Any?, filePropertyType: OutputFilePropertyType): Any? {
-    if (value == null || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY || !needsFileCollectionWrapper(value)) {
+    if (
+        value == null ||
+        filePropertyType == OutputFilePropertyType.FILE ||
+        filePropertyType == OutputFilePropertyType.DIRECTORY ||
+        value is Map<*, *> ||
+        !needsFileCollectionWrapper(value)
+    ) {
         return value
     }
     return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
@@ -460,11 +474,50 @@ fun WriteContext.adaptOutputFileValueForSerialization(value: Any?, filePropertyT
 
 
 /**
- * Checks if the input value needs to be wrapped in a file collection to properly serialize.
+ * Preserves provider-containing ordinary collection shapes so input validation can still see absent providers after
+ * configuration-cache restore, while wrapping non-provider elements that may have unsafe live collection internals.
+ *
+ * Gradle live collections such as [DomainObjectCollection] are wrapped instead of iterated.
+ */
+private
+fun adaptProviderContainingInputFileValue(value: Any?, fileCollectionFactory: FileCollectionFactory): Any? {
+    val unpacked = DeferredUtil.unpackNestableDeferred(value)
+    return when (unpacked) {
+        null -> null
+        is TaskProvider<*> -> fileCollectionFactory.resolvingLeniently(unpacked)
+        is Provider<*> -> unpacked
+        is FileCollection -> unpacked
+        is DomainObjectCollection<*> -> fileCollectionFactory.resolvingLeniently(unpacked)
+        is List<*> -> unpacked.map { adaptProviderContainingInputFileValue(it, fileCollectionFactory) }
+        is Set<*> -> unpacked.mapTo(LinkedHashSet<Any?>()) { adaptProviderContainingInputFileValue(it, fileCollectionFactory) }
+        is Array<*> -> unpacked.map { adaptProviderContainingInputFileValue(it, fileCollectionFactory) }.toTypedArray()
+        is Iterable<*> -> unpacked.map { adaptProviderContainingInputFileValue(it, fileCollectionFactory) }
+        else -> fileCollectionFactory.resolvingLeniently(unpacked)
+    }
+}
+
+
+private
+fun containsProviderRequiringValidation(value: Any?): Boolean {
+    val unpacked = DeferredUtil.unpackNestableDeferred(value)
+    return when (unpacked) {
+        is TaskProvider<*> -> false
+        is Provider<*> -> true
+        is FileCollection -> false
+        is DomainObjectCollection<*> -> false
+        is Iterable<*> -> unpacked.any { containsProviderRequiringValidation(it) }
+        is Array<*> -> unpacked.any { containsProviderRequiringValidation(it) }
+        else -> false
+    }
+}
+
+
+/**
+ * Checks if the file value needs to be wrapped in a file collection to properly serialize.
  *
  * [FileCollection]s aren't wrapped as it is pointless.
- * [Provider]s except [TaskProvider] aren't wrapped because input validation has special handling for them.
- * [TaskProvider]s must be wrapped because they cannot be serialized directly, and `inputs.files(taskProvider)` is idiomatic.
+ * [Provider]s except [TaskProvider] aren't wrapped because direct providers can be serialized.
+ * [TaskProvider]s must be wrapped because they cannot be serialized directly, and `files(taskProvider)` is idiomatic.
  */
 private
 fun needsFileCollectionWrapper(value: Any): Boolean {
@@ -629,5 +682,3 @@ fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out 
     }
     return task
 }
-
-
