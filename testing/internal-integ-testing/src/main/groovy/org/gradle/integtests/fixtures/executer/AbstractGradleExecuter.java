@@ -1182,9 +1182,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected Map<String, String> getImplicitJvmSystemProperties() {
         Map<String, String> properties = new LinkedHashMap<>();
 
-        if (getUserHomeDir() != null) {
-            properties.put("user.home", getUserHomeDir().getAbsolutePath());
+        File userHome = getUserHomeDir();
+        if (userHome == null) {
+            // Always isolate the OS user home for test builds. `mavenLocal()` defaults to
+            // <user.home>/.m2/repository, so without this a build that resolves from or publishes to
+            // Maven local without explicit isolation would pollute the real ~/.m2/repository of the build
+            // agent and trip the CHECK_CLEAN_M2_ANDROID_USER_HOME CI step. This is the Maven-local sibling
+            // of the .android isolation (see gradle-private#3380). Tests that need a specific user home
+            // (e.g. `using m2`) still override this via withUserHomeDir(...).
+            userHome = testDirectoryProvider.getTestDirectory().file("default-user-home");
         }
+        properties.put("user.home", userHome.getAbsolutePath());
 
         properties.put(DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
         properties.put(DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY, daemonBaseDir.getAbsolutePath());
