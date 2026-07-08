@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -31,13 +30,10 @@ import static org.gradle.internal.RenderingUtils.oxfordJoin;
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
 @Contextual
-public class WorkValidationException extends GradleException implements ResolutionProvider {
-
-    private final List<String> resolutions;
+public class WorkValidationException extends GradleException {
 
     private WorkValidationException(String message, List<String> resolutions) {
-        super(message);
-        this.resolutions = resolutions;
+        super(message, resolutions);
     }
 
     public static WorkValidationException withSummaryForPlugin(int problemCount, List<String> resolutions) {
@@ -67,11 +63,6 @@ public class WorkValidationException extends GradleException implements Resoluti
             problemCount == 1 ? "A problem was" : "Some problems were",
             parameterDisplayName);
         return new WorkValidationException(summary, ImmutableList.of());
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
     }
 
     private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {

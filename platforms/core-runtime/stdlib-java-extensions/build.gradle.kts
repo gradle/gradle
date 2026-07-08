@@ -26,3 +26,7 @@ gradleModule {
 errorprone {
     nullawayEnabled = true
 }
+
+packageCycles {
+    excludePatterns.add("org/gradle/internal/exceptions")
+}

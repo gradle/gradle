@@ -21,7 +21,6 @@ import com.google.gson.reflect.TypeToken;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.TextResourceFactory;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.jspecify.annotations.NullMarked;
@@ -168,14 +167,10 @@ public class GradleVersionResolver {
      * This exception is thrown when the wrapper task is run in an attempt to update the wrapper version and
      * an invalid version is specified.
      */
-    public static final class WrapperVersionException extends GradleException implements ResolutionProvider {
+    public static final class WrapperVersionException extends GradleException {
+        @SuppressWarnings("this-escape")
         public WrapperVersionException(String message, @Nullable Throwable cause) {
-            super(message, cause);
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Arrays.asList(suggestActualVersion(), suggestDynamicVersions());
+            super(message, cause, Arrays.asList(suggestActualVersion(), suggestDynamicVersions()));
         }
 
         private static String suggestActualVersion() {

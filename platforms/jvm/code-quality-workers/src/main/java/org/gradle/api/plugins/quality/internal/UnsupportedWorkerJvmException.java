@@ -19,28 +19,22 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.deprecation.Documentation;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Report that the JVM used by the worker is not supported by the tool Gradle is trying to run.
  */
 @NullMarked
-public class UnsupportedWorkerJvmException extends GradleException implements ResolutionProvider {
-    public UnsupportedWorkerJvmException(String toolName, VersionNumber toolVersion) {
-        super(String.format("%s %s is not compatible with the configured JVM (%s).", toolName, toolVersion, JavaVersion.current()));
-    }
+public class UnsupportedWorkerJvmException extends GradleException {
+    private static final String CHECKSTYLE_USER_MANUAL = Documentation.userManual("checkstyle_plugin", "sec:checkstyle_configuration").getUrl();
 
-    @Override
-    public List<String> getResolutions() {
+    @SuppressWarnings("this-escape")
+    public UnsupportedWorkerJvmException(String toolName, VersionNumber toolVersion) {
+        super(String.format("%s %s is not compatible with the configured JVM (%s).", toolName, toolVersion, JavaVersion.current()),
+            Arrays.asList("Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.", "Configure the toolchain used by Checkstyle at " + CHECKSTYLE_USER_MANUAL + "."));
         // TODO: Make this a general purpose exception.
-        return Arrays.asList(
-            "Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.",
-            "Configure the toolchain used by Checkstyle at " + Documentation.userManual("checkstyle_plugin", "sec:checkstyle_configuration").getUrl() + "."
-        );
     }
 }

@@ -18,26 +18,13 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.ResolutionProvider;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Thrown when some internal exception occurs generating a test HTML report.
  */
 @Contextual
-public class GenericHtmlReportGenerationException extends GradleException implements ResolutionProvider {
+public class GenericHtmlReportGenerationException extends GradleException {
     public GenericHtmlReportGenerationException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        if (getCause() instanceof ResolutionProvider) {
-            return ((ResolutionProvider) getCause()).getResolutions();
-        } else {
-            return Collections.emptyList();
-        }
     }
 }

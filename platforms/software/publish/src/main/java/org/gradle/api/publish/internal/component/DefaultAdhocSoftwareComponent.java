@@ -29,7 +29,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.deprecation.Documentation;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -129,14 +128,10 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         }
     }
 
-    public static final class MetadataModificationException extends GradleException implements ResolutionProvider {
+    public static final class MetadataModificationException extends GradleException {
+        @SuppressWarnings("this-escape")
         public MetadataModificationException(String message) {
-            super(message);
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
+            super(message, Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage()));
         }
     }
 

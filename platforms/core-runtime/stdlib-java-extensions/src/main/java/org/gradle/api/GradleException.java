@@ -16,20 +16,28 @@
 
 package org.gradle.api;
 
+import org.gradle.internal.exceptions.ResolutionProvider;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
  * @since 0.7
  */
-public class GradleException extends RuntimeException {
+public class GradleException extends RuntimeException implements ResolutionProvider {
+    private final List<String> resolutions;
+
     /**
      * Creates a new {@code GradleException}.
      *
      * @since 0.7
      */
     public GradleException() {
-        super();
+        this.resolutions = new ArrayList<>();
     }
 
     /**
@@ -39,6 +47,7 @@ public class GradleException extends RuntimeException {
      */
     public GradleException(String message) {
         super(message);
+        this.resolutions = new ArrayList<>();
     }
 
     /**
@@ -48,5 +57,50 @@ public class GradleException extends RuntimeException {
      */
     public GradleException(String message, @Nullable Throwable cause) {
         super(message, cause);
+        this.resolutions = new ArrayList<>();
+    }
+
+    /**
+     * Creates a new {@code GradleException} carrying the given resolution suggestions.
+     *
+     * @since 9.9.0
+     */
+    public GradleException(String message, List<String> resolutions) {
+        super(message);
+        this.resolutions = new ArrayList<>(resolutions);
+    }
+
+    /**
+     * Creates a new {@code GradleException} carrying the given resolution suggestions.
+     *
+     * @since 9.9.0
+     */
+    public GradleException(String message, @Nullable Throwable cause, List<String> resolutions) {
+        super(message, cause);
+        this.resolutions = new ArrayList<>(resolutions);
+    }
+
+    /**
+     * Appends a resolution suggestion to this exception.
+     *
+     * @since 9.9.0
+     */
+    public final void addResolution(String resolution) {
+        resolutions.add(resolution);
+    }
+
+    /**
+     * Removes all resolution suggestions from this exception.
+     *
+     * @since 9.9.0
+     */
+    public final void clearResolutions() {
+        resolutions.clear();
+    }
+
+    @NonNull
+    @Override
+    public final List<String> getResolutions() {
+        return Collections.unmodifiableList(resolutions);
     }
 }

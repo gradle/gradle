@@ -1,3 +1,46 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Class org.gradle.api.GradleException",
+            "acceptation": "Making GradleException implement ResolutionProvider",
+            "changes": [
+                "org.gradle.internal.exceptions.ResolutionProvider"
+            ]
+        },
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.lang.Throwable,java.util.List)",
+            "acceptation": "GradleException now implements ResolutionProvider so that any subclass can carry resolution suggestions without a bespoke implementation.",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.util.List)",
+            "acceptation": "GradleException now implements ResolutionProvider so that any subclass can carry resolution suggestions without a bespoke implementation.",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Method org.gradle.api.GradleException.addResolution(java.lang.String)",
+            "acceptation": "GradleException now implements ResolutionProvider so that any subclass can carry resolution suggestions without a bespoke implementation.",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Method org.gradle.api.GradleException.clearResolutions()",
+            "acceptation": "GradleException now implements ResolutionProvider so that any subclass can carry resolution suggestions without a bespoke implementation.",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.InvalidUserCodeException",
+            "member": "Constructor org.gradle.api.InvalidUserCodeException(java.lang.String,java.util.List)",
+            "acceptation": "Making GradleException implement ResolutionProvider",
+            "changes": []
+        }
+    ]
 }

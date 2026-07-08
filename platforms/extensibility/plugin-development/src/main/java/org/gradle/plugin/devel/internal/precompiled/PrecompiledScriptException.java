@@ -17,21 +17,12 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
-import java.util.Collections;
 import java.util.List;
 
-public class PrecompiledScriptException extends GradleException implements ResolutionProvider {
-    private final List<String> resolutions;
-
+public class PrecompiledScriptException extends GradleException {
+    @SuppressWarnings("this-escape")
     public PrecompiledScriptException(String message, String resolution) {
-        super(message);
-        this.resolutions = Collections.singletonList(resolution);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
+        super(message, List.of(resolution));
     }
 }

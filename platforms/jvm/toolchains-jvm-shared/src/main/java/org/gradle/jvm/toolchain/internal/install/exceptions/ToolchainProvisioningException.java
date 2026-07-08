@@ -21,19 +21,15 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Contextual
-public class ToolchainProvisioningException extends GradleException implements ResolutionProvider {
-
+public class ToolchainProvisioningException extends GradleException {
     public static final String AUTO_DETECTION_RESOLUTION = "Learn more about toolchain auto-detection and auto-provisioning at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".";
     public static final String DOWNLOAD_REPOSITORIES_RESOLUTION = "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".";
 
-    private final List<String> resolutions;
-
+    @SuppressWarnings("this-escape")
     public ToolchainProvisioningException(
         JavaToolchainSpec specification,
         String cause,
@@ -43,13 +39,7 @@ public class ToolchainProvisioningException extends GradleException implements R
             "Cannot find a Java installation on your machine (%s) matching: %s. %s",
             OperatingSystem.current(),
             specification,
-            cause));
-
-        this.resolutions = Arrays.asList(resolutions);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
+            cause),
+            Arrays.asList(resolutions));
     }
 }
