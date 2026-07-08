@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ProviderResolutionStrategy
 import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.publish.internal.artifact.PublicationArtifactSetFileCollection
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
@@ -106,6 +107,7 @@ class FileCollectionCodec(
                             ProviderResolutionStrategy.REQUIRE_PRESENT -> resolving(source)
                         }
                     }
+                    is PublicationArtifactSetSpec -> fileCollectionFactory.resolving(element.entries)
                     is FileTree -> element
                     is ResolutionBackedFileCollectionSpec -> ResolutionBackedFileCollection(
                         artifactSetConverter.getSelectedArtifacts(element.elements),
@@ -138,6 +140,10 @@ class ProviderBackedFileCollectionSpec(
     val resolutionStrategy: ProviderResolutionStrategy,
     val provider: ProviderInternal<*>
 ) : ValueObject
+
+
+private
+class PublicationArtifactSetSpec(val entries: List<Any>) : ValueObject
 
 
 private
@@ -189,6 +195,16 @@ class CollectingVisitor : AbstractVisitor() {
                 } else {
                     true
                 }
+            }
+
+            is PublicationArtifactSetFileCollection -> {
+                // The publication's file collection is backed by lazy artifacts whose file may not be
+                // resolvable at CC store time (e.g. an artifact fed by a mapped task-output provider,
+                // whose TransformBackedProvider.beforeRead guard forbids reads before the producer task
+                // has run). Capture pre-normalized per-artifact entries (ProviderInternal or File)
+                // instead of eagerly walking the collection's files.
+                elements.add(PublicationArtifactSetSpec(fileCollection.publicationArtifactSerializationEntries.toList()))
+                false
             }
 
             is FileTreeInternal -> {

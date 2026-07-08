@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -81,6 +82,11 @@ class IvyArtifactsFileCollection extends AbstractFileCollection implements Publi
     private static Object classify(IvyArtifact artifact) {
         if (artifact instanceof PublishArtifactBasedIvyArtifact) {
             PublishArtifact inner = ((PublishArtifactBasedIvyArtifact) artifact).getPublishArtifact();
+            // Provider-based artifact notations are wrapped in DecoratingPublishArtifact by
+            // PublishArtifactNotationParserFactory, which itself wraps a LazyPublishArtifact.
+            if (inner instanceof DecoratingPublishArtifact) {
+                inner = ((DecoratingPublishArtifact) inner).getPublishArtifact();
+            }
             if (inner instanceof LazyPublishArtifact) {
                 return ((LazyPublishArtifact) inner).getProvider();
             }
