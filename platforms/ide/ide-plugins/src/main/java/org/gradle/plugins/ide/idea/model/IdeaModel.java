@@ -94,7 +94,7 @@ public abstract class IdeaModel {
      *
      * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
+    // TODO: deprecate in Gradle 9.x — its only reader was the removed IdeaScalaConfigurer
     public String getTargetVersion() {
         IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "targetVersion");
         return targetVersion;

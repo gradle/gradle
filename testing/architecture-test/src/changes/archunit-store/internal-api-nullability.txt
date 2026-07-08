@@ -3193,7 +3193,6 @@ Class <org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSuppor
 Class <org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory$WtpDependenciesVisitor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (WtpComponentFactory.java:0)
 Class <org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (WtpComponentFactory.java:0)
 Class <org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeaModuleMetadata.java:0)
-Class <org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeaScalaConfigurer.java:0)
 Class <org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GeneratedIdeaScope.java:0)
 Class <org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesOptimizer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeaDependenciesOptimizer.java:0)
 Class <org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider$IdeaDependenciesVisitor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeaDependenciesProvider.java:0)

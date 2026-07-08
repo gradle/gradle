@@ -117,11 +117,6 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     @Override
-    protected boolean shouldDeprecateLifecycleTask() {
-        return true;
-    }
-
-    @Override
     protected void onApply(Project project) {
         getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
         getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());

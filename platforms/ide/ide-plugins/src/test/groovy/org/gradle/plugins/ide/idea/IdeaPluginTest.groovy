@@ -16,13 +16,9 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.reflect.TypeOf
-import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -61,29 +57,16 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         childProject.idea.module.outputFile == childProject.file("child.iml")
     }
 
-    def "adds 'ideaProject' task to root project"() {
+    def "registers no tasks"() {
         when:
         applyPluginToProjects()
 
         then:
-        assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaProject)
-        GenerateIdeaProject ideaProjectTask = project.ideaProject
-        ideaProjectTask instanceof GenerateIdeaProject
-        ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
-        ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module, anotherChildProject.idea.module]
-        ideaProjectTask.ideaProject.jdkName == JavaVersion.current().toString()
-        ideaProjectTask.ideaProject.languageLevel.level == "JDK_1_6"
-
-        childProject.tasks.findByName('ideaProject') == null
-        childProject.tasks.findByName('cleanIdeaProject') == null
-    }
-
-    def "adds 'openIdea' task to root project"() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        project.tasks.openIdea != null
+        [project, childProject].every { p ->
+            ['idea', 'openIdea', 'cleanIdea', 'ideaProject', 'cleanIdeaProject', 'ideaModule', 'cleanIdeaModule', 'ideaWorkspace', 'cleanIdeaWorkspace'].every {
+                p.tasks.findByName(it) == null
+            }
+        }
     }
 
     def "configures idea project"() {
@@ -93,29 +76,10 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         then:
         project.idea.project.wildcards == ['!?*.java', '!?*.groovy', '!?*.class', '!?*.scala'] as Set
         project.idea.project.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
-    }
+        project.idea.project.modules == [project.idea.module, childProject.idea.module, anotherChildProject.idea.module]
+        project.idea.project.jdkName == JavaVersion.current().toString()
 
-    def "adds 'ideaWorkspace' task to root project"() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        project.ideaWorkspace instanceof GenerateIdeaWorkspace
-        assert project.cleanIdeaWorkspace instanceof Delete
-        assert !project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea).contains(project.cleanIdeaWorkspace)
-
-
-        childProject.tasks.findByName('ideaWorkspace') == null
-        childProject.tasks.findByName('cleanIdeaWorkspace') == null
-    }
-
-    def "adds 'ideaModule' task to projects"() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        assertThatIdeaModuleIsProperlyConfigured(project)
-        assertThatIdeaModuleIsProperlyConfigured(childProject)
+        childProject.idea.project == null
     }
 
     def "adds special configuration if Java plugin is applied"() {
@@ -144,15 +108,6 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         project.idea.module.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
     }
 
-    def "adds 'cleanIdea' task to projects"() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        project.cleanIdea instanceof Task
-        childProject.cleanIdea instanceof Task
-    }
-
      def "adds single entry libraries from source sets"() {
         when:
         applyPluginToProjects()
@@ -165,29 +120,14 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.test.output.dir 'test-resources'
 
         then:
-        def runtime = project.ideaModule.module.singleEntryLibraries.RUNTIME
+        def runtime = project.idea.module.singleEntryLibraries.RUNTIME
         runtime.any { it.name.contains('generated-folder') }
         runtime.any { it.name.contains('ws-generated') }
 
-        def test = project.ideaModule.module.singleEntryLibraries.TEST
+        def test = project.idea.module.singleEntryLibraries.TEST
         test.any { it.name.contains('generated-test') }
         test.any { it.name.contains('test-resources') }
      }
-
-    def "makes scala modules depend on root's project"() {
-        applyPluginToProjects()
-
-        when:
-        childProject.pluginManager.apply(ScalaPlugin)
-
-        then:
-        def parentIdeaProject = project.tasks.ideaProject
-        def parentIdeaModule = project.tasks.ideaModule
-        def childIdeaModule = childProject.tasks.ideaModule
-
-        childIdeaModule.taskDependencies.getDependencies(childIdeaModule).contains(parentIdeaProject)
-        !parentIdeaModule.taskDependencies.getDependencies(parentIdeaModule).contains(parentIdeaProject)
-    }
 
     def "project language level set to highest module sourceCompatibility"() {
         when:
@@ -249,18 +189,6 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
     private TypeOf<?> publicTypeOfExtension(String named) {
         project.extensions.extensionsSchema.find { it.name == named }.publicType
-    }
-
-    private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
-        GenerateIdeaModule ideaModuleTask = project.ideaModule
-        assert ideaModuleTask instanceof GenerateIdeaModule
-        assert ideaModuleTask.outputFile == new File(project.projectDir, project.name + ".iml")
-        assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
-    }
-
-    private void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {
-        assert dependsOnTask instanceof Delete
-        assert project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea).contains(dependsOnTask)
     }
 
     private applyPluginToProjects() {

@@ -15,23 +15,12 @@
 [[idea_plugin]]
 = The IDEA Plugin
 
-The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[IntelliJ IDEA], thus making it possible to open the project from IDEA (`File` - `Open Project`). Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
+The IDEA plugin allows customizing how http://www.jetbrains.com/idea/[IntelliJ IDEA] understands your project. When IDEA imports a Gradle build via its https://www.jetbrains.com/help/idea/gradle.html#gradle_import[built-in Gradle integration], it takes the `idea { ... }` configuration into account. Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
 
 [NOTE]
 ====
-If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility].
-You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<#sec:idea_configuration,Configuration>> section for more details.
+You do not need to apply this plugin to import your project into IDEA. Apply it only if you want to customize the IDEA representation of your project beyond what the import derives from the build itself — see the <<#sec:idea_configuration,Configuration>> section for more details.
 ====
-
-What exactly the IDEA plugin generates depends on which other plugins are used:
-
-*Always*::
-Generates an IDEA module file. Also generates an IDEA project and workspace file if the project is the root project.
-
-*<<java_plugin.adoc#java_plugin,Java Plugin>>*::
-Additionally adds Java configuration to the IDEA module and project files.
-
-One focus of the IDEA plugin is to be open to customization. The plugin provides a standardized set of hooks for adding and removing content from the generated files.
 
 [[sec:idea_usage]]
 == Usage
@@ -44,52 +33,7 @@ include::sample[dir="snippets/reference/core-plugins/idea/kotlin",files="build.g
 include::sample[dir="snippets/reference/core-plugins/idea/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
-The IDEA plugin adds a number of tasks to your project. The `idea` task generates an IDEA module file for the project. When the project is the root project, the `idea` task also generates an IDEA project and workspace. The IDEA project includes modules for each of the projects in the Gradle build.
-
-The IDEA plugin also adds an `openIdea` task when the project is the root project. This task generates the IDEA configuration files and opens the result in IDEA. This means you can simply run `./gradlew openIdea` from the root project to generate and open the IDEA project in one convenient step.
-
-The IDEA plugin also adds a `cleanIdea` task to the project. This task deletes the generated files, if present.
-
-[[sec:idea_tasks]]
-== Tasks
-
-WARNING: The tasks listed in this section are deprecated and will be removed in Gradle 10. Modern versions of IntelliJ IDEA import Gradle projects directly via its https://www.jetbrains.com/help/idea/gradle.html#gradle_import[built-in Gradle integration] without needing these generated files. The rest of the plugin — including the `idea { ... }` DSL for customizing how the IDE understands your project — is not deprecated and continues to be consumed by IntelliJ IDEA during Gradle import. See the <<upgrading_version_9.adoc#ide_task_deprecation,upgrade guide>> for details.
-
-The IDEA plugin adds the tasks shown below to a project. Notice that the `clean` task does not depend on the `cleanIdeaWorkspace` task. This is because the workspace typically contains a lot of user specific temporary data and it is not desirable to manipulate it outside IDEA.
-
-[[ideatasks]]
-`idea`::
-_Depends on_: `ideaProject`, `ideaModule`, `ideaWorkspace`
-+
-Generates all IDEA configuration files
-
-`openIdea`::
-_Depends on_: `idea`
-+
-Generates all IDEA configuration files and opens the project in IDEA
-
-`cleanIdea` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-_Depends on_: `cleanIdeaProject`, `cleanIdeaModule`
-+
-Removes all IDEA configuration files
-
-`cleanIdeaProject` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-Removes the IDEA project file
-
-`cleanIdeaModule` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-Removes the IDEA module file
-
-`cleanIdeaWorkspace` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-Removes the IDEA workspace file
-
-`ideaProject` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]::
-Generates the `.ipr` file. This task is only added to the root project.
-
-`ideaModule` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]::
-Generates the `.iml` file
-
-`ideaWorkspace` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]::
-Generates the `.iws` file. This task is only added to the root project.
+NOTE: The IDE file generation tasks that this plugin used to contribute (`idea`, `ideaProject`, `ideaModule`, `ideaWorkspace`, `openIdea` and the associated `clean*` tasks) were deprecated in Gradle 9 and have been removed. Use IDEA's built-in Gradle integration to import the project instead. See the <<upgrading_version_9.adoc#ide_task_deprecation,upgrade guide>> for details.
 
 [[sec:idea_configuration]]
 == Configuration
@@ -127,13 +71,6 @@ The tasks recognize existing IDEA files and merge them with the generated conten
 === Merging
 
 Sections of existing IDEA files that are also the target of generated content will be amended or overwritten, depending on the particular section. The remaining sections will be left as-is.
-
-[[sec:complete_overwrite_of_idea_files]]
-==== Disabling merging with a complete overwrite
-
-To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task, like "`gradle cleanIdea idea`" (in that order). If you want to make this the default behavior, add "`tasks.idea.dependsOn(cleanIdea)`" to your build script. This makes it unnecessary to execute the clean task explicitly.
-
-This strategy can also be used for individual files that the plugin would generate. For instance, this can be done for the "`.iml`" file with "`gradle cleanIdeaModule ideaModule`".
 
 [[sec:hooking_into_the_idea_generation_lifecycle]]
 === Hooking into the generation lifecycle

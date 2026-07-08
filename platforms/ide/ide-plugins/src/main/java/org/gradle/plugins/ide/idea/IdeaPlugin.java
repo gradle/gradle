@@ -21,21 +21,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -45,9 +38,7 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
-import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -55,7 +46,6 @@ import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleSupport;
 import org.gradle.plugins.ide.idea.internal.IdeaProjectInternal;
-import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -110,24 +100,18 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     };
 
-    private static final String IDEA_MODULE_TASK_NAME = "ideaModule";
-    private static final String IDEA_PROJECT_TASK_NAME = "ideaProject";
-    private static final String IDEA_WORKSPACE_TASK_NAME = "ideaWorkspace";
-
     private IdeaModel ideaModel;
     private List<Project> allJavaProjects;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
-    private final ProjectStateRegistry projectPathRegistry;
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    public IdeaPlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
+    public IdeaPlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
-        this.projectPathRegistry = projectPathRegistry;
     }
 
     public IdeaModel getModel() {
@@ -140,30 +124,28 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     @Override
-    protected boolean shouldDeprecateLifecycleTask() {
-        return true;
+    protected boolean registersLifecycleTasks() {
+        return false;
     }
 
+    // TODO: decide what to do with the scala/idea plugin combination. Removing IdeaScalaConfigurer (whose output
+    //  only reached the generated ipr/iml files) made the two plugins fully independent — potentially something to
+    //  document. It also means idea+scala can now be used with Isolated Projects: the failure guarding the
+    //  cross-project Scala SDK wiring is gone together with that wiring.
     @Override
     protected void onApply(final Project project) {
-        getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
-        getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());
-        getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
-
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
-        configureIdeaWorkspace(project);
+        configureIdeaWorkspace();
         configureIdeaProject(project);
         configureIdeaModule((ProjectInternal) project);
         configureForJavaPlugin(project);
         configureForWarPlugin(project);
-        configureForScalaPlugin();
         configureForTestSuitesPlugin(project);
-        linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
     @SuppressWarnings("deprecation")
-    private void configureIdeaWorkspace(final Project project) {
+    private void configureIdeaWorkspace() {
         final IdeaWorkspace workspace = DeprecationLogger.whileDisabled(
             () -> {
                 IdeaWorkspace iw = getObjectFactory().newInstance(IdeaWorkspace.class);
@@ -174,33 +156,14 @@ public abstract class IdeaPlugin extends IdePlugin {
 
         if (isRoot()) {
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
-
-            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().register(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, workspace);
-            task.configure(new Action<GenerateIdeaWorkspace>() {
-                @Override
-                public void execute(GenerateIdeaWorkspace task) {
-                    task.setDescription("Generates an IDEA workspace file (IWS)");
-                    task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
-                }
-            });
-            addWorker(task, IDEA_WORKSPACE_TASK_NAME, false);
         }
     }
 
-    @SuppressWarnings("deprecation")
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
             XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
             // Instantiating an internal subclass is required for Isolated Projects-safe model building
             final IdeaProject ideaProject = getObjectFactory().newInstance(IdeaProjectInternal.class, project, ipr);
-            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().register(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, ideaProject);
-            projectTask.configure(new Action<GenerateIdeaProject>() {
-                @Override
-                public void execute(GenerateIdeaProject projectTask) {
-                    projectTask.setDescription("Generates IDEA project file (IPR)");
-                }
-            });
-            projectTask.configure(IdePluginHelper.withGracefulDegradation());
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -249,13 +212,9 @@ public abstract class IdeaPlugin extends IdePlugin {
             conventionMapping.map("pathFactory", new Callable<PathFactory>() {
                 @Override
                 public PathFactory call() {
-                    return new PathFactory().addPathVariable("PROJECT_DIR", projectTask.get().getOutputFile().getParentFile());
+                    return new PathFactory().addPathVariable("PROJECT_DIR", ideaProject.getOutputFile().getParentFile());
                 }
             });
-
-            addWorker(projectTask, IDEA_PROJECT_TASK_NAME);
-
-            addWorkspace(ideaProject);
         }
     }
 
@@ -287,15 +246,6 @@ public abstract class IdeaPlugin extends IdePlugin {
         final IdeaModule module = DeprecationLogger.whileDisabled(() ->
             getObjectFactory().newInstance(IdeaModuleInternal.class, project, new IdeaModuleIml(new XmlTransformer(), project.getProjectDir()))
         );
-
-        final TaskProvider<GenerateIdeaModule> task = project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
-        task.configure(new Action<GenerateIdeaModule>() {
-            @Override
-            public void execute(GenerateIdeaModule task) {
-                task.setDescription("Generates IDEA module files (IML)");
-            }
-        });
-        task.configure(IdePluginHelper.withGracefulDegradation());
         ideaModel.setModule(module);
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity());
@@ -339,8 +289,8 @@ public abstract class IdeaPlugin extends IdePlugin {
             @Override
             public PathFactory call() {
                 final PathFactory factory = new PathFactory();
-                factory.addPathVariable("MODULE_DIR", task.get().getOutputFile().getParentFile());
-                for (Map.Entry<String, File> entry : DeprecationLogger.whileDisabled(() -> module.getPathVariables()).entrySet()) {
+                factory.addPathVariable("MODULE_DIR", module.getOutputFile().getParentFile());
+                for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());
                 }
                 return factory;
@@ -348,9 +298,7 @@ public abstract class IdeaPlugin extends IdePlugin {
 
         });
 
-        artifactRegistry.registerIdeProject(new IdeaModuleMetadata(module, task));
-
-        addWorker(task, IDEA_MODULE_TASK_NAME);
+        artifactRegistry.registerIdeProject(new IdeaModuleMetadata(module));
     }
 
     private void configureForJavaPlugin(final Project project) {
@@ -380,17 +328,9 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
-    @SuppressWarnings("deprecation")
     private void configureIdeaModuleForJava(final Project project) {
         JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
-
-        project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
-            // Dependencies
-            ideaModule.dependsOn((Callable<FileCollection>) () ->
-                mainFeature.getSourceSet().getOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
-            );
-        });
 
         // Defaults
         setupScopes(mainFeature, defaultTestSuite);
@@ -477,21 +417,13 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
-    @SuppressWarnings("deprecation")
     private void configureIdeaModuleForWar(final Project project) {
-        project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
-            @Override
-            public void execute(GenerateIdeaModule ideaModule) {
-                ConfigurationContainer configurations = project.getConfigurations();
-                Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                Collection<Configuration> providedPlus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-                providedPlus.add(providedRuntime);
-                Collection<Configuration> runtimeMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
-                runtimeMinus.add(providedRuntime);
-                Collection<Configuration> testMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
-                testMinus.add(providedRuntime);
-            }
-        });
+        ConfigurationContainer configurations = project.getConfigurations();
+        Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
+        Map<String, Map<String, Collection<Configuration>>> scopes = ideaModel.getModule().getScopes();
+        scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS).add(providedRuntime);
+        scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_MINUS).add(providedRuntime);
+        scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_MINUS).add(providedRuntime);
     }
 
     private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
@@ -512,75 +444,4 @@ public abstract class IdeaPlugin extends IdePlugin {
         return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
     }
 
-    @SuppressWarnings("deprecation")
-    private void configureForScalaPlugin() {
-        boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
-        project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
-            @Override
-            public void execute(ScalaBasePlugin scalaBasePlugin) {
-                ideaModuleDependsOnRoot(isolatedProjects);
-            }
-        });
-        if (isRoot()) {
-            new IdeaScalaConfigurer(project, scalaProjects -> {
-                if (!scalaProjects.isEmpty() && isolatedProjects) {
-                    failOnIncompatibleWithIsolatedProjects();
-                }
-            }).configure();
-        }
-    }
-
-    private void ideaModuleDependsOnRoot(boolean isolatedProjects) {
-        if (isolatedProjects) {
-            failOnIncompatibleWithIsolatedProjects();
-        }
-
-        // see IdeaScalaConfigurer which requires the ipr to be generated first
-        project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
-    }
-
-    private static void failOnIncompatibleWithIsolatedProjects() {
-        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
-    }
-
-    private void linkCompositeBuildDependencies(final ProjectInternal project) {
-        if (isRoot()) {
-            getLifecycleTask().configure(
-                task -> task.dependsOn(
-                    (TaskDependencyContainer) context -> visitAllImlArtifactsInComposite(project, ideaModel.getProject(), context)
-                )
-            );
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
-            BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
-            if (thisProjectId.getBuild().equals(otherBuildId)) {
-                // IDEA Module for project in current build: don't include any module that has been excluded from project
-                boolean found = false;
-                for (IdeaModule ideaModule : ideaProject.getModules()) {
-                    if (reference.get().getFile().equals(ideaModule.getOutputFile())) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    continue;
-                }
-            }
-            reference.visitDependencies(context);
-        }
-    }
-
-    /**
-     * Injects and returns an instance of {@link BuildFeatures}.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    @Inject
-    protected abstract BuildFeatures getBuildFeatures();
 }

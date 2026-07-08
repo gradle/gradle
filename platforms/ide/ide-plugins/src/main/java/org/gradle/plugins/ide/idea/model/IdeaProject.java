@@ -342,7 +342,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      *
      * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
+    // TODO: deprecate in Gradle 9.x — only the removed ipr generation consumed this
     public Set<ProjectLibrary> getProjectLibraries() {
         IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
         return projectLibraries;
