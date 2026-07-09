@@ -241,18 +241,18 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         executer.withStackTraceChecksDisabled()
         configurationCacheRun "hello"
 
-        then: "the broken entry is discarded, reported, and the build runs to completion"
-        outputContains("The configuration cache entry could not be loaded and will be discarded. The build will proceed as if the configuration cache had missed.")
+        then: "the failure is reported with its cause, the entry is recomputed in place, and the build runs to completion"
+        outputContains("The configuration cache entry could not be loaded and has been recomputed.")
         outputContains("at org.gradle.internal.cc.impl.DefaultConfigurationCache")
         outputContains("Hello")
 
         when: "the build runs again"
         configurationCacheRun "hello"
 
-        then: "the discarded entry is gone, so a fresh entry is stored as for any cache miss"
-        configurationCache.assertStateStored()
+        then: "the recomputed entry is valid and is reused"
+        configurationCache.assertStateLoaded()
         outputContains("Hello")
-        outputDoesNotContain("will be discarded")
+        outputDoesNotContain("could not be loaded")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26663")
@@ -277,7 +277,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         executer.withStackTraceChecksDisabled()
         configurationCacheRun "hello"
 
-        then: "the broken entry is discarded, reported, and a fresh entry is stored as for any cache miss"
+        then: "the broken entry is discarded, reported with its cause, and a fresh entry is stored as for any cache miss"
         outputContains("The configuration cache entry could not be checked and will be discarded. The build will proceed as if the configuration cache had missed.")
         outputContains("at org.gradle.internal.cc.impl.DefaultConfigurationCache")
         configurationCache.assertStateStored()
@@ -314,7 +314,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheFails "hello", disableRecovery
 
         then: "the build fails instead of recovering"
-        outputDoesNotContain("will be discarded")
+        outputDoesNotContain("has been recomputed")
         outputDoesNotContain("Hello")
     }
 

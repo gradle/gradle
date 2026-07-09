@@ -83,6 +83,22 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
         }
     }
 
+    /**
+     * Resumes recording after a [dispose], so that reconfiguring the build (e.g. when recovering from a failed load)
+     * captures the class loader scope tree for a fresh store. Any previously recorded state is dropped.
+     */
+    fun reattach() {
+        synchronized(lock) {
+            if (!disposed) {
+                return
+            }
+            scopeSpecs.clear()
+            loaders.clear()
+            listenerManager.add(this)
+            disposed = false
+        }
+    }
+
     override fun close() {
         dispose()
     }

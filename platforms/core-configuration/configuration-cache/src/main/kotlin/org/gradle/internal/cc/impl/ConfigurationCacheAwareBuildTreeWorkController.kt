@@ -24,9 +24,9 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
-import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.heap.HeapDumper
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -62,15 +62,11 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             }
 
             if (!result.isSuccessful) {
-                return@withNewWorkGraph if (cache.isLoaded) {
-                    cache.recoverFromFailedLoad(result.failure.get())
-                    resetBuildModels()
-                    workGraph.withNewWorkGraph { graph ->
-                        val finalizedGraph = workPreparer.scheduleRequestedTasks(graph, taskSelector)
-                        TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
-                    }
+                val failure = result.failure.get()
+                return@withNewWorkGraph if (cache.isLoaded && cache.recoverFromFailedLoad(failure)) {
+                    recomputeAfterFailedLoad(scheduleTaskSelectorPostProcessing, taskSelector, failure)
                 } else {
-                    ExecutionResult.failed(result.failure.get())
+                    ExecutionResult.failed(failure)
                 }
             }
 
@@ -97,8 +93,39 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         }
 
         maybeDumpHeap("cc-miss-store")
+        return storeAndReload(scheduleTaskSelectorPostProcessing)
+    }
 
-        // Store and reload the graph for the execution.
+    private fun recomputeAfterFailedLoad(
+        scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
+        taskSelector: EntryTaskSelector?,
+        originalFailure: Throwable
+    ): ExecutionResult<Void> {
+        resetBuildModels()
+        val executionResult = try {
+            workGraph.withNewWorkGraph { graph ->
+                val finalizedGraph = cache.loadOrScheduleRequestedTasks(
+                    graph = graph,
+                    graphBuilder = scheduleTaskSelectorPostProcessing
+                ) { workPreparer.scheduleRequestedTasks(graph, taskSelector) }
+                if (!finalizedGraph.wasLoadedFromCache && !finalizedGraph.entryDiscarded && !buildModelParameters.isModelBuilding) {
+                    null
+                } else {
+                    workExecutor.execute(finalizedGraph.graph)
+                }
+            } ?: run {
+                maybeDumpHeap("cc-miss-store")
+                storeAndReload(scheduleTaskSelectorPostProcessing)
+            }
+        } catch (recoveryFailure: Throwable) {
+            logger.info("Recomputing the configuration cache entry after a failed load did not succeed", recoveryFailure)
+            return ExecutionResult.failed(originalFailure)
+        }
+        logger.warn("The configuration cache entry could not be loaded and has been recomputed.", originalFailure)
+        return executionResult
+    }
+
+    private fun storeAndReload(scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?): ExecutionResult<Void> {
         cache.finalizeCacheEntry()
         resetBuildModels()
 

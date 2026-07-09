@@ -300,14 +300,18 @@ class DefaultConfigurationCache internal constructor(
         if (!startParameter.isRecoverFromCacheCorruption) {
             return false
         }
-        logger.warn(
-            "The configuration cache entry could not be loaded and will be discarded. The build will proceed as if the configuration cache had missed.",
-            failure
-        )
-        discardEntry()
-        gradlePropertiesController.unloadAll()
-        cacheAction = SkipStore
+        resetState()
         return true
+    }
+
+    private fun resetState() {
+        scopeRegistryListener.reattach()
+        loadedSideEffects.clear()
+        cacheEntryRequiresCommit = false
+        entryDiscardRequested = false
+        gradlePropertiesController.unloadAll()
+        cacheAction = Store
+        modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
 
     override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {
@@ -655,9 +659,10 @@ class DefaultConfigurationCache internal constructor(
             entryStore.useForStateLoad {
                 checkedFingerprint(candidateEntry)
             }.value
-        } catch (failure: Exception) {
+        } catch (failure: ConfigurationCacheEntryReadException) {
             logger.warn(
-                "The configuration cache entry could not be checked and will be discarded. The build will proceed as if the configuration cache had missed.", failure
+                "The configuration cache entry could not be checked and will be discarded. The build will proceed as if the configuration cache had missed.",
+                failure
             )
             updateCandidateEntries { minus(candidateEntry) }
             EntrySearchResult(null, CheckedFingerprint.NotFound)
@@ -665,15 +670,19 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult =
-        cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
-            ?.let { entryDetails ->
-                // TODO:configuration-cache read only rootDirs at this point
-                EntrySearchResult(
-                    entryDetails.buildInvocationScopeId,
-                    checkFingerprint(candidateEntry, entryDetails.rootDirs)
-                )
-            } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult {
+        val entryDetails = try {
+            cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
+                ?: return EntrySearchResult(null, CheckedFingerprint.NotFound)
+        } catch (e: Exception) {
+            throw ConfigurationCacheEntryReadException(e)
+        }
+        // TODO:configuration-cache read only rootDirs at this point
+        return EntrySearchResult(
+            entryDetails.buildInvocationScopeId,
+            checkFingerprint(candidateEntry, entryDetails.rootDirs)
+        )
+    }
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
