@@ -73,8 +73,8 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
     }
 
     @Override
-    public Iterable<ProviderInternal<?>> getPublicationArtifactSerializationEntries() {
-        List<ProviderInternal<?>> entries = new ArrayList<>();
+    public Iterable<ProviderInternal<File>> getPublicationArtifactSerializationEntries() {
+        List<ProviderInternal<File>> entries = new ArrayList<>();
         for (MavenArtifact artifact : artifacts) {
             entries.add(classify(artifact));
         }
@@ -95,7 +95,7 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
      * {@code artifact.getFile()} and reproduce the original CC-store failure. Fixing that class
      * of case is out of scope of issue #29253 and is tracked by the umbrella #24329.</p>
      */
-    private static ProviderInternal<?> classify(MavenArtifact artifact) {
+    private static ProviderInternal<File> classify(MavenArtifact artifact) {
         if (artifact instanceof PublishArtifactBasedMavenArtifact) {
             PublishArtifact inner = ((PublishArtifactBasedMavenArtifact) artifact).getPublishArtifact();
             // Provider-based artifact notations are wrapped in DecoratingPublishArtifact by
@@ -104,7 +104,9 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
                 inner = ((DecoratingPublishArtifact) inner).getPublishArtifact();
             }
             if (inner instanceof LazyPublishArtifact) {
-                return ((LazyPublishArtifact) inner).getProvider();
+                @SuppressWarnings("unchecked")
+                var fileProvider = (ProviderInternal<File>)((LazyPublishArtifact) inner).getProvider();
+                return fileProvider;
             }
         }
         return Providers.of(artifact.getFile());

@@ -19,6 +19,8 @@ package org.gradle.api.publish.internal.artifact;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 
+import java.io.File;
+
 /**
  * A {@link FileCollectionInternal} backed by a publication's artifact set. Implementations expose
  * per-artifact serialization entries so that the configuration cache can capture lazy artifact
@@ -47,5 +49,5 @@ public interface PublicationArtifactSetFileCollection extends FileCollectionInte
      *
      * @return an iterable of {@link ProviderInternal} entries in publication order
      */
-    Iterable<ProviderInternal<?>> getPublicationArtifactSerializationEntries();
+    Iterable<ProviderInternal<File>> getPublicationArtifactSerializationEntries();
 }

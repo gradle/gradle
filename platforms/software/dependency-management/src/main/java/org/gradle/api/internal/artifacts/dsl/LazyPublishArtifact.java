@@ -35,7 +35,7 @@ import java.util.Date;
 
 public class LazyPublishArtifact implements PublishArtifactInternal {
 
-    private final ProviderInternal<?> provider;
+    private final ProviderInternal<File> provider;
     @Nullable
     private final String version;
     private final FileResolver fileResolver;
@@ -43,7 +43,9 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private PublishArtifactInternal delegate;
 
     public LazyPublishArtifact(Provider<?> provider, @Nullable String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
-        this.provider = Providers.internal(provider);
+        @SuppressWarnings("unchecked")
+        var fileProvider = (Provider<File>) provider;
+        this.provider = Providers.internal(fileProvider);
         this.version = version;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
