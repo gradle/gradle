@@ -22,11 +22,12 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.internal.scripts.ScrubbableScript
 
 
 open class PluginAwareScript internal constructor(
     private val host: KotlinScriptHost<PluginAware>
-) : PluginAware {
+) : PluginAware, ScrubbableScript.ScrubbedOut {
 
     override fun getPlugins(): PluginContainer =
         host.target.plugins

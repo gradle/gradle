@@ -243,9 +243,9 @@ class DefaultConfigurationCacheCodecs(
 
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
-            groovyCodecs()
+            groovyCodecs(objectOpener)
             bind(SerializedLambdaParametersCheckingCodec(objectOpener))
-            bind(ScrubbableScriptCodec)
+            bind(ScrubbableScriptCodec(objectOpener))
             // Must precede ServicesCodec, which would otherwise re-resolve a script's FileOperations
             // from the owner and lose the script's base dir. See #22879.
             bind(ScriptFileOperationsCodec)

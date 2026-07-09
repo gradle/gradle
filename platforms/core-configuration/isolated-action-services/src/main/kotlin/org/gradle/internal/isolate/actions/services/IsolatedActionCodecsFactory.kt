@@ -76,7 +76,7 @@ class IsolatedActionCodecsFactory(
         allUnsupportedTypes()
         baseTypes(objectOpener)
         supportedPropertyTypes()
-        groovyCodecs()
+        groovyCodecs(objectOpener)
         bind(ExternalizableCodec)
 
         bind(RegularFileCodec(fileFactory))

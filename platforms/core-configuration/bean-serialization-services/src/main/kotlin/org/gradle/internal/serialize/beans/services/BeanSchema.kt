@@ -36,7 +36,6 @@ val unsupportedFieldDeclaredTypes = listOf(
 )
 
 
-internal
 fun relevantStateOf(beanType: Class<*>, objectOpener: ObjectOpener): List<RelevantField> =
     when (IConventionAware::class.java.isAssignableFrom(beanType)) {
         true -> applyConventionMappingTo(beanType, relevantFieldsOf(beanType, objectOpener), objectOpener)
@@ -97,7 +96,6 @@ fun conventionAwareFieldsOf(beanType: Class<*>): Sequence<Pair<Field, Field>> =
     }
 
 
-internal
 data class RelevantField(
     val field: Field,
     val unsupportedFieldType: KClass<*>?,

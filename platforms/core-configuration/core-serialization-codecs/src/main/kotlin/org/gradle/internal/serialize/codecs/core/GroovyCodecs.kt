@@ -39,6 +39,8 @@ import org.gradle.internal.metaobject.AbstractDynamicObject
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
+import org.gradle.internal.reflection.access.ObjectOpener
+import org.gradle.internal.serialize.beans.services.relevantStateOf
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -52,13 +54,12 @@ import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.internal.service.ServiceRegistry
 import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 import java.lang.reflect.Proxy
 
 
-fun BindingsBuilder.groovyCodecs() {
+fun BindingsBuilder.groovyCodecs(objectOpener: ObjectOpener) {
     bind(ClosureCodec)
-    bind(GroovyScriptCodec)
+    bind(GroovyScriptCodec(objectOpener))
     bind(GroovyMetaClassCodec)
 }
 
@@ -116,10 +117,10 @@ object ClosureCodec : Codec<Closure<*>> {
  * Identity is preserved, so the many closures that share one owning script decode to a single
  * scrubbed instance.
  *
- * Prototype for [#20126](https://github.com/gradle/gradle/issues/20126), reusing the #22879 idea.
+ * Implements [#20126](https://github.com/gradle/gradle/issues/20126), reusing the #22879 approach.
  */
 internal
-object GroovyScriptCodec : Codec<BasicScript> {
+class GroovyScriptCodec(private val objectOpener: ObjectOpener) : Codec<BasicScript> {
 
     override suspend fun WriteContext.encode(value: BasicScript) {
         encodePreservingIdentityOf(value) {
@@ -213,10 +214,9 @@ object GroovyScriptCodec : Codec<BasicScript> {
      */
     private
     fun retainedFieldsOf(script: BasicScript): List<Field> =
-        allInstanceFields(script.javaClass)
-            .onEach { it.isAccessible = true }
+        relevantStateOf(script.javaClass, objectOpener)
+            .map { it.field }
             .filter { field -> !isOmittedField(field, field.get(script)) }
-            .toList()
 
     /**
      * The fields we deliberately do NOT serialize:
@@ -247,18 +247,9 @@ object GroovyScriptCodec : Codec<BasicScript> {
 
     private
     fun serviceRegistryFieldsOf(scriptType: Class<*>): List<Field> =
-        allInstanceFields(scriptType)
+        relevantStateOf(scriptType, objectOpener)
+            .map { it.field }
             .filter { ServiceRegistry::class.java.isAssignableFrom(it.type) }
-            .onEach { it.isAccessible = true }
-            .toList()
-
-    private
-    fun allInstanceFields(scriptType: Class<*>): Sequence<Field> =
-        generateSequence<Class<*>>(scriptType) { it.superclass }
-            .takeWhile { it != Any::class.java }
-            .flatMap { it.declaredFields.asSequence() }
-            // Skip static and transient, matching Gradle's bean serialization (BeanSchema.relevantFields).
-            .filterNot { Modifier.isStatic(it.modifiers) || Modifier.isTransient(it.modifiers) }
 }
 
 

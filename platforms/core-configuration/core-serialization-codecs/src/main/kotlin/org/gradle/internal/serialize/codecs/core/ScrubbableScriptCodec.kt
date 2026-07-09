@@ -24,7 +24,9 @@ import org.gradle.internal.configuration.problems.DocumentationSection.Requireme
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.scripts.ScrubbableScript
+import org.gradle.internal.serialize.beans.services.relevantStateOf
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -32,7 +34,6 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.serviceOf
 import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 import java.lang.reflect.Proxy
 
 
@@ -40,12 +41,12 @@ import java.lang.reflect.Proxy
  * Serializes a compiled script instance by keeping its Project-independent state and dropping only
  * the genuine bridge to the build model.
  *
- * Prototype for [#22879](https://github.com/gradle/gradle/issues/22879).
+ * Implements [#22879](https://github.com/gradle/gradle/issues/22879).
  *
  * We serialize every instance field across the whole hierarchy EXCEPT:
- *  - build-model references (`Project`/`Settings`/`Gradle`, e.g. the `$$implicitReceiver_*` and the
- *    `PluginAware`-by `$$delegate_0`) — replaced on decode with broken dynamic proxies that report
- *    a configuration-cache problem when touched, mirroring the Groovy `BrokenScript`;
+ *  - build-model references (`Project`/`Settings`/`Gradle`, e.g. the `$$implicitReceiver_*`) —
+ *    replaced on decode with broken dynamic proxies that report a configuration-cache problem when
+ *    touched, mirroring the Groovy `BrokenScript`;
  *  - the script `host` (`KotlinScriptHost`, holds the live model + service registry) and the
  *    script result (`$$result`) and other `$$`-prefixed codegen metadata — dropped (left `null`).
  *
@@ -64,7 +65,7 @@ import java.lang.reflect.Proxy
  * Identity is registered before the fields are read, so a captured value that references the script
  * back (e.g. a `by lazy` initializer) resolves to this same instance.
  */
-object ScrubbableScriptCodec : Codec<ScrubbableScript> {
+class ScrubbableScriptCodec(private val objectOpener: ObjectOpener) : Codec<ScrubbableScript> {
 
     override suspend fun WriteContext.encode(value: ScrubbableScript) {
         encodePreservingIdentityOf(value) {
@@ -104,21 +105,26 @@ object ScrubbableScriptCodec : Codec<ScrubbableScript> {
      */
     private
     fun serializableFieldsOf(scriptType: Class<*>): List<Field> =
-        allInstanceFields(scriptType).filter { !isDroppedField(it) }
-            .onEach { it.isAccessible = true }.toList()
+        relevantStateOf(scriptType, objectOpener)
+            .map { it.field }
+            .filter { !isDroppedField(it) }
 
     /**
-     * A field is dropped (not serialized) when it is a build-model reference, a
-     * [ScrubbableScript.ScrubbedOut] type (the script's `host` and anything like it), or `$$`-prefixed
-     * codegen metadata (implicit receivers, the `PluginAware` delegate, the script result). These all
-     * reach the live build model or script host, which cannot be serialized. The host is matched by
-     * type (via the marker) rather than by field name.
+     * A field is dropped (not serialized) when it is a build-model reference (`Project`/`Settings`/
+     * `Gradle`), a [ScrubbableScript.ScrubbedOut] type, or a synthetic script field the Kotlin compiler
+     * emits — the `$$implicitReceiver_*` receivers and the `$$result` script value.
+     *
+     * The base classes delegate `PluginAware` (`PluginAware by ...`), which the compiler backs with a
+     * `$$delegate_N` field. For a project script that field is typed `Project`, so it's already caught
+     * as a build-model reference; for settings/init it's a `PluginAwareScript`, which is marked
+     * [ScrubbableScript.ScrubbedOut] so it's dropped by type rather than by a `$$delegate_N` name match.
      */
     private
     fun isDroppedField(field: Field): Boolean =
         isBuildModelType(field.type) ||
             ScrubbableScript.ScrubbedOut::class.java.isAssignableFrom(field.type) ||
-            field.name.startsWith("$$")
+            field.name.startsWith($$$"$$implicitReceiver_") ||
+            field.name == $$$"$$result"
 
     /**
      * Design constraint (#22879): no code reachable from a script should hit a raw
@@ -139,21 +145,13 @@ object ScrubbableScriptCodec : Codec<ScrubbableScript> {
         problemFactory: ProblemFactory,
         listener: ProblemsListener
     ) {
-        for (field in allInstanceFields(scriptType)) {
+        for (field in relevantStateOf(scriptType, objectOpener).map { it.field }) {
             val fieldType = field.type
             if (!isDroppedField(field) || !fieldType.isInterface) continue
             field.isAccessible = true
             field.set(script, brokenModelProxy(fieldType, trace, problemFactory, listener))
         }
     }
-
-    private
-    fun allInstanceFields(scriptType: Class<*>): Sequence<Field> =
-        generateSequence<Class<*>>(scriptType) { it.superclass }
-            .takeWhile { it != Any::class.java }
-            .flatMap { it.declaredFields.asSequence() }
-            // Skip static and transient, matching Gradle's bean serialization (BeanSchema.relevantFields).
-            .filterNot { Modifier.isStatic(it.modifiers) || Modifier.isTransient(it.modifiers) }
 
     private
     fun isBuildModelType(type: Class<*>): Boolean =

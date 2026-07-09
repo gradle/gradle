@@ -26,13 +26,13 @@ package org.gradle.internal.scripts;
  * <p>This is an opt-in refinement of {@link GradleScript}. Script types that do not carry this
  * marker keep the default behavior of being rejected outright by the configuration cache.
  *
- * <p>Prototype for <a href="https://github.com/gradle/gradle/issues/22879">#22879</a>.
+ * <p>Introduced for <a href="https://github.com/gradle/gradle/issues/22879">#22879</a>.
  */
 public interface ScrubbableScript extends GradleScript {
 
     /**
      * Marks a type whose instances must be scrubbed out of a {@link ScrubbableScript} rather than
-     * serialized — the script host and any other data that reaches live build state. When the
+     * serialized for CC — the script host and any other data that reaches live build state. When the
      * configuration cache scrubs a script, fields of such a type are severed: dropped and, if the
      * type is an interface, replaced with a broken stand-in that reports a clear problem when used
      * at execution time.
