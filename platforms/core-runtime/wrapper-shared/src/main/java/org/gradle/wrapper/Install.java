@@ -66,7 +66,7 @@ public class Install {
     }
 
     public File createDist(final WrapperConfiguration configuration) throws Exception {
-        final URI distributionUrl = configuration.getDistribution();
+        final URI distributionUrl = requireNonNull(configuration.getDistribution(), "No distribution URL specified in wrapper configuration");
 
         final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
         final File distDir = localDistribution.getDistributionDir();
@@ -111,7 +111,7 @@ public class Install {
 
                 deleteLocalTopLevelDirs(distDir);
 
-                verifyDownloadChecksum(configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
+                verifyDownloadChecksum(distributionUrl.toASCIIString(), localZipFile, distributionSha256Sum);
 
                 unzipLocal(localZipFile, distDir);
                 failed = false;
@@ -130,7 +130,7 @@ public class Install {
 
     @Nullable
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
-        URI distribution = configuration.getDistribution();
+        URI distribution = requireNonNull(configuration.getDistribution());
         try {
             URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);

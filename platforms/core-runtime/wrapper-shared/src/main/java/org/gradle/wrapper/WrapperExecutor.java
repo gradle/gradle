@@ -97,6 +97,7 @@ public class WrapperExecutor {
     /**
      * Returns the distribution which this wrapper will use. Returns null if no wrapper meta-data was found in the specified project directory.
      */
+    @Nullable
     public URI getDistribution() {
         return config.getDistribution();
     }

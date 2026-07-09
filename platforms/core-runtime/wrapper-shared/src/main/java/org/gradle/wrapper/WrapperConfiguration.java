@@ -15,10 +15,9 @@
  */
 package org.gradle.wrapper;
 
-import java.net.URI;
-
-import static java.util.Objects.requireNonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.net.URI;
 
 public class WrapperConfiguration {
     @Nullable
@@ -34,8 +33,12 @@ public class WrapperConfiguration {
     private int retries = Install.DEFAULT_NETWORK_RETRIES;
     private int retryBackOffMs = Install.DEFAULT_NETWORK_RETRY_BACK_OFF_MS;
 
+    /**
+     * Returns the distribution URL, or null if it has not been configured, e.g. because no wrapper properties file was found.
+     */
+    @Nullable
     public URI getDistribution() {
-        return requireNonNull(distribution);
+        return distribution;
     }
 
     public void setDistribution(URI distribution) {
