@@ -143,7 +143,7 @@ class ProviderBackedFileCollectionSpec(
 
 
 private
-class PublicationArtifactSetSpec(val entries: List<Any>) : ValueObject
+class PublicationArtifactSetSpec(val entries: List<ProviderInternal<*>>) : ValueObject
 
 
 private

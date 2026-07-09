@@ -19,33 +19,33 @@ package org.gradle.api.publish.internal.artifact;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 
-import java.io.File;
-
 /**
  * A {@link FileCollectionInternal} backed by a publication's artifact set. Implementations expose
  * per-artifact serialization entries so that the configuration cache can capture lazy artifact
  * providers without invoking {@code getFile()} on artifacts whose file has not yet been produced.
- *
- * <p>The configuration-cache codec for file collections uses this marker to skip the default
- * "resolve then iterate files" path (which detonates {@code TransformBackedProvider.beforeRead}
- * for artifacts backed by a mapped task-output provider) in favour of serializing each entry
- * individually.</p>
+ * <p>
+ * The configuration-cache codec for file collections uses this marker to skip the default
+ * "resolve then iterate files" path (which calls {@code TransformBackedProvider.beforeRead}
+ * for artifacts backed by a mapped task-output provider, even if the task has <strong>NOT</strong>
+ * yet been executed) in favour of serializing each entry individually.
  */
 public interface PublicationArtifactSetFileCollection extends FileCollectionInternal {
 
     /**
-     * Returns pre-normalized entries suitable for configuration-cache serialization.
+     * Returns per-artifact providers suitable for configuration-cache serialization, in
+     * publication order.
      *
-     * <p>Each element is either:</p>
-     * <ul>
-     *     <li>a {@link ProviderInternal} for artifacts whose file must be resolved lazily
-     *         (e.g. the underlying provider of a {@code LazyPublishArtifact}); or</li>
-     *     <li>a {@link File} for artifacts whose file is safe to resolve eagerly at
-     *         configuration-cache store time.</li>
-     * </ul>
+     * <p>For lazy artifacts (e.g. those backed by a {@code LazyPublishArtifact}) the returned
+     * element is the artifact's underlying provider, which the codec captures without resolving
+     * — deferring evaluation to task execution time when the producing task has run.</p>
      *
-     * @return an iterable of entries in publication order; each element is either a
-     *         {@link ProviderInternal} or a {@link File}
+     * <p>For eager artifacts (those whose file is already known at configuration time) the
+     * returned element is a fixed-value provider wrapping the file. This gives a uniform
+     * {@link ProviderInternal} contract at the cost of a two-byte provider envelope per eager
+     * entry in the CC state — a negligible overhead that pays for a simpler codec branch and
+     * a stronger interface signature.</p>
+     *
+     * @return an iterable of {@link ProviderInternal} entries in publication order
      */
-    Iterable<Object> getPublicationArtifactSerializationEntries();
+    Iterable<ProviderInternal<?>> getPublicationArtifactSerializationEntries();
 }

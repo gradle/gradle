@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.artifact.PublicationArtifactSetFileCollection;
@@ -71,8 +73,8 @@ class IvyArtifactsFileCollection extends AbstractFileCollection implements Publi
     }
 
     @Override
-    public Iterable<Object> getPublicationArtifactSerializationEntries() {
-        List<Object> entries = new ArrayList<>();
+    public Iterable<ProviderInternal<?>> getPublicationArtifactSerializationEntries() {
+        List<ProviderInternal<?>> entries = new ArrayList<>();
         for (IvyArtifact artifact : artifacts) {
             entries.add(classify(artifact));
         }
@@ -80,9 +82,9 @@ class IvyArtifactsFileCollection extends AbstractFileCollection implements Publi
     }
 
     /**
-     * Returns a serialization entry for the given artifact: either the underlying
-     * {@link org.gradle.api.internal.provider.ProviderInternal} of a {@link LazyPublishArtifact}
-     * (for lazy artifacts whose file must not be resolved at CC-store time), or a resolved
+     * Returns the serialization provider for the given artifact: either the underlying
+     * {@link ProviderInternal} of a {@link LazyPublishArtifact} (so the codec can defer
+     * resolution to task-execution time), or a fixed-value provider wrapping the resolved
      * {@link java.io.File} for eager artifacts.
      *
      * <p><strong>Scope.</strong> The lazy-provider fast-path only matches the internal
@@ -93,7 +95,7 @@ class IvyArtifactsFileCollection extends AbstractFileCollection implements Publi
      * {@code artifact.getFile()} and reproduce the original CC-store failure. Fixing that class
      * of case is out of scope of issue #29253 and is tracked by the umbrella #24329.</p>
      */
-    private static Object classify(IvyArtifact artifact) {
+    private static ProviderInternal<?> classify(IvyArtifact artifact) {
         if (artifact instanceof PublishArtifactBasedIvyArtifact) {
             PublishArtifact inner = ((PublishArtifactBasedIvyArtifact) artifact).getPublishArtifact();
             // Provider-based artifact notations are wrapped in DecoratingPublishArtifact by
@@ -105,6 +107,6 @@ class IvyArtifactsFileCollection extends AbstractFileCollection implements Publi
                 return ((LazyPublishArtifact) inner).getProvider();
             }
         }
-        return artifact.getFile();
+        return Providers.of(artifact.getFile());
     }
 }
