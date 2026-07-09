@@ -1097,6 +1097,27 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         assertHasUnsupportedPropertyValueType(Property, Configuration, "multiConf", "MultiConfTask")
     }
 
+    def "empty #propertyKind of unsupported type does not cause an error"() {
+        // A collection Property that is set but empty — no element of the
+        // unsupported type will actually flow through the roundtrip, so the
+        // widening check is skipped even though the property is 'present'.
+        // This is the same "no widening will happen" story as the unset-case
+        // above, applied to the empty-collection state.
+        buildFile << buildScript
+
+        when:
+        configurationCacheRun taskName
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Present: true"
+
+        where:
+        propertyKind   | taskName          | buildScript
+        "ListProperty" | "emptyListConf"   | emptyListPropertyBuildScript()
+        "SetProperty"  | "emptySetConf"    | emptySetPropertyBuildScript()
+    }
+
     def "unset #propertyKind of unsupported type does not cause an error (#description)"() {
         // An unset Property is stored to the cache as a missing marker, so the
         // widening-type check that PropertyCodec would fire on load is skipped.
@@ -1197,6 +1218,38 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
             }
 
             tasks.register("unsetSetConf", UnsetSetConfTask)
+        """
+    }
+
+    private static String emptyListPropertyBuildScript() {
+        """
+            abstract class EmptyListConfTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Present: " + confs.isPresent() }
+            }
+
+            tasks.register("emptyListConf", EmptyListConfTask) {
+                confs.empty()
+            }
+        """
+    }
+
+    private static String emptySetPropertyBuildScript() {
+        """
+            abstract class EmptySetConfTask extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Present: " + confs.isPresent() }
+            }
+
+            tasks.register("emptySetConf", EmptySetConfTask) {
+                confs.empty()
+            }
         """
     }
 

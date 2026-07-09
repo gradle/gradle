@@ -413,15 +413,15 @@ class PropertyCodec(
         encodePreservingIdentityOf(value) {
             val type = value.type
             writeClass(type)
-            // An unset Property survives the roundtrip regardless of its
-            // declared value type — the store-side write is just a missing marker and no
-            // widening ever happens. Skip the widening check so users can hold a
+            // An unset Property survives the roundtrip regardless of its declared value
+            // type — the store-side write is just a missing marker and no widening ever
+            // happens. Skip the widening check so users can hold a
             // Property<UnsupportedType> as long as they never give it a value.
-            val propertyValue = value.provider.calculateExecutionTimeValue()
-            val encodeMissingUnsupportedValue = !propertyValue.isMissing && reportIfUnsupportedPropertyValueType(Property::class.java, type)
+            val state = value.provider.calculateExecutionTimeValue()
+            val unsupported = !state.isMissing && reportIfUnsupportedPropertyValueType(Property::class.java, type)
             providerCodec.run {
-                if (encodeMissingUnsupportedValue) encodeValue(ExecutionTimeValue.missing<Any>())
-                else encodeValue(propertyValue)
+                if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(state)
             }
         }
     }
@@ -508,10 +508,14 @@ class ListPropertyCodec(
     override suspend fun WriteContext.encodeThis(value: DefaultListProperty<*>) {
         encodePreservingIdentityOf(value) {
             writeClass(value.elementType)
-            // See PropertyCodec.encodeThis: skip the widening check for an unset property
-            // so a ListProperty<UnsupportedType> survives the roundtrip when it holds no value.
+            // Skip the widening check when no element of the unsupported type is
+            // actually going to be serialized — either the property is unset, or it
+            // is set but empty. No element flows through the roundtrip in either case,
+            // so there is nothing to widen and nothing to report.
             val state = value.calculateExecutionTimeValue()
-            val unsupported = !state.isMissing && reportIfUnsupportedPropertyValueType(ListProperty::class.java, value.elementType)
+            val unsupported = !state.isMissing
+                && !state.holdsEmptyCollection()
+                && reportIfUnsupportedPropertyValueType(ListProperty::class.java, value.elementType)
             providerCodec.run {
                 if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
                 else encodeValue(state)
@@ -541,10 +545,12 @@ class SetPropertyCodec(
     override suspend fun WriteContext.encodeThis(value: DefaultSetProperty<*>) {
         encodePreservingIdentityOf(value) {
             writeClass(value.elementType)
-            // See PropertyCodec.encodeThis: skip the widening check for an unset property
-            // so a SetProperty<UnsupportedType> survives the roundtrip when it holds no value.
+            // See ListPropertyCodec.encodeThis: skip the widening check when no element
+            // of the unsupported type is actually going to be serialized.
             val state = value.calculateExecutionTimeValue()
-            val unsupported = !state.isMissing && reportIfUnsupportedPropertyValueType(SetProperty::class.java, value.elementType)
+            val unsupported = !state.isMissing
+                && !state.holdsEmptyCollection()
+                && reportIfUnsupportedPropertyValueType(SetProperty::class.java, value.elementType)
             providerCodec.run {
                 if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
                 else encodeValue(state)
@@ -575,14 +581,14 @@ class MapPropertyCodec(
         encodePreservingIdentityOf(value) {
             writeClass(value.keyType)
             writeClass(value.valueType)
-            // See PropertyCodec.encodeThis: skip the widening check for an unset property
-            // so a MapProperty<UnsupportedKey, UnsupportedValue> survives the roundtrip
-            // when it holds no value.
+            // See ListPropertyCodec.encodeThis: skip the widening check when no entry
+            // of the unsupported key or value type is actually going to be serialized.
             val state = value.calculateExecutionTimeValue()
-            val keyUnsupported = !state.isMissing && reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.keyType) { _, v ->
+            val skipCheck = state.isMissing || state.holdsEmptyMap()
+            val keyUnsupported = !skipCheck && reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.keyType) { _, v ->
                 mapPropertyResolutionFor("key", v)
             }
-            val valueUnsupported = !state.isMissing && reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.valueType) { _, v ->
+            val valueUnsupported = !skipCheck && reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.valueType) { _, v ->
                 mapPropertyResolutionFor("value", v)
             }
             providerCodec.run {
@@ -611,3 +617,21 @@ class MapPropertyCodec(
         }
     }
 }
+
+
+/**
+ * `true` when the property's execution-time value resolves to a fixed empty
+ * collection — no elements will be serialized, so the widening check for the
+ * element type has no work to do.
+ */
+private fun ExecutionTimeValue<*>.holdsEmptyCollection(): Boolean =
+    hasFixedValue() && (fixedValue as? Collection<*>)?.isEmpty() == true
+
+
+/**
+ * `true` when the property's execution-time value resolves to a fixed empty
+ * map — no entries will be serialized, so the widening check for the key
+ * and value types has no work to do.
+ */
+private fun ExecutionTimeValue<*>.holdsEmptyMap(): Boolean =
+    hasFixedValue() && (fixedValue as? Map<*, *>)?.isEmpty() == true
