@@ -16,20 +16,14 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
  *
- * <pre class='autoTestedWithDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -40,25 +34,6 @@ import javax.inject.Inject;
  *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
  *     sourceCompatibility = 1.6
  *     targetCompatibility = 1.5
- *     javaRuntimeName = "J2SE-1.5"
- *
- *     file {
- *       //whenMerged closure is the highest voodoo
- *       //and probably should be used only to solve tricky edge cases.
- *       //the type passed to the closure is {@link Jdt}
- *
- *       //closure executed after jdt file content is loaded from existing file
- *       //and after gradle build information is merged
- *       whenMerged { jdt
- *         //you can tinker with the {@link Jdt} here
- *       }
- *
- *       //withProperties allows addition of properties not currently
- *       //modeled by Gradle
- *       withProperties { properties -&gt;
- *           //you can tinker with the {@link java.util.Properties} here
- *       }
- *     }
  *   }
  * }
  * </pre>
@@ -69,15 +44,8 @@ public abstract class EclipseJdt {
 
     private JavaVersion targetCompatibility = JavaVersion.current();
 
-    private String javaRuntimeName;
-
-    @SuppressWarnings("deprecation")
-    private final PropertiesFileContentMerger file;
-
     @Inject
-    @SuppressWarnings("deprecation")
-    public EclipseJdt(PropertiesFileContentMerger file) {
-        this.file = file;
+    public EclipseJdt() {
     }
 
     /**
@@ -130,77 +98,4 @@ public abstract class EclipseJdt {
         }
     }
 
-    /**
-     * The name of the Java Runtime to use.
-     * <p>
-     * For example see docs for {@link EclipseJdt}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public String getJavaRuntimeName() {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
-        return javaRuntimeName;
-    }
-
-    /**
-     * Set Java Runtime name.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setJavaRuntimeName(String javaRuntimeName) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
-        this.javaRuntimeName = javaRuntimeName;
-    }
-
-    // The getter does not nag: Groovy's dynamic dispatch probes the `file` property for any
-    // unresolved `file(...)` call inside a `jdt { }` block, which would produce false-positive
-    // warnings. The file(Closure)/file(Action) hooks nag instead.
-    /**
-     * See {@link #file(Action) }
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public PropertiesFileContentMerger getFile() {
-        return file;
-    }
-
-    /**
-     * Enables advanced configuration like affecting the way existing jdt file content
-     * is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Jdt}
-     * <p>
-     * The object passed to withProperties{} closures is of type {@link java.util.Properties}
-     * <p>
-     * For example see docs for {@link EclipseJdt}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
-        ConfigureUtil.configure(closure, file);
-    }
-
-    /**
-     * Enables advanced configuration like affecting the way existing jdt file content
-     * is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} actions is of type {@link Jdt}
-     * <p>
-     * The object passed to withProperties{} actions is of type {@link java.util.Properties}
-     * <p>
-     * For example see docs for {@link EclipseJdt}
-     *
-     * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void file(Action<? super PropertiesFileContentMerger> action) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
-        action.execute(file);
-    }
 }

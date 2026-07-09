@@ -17,18 +17,10 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Action
-import org.gradle.api.XmlProvider
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
-import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.xml.XmlTransformer
-import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.plugins.ide.internal.IdeArtifactRegistry
-import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -36,73 +28,22 @@ class IdeaModelTest extends Specification {
 
     IdeaModel model = TestUtil.newInstance(IdeaModel)
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.idea.model.IdeaWorkspace). This behavior has been deprecated.")
-    def "can configure workspace with Actions"() {
-        given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
-        model.workspace = TestUtil.newInstance(IdeaWorkspace)
-
-        model.workspace.iws = xmlMerger
-
-        when: "configure workspace"
-        model.workspace({ wsp -> wsp.iws.xmlTransformer } as Action<IdeaWorkspace>)
-
-        then:
-        1 * model.workspace.iws.getXmlTransformer()
-
-        when: "configure workspace file"
-        model.workspace.iws({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
-
-        then:
-        1 * model.workspace.iws.getXmlTransformer()
-
-        when: "configure workspace xml"
-        model.workspace.iws.withXml(xmlAction)
-
-        then:
-        1 * xmlTransformer.addAction(xmlAction)
-    }
-
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.idea.model.IdeaProject.ipr). This behavior has been deprecated.")
     def "can configure project with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
         def gradleProject = Stub(ProjectInternal) {
-            getServices() >> Stub(ServiceRegistry) {
-                get(ProjectStateRegistry) >> (ProjectStateRegistry) null
-                get(IdeArtifactRegistry) >> (IdeArtifactRegistry) null
-                get(BuildTreeWorkGraphController) >> (BuildTreeWorkGraphController) null
-            }
+            getObjects() >> TestUtil.objectFactory()
         }
-        model.project = TestUtil.newInstance(IdeaProject, gradleProject, xmlMerger)
+        model.project = TestUtil.newInstance(IdeaProject, gradleProject)
 
         when: "configure project"
         model.project({ p -> p.vcs = 'GIT' } as Action<IdeaProject>)
 
         then:
         model.project.vcs == 'GIT'
-
-        when: "configure project file"
-        model.project.ipr({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
-
-        then:
-        1 * xmlMerger.getXmlTransformer()
-
-        when: "configure project xml"
-        model.project.ipr.withXml(xmlAction)
-
-        then:
-        1 * xmlTransformer.addAction(xmlAction)
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.idea.model.IdeaModuleIml). This behavior has been deprecated.")
     def "can configure module with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
         def project = Mock(org.gradle.api.Project) {
             def objectFactory = Mock(ObjectFactory)
             def fileCollection = Mock(ConfigurableFileCollection)
@@ -110,27 +51,14 @@ class IdeaModelTest extends Specification {
 
             getObjects() >> objectFactory
             provider(_) >> Mock(Provider)
+            getProjectDir() >> new File("root")
         }
-        def xmlAction = {} as Action<XmlProvider>
-        def moduleIml = Spy(IdeaModuleIml, constructorArgs: [xmlTransformer, null])
-        model.module = TestUtil.newInstance(IdeaModule, project, moduleIml)
+        model.module = TestUtil.newInstance(IdeaModule, project)
 
         when: "configure module"
         model.module({ mod -> mod.name = 'name' } as Action<IdeaModule>)
 
         then:
         model.module.name == 'name'
-
-        when: "configure module file"
-        model.module.iml({ iml -> iml.xmlTransformer } as Action<IdeaModuleIml>)
-
-        then:
-        1 * moduleIml.getXmlTransformer()
-
-        when: "configure module xml"
-        model.module.iml.withXml(xmlAction)
-
-        then:
-        1 * xmlTransformer.addAction(xmlAction)
     }
 }

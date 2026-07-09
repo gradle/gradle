@@ -441,6 +441,46 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.file(groovy.lang.Closure)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.file(org.gradle.api.Action)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.getFile()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.getJavaRuntimeName()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.setJavaRuntimeName(java.lang.String)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
             "member": "Class org.gradle.plugins.ide.idea.GenerateIdeaModule",
             "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
@@ -700,6 +740,214 @@
             "type": "org.gradle.plugins.ide.idea.IdeaPlugin",
             "member": "Method org.gradle.plugins.ide.idea.IdeaPlugin.getBuildFeatures()",
             "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModel",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModel.getWorkspace()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModel",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModel.setWorkspace(org.gradle.plugins.ide.idea.model.IdeaWorkspace)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModel",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModel.workspace(groovy.lang.Closure)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModel",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModel.workspace(org.gradle.api.Action)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getIml()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getPathFactory()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.iml(groovy.lang.Closure)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.iml(org.gradle.api.Action)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.mergeXmlModule(org.gradle.plugins.ide.idea.model.Module)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setPathFactory(org.gradle.plugins.ide.idea.model.PathFactory)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModuleIml",
+            "member": "Class org.gradle.plugins.ide.idea.model.IdeaModuleIml",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModuleIml",
+            "member": "Constructor org.gradle.plugins.ide.idea.model.IdeaModuleIml(org.gradle.internal.xml.XmlTransformer,java.io.File)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModuleIml",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModuleIml.getGenerateTo()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModuleIml",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModuleIml.setGenerateTo(java.io.File)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaProject.getIpr()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaProject.getPathFactory()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaProject.ipr(groovy.lang.Closure)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaProject.ipr(org.gradle.api.Action)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaProject.mergeXmlProject(org.gradle.plugins.ide.idea.model.Project)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaProject.setPathFactory(org.gradle.plugins.ide.idea.model.PathFactory)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "member": "Class org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaWorkspace.getIws()",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaWorkspace.iws(groovy.lang.Closure)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaWorkspace.iws(org.gradle.api.Action)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaWorkspace.mergeXmlWorkspace(org.gradle.plugins.ide.idea.model.Workspace)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaWorkspace.setIws(org.gradle.plugins.ide.api.XmlFileContentMerger)",
+            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
             "changes": [
                 "Method has been removed"
             ]

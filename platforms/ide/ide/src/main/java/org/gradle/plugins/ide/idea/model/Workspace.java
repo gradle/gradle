@@ -19,6 +19,7 @@ import groovy.util.Node;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
+// TODO: deprecate in Gradle 9.x — only reachable through the removed iws merging hooks
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
  *

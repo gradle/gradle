@@ -35,6 +35,7 @@ import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+// TODO: deprecate in Gradle 9.x — only reachable through the removed ipr merging hooks
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
  *

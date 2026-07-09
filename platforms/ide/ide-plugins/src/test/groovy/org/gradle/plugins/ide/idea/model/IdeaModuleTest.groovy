@@ -33,8 +33,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         given:
         project.getPlugins().apply(JavaPlugin)
         project.getPlugins().apply(IdeaPlugin)
-        def iml = Mock(IdeaModuleIml)
-        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject)
         expect:
         module.languageLevel == null
     }
@@ -47,8 +46,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         moduleProject.java.sourceCompatibility = 1.5
         project.java.sourceCompatibility = 1.5
 
-        def iml = Mock(IdeaModuleIml)
-        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject)
         expect:
         module.languageLevel == null
     }
@@ -57,8 +55,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         given:
         project.getPlugins().apply(JavaPlugin)
         project.getPlugins().apply(IdeaPlugin)
-        def iml = Mock(IdeaModuleIml)
-        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject)
         expect:
         module.targetBytecodeVersion == null
     }
@@ -71,8 +68,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
        moduleProject.java.targetCompatibility = 1.5
        project.java.targetCompatibility = 1.5
 
-       def iml = Mock(IdeaModuleIml)
-       def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+       def module = TestUtil.newInstance(IdeaModule, moduleProject)
        expect:
        module.targetBytecodeVersion == null
    }

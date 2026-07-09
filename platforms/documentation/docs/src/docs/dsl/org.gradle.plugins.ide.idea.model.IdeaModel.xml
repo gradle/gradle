@@ -29,9 +29,6 @@
                 <td>module</td>
             </tr>
             <tr>
-                <td>workspace</td>
-            </tr>
-            <tr>
                 <td>targetVersion</td>
             </tr>
         </table>
@@ -49,9 +46,6 @@
             </tr>
             <tr>
                 <td>module</td>
-            </tr>
-            <tr>
-                <td>workspace</td>
             </tr>
             <tr>
                 <td>pathVariables</td>

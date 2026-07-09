@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
@@ -145,53 +144,6 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
         then:
         project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('1.4') }
-    }
-
-    def "Respects javaRuntimeName customization"() {
-        setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               jdt {
-                    javaRuntimeName = "customJavaRuntime"
-               }
-           }
-        """
-        maybeExpectJavaRuntimeNameDeprecation()
-
-        when:
-        EclipseProject project = loadToolingModel(EclipseProject)
-
-        then:
-        project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('customJavaRuntime') }
-    }
-
-    def "javaRuntimeName customization wins over targetCompatibility"() {
-        setup:
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
-           eclipse {
-               jdt {
-                    javaRuntimeName = "customJavaRuntime"
-               }
-           }
-        """
-        maybeExpectJavaRuntimeNameDeprecation()
-
-        when:
-        EclipseProject project = loadToolingModel(EclipseProject)
-
-        then:
-        project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('customJavaRuntime') }
-    }
-
-    private void maybeExpectJavaRuntimeNameDeprecation() {
-        if (targetVersion >= GradleVersion.version("9.6.0")) {
-            expectDocumentedDeprecationWarning("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName). This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#ide_task_deprecation")
-        }
     }
 
     @Issue('https://issues.gradle.org/browse/GRADLE-3231')

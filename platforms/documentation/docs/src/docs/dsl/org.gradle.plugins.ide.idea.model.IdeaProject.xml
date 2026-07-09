@@ -40,11 +40,6 @@
                 <td/>
             </tr>
             <tr>
-                <td>ipr</td>
-                <td/>
-                <td/>
-            </tr>
-            <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
                 <td/>
@@ -64,9 +59,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>ipr</td>
-            </tr>
         </table>
     </section>
 </section>

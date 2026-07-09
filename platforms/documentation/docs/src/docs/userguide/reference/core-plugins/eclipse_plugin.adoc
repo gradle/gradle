@@ -155,11 +155,6 @@ link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[E
   * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
   * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
-link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[EclipseJdt]::
-  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
-  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
-  * `withProperties { arg -&gt; }` argument type => link:{javaApi}/java/util/Properties.html[`java.util.Properties`]
-
 [[sec:partial-overwrite]]
 ==== Partial overwrite of existing content
 

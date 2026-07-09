@@ -686,9 +686,6 @@
                 <td>org.gradle.plugins.ide.idea.model.IdeaModule</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.idea.model.IdeaWorkspace</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugins.ide.api.XmlFileContentMerger</td>
             </tr>
             <tr>

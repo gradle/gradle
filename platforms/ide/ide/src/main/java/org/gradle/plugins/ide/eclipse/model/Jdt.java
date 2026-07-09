@@ -22,6 +22,7 @@ import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject;
 
+// TODO: deprecate in Gradle 9.x — only reachable through the removed jdt file merging hooks
 /**
  * Represents the Eclipse JDT settings.
  *

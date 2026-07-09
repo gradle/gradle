@@ -39,9 +39,6 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleSupport;
@@ -49,10 +46,7 @@ import org.gradle.plugins.ide.idea.internal.IdeaProjectInternal;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
-import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
-import org.gradle.plugins.ide.idea.model.PathFactory;
 import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -126,7 +120,6 @@ public abstract class IdeaPlugin extends IdePlugin {
     protected void onApply(final Project project) {
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
-        configureIdeaWorkspace();
         configureIdeaProject(project);
         configureIdeaModule((ProjectInternal) project);
         configureForJavaPlugin(project);
@@ -134,26 +127,10 @@ public abstract class IdeaPlugin extends IdePlugin {
         configureForTestSuitesPlugin(project);
     }
 
-    @SuppressWarnings("deprecation")
-    private void configureIdeaWorkspace() {
-        final IdeaWorkspace workspace = DeprecationLogger.whileDisabled(
-            () -> {
-                IdeaWorkspace iw = getObjectFactory().newInstance(IdeaWorkspace.class);
-                ideaModel.setWorkspace(iw);
-                return iw;
-            }
-        );
-
-        if (isRoot()) {
-            workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
-        }
-    }
-
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
-            XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
             // Instantiating an internal subclass is required for Isolated Projects-safe model building
-            final IdeaProject ideaProject = getObjectFactory().newInstance(IdeaProjectInternal.class, project, ipr);
+            final IdeaProject ideaProject = getObjectFactory().newInstance(IdeaProjectInternal.class, project);
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -198,13 +175,6 @@ public abstract class IdeaPlugin extends IdePlugin {
                     }));
                 }
             });
-
-            conventionMapping.map("pathFactory", new Callable<PathFactory>() {
-                @Override
-                public PathFactory call() {
-                    return new PathFactory().addPathVariable("PROJECT_DIR", ideaProject.getOutputFile().getParentFile());
-                }
-            });
         }
     }
 
@@ -230,12 +200,9 @@ public abstract class IdeaPlugin extends IdePlugin {
         return allJavaProjects;
     }
 
-    @SuppressWarnings("deprecation")
     private void configureIdeaModule(final ProjectInternal project) {
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
-        final IdeaModule module = DeprecationLogger.whileDisabled(() ->
-            getObjectFactory().newInstance(IdeaModuleInternal.class, project, new IdeaModuleIml(new XmlTransformer(), project.getProjectDir()))
-        );
+        final IdeaModule module = getObjectFactory().newInstance(IdeaModuleInternal.class, project);
         ideaModel.setModule(module);
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity());
@@ -273,19 +240,6 @@ public abstract class IdeaPlugin extends IdePlugin {
                 excludeDirs.add(project.getLayout().getBuildDirectory().getAsFile().get());
                 return excludeDirs;
             }
-        });
-
-        conventionMapping.map("pathFactory", new Callable<PathFactory>() {
-            @Override
-            public PathFactory call() {
-                final PathFactory factory = new PathFactory();
-                factory.addPathVariable("MODULE_DIR", module.getOutputFile().getParentFile());
-                for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
-                    factory.addPathVariable(entry.getKey(), entry.getValue());
-                }
-                return factory;
-            }
-
         });
 
         artifactRegistry.registerIdeProject(new IdeaModuleMetadata(module));

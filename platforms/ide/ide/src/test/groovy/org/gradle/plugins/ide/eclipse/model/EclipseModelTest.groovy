@@ -19,11 +19,9 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.XmlProvider
-import org.gradle.api.internal.PropertiesTransformer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
@@ -136,31 +134,15 @@ class EclipseModelTest extends Specification {
         1 * xmlTransformer.addAction(xmlAction)
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.file). This behavior has been deprecated.")
     def "can configure jdt with Actions"() {
         given:
-        def propertiesTransformer = Mock(PropertiesTransformer)
-        def propertiesMerger = Spy(PropertiesFileContentMerger, constructorArgs: [propertiesTransformer])
-        def propertiesAction = {} as Action<Properties>
-        model.jdt = TestUtil.newInstance(EclipseJdt, propertiesMerger)
+        model.jdt = TestUtil.newInstance(EclipseJdt)
 
         when: "configure jdt"
         model.jdt({ jdt -> jdt.sourceCompatibility = JavaVersion.VERSION_1_9 } as Action<EclipseJdt>)
 
         then:
         model.jdt.sourceCompatibility == JavaVersion.VERSION_1_9
-
-        when: "configure jdt file"
-        model.jdt.file({ fcm -> fcm.transformer } as Action<PropertiesFileContentMerger>)
-
-        then:
-        1 * propertiesMerger.getTransformer()
-
-        when: "configure jdt properties"
-        model.jdt.file.withProperties(propertiesAction)
-
-        then:
-        1 * propertiesTransformer.addAction(propertiesAction)
     }
 
     @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet). This behavior has been deprecated.")

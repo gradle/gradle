@@ -25,12 +25,13 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
+
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Path;
+import org.gradle.plugins.ide.idea.model.PathFactory;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
@@ -56,6 +57,7 @@ public class IdeaDependenciesProvider {
     private final IdeaDependenciesOptimizer optimizer;
     private final ProjectComponentIdentifier currentProjectId;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
+    private final PathFactory pathFactory = new PathFactory();
 
     public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
@@ -81,7 +83,7 @@ public class IdeaDependenciesProvider {
             String scope = outputLocation.getKey();
             for (File file : outputLocation.getValue()) {
                 if (file != null && file.isDirectory()) {
-                    outputLocations.add(new SingleEntryModuleLibrary(toPath(ideaModule, file), scope));
+                    outputLocations.add(new SingleEntryModuleLibrary(toPath(file), scope));
                 }
             }
         }
@@ -133,9 +135,10 @@ public class IdeaDependenciesProvider {
         return plusMinusConfigurations != null ? plusMinusConfigurations : Collections.<String, Collection<Configuration>>emptyMap();
     }
 
-    @SuppressWarnings("deprecation")
-    private FilePath toPath(IdeaModule ideaModule, File file) {
-        return file != null ? DeprecationLogger.whileDisabled(() -> ideaModule.getPathFactory().path(file)) : null;
+    // The path variables that used to be substituted here only affected the generated iml file; the
+    // Tooling API model only consumes the file of the resulting path, which substitution never changed.
+    private FilePath toPath(File file) {
+        return file != null ? pathFactory.path(file) : null;
     }
 
     private class IdeaDependenciesVisitor implements IdeDependencyVisitor {
@@ -179,16 +182,16 @@ public class IdeaDependenciesProvider {
         @Override
         public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule) {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-            SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope);
+            SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(artifact.getFile()), scope);
             library.setModuleVersion(DefaultModuleVersionIdentifier.newId(moduleId.getModuleIdentifier(), moduleId.getVersion()));
             Set<Path> sourcePaths = new LinkedHashSet<>();
             for (ResolvedArtifactResult sourceArtifact : sources) {
-                sourcePaths.add(toPath(ideaModule, sourceArtifact.getFile()));
+                sourcePaths.add(toPath(sourceArtifact.getFile()));
             }
             library.setSources(sourcePaths);
             Set<Path> javaDocPaths = new LinkedHashSet<>();
             for (ResolvedArtifactResult javaDocArtifact : javaDoc) {
-                javaDocPaths.add(toPath(ideaModule, javaDocArtifact.getFile()));
+                javaDocPaths.add(toPath(javaDocArtifact.getFile()));
             }
             library.setJavadoc(javaDocPaths);
             moduleDependencies.add(library);
@@ -196,12 +199,12 @@ public class IdeaDependenciesProvider {
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
-            fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope));
+            fileDependencies.add(new SingleEntryModuleLibrary(toPath(artifact.getFile()), scope));
         }
 
         @Override
         public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testDependency) {
-            fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), null, toPath(ideaModule, sources), scope));
+            fileDependencies.add(new SingleEntryModuleLibrary(toPath(artifact.getFile()), null, toPath(sources), scope));
         }
 
         /*
@@ -218,7 +221,7 @@ public class IdeaDependenciesProvider {
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, ideaModule.getContentRoot());
-            fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, unresolvedFile), scope));
+            fileDependencies.add(new SingleEntryModuleLibrary(toPath(unresolvedFile), scope));
             unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
         }
 

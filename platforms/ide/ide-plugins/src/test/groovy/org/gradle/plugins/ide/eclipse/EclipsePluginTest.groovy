@@ -18,6 +18,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class EclipsePluginTest extends AbstractProjectBuilderSpec {
@@ -153,7 +154,8 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         assert classpath.plusConfigurations == configurations
         assert classpath.minusConfigurations == []
 
-        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${project.eclipse.jdt.getJavaRuntimeName()}/"] + additionalContainers as Set
+        def javaRuntimeName = "JavaSE-${EclipseJavaVersionMapper.toEclipseJavaVersion(project.java.targetCompatibility)}"
+        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${javaRuntimeName}/"] + additionalContainers as Set
         assert classpath.defaultOutputDir == new File(project.projectDir, 'bin/default')
     }
 }

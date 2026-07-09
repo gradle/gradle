@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.GroovyBasePlugin;
@@ -45,10 +44,8 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.EarPlugin;
-import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
@@ -174,7 +171,6 @@ public abstract class EclipsePlugin extends IdePlugin {
         artifactRegistry.registerIdeProject(new EclipseProjectMetadata(model, project.getProjectDir()));
     }
 
-    @SuppressWarnings("deprecation")
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
         EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
         classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
@@ -204,7 +200,8 @@ public abstract class EclipsePlugin extends IdePlugin {
                     public void execute(Project p) {
                         // keep the ordering we had in earlier gradle versions
                         Set<String> containers = new LinkedHashSet<>();
-                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + DeprecationLogger.whileDisabled(() -> model.getJdt().getJavaRuntimeName()) + "/");
+                        String javaRuntimeName = eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
+                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + javaRuntimeName + "/");
                         containers.addAll(model.getClasspath().getContainers());
                         model.getClasspath().setContainers(containers);
                     }
@@ -339,7 +336,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                model.setJdt(project.getObjects().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
+                model.setJdt(project.getObjects().newInstance(EclipseJdt.class));
 
                 //model properties:
                 ConventionMapping conventionMapping = ((IConventionAware) model.getJdt()).getConventionMapping();
@@ -354,13 +351,6 @@ public abstract class EclipsePlugin extends IdePlugin {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
-                    }
-
-                });
-                conventionMapping.map("javaRuntimeName", new Callable<String>() {
-                    @Override
-                    public String call() {
-                        return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
                     }
 
                 });

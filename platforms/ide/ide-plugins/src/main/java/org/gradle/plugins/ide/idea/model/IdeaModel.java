@@ -21,8 +21,6 @@ import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import java.io.File;
 import java.util.Map;
@@ -39,8 +37,7 @@ public abstract class IdeaModel {
 
     private IdeaModule module;
     private IdeaProject project;
-    @SuppressWarnings("deprecation")
-    private IdeaWorkspace workspace;
+    // TODO: deprecate in Gradle 9.x — its only reader was the removed IdeaScalaConfigurer
     private String targetVersion;
 
     /**
@@ -66,35 +63,10 @@ public abstract class IdeaModel {
     }
 
     /**
-     * Configures IDEA workspace information.
-     * <p>
-     * For examples see docs for {@link IdeaWorkspace}.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public IdeaWorkspace getWorkspace() {
-        IdeDeprecations.nagDeprecatedType(IdeaWorkspace.class);
-        return workspace;
-    }
-
-    /**
-     * Set workspace.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setWorkspace(IdeaWorkspace workspace) {
-        IdeDeprecations.nagDeprecatedType(IdeaWorkspace.class);
-        this.workspace = workspace;
-    }
-
-    /**
      * Configures the target IDEA version.
      *
      * @deprecated Will be removed in Gradle 10.
      */
-    // TODO: deprecate in Gradle 9.x — its only reader was the removed IdeaScalaConfigurer
     public String getTargetVersion() {
         IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "targetVersion");
         return targetVersion;
@@ -143,26 +115,7 @@ public abstract class IdeaModel {
         action.execute(getProject());
     }
 
-    /**
-     * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void workspace(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaWorkspace.class) Closure closure) {
-        configure(closure, getWorkspace());
-    }
-
-    /**
-     * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
-     * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void workspace(Action<? super IdeaWorkspace> action) {
-        action.execute(getWorkspace());
-    }
-
+    // TODO: deprecate in Gradle 9.x — nothing consumes the path variables after the file-generation removal
     /**
      * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.). <p> For example see docs for {@link IdeaModule}.
      *
