@@ -63,8 +63,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GFileUtils;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -314,24 +312,28 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
-        return create(fileResolver, fileTreeFactory, services, null);
+        Collaborators c = collaboratorsFrom(fileResolver, fileTreeFactory, services);
+        return new DefaultFileOperations(
+            c.fileResolver, c.instantiator, c.directoryFileTreeFactory, c.fileHasher, c.resourceHandlerFactory,
+            c.fileCollectionFactory, c.propertyFactory, c.fileSystem, c.patternSetFactory, c.deleter,
+            c.documentationRegistry, c.taskDependencyFactory, c.providers, c.decompressionCoordinator, c.temporaryFileProvider
+        );
     }
 
     /**
      * Creates a {@link FileOperations} scoped to {@code baseDir}: relative paths passed to
      * {@code file(...)} and friends resolve against it. Unlike {@link #createSimple}, the returned
      * instance is a {@link ScriptFileOperations} that remembers {@code baseDir}, so the configuration
-     * cache can serialize just that directory and rebuild an equivalent instance here from the owning
+     * cache can serialize just that directory and rebuild an equivalent instance from the owning
      * build's services. See <a href="https://github.com/gradle/gradle/issues/22879">#22879</a>.
      */
     public static ScriptFileOperations forScript(ServiceRegistry services, File baseDir) {
-        FileLookup fileLookup = services.get(FileLookup.class);
-        FileResolver fileResolver = fileLookup.getFileResolver(baseDir);
+        FileResolver fileResolver = services.get(FileLookup.class).getFileResolver(baseDir);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class).withResolver(fileResolver);
-        return (ScriptFileOperations) create(fileResolver, fileCollectionFactory, services, baseDir);
+        return new DefaultScriptFileOperations(baseDir, collaboratorsFrom(fileResolver, fileCollectionFactory, services));
     }
 
-    private static DefaultFileOperations create(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services, @Nullable File baseDir) {
+    private static Collaborators collaboratorsFrom(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
         PropertyFactory propertyFactory = services.get(PropertyFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
@@ -354,28 +356,7 @@ public class DefaultFileOperations implements FileOperations {
             textResourceAdapterFactory
         );
 
-        if (baseDir != null) {
-            return new DefaultScriptFileOperations(
-                baseDir,
-                fileResolver,
-                instantiator,
-                directoryFileTreeFactory,
-                fileHasher,
-                resourceHandlerFactory,
-                fileTreeFactory,
-                propertyFactory,
-                fileSystem,
-                patternSetFactory,
-                deleter,
-                documentationRegistry,
-                taskDependencyFactory,
-                providers,
-                decompressionCoordinator,
-                temporaryFileProvider
-            );
-        }
-
-        return new DefaultFileOperations(
+        return new Collaborators(
             fileResolver,
             instantiator,
             directoryFileTreeFactory,
@@ -403,8 +384,44 @@ public class DefaultFileOperations implements FileOperations {
 
         private final File baseDir;
 
-        DefaultScriptFileOperations(
-            File baseDir,
+        DefaultScriptFileOperations(File baseDir, Collaborators c) {
+            super(
+                c.fileResolver, c.instantiator, c.directoryFileTreeFactory, c.fileHasher, c.resourceHandlerFactory,
+                c.fileCollectionFactory, c.propertyFactory, c.fileSystem, c.patternSetFactory, c.deleter,
+                c.documentationRegistry, c.taskDependencyFactory, c.providers, c.decompressionCoordinator, c.temporaryFileProvider
+            );
+            this.baseDir = baseDir;
+        }
+
+        @Override
+        public File getBaseDir() {
+            return baseDir;
+        }
+    }
+
+    /**
+     * The collaborators a {@link DefaultFileOperations} is built from, resolved once from a service
+     * registry so both {@link #createSimple} and {@link #forScript} can share the resolution without
+     * either method having to know about the other's result type.
+     */
+    private static final class Collaborators {
+        final FileResolver fileResolver;
+        final Instantiator instantiator;
+        final DirectoryFileTreeFactory directoryFileTreeFactory;
+        final FileHasher fileHasher;
+        final DefaultResourceHandler.Factory resourceHandlerFactory;
+        final FileCollectionFactory fileCollectionFactory;
+        final PropertyFactory propertyFactory;
+        final FileSystem fileSystem;
+        final PatternSetFactory patternSetFactory;
+        final Deleter deleter;
+        final DocumentationRegistry documentationRegistry;
+        final TaskDependencyFactory taskDependencyFactory;
+        final ProviderFactory providers;
+        final DecompressionCoordinator decompressionCoordinator;
+        final TemporaryFileProvider temporaryFileProvider;
+
+        Collaborators(
             FileResolver fileResolver,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,
@@ -421,29 +438,21 @@ public class DefaultFileOperations implements FileOperations {
             DecompressionCoordinator decompressionCoordinator,
             TemporaryFileProvider temporaryFileProvider
         ) {
-            super(
-                fileResolver,
-                instantiator,
-                directoryFileTreeFactory,
-                fileHasher,
-                resourceHandlerFactory,
-                fileCollectionFactory,
-                propertyFactory,
-                fileSystem,
-                patternSetFactory,
-                deleter,
-                documentationRegistry,
-                taskDependencyFactory,
-                providers,
-                decompressionCoordinator,
-                temporaryFileProvider
-            );
-            this.baseDir = baseDir;
-        }
-
-        @Override
-        public File getBaseDir() {
-            return baseDir;
+            this.fileResolver = fileResolver;
+            this.instantiator = instantiator;
+            this.directoryFileTreeFactory = directoryFileTreeFactory;
+            this.fileHasher = fileHasher;
+            this.resourceHandlerFactory = resourceHandlerFactory;
+            this.fileCollectionFactory = fileCollectionFactory;
+            this.propertyFactory = propertyFactory;
+            this.fileSystem = fileSystem;
+            this.patternSetFactory = patternSetFactory;
+            this.deleter = deleter;
+            this.documentationRegistry = documentationRegistry;
+            this.taskDependencyFactory = taskDependencyFactory;
+            this.providers = providers;
+            this.decompressionCoordinator = decompressionCoordinator;
+            this.temporaryFileProvider = temporaryFileProvider;
         }
     }
 }
