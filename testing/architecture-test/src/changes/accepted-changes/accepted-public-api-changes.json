@@ -1,3 +1,708 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.ide.visualstudio.plugins.VisualStudioPlugin",
+            "member": "Class org.gradle.ide.visualstudio.plugins.VisualStudioPlugin",
+            "acceptation": "Method of the internal IdePlugin base class, removed together with the IDE file generation tasks",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.shouldDeprecateLifecycleTask()"
+            ]
+        },
+        {
+            "type": "org.gradle.ide.xcode.plugins.XcodePlugin",
+            "member": "Class org.gradle.ide.xcode.plugins.XcodePlugin",
+            "acceptation": "Method of the internal IdePlugin base class, removed together with the IDE file generation tasks",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.shouldDeprecateLifecycleTask()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "acceptation": "Method of the internal IdePlugin base class, removed together with the IDE file generation tasks",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.shouldDeprecateLifecycleTask()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_CP_TASK_NAME",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_JDT_TASK_NAME",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_PROJECT_TASK_NAME",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
+            "member": "Field ECLIPSE_TASK_NAME",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Class org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "acceptation": "Method of the internal IdePlugin base class, removed together with the IDE file generation tasks",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.shouldDeprecateLifecycleTask()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Field ECLIPSE_WTP_COMPONENT_TASK_NAME",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.EclipseWtpPlugin",
+            "member": "Field ECLIPSE_WTP_FACET_TASK_NAME",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Class org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Constructor org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.configure(org.gradle.plugins.ide.eclipse.model.Classpath)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.getClasspath()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath.setClasspath(org.gradle.plugins.ide.eclipse.model.EclipseClasspath)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Class org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Constructor org.gradle.plugins.ide.eclipse.GenerateEclipseJdt()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.configure(org.gradle.plugins.ide.eclipse.model.Jdt)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.getJdt()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.getTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseJdt",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseJdt.setJdt(org.gradle.plugins.ide.eclipse.model.EclipseJdt)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Class org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Constructor org.gradle.plugins.ide.eclipse.GenerateEclipseProject()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.configure(org.gradle.plugins.ide.eclipse.model.Project)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.getProjectModel()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseProject",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseProject.setProjectModel(org.gradle.plugins.ide.eclipse.model.EclipseProject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Class org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Constructor org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.configure(org.gradle.plugins.ide.eclipse.model.WtpComponent)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.getComponent()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent.setComponent(org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Class org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Constructor org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.configure(org.gradle.plugins.ide.eclipse.model.WtpFacet)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.getFacet()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet",
+            "member": "Method org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet.setFacet(org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Class org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Constructor org.gradle.plugins.ide.idea.GenerateIdeaModule()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.configure(org.gradle.plugins.ide.idea.model.Module)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.getModule()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.getOutputFile()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.setModule(org.gradle.plugins.ide.idea.model.IdeaModule)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaModule.setOutputFile(java.io.File)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Class org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Constructor org.gradle.plugins.ide.idea.GenerateIdeaProject()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.configure(org.gradle.plugins.ide.idea.model.Project)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.getIdeaProject()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.getOutputFile()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.setIdeaProject(org.gradle.plugins.ide.idea.model.IdeaProject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaProject",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaProject.setOutputFile(java.io.File)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Class org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Constructor org.gradle.plugins.ide.idea.GenerateIdeaWorkspace()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.configure(org.gradle.plugins.ide.idea.model.Workspace)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.configure(org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.create()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.generate()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.getWorkspace()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.getXmlTransformer()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.GenerateIdeaWorkspace",
+            "member": "Method org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.setWorkspace(org.gradle.plugins.ide.idea.model.IdeaWorkspace)",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.IdeaPlugin",
+            "member": "Class org.gradle.plugins.ide.idea.IdeaPlugin",
+            "acceptation": "Method of the internal IdePlugin base class, removed together with the IDE file generation tasks",
+            "changes": [
+                "org.gradle.plugins.ide.internal.IdePlugin.shouldDeprecateLifecycleTask()"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.IdeaPlugin",
+            "member": "Method org.gradle.plugins.ide.idea.IdeaPlugin.getBuildFeatures()",
+            "acceptation": "Deprecated IDE file generation tasks removed in Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
