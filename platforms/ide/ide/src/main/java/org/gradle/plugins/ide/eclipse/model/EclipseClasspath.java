@@ -48,8 +48,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The build path settings for the generated Eclipse project. Used by the
- * {@link org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath} task to generate an Eclipse .classpath file.
+ * The build path settings for the Eclipse project, surfaced to the IDE through the Tooling API models.
  * <p>
  * The following example demonstrates the various configuration options.
  * Keep in mind that all properties have sensible defaults; only configure them explicitly

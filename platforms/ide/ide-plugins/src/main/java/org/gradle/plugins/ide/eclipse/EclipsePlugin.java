@@ -80,7 +80,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * <p>A plugin which generates Eclipse files.</p>
+ * <p>A plugin which adds the {@code eclipse} DSL for configuring the Eclipse representation of the project,
+ * surfaced to the IDE through the Tooling API models.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
  */

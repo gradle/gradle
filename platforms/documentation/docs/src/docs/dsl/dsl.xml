@@ -697,37 +697,6 @@
         </table>
     </section>
 
-    <section>
-        <title>Eclipse/IDEA task types</title>
-        <para>Tasks contributed by IDE plugins. To configure IDE plugins please use IDE model types.</para>
-        <table>
-            <title>Eclipse/IDEA task types</title>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseJdt</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.GenerateIdeaModule</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.GenerateIdeaProject</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugins.ide.idea.GenerateIdeaWorkspace</td>
-            </tr>
-        </table>
-    </section>
 
     <section>
         <title>Xcode task types</title>

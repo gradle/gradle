@@ -29,11 +29,6 @@ org.gradle.plugins.ear.Ear
 org.gradle.plugins.ide.api.FileContentMerger
 org.gradle.plugins.ide.eclipse.EclipsePlugin
 org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
-org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
-org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
-org.gradle.plugins.ide.eclipse.GenerateEclipseProject
-org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent
-org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet
 org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 org.gradle.plugins.ide.eclipse.model.AbstractLibrary
 org.gradle.plugins.ide.eclipse.model.AccessRule
@@ -56,9 +51,6 @@ org.gradle.plugins.ide.eclipse.model.WbProperty
 org.gradle.plugins.ide.eclipse.model.WbResource
 org.gradle.plugins.ide.eclipse.model.WtpComponent
 org.gradle.plugins.ide.eclipse.model.WtpFacet
-org.gradle.plugins.ide.idea.GenerateIdeaModule
-org.gradle.plugins.ide.idea.GenerateIdeaProject
-org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 org.gradle.plugins.ide.idea.IdeaPlugin
 org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 org.gradle.plugins.ide.idea.model.IdeaModel

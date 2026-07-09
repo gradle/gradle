@@ -74,8 +74,9 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task. For projects that have the Java plugin applied, the tasks receive additional Java-specific
- * configuration.
+ * Adds the {@code idea} DSL for configuring the IDEA representation of the project, surfaced to the IDE
+ * through the Tooling API models. For projects that have the Java plugin applied, the model receives
+ * additional Java-specific configuration.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/idea_plugin.html">IDEA plugin reference</a>
  */
