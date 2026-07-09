@@ -1118,6 +1118,59 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         "SetProperty"  | "emptySetConf"    | emptySetPropertyBuildScript()
     }
 
+    def "widening check for allow-listed task types (ShadowJar) is downgraded to a deprecation warning"() {
+        // Pragmatic escape hatch: WideningTypeSerializationFailureHelper carries a
+        // hardcoded allow-list of third-party task types whose SetProperty<Configuration>
+        // usage is known to widen safely in practice. Rather than fail the build, the
+        // widening report is downgraded to a deprecation nag that will become a hard
+        // error in Gradle 10. The suppression matches on the task's DECLARED class name
+        // (GeneratedSubclasses.unpackType), so a locally declared Groovy task with the
+        // exact FQN is enough to trigger it.
+        //
+        // Guards against regressions that either drop the allow-list, drop the
+        // deprecation nag, or check against the wrong trace frame.
+        file("buildSrc/src/main/groovy/com/github/jengelman/gradle/plugins/shadow/tasks/ShadowJar.groovy") << """
+            package com.github.jengelman.gradle.plugins.shadow.tasks
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.artifacts.Configuration
+            import org.gradle.api.provider.SetProperty
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+
+            abstract class ShadowJar extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfigurations()
+
+                @TaskAction
+                void run() { println "ShadowJar ran with " + configurations.get().size() + " configuration(s)" }
+            }
+        """
+
+        buildFile << """
+            import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+            configurations.create('shadow')
+
+            tasks.register("shadowJar", ShadowJar) {
+                configurations.set([project.configurations.getByName('shadow')] as Set)
+            }
+        """
+
+        when: "CC store would normally fire the widening report for SetProperty<Configuration>"
+        executer.expectDocumentedDeprecationWarning("Serializing SetProperty<Configuration> in task :shadowJar of type ShadowJar has been deprecated. " +
+            "This will fail with an error in Gradle 10. The value type of this property (org.gradle.api.artifacts.Configuration) is not supported with the configuration cache: values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection. " +
+            "Use a ConfigurableFileCollection instead, or change the captured type to FileCollection. " +
+            "For more information, please refer to https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements:disallowed_types in the Gradle documentation."
+        )
+        configurationCacheRun "shadowJar"
+
+        then: "no CC problem is reported and the entry stores cleanly"
+        configurationCache.assertStateStored()
+        outputContains "ShadowJar ran with 1 configuration(s)"
+        outputDoesNotContain "failed to serialize value of"
+    }
+
     def "unset #propertyKind of unsupported type does not cause an error (#description)"() {
         // An unset Property is stored to the cache as a missing marker, so the
         // widening-type check that PropertyCodec would fire on load is skipped.

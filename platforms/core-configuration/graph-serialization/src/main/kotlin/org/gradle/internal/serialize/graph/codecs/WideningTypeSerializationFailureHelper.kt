@@ -19,11 +19,33 @@ package org.gradle.internal.serialize.graph.codecs
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.lang.reflect.Field
+
+
+/**
+ * One third-party task type whose declared `SetProperty<Configuration>` field
+ * trips the widening check but whose runtime usage pattern makes the widening
+ * moot in practice is the ShadowJar task from
+ * [GradleUp/shadow](https://github.com/GradleUp/shadow).  It calls `.resolve(...)`
+ * on the resolved set, so widening to a `FileCollection` on roundtrip is
+ * functionally equivalent for the plugin's own use.
+ * <p>
+ * When the current property trace is inside a task of this type, the widening
+ * report is downgraded to a deprecation nag so affected builds stay green while
+ * ShadowJar's authors migrate the field type; the nag will become a hard error
+ * in Gradle 10.
+ * <p>
+ * This is a pragmatic escape hatch, not a design pattern. Additional entries
+ * should be strongly resisted — this is a single-purpose exception, not the
+ * seed of a general allow-list.
+ */
+private const val SUPPRESSED_FAILURE_TASK_NAME = "com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar"
 
 
 /**
@@ -42,7 +64,7 @@ import java.lang.reflect.Field
  * check (bean fields, record components, lambda parameters, `Property<T>`
  * value types, Kotlin delegates). Callers layer their own carve-outs and
  * reporting on top of the returned codec.
- *
+ * <p>
  * Pass [runtimeType] explicitly when the value's runtime class is more specific
  * than the slot's declared type (the common case for bean fields). Omit it when
  * the slot's declared type IS the only type signal available (the lambda and
@@ -61,7 +83,7 @@ fun WriteContext.findCodecThatWidensIncompatibly(
 /**
  * Reports a serialization failure as a non-fatal configuration cache problem
  * at the [current trace][WriteContext.trace].
- *
+ * <p>
  * This does not interrupt encoding. The caller is expected to write a
  * self-consistent placeholder in place of the offending value. The
  * [exception] is attached to the resulting
@@ -70,7 +92,7 @@ fun WriteContext.findCodecThatWidensIncompatibly(
  * build later fails due to deferred problems, and its
  * [resolutions][org.gradle.internal.exceptions.ResolutionProvider]
  * remain visible to `failure.assertHasResolution(...)`.
- *
+ * <p>
  * Callers who need a new trace frame (e.g., bean-field encoders that have
  * not yet entered the field's property trace) should wrap with
  * [withPropertyTrace] themselves; this keeps the trace surface explicit at
@@ -102,7 +124,7 @@ fun WriteContext.reportSerializationProblem(exception: UnsupportedTypeException)
  * @return `true` when the field's value must be dropped from the cache; the
  *         caller is expected to write `null` in its place.
  */
-suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: String, fieldValue: Any?): Boolean {
+fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: String, fieldValue: Any?): Boolean {
     if (fieldValue == null) return false
     val widening = findCodecThatWidensIncompatibly(field.type, fieldValue.javaClass) ?: return false
     // The helper has already rejected the case where field.type is a supertype of
@@ -128,13 +150,13 @@ suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: 
 /**
  * Reports a deferred problem when the codec registered for [valueType] is a
  * [WideningCodec] that produces a decoded type incompatible with [valueType].
- *
+ * <p>
  * Used by `Property<T>` / `ListProperty<T>` / `SetProperty<T>` / `MapProperty<K, V>`
  * codecs to verify the type argument(s) can survive the configuration cache
  * roundtrip. [propertyKind] only contributes display text (`propertyKind.simpleName`);
  * the helper does not inspect its identity, so callers stay decoupled from the
  * specific property interfaces.
- *
+ * <p>
  * [resolutionFor] supplies the user-facing fix line attached to the reported
  * exception. The default returns the codec's own [WideningCodec.wideningFix];
  * `MapProperty` callers override to emit a key/value-aware fix line that names
@@ -145,17 +167,49 @@ suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: 
  *         caller should write a missing-value placeholder so the property
  *         survives the roundtrip as if it were never set).
  */
-suspend fun WriteContext.reportIfUnsupportedPropertyValueType(
+fun WriteContext.reportIfUnsupportedPropertyValueType(
     propertyKind: Class<*>,
     valueType: Class<*>,
     resolutionFor: (widening: WideningCodec<*>, valueType: Class<*>) -> String = { widening, _ -> widening.wideningFix }
 ): Boolean {
     val widening = findCodecThatWidensIncompatibly(valueType) ?: return false
+    val resolutions = listOf(resolutionFor(widening, valueType))
+    if (isInsideSuppressedFailureTask()) {
+        nagAboutSuppressedWidening(widening, resolutions, propertyKind, valueType)
+        return false
+    } else {
+        failOnIncompatibleWidening(widening, resolutions, propertyKind, valueType, )
+        return true
+    }
+}
+
+
+/**
+ * `true` when the current property trace is inside a task of the [SUPPRESSED_FAILURE_TASK_NAME] type.
+ */
+private fun WriteContext.isInsideSuppressedFailureTask(): Boolean =
+    trace.sequence
+        .filterIsInstance<PropertyTrace.Task>()
+        .any { it.type.name == SUPPRESSED_FAILURE_TASK_NAME }
+
+
+private fun WriteContext.failOnIncompatibleWidening(widening: WideningCodec<*>, resolutions: List<String>, propertyKind: Class<*>, valueType: Class<*>) {
     val exception = UnsupportedTypeException(
         "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in ${trace.taskDescription()}.",
         "The value type of this property (${valueType.name}) is not supported with the configuration cache: values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}.",
-        listOf(resolutionFor(widening, valueType))
+        resolutions
     )
     reportSerializationProblem(exception)
-    return true
+}
+
+
+private fun WriteContext.nagAboutSuppressedWidening(widening: WideningCodec<*>, resolutions: List<String>, propertyKind: Class<*>, valueType: Class<*>) {
+    var deprecation = DeprecationLogger
+        .deprecateAction("Serializing ${propertyKind.simpleName}<${valueType.simpleName}> in ${trace.taskDescription()}")
+        .withContext("The value type of this property (${valueType.name}) is not supported with the configuration cache: values of this type are restored from the configuration cache as ${widening.publicDecodedType.name}.")
+    resolutions.forEach { deprecation = deprecation.withAdvice(it) }
+    deprecation
+        .willBecomeAnErrorInGradle10()
+        .withUserManual("configuration_cache_requirements", "config_cache:requirements:disallowed_types")
+        .nagUser()
 }

@@ -76,7 +76,7 @@ interface WriteContext : MutableIsolateContext, Encoder {
      * not whatever codec happens to be pushed on the isolate's codec stack — the
      * lookup must reflect actual serialization dispatch. This call does not write
      * to the encoder, so it is safe during diagnostic checks (for example, checking
-     * whether the codec is a [WideningCodec] whose decoded type cannot fit a field).
+     * whether the codec is a [org.gradle.internal.serialize.graph.codecs.WideningCodec] whose decoded type cannot fit a field).
      *
      * Implementations backed by a `BindingsBackedCodec` should override this to
      * enable store-time widening checks for their encoded values.
@@ -86,7 +86,7 @@ interface WriteContext : MutableIsolateContext, Encoder {
      * higher-level Context-API alias used by callers that already hold a
      * [WriteContext] reference. Both return `Any?` to keep package-layer
      * decoupling: callers cast to a concrete codec interface (typically
-     * [WideningCodec]) themselves.
+     * [org.gradle.internal.serialize.graph.codecs.WideningCodec]) themselves.
      */
     fun codecForRuntimeType(type: Class<*>): Any? = null
 }
@@ -170,11 +170,6 @@ fun <I, R> CloseableReadContext.readWith(argument: I, readOperation: suspend Mut
             finish()
         }
     }
-
-
-inline
-fun <reified T : Any> ReadContext.getSingletonProperty(): T =
-    getSingletonProperty(T::class.java)
 
 
 suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
