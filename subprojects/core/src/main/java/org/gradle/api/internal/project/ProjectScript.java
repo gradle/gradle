@@ -20,11 +20,38 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
 public abstract class ProjectScript extends PluginsAwareScript {
+
+    @Nullable
+    private LoggingManager loggingManager = null;
+    @Nullable
+    private Logger logger = null;
+    @Nullable
+    private StandardOutputCapture standardOutputCapture = null;
+
+    @Override
+    public void init(Object target, ServiceRegistry services) {
+        super.init(target, services);
+
+        // Materialize the project-scoped logging services into fields so the implementation
+        // does not delegate to the live target on `getLogging`; this lets us replace the
+        // target with a broken-object stub when deserialized from CC.
+        //
+        // init() runs twice: once with a ProjectScriptTarget wrapper (method-inheritance setup) and
+        // once with the real Project (by the script runner, always before run()). Only the latter
+        // carries the model to materialize from, and it is the state the running/captured script keeps.
+        if (target instanceof ProjectInternal) {
+            loggingManager = getScriptTarget().getLogging();
+            logger = getScriptTarget().getLogger();
+            standardOutputCapture = getScriptTarget().getStandardOutputCapture();
+        }
+    }
 
     @Override
     public void apply(Closure closure) {
@@ -49,17 +76,20 @@ public abstract class ProjectScript extends PluginsAwareScript {
 
     @Override
     public StandardOutputCapture getStandardOutputCapture() {
-        return getScriptTarget().getStandardOutputCapture();
+        assert standardOutputCapture != null : "the field must be initialized by init";
+        return standardOutputCapture;
     }
 
     @Override
     public LoggingManager getLogging() {
-        return getScriptTarget().getLogging();
+        assert loggingManager != null : "the field must be initialized by init";
+        return loggingManager;
     }
 
     @Override
     public Logger getLogger() {
-        return getScriptTarget().getLogger();
+        assert logger != null : "the field must be initialized by init";
+        return logger;
     }
 
     @Override

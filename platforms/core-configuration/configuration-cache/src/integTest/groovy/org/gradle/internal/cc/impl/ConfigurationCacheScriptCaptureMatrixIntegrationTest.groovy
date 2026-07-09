@@ -65,14 +65,38 @@ class ConfigurationCacheScriptCaptureMatrixIntegrationTest extends AbstractConfi
         "File"   | "file('data')" | "value.name" | "data"
     }
 
-    // --- Groovy: calling a script-defined method fails at execution (#20126) ---
+    // --- Groovy: a script-defined method now survives the cache, the script owner is scrubbed (#20126) ---
 
-    def "groovy task action calling a script-defined method is stored but fails on execution (#kind)"() {
+    def "groovy task action can call a Project-independent script method"() {
         given:
         buildFile """
-            $methodDecl
+            def describe(String s) { s.toUpperCase() }
             tasks.register('t') {
-                doLast { println "RESULT: " + $call }
+                doLast { println "RESULT: " + describe("hi") }
+            }
+        """
+
+        when:
+        configurationCacheRun "t"
+
+        then:
+        outputContains("RESULT: HI")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "t"
+
+        then:
+        outputContains("RESULT: HI")
+        configurationCache.assertStateLoaded()
+    }
+
+    def "groovy task action calling a script method that touches the build model fails gracefully"() {
+        given:
+        buildFile """
+            def whereAmI() { projectDir.name }
+            tasks.register('t') {
+                doLast { println "RESULT: " + whereAmI() }
             }
         """
 
@@ -80,22 +104,33 @@ class ConfigurationCacheScriptCaptureMatrixIntegrationTest extends AbstractConfi
         configurationCacheFails "t"
 
         then:
-        // The entry is stored without a config-cache problem; the failure only surfaces at
-        // execution, because the script-defined method cannot be resolved on the scrubbed owner.
-        failure.assertHasCause("Could not find method $missingMethod")
-        outputDoesNotContain("problem was found storing the configuration cache")
+        // Parity with Kotlin: the method resolves on the retained script, but reaching the build
+        // model from it is a clear execution-time problem, not a raw "Could not find method".
+        failure.assertHasCause("Invocation of 'projectDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+    }
 
-        when: "the stored entry is reused on the next run"
-        configurationCacheFails "t"
+    def "groovy task action can use script file operations at execution via re-resolved services"() {
+        given:
+        file("data/a.txt") << "a"
+        buildFile """
+            tasks.register('t') {
+                doLast { println "RESULT: " + file("data/a.txt").text }
+            }
+        """
 
-        then: "it is reused (so it was committed) yet still fails at execution the same way"
-        outputContains("Reusing configuration cache.")
-        failure.assertHasCause("Could not find method $missingMethod")
+        when:
+        configurationCacheRun "t"
 
-        where:
-        kind           | methodDecl                                   | call             | missingMethod
-        "no-project"   | 'def describe(String s) { s.toUpperCase() }' | 'describe("hi")' | "describe()"
-        "uses-project" | 'def whereAmI() { projectDir.name }'         | 'whereAmI()'     | "whereAmI()"
+        then:
+        outputContains("RESULT: a")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "t"
+
+        then:
+        outputContains("RESULT: a")
+        configurationCache.assertStateLoaded()
     }
 
     // --- Kotlin: script-scope capture is scrubbed, retaining Project-independent state (#22879) ---

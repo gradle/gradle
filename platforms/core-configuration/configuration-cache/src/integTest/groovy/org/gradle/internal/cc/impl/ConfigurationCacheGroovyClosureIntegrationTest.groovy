@@ -100,10 +100,12 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
 
     def "task fails immediately when task action closure invokes a project method"() {
         given:
+        // findProject is a Project method that is not part of the Script API, so it resolves on the
+        // scrubbed script's broken target (unlike file(), which is a Script-API method and keeps working).
         buildFile << """
             tasks.register("some") {
                 doFirst {
-                    println(file("broken"))
+                    println(findProject(":other"))
                     throw new IllegalStateException("UNREACHABLE")
                 }
             }
@@ -116,14 +118,14 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(4)
         failure.assertHasFailure("Execution failed for task ':some' (registered in build file 'build.gradle').") {
-            it.assertHasCause("Invocation of 'file' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+            it.assertHasCause("Invocation of 'findProject' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
 
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             reportedOutsideBuildFailure = true
-            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'file' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
+            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'findProject' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
         }
     }
 
@@ -345,12 +347,55 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         2.times {
             configurationCacheRun("test")
             def brokenObject = ClosureCodec.BrokenObject.name
-            def brokenScript = ClosureCodec.BrokenScript.name
+            // Task closures have no owning script, so their implicit references are still discarded.
             outputContains("Groovy closure in task with delegate=null, owner=$brokenObject, this=$brokenObject")
             outputContains("Groovy closure in task with custom delegate=null, owner=$brokenObject, this=$brokenObject")
             outputContains("nested Groovy closure in task with delegate=null, owner=$brokenObject, this=$brokenObject")
-            outputContains("Groovy closure in script with delegate=null, owner=$brokenScript, this=$brokenScript")
-            outputContains("Groovy closure in script with custom delegate=null, owner=$brokenScript, this=$brokenScript")
+            // Script closures now keep their (scrubbed) owning script, so script-defined methods
+            // survive the cache (#20126); only the delegate is discarded.
+            outputContains("Groovy closure in script with delegate=null, owner=")
+            outputContains("Groovy closure in script with custom delegate=null, owner=")
+        }
+    }
+
+    def "task action using buildscript from a Groovy closure fails gracefully"() {
+        given:
+        // buildscript is a genuine build-model accessor: the broken target is a ProjectInternal proxy
+        // that satisfies ProjectScript's cast but reports a clear problem, rather than a raw
+        // ClassCastException. See #20126.
+        buildFile """
+            tasks.register("t") {
+                doLast { println(buildscript.sourceFile) }
+            }
+        """
+
+        when:
+        configurationCacheFails "t"
+
+        then:
+        failure.assertHasCause("Invocation of 'getBuildscript' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
+    }
+
+    def "task action can use the script logger and logging manager from a Groovy closure"() {
+        given:
+        // logger/logging are materialized onto the script (ProjectScript) from the live project, so a
+        // captured closure keeps using them across the cache instead of reaching the severed target.
+        // The script method routes the lookup through the retained script, not the task.
+        buildFile """
+            def logViaScript() {
+                logger.lifecycle("RESULT: from-script-logger")
+                return logging != null
+            }
+            tasks.register("t") {
+                doLast { println("LOGGING: " + logViaScript()) }
+            }
+        """
+
+        expect:
+        2.times {
+            configurationCacheRun "t"
+            outputContains("RESULT: from-script-logger")
+            outputContains("LOGGING: true")
         }
     }
 }

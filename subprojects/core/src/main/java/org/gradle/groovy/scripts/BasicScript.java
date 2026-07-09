@@ -61,6 +61,20 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         this.dynamicObject.setTarget(target);
     }
 
+    /**
+     * Replaces the script's target with {@code brokenTarget} when a script reconstructed by the
+     * configuration cache is reused as a closure owner, so that build-model access from a closure
+     * fails with a clear problem rather than resolving live state. The script's own services are
+     * restored separately, by serializing their (codec-backed) values.
+     *
+     * <p>Package-private on purpose: this must not appear on the script's DSL-visible surface (a
+     * public method here would be callable from every {@code .gradle} script). The configuration
+     * cache reaches it through {@link BasicScriptConfigurationCacheOperations}. See #20126.
+     */
+    void installBrokenTargetForConfigurationCache(Object brokenTarget) {
+        setScriptTarget(brokenTarget);
+    }
+
     @Override
     public StandardOutputCapture getStandardOutputCapture() {
         return standardOutputCapture;
