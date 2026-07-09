@@ -39,11 +39,11 @@ eclipse.project.file.beforeMerged { project ->
 }
 // end::project-before-merged[]
 
-// tag::wtp-with-xml[]
-eclipse.wtp.facet.file.withXml { provider ->
-    provider.asNode().fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
+// tag::classpath-with-xml[]
+eclipse.classpath.file.withXml { provider ->
+    provider.asNode().appendNode('classpathentry', [kind: 'output', path: 'custom-bin'])
 }
-// end::wtp-with-xml[]
+// end::classpath-with-xml[]
 
 sourceSets {
     integTest

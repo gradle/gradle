@@ -674,9 +674,6 @@
                 <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugins.ide.idea.model.IdeaModel</td>
             </tr>
             <tr>

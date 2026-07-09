@@ -9,10 +9,6 @@ import org.gradle.plugins.ide.eclipse.model.Classpath
 // tag::project-before-merged[]
 import org.gradle.plugins.ide.eclipse.model.Project
 // end::project-before-merged[]
-// tag::wtp-with-xml[]
-import org.w3c.dom.Element
-// end::wtp-with-xml[]
-
 // tag::use-eclipse-plugin[]
 // tag::use-eclipse-wtp-plugin[]
 plugins {
@@ -58,20 +54,12 @@ eclipse.project.file.beforeMerged(Action<Project> {
 })
 // end::project-before-merged[]
 
-// tag::wtp-with-xml[]
+// tag::classpath-with-xml[]
 
-eclipse.wtp.facet.file.withXml(Action<XmlProvider> {
-    fun Element.firstElement(predicate: Element.() -> Boolean) =
-        childNodes
-            .run { (0 until length).map(::item) }
-            .filterIsInstance<Element>()
-            .first { it.predicate() }
-
-    asElement()
-        .firstElement { tagName === "fixed" && getAttribute("facet") == "jst.java" }
-        .setAttribute("facet", "jst2.java")
+eclipse.classpath.file.withXml(Action<XmlProvider> {
+    asNode().appendNode("classpathentry", mapOf("kind" to "output", "path" to "custom-bin"))
 })
-// end::wtp-with-xml[]
+// end::classpath-with-xml[]
 
 val integTest = sourceSets.create("integTest")
 val functional = configurations.create("functional")

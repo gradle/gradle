@@ -45,7 +45,7 @@ What exactly the `eclipse` plugin configures depends on which other plugins are 
 | Adds ear application support.
 |===
 
-The `eclipse-wtp` plugin configures the WTP component and facet models. If a <<java_plugin.adoc#java_plugin,Java>> or <<war_plugin.adoc#war_plugin,War>> is applied, the classpath will be extended to get a proper packaging structure for this utility library or web application project.
+The `eclipse-wtp` plugin configures the WTP component model. If a <<java_plugin.adoc#java_plugin,Java>> or <<war_plugin.adoc#war_plugin,War>> is applied, the classpath will be extended to get a proper packaging structure for this utility library or web application project.
 
 Both Eclipse plugins are open to customization.
 
@@ -103,9 +103,6 @@ NOTE: The IDE file generation tasks that these plugins used to contribute (`ecli
 | `eclipse.wtp.component`
 | Allows configuring wtp component information only if `eclipse-wtp` plugin was applied.
 
-| link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]
-| `eclipse.wtp.facet`
-| Allows configuring wtp facet information only if `eclipse-wtp` plugin was applied.
 |===
 
 [[sec:eclipse_customizing_the_generated_files]]
@@ -145,15 +142,6 @@ link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[
   * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Classpath.html[Classpath] arg -&gt; ... }`
   * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
-link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.html[EclipseWtpComponent]::
-  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent] arg -&gt; ... }`
-  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpComponent.html[WtpComponent] arg -&gt; ... }`
-  * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
-
-link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.html[EclipseWtpFacet]::
-  * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
-  * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/WtpFacet.html[WtpFacet] arg -&gt; ... }`
-  * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg -&gt; ... }`
 
 [[sec:partial-overwrite]]
 ==== Partial overwrite of existing content
@@ -189,8 +177,8 @@ include::sample[dir="snippets/reference/core-plugins/eclipse/groovy",files="buil
 The `withXml` hook allows to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support and Kotlin's extension functions make up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
 
 ====
-include::sample[dir="snippets/reference/core-plugins/eclipse/kotlin",files="build.gradle.kts[tags=wtp-with-xml]"]
-include::sample[dir="snippets/reference/core-plugins/eclipse/groovy",files="build.gradle[tags=wtp-with-xml]"]
+include::sample[dir="snippets/reference/core-plugins/eclipse/kotlin",files="build.gradle.kts[tags=classpath-with-xml]"]
+include::sample[dir="snippets/reference/core-plugins/eclipse/groovy",files="build.gradle[tags=classpath-with-xml]"]
 ====
 
 [[sec:test-sources]]

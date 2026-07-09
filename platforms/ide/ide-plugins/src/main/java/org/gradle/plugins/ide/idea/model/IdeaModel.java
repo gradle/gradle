@@ -15,18 +15,18 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
 
-import java.io.File;
-import java.util.Map;
-
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
+// TODO: this branch also removes public API that was never deprecated because it became unreachable with
+//  the file generation removal; it must be deprecated in Gradle 9.x before this ships: IdeaModel.targetVersion,
+//  IdeaModel.pathVariables, IdeaModule.pathVariables, IdeaProject.projectLibraries and the types ProjectLibrary,
+//  Module, Project, Workspace (idea XML) and Jdt, Facet, WtpFacet, WtpComponent, WbDependentModule (eclipse XML)
 /**
  * DSL-friendly model of the IDEA project information.
  * First point of entry when it comes to customizing the IDEA generation.
@@ -37,8 +37,6 @@ public abstract class IdeaModel {
 
     private IdeaModule module;
     private IdeaProject project;
-    // TODO: deprecate in Gradle 9.x — its only reader was the removed IdeaScalaConfigurer
-    private String targetVersion;
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
@@ -60,27 +58,6 @@ public abstract class IdeaModel {
 
     public void setProject(IdeaProject project) {
         this.project = project;
-    }
-
-    /**
-     * Configures the target IDEA version.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    public String getTargetVersion() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "targetVersion");
-        return targetVersion;
-    }
-
-    /**
-     * Sets the target IDEA version.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setTargetVersion(String targetVersion) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "targetVersion");
-        this.targetVersion = targetVersion;
     }
 
     /**
@@ -115,17 +92,4 @@ public abstract class IdeaModel {
         action.execute(getProject());
     }
 
-    // TODO: deprecate in Gradle 9.x — nothing consumes the path variables after the file-generation removal
-    /**
-     * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.). <p> For example see docs for {@link IdeaModule}.
-     *
-     * @param pathVariables A map with String-&gt;File pairs.
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void pathVariables(Map<String, File> pathVariables) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "pathVariables");
-        Preconditions.checkNotNull(pathVariables);
-        DeprecationLogger.whileDisabled(() -> module.getPathVariables()).putAll(pathVariables);
-    }
 }

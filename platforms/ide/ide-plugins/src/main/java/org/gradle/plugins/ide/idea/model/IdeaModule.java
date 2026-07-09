@@ -38,7 +38,7 @@ import java.util.Set;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre class='autoTestedWithDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -55,10 +55,6 @@ import java.util.Set;
  * }
  *
  * idea {
- *
- *   //if you want parts of paths in resulting files (*.iml, etc.) to be replaced by variables (Files)
- *   pathVariables GRADLE_HOME: file('~/cool-software/gradle')
- *
  *   module {
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
@@ -120,7 +116,6 @@ public abstract class IdeaModule {
     private Boolean inheritOutputDirs;
     private File outputDir;
     private File testOutputDir;
-    private Map<String, File> pathVariables = new LinkedHashMap<>();
     private String jdkName;
     protected IdeaLanguageLevel languageLevel;
     protected JavaVersion targetBytecodeVersion;
@@ -200,7 +195,7 @@ public abstract class IdeaModule {
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
-     * <pre class='autoTestedWithDeprecations'>
+     * <pre class='autoTested'>
      * plugins {
      *     id 'java'
      *     id 'idea'
@@ -348,31 +343,6 @@ public abstract class IdeaModule {
 
     public void setTestOutputDir(File testOutputDir) {
         this.testOutputDir = testOutputDir;
-    }
-
-    /**
-     * The variables to be used for replacing absolute paths in the iml entries.
-     * For example, you might add a {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public Map<String, File> getPathVariables() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
-        return pathVariables;
-    }
-
-    /**
-     * Sets the path variables.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setPathVariables(Map<String, File> pathVariables) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
-        this.pathVariables = pathVariables;
     }
 
     /**

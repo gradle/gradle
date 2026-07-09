@@ -18,8 +18,6 @@ package org.gradle.plugins.ide.eclipse
 
 
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.plugins.ide.eclipse.model.Facet
-import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -39,7 +37,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         wtpPlugin.apply(project)
 
         then:
-        ['eclipseWtp', 'cleanEclipseWtp', 'eclipseWtpComponent', 'cleanEclipseWtpComponent', 'eclipseWtpFacet', 'cleanEclipseWtpFacet'].every {
+        ['eclipseWtp', 'cleanEclipseWtp', 'eclipseWtpComponent', 'cleanEclipseWtpComponent'].every {
             project.tasks.findByName(it) == null
         }
     }
@@ -67,10 +65,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         then:
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
         checkEclipseWtpComponentForJava()
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, 'jst.java', null),
-                new Facet(FacetType.installed, 'jst.utility', '1.0'),
-                new Facet(FacetType.installed, 'jst.java', '6.0')])
     }
 
     def applyFirstToJavaProject_shouldHaveWebProjectAndClasspathTask() {
@@ -82,30 +76,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         then:
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
         checkEclipseWtpComponentForJava()
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, 'jst.java', null),
-                new Facet(FacetType.installed, 'jst.utility', '1.0'),
-                new Facet(FacetType.installed, 'jst.java', '1.7')])
-    }
-
-    def "can add custom facets to java default facets"() {
-        when:
-        project.apply(plugin: 'java')
-        wtpPlugin.apply(project)
-        project.java.sourceCompatibility = 1.3
-
-        project.eclipse.wtp {
-            facet {
-                facet name: 'someCoolFacet', version: '1.3'
-            }
-        }
-
-        then:
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, 'jst.java', null),
-                new Facet(FacetType.installed, 'jst.utility', '1.0'),
-                new Facet(FacetType.installed, 'jst.java', '1.3'),
-                new Facet(FacetType.installed, 'someCoolFacet', '1.3')])
     }
 
     def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
@@ -117,11 +87,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         then:
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
         checkEclipseWtpComponentForWar()
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.java", null),
-                new Facet(FacetType.fixed, "jst.web", null),
-                new Facet(FacetType.installed, "jst.web", "2.4"),
-                new Facet(FacetType.installed, "jst.java", "5.0")])
     }
 
     def applyFirstToWarProject_shouldHaveWebProjectAndClasspathTask() {
@@ -133,32 +98,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         then:
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
         checkEclipseWtpComponentForWar()
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.java", null),
-                new Facet(FacetType.fixed, "jst.web", null),
-                new Facet(FacetType.installed, "jst.web", "2.4"),
-                new Facet(FacetType.installed, "jst.java", "1.8")])
-    }
-
-    def "can add custom facets to war default facets"() {
-        when:
-        project.apply(plugin: 'war')
-        project.apply(plugin: 'eclipse-wtp')
-        project.java.sourceCompatibility = 1.4
-
-        project.eclipse.wtp {
-            facet {
-                facet name: 'someCoolFacet', version: '1.4'
-            }
-        }
-
-        then:
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.java", null),
-                new Facet(FacetType.fixed, "jst.web", null),
-                new Facet(FacetType.installed, "jst.web", "2.4"),
-                new Facet(FacetType.installed, "jst.java", "1.4"),
-                new Facet(FacetType.installed, 'someCoolFacet', '1.4')])
     }
 
     @Issue("GRADLE-1770")
@@ -206,9 +145,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
             checkEclipseClasspath([])
             checkEclipseWtpComponentForEar(project.layout.files(project.tasks['ear'].appDirectory.asFile) as Set)
         }
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.ear", null),
-                new Facet(FacetType.installed, "jst.ear", "5.0")])
 
         where:
         plugs << [
@@ -225,86 +161,8 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
                 ['eclipse-wtp', 'ear', 'java']]
     }
 
-    def "can add custom facets to ear project"() {
-        when:
-        project.apply(plugin: 'ear')
-        project.apply(plugin: 'eclipse-wtp')
-
-        project.eclipse.wtp {
-            facet {
-                facet name: 'someFancyFacet', version: '2.0'
-            }
-        }
-
-        then:
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.ear", null),
-                new Facet(FacetType.installed, "jst.ear", "5.0"),
-                new Facet(FacetType.installed, 'someFancyFacet', '2.0')])
-    }
-
-    @Issue('https://github.com/gradle/gradle/issues/945')
-    def "can overwrite ear default 'jst.ear' facet"() {
-        when:
-        project.apply(plugin: 'ear')
-        project.apply(plugin: 'eclipse-wtp')
-
-        project.eclipse.wtp {
-            facet {
-                facet name: 'jst.ear', version: '8.0'
-            }
-        }
-
-        then:
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.ear", null),
-                new Facet(FacetType.installed, "jst.ear", "8.0")])
-    }
-
-    @Issue('https://github.com/gradle/gradle/issues/945')
-    def "can overwrite war default 'jst.web' facet"() {
-        when:
-        project.apply(plugin: 'war')
-        project.apply(plugin: 'eclipse-wtp')
-        project.java.sourceCompatibility = 1.4
-
-        project.eclipse.wtp {
-            facet {
-                facet name: 'jst.web', version: '4.0'
-            }
-        }
-
-        then:
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.java", null),
-                new Facet(FacetType.fixed, "jst.web", null),
-                new Facet(FacetType.installed, "jst.web", "4.0"),
-                new Facet(FacetType.installed, "jst.java", "1.4")])
-    }
-
-    @Issue('gradle/gradle#17681')
-    def "add 'jst.ejb' facet should remove incompatible 'jst.utility' facet"() {
-        when:
-        project.apply(plugin: 'java')
-        project.apply(plugin: 'eclipse-wtp')
-        project.java.sourceCompatibility = 1.8
-
-        project.eclipse.wtp {
-            facet {
-                facet name: 'jst.ejb', version: '3.2'
-            }
-        }
-
-        then:
-        checkEclipseWtpFacet([
-                new Facet(FacetType.fixed, "jst.java", null),
-                new Facet(FacetType.fixed, "jst.ejb", null),
-                new Facet(FacetType.installed, "jst.ejb", "3.2"),
-                new Facet(FacetType.installed, "jst.java", "1.8")])
-    }
-
-    @Issue(['GRADLE-2186', 'GRADLE-2221', 'gradle/gradle#17681'])
-    def "can change WTP components and add facets when java plugin is applied"() {
+    @Issue(['GRADLE-2186', 'GRADLE-2221'])
+    def "can change WTP components when java plugin is applied"() {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
@@ -315,18 +173,11 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
                 deployName = 'ejb-jar'
                 property name: 'mood', value: ':-D'
             }
-            facet {
-                facet name: 'jst.ejb', version: '3.0'
-            }
         }
 
         then:
         project.eclipse.wtp.component.deployName == 'ejb-jar'
         project.eclipse.wtp.component.properties == [new WbProperty('mood', ':-D')]
-        checkEclipseWtpFacet([new Facet(FacetType.fixed, 'jst.java', null),
-                              new Facet(FacetType.fixed, "jst.ejb", null),
-                              new Facet(FacetType.installed, 'jst.java', '1.7'),
-                              new Facet(FacetType.installed, 'jst.ejb', '3.0')])
     }
 
 
@@ -341,11 +192,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert wtp.resources == []
         assert wtp.classesDeployPath == "/"
         assert wtp.libDeployPath == "/lib"
-    }
-
-    private void checkEclipseWtpFacet(def expectedFacets) {
-        def wtp = project.eclipse.wtp.facet
-        assert wtp.replaceInconsistentFacets(wtp.facets).sort() == expectedFacets.sort()
     }
 
     private void checkEclipseWtpComponentForJava() {

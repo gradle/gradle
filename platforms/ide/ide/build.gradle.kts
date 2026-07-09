@@ -35,7 +35,6 @@ dependencies {
     implementation(projects.launcher)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
-    implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.serviceLookup)
     implementation(projects.startParameter)

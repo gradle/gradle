@@ -28,9 +28,6 @@
             <tr>
                 <td>module</td>
             </tr>
-            <tr>
-                <td>targetVersion</td>
-            </tr>
         </table>
     </section>
     <section>
@@ -46,9 +43,6 @@
             </tr>
             <tr>
                 <td>module</td>
-            </tr>
-            <tr>
-                <td>pathVariables</td>
             </tr>
         </table>
     </section>
