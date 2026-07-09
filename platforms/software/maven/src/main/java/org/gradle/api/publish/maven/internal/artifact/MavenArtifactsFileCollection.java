@@ -27,12 +27,13 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.artifact.PublicationArtifactSetFileCollection;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Files-view of a Maven publication's artifact set that participates in configuration-cache
@@ -40,6 +41,7 @@ import java.util.Set;
  * ({@code getFiles()}, task dependencies) matches the prior {@code MinimalFileSet}-based
  * implementation.
  */
+@NullMarked
 class MavenArtifactsFileCollection extends AbstractFileCollection implements PublicationArtifactSetFileCollection {
 
     private final String publicationName;
@@ -74,11 +76,9 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
 
     @Override
     public Iterable<ProviderInternal<File>> getPublicationArtifactSerializationEntries() {
-        List<ProviderInternal<File>> entries = new ArrayList<>();
-        for (MavenArtifact artifact : artifacts) {
-            entries.add(classify(artifact));
-        }
-        return entries;
+        return StreamSupport.stream(artifacts.spliterator(), false)
+            .map(MavenArtifactsFileCollection::classify)
+            .collect(Collectors.toList());
     }
 
     /**
