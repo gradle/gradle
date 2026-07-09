@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 /**
@@ -268,14 +267,14 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         }
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/22879")
-    def "script state is not shared across different tasks after cache reuse"() {
+    def "script state is isolated per task after cache reuse"() {
         given:
-        // FIXME: without the configuration cache both tasks' actions share one script instance, so
-        //   state mutated by :a is visible to :b. After cache reuse each task deserializes its own
-        //   scrubbed script copy (script identity is per-isolate and each task node is its own
-        //   isolate), so cross-task sharing is lost. Ideally it should be preserved, or the
-        //   divergence explicitly accepted. See #22879.
+        // Each task node is serialized in its own configuration-cache isolate, so a script captured by
+        // two tasks' actions deserializes to a separate scrubbed copy per task. Cross-task sharing of
+        // mutable script state — which happens without the cache, where both actions run against one
+        // live script instance — is therefore intentionally not preserved: relying on one task's action
+        // mutating script state that another task observes is order-dependent and unsupported with the
+        // configuration cache.
         buildKotlinFile """
             val shared = mutableListOf<String>()
             tasks.register("a") { doLast { shared.add("from-a") } }
@@ -291,16 +290,17 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         when: "with the configuration cache, each task runs against its own scrubbed script copy"
         configurationCacheRun "b"
 
-        then:
-        // FIXME: should be "RESULT: [from-a]" once cross-task script identity is preserved
+        then: "state mutated by :a is not visible to :b — each task has its own script copy"
         outputContains("RESULT: []")
     }
 
     def "an unused script by-lazy is forced at store because capturing the script serializes it"() {
         given:
-        // FIXME: capturing the script serializes the whole instance, which forces every `by lazy`
+        // This test captures potentially undesired behavior.
+        //
+        // Capturing the script serializes the whole instance, which forces every `by lazy`
         //   field (via kotlin.Lazy.writeReplace) at store time — even ones no task uses. Without the
-        //   cache an unused lazy is never evaluated. See #22879.
+        //   cache an unused lazy is never evaluated.
         buildKotlinFile """
             val used = "hi"
             val neverUsed: String by lazy { println("LAZY-FORCED"); "x" }
