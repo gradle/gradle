@@ -122,29 +122,29 @@ open class DefaultKotlinScript internal constructor(
 
 internal
 fun defaultKotlinScriptHostForProject(project: Project): DefaultKotlinScript.Host =
-    CapturedServicesScriptHost(
-        project.logger,
-        project.logging,
-        (project as ProjectInternal).fileOperations
-    )
+    object : DefaultKotlinScript.Host {
+        override fun getLogger(): Logger = project.logger
+        override fun getLogging(): LoggingManager = project.logging
+        override fun getFileOperations(): FileOperations = (project as ProjectInternal).fileOperations
+    }
 
 
 internal
 fun defaultKotlinScriptHostForSettings(settings: Settings): DefaultKotlinScript.Host =
-    CapturedServicesScriptHost(
-        Logging.getLogger(Settings::class.java),
-        settings.serviceOf(),
-        fileOperationsFor(settings)
-    )
+    object : DefaultKotlinScript.Host {
+        override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
+        override fun getLogging(): LoggingManager = settings.serviceOf()
+        override fun getFileOperations(): FileOperations = fileOperationsFor(settings)
+    }
 
 
 internal
 fun defaultKotlinScriptHostForGradle(gradle: Gradle): DefaultKotlinScript.Host =
-    CapturedServicesScriptHost(
-        Logging.getLogger(Gradle::class.java),
-        gradle.serviceOf(),
-        fileOperationsFor(gradle, null)
-    )
+    object : DefaultKotlinScript.Host {
+        override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
+        override fun getLogging(): LoggingManager = gradle.serviceOf()
+        override fun getFileOperations(): FileOperations = fileOperationsFor(gradle, null)
+    }
 
 
 /**
@@ -161,8 +161,9 @@ fun defaultKotlinScriptHostForGradle(gradle: Gradle): DefaultKotlinScript.Host =
  * captured and the closure holding this `host` is dropped, so nothing reaches the build model. See
  * #22879.
  *
- * (The `defaultKotlinScriptHostFor*` functions above remain for precompiled script plugins, which
- * are applied as plain `Plugin`s and only have the target, not a [KotlinScriptHost].)
+ * (The `defaultKotlinScriptHostFor*` functions above are the same lazy shape but source their
+ * services from a raw target — used by precompiled script plugins, which are applied as plain
+ * `Plugin`s and have no [KotlinScriptHost].)
  */
 internal
 fun scriptHostServicesFor(host: KotlinScriptHost<*>): DefaultKotlinScript.Host =
@@ -171,21 +172,3 @@ fun scriptHostServicesFor(host: KotlinScriptHost<*>): DefaultKotlinScript.Host =
         override fun getLogging(): LoggingManager = host.logging
         override fun getFileOperations(): FileOperations = host.fileOperations
     }
-
-
-/**
- * A [DefaultKotlinScript.Host] that captures its services eagerly and holds no reference to the
- * Gradle build model (`Project`/`Settings`/`Gradle`), so it can be carried across the
- * configuration cache: the captured services are themselves handled by their own codecs or
- * re-resolved from the isolate owner at execution time. See #22879.
- */
-internal
-class CapturedServicesScriptHost(
-    private val logger: Logger,
-    private val logging: LoggingManager,
-    private val fileOperations: FileOperations
-) : DefaultKotlinScript.Host {
-    override fun getLogger(): Logger = logger
-    override fun getLogging(): LoggingManager = logging
-    override fun getFileOperations(): FileOperations = fileOperations
-}

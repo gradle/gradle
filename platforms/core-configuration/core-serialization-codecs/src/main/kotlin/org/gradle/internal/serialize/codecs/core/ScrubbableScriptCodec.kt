@@ -51,11 +51,13 @@ import java.lang.reflect.Proxy
  *
  * Everything else is serialized as-is, which crucially includes user-declared `val`/`var`/`by lazy`
  * fields AND the base-class service delegates (`logger`/`logging`/`fileOperations`/`resources`).
- * The service delegates capture a service-only `CapturedServicesScriptHost`, whose services are
- * handled by their own codecs or re-resolved from the isolate owner ([org.gradle.api.logging.Logger]
- * via its codec; the script's [org.gradle.api.internal.file.FileOperations] via
- * [ScriptFileOperationsCodec], which preserves its base dir; the logging manager via `ServicesCodec`).
- * So `file(...)`, `logger`, etc. keep working at execution.
+ * Those delegates are `unsafeLazy` (a `Serializable` `kotlin.Lazy`): serializing an unforced one runs
+ * its `writeReplace`, which forces the value and drops the initializer — so the live host that the
+ * initializer read from never enters the stream, and only the resolved service value does. Each such
+ * value then rides its own codec: [org.gradle.api.logging.Logger] via its codec; the script's
+ * [org.gradle.api.internal.file.FileOperations] via [ScriptFileOperationsCodec], which preserves its
+ * base dir; the logging manager via `ServicesCodec`. So `file(...)`, `logger`, etc. keep working at
+ * execution.
  *
  * On decode the instance is allocated without running its constructor (via the same
  * constructor-for-serialization path used by ordinary beans), so we never need a live host.
@@ -150,7 +152,8 @@ object ScrubbableScriptCodec : Codec<ScrubbableScript> {
         generateSequence<Class<*>>(scriptType) { it.superclass }
             .takeWhile { it != Any::class.java }
             .flatMap { it.declaredFields.asSequence() }
-            .filterNot { Modifier.isStatic(it.modifiers) }
+            // Skip static and transient, matching Gradle's bean serialization (BeanSchema.relevantFields).
+            .filterNot { Modifier.isStatic(it.modifiers) || Modifier.isTransient(it.modifiers) }
 
     private
     fun isBuildModelType(type: Class<*>): Boolean =
@@ -166,13 +169,11 @@ object ScrubbableScriptCodec : Codec<ScrubbableScript> {
         listener: ProblemsListener
     ): Any {
         val modelTypeName = modelTypeNameOf(fieldType)
-        return Proxy.newProxyInstance(fieldType.classLoader, arrayOf(fieldType)) { proxy, method, args ->
-            when (method.name) {
-                "toString" -> "broken $modelTypeName reference"
-                "hashCode" -> System.identityHashCode(proxy)
-                "equals" -> args?.get(0) === proxy
-                else -> modelReferenced(method.name, modelTypeName, trace, problemFactory, listener)
-            }
+        return Proxy.newProxyInstance(fieldType.classLoader, arrayOf(fieldType)) { _, method, _ ->
+            // Every invocation — including toString/hashCode/equals — reports the problem, so that even
+            // `println(capturedProject)` or using it as a map key fails clearly rather than silently
+            // yielding a benign stand-in value. Matches the Groovy broken target.
+            modelReferenced(method.name, modelTypeName, trace, problemFactory, listener)
         }
     }
 

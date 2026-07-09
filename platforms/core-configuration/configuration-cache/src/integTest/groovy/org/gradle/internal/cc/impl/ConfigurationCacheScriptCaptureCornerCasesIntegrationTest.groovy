@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 /**
@@ -265,5 +266,68 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
             configurationCacheRun "t"
             outputContains("RESULT: hello-from-convention")
         }
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/22879")
+    def "script state is not shared across different tasks after cache reuse"() {
+        given:
+        // FIXME: without the configuration cache both tasks' actions share one script instance, so
+        //   state mutated by :a is visible to :b. After cache reuse each task deserializes its own
+        //   scrubbed script copy (script identity is per-isolate and each task node is its own
+        //   isolate), so cross-task sharing is lost. Ideally it should be preserved, or the
+        //   divergence explicitly accepted. See #22879.
+        buildKotlinFile """
+            val shared = mutableListOf<String>()
+            tasks.register("a") { doLast { shared.add("from-a") } }
+            tasks.register("b") { dependsOn("a"); doLast { println("RESULT: " + shared) } }
+        """
+
+        when: "without the configuration cache, both tasks share one live script instance"
+        succeeds "b"
+
+        then:
+        outputContains("RESULT: [from-a]")
+
+        when: "with the configuration cache, each task runs against its own scrubbed script copy"
+        configurationCacheRun "b"
+
+        then:
+        // FIXME: should be "RESULT: [from-a]" once cross-task script identity is preserved
+        outputContains("RESULT: []")
+    }
+
+    def "an unused script by-lazy is forced at store because capturing the script serializes it"() {
+        given:
+        // FIXME: capturing the script serializes the whole instance, which forces every `by lazy`
+        //   field (via kotlin.Lazy.writeReplace) at store time — even ones no task uses. Without the
+        //   cache an unused lazy is never evaluated. See #22879.
+        buildKotlinFile """
+            val used = "hi"
+            val neverUsed: String by lazy { println("LAZY-FORCED"); "x" }
+            tasks.register("t") { doLast { println("RESULT: " + used) } }
+        """
+
+        when:
+        configurationCacheRun "t"
+
+        then:
+        outputContains("RESULT: hi")
+        outputContains("LAZY-FORCED")
+    }
+
+    def "rendering a captured build-model object fails gracefully instead of yielding a stand-in value"() {
+        given:
+        buildKotlinFile """
+            val p = project
+            tasks.register("t") { doLast { println(p) } }
+        """
+
+        when:
+        configurationCacheFails "t"
+
+        then:
+        // toString/hashCode/equals on the broken model proxy report the problem too, so `println(p)`
+        // fails rather than printing a benign "broken Project reference".
+        failure.assertHasCause("Invocation of 'toString' references a Project object from a Kotlin script lambda at execution time, which is unsupported with the configuration cache.")
     }
 }
