@@ -810,6 +810,55 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "does not discard a corrupted reused project state entry when recovery is disabled"() {
+        given:
+        withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            dependencies {
+                implementation(project(":b"))
+            }
+        """
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when: "the per-project models are stored"
+        withIsolatedProjects(DISABLE_CC_RECOVERY)
+        runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+
+        when: "project a is invalidated, b's reused state is corrupted, and recovery is disabled"
+        file("a/build.gradle") << """
+            // some change
+        """
+        corruptReusedProjectState(file(".gradle/configuration-cache"))
+        withIsolatedProjects(DISABLE_CC_RECOVERY)
+        runBuildActionFails(new FetchCustomModelForEachProject())
+
+        then:
+        failureCauseContains("Could not load entry for")
+
+        when: "the build runs again with recovery still disabled"
+        withIsolatedProjects(DISABLE_CC_RECOVERY)
+        runBuildActionFails(new FetchCustomModelForEachProject())
+
+        then: "the broken entry was not discarded, so it keeps failing"
+        failureCauseContains("Could not load entry for")
+    }
+
     private static void corruptReusedProjectState(TestFile cacheDir) {
         def entryDir = cacheDir.listFiles().find { it.directory && it.file("entry.bin").exists() }
         assert entryDir != null

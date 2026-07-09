@@ -20,7 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -293,9 +292,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26663")
-    def "fails the build on a corrupted entry when recovery is disabled"() {
+    def "fails the build on a corrupted #corruptedPart when recovery is disabled"() {
         given:
-        def disableRecovery = "-Dorg.gradle.configuration-cache.recover-from-cache-corruption=false"
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
             tasks.register("hello") {
@@ -304,18 +302,97 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        configurationCacheRun "hello", disableRecovery
+        configurationCacheRun "hello", DISABLE_CC_RECOVERY
 
         then:
         configurationCache.assertStateStored()
 
-        when: "the stored state is corrupted and recovery is turned off"
-        corruptWorkState(file(".gradle/configuration-cache"))
-        configurationCacheFails "hello", disableRecovery
+        when: "the entry is corrupted and recovery is turned off"
+        corruptEntry(file(".gradle/configuration-cache"))
+        configurationCacheFails "hello", DISABLE_CC_RECOVERY
 
         then: "the build fails instead of recovering"
         outputDoesNotContain("has been recomputed")
+        outputDoesNotContain("will be discarded")
         outputDoesNotContain("Hello")
+
+        where:
+        corruptedPart | corruptEntry
+        "work graph"  | { corruptWorkState(it) }
+        "entry"       | { corrupt(cacheEntryDir(it).file("entry.bin")) }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "recovers from a corrupted entry in a build with buildSrc and subprojects"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        file("buildSrc/src/main/java/Util.java") << "public class Util {}"
+        settingsFile """
+            rootProject.name = 'root'
+            include 'a', 'b'
+        """
+        buildFile """
+            tasks.register("hello") { doLast { println "Hello from root" } }
+        """
+        file("a/build.gradle") << """tasks.register("hello") { doLast { println "Hello from a" } }"""
+        file("b/build.gradle") << """tasks.register("hello") { doLast { println "Hello from b" } }"""
+
+        when:
+        configurationCacheRun "hello"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Hello from a")
+        outputContains("Hello from b")
+
+        when: "the work graph is corrupted; recovery must reconfigure the whole build tree, incl. buildSrc"
+        corruptWorkState(file(".gradle/configuration-cache"))
+        executer.withStackTraceChecksDisabled()
+        configurationCacheRun "hello"
+
+        then:
+        outputContains("The configuration cache entry could not be loaded and has been recomputed.")
+        outputContains("Hello from root")
+        outputContains("Hello from a")
+        outputContains("Hello from b")
+
+        when: "the build runs again"
+        configurationCacheRun "hello"
+
+        then: "the recomputed entry is valid and is reused"
+        configurationCache.assertStateLoaded()
+        outputContains("Hello from a")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "reports the original failure when a corrupted entry cannot be recomputed"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            class BrokenSerializable implements java.io.Serializable {
+                private Object readResolve() { throw new RuntimeException("BOOM from readResolve") }
+            }
+            abstract class BrokenTask extends DefaultTask {
+                @Internal final prop = new BrokenSerializable()
+                @TaskAction void run() {}
+            }
+            tasks.register("broken", BrokenTask)
+        """
+
+        when: "the entry is stored but cannot be read back (readResolve always throws)"
+        configurationCacheFails "broken"
+
+        then:
+        failureCauseContains("BOOM from readResolve")
+
+        when: "the unreadable entry is selected on the next run, so recovery is attempted and fails"
+        executer.withStackTraceChecksDisabled()
+        configurationCacheFails "broken"
+
+        then: "the original failure is reported, not the secondary error from the failed recompute"
+        failureDescriptionContains("Could not load the value of field `prop`")
+        failureCauseContains("BOOM from readResolve")
+        outputDoesNotContain("Cannot create a new id")
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
@@ -521,25 +598,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
         )
-    }
-
-    private static TestFile cacheEntryDir(TestFile cacheDir) {
-        cacheDir.listFiles().findAll { it.directory && it.file("entry.bin").exists() }.with {
-            assert size() == 1
-            first()
-        }
-    }
-
-    private static void corrupt(TestFile file) {
-        assert file.exists()
-        file.bytes = "corrupt".bytes
-    }
-
-    private static void corruptWorkState(TestFile cacheDir) {
-        def keep = ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin', 'classloaderscopes.bin']
-        def stateFiles = cacheEntryDir(cacheDir).listFiles().findAll { it.name.endsWith(".bin") && it.name !in keep }
-        assert !stateFiles.empty
-        stateFiles.each { corrupt(it) }
     }
 
 

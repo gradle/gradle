@@ -23,6 +23,39 @@ import spock.lang.Issue
 
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
 
+    @Issue("https://github.com/gradle/gradle/issues/26663")
+    def "recovers from a corrupted entry with isolated projects enabled"() {
+        given:
+        settingsFile << ""
+        buildFile """
+            task thing { doLast { println "thing ran" } }
+        """
+
+        when:
+        isolatedProjectsRun("thing")
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":")
+        }
+
+        when: "the stored work graph is corrupted"
+        corruptWorkState(file(".gradle/configuration-cache"))
+        executer.withStackTraceChecksDisabled()
+        isolatedProjectsRun("thing")
+
+        then: "the entry is recomputed and the build completes"
+        outputContains("The configuration cache entry could not be loaded and has been recomputed.")
+        outputContains("thing ran")
+
+        when: "the build runs again"
+        isolatedProjectsRun("thing")
+
+        then: "the recomputed entry is valid and is reused"
+        fixture.assertStateLoaded()
+        outputContains("thing ran")
+    }
+
     def "disabled by default"() {
         given:
         withIpStatusTask()
