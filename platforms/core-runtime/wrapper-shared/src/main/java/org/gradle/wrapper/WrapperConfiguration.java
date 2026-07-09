@@ -41,7 +41,7 @@ public class WrapperConfiguration {
         return distribution;
     }
 
-    public void setDistribution(URI distribution) {
+    public void setDistribution(@Nullable URI distribution) {
         this.distribution = distribution;
     }
 
