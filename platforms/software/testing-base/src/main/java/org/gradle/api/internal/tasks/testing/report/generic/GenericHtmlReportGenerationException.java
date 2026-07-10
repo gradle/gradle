@@ -18,13 +18,20 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
 /**
  * Thrown when some internal exception occurs generating a test HTML report.
  */
 @Contextual
 public class GenericHtmlReportGenerationException extends GradleException {
+    @SuppressWarnings("this-escape")
     public GenericHtmlReportGenerationException(String message, Throwable cause) {
         super(message, cause);
+        if (cause instanceof ResolutionProvider) {
+            for (String resolution : ((ResolutionProvider) cause).getResolutions()) {
+                addResolution(resolution);
+            }
+        }
     }
 }
