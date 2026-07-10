@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.tooling.m5
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -25,9 +26,9 @@ class ToolingApiBuildableEclipseModelFixesCrossVersionSpec extends ToolingApiSpe
     //this is just one of the ways of fixing the problem. See the issue for details
     def "should not show not executable tasks"() {
         file('build.gradle') << '''
-task a
-task b
-'''
+            task a
+            task b
+        '''.stripIndent()
         when:
         def project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
@@ -41,13 +42,15 @@ task b
 
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
+    // TODO: bump the upper bound to 10.0.0 before merging — it must be the version the file generation tasks are removed in
+    @TargetGradleVersion("<9.7.0")
     def "should hide not executable tasks when necessary for a multi module build"() {
         file('build.gradle').text = '''
-project(':api') {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-}
-'''
+            project(':api') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+            }
+        '''.stripIndent()
         includeProjects("api", "impl")
 
         when:

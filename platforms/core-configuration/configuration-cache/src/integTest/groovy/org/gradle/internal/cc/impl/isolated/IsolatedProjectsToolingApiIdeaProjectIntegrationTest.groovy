@@ -28,7 +28,6 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
-import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
@@ -473,7 +472,6 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         ])
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/27363")
     def "can fetch IdeaProject model for Scala projects"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -495,17 +493,14 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
         when: "fetching with Isolated Projects"
         withIsolatedProjects()
-        fetchModelFails(IdeaProject)
+        def ideaModel = fetchModel(IdeaProject)
 
         then:
-        // From Gradle 9.7 the plugin application failure captured during resilient model building is propagated,
-        // so the build fails with it while the client still receives the per-model failures.
-        failure.assertHasFailures(1)
-        failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
-        failureHasCause("Failed to apply plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin'.")
-        // TODO:isolated assert model stored successfully
-        // TODO:isolated check the model matches the vintage model
-        // checkIdeaProject(ideaModel, originalIdeaModel)
+        fixture.assertModelStored {
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+        }
+        checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     private static void checkIdeaProject(IdeaProject actual, IdeaProject expected) {
