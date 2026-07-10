@@ -28,23 +28,7 @@ import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.lang.reflect.Field
 
 
-/**
- * One third-party task type whose declared `SetProperty<Configuration>` field
- * trips the widening check but whose runtime usage pattern makes the widening
- * moot in practice is the ShadowJar task from
- * [GradleUp/shadow](https://github.com/GradleUp/shadow).  It calls `.resolve(...)`
- * on the resolved set, so widening to a `FileCollection` on roundtrip is
- * functionally equivalent for the plugin's own use.
- * <p>
- * When the current property trace is inside a task of this type, the widening
- * report is downgraded to a deprecation nag so affected builds stay green while
- * ShadowJar's authors migrate the field type; the nag will become a hard error
- * in Gradle 10.
- * <p>
- * This is a pragmatic escape hatch, not a design pattern. Additional entries
- * should be strongly resisted — this is a single-purpose exception, not the
- * seed of a general allow-list.
- */
+/** See [isInsideSuppressedFailureTask]. */
 private const val SUPPRESSED_FAILURE_TASK_NAME = "com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar"
 
 
@@ -177,15 +161,27 @@ fun WriteContext.reportIfUnsupportedPropertyValueType(
     if (isInsideSuppressedFailureTask()) {
         nagAboutSuppressedWidening(widening, resolutions, propertyKind, valueType)
         return false
-    } else {
-        failOnIncompatibleWidening(widening, resolutions, propertyKind, valueType, )
-        return true
     }
+    failOnIncompatibleWidening(widening, resolutions, propertyKind, valueType)
+    return true
 }
 
 
 /**
- * `true` when the current property trace is inside a task of the [SUPPRESSED_FAILURE_TASK_NAME] type.
+ * `true` when the current property trace is inside a task of the
+ * [SUPPRESSED_FAILURE_TASK_NAME] type (the ShadowJar task from
+ * [GradleUp/shadow](https://github.com/GradleUp/shadow)).
+ *
+ * ShadowJar declares `SetProperty<Configuration> configurations` but only calls
+ * `.resolve(...)` on the resolved set, so widening to a `FileCollection` on
+ * roundtrip is functionally equivalent for the plugin's own use. For this one
+ * task type the widening report is downgraded to a deprecation nag so affected
+ * builds stay green while ShadowJar's authors migrate the field type; the nag
+ * will become a hard error in Gradle 10.
+ *
+ * This is a pragmatic escape hatch, not a design pattern. Additional entries
+ * should be strongly resisted — this is a single-purpose exception, not the
+ * seed of a general allow-list.
  */
 private fun WriteContext.isInsideSuppressedFailureTask(): Boolean =
     trace.sequence

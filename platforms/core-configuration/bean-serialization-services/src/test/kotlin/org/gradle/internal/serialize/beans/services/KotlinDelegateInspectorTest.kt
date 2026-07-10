@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,28 @@ class KotlinDelegateInspectorTest {
             override fun getValue(thisRef: Any?, property: KProperty<*>) = "hello"
         }
         assertEquals("hello", KotlinDelegateInspector.extractValue(delegate))
+    }
+
+    @Test
+    fun `extractValue returns null when a user delegate throws NullPointerException on a null receiver`() {
+        // A common third-party pattern keys per-instance state off `thisRef`
+        // and dereferences it — passing `null` NPEs. The inspector must swallow
+        // the failure so the widening check degrades gracefully instead of
+        // aborting configuration-cache store for the whole task.
+        val thisRefKeyedDelegate = object : ReadOnlyProperty<Any, String> {
+            override fun getValue(thisRef: Any, property: KProperty<*>): String =
+                thisRef.toString()
+        }
+        assertNull(KotlinDelegateInspector.extractValue(thisRefKeyedDelegate))
+    }
+
+    @Test
+    fun `extractValue returns null when a user delegate throws UnsupportedOperationException`() {
+        val delegate = object : ReadOnlyProperty<Any?, String> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): String =
+                throw UnsupportedOperationException("delegate not usable outside its normal context")
+        }
+        assertNull(KotlinDelegateInspector.extractValue(delegate))
     }
     // endregion extractValue
 

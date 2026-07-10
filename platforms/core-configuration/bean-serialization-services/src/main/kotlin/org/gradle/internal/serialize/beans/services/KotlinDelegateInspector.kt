@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,15 +144,25 @@ internal object KotlinDelegateInspector {
      * touch the property argument to read its name in error messages, which
      * is why [DUMMY_PROPERTY] is a real [KProperty].
      *
-     * Returns `null` when the delegate signals "no value yet" by throwing
-     * [IllegalStateException] (this is the contract used by
-     * `Delegates.notNull` before first assignment).
+     * Returns `null` when the delegate cannot produce a value under the
+     * arguments we pass:
+     *
+     * - Built-in "no value yet" delegates like `Delegates.notNull` throw
+     *   [IllegalStateException] before first assignment.
+     * - User-defined delegates may key state off `thisRef` (e.g. a
+     *   `WeakHashMap<R, T>`-backed delegate) and fail with
+     *   [NullPointerException] or [UnsupportedOperationException] when we
+     *   pass a `null` receiver.
+     *
+     * The widening check that consumes this value degrades gracefully on
+     * `null`, so failing soft here is preferable to letting a delegate's own
+     * exception abort configuration-cache store for the whole task.
      */
     private fun extractFromPropertyDelegate(delegate: ReadOnlyProperty<*, *>): Any? =
         try {
             @Suppress("UNCHECKED_CAST")
             (delegate as ReadOnlyProperty<Any?, Any?>).getValue(null, DUMMY_PROPERTY)
-        } catch (_: IllegalStateException) {
+        } catch (_: Exception) {
             null
         }
 }

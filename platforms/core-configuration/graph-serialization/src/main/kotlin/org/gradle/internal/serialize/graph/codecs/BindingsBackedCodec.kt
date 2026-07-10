@@ -62,7 +62,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?>, Co
     private
     val noMatch: TaggedEncoding = TaggedEncoding(-1, object : Encoding {
         override suspend fun WriteContext.encode(value: Any): Unit =
-            error("noMatch sentinel must not be invoked")
+            error("noMatch sentinel must not be invoked (value class was ${value.javaClass.name})")
     })
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {

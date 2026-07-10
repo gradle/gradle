@@ -18,44 +18,28 @@ package org.gradle.internal.serialize.graph.codecs
 
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
 
+/**
+ * Tests contracts of the [WideningCodec] interface itself. Interactions with the
+ * lookup helpers ([findCodecThatWidensIncompatibly] etc.) live in their own tests
+ * (`FindCodecThatWidensIncompatiblyTest`) — this file only covers what the
+ * interface guarantees to implementers.
+ */
 class WideningCodecTest {
     @Test
-    fun `publicDecodedType defaults to decodedType`() {
-        val codec = wideningCodec<String>(String::class.java)
-        assertSame(String::class.java, codec.publicDecodedType)
-    }
-
-    @Test
-    fun `publicDecodedType can be overridden independently of decodedType`() {
+    fun `publicDecodedType defaults to decodedType when the implementer does not override it`() {
+        // The one non-trivial contract this interface carries: a codec that only
+        // supplies `decodedType` and `wideningFix` sees `publicDecodedType` fall
+        // through to `decodedType`. Removing that default would silently regress
+        // every codec that relies on it (Configuration, SourceDirectorySet, …).
         val codec = object : WideningCodec<String> {
             override val decodedType: Class<String> = String::class.java
-            override val publicDecodedType: Class<*> = CharSequence::class.java
-            override val wideningFix: String = "Use a different type"
+            override val wideningFix: String = "Use a supported type instead."
             override suspend fun WriteContext.encode(value: String) = Unit
             override suspend fun ReadContext.decode(): String? = null
         }
-        assertEquals(CharSequence::class.java, codec.publicDecodedType)
-        assertEquals(String::class.java, codec.decodedType)
+        assertSame(String::class.java, codec.publicDecodedType)
     }
-
-    @Test
-    fun `wideningFix is exposed on the codec`() {
-        val codec = wideningCodec<String>(String::class.java, "Use a different type")
-        assertEquals("Use a different type", codec.wideningFix)
-    }
-
-    private fun <T : Any> wideningCodec(
-        type: Class<T>,
-        resolution: String = "Use a supported type instead"
-    ): WideningCodec<T> =
-        object : WideningCodec<T> {
-            override val decodedType: Class<T> = type
-            override val wideningFix: String = resolution
-            override suspend fun WriteContext.encode(value: T) = Unit
-            override suspend fun ReadContext.decode(): T? = null
-        }
 }

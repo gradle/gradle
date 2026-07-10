@@ -71,14 +71,21 @@ interface WriteContext : MutableIsolateContext, Encoder {
     fun writeClassLoader(classLoader: ClassLoader?) = Unit
 
     /**
-     * Returns the encoding that will handle a value of the given runtime [type], or
-     * null when no codec is registered for it. Queries the root binding registry,
-     * not whatever codec happens to be pushed on the isolate's codec stack — the
-     * lookup must reflect actual serialization dispatch. This call does not write
-     * to the encoder, so it is safe during diagnostic checks (for example, checking
-     * whether the codec is a [org.gradle.internal.serialize.graph.codecs.WideningCodec] whose decoded type cannot fit a field).
+     * Returns the encoding that will handle a value of the given runtime [type] under
+     * the codec currently active on the isolate's codec stack, or null when the active
+     * codec is not a [org.gradle.internal.serialize.graph.CodecLookup] or has no codec
+     * registered for [type]. The active codec is fully responsible for dispatch within
+     * its scope; a nested / transient codec that has no entry for [type] means no
+     * encoding will happen for [type] in this scope, so the lookup correctly returns
+     * null without falling back to a root registry.
      *
-     * Implementations backed by a `BindingsBackedCodec` should override this to
+     * This call does not write to the encoder, so it is safe during diagnostic checks
+     * — for example, checking whether the codec is a
+     * [org.gradle.internal.serialize.graph.codecs.WideningCodec] whose decoded type
+     * cannot fit a field.
+     *
+     * Implementations backed by a `BindingsBackedCodec` (a
+     * [org.gradle.internal.serialize.graph.CodecLookup]) should override this to
      * enable store-time widening checks for their encoded values.
      *
      * Conceptually equivalent to `CodecLookup.encodingForType` — that is the

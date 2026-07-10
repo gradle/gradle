@@ -19,6 +19,7 @@ package org.gradle.internal.serialize.graph.codecs
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -59,10 +60,51 @@ class BindingsBackedCodecEncodingLookupTest {
     }
 
     @Test
-    fun `encodingForType result is cached`() {
-        val first = codec.encodingForType(Leaf::class.java)
-        assertNotNull(first)
-        val second = codec.encodingForType(Leaf::class.java)
-        assertSame(first, second)
+    fun `encodingForType caches the result of the binding walk`() {
+        // Prove reuse by construction: count how many times the underlying binding
+        // walk runs. If the second lookup went through `computeEncoding` instead of
+        // reusing the cache entry, the counter would tick a second time.
+        val countingBinding = CountingEncodingProducer(
+            matches = { Mid::class.java.isAssignableFrom(it) }
+        )
+        val codec = Bindings.of { bind(countingBinding, TrivialDecoding) }.build()
+
+        codec.encodingForType(Leaf::class.java)
+        codec.encodingForType(Leaf::class.java)
+
+        assertEquals(1, countingBinding.walkCount)
+    }
+
+    @Test
+    fun `encodingForType caches a lookup miss so repeated queries do not re-walk`() {
+        // Miss path also goes through `computeIfAbsent` (stores a `noMatch` sentinel),
+        // so a repeated query for an unregistered type must not re-walk the bindings.
+        val countingBinding = CountingEncodingProducer(matches = { false })
+        val codec = Bindings.of { bind(countingBinding, TrivialDecoding) }.build()
+
+        assertNull(codec.encodingForType(Unrelated::class.java))
+        assertNull(codec.encodingForType(Unrelated::class.java))
+
+        assertEquals(1, countingBinding.walkCount)
+    }
+
+    private class CountingEncodingProducer(
+        private val matches: (Class<*>) -> Boolean
+    ) : EncodingProducer {
+        var walkCount = 0
+            private set
+
+        override fun encodingForType(type: Class<*>): Encoding? {
+            walkCount++
+            return if (matches(type)) TrivialEncoding else null
+        }
+    }
+
+    private object TrivialEncoding : Encoding {
+        override suspend fun WriteContext.encode(value: Any) = Unit
+    }
+
+    private object TrivialDecoding : Decoding {
+        override suspend fun ReadContext.decode(): Any? = null
     }
 }
