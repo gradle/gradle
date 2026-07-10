@@ -1,3 +1,0 @@
-def jdkLocations = System.getenv().findAll {
-    key, _ -> key.startsWith("JDK_")
-}

@@ -1,5 +1,6 @@
 ---
 import ApiDocLinkBase from './ApiDocLinkBase.astro';
+import { groovyDslUrl } from './api-doc-url';
 
 interface Props {
   class: string;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const props = Astro.props;
+const href = groovyDslUrl(props.class, props.method);
 ---
 
-<ApiDocLinkBase {...props} docClass="groovydoc-link" componentName="GroovyDocLink" />
+<ApiDocLinkBase {...props} href={href} docClass="groovydoc-link" componentName="GroovyDocLink" />

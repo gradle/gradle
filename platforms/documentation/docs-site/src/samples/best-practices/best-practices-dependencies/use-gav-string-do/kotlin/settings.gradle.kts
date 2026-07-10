@@ -1,1 +1,0 @@
-rootProject.name = "use-gav-strings-do"

@@ -1,9 +1,0 @@
-pluginManagement {
-    plugins {
-    }
-    resolutionStrategy {
-    }
-    repositories {
-    }
-}
-rootProject.name = 'plugin-management'

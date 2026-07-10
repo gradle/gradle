@@ -2,6 +2,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import relativeLinks from "astro-relative-links";
 import { sidebar } from "./sidebar-structure";
 import { rehypeCollectAnchors } from "./plugins/rehype/collect-anchors";
 import { remarkSubstituteVariables } from "./plugins/remark/substitute-variables";
@@ -11,11 +12,12 @@ import { variables } from "./src/config/variables";
 // https://astro.build/config
 export default defineConfig({
   site: "https://docs.gradle.org",
-  outDir: "./build/site",
-  // Gradle assembles all external resources under build/public: source assets
-  // from public/ plus the rendered reference docs (javadoc, kotlin-dsl, dsl)
-  // resolved from :docs (see preparePublicDir in build.gradle.kts).
-  publicDir: "./build/public",
+  // When the Gradle build (:docs-site in gradle/gradle) drives Astro, it
+  // assembles the public assets (rendered reference docs + public/) and expects
+  // the site output under its build/ directory; it supplies both dirs via env.
+  // Local dev in this repo falls back to Astro's defaults (public/, dist/).
+  outDir: process.env.ASTRO_OUT_DIR,
+  publicDir: process.env.ASTRO_PUBLIC_DIR,
   vite: {
     resolve: {
       alias: {
@@ -38,6 +40,11 @@ export default defineConfig({
     rehypePlugins: [rehypeCollectAnchors()],
   },
   integrations: [
+    // The built tree is served under a version prefix we don't control
+    // (docs.gradle.org/current/, /9.7.0/, ...), so absolute internal URLs
+    // would escape the version dir. This rewrites them all to page-relative
+    // in the build output; dev is unaffected (served at root).
+    relativeLinks(),
     // After `astro build`: fails the build if any <Xref> section fallback is
     // not in the committed baseline (xref-fallbacks-baseline.json).
     // Refresh the baseline with: XREF_UPDATE_BASELINE=1 npm run build

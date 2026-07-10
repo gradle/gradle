@@ -1,4 +1,0 @@
-> Task :checkEquality
-POJO reference equality: true
-Collection reference equality: false
-Collection equality: true

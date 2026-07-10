@@ -10,16 +10,7 @@ function run(tree: any, vars: Record<string, string> = values): any {
 }
 
 describe("remarkSubstituteVariables", () => {
-  it("substitutes a token in a prose text node", () => {
-    const tree = {
-      type: "root",
-      children: [{ type: "text", value: "Gradle %%gradleVersion%% rocks" }],
-    };
-    run(tree);
-    expect(tree.children[0].value).toBe("Gradle 9.7.0 rocks");
-  });
-
-  it("substitutes inside fenced code and inline code (the reason a component can't)", () => {
+  it("substitutes inside fenced code and inline code (the places JSX can't go)", () => {
     const tree = {
       type: "root",
       children: [
@@ -32,27 +23,10 @@ describe("remarkSubstituteVariables", () => {
     expect(tree.children[1].value).toBe("--gradle-version 9.7.0");
   });
 
-  it("substitutes inside a link url", () => {
+  it("replaces every occurrence in a code block", () => {
     const tree = {
       type: "root",
-      children: [
-        {
-          type: "link",
-          url: "https://services.gradle.org/distributions/gradle-%%gradleVersion%%-bin.zip",
-          children: [],
-        },
-      ],
-    };
-    run(tree);
-    expect(tree.children[0].url).toBe(
-      "https://services.gradle.org/distributions/gradle-9.7.0-bin.zip",
-    );
-  });
-
-  it("replaces every occurrence in a string", () => {
-    const tree = {
-      type: "root",
-      children: [{ type: "text", value: "%%gradleVersion%% then %%gradleVersion%%" }],
+      children: [{ type: "code", lang: "bash", value: "%%gradleVersion%% then %%gradleVersion%%" }],
     };
     run(tree);
     expect(tree.children[0].value).toBe("9.7.0 then 9.7.0");
@@ -65,13 +39,51 @@ describe("remarkSubstituteVariables", () => {
         {
           type: "paragraph",
           children: [
-            { type: "emphasis", children: [{ type: "text", value: "v%%gradleVersion%%" }] },
+            { type: "emphasis", children: [{ type: "inlineCode", value: "v%%gradleVersion%%" }] },
           ],
         },
       ],
     };
     run(tree);
     expect(tree.children[0].children[0].children[0].value).toBe("v9.7.0");
+  });
+
+  it("leaves a no-substitute fence untouched, unknown tokens included", () => {
+    const tree = {
+      type: "root",
+      children: [
+        {
+          type: "code",
+          lang: "bash",
+          meta: "no-substitute",
+          value: "literal %%gradleVersion%% and %%notAVariable%%",
+        },
+      ],
+    };
+    run(tree);
+    expect(tree.children[0].value).toBe("literal %%gradleVersion%% and %%notAVariable%%");
+  });
+
+  it("rejects a token in a prose text node, pointing at the JSX alternative", () => {
+    const tree = {
+      type: "root",
+      children: [{ type: "text", value: "Gradle %%gradleVersion%% rocks" }],
+    };
+    expect(() => run(tree)).toThrow(/JSX expression/);
+  });
+
+  it("rejects a token in a link url", () => {
+    const tree = {
+      type: "root",
+      children: [
+        {
+          type: "link",
+          url: "https://services.gradle.org/distributions/gradle-%%gradleVersion%%-bin.zip",
+          children: [],
+        },
+      ],
+    };
+    expect(() => run(tree)).toThrow(/link URL/);
   });
 
   it("leaves content without tokens untouched", () => {
@@ -86,8 +98,8 @@ describe("remarkSubstituteVariables", () => {
     expect(tree.children[0].value).toBe("my%%badly%encoded%path");
   });
 
-  it("fails fast on an unknown token", () => {
-    const tree = { type: "root", children: [{ type: "text", value: "%%bogusVariable%%" }] };
+  it("fails fast on an unknown token in code", () => {
+    const tree = { type: "root", children: [{ type: "inlineCode", value: "%%bogusVariable%%" }] };
     expect(() => run(tree)).toThrow(/unknown variable token "%%bogusVariable%%"/);
   });
 });

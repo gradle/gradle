@@ -1,5 +1,6 @@
 ---
 import ApiDocLinkBase from './ApiDocLinkBase.astro';
+import { kotlinDslUrl } from './api-doc-url';
 
 interface Props {
   class: string;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const props = Astro.props;
+const href = kotlinDslUrl(props.class, props.method);
 ---
 
-<ApiDocLinkBase {...props} docClass="kotlindoc-link" componentName="KotlinDocLink" />
+<ApiDocLinkBase {...props} href={href} docClass="kotlindoc-link" componentName="KotlinDocLink" />

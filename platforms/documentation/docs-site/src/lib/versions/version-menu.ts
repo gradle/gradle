@@ -1,15 +1,30 @@
 /**
  * Everything the version selector renders: reducing the services.gradle.org
- * payload to the stored index, mapping versions to their docs URLs, and building
+ * payload to a compact index, mapping versions to their docs URLs, and building
  * the menu markup. Shared between the build-time render and the client-side
- * refresh so the two cannot drift apart. Unlike contract.ts this module is NOT
- * locked down; each published site version carries its own copy.
+ * refresh so the two cannot drift apart. Each published site version carries
+ * its own copy; nothing here is shared between site versions.
+ *
+ * There is deliberately no client-side cache: the endpoint is served from a
+ * CDN with `Cache-Control` and `ETag`, so freshness and traffic are the
+ * server's knobs, adjustable for every published site version at once.
  */
-import type { VersionsIndex } from "./local-storage";
 import { GradleVersion } from "./gradle-version";
 
 export const VERSIONS_ENDPOINT = "https://services.gradle.org/versions/all";
 export const DOCS_BASE = "https://docs.gradle.org";
+
+/** Compact reduction of the `/versions/all` payload the selector works with. */
+export interface VersionsIndex {
+  /** The latest GA release ("current" on services.gradle.org). */
+  current: string;
+  /** Latest final release per minor, sorted newest first. */
+  versions: string[];
+  /** The active release candidate, if any. Published under its own slot. */
+  activeRc: string | null;
+  /** The latest nightly from master. Published under the `nightly` slot. */
+  nightly: string | null;
+}
 
 interface RawVersionEntry {
   version: string;
@@ -28,7 +43,7 @@ interface RawVersionEntry {
  * Throws on payloads it cannot make sense of; callers keep their previous
  * index in that case.
  */
-export function reduceVersions(raw: unknown, fetchedAt: number): VersionsIndex {
+export function reduceVersions(raw: unknown): VersionsIndex {
   if (!Array.isArray(raw)) throw new Error("versions payload is not an array");
   const entries = raw.filter((e): e is RawVersionEntry => typeof e?.version === "string");
 
@@ -49,7 +64,7 @@ export function reduceVersions(raw: unknown, fetchedAt: number): VersionsIndex {
   const current = entries.find((e) => e.current === true)?.version ?? versions[0];
   const activeRc = entries.find((e) => e.activeRc === true)?.version ?? null;
   const nightly = entries.find((e) => e.nightly === true)?.version ?? null;
-  return { schema: 1, fetchedAt, current, versions, activeRc, nightly };
+  return { current, versions, activeRc, nightly };
 }
 
 /**
@@ -77,8 +92,8 @@ interface MenuEntry {
 /**
  * Menu markup for the version selector: `<li>` items for the menu's `<ul>`,
  * grouped by major, finals newest-first with the pre-releases (RC, nightly)
- * at the bottom of their group. Index entries that fail to parse (possible
- * when the cache was written by a different site version) are dropped.
+ * at the bottom of their group. Index entries that fail to parse are dropped
+ * (defensive: the index derives from external endpoint data).
  */
 export function renderVersionMenu(index: VersionsIndex, siteVersion: string | undefined): string {
   const entries: MenuEntry[] = [];

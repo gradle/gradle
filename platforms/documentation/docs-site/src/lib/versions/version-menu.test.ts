@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { VersionsIndex } from "./local-storage";
-import { reduceVersions, renderVersionMenu, versionDocsUrl } from "./version-menu";
+import {
+  reduceVersions,
+  renderVersionMenu,
+  versionDocsUrl,
+  type VersionsIndex,
+} from "./version-menu";
 
 function entry(
   version: string,
@@ -26,9 +30,7 @@ describe("reduceVersions", () => {
       entry("9.5.0"),
       entry("8.14.4"),
     ];
-    expect(reduceVersions(raw, 123)).toEqual({
-      schema: 1,
-      fetchedAt: 123,
+    expect(reduceVersions(raw)).toEqual({
       current: "9.6.1",
       versions: ["9.6.1", "9.5.1", "8.14.5"],
       activeRc: null,
@@ -42,7 +44,7 @@ describe("reduceVersions", () => {
       entry("9.7.0-rc-1", { final: false, activeRc: true }),
       entry("9.6.1", { current: true }),
     ];
-    const index = reduceVersions(raw, 0);
+    const index = reduceVersions(raw);
     expect(index.versions).toEqual(["9.6.1"]);
     expect(index.activeRc).toBe("9.7.0-rc-1");
     expect(index.nightly).toBe("9.7.0-20260706133305+0000");
@@ -50,20 +52,20 @@ describe("reduceVersions", () => {
 
   it("handles two-segment versions from the 0.x era", () => {
     const raw = [entry("9.6.1", { current: true }), entry("0.9"), entry("0.9.2")];
-    expect(reduceVersions(raw, 0).versions).toEqual(["9.6.1", "0.9.2"]);
+    expect(reduceVersions(raw).versions).toEqual(["9.6.1", "0.9.2"]);
   });
 
   it("falls back to the newest final when no entry is flagged current", () => {
-    expect(reduceVersions([entry("8.5"), entry("9.0.0")], 0).current).toBe("9.0.0");
+    expect(reduceVersions([entry("8.5"), entry("9.0.0")]).current).toBe("9.0.0");
   });
 
   it("skips entries GradleVersion cannot parse instead of failing", () => {
-    expect(reduceVersions([entry("not-a-version"), entry("9.6.1")], 0).versions).toEqual(["9.6.1"]);
+    expect(reduceVersions([entry("not-a-version"), entry("9.6.1")]).versions).toEqual(["9.6.1"]);
   });
 
   it("throws on unusable payloads instead of producing an empty index", () => {
-    expect(() => reduceVersions({ error: "nope" }, 0)).toThrow();
-    expect(() => reduceVersions([entry("9.7.0-rc-1", { final: false })], 0)).toThrow();
+    expect(() => reduceVersions({ error: "nope" })).toThrow();
+    expect(() => reduceVersions([entry("9.7.0-rc-1", { final: false })])).toThrow();
   });
 });
 
@@ -78,8 +80,6 @@ describe("versionDocsUrl", () => {
 
 describe("renderVersionMenu", () => {
   const index: VersionsIndex = {
-    schema: 1,
-    fetchedAt: 0,
     current: "9.6.1",
     versions: ["9.6.1", "8.14.5"],
     activeRc: "9.7.0-rc-1",

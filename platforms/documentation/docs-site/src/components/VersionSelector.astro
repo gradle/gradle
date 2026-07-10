@@ -4,9 +4,10 @@
  *
  * Rendered fully static at build time from the versions index (usable without
  * JS), then upgraded by the <gradle-version-selector> custom element, which
- * refreshes the list from services.gradle.org via a localStorage cache shared
- * across all docs versions. See src/lib/versions/contract.ts for the frozen
- * client contract and the menu renderer both sides share.
+ * refetches the list from services.gradle.org on every page view. There is no
+ * client-side cache: the endpoint sits behind a CDN with `Cache-Control` and
+ * `ETag`, so the browser's HTTP cache keeps traffic in check and the server
+ * controls freshness for every published docs version at once.
  */
 import { variables } from "../config/variables";
 import { loadVersionsIndex } from "../lib/versions/releases";
@@ -29,8 +30,12 @@ const siteVersion = variables.gradleVersion;
 </gradle-version-selector>
 
 <script>
-  import { isFresh, loadStoredIndex, storeIndex, type VersionsIndex } from "../lib/versions/local-storage";
-  import { reduceVersions, renderVersionMenu, VERSIONS_ENDPOINT } from "../lib/versions/version-menu";
+  import {
+    reduceVersions,
+    renderVersionMenu,
+    VERSIONS_ENDPOINT,
+    type VersionsIndex,
+  } from "../lib/versions/version-menu";
 
   class GradleVersionSelector extends HTMLElement {
     connectedCallback() {
@@ -49,22 +54,16 @@ const siteVersion = variables.gradleVersion;
     }
 
     /**
-     * Serve from the shared localStorage cache when fresh; otherwise fetch and
-     * re-render. Any failure leaves the build-time markup untouched.
+     * Fetch the current release list and re-render. Any failure leaves the
+     * build-time markup untouched.
      */
     private async refresh() {
-      const cached = loadStoredIndex();
-      if (cached) this.render(cached);
-      if (cached && isFresh(cached, Date.now())) return;
-
       try {
         const response = await fetch(VERSIONS_ENDPOINT);
         if (!response.ok) return;
-        const index = reduceVersions(await response.json(), Date.now());
-        storeIndex(index);
-        this.render(index);
+        this.render(reduceVersions(await response.json()));
       } catch {
-        // Offline or blocked: the burnt-in (or cached) list stays.
+        // Offline or blocked: the burnt-in list stays.
       }
     }
 

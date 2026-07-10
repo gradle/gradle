@@ -1,0 +1,7 @@
+---
+// The build-time Gradle version for use in prose. Code blocks get the same
+// value via the remark-substitute-variables `%%gradleVersion%%` token, which
+// deliberately fails the build outside code — this component is the prose
+// counterpart the converter emits instead.
+import { variables } from '#/config/variables';
+---{variables.gradleVersion}

@@ -1,3 +1,0 @@
-ant.importBuild 'build.xml'
-
-compile.dependsOn = [ ':util:build' ]

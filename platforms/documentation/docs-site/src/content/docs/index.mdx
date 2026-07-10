@@ -1,39 +1,39 @@
 ---
-title: Gradle User Manual
+title: Gradle Documentation
 description: The official documentation for the Gradle Build Tool.
 template: splash
-hero:
-  tagline: A fast, dependable, and adaptable open-source build automation tool with an elegant and extensible declarative build language.
-  actions:
-    - text: Getting Started
-      link: /user-manual/getting-started/
-      icon: right-arrow
-    - text: Beginner Tutorial
-      link: /tutorials/part1-gradle-init/
-      variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
+The documentation for Gradle: the fast, dependable, and adaptable open-source
+build automation tool with an elegant and extensible declarative build
+language.
+
 <CardGrid>
-  <Card title="Fundamentals" icon="open-book">
-    Learn the core concepts behind every Gradle build.
+  <Card title="User Manual" icon="open-book">
+    Concepts, tutorials, how-to guides, and reference documentation for every part of a Gradle build.
     <br />
-    [Start here →](/fundamentals/gradle-basics/)
+    [Open the User Manual →](/userguide/)
   </Card>
-  <Card title="Tutorials" icon="rocket">
-    Step-by-step walkthroughs for beginner, intermediate, and advanced users.
+  <Card title="Javadoc" icon="seti:java">
+    The API reference for Gradle's public Java types.
     <br />
-    [Browse tutorials →](/tutorials/part1-gradle-init/)
+    [Browse the Javadoc →](/javadoc/index.html)
   </Card>
-  <Card title="Reference" icon="document">
-    The complete reference for Gradle's runtime, DSLs, plugins, and APIs.
+  <Card title="Kotlin DSL Reference" icon="seti:kotlin">
+    The API reference for writing build scripts and plugins in the Gradle Kotlin DSL.
     <br />
-    [Open reference →](/reference/command-line-interface/)
+    [Open the Kotlin DSL reference →](/kotlin-dsl/index.html)
   </Card>
-  <Card title="How-To Guides" icon="approve-check">
-    Practical recipes for common build problems.
+  <Card title="Groovy DSL Reference" icon="seti:gradle">
+    The Gradle Build Language Reference for build scripts written in the Groovy DSL.
     <br />
-    [View guides →](/how-to/how-to-convert-single-build-to-multi-build/)
+    [Open the Build Language Reference →](/dsl/index.html)
+  </Card>
+  <Card title="Release Notes" icon="document">
+    What's new, improved, and fixed in this Gradle release.
+    <br />
+    [Read the release notes →](/release-notes.html)
   </Card>
 </CardGrid>

@@ -1,14 +1,9 @@
 [ {
-  "type" : "group",
-  "label" : "Gradle User Manual",
-  "collapsed" : false,
-  "children" : [ {
-    "type" : "page",
-    "label" : "Getting Started",
-    "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/overview/getting_started.adoc",
-    "path" : "/user-manual/getting-started/",
-    "migration" : "stage_1"
-  } ]
+  "type" : "page",
+  "label" : "Getting Started",
+  "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/overview/getting_started.adoc",
+  "path" : "/userguide/",
+  "migration" : "stage_1"
 }, {
   "type" : "group",
   "label" : "Gradle Releases",
@@ -20,12 +15,12 @@
   }, {
     "type" : "external",
     "label" : "Release Notes",
-    "link" : "../release-notes.html"
+    "link" : "/release-notes"
   }, {
     "type" : "page",
     "label" : "Installing Gradle",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/installation.adoc",
-    "path" : "/releases/installation/",
+    "path" : "/userguide/releases/installation/",
     "migration" : "stage_1"
   }, {
     "type" : "group",
@@ -35,43 +30,43 @@
       "type" : "page",
       "label" : "Within versions 9.x.y",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_9.adoc",
-      "path" : "/releases/upgrading-version-9/",
+      "path" : "/userguide/releases/upgrading-version-9/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "To version 9.0.0",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_major_version_9.adoc",
-      "path" : "/releases/upgrading-major-version-9/",
+      "path" : "/userguide/releases/upgrading-major-version-9/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Within versions 8.x",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_8.adoc",
-      "path" : "/releases/upgrading-version-8/",
+      "path" : "/userguide/releases/upgrading-version-8/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "From version 7.x to 8.0",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_7.adoc",
-      "path" : "/releases/upgrading-version-7/",
+      "path" : "/userguide/releases/upgrading-version-7/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "From version 6.x to 7.0",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_6.adoc",
-      "path" : "/releases/upgrading-version-6/",
+      "path" : "/userguide/releases/upgrading-version-6/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "From version 5.x to 6.0",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_5.adoc",
-      "path" : "/releases/upgrading-version-5/",
+      "path" : "/userguide/releases/upgrading-version-5/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "From version 4.x to 5.0",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_4.adoc",
-      "path" : "/releases/upgrading-version-4/",
+      "path" : "/userguide/releases/upgrading-version-4/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -82,26 +77,26 @@
       "type" : "page",
       "label" : "from Maven",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/migrating/migrating_from_maven.adoc",
-      "path" : "/releases/migrating-from-maven/",
+      "path" : "/userguide/releases/migrating-from-maven/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "from Ant",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/migrating/migrating_from_ant.adoc",
-      "path" : "/releases/migrating-from-ant/",
+      "path" : "/userguide/releases/migrating-from-ant/",
       "migration" : "stage_1"
     } ]
   }, {
     "type" : "page",
     "label" : "Compatibility Notes",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc",
-    "path" : "/releases/compatibility/",
+    "path" : "/userguide/releases/compatibility/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Gradle's Feature Lifecycle",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/releases/feature_lifecycle.adoc",
-    "path" : "/releases/feature-lifecycle/",
+    "path" : "/userguide/releases/feature-lifecycle/",
     "migration" : "stage_1"
   } ]
 }, {
@@ -116,61 +111,61 @@
       "type" : "page",
       "label" : "1. Core Concepts",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/gradle_basics.adoc",
-      "path" : "/fundamentals/gradle-basics/",
+      "path" : "/userguide/fundamentals/gradle-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "2. Wrapper Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/gradle_wrapper_basics.adoc",
-      "path" : "/fundamentals/gradle-wrapper-basics/",
+      "path" : "/userguide/fundamentals/gradle-wrapper-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "3. CLI Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/command_line_interface_basics.adoc",
-      "path" : "/fundamentals/command-line-interface-basics/",
+      "path" : "/userguide/fundamentals/command-line-interface-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "4. Settings File Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/settings_file_basics.adoc",
-      "path" : "/fundamentals/settings-file-basics/",
+      "path" : "/userguide/fundamentals/settings-file-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "5. Build File Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/build_file_basics.adoc",
-      "path" : "/fundamentals/build-file-basics/",
+      "path" : "/userguide/fundamentals/build-file-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "6. Dependencies Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/dependency_management_basics.adoc",
-      "path" : "/fundamentals/dependency-management-basics/",
+      "path" : "/userguide/fundamentals/dependency-management-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "7. Tasks Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/task_basics.adoc",
-      "path" : "/fundamentals/task-basics/",
+      "path" : "/userguide/fundamentals/task-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "8. Caching Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/gradle_optimizations.adoc",
-      "path" : "/fundamentals/gradle-optimizations/",
+      "path" : "/userguide/fundamentals/gradle-optimizations/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "9. Plugins Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/plugin_basics.adoc",
-      "path" : "/fundamentals/plugin-basics/",
+      "path" : "/userguide/fundamentals/plugin-basics/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "10. Build Scan Basics",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/running-builds/build_scans.adoc",
-      "path" : "/fundamentals/build-scans/",
+      "path" : "/userguide/fundamentals/build-scans/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -181,49 +176,49 @@
       "type" : "page",
       "label" : "1. Anatomy of a Gradle Build",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/gradle_directories_intermediate.adoc",
-      "path" : "/fundamentals/gradle-directories-intermediate/",
+      "path" : "/userguide/fundamentals/gradle-directories-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "2. Structuring Multi-Project Builds",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/multi_project_builds_intermediate.adoc",
-      "path" : "/fundamentals/multi-project-builds-intermediate/",
+      "path" : "/userguide/fundamentals/multi-project-builds-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "3. Gradle Build Lifecycle",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/build_lifecycle_intermediate.adoc",
-      "path" : "/fundamentals/build-lifecycle-intermediate/",
+      "path" : "/userguide/fundamentals/build-lifecycle-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "4. Writing Build Scripts",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/writing_build_scripts_intermediate.adoc",
-      "path" : "/fundamentals/writing-build-scripts-intermediate/",
+      "path" : "/userguide/fundamentals/writing-build-scripts-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "5. Gradle Managed Types",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/gradle_managed_types_intermediate.adoc",
-      "path" : "/fundamentals/gradle-managed-types-intermediate/",
+      "path" : "/userguide/fundamentals/gradle-managed-types-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "6. Declaring Dependencies",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/dependencies_intermediate.adoc",
-      "path" : "/fundamentals/dependencies-intermediate/",
+      "path" : "/userguide/fundamentals/dependencies-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "7. Creating and Registering Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/writing_tasks_intermediate.adoc",
-      "path" : "/fundamentals/writing-tasks-intermediate/",
+      "path" : "/userguide/fundamentals/writing-tasks-intermediate/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "8. Working with Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/authoring-builds/plugins_intermediate.adoc",
-      "path" : "/fundamentals/plugins-intermediate/",
+      "path" : "/userguide/fundamentals/plugins-intermediate/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -234,37 +229,37 @@
       "type" : "page",
       "label" : "1. Plugin Introduction",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/developing-plugins/plugin_introduction_advanced.adoc",
-      "path" : "/fundamentals/plugin-introduction-advanced/",
+      "path" : "/userguide/fundamentals/plugin-introduction-advanced/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "2. Pre-Compiled Script Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/developing-plugins/pre_compiled_script_plugin_advanced.adoc",
-      "path" : "/fundamentals/pre-compiled-script-plugin-advanced/",
+      "path" : "/userguide/fundamentals/pre-compiled-script-plugin-advanced/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "3. Binary Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/developing-plugins/binary_plugin_advanced.adoc",
-      "path" : "/fundamentals/binary-plugin-advanced/",
+      "path" : "/userguide/fundamentals/binary-plugin-advanced/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "4. Developing Binary Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/developing-plugins/developing_binary_plugin_advanced.adoc",
-      "path" : "/fundamentals/developing-binary-plugin-advanced/",
+      "path" : "/userguide/fundamentals/developing-binary-plugin-advanced/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "5. Testing Binary Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/developing-plugins/testing_binary_plugin_advanced.adoc",
-      "path" : "/fundamentals/testing-binary-plugin-advanced/",
+      "path" : "/userguide/fundamentals/testing-binary-plugin-advanced/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "6. Publishing Binary Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/fundamentals/developing-plugins/publishing_binary_plugin_advanced.adoc",
-      "path" : "/fundamentals/publishing-binary-plugin-advanced/",
+      "path" : "/userguide/fundamentals/publishing-binary-plugin-advanced/",
       "migration" : "stage_1"
     } ]
   } ]
@@ -280,37 +275,37 @@
       "type" : "page",
       "label" : "1. Initializing the Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/running-builds/part1_gradle_init.adoc",
-      "path" : "/tutorials/part1-gradle-init/",
+      "path" : "/userguide/tutorials/part1-gradle-init/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "2. Running Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/running-builds/part2_gradle_tasks.adoc",
-      "path" : "/tutorials/part2-gradle-tasks/",
+      "path" : "/userguide/tutorials/part2-gradle-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "3. Understanding Dependencies",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/running-builds/part3_gradle_dep_man.adoc",
-      "path" : "/tutorials/part3-gradle-dep-man/",
+      "path" : "/userguide/tutorials/part3-gradle-dep-man/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "4. Applying Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/running-builds/part4_gradle_plugins.adoc",
-      "path" : "/tutorials/part4-gradle-plugins/",
+      "path" : "/userguide/tutorials/part4-gradle-plugins/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "5. Exploring Incremental Builds",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/running-builds/part5_gradle_inc_builds.adoc",
-      "path" : "/tutorials/part5-gradle-inc-builds/",
+      "path" : "/userguide/tutorials/part5-gradle-inc-builds/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "6. Enabling the Build Cache",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/running-builds/part6_gradle_caching.adoc",
-      "path" : "/tutorials/part6-gradle-caching/",
+      "path" : "/userguide/tutorials/part6-gradle-caching/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -321,43 +316,43 @@
       "type" : "page",
       "label" : "1. Initializing the Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part1_gradle_init_project.adoc",
-      "path" : "/tutorials/part1-gradle-init-project/",
+      "path" : "/userguide/tutorials/part1-gradle-init-project/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "2. Understanding the Build Lifecycle",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part2_build_lifecycle.adoc",
-      "path" : "/tutorials/part2-build-lifecycle/",
+      "path" : "/userguide/tutorials/part2-build-lifecycle/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "3. Multi-Project Builds",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part3_multi_project_builds.adoc",
-      "path" : "/tutorials/part3-multi-project-builds/",
+      "path" : "/userguide/tutorials/part3-multi-project-builds/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "4. Writing the Settings File",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part4_settings_file.adoc",
-      "path" : "/tutorials/part4-settings-file/",
+      "path" : "/userguide/tutorials/part4-settings-file/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "5. Writing a Build Script",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part5_build_scripts.adoc",
-      "path" : "/tutorials/part5-build-scripts/",
+      "path" : "/userguide/tutorials/part5-build-scripts/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "6. Writing Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part6_writing_tasks.adoc",
-      "path" : "/tutorials/part6-writing-tasks/",
+      "path" : "/userguide/tutorials/part6-writing-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "7. Writing Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/authoring-builds/part7_writing_plugins.adoc",
-      "path" : "/tutorials/part7-writing-plugins/",
+      "path" : "/userguide/tutorials/part7-writing-plugins/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -368,49 +363,49 @@
       "type" : "page",
       "label" : "1. Initializing the Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part1_gradle_init_plugin.adoc",
-      "path" : "/tutorials/part1-gradle-init-plugin/",
+      "path" : "/userguide/tutorials/part1-gradle-init-plugin/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "2. Adding an Extension",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part2_add_extension.adoc",
-      "path" : "/tutorials/part2-add-extension/",
+      "path" : "/userguide/tutorials/part2-add-extension/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "3. Creating a Custom Task",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part3_create_custom_task.adoc",
-      "path" : "/tutorials/part3-create-custom-task/",
+      "path" : "/userguide/tutorials/part3-create-custom-task/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "4. Writing a Unit Test",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part4_unit_test.adoc",
-      "path" : "/tutorials/part4-unit-test/",
+      "path" : "/userguide/tutorials/part4-unit-test/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "5. Adding a DataFlow Action",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part5_add_dataflow_action.adoc",
-      "path" : "/tutorials/part5-add-dataflow-action/",
+      "path" : "/userguide/tutorials/part5-add-dataflow-action/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "6. Writing a Functional Test",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part6_functional_test.adoc",
-      "path" : "/tutorials/part6-functional-test/",
+      "path" : "/userguide/tutorials/part6-functional-test/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "7. Using a Consumer Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part7_use_consumer_project.adoc",
-      "path" : "/tutorials/part7-use-consumer-project/",
+      "path" : "/userguide/tutorials/part7-use-consumer-project/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "8. Publish the Plugin",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/tutorials/developing-plugins/part8_publish_locally.adoc",
-      "path" : "/tutorials/part8-publish-locally/",
+      "path" : "/userguide/tutorials/part8-publish-locally/",
       "migration" : "stage_1"
     } ]
   } ]
@@ -422,7 +417,7 @@
     "type" : "page",
     "label" : "Introduction",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices.adoc",
-    "path" : "/best-practices/best-practices/",
+    "path" : "/userguide/best-practices/best-practices/",
     "migration" : "stage_1"
   }, {
     "type" : "group",
@@ -432,56 +427,56 @@
       "type" : "page",
       "label" : "Best Practices Index",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_index.adoc",
-      "path" : "/best-practices/best-practices-index/",
+      "path" : "/userguide/best-practices/best-practices-index/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "General Best Practices",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_general.adoc",
-      "path" : "/best-practices/best-practices-general/",
+      "path" : "/userguide/best-practices/best-practices-general/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Best Practices for Structuring Builds",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_structuring_builds.adoc",
-      "path" : "/best-practices/best-practices-structuring-builds/",
+      "path" : "/userguide/best-practices/best-practices-structuring-builds/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Best Practices for Dependencies",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_dependencies.adoc",
-      "path" : "/best-practices/best-practices-dependencies/",
+      "path" : "/userguide/best-practices/best-practices-dependencies/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Best Practices for Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_tasks.adoc",
-      "path" : "/best-practices/best-practices-tasks/",
+      "path" : "/userguide/best-practices/best-practices-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Best Practices for Performance",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_performance.adoc",
-      "path" : "/best-practices/best-practices-performance/",
+      "path" : "/userguide/best-practices/best-practices-performance/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Best Practices for Security",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_security.adoc",
-      "path" : "/best-practices/best-practices-security/",
+      "path" : "/userguide/best-practices/best-practices-security/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Best Practices for Testing",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/best_practices_testing.adoc",
-      "path" : "/best-practices/best-practices-testing/",
+      "path" : "/userguide/best-practices/best-practices-testing/",
       "migration" : "stage_1"
     } ]
   }, {
     "type" : "page",
     "label" : "Tags Reference",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/best-practices/tags_reference.adoc",
-    "path" : "/best-practices/tags-reference/",
+    "path" : "/userguide/best-practices/tags-reference/",
     "migration" : "stage_1"
   } ]
 }, {
@@ -496,61 +491,61 @@
       "type" : "page",
       "label" : "Command-Line Interface",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/command_line_interface.adoc",
-      "path" : "/reference/command-line-interface/",
+      "path" : "/userguide/reference/command-line-interface/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Logging and Output",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/logging.adoc",
-      "path" : "/reference/logging/",
+      "path" : "/userguide/reference/logging/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Gradle Wrapper",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/gradle_wrapper.adoc",
-      "path" : "/reference/gradle-wrapper/",
+      "path" : "/userguide/reference/gradle-wrapper/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Gradle Daemon",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/gradle_daemon.adoc",
-      "path" : "/reference/gradle-daemon/",
+      "path" : "/userguide/reference/gradle-daemon/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Gradle Directories",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/directory_layout.adoc",
-      "path" : "/reference/directory-layout/",
+      "path" : "/userguide/reference/directory-layout/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Build Configuration",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/build_environment.adoc",
-      "path" : "/reference/build-environment/",
+      "path" : "/userguide/reference/build-environment/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Build Lifecycle",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/build_lifecycle.adoc",
-      "path" : "/reference/build-lifecycle/",
+      "path" : "/userguide/reference/build-lifecycle/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Build Scan",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/inspect.adoc",
-      "path" : "/reference/inspect/",
+      "path" : "/userguide/reference/inspect/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Continuous Builds",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/continuous_builds.adoc",
-      "path" : "/reference/continuous-builds/",
+      "path" : "/userguide/reference/continuous-builds/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "File System Watching",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/file_system_watching.adoc",
-      "path" : "/reference/file-system-watching/",
+      "path" : "/userguide/reference/file-system-watching/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -560,44 +555,44 @@
     "children" : [ {
       "type" : "external",
       "label" : "Java API",
-      "link" : "../javadoc/index.html?overview-summary.html"
+      "link" : "/javadoc/"
     }, {
       "type" : "page",
       "label" : "Groovy DSL Primer",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/groovy_build_script_primer.adoc",
-      "path" : "/reference/groovy-build-script-primer/",
+      "path" : "/userguide/reference/groovy-build-script-primer/",
       "migration" : "stage_1"
     }, {
       "type" : "external",
       "label" : "Groovy DSL",
-      "link" : "../dsl/index.html"
+      "link" : "/dsl/"
     }, {
       "type" : "page",
       "label" : "Kotlin DSL Primer",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/kotlin_dsl.adoc",
-      "path" : "/reference/kotlin-dsl/",
+      "path" : "/userguide/reference/kotlin-dsl/",
       "migration" : "stage_1"
     }, {
       "type" : "external",
       "label" : "Kotlin DSL",
-      "link" : "../kotlin-dsl/index.html"
+      "link" : "/kotlin-dsl/"
     }, {
       "type" : "page",
       "label" : "Public APIs",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/public_apis.adoc",
-      "path" : "/reference/public-apis/",
+      "path" : "/userguide/reference/public-apis/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Default Script Imports",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/default_script_imports.adoc",
-      "path" : "/reference/default-script-imports/",
+      "path" : "/userguide/reference/default-script-imports/",
       "migration" : "stage_2"
     }, {
       "type" : "page",
       "label" : "Groovy to Kotlin DSL Migration",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/migrating_from_groovy_to_kotlin_dsl.adoc",
-      "path" : "/reference/migrating-from-groovy-to-kotlin-dsl/",
+      "path" : "/userguide/reference/migrating-from-groovy-to-kotlin-dsl/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -608,7 +603,7 @@
       "type" : "page",
       "label" : "Core Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/plugin_reference.adoc",
-      "path" : "/reference/plugin-reference/",
+      "path" : "/userguide/reference/plugin-reference/",
       "migration" : "stage_1"
     }, {
       "type" : "group",
@@ -618,49 +613,49 @@
         "type" : "page",
         "label" : "Java Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/java_plugin.adoc",
-        "path" : "/reference/java-plugin/",
+        "path" : "/userguide/reference/java-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Java Library Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/java_library_plugin.adoc",
-        "path" : "/reference/java-library-plugin/",
+        "path" : "/userguide/reference/java-library-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Java Platform Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/java_platform_plugin.adoc",
-        "path" : "/reference/java-platform-plugin/",
+        "path" : "/userguide/reference/java-platform-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Groovy Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/groovy_plugin.adoc",
-        "path" : "/reference/groovy-plugin/",
+        "path" : "/userguide/reference/groovy-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Scala Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/scala_plugin.adoc",
-        "path" : "/reference/scala-plugin/",
+        "path" : "/userguide/reference/scala-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "ANTLR Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/antlr_plugin.adoc",
-        "path" : "/reference/antlr-plugin/",
+        "path" : "/userguide/reference/antlr-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "JVM Test Suite Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/jvm_test_suite_plugin.adoc",
-        "path" : "/reference/jvm-test-suite-plugin/",
+        "path" : "/userguide/reference/jvm-test-suite-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Test Report Aggregation Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/test_report_aggregation_plugin.adoc",
-        "path" : "/reference/test-report-aggregation-plugin/",
+        "path" : "/userguide/reference/test-report-aggregation-plugin/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -671,37 +666,37 @@
         "type" : "page",
         "label" : "C++ Application Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/cpp_application_plugin.adoc",
-        "path" : "/reference/cpp-application-plugin/",
+        "path" : "/userguide/reference/cpp-application-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "C++ Library Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/cpp_library_plugin.adoc",
-        "path" : "/reference/cpp-library-plugin/",
+        "path" : "/userguide/reference/cpp-library-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "C++ Unit Test Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/cpp_unit_test_plugin.adoc",
-        "path" : "/reference/cpp-unit-test-plugin/",
+        "path" : "/userguide/reference/cpp-unit-test-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Swift Application Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/swift_application_plugin.adoc",
-        "path" : "/reference/swift-application-plugin/",
+        "path" : "/userguide/reference/swift-application-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Swift Library Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/swift_library_plugin.adoc",
-        "path" : "/reference/swift-library-plugin/",
+        "path" : "/userguide/reference/swift-library-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "XCTest Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/xctest_plugin.adoc",
-        "path" : "/reference/xctest-plugin/",
+        "path" : "/userguide/reference/xctest-plugin/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -712,43 +707,43 @@
         "type" : "page",
         "label" : "Java Application Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/application_plugin.adoc",
-        "path" : "/reference/application-plugin/",
+        "path" : "/userguide/reference/application-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "WAR Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/war_plugin.adoc",
-        "path" : "/reference/war-plugin/",
+        "path" : "/userguide/reference/war-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "EAR Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/ear_plugin.adoc",
-        "path" : "/reference/ear-plugin/",
+        "path" : "/userguide/reference/ear-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Maven Publish Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/publishing_maven.adoc",
-        "path" : "/reference/publishing-maven/",
+        "path" : "/userguide/reference/publishing-maven/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Ivy Publish Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/publishing_ivy.adoc",
-        "path" : "/reference/publishing-ivy/",
+        "path" : "/userguide/reference/publishing-ivy/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Distribution Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/distribution_plugin.adoc",
-        "path" : "/reference/distribution-plugin/",
+        "path" : "/userguide/reference/distribution-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Java Library Distribution Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/java_library_distribution_plugin.adoc",
-        "path" : "/reference/java-library-distribution-plugin/",
+        "path" : "/userguide/reference/java-library-distribution-plugin/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -759,31 +754,31 @@
         "type" : "page",
         "label" : "Checkstyle Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/checkstyle_plugin.adoc",
-        "path" : "/reference/checkstyle-plugin/",
+        "path" : "/userguide/reference/checkstyle-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "PMD Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc",
-        "path" : "/reference/pmd-plugin/",
+        "path" : "/userguide/reference/pmd-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "JaCoCo Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/jacoco_plugin.adoc",
-        "path" : "/reference/jacoco-plugin/",
+        "path" : "/userguide/reference/jacoco-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "JaCoCo Report Aggregation Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/jacoco_report_aggregation_plugin.adoc",
-        "path" : "/reference/jacoco-report-aggregation-plugin/",
+        "path" : "/userguide/reference/jacoco-report-aggregation-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "CodeNarc Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/codenarc_plugin.adoc",
-        "path" : "/reference/codenarc-plugin/",
+        "path" : "/userguide/reference/codenarc-plugin/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -794,25 +789,25 @@
         "type" : "page",
         "label" : "Eclipse Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/eclipse_plugin.adoc",
-        "path" : "/reference/eclipse-plugin/",
+        "path" : "/userguide/reference/eclipse-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "IntelliJ IDEA Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/idea_plugin.adoc",
-        "path" : "/reference/idea-plugin/",
+        "path" : "/userguide/reference/idea-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Visual Studio Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/visual_studio_plugin.adoc",
-        "path" : "/reference/visual-studio-plugin/",
+        "path" : "/userguide/reference/visual-studio-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Xcode Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/xcode_plugin.adoc",
-        "path" : "/reference/xcode-plugin/",
+        "path" : "/userguide/reference/xcode-plugin/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -823,37 +818,37 @@
         "type" : "page",
         "label" : "Base Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/base_plugin.adoc",
-        "path" : "/reference/base-plugin/",
+        "path" : "/userguide/reference/base-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Build Init Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_init_plugin.adoc",
-        "path" : "/reference/build-init-plugin/",
+        "path" : "/userguide/reference/build-init-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Signing Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/signing_plugin.adoc",
-        "path" : "/reference/signing-plugin/",
+        "path" : "/userguide/reference/signing-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Java Gradle Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc",
-        "path" : "/reference/java-gradle-plugin/",
+        "path" : "/userguide/reference/java-gradle-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Project Report Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/project_report_plugin.adoc",
-        "path" : "/reference/project-report-plugin/",
+        "path" : "/userguide/reference/project-report-plugin/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Build Dashboard Plugin",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_dashboard_plugin.adoc",
-        "path" : "/reference/build-dashboard-plugin/",
+        "path" : "/userguide/reference/build-dashboard-plugin/",
         "migration" : "stage_1"
       } ]
     } ]
@@ -865,55 +860,55 @@
       "type" : "page",
       "label" : "Understanding Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/more_about_tasks.adoc",
-      "path" : "/reference/more-about-tasks/",
+      "path" : "/userguide/reference/more-about-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Controlling Task Execution",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/controlling_task_execution.adoc",
-      "path" : "/reference/controlling-task-execution/",
+      "path" : "/userguide/reference/controlling-task-execution/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Organizing Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/organizing_tasks.adoc",
-      "path" : "/reference/organizing-tasks/",
+      "path" : "/userguide/reference/organizing-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Implementing Custom Tasks",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/implementing_custom_tasks.adoc",
-      "path" : "/reference/implementing-custom-tasks/",
+      "path" : "/userguide/reference/implementing-custom-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Lazy Configuration",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/lazy_configuration.adoc",
-      "path" : "/reference/lazy-configuration/",
+      "path" : "/userguide/reference/lazy-configuration/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Parallel Task Execution",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/unused/worker_api.adoc",
-      "path" : "/reference/worker-api/",
+      "path" : "/userguide/reference/worker-api/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Advanced Task Development",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/custom_tasks.adoc",
-      "path" : "/reference/custom-tasks/",
+      "path" : "/userguide/reference/custom-tasks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Shared Build Services",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/build_services.adoc",
-      "path" : "/reference/build-services/",
+      "path" : "/userguide/reference/build-services/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Task Configuration Avoidance",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/task-development/task_configuration_avoidance.adoc",
-      "path" : "/reference/task-configuration-avoidance/",
+      "path" : "/userguide/reference/task-configuration-avoidance/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -924,61 +919,61 @@
       "type" : "page",
       "label" : "Introduction to Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/plugins.adoc",
-      "path" : "/reference/plugins/",
+      "path" : "/userguide/reference/plugins/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Precompiled Script Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/implementing_gradle_plugins_precompiled.adoc",
-      "path" : "/reference/implementing-gradle-plugins-precompiled/",
+      "path" : "/userguide/reference/implementing-gradle-plugins-precompiled/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Convention Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/implementing_gradle_plugins_convention.adoc",
-      "path" : "/reference/implementing-gradle-plugins-convention/",
+      "path" : "/userguide/reference/implementing-gradle-plugins-convention/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Binary Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/implementing_gradle_plugins_binary.adoc",
-      "path" : "/reference/implementing-gradle-plugins-binary/",
+      "path" : "/userguide/reference/implementing-gradle-plugins-binary/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Testing Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/testing_gradle_plugins.adoc",
-      "path" : "/reference/testing-gradle-plugins/",
+      "path" : "/userguide/reference/testing-gradle-plugins/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Preparing to Publish",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/preparing_to_publish.adoc",
-      "path" : "/reference/preparing-to-publish/",
+      "path" : "/userguide/reference/preparing-to-publish/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Publishing Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/publishing_gradle_plugins.adoc",
-      "path" : "/reference/publishing-gradle-plugins/",
+      "path" : "/userguide/reference/publishing-gradle-plugins/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Reporting Plugin Problems",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/reporting_problems.adoc",
-      "path" : "/reference/reporting-problems/",
+      "path" : "/userguide/reference/reporting-problems/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Initialization Scripts & Init Plugins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/init_scripts.adoc",
-      "path" : "/reference/init-scripts/",
+      "path" : "/userguide/reference/init-scripts/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Testing with TestKit",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/plugin-development/test_kit.adoc",
-      "path" : "/reference/test-kit/",
+      "path" : "/userguide/reference/test-kit/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -989,7 +984,7 @@
       "type" : "page",
       "label" : "Getting Started",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/getting_started_dep_man.adoc",
-      "path" : "/reference/getting-started-dep-man/",
+      "path" : "/userguide/reference/getting-started-dep-man/",
       "migration" : "stage_1"
     }, {
       "type" : "group",
@@ -999,31 +994,31 @@
         "type" : "page",
         "label" : "1. Declaring Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/basics/declaring_dependencies.adoc",
-        "path" : "/reference/declaring-dependencies/",
+        "path" : "/userguide/reference/declaring-dependencies/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "2. Dependency Configurations",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/basics/dependency_configurations.adoc",
-        "path" : "/reference/dependency-configurations/",
+        "path" : "/userguide/reference/dependency-configurations/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "3. Declaring Repositories",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/basics/declaring_repositories.adoc",
-        "path" : "/reference/declaring-repositories/",
+        "path" : "/userguide/reference/declaring-repositories/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "4. Centralizing Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/basics/centralizing_dependencies.adoc",
-        "path" : "/reference/centralizing-dependencies/",
+        "path" : "/userguide/reference/centralizing-dependencies/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "5. Dependency Constraints and Conflict Resolution",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/basics/dependency_constraints_conflicts.adoc",
-        "path" : "/reference/dependency-constraints-conflicts/",
+        "path" : "/userguide/reference/dependency-constraints-conflicts/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1034,37 +1029,37 @@
         "type" : "page",
         "label" : "Declaring Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/declaring_dependencies_basics.adoc",
-        "path" : "/reference/declaring-dependencies-basics/",
+        "path" : "/userguide/reference/declaring-dependencies-basics/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Viewing Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/viewing_debugging_dependencies.adoc",
-        "path" : "/reference/viewing-debugging-dependencies/",
+        "path" : "/userguide/reference/viewing-debugging-dependencies/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Declaring Versions and Ranges",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/dependency_versions.adoc",
-        "path" : "/reference/dependency-versions/",
+        "path" : "/userguide/reference/dependency-versions/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Declaring Dependency Constraints",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/dependency_constraints.adoc",
-        "path" : "/reference/dependency-constraints/",
+        "path" : "/userguide/reference/dependency-constraints/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Creating Dependency Configurations",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/declaring_configurations.adoc",
-        "path" : "/reference/declaring-configurations/",
+        "path" : "/userguide/reference/declaring-configurations/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Gradle Distribution-Specific Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-dependencies/gradle_dependencies.adoc",
-        "path" : "/reference/gradle-dependencies/",
+        "path" : "/userguide/reference/gradle-dependencies/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1075,37 +1070,37 @@
         "type" : "page",
         "label" : "Declaring Repositories",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-repositories/declaring_repositories_basics.adoc",
-        "path" : "/reference/declaring-repositories-basics/",
+        "path" : "/userguide/reference/declaring-repositories-basics/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Centralizing Repository Declarations",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-repositories/centralizing_repositories.adoc",
-        "path" : "/reference/centralizing-repositories/",
+        "path" : "/userguide/reference/centralizing-repositories/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Repository Types",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-repositories/supported_repository_types.adoc",
-        "path" : "/reference/supported-repository-types/",
+        "path" : "/userguide/reference/supported-repository-types/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Metadata Formats",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-repositories/supported_metadata_formats.adoc",
-        "path" : "/reference/supported-metadata-formats/",
+        "path" : "/userguide/reference/supported-metadata-formats/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Supported Protocols",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-repositories/supported_repository_protocols.adoc",
-        "path" : "/reference/supported-repository-protocols/",
+        "path" : "/userguide/reference/supported-repository-protocols/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Filtering Repository Content",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/declaring-repositories/filtering_repository_content.adoc",
-        "path" : "/reference/filtering-repository-content/",
+        "path" : "/userguide/reference/filtering-repository-content/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1116,19 +1111,19 @@
         "type" : "page",
         "label" : "Platforms (BOMs)",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/centralizing-dependencies/platforms.adoc",
-        "path" : "/reference/platforms/",
+        "path" : "/userguide/reference/platforms/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Version Catalogs",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/centralizing-dependencies/version_catalogs.adoc",
-        "path" : "/reference/version-catalogs/",
+        "path" : "/userguide/reference/version-catalogs/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Using Catalogs with Platforms",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/centralizing-dependencies/centralizing_catalog_platform.adoc",
-        "path" : "/reference/centralizing-catalog-platform/",
+        "path" : "/userguide/reference/centralizing-catalog-platform/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1139,37 +1134,37 @@
         "type" : "page",
         "label" : "Consistent Dependency Resolution",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/dependency_resolution_consistency.adoc",
-        "path" : "/reference/dependency-resolution-consistency/",
+        "path" : "/userguide/reference/dependency-resolution-consistency/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Resolving Specific Artifacts",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/resolving_specific_artifacts.adoc",
-        "path" : "/reference/resolving-specific-artifacts/",
+        "path" : "/userguide/reference/resolving-specific-artifacts/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Capabilities",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/component_capabilities.adoc",
-        "path" : "/reference/component-capabilities/",
+        "path" : "/userguide/reference/component-capabilities/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Variants and Attributes",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/variant_attributes.adoc",
-        "path" : "/reference/variant-attributes/",
+        "path" : "/userguide/reference/variant-attributes/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Artifact Views",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/artifact_views.adoc",
-        "path" : "/reference/artifact-views/",
+        "path" : "/userguide/reference/artifact-views/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Artifact Transforms",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/artifact_transforms.adoc",
-        "path" : "/reference/artifact-transforms/",
+        "path" : "/userguide/reference/artifact-transforms/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1180,25 +1175,25 @@
         "type" : "page",
         "label" : "Locking Versions",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/dependency-management/dependency_locking.adoc",
-        "path" : "/reference/dependency-locking/",
+        "path" : "/userguide/reference/dependency-locking/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Using Resolution Rules",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/dependency-management/resolution_rules.adoc",
-        "path" : "/reference/resolution-rules/",
+        "path" : "/userguide/reference/resolution-rules/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Modifying Dependency Metadata",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/dependency-management/component_metadata_rules.adoc",
-        "path" : "/reference/component-metadata-rules/",
+        "path" : "/userguide/reference/component-metadata-rules/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Caching Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/dependency-management/dependency_caching.adoc",
-        "path" : "/reference/dependency-caching/",
+        "path" : "/userguide/reference/dependency-caching/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1209,25 +1204,25 @@
         "type" : "page",
         "label" : "1. Dependency Resolution",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/advanced/dependency_resolution.adoc",
-        "path" : "/reference/dependency-resolution/",
+        "path" : "/userguide/reference/dependency-resolution/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "2. Graph Resolution",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/advanced/graph_resolution.adoc",
-        "path" : "/reference/graph-resolution/",
+        "path" : "/userguide/reference/graph-resolution/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "3. Variant Selection",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/advanced/variant_aware_resolution.adoc",
-        "path" : "/reference/variant-aware-resolution/",
+        "path" : "/userguide/reference/variant-aware-resolution/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "4. Artifact Resolution",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/advanced/artifact_resolution.adoc",
-        "path" : "/reference/artifact-resolution/",
+        "path" : "/userguide/reference/artifact-resolution/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1238,25 +1233,25 @@
         "type" : "page",
         "label" : "Setting up Publishing",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/publishing_setup.adoc",
-        "path" : "/reference/publishing-setup/",
+        "path" : "/userguide/reference/publishing-setup/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Understanding Gradle Module Metadata",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/publishing_gradle_module_metadata.adoc",
-        "path" : "/reference/publishing-gradle-module-metadata/",
+        "path" : "/userguide/reference/publishing-gradle-module-metadata/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Signing Artifacts",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/publishing_signing.adoc",
-        "path" : "/reference/publishing-signing/",
+        "path" : "/userguide/reference/publishing-signing/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Customizing Publishing",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/dependency-management/publishing/publishing_customization.adoc",
-        "path" : "/reference/publishing-customization/",
+        "path" : "/userguide/reference/publishing-customization/",
         "migration" : "stage_1"
       } ]
     } ]
@@ -1268,37 +1263,37 @@
       "type" : "page",
       "label" : "Lazy vs Eager Evaluation",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/gradle-types/lazy_eager_evaluation.adoc",
-      "path" : "/reference/lazy-eager-evaluation/",
+      "path" : "/userguide/reference/lazy-eager-evaluation/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Properties and Providers",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/gradle-types/properties_providers.adoc",
-      "path" : "/reference/properties-providers/",
+      "path" : "/userguide/reference/properties-providers/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Collections",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/gradle-types/collections.adoc",
-      "path" : "/reference/collections/",
+      "path" : "/userguide/reference/collections/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Services and Service Injection",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/gradle-types/service_injection.adoc",
-      "path" : "/reference/service-injection/",
+      "path" : "/userguide/reference/service-injection/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Dataflow Actions",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/gradle-types/dataflow_actions.adoc",
-      "path" : "/reference/dataflow-actions/",
+      "path" : "/userguide/reference/dataflow-actions/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Working with Files",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/gradle-types/working_with_files.adoc",
-      "path" : "/reference/working-with-files/",
+      "path" : "/userguide/reference/working-with-files/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -1313,13 +1308,13 @@
         "type" : "page",
         "label" : "Building Java & JVM projects",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/building_java_projects.adoc",
-        "path" : "/reference/building-java-projects/",
+        "path" : "/userguide/reference/building-java-projects/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Testing Java & JVM projects",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/java_testing.adoc",
-        "path" : "/reference/java-testing/",
+        "path" : "/userguide/reference/java-testing/",
         "migration" : "stage_1"
       }, {
         "type" : "group",
@@ -1329,20 +1324,20 @@
           "type" : "page",
           "label" : "Toolchains for JVM projects",
           "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/toolchains.adoc",
-          "path" : "/reference/toolchains/",
+          "path" : "/userguide/reference/toolchains/",
           "migration" : "stage_1"
         }, {
           "type" : "page",
           "label" : "Toolchain Resolver Plugins",
           "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/toolchain_plugins.adoc",
-          "path" : "/reference/toolchain-plugins/",
+          "path" : "/userguide/reference/toolchain-plugins/",
           "migration" : "stage_1"
         } ]
       }, {
         "type" : "page",
         "label" : "Managing Dependencies",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/dependency_management_for_java_projects.adoc",
-        "path" : "/reference/dependency-management-for-java-projects/",
+        "path" : "/userguide/reference/dependency-management-for-java-projects/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1353,19 +1348,19 @@
         "type" : "page",
         "label" : "Building C++ projects",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/building_cpp_projects.adoc",
-        "path" : "/reference/building-cpp-projects/",
+        "path" : "/userguide/reference/building-cpp-projects/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Testing C++ projects",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/cpp_testing.adoc",
-        "path" : "/reference/cpp-testing/",
+        "path" : "/userguide/reference/cpp-testing/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Building Native Software",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/native_software.adoc",
-        "path" : "/reference/native-software/",
+        "path" : "/userguide/reference/native-software/",
         "migration" : "stage_1"
       } ]
     }, {
@@ -1376,13 +1371,13 @@
         "type" : "page",
         "label" : "Building Swift projects",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/building_swift_projects.adoc",
-        "path" : "/reference/building-swift-projects/",
+        "path" : "/userguide/reference/building-swift-projects/",
         "migration" : "stage_1"
       }, {
         "type" : "page",
         "label" : "Testing Swift projects",
         "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/platforms/native/swift_testing.adoc",
-        "path" : "/reference/swift-testing/",
+        "path" : "/userguide/reference/swift-testing/",
         "migration" : "stage_1"
       } ]
     } ]
@@ -1394,7 +1389,7 @@
       "type" : "page",
       "label" : "Using Ant from Gradle",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/reference/other-topics/ant.adoc",
-      "path" : "/reference/ant/",
+      "path" : "/userguide/reference/ant/",
       "migration" : "stage_1"
     } ]
   } ]
@@ -1406,7 +1401,7 @@
     "type" : "page",
     "label" : "Introduction",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/gradle_on_ci.adoc",
-    "path" : "/ci/gradle-on-ci/",
+    "path" : "/userguide/ci/gradle-on-ci/",
     "migration" : "stage_1"
   }, {
     "type" : "group",
@@ -1416,44 +1411,44 @@
       "type" : "page",
       "label" : "GitHub Actions",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/github-actions.adoc",
-      "path" : "/ci/github-actions/",
+      "path" : "/userguide/ci/github-actions/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "GitLab CI",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/gitlab-ci.adoc",
-      "path" : "/ci/gitlab-ci/",
+      "path" : "/userguide/ci/gitlab-ci/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Jenkins",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/jenkins.adoc",
-      "path" : "/ci/jenkins/",
+      "path" : "/userguide/ci/jenkins/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "TeamCity",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/teamcity.adoc",
-      "path" : "/ci/teamcity/",
+      "path" : "/userguide/ci/teamcity/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Travis CI",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/travis-ci.adoc",
-      "path" : "/ci/travis-ci/",
+      "path" : "/userguide/ci/travis-ci/",
       "migration" : "stage_1"
     } ]
   }, {
     "type" : "page",
     "label" : "CircleCI",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/circleci.adoc",
-    "path" : "/ci/circleci/",
+    "path" : "/userguide/ci/circleci/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Docker Images",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/on-ci/docker.adoc",
-    "path" : "/ci/docker/",
+    "path" : "/userguide/ci/docker/",
     "migration" : "stage_1"
   } ]
 }, {
@@ -1464,31 +1459,31 @@
     "type" : "page",
     "label" : "Organizing Projects",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/structuring-builds/organizing_gradle_projects.adoc",
-    "path" : "/structuring/organizing-gradle-projects/",
+    "path" : "/userguide/structuring/organizing-gradle-projects/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Multi-Project Builds",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/structuring-builds/multi_project_builds.adoc",
-    "path" : "/structuring/multi-project-builds/",
+    "path" : "/userguide/structuring/multi-project-builds/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Sharing Build Logic",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/structuring-builds/sharing_build_logic_between_subprojects.adoc",
-    "path" : "/structuring/sharing-build-logic-between-subprojects/",
+    "path" : "/userguide/structuring/sharing-build-logic-between-subprojects/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Composite Builds",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/structuring-builds/composite_builds.adoc",
-    "path" : "/structuring/composite-builds/",
+    "path" : "/userguide/structuring/composite-builds/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Configuration on Demand",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/structuring-builds/configuration_on_demand.adoc",
-    "path" : "/structuring/configuration-on-demand/",
+    "path" : "/userguide/structuring/configuration-on-demand/",
     "migration" : "stage_1"
   } ]
 }, {
@@ -1499,7 +1494,7 @@
     "type" : "page",
     "label" : "Improving Performance",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/performance.adoc",
-    "path" : "/optimizing/performance/",
+    "path" : "/userguide/optimizing/performance/",
     "migration" : "stage_1"
   }, {
     "type" : "group",
@@ -1509,49 +1504,49 @@
       "type" : "page",
       "label" : "Enabling and Configuring",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/build_cache.adoc",
-      "path" : "/optimizing/build-cache/",
+      "path" : "/userguide/optimizing/build-cache/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Why use the Build Cache?",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/build_cache_use_cases.adoc",
-      "path" : "/optimizing/build-cache-use-cases/",
+      "path" : "/userguide/optimizing/build-cache-use-cases/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Understanding the Impact",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/build_cache_performance.adoc",
-      "path" : "/optimizing/build-cache-performance/",
+      "path" : "/userguide/optimizing/build-cache-performance/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Learning Basic Concepts",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/build_cache_concepts.adoc",
-      "path" : "/optimizing/build-cache-concepts/",
+      "path" : "/userguide/optimizing/build-cache-concepts/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Caching Java Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/caching_java_projects.adoc",
-      "path" : "/optimizing/caching-java-projects/",
+      "path" : "/userguide/optimizing/caching-java-projects/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Caching Android Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/caching_android_projects.adoc",
-      "path" : "/optimizing/caching-android-projects/",
+      "path" : "/userguide/optimizing/caching-android-projects/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Debugging Caching Issues",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/build_cache_debugging.adoc",
-      "path" : "/optimizing/build-cache-debugging/",
+      "path" : "/userguide/optimizing/build-cache-debugging/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Troubleshooting",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/build-cache/common_caching_problems.adoc",
-      "path" : "/optimizing/common-caching-problems/",
+      "path" : "/userguide/optimizing/common-caching-problems/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -1562,38 +1557,38 @@
       "type" : "page",
       "label" : "How it Works",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache.adoc",
-      "path" : "/optimizing/configuration-cache/",
+      "path" : "/userguide/optimizing/configuration-cache/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Enabling and Configuring",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_enabling.adoc",
-      "path" : "/optimizing/configuration-cache-enabling/",
+      "path" : "/userguide/optimizing/configuration-cache-enabling/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Requirements for your Build Logic",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_requirements.adoc",
-      "path" : "/optimizing/configuration-cache-requirements/",
+      "path" : "/userguide/optimizing/configuration-cache-requirements/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Debugging and Troubleshooting",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_debugging.adoc",
-      "path" : "/optimizing/configuration-cache-debugging/",
+      "path" : "/userguide/optimizing/configuration-cache-debugging/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Status",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_status.adoc",
-      "path" : "/optimizing/configuration-cache-status/",
+      "path" : "/userguide/optimizing/configuration-cache-status/",
       "migration" : "stage_1"
     } ]
   }, {
     "type" : "page",
     "label" : "Isolated Projects",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/optimizing-builds/isolated_projects.adoc",
-    "path" : "/optimizing/isolated-projects/",
+    "path" : "/userguide/optimizing/isolated-projects/",
     "migration" : "stage_1"
   } ]
 }, {
@@ -1604,13 +1599,13 @@
     "type" : "page",
     "label" : "Supply Chain Security",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/securing-builds/security.adoc",
-    "path" : "/securing/security/",
+    "path" : "/userguide/securing/security/",
     "migration" : "stage_1"
   }, {
     "type" : "page",
     "label" : "Verifying Dependencies",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/securing-builds/dependency_verification.adoc",
-    "path" : "/securing/dependency-verification/",
+    "path" : "/userguide/securing/dependency-verification/",
     "migration" : "stage_1"
   } ]
 }, {
@@ -1621,7 +1616,7 @@
     "type" : "page",
     "label" : "Third-party Tools",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/integration/third_party_integration.adoc",
-    "path" : "/integration/third-party-integration/",
+    "path" : "/userguide/integration/third-party-integration/",
     "migration" : "stage_1"
   }, {
     "type" : "group",
@@ -1631,13 +1626,13 @@
       "type" : "page",
       "label" : "Tooling API",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/integration/tooling_api.adoc",
-      "path" : "/integration/tooling-api/",
+      "path" : "/userguide/integration/tooling-api/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "Test Reporting API",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/integration/test_reporting_api.adoc",
-      "path" : "/integration/test-reporting-api/",
+      "path" : "/userguide/integration/test-reporting-api/",
       "migration" : "stage_1"
     } ]
   } ]
@@ -1653,7 +1648,7 @@
       "type" : "page",
       "label" : "Convert a Single-Project Build to Multi-Project",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/structuring-builds/how_to_convert_single_build_to_multi_build.adoc",
-      "path" : "/how-to/how-to-convert-single-build-to-multi-build/",
+      "path" : "/userguide/how-to/how-to-convert-single-build-to-multi-build/",
       "migration" : "stage_1"
     } ]
   }, {
@@ -1664,61 +1659,61 @@
       "type" : "page",
       "label" : "How to Downgrade Transitive Dependencies",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_downgrade_transitive_dependencies.adoc",
-      "path" : "/how-to/how-to-downgrade-transitive-dependencies/",
+      "path" : "/userguide/how-to/how-to-downgrade-transitive-dependencies/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Upgrade Transitive Dependencies",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_upgrade_transitive_dependencies.adoc",
-      "path" : "/how-to/how-to-upgrade-transitive-dependencies/",
+      "path" : "/userguide/how-to/how-to-upgrade-transitive-dependencies/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Exclude Transitive Dependencies",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_exclude_transitive_dependencies.adoc",
-      "path" : "/how-to/how-to-exclude-transitive-dependencies/",
+      "path" : "/userguide/how-to/how-to-exclude-transitive-dependencies/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Prevent Accidental or Eager Dependency Upgrades",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_prevent_accidental_dependency_upgrades.adoc",
-      "path" : "/how-to/how-to-prevent-accidental-dependency-upgrades/",
+      "path" : "/userguide/how-to/how-to-prevent-accidental-dependency-upgrades/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Align Dependency Versions",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_align_dependency_versions.adoc",
-      "path" : "/how-to/how-to-align-dependency-versions/",
+      "path" : "/userguide/how-to/how-to-align-dependency-versions/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Share Outputs Between Projects",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_share_outputs_between_projects.adoc",
-      "path" : "/how-to/how-to-share-outputs-between-projects/",
+      "path" : "/userguide/how-to/how-to-share-outputs-between-projects/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Resolve Specific Artifacts from a Module Dependency",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_resolve_specific_artifacts.adoc",
-      "path" : "/how-to/how-to-resolve-specific-artifacts/",
+      "path" : "/userguide/how-to/how-to-resolve-specific-artifacts/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Use a Local Fork of a Module Dependency",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_use_local_forks.adoc",
-      "path" : "/how-to/how-to-use-local-forks/",
+      "path" : "/userguide/how-to/how-to-use-local-forks/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Fix Version Catalog Problems",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_fix_version_catalog_problems.adoc",
-      "path" : "/how-to/how-to-fix-version-catalog-problems/",
+      "path" : "/userguide/how-to/how-to-fix-version-catalog-problems/",
       "migration" : "stage_1"
     }, {
       "type" : "page",
       "label" : "How to Create Feature Variants of a Library",
       "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/how-to/dependency-management/how_to_create_feature_variants_of_a_library.adoc",
-      "path" : "/how-to/how-to-create-feature-variants-of-a-library/",
+      "path" : "/userguide/how-to/how-to-create-feature-variants-of-a-library/",
       "migration" : "stage_1"
     } ]
   } ]
@@ -1730,7 +1725,7 @@
     "type" : "page",
     "label" : "Licenses",
     "sourceAdoc" : "gradle-master/platforms/documentation/docs/src/docs/userguide/overview/licenses.adoc",
-    "path" : "/resources/licenses/",
+    "path" : "/userguide/resources/licenses/",
     "migration" : "stage_1"
   } ]
 } ]

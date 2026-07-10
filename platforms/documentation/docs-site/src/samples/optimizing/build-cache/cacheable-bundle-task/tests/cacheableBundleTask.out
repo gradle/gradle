@@ -1,5 +1,0 @@
-> Task :bundle FROM-CACHE
-
-> Task :printBundle
-console.log('a');
-console.log('b');

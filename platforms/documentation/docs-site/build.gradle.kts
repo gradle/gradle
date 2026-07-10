@@ -49,6 +49,8 @@ val buildDocs = tasks.register<NpxTask>("buildDocs") {
     command.set("astro")
     args.set(listOf("build"))
     environment.put("PUBLIC_GRADLE_VERSION", gradleVersion)
+    environment.put("ASTRO_PUBLIC_DIR", "./build/public")
+    environment.put("ASTRO_OUT_DIR", "./build/site")
     inputs.file("package.json")
     inputs.file("package-lock.json")
     inputs.file("astro.config.ts")
@@ -83,6 +85,7 @@ tasks.register<NpxTask>("serveDev") {
     command.set("astro")
     args.set(listOf("dev"))
     environment.put("PUBLIC_GRADLE_VERSION", gradleVersion)
+    environment.put("ASTRO_PUBLIC_DIR", "./build/public")
 }
 
 tasks.register<NpxTask>("serveProd") {
@@ -94,6 +97,7 @@ tasks.register<NpxTask>("serveProd") {
     dependsOn("buildDocs")
     command.set("astro")
     args.set(listOf("preview"))
+    environment.put("ASTRO_OUT_DIR", "./build/site")
 }
 
 tasks.register<NpxTask>("formatCheck") {

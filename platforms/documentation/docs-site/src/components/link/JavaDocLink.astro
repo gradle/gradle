@@ -1,5 +1,6 @@
 ---
 import ApiDocLinkBase from './ApiDocLinkBase.astro';
+import { javadocUrl } from './api-doc-url';
 
 interface Props {
   class: string;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const props = Astro.props;
+const href = javadocUrl(props.class, props.method);
 ---
 
-<ApiDocLinkBase {...props} docClass="javadoc-link" componentName="JavaDocLink" />
+<ApiDocLinkBase {...props} href={href} docClass="javadoc-link" componentName="JavaDocLink" />

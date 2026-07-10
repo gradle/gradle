@@ -1,1 +1,0 @@
-def config = file('some.conf').text

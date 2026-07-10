@@ -3,8 +3,7 @@
  * the client; the result is burnt into the page as the static menu markup.
  */
 import { variables } from "../../config/variables";
-import type { VersionsIndex } from "./local-storage";
-import { reduceVersions, VERSIONS_ENDPOINT } from "./version-menu";
+import { reduceVersions, VERSIONS_ENDPOINT, type VersionsIndex } from "./version-menu";
 
 let indexPromise: Promise<VersionsIndex> | undefined;
 
@@ -22,16 +21,13 @@ async function fetchIndex(): Promise<VersionsIndex> {
   try {
     const response = await fetch(VERSIONS_ENDPOINT, { signal: AbortSignal.timeout(10_000) });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return reduceVersions(await response.json(), Date.now());
+    return reduceVersions(await response.json());
   } catch (error) {
     console.warn(
       `[version-selector] could not fetch ${VERSIONS_ENDPOINT} (${error}); ` +
         `burning in only the site's own version (${variables.gradleVersion})`,
     );
-    // fetchedAt: 0 marks the index as immediately stale so clients refresh it.
     return {
-      schema: 1,
-      fetchedAt: 0,
       current: variables.gradleVersion,
       versions: [variables.gradleVersion],
       activeRc: null,

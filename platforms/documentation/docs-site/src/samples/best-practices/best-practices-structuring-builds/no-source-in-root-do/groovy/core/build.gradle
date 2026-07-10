@@ -1,7 +1,0 @@
-// tag::do-this[]
-// This is the build.gradle file for the core module
-
-plugins { // <2>
-    id 'java-library'
-}
-// end::do-this[]

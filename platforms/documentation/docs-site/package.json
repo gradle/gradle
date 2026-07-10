@@ -23,6 +23,7 @@
     "@astrojs/starlight": "0.37.7",
     "@fontsource/lato": "5.2.7",
     "astro": "5.18.1",
+    "astro-relative-links": "0.4.2",
     "sharp": "0.34.5"
   },
   "devDependencies": {

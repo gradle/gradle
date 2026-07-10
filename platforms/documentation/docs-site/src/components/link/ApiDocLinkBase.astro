@@ -4,6 +4,7 @@ interface Props {
   method?: string;
   text?: string;
   docClass: string;
+  href: string;
   componentName?: string;
 }
 
@@ -12,6 +13,7 @@ const {
   method,
   text,
   docClass,
+  href,
   componentName = 'ApiDocLinkBase',
 } = Astro.props;
 
@@ -23,7 +25,7 @@ const displayName = className.split('.').pop();
 const displayText = text || (method ? `${displayName}.${method}` : displayName);
 ---
 
-<a href="#" class:list={['api-link', docClass]} data-class={className} data-method={method}>
+<a href={href} class:list={['api-link', docClass]}>
   {displayText}
 </a>
 
