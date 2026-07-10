@@ -171,7 +171,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, getResolutions());
+            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, getDirectResolutions());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

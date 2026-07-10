@@ -16,6 +16,7 @@
 package org.gradle.internal.resolve
 
 import org.gradle.api.Describable
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -147,6 +148,60 @@ Searched in the following locations: http://somewhere
 Required by:
     org:a:1.2 > org:b:5 > org:c:1.0''')
         onePath.stackTrace == exception.stackTrace
+    }
+
+    def "withIncomingPaths preserves directly-added resolutions"() {
+        given:
+        def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere/a.pom"])
+
+        when:
+        def withPaths = exception.withIncomingPaths([[Describables.of("org:a:1.2")]])
+
+        then:
+        withPaths.getResolutions().findAll { it.contains("Maven POM") }.size() == 1
+    }
+
+    def "withIncomingPaths does not duplicate cause-contributed resolutions"() {
+        given:
+        // '.pom' triggers recordPossibleResolution which addResolution's a "Maven POM" hint
+        def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere/a.pom"])
+        def cause = new GradleException("cause")
+        cause.addResolution("causeResolution")
+        exception.initCauses([cause])
+
+        when:
+        def withPaths = exception.withIncomingPaths([[Describables.of("org:a:1.2")]])
+
+        then:
+        def resolutions = withPaths.getResolutions()
+        resolutions.findAll { it.contains("Maven POM") }.size() == 1
+        resolutions.findAll { it == "causeResolution" }.size() == 1
+        resolutions.size() == 2
+    }
+
+    def "createCopy transfers only directly-added resolutions, not cause-contributed ones"() {
+        given:
+        def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere/a.pom"])
+        def cause = new GradleException("cause")
+        cause.addResolution("causeResolution")
+        exception.initCauses([cause])
+
+        expect:
+        // Sanity check: the source exception surfaces both resolutions
+        exception.getResolutions().size() == 2
+        exception.getResolutions().findAll { it.contains("Maven POM") }.size() == 1
+        exception.getResolutions().findAll { it == "causeResolution" }.size() == 1
+
+        when:
+        def copy = exception.createCopy()
+
+        then:
+        // The copy carries the directly-added Maven POM hint only.
+        // The cause-contributed 'causeResolution' must NOT leak into the copy's direct field —
+        // otherwise a follow-up initCauses call (as withIncomingPaths does) would duplicate it.
+        copy.getResolutions().size() == 1
+        copy.getResolutions().findAll { it.contains("Maven POM") }.size() == 1
+        copy.getResolutions().findAll { it == "causeResolution" }.size() == 0
     }
 
     def "formats message for selector and locations when versions are rejected by attribute matching"() {
