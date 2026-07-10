@@ -23,12 +23,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DefaultMultiCauseException extends GradleException implements MultiCauseException, NonGradleCauseExceptionsHolder {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
+    private final List<String> causeResolutions = new ArrayList<>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
     private transient @Nullable Factory<String> messageFactory;
     private @Nullable String message;
@@ -43,7 +46,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     public DefaultMultiCauseException(String message, Throwable... causes) {
         super(message);
         this.message = message;
-        addCauses(Arrays.asList(causes));
+        initCauses(Arrays.asList(causes));
     }
 
     @SuppressWarnings("this-escape")
@@ -67,7 +70,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(Factory<String> messageFactory, Throwable... causes) {
         this(messageFactory);
-        addCauses(Arrays.asList(causes));
+        initCauses(Arrays.asList(causes));
     }
 
     @SuppressWarnings("this-escape")
@@ -105,15 +108,14 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     @Override
     public synchronized Throwable initCause(Throwable throwable) {
-        causes.clear();
-        causes.add(throwable);
-        addResolutionsFrom(throwable);
-        return this;
+        return initCauses(Collections.singletonList(throwable));
     }
 
-    public void initCauses(Iterable<? extends Throwable> causes) {
+    public Throwable initCauses(Iterable<? extends Throwable> causes) {
         this.causes.clear();
+        this.causeResolutions.clear();
         addCauses(causes);
+        return this;
     }
 
     private void addCauses(Iterable<? extends Throwable> causes) {
@@ -125,13 +127,18 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     private void addResolutionsFrom(Throwable cause) {
         if (cause instanceof ResolutionProvider) {
-            List<String> causeResolutions = ((ResolutionProvider) cause).getResolutions();
-            if (causeResolutions != null) {
-                for (String resolution : causeResolutions) {
-                    addResolution(resolution);
-                }
+            List<String> fromCause = ((ResolutionProvider) cause).getResolutions();
+            if (fromCause != null) {
+                causeResolutions.addAll(fromCause);
             }
         }
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        List<String> combined = new ArrayList<>(super.getResolutions());
+        combined.addAll(causeResolutions);
+        return Collections.unmodifiableList(combined);
     }
 
     @Override

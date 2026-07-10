@@ -64,7 +64,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
 
     @NonNull
     @Override
-    public final List<String> getResolutions() {
+    public List<String> getResolutions() {
         return Collections.unmodifiableList(resolutions);
     }
 }
