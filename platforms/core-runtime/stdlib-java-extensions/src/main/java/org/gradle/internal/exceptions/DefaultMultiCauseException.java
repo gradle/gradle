@@ -37,7 +37,6 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     private transient @Nullable Factory<String> messageFactory;
     private @Nullable String message;
 
-    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(String message) {
         super(message);
         this.message = message;
@@ -89,6 +88,10 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         // Ensure fields are initialized before serialization
         String ignored = getMessage();
         out.defaultWriteObject();
+    }
+
+    protected List<String> getDirectResolutions() {
+        return super.getResolutions();
     }
 
     private ThreadLocal<Boolean> threadLocal() {
