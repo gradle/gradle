@@ -18,8 +18,8 @@ package org.gradle.internal.exceptions;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -135,7 +135,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public List<String> getResolutions() {
         List<String> combined = new ArrayList<>(super.getResolutions());
