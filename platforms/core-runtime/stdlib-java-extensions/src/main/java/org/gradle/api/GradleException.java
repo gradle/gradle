@@ -16,8 +16,6 @@
 
 package org.gradle.api;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -49,7 +47,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
 
     public GradleException(String message, @Nullable Throwable cause, Iterable<String> resolutions) {
         super(message, cause);
-        Iterables.addAll(this.resolutions, resolutions);
+        resolutions.forEach(this.resolutions::add);
     }
 
     /**
@@ -74,6 +72,6 @@ public class GradleException extends RuntimeException implements ResolutionProvi
 
     @Override
     public List<String> getResolutions() {
-        return ImmutableList.copyOf(resolutions);
+        return Collections.unmodifiableList(new ArrayList<>(resolutions));
     }
 }
