@@ -17,41 +17,38 @@
 package org.gradle.api;
 
 import org.gradle.internal.exceptions.ResolutionProvider;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import com.google.common.collect.Iterables;
 import java.util.List;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
  */
+@NullMarked
 public class GradleException extends RuntimeException implements ResolutionProvider {
-    private final List<String> resolutions;
+    private final List<String> resolutions = new ArrayList<>();
 
-    public GradleException() {
-        this.resolutions = new ArrayList<>();
-    }
+    public GradleException() { /* Empty */ }
 
     public GradleException(String message) {
-        super(message);
-        this.resolutions = new ArrayList<>();
+        this(message, (Throwable) null);
     }
 
     public GradleException(String message, @Nullable Throwable cause) {
-        super(message, cause);
-        this.resolutions = new ArrayList<>();
+        this(message, cause, Collections.emptyList());
     }
 
-    public GradleException(String message, List<String> resolutions) {
-        super(message);
-        this.resolutions = new ArrayList<>(resolutions);
+    public GradleException(String message, Iterable<String> resolutions) {
+        this(message, null, resolutions);
     }
 
-    public GradleException(String message, @Nullable Throwable cause, List<String> resolutions) {
+    public GradleException(String message, @Nullable Throwable cause, Iterable<String> resolutions) {
         super(message, cause);
-        this.resolutions = new ArrayList<>(resolutions);
+        Iterables.addAll(this.resolutions, resolutions);
     }
 
     public final void addResolution(String resolution) {
@@ -62,7 +59,6 @@ public class GradleException extends RuntimeException implements ResolutionProvi
         resolutions.clear();
     }
 
-    @NonNull
     @Override
     public List<String> getResolutions() {
         return Collections.unmodifiableList(resolutions);

@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 
 import java.util.Collections;
@@ -30,6 +29,6 @@ public class BuildInitException extends GradleException {
     }
 
     public BuildInitException(String message, Iterable<String> resolutions) {
-        super(message, Lists.newArrayList(resolutions));
+        super(message, resolutions);
     }
 }
