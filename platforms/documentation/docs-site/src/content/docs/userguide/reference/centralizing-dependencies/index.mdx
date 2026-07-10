@@ -13,11 +13,11 @@ A platform is a set of dependency constraints designed to manage the transitive 
 
 When you define a platform in Gradle, you’re essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
 
-<SampleScripts sample_name="dep-man" basename="build" subpath="platform" />
+<SampleScripts sample_name="dep-man" basename="build" subpath="platform" source_dir="snippets/reference/dependency-management/basics/dep-man" />
 
 Then, you can use that platform in your project:
 
-<SampleScripts sample_name="dep-man" basename="build" subpath="app" />
+<SampleScripts sample_name="dep-man" basename="build" subpath="app" source_dir="snippets/reference/dependency-management/basics/dep-man" />
 
 Here, `platform` defines versions for `commons-lang3`, `guava`, and `slf4j-api`, ensuring they are compatible.
 
@@ -27,7 +27,7 @@ A BOM file lists dependencies with specific versions, allowing you to manage the
 For example, a popular platform is the [Spring Boot Bill of Materials](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies).
 To use the BOM, you add it to the dependencies of your project:
 
-<SampleScripts sample_name="managing-transitive-dependencies-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" />
+<SampleScripts sample_name="managing-transitive-dependencies-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" source_dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-constraintsFromBOM" />
 
 By including the `spring-boot-dependencies` platform dependency, you ensure that all Spring components use the versions defined in the BOM file.
 
@@ -39,10 +39,10 @@ You can reference this catalog in your build scripts to ensure each project depe
 First, create a `libs.versions.toml` file in the `gradle` directory of your project.
 This file will define the versions of your dependencies and plugins:
 
-<SampleFile sample_name="catalogs-toml-simple" path="common/gradle/libs.versions.toml" />
+<SampleFile sample_name="catalogs-toml-simple" path="common/gradle/libs.versions.toml" source_dir="snippets/reference/dependency-management/basics/catalogs-toml-simple" />
 
 Then, you can use the version catalog in you build file:
 
-<SampleScripts sample_name="catalogs-toml-simple" basename="build" />
+<SampleScripts sample_name="catalogs-toml-simple" basename="build" source_dir="snippets/reference/dependency-management/basics/catalogs-toml-simple" />
 
 ***Next Step:*** <Xref page="dependency-constraints-conflicts" section="5. Dependency Constraints and Conflict Resolution">Learn about Dependency Constraints and Conflict Resolution</Xref> \>\>

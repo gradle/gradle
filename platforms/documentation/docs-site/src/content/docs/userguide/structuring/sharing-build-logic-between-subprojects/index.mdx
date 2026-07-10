@@ -64,9 +64,9 @@ A typical multi-project build has the following layout:
 
 The build file for `api`, `services`, and `shared` has many commonalities:
 
-<SampleScripts sample_name="no-build-src" basename="build" subpath="api" tag="common-logic" />
-<SampleScripts sample_name="no-build-src" basename="build" subpath="services" tag="common-logic" />
-<SampleScripts sample_name="no-build-src" basename="build" subpath="shared" tag="common-logic" />
+<SampleScripts sample_name="no-build-src" basename="build" subpath="api" tag="common-logic" source_dir="snippets/structuring-builds/no-buildSrc" />
+<SampleScripts sample_name="no-build-src" basename="build" subpath="services" tag="common-logic" source_dir="snippets/structuring-builds/no-buildSrc" />
+<SampleScripts sample_name="no-build-src" basename="build" subpath="shared" tag="common-logic" source_dir="snippets/structuring-builds/no-buildSrc" />
 
 To avoid duplicating build logic across `api`, `services`, and `shared`, we can move the shared parts into `buildSrc`.
 This allows us to define dependencies and other configurations once and apply them uniformly to all subprojects.
@@ -133,12 +133,12 @@ Upon detecting the `buildSrc` directory, Gradle:
 
 As such, our new `buildSrc` has the following build file:
 
-<SampleScripts sample_name="build-src" basename="build" subpath="buildSrc" />
+<SampleScripts sample_name="build-src" basename="build" subpath="buildSrc" source_dir="snippets/structuring-builds/buildSrc" />
 
 In the `buildSrc`, the build script `java-common-conventions.gradle(.kts)` is created in `src/main/kotlin` or `src/main/groovy`.
 It contains dependencies and other build information that is common to our subprojects:
 
-<SampleScripts sample_name="build-src" basename="java-common-conventions" subpath="buildSrc/src/main/{lang}" />
+<SampleScripts sample_name="build-src" basename="java-common-conventions" subpath="buildSrc/src/main/{lang}" source_dir="snippets/structuring-builds/buildSrc" />
 
 If you create a script file like `java-common-conventions.gradle(.kts)`, you can treat it as a plugin and apply it in your subprojects.
 The ID of the plugin is the name of the build file without the `gradle(.kts)` extension.
@@ -147,9 +147,9 @@ This kind of plugin is called a **convention plugin**.
 The shared logic is removed from the `api`, `services`, and `shared` build files.
 And the `shared` plugin is applied in the files instead:
 
-<SampleScripts sample_name="build-src" basename="build" subpath="api" tag="non-common-logic" />
-<SampleScripts sample_name="build-src" basename="build" subpath="services" tag="non-common-logic" />
-<SampleScripts sample_name="build-src" basename="build" subpath="shared" tag="non-common-logic" />
+<SampleScripts sample_name="build-src" basename="build" subpath="api" tag="non-common-logic" source_dir="snippets/structuring-builds/buildSrc" />
+<SampleScripts sample_name="build-src" basename="build" subpath="services" tag="non-common-logic" source_dir="snippets/structuring-builds/buildSrc" />
+<SampleScripts sample_name="build-src" basename="build" subpath="shared" tag="non-common-logic" source_dir="snippets/structuring-builds/buildSrc" />
 
 From now on, if you want to change something like the version of `slf4j-api`, you only need to update it in `buildSrc`, and the change will automatically apply to all subprojects.
 

@@ -39,7 +39,7 @@ Each line inside this block tells Gradle two things:
 
 For example:
 
-<SampleScripts sample_name="dependency-types" basename="build" subpath="app" tag="dep-types" />
+<SampleScripts sample_name="dependency-types" basename="build" subpath="app" tag="dep-types" source_dir="snippets/tutorials/running-builds/dependency-types" />
 
 <CalloutList>
 
@@ -57,12 +57,12 @@ It helps keep your dependencies consistent across subprojects and avoids repeati
 
 The version catalog is located at `gradle/libs.versions.toml`:
 
-<SampleFile sample_name="generated" path="groovy/gradle/libs.versions.toml" />
+<SampleFile sample_name="generated" path="{lang}/gradle/libs.versions.toml" source_dir="snippets/tutorials/running-builds/generated" />
 
 Once defined, you can reference these libraries in your `build.gradle(.kts)` files using the `libs` accessor.
 This is why our build script actually looks like this:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" source_dir="snippets/tutorials/running-builds/generated" />
 
 :::tip
 The `libs.junit.jupiter` syntax is used because the key contains a hyphen which is a special character.
@@ -79,7 +79,7 @@ Gradle provides excellent support for dependency management and automation.
 
 Let’s take another look at our build script, specifically the following section:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-declarations" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-declarations" source_dir="snippets/tutorials/running-builds/generated" />
 
 Some key concepts in Gradle dependency management include:
 

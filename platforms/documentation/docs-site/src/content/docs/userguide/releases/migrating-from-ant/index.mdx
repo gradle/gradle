@@ -140,13 +140,13 @@ Here’s how to apply the Java Library Plugin:
 
 **Applying the Java Library Plugin**
 
-<SampleScripts sample_name="import-build" basename="build" tag="apply-plugin" />
+<SampleScripts sample_name="import-build" basename="build" tag="apply-plugin" source_dir="snippets/releases/migrating/importBuild" />
 
 To rename the `build` task, use the variant of <JavaDocLink class="org.gradle.api.AntBuilder" method="importBuild-java.lang.Object-org.gradle.api.Transformer-">AntBuilder.importBuild()</JavaDocLink> that accepts a transformer, like this:
 
 **Renaming targets on import**
 
-<SampleScripts sample_name="import-build" basename="build" tag="import-build" />
+<SampleScripts sample_name="import-build" basename="build" tag="import-build" source_dir="snippets/releases/migrating/importBuild" />
 
 <CalloutList>
 
@@ -162,7 +162,7 @@ Here’s how you would configure Gradle to use those paths:
 
 **Configuring the source sets**
 
-<SampleScripts sample_name="import-build" basename="build" tag="source-sets" />
+<SampleScripts sample_name="import-build" basename="build" tag="source-sets" source_dir="snippets/releases/migrating/importBuild" />
 
 You should eventually switch to the standard directory structure for your type of project so that you will be able to remove this customization.
 
@@ -173,7 +173,7 @@ Here is the required task dependency configuration for the example scenario, whi
 
 **Configuring the task dependencies**
 
-<SampleScripts sample_name="import-build" basename="build" tag="task-dependencies" />
+<SampleScripts sample_name="import-build" basename="build" tag="task-dependencies" source_dir="snippets/releases/migrating/importBuild" />
 
 <CalloutList>
 
@@ -238,7 +238,7 @@ The following sample build script demonstrates how you can incorporate all of th
 
 **Declaring dependencies served from the filesystem**
 
-<SampleScripts sample_name="file-deps" basename="build" tag="file-deps" />
+<SampleScripts sample_name="file-deps" basename="build" tag="file-deps" source_dir="snippets/releases/migrating/fileDeps" />
 
 <CalloutList>
 
@@ -330,7 +330,7 @@ If you want to copy the dependencies to a local directory, you can use a <Groovy
 
 **Copying dependencies to a local directory**
 
-<SampleScripts sample_name="file-deps" basename="build" tag="retrieve-deps" />
+<SampleScripts sample_name="file-deps" basename="build" tag="retrieve-deps" source_dir="snippets/releases/migrating/fileDeps" />
 
 A configuration is also a file collection, hence why it can be used in the `from()` configuration.
 You can use a similar technique to attach a configuration to a compilation task or one that produces documentation.
@@ -440,7 +440,7 @@ For example, this build script fragment creates tasks for packaging Javadoc docu
 
 **Using task properties in place of project properties**
 
-<SampleScripts sample_name="file-deps" basename="build" tag="properties" />
+<SampleScripts sample_name="file-deps" basename="build" tag="properties" source_dir="snippets/releases/migrating/fileDeps" />
 
 <CalloutList>
 
@@ -487,7 +487,7 @@ The following steps highlight a suggested method for migrating a multi-project b
 
    For example, your web project depends on a "util" library that’s part of the same build. The Ant build file for "web" might have a target like this:
 
-   <SampleFile sample_name="multi-project" path="groovy/web/build.xml" tag="build-required" />
+   <SampleFile sample_name="multi-project" path="{lang}/web/build.xml" tag="build-required" source_dir="snippets/releases/migrating/multiProject" />
    <CalloutList>
 
    1. `root.dir` would have to be defined by the build

@@ -53,9 +53,7 @@ Rename the file `PluginTutorialPluginFunctionalTest.groovy` to `SlackPluginFunct
 
 Now, update the test file to look like this:
 
-<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/functionalTest/kotlin/org/example/SlackPluginFunctionalTest.kt" />
-
-<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/functionalTest/groovy/org/example/SlackPluginFunctionalTest.groovy" />
+<SampleFile sample_name="plugin-tutorial" path="{lang}/plugin/src/functionalTest/{lang}/org/example/SlackPluginFunctionalTest.{srcExt}" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 This functional test does the following:
 
@@ -70,7 +68,7 @@ Before you run the test, it’s good to understand how `gradle init` configured 
 
 Look at the `build.gradle(.kts)` file and notice the section related to functional tests:
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="test-config" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="test-config" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 This configuration sets up a dedicated `functionalTest` source set and task, which keeps our functional tests separate from our unit tests.
 This makes our test suites more organized and reliable.

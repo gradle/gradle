@@ -66,9 +66,7 @@ plugin/     // <1>
 The core of the plugin is the `GreetingPlugin` class.
 It implements the `Plugin<Project>` interface and overrides the `apply` method, which is the entry point for your plugin’s logic:
 
-<SampleFile sample_name="plugin-binary" path="kotlin/plugin/src/main/kotlin/org/example/GreetingPlugin.kt" />
-
-<SampleFile sample_name="plugin-binary" path="groovy/plugin/src/main/groovy/org/example/GreetingPlugin.groovy" />
+<SampleFile sample_name="plugin-binary" path="{lang}/plugin/src/main/{lang}/org/example/GreetingPlugin.{srcExt}" source_dir="snippets/reference/plugin-development/plugin-binary" />
 
 <CalloutList>
 
@@ -87,9 +85,7 @@ This is crucial for performance and correctness in Gradle builds.
 The extension defines the properties that a user can configure.
 It uses `Property` and `RegularFileProperty` types, which are designed for lazy evaluation:
 
-<SampleFile sample_name="plugin-binary" path="kotlin/plugin/src/main/kotlin/org/example/GreetingExtension.kt" />
-
-<SampleFile sample_name="plugin-binary" path="groovy/plugin/src/main/groovy/org/example/GreetingExtension.groovy" />
+<SampleFile sample_name="plugin-binary" path="{lang}/plugin/src/main/{lang}/org/example/GreetingExtension.{srcExt}" source_dir="snippets/reference/plugin-development/plugin-binary" />
 
 <CalloutList>
 
@@ -103,9 +99,7 @@ It uses `Property` and `RegularFileProperty` types, which are designed for lazy 
 This is the class for the custom task.
 It defines the inputs and outputs, and the action to perform:
 
-<SampleFile sample_name="plugin-binary" path="kotlin/plugin/src/main/kotlin/org/example/GreetTask.kt" />
-
-<SampleFile sample_name="plugin-binary" path="groovy/plugin/src/main/groovy/org/example/GreetTask.groovy" />
+<SampleFile sample_name="plugin-binary" path="{lang}/plugin/src/main/{lang}/org/example/GreetTask.{srcExt}" source_dir="snippets/reference/plugin-development/plugin-binary" />
 
 <CalloutList>
 
@@ -167,7 +161,7 @@ This plugin will automatically apply the <Xref page="java-plugin" section="The J
 
 To apply and configure the plugin, add the following code to your build file:
 
-<SampleScripts sample_name="custom-plugin" basename="build" subpath="java-gradle-plugin" tag="use-and-configure-plugin" />
+<SampleScripts sample_name="custom-plugin" basename="build" subpath="java-gradle-plugin" tag="use-and-configure-plugin" source_dir="snippets/reference/plugin-development/customPlugin" />
 
 Writing and using <Xref page="more-about-tasks" section="Task group and description">custom task types</Xref> is recommended when developing plugins as it automatically benefits from incremental builds.
 As an added benefit of applying the plugin to your project, the task `validatePlugins` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
@@ -202,7 +196,7 @@ There is no limit to the number of plugins that can be defined and registered (b
 The identifiers for plugins written as a class should be defined in the project’s build script containing the plugin classes.
 For this, the `java-gradle-plugin` needs to be applied:
 
-<SampleScripts sample_name="plugin-identifier" basename="build" subpath="buildSrc" />
+<SampleScripts sample_name="plugin-identifier" basename="build" subpath="buildSrc" source_dir="snippets/reference/plugin-development/pluginIdentifier" />
 
 ## Working with files
 
@@ -215,7 +209,7 @@ This Gradle build file defines a task `GreetingToFileTask` that writes a greetin
 It also registers two tasks: `greet`, which creates the file with the greeting, and `sayGreeting`, which prints the file’s contents.
 The `greetingFile` property is used to specify the file path for the greeting:
 
-<SampleScripts sample_name="custom-task-with-file-property" basename="build" tag="all" />
+<SampleScripts sample_name="custom-task-with-file-property" basename="build" tag="all" source_dir="snippets/reference/plugin-development/customTaskWithFileProperty" />
 
 ```bash
 $ ./gradlew -q sayGreeting
@@ -244,7 +238,7 @@ An extension object is simply an object with Java Bean properties representing t
 
 Let’s add a `greeting` extension object to the project, which allows you to configure the greeting:
 
-<SampleScripts sample_name="custom-plugin-no-convention" basename="build" />
+<SampleScripts sample_name="custom-plugin-no-convention" basename="build" source_dir="snippets/reference/plugin-development/customPluginNoConvention" />
 
 ```bash
 $ ./gradlew -q hello
@@ -262,7 +256,7 @@ This object becomes available as a project property with the same name as the ex
 Often, you have several related properties you need to specify on a single plugin.
 Gradle adds a configuration block for each extension object, so you can group settings:
 
-<SampleScripts sample_name="custom-plugin-with-advanced-convention" basename="build" />
+<SampleScripts sample_name="custom-plugin-with-advanced-convention" basename="build" source_dir="snippets/reference/plugin-development/customPluginWithAdvancedConvention" />
 
 ```bash
 $ ./gradlew -q hello
@@ -288,7 +282,7 @@ Because an extension object is a regular object, you can provide your own DSL ne
 
 Let’s consider the following build script for illustration purposes.
 
-<SampleScripts sample_name="named-domain-object-container" basename="build" />
+<SampleScripts sample_name="named-domain-object-container" basename="build" source_dir="snippets/reference/plugin-development/namedDomainObjectContainer" />
 
 The DSL exposed by the plugin exposes a container for defining a set of environments.
 Each environment the user configures has an arbitrary but declarative name and is represented with its own DSL configuration block.
@@ -356,14 +350,14 @@ DSLs exposed by plugins should be readable and easy to understand.
 For example, let’s consider the following extension provided by a plugin.
 In its current form, it offers a "flat" list of properties for configuring the creation of a website:
 
-<SampleScripts sample_name="plugin-extension" basename="build-flat" />
+<SampleScripts sample_name="plugin-extension" basename="build-flat" source_dir="snippets/reference/plugin-development/pluginExtension" />
 
 As the number of exposed properties grows, you should introduce a nested, more expressive structure.
 
 The following code snippet adds a new configuration block named `siteInfo` as part of the extension.
 This provides a stronger indication of what those properties mean:
 
-<SampleScripts sample_name="plugin-extension" basename="build" />
+<SampleScripts sample_name="plugin-extension" basename="build" source_dir="snippets/reference/plugin-development/pluginExtension" />
 
 Implementing the backing objects for such an extension is simple.
 First, introduce a new data object for managing the properties `websiteUrl` and `vcsUrl`:
@@ -402,7 +396,7 @@ abstract public class SiteExtension {
 Plugins commonly use an extension to capture user input from the build script and map it to a custom task’s input/output properties.
 The build script author interacts with the extension’s DSL, while the plugin implementation handles the underlying logic:
 
-<SampleScripts sample_name="mapping-extensions" basename="build" subpath="app" tag="snippet" />
+<SampleScripts sample_name="mapping-extensions" basename="build" subpath="app" tag="snippet" source_dir="snippets/reference/plugin-development/mappingExtensions" />
 
 In this example, the `MyExtension` class defines an `inputParameter` property that can be set in the build script.
 The `MyPlugin` class configures this extension and uses its `inputParameter` value to configure the `MyCustomTask` task.
@@ -419,7 +413,7 @@ These are known as **conventions**.
 Conventions are properties that are initialized with default values and can be overridden by the user in their build script.
 For example:
 
-<SampleScripts sample_name="custom-plugin-with-convention" basename="build" />
+<SampleScripts sample_name="custom-plugin-with-convention" basename="build" source_dir="snippets/reference/plugin-development/customPluginWithConvention" />
 
 ```bash
 $ ./gradlew -q hello
@@ -765,7 +759,7 @@ No problem.
 The plugin also exposes the custom configuration that can be used to assign a different dependency.
 Effectively, the default dependency is overwritten:
 
-<SampleScripts sample_name="default-dependency" basename="build" />
+<SampleScripts sample_name="default-dependency" basename="build" source_dir="snippets/reference/plugin-development/defaultDependency" />
 
 You will find that this pattern works well for tasks that require an external dependency when the task’s action is executed.
 You can go further and abstract the version to be used for the external dependency by exposing an extension property (e.g.
@@ -779,7 +773,7 @@ Keep in mind that plugins share the same classloader, so conflicts may arise wit
 
 To demonstrate let’s assume the following build script:
 
-<SampleScripts sample_name="external-libraries" basename="build" />
+<SampleScripts sample_name="external-libraries" basename="build" source_dir="snippets/reference/plugin-development/externalLibraries" />
 
 The output of the task clearly indicates the classpath of the `classpath` configuration:
 
@@ -875,7 +869,7 @@ A separate source set is compiled and packaged in a separate jar for each varian
 
 The following sample demonstrates how to add a variant that is compatible with Gradle 7.0+ while the "main" variant is compatible with older versions:
 
-<SampleScripts sample_name="plugin-with-variants" basename="build" tag="add-plugin-variant" />
+<SampleScripts sample_name="plugin-with-variants" basename="build" tag="add-plugin-variant" source_dir="snippets/reference/plugin-development/pluginWithVariants" />
 
 <CalloutList>
 
@@ -917,7 +911,7 @@ This allows a multi-variant plugin that depends on other plugins to access their
 
 This snippet makes the [plugin variant `gradle7` defined above](#plugin-with-variants) consume the matching variants of its dependencies on other multi-variant plugins:
 
-<SampleScripts sample_name="plugin-with-variants" basename="build" tag="consume-plugin-variant" />
+<SampleScripts sample_name="plugin-with-variants" basename="build" tag="consume-plugin-variant" source_dir="snippets/reference/plugin-development/pluginWithVariants" />
 
 ## Avoiding plugin dependency conflicts
 

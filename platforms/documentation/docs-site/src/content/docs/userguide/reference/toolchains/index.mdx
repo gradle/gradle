@@ -38,7 +38,7 @@ These settings are ***not mutually exclusive***, and advanced users may need to 
 
 To configure a toolchain for your project, declare the desired Java language version in the `java` extension block:
 
-<SampleScripts sample_name="toolchain-basic" basename="build" tag="toolchain" />
+<SampleScripts sample_name="toolchain-basic" basename="build" tag="toolchain" source_dir="snippets/reference/platforms/jvm/toolchain-basic" />
 
 The `java` block is flexible and supports additional configuration options.
 You can learn more in [#sec:using-java-toolchains](#sec:using-java-toolchains).
@@ -162,7 +162,7 @@ In some cases, you may want to:
 
 For example, to compile with Java 17 but produce Java 11 bytecode:
 
-<SampleScripts sample_name="toolchains-cross-compile" basename="build" tag="cross-compile" />
+<SampleScripts sample_name="toolchains-cross-compile" basename="build" tag="cross-compile" source_dir="snippets/reference/platforms/jvm/toolchains-crossCompile" />
 
 ### Comparison table for setting project toolchains
 
@@ -191,11 +191,11 @@ For example, the `Test` task exposes a `JavaLauncher` property that defines whic
 In the example below, we configure all java compilation tasks to use Java 8.
 Additionally, we introduce a new `Test` task that will run our unit tests using a JDK 17.
 
-<SampleScripts sample_name="jvm-multi-project-with-toolchains" basename="build" subpath="list" tag="customToolchain" />
+<SampleScripts sample_name="jvm-multi-project-with-toolchains" basename="build" subpath="list" tag="customToolchain" source_dir="snippets/reference/platforms/jvm/jvm-multi-project-with-toolchains" />
 
 In addition, in the `application` subproject, we add another Java execution task to run our application with JDK 17.
 
-<SampleScripts sample_name="jvm-multi-project-with-toolchains" basename="build" subpath="application" tag="customExec" />
+<SampleScripts sample_name="jvm-multi-project-with-toolchains" basename="build" subpath="application" tag="customExec" source_dir="snippets/reference/platforms/jvm/jvm-multi-project-with-toolchains" />
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
 By default, Gradle prefers installed JDKs over JREs if they can satisfy the requirements.
@@ -216,15 +216,15 @@ While you will not be able to wire a toolchain tool directly, they all have the 
 
 For example, you can configure the `java` executable for a task as follows:
 
-<SampleScripts sample_name="toolchain-config-task" basename="build" tag="java-executable" />
+<SampleScripts sample_name="toolchain-config-task" basename="build" tag="java-executable" source_dir="snippets/reference/platforms/jvm/toolchain-config-task" />
 
 As another example, you can configure the _Java Home_ for a task as follows:
 
-<SampleScripts sample_name="toolchain-config-task" basename="build" tag="java-home" />
+<SampleScripts sample_name="toolchain-config-task" basename="build" tag="java-home" source_dir="snippets/reference/platforms/jvm/toolchain-config-task" />
 
 If you require a path to a specific tool such as Java compiler, you can obtain it as follows:
 
-<SampleScripts sample_name="toolchain-config-task" basename="build" tag="java-compiler" />
+<SampleScripts sample_name="toolchain-config-task" basename="build" tag="java-compiler" source_dir="snippets/reference/platforms/jvm/toolchain-config-task" />
 
 :::caution
 The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration.
@@ -258,7 +258,7 @@ In case your build has specific requirements from the used JRE/JDK, you may want
 <JavaDocLink class="org.gradle.jvm.toolchain.JvmVendorSpec" /> has a list of well-known JVM vendors recognized by Gradle.
 The advantage is that Gradle can handle any inconsistencies across JDK versions in how exactly the JVM encodes the vendor information.
 
-<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-known-vendor" />
+<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-known-vendor" source_dir="snippets/reference/platforms/jvm/toolchain-filters" />
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
 
@@ -266,13 +266,13 @@ The following snippet uses filtering to include a subset of available toolchains
 This example only includes toolchains whose `java.vendor` property contains the given match string.
 The matching is done in a case-insensitive manner.
 
-<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-matching-vendor" />
+<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-matching-vendor" source_dir="snippets/reference/platforms/jvm/toolchain-filters" />
 
 ### Selecting toolchains that support GraalVM native image
 
 If your project needs a toolchain with [GraalVM Native Image capability](https://www.graalvm.org/latest/reference-manual/native-image/), you can configure the spec to request it:
 
-<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-native-image" />
+<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-native-image" source_dir="snippets/reference/platforms/jvm/toolchain-filters" />
 
 Leaving that value unconfigured or set to `false` will not restrict the toolchain selection based on the Native Image capability.
 That means that a Native Image capable JDK can be selected if it matches the other criteria.
@@ -300,7 +300,7 @@ Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime eng
 For example, to use an [IBM](https://www.eclipse.org/openj9/) JVM, distributed via [AdoptOpenJDK](https://adoptopenjdk.net/),
 you can specify the filter as shown in the example below.
 
-<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-matching-implementation" />
+<SampleScripts sample_name="toolchain-filters" basename="build" tag="toolchain-matching-implementation" source_dir="snippets/reference/platforms/jvm/toolchain-filters" />
 
 :::note
 The Java major version, the vendor (if specified) and implementation (if specified) will be tracked as an input for compilation and test execution.
@@ -371,7 +371,7 @@ For details on writing such plugins, consult the <Xref page="toolchain-plugins" 
 One example of a toolchain resolver plugin is the [Foojay Toolchains Plugin](https://github.com/gradle/foojay-toolchains), based on the [foojay Disco API](https://github.com/foojayio/discoapi).
 It even has a convention variant, which automatically takes care of all the needed configuration, just by being applied:
 
-<SampleScripts sample_name="toolchain-foojay" basename="settings" tag="plugin-application" />
+<SampleScripts sample_name="toolchain-foojay" basename="settings" tag="plugin-application" source_dir="snippets/reference/platforms/jvm/toolchain-foojay" />
 
 For advanced or highly specific configurations, a custom toolchain resolver plugin should be used.
 
@@ -384,7 +384,7 @@ Consider two toolchain resolver plugins applied by the build:
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
-<SampleScripts sample_name="toolchain-management" basename="settings" tag="toolchain-management" />
+<SampleScripts sample_name="toolchain-management" basename="settings" tag="toolchain-management" source_dir="snippets/reference/platforms/jvm/toolchain-management" />
 
 <CalloutList>
 
@@ -566,7 +566,7 @@ This way, the users will need to configure the toolchain only once on the projec
 
 The example below showcases how to use the default toolchain as convention while allowing users to individually configure the toolchain per task.
 
-<SampleScripts sample_name="toolchain-task" basename="build" tag="custom-toolchain-task-with-java" />
+<SampleScripts sample_name="toolchain-task" basename="build" tag="custom-toolchain-task-with-java" source_dir="snippets/reference/platforms/jvm/toolchain-task" />
 
 <CalloutList>
 
@@ -580,7 +580,7 @@ The property must be marked as a `@Nested` input to make sure the task is respon
 
 In a project where the `java` plugin was applied, we can use the task as follows:
 
-<SampleScripts sample_name="toolchain-task" basename="build" tag="custom-toolchain-task-with-java-usage" />
+<SampleScripts sample_name="toolchain-task" basename="build" tag="custom-toolchain-task-with-java-usage" source_dir="snippets/reference/platforms/jvm/toolchain-task" />
 
 <CalloutList>
 

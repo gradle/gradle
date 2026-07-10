@@ -55,8 +55,8 @@ This works similarly to configuring projects in a multi-project build.
 
 The following sample shows how to perform extra configuration from an init script _before_ the projects are evaluated:
 
-<SampleScripts sample_name="configuration-injection" basename="build" />
-<SampleScripts sample_name="configuration-injection" basename="init" />
+<SampleScripts sample_name="configuration-injection" basename="build" source_dir="snippets/reference/plugin-development/configurationInjection" />
+<SampleScripts sample_name="configuration-injection" basename="init" source_dir="snippets/reference/plugin-development/configurationInjection" />
 
 This sample uses this feature to configure an additional repository to be used only for specific environments.
 
@@ -82,7 +82,7 @@ All repos:
 
 Use `initscript { }` to declare the init script’s classpath (repositories + dependencies):
 
-<SampleScripts sample_name="external-dependency" basename="init" tag="declare-classpath" />
+<SampleScripts sample_name="external-dependency" basename="init" tag="declare-classpath" source_dir="snippets/reference/plugin-development/externalDependency" />
 
 The closure passed to `initscript` configures a <JavaDocLink class="org.gradle.api.initialization.dsl.ScriptHandler" /> instance.
 You declare the init script classpath by adding dependencies to the `classpath` configuration.
@@ -93,8 +93,8 @@ You can use any of the dependency types described in <Xref page="declaring-depen
 Having declared the init script classpath, you can use the classes in your init script as you would any other classes on the classpath.
 The following example adds to the previous example and uses classes from the init script classpath:
 
-<SampleScripts sample_name="external-dependency" basename="init" tag="all" />
-<SampleScripts sample_name="external-dependency" basename="build" />
+<SampleScripts sample_name="external-dependency" basename="init" tag="all" source_dir="snippets/reference/plugin-development/externalDependency" />
+<SampleScripts sample_name="external-dependency" basename="build" source_dir="snippets/reference/plugin-development/externalDependency" />
 
 ```bash
 $ ./gradlew --init-script init.gradle.kts -q doNothing
@@ -123,8 +123,8 @@ Unlike project (`Plugin<Project>`) or settings (`Plugin<Settings>`) plugins, an 
 
 The init plugin in the init script ensures that only a specified repository is used when running the build:
 
-<SampleScripts sample_name="plugins" basename="init" tag="init-script-plugin" />
-<SampleScripts sample_name="plugins" basename="build" tag="show-repos-task" />
+<SampleScripts sample_name="plugins" basename="init" tag="init-script-plugin" source_dir="snippets/reference/plugin-development/plugins" />
+<SampleScripts sample_name="plugins" basename="build" tag="show-repos-task" source_dir="snippets/reference/plugin-development/plugins" />
 
 ```bash
 $ ./gradlew --init-script init.gradle.kts -q showRepositories
@@ -153,9 +153,9 @@ Of course, the applied plugin can be resolved as an external dependency as descr
 
 In this example, the init script is its own project called `baseline-init-plugin`:
 
-<SampleFile sample_name="init-kotlin" path="kotlin/baseline-init-plugin/src/main/kotlin/com/example/BaselineInitPlugin.kt" />
+<SampleFile sample_name="init-kotlin" path="{lang}/baseline-init-plugin/src/main/{lang}/com/example/BaselineInitPlugin.{srcExt}" source_dir="snippets/reference/plugin-development/init-kotlin" />
 
-<SampleFile sample_name="init-groovy" path="groovy/baseline-init-plugin/src/main/groovy/com/example/BaselineInitPlugin.groovy" />
+<SampleFile sample_name="init-groovy" path="{lang}/baseline-init-plugin/src/main/{lang}/com/example/BaselineInitPlugin.{srcExt}" source_dir="snippets/reference/plugin-development/init-groovy" />
 
 You can publish it to a local Maven repository by running:
 
@@ -165,9 +165,9 @@ $ ./gradlew :baseline-init-plugin:publishPluginMavenPublicationToMavenRepoInLoca
 
 Here it is applied in an init script of the `app` project:
 
-<SampleScripts sample_name="init-kotlin" basename="init" />
+<SampleScripts sample_name="init-kotlin" basename="init" source_dir="snippets/reference/plugin-development/init-kotlin" />
 
-<SampleScripts sample_name="init-groovy" basename="init" />
+<SampleScripts sample_name="init-groovy" basename="init" source_dir="snippets/reference/plugin-development/init-groovy" />
 
 Then you can run the app with:
 

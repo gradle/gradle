@@ -95,7 +95,7 @@ Gradle may allow them as task inputs if necessary.
 
 The following task references a `SourceSet`, which is not allowed:
 
-<SampleScripts sample_name="disallowed-types" basename="build" tag="task-type" />
+<SampleScripts sample_name="disallowed-types" basename="build" tag="task-type" source_dir="snippets/optimizing-builds/configuration-cache/disallowedTypes" />
 
 <CalloutList>
 
@@ -105,7 +105,7 @@ The following task references a `SourceSet`, which is not allowed:
 
 The following is the fixed version:
 
-<SampleScripts sample_name="disallowed-types-fixed" basename="build" tag="task-type" />
+<SampleScripts sample_name="disallowed-types-fixed" basename="build" tag="task-type" source_dir="snippets/optimizing-builds/configuration-cache/disallowedTypesFixed" />
 
 <CalloutList>
 
@@ -115,7 +115,7 @@ The following is the fixed version:
 
 If an ad-hoc task in a script captures a disallowed reference in a `doLast {}` closure:
 
-<SampleScripts sample_name="disallowed-types" basename="build" tag="ad-hoc-task" />
+<SampleScripts sample_name="disallowed-types" basename="build" tag="ad-hoc-task" source_dir="snippets/optimizing-builds/configuration-cache/disallowedTypes" />
 
 <CalloutList>
 
@@ -127,7 +127,7 @@ You still need to fulfill the same requirement, that is, do not reference the di
 
 This is how the task declaration above can be fixed:
 
-<SampleScripts sample_name="disallowed-types-fixed" basename="build" tag="ad-hoc-task" />
+<SampleScripts sample_name="disallowed-types-fixed" basename="build" tag="ad-hoc-task" source_dir="snippets/optimizing-builds/configuration-cache/disallowedTypesFixed" />
 
 <CalloutList>
 
@@ -171,7 +171,7 @@ For example:
 
 The following task incorrectly references the `Project` object at execution time:
 
-<SampleScripts sample_name="project-at-execution" basename="build" tag="task-type" />
+<SampleScripts sample_name="project-at-execution" basename="build" tag="task-type" source_dir="snippets/optimizing-builds/configuration-cache/projectAtExecution" />
 
 <CalloutList>
 
@@ -181,7 +181,7 @@ The following task incorrectly references the `Project` object at execution time
 
 Fixed version:
 
-<SampleScripts sample_name="project-at-execution-fixed" basename="build" tag="task-type" />
+<SampleScripts sample_name="project-at-execution-fixed" basename="build" tag="task-type" source_dir="snippets/optimizing-builds/configuration-cache/projectAtExecutionFixed" />
 
 <CalloutList>
 
@@ -191,7 +191,7 @@ Fixed version:
 
 If the same problem occurs in an ad-hoc task in a script:
 
-<SampleScripts sample_name="project-at-execution" basename="build" tag="ad-hoc-task" />
+<SampleScripts sample_name="project-at-execution" basename="build" tag="ad-hoc-task" source_dir="snippets/optimizing-builds/configuration-cache/projectAtExecution" />
 
 <CalloutList>
 
@@ -201,7 +201,7 @@ If the same problem occurs in an ad-hoc task in a script:
 
 Fixed version:
 
-<SampleScripts sample_name="project-at-execution-fixed" basename="build" tag="ad-hoc-task" />
+<SampleScripts sample_name="project-at-execution-fixed" basename="build" tag="ad-hoc-task" source_dir="snippets/optimizing-builds/configuration-cache/projectAtExecutionFixed" />
 
 <CalloutList>
 
@@ -256,7 +256,7 @@ Referencing a project property like `version` inside a task action causes the ac
 This applies to both Groovy and Kotlin DSL scripts.
 To fix this, assign the project property to a local variable inside the task configuration block:
 
-<SampleScripts sample_name="captured-references" basename="build" tag="implicit-dont" />
+<SampleScripts sample_name="captured-references" basename="build" tag="implicit-dont" source_dir="snippets/optimizing-builds/configuration-cache/capturedReferences" />
 
 <CalloutList>
 
@@ -264,7 +264,7 @@ To fix this, assign the project property to a local variable inside the task con
 
 </CalloutList>
 
-<SampleScripts sample_name="captured-references" basename="build" tag="implicit-do" />
+<SampleScripts sample_name="captured-references" basename="build" tag="implicit-do" source_dir="snippets/optimizing-builds/configuration-cache/capturedReferences" />
 
 <CalloutList>
 
@@ -278,7 +278,7 @@ To fix this, assign the project property to a local variable inside the task con
 In Kotlin DSL scripts, top-level `val` and `var` declarations are compiled as properties of the build script class.
 Referencing them inside a `doLast {}` lambda causes the lambda to capture the build script object, which is not serializable:
 
-<SampleScripts sample_name="captured-references" basename="build" tag="dont" />
+<SampleScripts sample_name="captured-references" basename="build" tag="dont" source_dir="snippets/optimizing-builds/configuration-cache/capturedReferences" />
 
 <CalloutList>
 
@@ -288,7 +288,7 @@ Referencing them inside a `doLast {}` lambda causes the lambda to capture the bu
 
 To fix this, shadow the script-level property with a local variable inside the task configuration block:
 
-<SampleScripts sample_name="captured-references" basename="build" tag="do" />
+<SampleScripts sample_name="captured-references" basename="build" tag="do" source_dir="snippets/optimizing-builds/configuration-cache/capturedReferences" />
 
 <CalloutList>
 
@@ -303,7 +303,7 @@ Even after extracting a value into a local variable, Kotlin’s type inference m
 For example, `configurations.runtimeClasspath` returns a `NamedDomainObjectProvider<Configuration>`, which holds a reference to the project’s configuration container.
 Declaring an explicit, wider type drops this reference:
 
-<SampleScripts sample_name="captured-references" basename="build" tag="widen-dont" />
+<SampleScripts sample_name="captured-references" basename="build" tag="widen-dont" source_dir="snippets/optimizing-builds/configuration-cache/capturedReferences" />
 
 <CalloutList>
 
@@ -311,7 +311,7 @@ Declaring an explicit, wider type drops this reference:
 
 </CalloutList>
 
-<SampleScripts sample_name="captured-references" basename="build" tag="widen-do" />
+<SampleScripts sample_name="captured-references" basename="build" tag="widen-do" source_dir="snippets/optimizing-builds/configuration-cache/capturedReferences" />
 
 <CalloutList>
 
@@ -343,7 +343,7 @@ After deserialization, fields that referred to these objects may reference diffe
 
 Consider a task that stores a user-defined object and an `ArrayList` as task fields:
 
-<SampleScripts sample_name="shared-objects" basename="build" />
+<SampleScripts sample_name="shared-objects" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/sharedObjects" />
 
 <CalloutList>
 
@@ -562,18 +562,18 @@ For simpler cases, when grabbing the output of the process is enough,
 <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="exec(org.gradle.api.Action)">`providers.exec()`</GroovyDocLink> and
 <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="javaexec(org.gradle.api.Action)">`providers.javaexec()`</GroovyDocLink> can be used:
 
-<SampleScripts sample_name="external-process-provider" basename="build" />
+<SampleScripts sample_name="external-process-provider" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/externalProcessProvider" />
 
 For more complex cases, a custom <JavaDocLink class="org.gradle.api.provider.ValueSource" /> implementation with injected `ExecOperations` can be used (see [#config_cache:requirements:value_source](#config_cache:requirements:value_source) for a full overview of `ValueSource`).
 This `ExecOperations` instance can be used at configuration time without restrictions:
 
-<SampleScripts sample_name="external-process-value-source" basename="build" tag="value-source" />
+<SampleScripts sample_name="external-process-value-source" basename="build" tag="value-source" source_dir="snippets/optimizing-builds/configuration-cache/externalProcessValueSource" />
 
 You can also use standard Java/Kotlin/Groovy process APIs like `java.lang.ProcessBuilder` in the `ValueSource`.
 
 The `ValueSource` implementation can then be used to create a provider with <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="of(java.lang.Class,%20org.gradle.api.Action)">`providers.of`</GroovyDocLink>:
 
-<SampleScripts sample_name="external-process-value-source" basename="build" tag="create-provider" />
+<SampleScripts sample_name="external-process-value-source" basename="build" tag="create-provider" source_dir="snippets/optimizing-builds/configuration-cache/externalProcessValueSource" />
 
 In both approaches, if the value of the provider is used at configuration time then it will become a build configuration input.
 The external process will be executed for every build to determine if the Configuration Cache is `UP-TO-DATE`, so it is recommended to only call fast-running processes at configuration time.
@@ -597,19 +597,19 @@ Even adding a new property will invalidate the cache if this pattern is used.
 
 Using a custom predicate to filter environment variables is an example of this discouraged pattern:
 
-<SampleScripts sample_name="env-vars-sys-props-dont" basename="build" />
+<SampleScripts sample_name="env-vars-sys-props-dont" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/envVarsSysPropsDont" />
 
 The logic in the predicate is opaque to the Configuration Cache, so all environment variables are considered inputs.
 One way to reduce the number of inputs is to always use methods that query a concrete variable name, such as `getenv(String)`, or `getenv().get()`:
 
-<SampleScripts sample_name="env-vars-sys-props-do" basename="build" />
+<SampleScripts sample_name="env-vars-sys-props-do" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/envVarsSysPropsDo" />
 
 The fixed code above, however, is not exactly equivalent to the original as only an explicit list of variables is supported.
 Prefix-based filtering is a common scenario, so there are provider-based APIs to access
 <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="systemPropertiesPrefixedBy(java.lang.String)">system properties</GroovyDocLink> and
 <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="environmentVariablesPrefixedBy(java.lang.String)">environment variables</GroovyDocLink>:
 
-<SampleScripts sample_name="env-vars-sys-props-do-prefix" basename="build" />
+<SampleScripts sample_name="env-vars-sys-props-do-prefix" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/envVarsSysPropsDoPrefix" />
 
 Note that the Configuration Cache would be invalidated not only when the value of the variable changes or the variable is removed but also
 when another variable with the matching prefix is added to the environment.
@@ -619,7 +619,7 @@ System properties and environment variables referenced in the code of the `Value
 Instead, the value of the `ValueSource` is recomputed each time the build runs and only if the value changes the Configuration Cache is invalidated.
 For example, a `ValueSource` can be used to get all environment variables with names containing the substring `JDK`:
 
-<SampleScripts sample_name="env-vars-sys-props-do-value-source" basename="build" tag="value-source,create-provider" />
+<SampleScripts sample_name="env-vars-sys-props-do-value-source" basename="build" tag="value-source,create-provider" source_dir="snippets/optimizing-builds/configuration-cache/envVarsSysPropsDoValueSource" />
 
 ## Undeclared Reading of Files
 
@@ -628,11 +628,11 @@ Instead, declare files as potential build configuration inputs using the value s
 
 This problem is caused by build logic similar to this:
 
-<SampleScripts sample_name="file-contents-dont" basename="build" />
+<SampleScripts sample_name="file-contents-dont" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/fileContentsDont" />
 
 To fix this problem, read files using <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="fileContents(org.gradle.api.file.RegularFile)">`providers.fileContents()`</GroovyDocLink> instead:
 
-<SampleScripts sample_name="file-contents-do" basename="build" />
+<SampleScripts sample_name="file-contents-do" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/fileContentsDo" />
 
 In general, you should avoid reading files at configuration time, to avoid invalidating Configuration Cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by <GroovyDocLink class="org.gradle.api.provider.ProviderFactory" method="fileContents(org.gradle.api.file.RegularFile)">`providers.fileContents()`</GroovyDocLink> to task properties.

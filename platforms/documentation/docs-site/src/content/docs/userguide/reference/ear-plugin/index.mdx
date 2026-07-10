@@ -12,7 +12,7 @@ It doesn’t require the <Xref page="java-plugin" section="The Java Plugin">Java
 
 To use the Ear plugin, include the following in your build script:
 
-<SampleScripts sample_name="ear-with-war" basename="build" tag="use-ear-plugin" />
+<SampleScripts sample_name="ear-with-war" basename="build" tag="use-ear-plugin" source_dir="snippets/reference/core-plugins/earWithWar" />
 
 ## Tasks
 
@@ -71,7 +71,7 @@ The <GroovyDocLink class="org.gradle.plugins.ear.Ear" /> class in the API docume
 
 Here is an example with the most important customization options:
 
-<SampleScripts sample_name="ear-customized" basename="build" subpath="ear" />
+<SampleScripts sample_name="ear-customized" basename="build" subpath="ear" source_dir="snippets/reference/core-plugins/earCustomized" />
 
 You can also use customization options that the <GroovyDocLink class="org.gradle.plugins.ear.Ear" /> task provides, such as `from` and `metaInf`.
 
@@ -109,7 +109,7 @@ Configure the WAR module to use `compileOnly` dependencies for libraries that wi
 
 **WAR module build script**
 
-<SampleScripts sample_name="skinny-war" basename="build" subpath="war" />
+<SampleScripts sample_name="skinny-war" basename="build" subpath="war" source_dir="snippets/ear/skinnyWar" />
 
 ### EAR Module Configuration
 
@@ -117,7 +117,7 @@ Configure the EAR module to include the WAR and place shared libraries in the `l
 
 **EAR module build script**
 
-<SampleScripts sample_name="skinny-war" basename="build" subpath="ear" />
+<SampleScripts sample_name="skinny-war" basename="build" subpath="ear" source_dir="snippets/ear/skinnyWar" />
 
 ### Runtime Library Resolution
 

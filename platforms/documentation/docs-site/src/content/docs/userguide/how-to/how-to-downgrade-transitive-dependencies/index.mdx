@@ -29,15 +29,15 @@ Gradle allows you to enforce a <Xref page="dependency-versions" section="Declari
 
 Suppose a project depends on ***HttpClient***, which pulls in ***Commons Codec 1.10***, but your project requires ***Commons Codec 1.9***:
 
-<SampleFile sample_name="downgrade-transitives" path="tests/dependencies.out" />
+<SampleFile sample_name="downgrade-transitives" path="tests/dependencies.out" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 You can enforce the required version by setting a ***strict version constraint***:
 
-<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-full" />
+<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-full" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
-<SampleFile sample_name="downgrade-transitives" path="tests/dependencies-downgrade.out" />
+<SampleFile sample_name="downgrade-transitives" path="tests/dependencies-downgrade.out" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 Important notes about strict versions:
 
@@ -49,11 +49,11 @@ Important notes about strict versions:
 
 Instead of locking to a single version, define a ***strict range***:
 
-<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-full-prefer" />
+<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-full-prefer" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 If another dependency requires ***1.10***, Gradle can resolve it without failure, as long as it falls within the specified range.
 
-<SampleFile sample_name="downgrade-transitives" path="tests/dependencies-extra.out" />
+<SampleFile sample_name="downgrade-transitives" path="tests/dependencies-extra.out" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 ## Option 2: Forcing a Version at the Configuration Level
 
@@ -61,11 +61,11 @@ If a strict dependency is ***too restrictive***, you can ***force*** a specific 
 
 ### Step 1: Forcing a Version for the Entire Build
 
-<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-configs" />
+<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-configs" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 Running `./gradlew dependencies --configuration compileClasspath` showcases the results:
 
-<SampleFile sample_name="downgrade-transitives" path="tests/dependencies-config.out" />
+<SampleFile sample_name="downgrade-transitives" path="tests/dependencies-config.out" source_dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives" />
 
 This ensures that ***Commons Codec 1.9 is always used***, even if transitive dependencies request a newer version.
 

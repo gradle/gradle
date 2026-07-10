@@ -25,7 +25,7 @@ plugins {
 
 A lot of the information needed to publish the plugin - `group`, `version`, and `id` - is already in your build file:
 
-<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" subpath="plugin" tag="plugin-id" />
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" subpath="plugin" tag="plugin-id" source_dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin" />
 
 `group = "org.example"` sets the **group** ID of the plugin.
 
@@ -40,7 +40,7 @@ This is the class that implements `Plugin<Project>` and defines what happens whe
 In your `plugin/build.gradle(.kts)` file, configure the plugin for publication by defining where to publish it.
 Inside the `publishing {}` block, you specify the repository to publish to:
 
-<SampleScripts sample_name="publishing-binary-plugin-publishing-block" basename="build" tag="publishing-block" />
+<SampleScripts sample_name="publishing-binary-plugin-publishing-block" basename="build" tag="publishing-block" source_dir="snippets/fundamentals/developing-plugins/publishingBinaryPlugin-publishingBlock" />
 
 ## Publish the Plugin
 

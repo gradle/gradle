@@ -28,7 +28,7 @@ Rules written as isolated classes can be annotated with `@CacheableRule`, allowi
 A rule should always be cacheable to avoid major impacts on build performance and ensure faster build times.
 :::
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="config-component-metadata-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="config-component-metadata-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 In this example, the `TargetJvmVersionRule` class implements <JavaDocLink class="org.gradle.api.artifacts.ComponentMetadataRule" /> and is further configured using <JavaDocLink class="org.gradle.api.ActionConfiguration" />.
 
@@ -48,21 +48,21 @@ Declaring component metadata rules in settings is an incubating feature
 Component metadata rules can be declared in the `settings.gradle(.kts)` file for the entire build, rather than in each subproject individually.
 Rules declared in settings are applied to all projects by default unless overridden by project-specific rules.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="rule-in-settings" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="rule-in-settings" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 By default, project-specific rules take precedence over settings rules.
 However, this behavior can be adjusted:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="prefer-settings" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="prefer-settings" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 If this method is called and that a project or plugin declares rules, a warning will be issued.
 You can make this a failure instead by using this alternative:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="enforce-settings" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="enforce-settings" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 The default behavior is equivalent to calling this method:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="prefer-projects" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="settings" tag="prefer-projects" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 ## Which parts of metadata can be modified?
 
@@ -109,7 +109,7 @@ Consider the Jaxen XPath Engine (version `1.1.3`) published on Maven Central.
 Its `pom` file declares several unnecessary dependencies in the `compile` scope, which were later removed in version `1.1.4`.
 If you need to work with version `1.1.3`, you can fix the metadata using the following rule:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="jaxen-rule-1" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="jaxen-rule-1" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 In the `withDependencies` block, you have access to the full list of dependencies and can use Java collection methods to inspect and modify that list. You can also add dependencies using the `add(notation, configureAction)` method.
 Similarly, you can inspect and modify dependency constraints within the `withDependencyConstraints` block.
@@ -119,13 +119,13 @@ Optional dependencies are not processed automatically by Gradle or Maven, as the
 However, the `pom` file lacks information about these features and their corresponding dependencies.
 This can be represented in Gradle Module Metadata through variants and <Xref page="component-capabilities" section="Declaring component capabilities">capabilities</Xref>, which we can add via a component metadata rule.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="jaxen-rule-2" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="jaxen-rule-2" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 In this example, we create a new variant called `runtime-dom4j` using the `addVariant(name, baseVariant)` method.
 This variant represents an optional feature, defined by the capability `jaxen-dom4j`.
 We then add the required dependency `dom4j:dom4j:1.6.1` to this feature.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="jaxen-dependencies" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="jaxen-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 By applying these rules, Gradle uses the enriched metadata to correctly resolve the optional dependencies when the `jaxen-dom4j` feature is required.
 
@@ -142,7 +142,7 @@ As a result, there is no clear way to determine their existence or any differenc
 In Gradle Module Metadata, variant information would be present.
 For the already published Quasar library, we can add this information using the following rule:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="quasar-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="quasar-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 In this case, the `jdk8` classifier clearly indicates the target Java version, which corresponds to a known attribute in the Java ecosystem.
 Since we need both compile and runtime variants for Java 8, we create two new variants using the existing compile and runtime variants as a base.
@@ -154,7 +154,7 @@ Finally, we enrich the existing compile and runtime variants with the informatio
 
 With these changes, you can now request Java 8 versions for all dependencies on the compile classpath, and Gradle will automatically select the best-fitting variant. In the case of Quasar, this will be the `jdk8Compile` variant, which exposes the `quasar-core-0.7.9-jdk8.jar`.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="quasar-dependencies" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="quasar-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 With this configuration, Gradle will select the Java 8 variant of Quasar for the compile classpath.
 
@@ -173,7 +173,7 @@ However, since both variants are always published together we can assume that th
 And since they are published with Maven repository conventions, we know the location of each file if we know module name and version.
 We can write the following rule:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guava-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guava-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 Similar to the previous example, we add runtime and compile variants for both Java versions.
 In the `withFiles` block however, we now also specify a relative path for the corresponding jar file which allows Gradle to find the file no matter if it has selected a _-jre_ or _-android_ version.
@@ -182,7 +182,7 @@ So with this rules, both Guava 28 "versions" carry both the _jdk6_ and _jdk8_ va
 So it does not matter to which one Gradle resolves.
 The variant, and with it the correct jar file, is determined based on the requested `TARGET_JVM_VERSION_ATTRIBUTE` value.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guava-dependencies" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guava-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 ## Adding variants for native jars
 
@@ -191,7 +191,7 @@ This is for example done by the Lightweight Java Game Library (LWGJ), which publ
 It is not possible to convey this information in pom metadata as there is no concept of putting multiple artifacts in relation through the metadata.
 In Gradle Module Metadata, each variant can have arbitrary many files and we can leverage that by writing the following rule:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="lwgj-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="lwgj-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 This rule is quite similar to the Quasar library example above.
 Only this time we have five different runtime variants we add and nothing we need to change for the compile variant.
@@ -205,11 +205,11 @@ In the build script, we can now request a specific variant and Gradle will fail 
 Gradle is able to understand the common case where a single attribute is missing that would have removed the ambiguity.
 In this case, rather than listing information about all attributes on all available variants, Gradle helpfully lists only possible values for that attribute along with the variants each value would select.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="lwgj-dependencies" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="lwgj-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 Gradle fails to select a variant because a machine architecture needs to be chosen:
 
-<SampleFile sample_name="customizing-resolution-metadata-rule" path="tests/failRuntimeClasspathResolve.out" />
+<SampleFile sample_name="customizing-resolution-metadata-rule" path="tests/failRuntimeClasspathResolve.out" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 ## Making different flavors of a library available through capabilities
 
@@ -219,13 +219,13 @@ One such library is the well-known dependency injection framework Guice, publish
 That second variant with a classifier is not mentioned in the pom metadata.
 With the following rule, we create compile and runtime variants based on that file and make it selectable through a capability named `com.google.inject:guice-no_aop`.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guice-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guice-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 The new variants also have the dependency on the standardized aop interfaces library `aopalliance:aopalliance` removed, as this is clearly not needed by these variants.
 Again, this is information that cannot be expressed in pom metadata.
 We can now select a `guice-no_aop` variant and will get the correct jar file **and** the correct dependencies.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guice-dependencies" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="guice-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 ## Adding missing capabilities to detect conflicts
 
@@ -246,14 +246,14 @@ However, modifying attributes or capabilities on Ivy configurations has no effec
 For very Ivy specific use cases, the component metadata rules API also offers access to other details only found in Ivy metadata.
 These are available through the <JavaDocLink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" /> interface and can be accessed using `getDescriptor(IvyModuleDescriptor)` on the <JavaDocLink class="org.gradle.api.artifacts.ComponentMetadataContext" />.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="ivy-component-metadata-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="ivy-component-metadata-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 ## Filter using Maven metadata
 
 For Maven specific use cases, the component metadata rules API also offers access to other details only found in POM metadata.
 These are available through the <JavaDocLink class="org.gradle.api.artifacts.maven.PomModuleDescriptor" /> interface and can be accessed using `getDescriptor(PomModuleDescriptor)` on the <JavaDocLink class="org.gradle.api.artifacts.ComponentMetadataContext" />.
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="maven-packaging-component-metadata-rule" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="maven-packaging-component-metadata-rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 ## Modifying metadata on the component level for alignment
 
@@ -296,7 +296,7 @@ Thus each component always has a status which is determined from the metadata as
 
 The following example demonstrates `latest` selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
 
-<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="custom-status-scheme" />
+<SampleScripts sample_name="customizing-resolution-metadata-rule" basename="build" tag="custom-status-scheme" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-metadataRule" />
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
 Existing modules with the status `integration` are mapped to `nightly`.

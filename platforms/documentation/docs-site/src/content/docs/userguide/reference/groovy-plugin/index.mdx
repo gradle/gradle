@@ -19,7 +19,7 @@ Note that if you want to benefit from the <Xref page="java-library-plugin" secti
 
 To use the Groovy plugin, include the following in your build script:
 
-<SampleScripts sample_name="groovy-dependency" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="use-plugin" source_dir="snippets/reference/platforms/jvm/groovyDependency" />
 
 ## Tasks
 
@@ -142,7 +142,7 @@ Groovy source files for the given source set. May also contain Java source files
 
 Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
 
-<SampleScripts sample_name="customized-layout" basename="build" tag="custom-source-locations" />
+<SampleScripts sample_name="customized-layout" basename="build" tag="custom-source-locations" source_dir="snippets/reference/platforms/jvm/customizedLayout" />
 
 ## Dependency management
 
@@ -150,15 +150,15 @@ Because Gradle’s build language is based on Groovy, Gradle already ships with 
 
 If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
 
-<SampleScripts sample_name="groovy-dependency" basename="build" tag="groovy-dependency" />
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="groovy-dependency" source_dir="snippets/reference/platforms/jvm/groovyDependency" />
 
 If Groovy is only used for test code, the Groovy dependency should be added to the `testImplementation` configuration:
 
-<SampleScripts sample_name="groovy-dependency" basename="build" tag="groovy-test-dependency" />
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="groovy-test-dependency" source_dir="snippets/reference/platforms/jvm/groovyDependency" />
 
 To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
 
-<SampleScripts sample_name="groovy-dependency" basename="build" tag="bundled-groovy-dependency" />
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="bundled-groovy-dependency" source_dir="snippets/reference/platforms/jvm/groovyDependency" />
 
 ## Automatic configuration of groovyClasspath
 
@@ -259,7 +259,7 @@ However, similar to Java’s annotation processing, there are various ways to [c
 Some well-known examples are [Groovy AST transformations](https://groovy-lang.org/metaprogramming.html#_code_generation_transformations).
 In these cases, these dependencies must be declared separately in a classpath called `astTransformationClasspath`:
 
-<SampleScripts sample_name="compilation-avoidance" basename="build" subpath="ast-transformation-consumer" tag="groovy-compilation-avoidance" />
+<SampleScripts sample_name="compilation-avoidance" basename="build" subpath="ast-transformation-consumer" tag="groovy-compilation-avoidance" source_dir="snippets/reference/platforms/jvm/compilationAvoidance" />
 
 ## Incremental Groovy compilation
 
@@ -268,7 +268,7 @@ Since 5.6, Gradle introduces an experimental incremental Groovy compiler. To ena
 - Enable [Groovy compilation avoidance](#sec:groovy_compilation_avoidance).
 - Explicitly enable incremental Groovy compilation in the build script:
 
-<SampleScripts sample_name="incremental-compilation" basename="myproject.groovy-conventions" subpath="buildSrc/src/main/{lang}" tag="enable-groovy-incremental" />
+<SampleScripts sample_name="incremental-compilation" basename="myproject.groovy-conventions" subpath="buildSrc/src/main/{lang}" tag="enable-groovy-incremental" source_dir="snippets/reference/platforms/jvm/incrementalCompilation" />
 
 This gives you the following benefits:
 
@@ -296,6 +296,6 @@ If you also have Java source files, this will also configure `JavaCompile` to us
 
 ### Example: Configure Java 7 build for Groovy
 
-<SampleScripts sample_name="cross-compilation" basename="build" tag="groovy-cross-compilation" />
+<SampleScripts sample_name="cross-compilation" basename="build" tag="groovy-cross-compilation" source_dir="snippets/reference/platforms/jvm/crossCompilation" />
 
 [^1]: Gradle uses the same conventions as introduced by Russel Winder’s [Gant tool

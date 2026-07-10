@@ -60,7 +60,7 @@ They often evolve into proper plugins placed in `buildSrc` or published as stand
 
 The simplest plugin is a class that implements <JavaDocLink class="org.gradle.api.Plugin">`Plugin<Project>`</JavaDocLink> and configures the project when applied:
 
-<SampleScripts sample_name="custom-plugin-script" basename="build" tag="no-script-plugin" />
+<SampleScripts sample_name="custom-plugin-script" basename="build" tag="no-script-plugin" source_dir="snippets/reference/plugin-development/customPluginScript" />
 
 ```bash
 $ ./gradlew -q hello
@@ -72,9 +72,9 @@ Hello from the GreetingPlugin
 
 You can also put such a plugin in a separate script file and apply it with `apply(from = "other.gradle.kts")` or `apply from: 'other.gradle'`:
 
-<SampleScripts sample_name="custom-plugin-script" basename="other" />
+<SampleScripts sample_name="custom-plugin-script" basename="other" source_dir="snippets/reference/plugin-development/customPluginScript" />
 
-<SampleScripts sample_name="custom-plugin-script" basename="build" tag="script-plugin" />
+<SampleScripts sample_name="custom-plugin-script" basename="build" tag="script-plugin" source_dir="snippets/reference/plugin-development/customPluginScript" />
 
 ```bash
 $ ./gradlew -q hi
@@ -113,11 +113,11 @@ When the plugin is applied to a project, Gradle creates an instance of the plugi
 Let’s rewrite the `GreetingPlugin` script plugin as a precompiled script plugin.
 The script plugin is moved to its own file in `buildSrc`:
 
-<SampleScripts sample_name="greeting-plugin" basename="GreetingPlugin" subpath="buildSrc/src/main/{lang}" />
+<SampleScripts sample_name="greeting-plugin" basename="GreetingPlugin" subpath="buildSrc/src/main/{lang}" source_dir="snippets/reference/plugin-development/greetingPlugin" />
 
 The `GreetingPlugin` can now be applied in other subprojects' builds by using its ID:
 
-<SampleScripts sample_name="greeting-plugin" basename="build" subpath="app" tag="use-plugin" />
+<SampleScripts sample_name="greeting-plugin" basename="build" subpath="app" tag="use-plugin" source_dir="snippets/reference/plugin-development/greetingPlugin" />
 
 ```bash
 $ ./gradlew -q hello
@@ -161,7 +161,7 @@ The project has the following structure:
 
 The build file of the `database-logic` subproject is as follows:
 
-<SampleScripts sample_name="plugin-project" basename="build" subpath="database-logic" />
+<SampleScripts sample_name="plugin-project" basename="build" subpath="database-logic" source_dir="snippets/reference/plugin-development/pluginProject" />
 
 We apply the `java-library` plugin and add the `org.jetbrains.kotlin.jvm` plugin for Kotlin support.
 We also configure Kotlin, Java, tests and more.
@@ -182,7 +182,7 @@ We add a Kotlin script called `my-java-library.gradle.kts` inside the `buildSrc/
 Or conversely, a Groovy script called `my-java-library.gradle` inside the `buildSrc/src/main/groovy` directory.
 We put all the plugin application and configuration from the `database-logic` build file into it:
 
-<SampleScripts sample_name="plugin-project" basename="my-java-library" subpath="buildSrc/src/main/{lang}" />
+<SampleScripts sample_name="plugin-project" basename="my-java-library" subpath="buildSrc/src/main/{lang}" source_dir="snippets/reference/plugin-development/pluginProject" />
 
 The name of the file `my-java-library` is the ID of our plugin, which we can now reference in all of our subprojects.
 
@@ -234,9 +234,9 @@ This plugin provides the necessary tasks and configurations (including the plugi
 
 Here is a simple build script for the `greeting-plugin` project using the Gradle Plugin Development Plugin:
 
-<SampleScripts sample_name="custom-plugin" basename="build" subpath="java-gradle-plugin" tag="use-and-configure-plugin" />
+<SampleScripts sample_name="custom-plugin" basename="build" subpath="java-gradle-plugin" tag="use-and-configure-plugin" source_dir="snippets/reference/plugin-development/customPlugin" />
 
-For more on publishing plugins, see <Xref page="publishing-gradle-plugins" section="Adding the {publishplugin}">Publishing Plugins</Xref>.
+For more on publishing plugins, see <Xref page="publishing-gradle-plugins" section="Adding the Plugin Publish Plugin">Publishing Plugins</Xref>.
 
 ## Scope of Plugins
 

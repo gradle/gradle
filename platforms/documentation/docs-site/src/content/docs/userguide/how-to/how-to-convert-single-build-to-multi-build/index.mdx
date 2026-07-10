@@ -148,7 +148,7 @@ Modify `settings.gradle(.kts)` to include the new subprojects.
 
 In our example, we add `library` to our `include`:
 
-<SampleScripts sample_name="single-multi-build" basename="settings" />
+<SampleScripts sample_name="single-multi-build" basename="settings" source_dir="snippets/how-to/structuring-builds/structuring-builds/single-multi-build" />
 
 **There should be no other settings files**.
 
@@ -182,12 +182,12 @@ It holds all the dependencies and configurations needed to build the `app` subpr
 
 Now, it also has a dependency on the `library` subproject:
 
-<SampleScripts sample_name="single-multi-build" basename="build" subpath="app" />
+<SampleScripts sample_name="single-multi-build" basename="build" subpath="app" source_dir="snippets/how-to/structuring-builds/structuring-builds/single-multi-build" />
 
 The `library` build file should be new.
 It holds all the dependencies and configurations needed to build the `library` subproject:
 
-<SampleScripts sample_name="single-multi-build" basename="build" subpath="library" />
+<SampleScripts sample_name="single-multi-build" basename="build" subpath="library" source_dir="snippets/how-to/structuring-builds/structuring-builds/single-multi-build" />
 
 ## Step 5: Modify or Delete the Root `build.gradle(.kts)`
 
@@ -216,7 +216,7 @@ root
 
 If you need to configure ***shared repositories and settings***, you can use the root `build.gradle(.kts)`:
 
-<SampleScripts sample_name="single-multi-build" basename="build" />
+<SampleScripts sample_name="single-multi-build" basename="build" source_dir="snippets/how-to/structuring-builds/structuring-builds/single-multi-build" />
 
 You can take a look back at how the common 3rd party plugin called `org.jetbrains.kotlin.plugin.serialization` is applied in each build file.
 

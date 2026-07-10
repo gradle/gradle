@@ -9,11 +9,11 @@ Each **feature variant** can declare its own set of dependencies and can be cons
 
 For example, a producer can register a feature variant:
 
-<SampleScripts sample_name="feature-variants-intro" basename="build" subpath="library" tag="producer" />
+<SampleScripts sample_name="feature-variants-intro" basename="build" subpath="library" tag="producer" source_dir="snippets/how-to/dependency-management/dependency-management/feature-variants-intro" />
 
 And a consumer can require the feature’s capability:
 
-<SampleScripts sample_name="feature-variants-intro" basename="build" subpath="consumer" tag="consumer" />
+<SampleScripts sample_name="feature-variants-intro" basename="build" subpath="consumer" tag="consumer" source_dir="snippets/how-to/dependency-management/dependency-management/feature-variants-intro" />
 
 ## Why Use Feature Variants?
 
@@ -57,7 +57,7 @@ To achieve this, consumers must explicitly declare separate dependencies:
 - One dependency for the main library (the "main" feature).
 - Another dependency explicitly requiring the capability of the additional feature (e.g., test fixtures).
 
-<SampleScripts sample_name="feature-variants-test-fixtures" basename="build" tag="register_test_fixtures" />
+<SampleScripts sample_name="feature-variants-test-fixtures" basename="build" tag="register_test_fixtures" source_dir="snippets/how-to/dependency-management/dependency-management/feature-variants-test-fixtures" />
 
 :::note
 While the resolution engine supports multi-variant components independently of the ecosystem, **feature variants** are currently **only supported by the Java plugins**.
@@ -69,7 +69,7 @@ Features can be declared by applying the `java-library` plugin.
 
 The following code illustrates how to declare a feature named `mongodbSupport`:
 
-<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="register_variant,register_variant2" />
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="register_variant,register_variant2" source_dir="snippets/how-to/dependency-management/dependency-management/producer-separate-sourceset" />
 
 Gradle will automatically set up a number of things for you, in a very similar way to how the <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library Plugin</Xref> sets up configurations.
 
@@ -102,7 +102,7 @@ Do not use the _main_ source set when registering a feature. This behavior will 
 
 Most users will only care about the dependency scope configurations, to declare the specific dependencies of this feature:
 
-<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="variant_dependencies" />
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="variant_dependencies" source_dir="snippets/how-to/dependency-management/dependency-management/producer-separate-sourceset" />
 
 By convention, Gradle maps a feature variant’s capability using the same group and version as the main component, while the capability’s name is constructed from the main component name followed by a `-` and the kebab-case version of the feature name.
 
@@ -126,7 +126,7 @@ Publishing feature variants is only supported using the `maven-publish` and `ivy
 
 The Java Library Plugin automatically registers additional variants for you, requiring no extra configuration beyond the standard publication setup:
 
-<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="plugins,publishing" />
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="plugins,publishing" source_dir="snippets/how-to/dependency-management/dependency-management/producer-separate-sourceset" />
 
 Depending on the metadata format used, publishing features may vary:
 
@@ -138,7 +138,7 @@ Depending on the metadata format used, publishing features may vary:
 
 Similar to the <Xref page="building-java-projects" section="Packaging and publishing">main Javadoc and sources JARs</Xref>, you can configure feature variants to produce their own Javadoc and sources JARs:
 
-<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="register_variant_extra_jars" />
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="register_variant_extra_jars" source_dir="snippets/how-to/dependency-management/dependency-management/producer-separate-sourceset" />
 
 ## Step 4: Dependencies on Features
 
@@ -151,17 +151,17 @@ When consuming feature variants, it’s important to note that feature support c
 Consumers declare specific feature dependencies by explicitly requiring their capabilities.
 For example, if a producer defines a feature variant for "MySQL support" as follows:
 
-<SampleScripts sample_name="requiring-features" basename="build" subpath="producer" tag="producer" />
+<SampleScripts sample_name="requiring-features" basename="build" subpath="producer" tag="producer" source_dir="snippets/how-to/dependency-management/dependency-management/requiring-features" />
 
 A consumer project can explicitly depend on the "MySQL support" feature by requiring its capability:
 
-<SampleScripts sample_name="requiring-features" basename="build" subpath="consumer" tag="consumer" />
+<SampleScripts sample_name="requiring-features" basename="build" subpath="consumer" tag="consumer" source_dir="snippets/how-to/dependency-management/dependency-management/requiring-features" />
 
 This setup automatically includes the mysql-connector-java dependency on the consumer’s runtime classpath. If multiple dependencies are grouped under the feature variant, all of them are included when the capability is required.
 
 Similarly, when external libraries with feature variants are published using [Gradle Module Metadata](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md), consumers can explicitly depend on these external features:
 
-<SampleScripts sample_name="requiring-features-external" basename="build" subpath="project" tag="consumer" />
+<SampleScripts sample_name="requiring-features-external" basename="build" subpath="project" tag="consumer" source_dir="snippets/how-to/dependency-management/dependency-management/requiring-features-external" />
 
 ## Step 5: Handling Mutually Exclusive Variants
 
@@ -178,7 +178,7 @@ By assigning each variant a shared capability, you ensure that these variants ca
 
 For instance, the producer might define variants as follows:
 
-<SampleScripts sample_name="incompatible-variants" basename="build" subpath="producer" tag="producer" />
+<SampleScripts sample_name="incompatible-variants" basename="build" subpath="producer" tag="producer" source_dir="snippets/how-to/dependency-management/dependency-management/incompatible-variants" />
 
 Here:
 
@@ -188,7 +188,7 @@ Here:
 
 If a consumer attempts to include multiple conflicting features, such as both `MySQL` and `PostgreSQL` support:
 
-<SampleScripts sample_name="incompatible-variants" basename="build" subpath="consumer" tag="consumer" />
+<SampleScripts sample_name="incompatible-variants" basename="build" subpath="consumer" tag="consumer" source_dir="snippets/how-to/dependency-management/dependency-management/incompatible-variants" />
 
 Dependency resolution will fail with a clear and informative error message:
 

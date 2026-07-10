@@ -380,7 +380,7 @@ Consider the following function that traverses a dependency graph, starting from
 Callbacks are notified for each node and edge in the graph.
 This function can be used as a base for any use case that requires traversing a dependency graph:
 
-<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="graph-traversal-function" />
+<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="graph-traversal-function" source_dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult" />
 
 This function starts at the root variant, and performs a breadth-first traversal of the graph.
 The `ResolutionResult` API is lenient, so it is important to check whether a visited edge is unresolved (failed) or resolved.
@@ -388,7 +388,7 @@ With this function, the node callback is always called before the edge callback 
 
 Below, we leverage the above traversal function to transform a dependency graph into a `.dot` file for visualization:
 
-<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="define-graph-traversal-task" />
+<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="define-graph-traversal-task" source_dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult" />
 
 :::note
 A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <Xref page="writing-tasks-intermediate" section="Creating and Registering Tasks">Writing Tasks</Xref> section.
@@ -396,7 +396,7 @@ A proper implementation would not use `println` but would write to an output fil
 
 When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
 
-<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="register-graph-traversal-task" />
+<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="register-graph-traversal-task" source_dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult" />
 
 :::note
 This example uses incubating APIs.

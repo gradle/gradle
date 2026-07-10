@@ -57,7 +57,7 @@ These external factors can be for example:
 You need to be careful to declare these additional inputs for your integration test in order to avoid incorrect cache hits.
 For example, declaring the operating system in use by Gradle as an input to a `Test` task called `integTest` would work as follows:
 
-<SampleScripts sample_name="integration-tests" basename="build" tag="integTest" />
+<SampleScripts sample_name="integration-tests" basename="build" tag="integTest" source_dir="snippets/optimizing-builds/build-cache/integration-tests" />
 
 ### Archives as inputs
 
@@ -72,12 +72,12 @@ See also the section on dealing with <Xref page="common-caching-problems" sectio
 You will probably pass some information from the build environment to your integration test tasks by using system properties.
 Passing absolute paths will break <Xref page="build-cache-concepts" section="Path sensitivity and relocatability">relocatability</Xref> of the integration test task.
 
-<SampleScripts sample_name="integration-tests" basename="build" tag="distributionPathInput" />
+<SampleScripts sample_name="integration-tests" basename="build" tag="distributionPathInput" source_dir="snippets/optimizing-builds/build-cache/integration-tests" />
 
 Instead of adding the absolute path directly as a system property, it is possible to add an
 annotated <JavaDocLink class="org.gradle.process.CommandLineArgumentProvider" /> to the `integTest` task:
 
-<SampleScripts sample_name="integration-tests" basename="build" tag="distributionDirInput" />
+<SampleScripts sample_name="integration-tests" basename="build" tag="distributionDirInput" source_dir="snippets/optimizing-builds/build-cache/integration-tests" />
 
 <CalloutList>
 
@@ -93,7 +93,7 @@ annotated <JavaDocLink class="org.gradle.process.CommandLineArgumentProvider" />
 It may be necessary to ignore some system properties as inputs as they do not influence the outcome of the integration tests.
 In order to do so, add a <JavaDocLink class="org.gradle.process.CommandLineArgumentProvider" /> to the `integTest` task:
 
-<SampleScripts sample_name="integration-tests" basename="build" tag="ignoreSystemProperties" />
+<SampleScripts sample_name="integration-tests" basename="build" tag="ignoreSystemProperties" source_dir="snippets/optimizing-builds/build-cache/integration-tests" />
 
 <CalloutList>
 

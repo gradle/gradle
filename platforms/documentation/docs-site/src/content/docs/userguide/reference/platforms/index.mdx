@@ -38,7 +38,7 @@ Platforms are also commonly published as Maven BOMs (Bill of Materials), which G
 
 To use a platform, declare a dependency with the `platform` keyword:
 
-<SampleScripts sample_name="recommender" basename="build" subpath="consumer" tag="get-recommendations" />
+<SampleScripts sample_name="recommender" basename="build" subpath="consumer" tag="get-recommendations" source_dir="snippets/reference/dependency-management/centralizing-dependencies/recommender" />
 
 This notation automatically performs several actions:
 
@@ -51,7 +51,7 @@ If <Xref page="dependency-versions" section="`strictly` or `!!`">strict version<
 
 In Java projects, the `java-platform` plugin combined with <Xref page="dependency-constraints" section="Declaring Dependency Constraints">dependency constraints</Xref> can be used to create a platform:
 
-<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="full-platform" />
+<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="full-platform" source_dir="snippets/reference/dependency-management/centralizing-dependencies/recommender" />
 
 This defines a custom platform with specific versions of `commons-httpclient` and `commons-lang3` that can be applied in other projects.
 
@@ -68,7 +68,7 @@ Gradle treats all entries in the block of a BOM similar to <Xref page="dependenc
 
 To import a BOM, declare a dependency on it using the `platform` dependency modifier method:
 
-<SampleScripts sample_name="managing-transitive-dependencies-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" />
+<SampleScripts sample_name="managing-transitive-dependencies-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" source_dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM" />
 
 In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j`, so no explicit versions are needed.
 
@@ -76,7 +76,7 @@ In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j
 
 The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as it is effectively transitive and exports forced versions to all consumers of your project:
 
-<SampleScripts sample_name="managing-transitive-dependencies-enforced-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" />
+<SampleScripts sample_name="managing-transitive-dependencies-enforced-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" source_dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM" />
 
 When using `enforcedPlatform`, exercise caution if your software component is intended for consumption by others.
 This declaration is transitive and affects the dependency graph of your consumers.

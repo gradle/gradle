@@ -22,7 +22,7 @@ Instead of applying it directly to your project, you should look into the `java-
 
 To use the Java plugin, include the following in your build script:
 
-<SampleScripts sample_name="java-quickstart" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="java-quickstart" basename="build" tag="use-plugin" source_dir="snippets/reference/platforms/jvm/javaQuickstart" />
 
 ## Tasks
 
@@ -236,7 +236,7 @@ Resources for the source set named _sourceSet_.
 
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
-<SampleScripts sample_name="customized-layout" basename="build" tag="define-main" />
+<SampleScripts sample_name="customized-layout" basename="build" tag="define-main" source_dir="snippets/reference/core-plugins/customizedLayout" />
 
 ## Source sets
 
@@ -376,15 +376,15 @@ See the <Xref page="java-testing" section="Configuring integration tests">integr
 
 Adding a JAR containing the classes of a source set:
 
-<SampleScripts sample_name="source-sets" basename="build" tag="jar" />
+<SampleScripts sample_name="source-sets" basename="build" tag="jar" source_dir="snippets/reference/platforms/jvm/sourceSets" />
 
 Generating Javadoc for a source set:
 
-<SampleScripts sample_name="source-sets" basename="build" tag="javadoc" />
+<SampleScripts sample_name="source-sets" basename="build" tag="javadoc" source_dir="snippets/reference/platforms/jvm/sourceSets" />
 
 Adding a test suite to run the tests in a source set:
 
-<SampleScripts sample_name="source-sets" basename="build" tag="test" />
+<SampleScripts sample_name="source-sets" basename="build" tag="test" source_dir="snippets/reference/platforms/jvm/sourceSets" />
 
 ## Dependency management
 
@@ -486,7 +486,7 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 **Using the `java` extension to configure a toolchain**
 
-<SampleScripts sample_name="java-basic" basename="build" tag="java-extension" />
+<SampleScripts sample_name="java-basic" basename="build" tag="java-extension" source_dir="snippets/reference/core-plugins/java-basic" />
 
 Below is the list of properties and DSL functions with short explanations available inside the `java` extension.
 
@@ -847,7 +847,7 @@ Some of the types of changes that do not affect the public API and are ignored:
 Since implementation details matter for annotation processors, they must be declared separately on the annotation processor path.
 Gradle ignores annotation processors on the compile classpath.
 
-<SampleScripts sample_name="apt" basename="build" tag="annotation-processing" />
+<SampleScripts sample_name="apt" basename="build" tag="annotation-processing" source_dir="snippets/reference/platforms/jvm/apt" />
 
 ## Variant aware selection
 

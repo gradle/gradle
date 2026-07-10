@@ -32,7 +32,7 @@ Specifically, build scripts contain two main types of dependencies:
 
 Let’s take a look at an example and break it down:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init" source_dir="snippets/fundamentals/running-builds/generated" />
 
 <CalloutList>
 
@@ -48,7 +48,7 @@ Plugins extend Gradle’s functionality and can contribute tasks to a project.
 
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-plugins" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-plugins" source_dir="snippets/fundamentals/running-builds/generated" />
 
 The `application` plugin facilitates creating an executable JVM application.
 
@@ -61,7 +61,7 @@ Your project needs external libraries to compile, run, and test.
 
 In this example, the project uses `JUnit Jupiter` for testing and Google’s `Guava` library in the main application code:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" source_dir="snippets/fundamentals/running-builds/generated" />
 
 ## 3. Use convention properties
 
@@ -72,7 +72,7 @@ The `application` plugin defines tasks that package and distribute an applicatio
 
 The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-app" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-app" source_dir="snippets/fundamentals/running-builds/generated" />
 
 In this example, the main class (i.e., the point where the program’s execution begins) is `org.example.App`.
 

@@ -6,7 +6,7 @@ import { SampleScripts } from '#/components';
 
 In a typical Gradle project, multiple configurations exist, such as `compileClasspath` and `runtimeClasspath`.
 
-<SampleScripts sample_name="customizing-resolution-consistent-resolution" basename="build" tag="dependencies" />
+<SampleScripts sample_name="customizing-resolution-consistent-resolution" basename="build" tag="dependencies" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution" />
 
 These configurations are resolved independently, which can lead to situations where the same dependency appears in different versions across configurations.
 
@@ -24,7 +24,7 @@ Dependency resolution consistency is an incubating feature.
 
 For example, to ensure that the `runtimeClasspath` is consistent with the `compileClasspath`, you can configure your `build.gradle(.kts)` as follows:
 
-<SampleScripts sample_name="customizing-resolution-consistent-resolution" basename="build" tag="explicit-configuration" />
+<SampleScripts sample_name="customizing-resolution-consistent-resolution" basename="build" tag="explicit-configuration" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution" />
 
 This setup directs Gradle to align the versions of dependencies in the `runtimeClasspath` with those resolved in the `compileClasspath`.
 If a version conflict arises that cannot be reconciled, Gradle will fail the build, prompting you to address the inconsistency.
@@ -33,7 +33,7 @@ If a version conflict arises that cannot be reconciled, Gradle will fail the bui
 
 For Java projects, Gradle provides a convenient method to enforce this consistency across all source sets:
 
-<SampleScripts sample_name="customizing-resolution-consistent-resolution" basename="build" tag="java-convention" />
+<SampleScripts sample_name="customizing-resolution-consistent-resolution" basename="build" tag="java-convention" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution" />
 
 This configuration ensures that all runtime classpaths are consistent with their corresponding compile classpaths, promoting reliable and predictable builds.
 

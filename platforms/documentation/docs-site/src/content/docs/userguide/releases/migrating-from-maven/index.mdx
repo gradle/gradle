@@ -225,7 +225,7 @@ This dependency would look like the following in a Gradle build script:
 
 **Declaring a simple compile-time dependency**
 
-<SampleScripts sample_name="basic" basename="build" tag="compile-dependencies" />
+<SampleScripts sample_name="basic" basename="build" tag="compile-dependencies" source_dir="snippets/releases/migrating/basic" />
 
 <CalloutList>
 
@@ -295,7 +295,7 @@ The appropriate configuration in the Gradle build looks like this:
 
 **Consuming a POM-only dependency**
 
-<SampleScripts sample_name="basic" basename="build" tag="pom-dependencies" />
+<SampleScripts sample_name="basic" basename="build" tag="pom-dependencies" source_dir="snippets/releases/migrating/basic" />
 
 The result of this will be that all `compile` and `runtime` scope dependencies in the `groovy-all` POM get added to the test runtime classpath, while only the `compile` scope dependencies get added to the test compilation classpath.
 Dependencies with other scopes will be ignored.
@@ -311,7 +311,7 @@ In order to have the same behavior as your Maven build, just configure <Xref pag
 
 **Configuring the build to use Maven Central**
 
-<SampleScripts sample_name="basic" basename="build" tag="repositories" />
+<SampleScripts sample_name="basic" basename="build" tag="repositories" source_dir="snippets/releases/migrating/basic" />
 
 You can also use the `repositories {}` block to configure custom repositories, as described in the <Xref page="supported-repository-types" section="Maven repositories">Repository Types</Xref> chapter.
 
@@ -374,7 +374,7 @@ You simply declare the dependency in the normal way, but wrap the dependency ide
 
 **Importing a BOM in a Gradle build**
 
-<SampleScripts sample_name="import-bom" basename="build" tag="bom" />
+<SampleScripts sample_name="import-bom" basename="build" tag="bom" source_dir="snippets/releases/migrating/importBom" />
 
 <CalloutList>
 
@@ -408,7 +408,7 @@ To migrate a multi-module Maven build, simply follow these steps:
 
    Can be migrated by adding the following line to the settings script:
 
-   <SampleScripts sample_name="multi-module" basename="settings" />
+   <SampleScripts sample_name="multi-module" basename="settings" source_dir="snippets/releases/migrating/multiModule" />
    <CalloutList>
 
    1. Sets the name of the overall project
@@ -489,10 +489,10 @@ The following example demonstrates the basic technique using a project property 
 
 **Mimicking the behavior of Maven profiles in Gradle**
 
-<SampleScripts sample_name="profiles" basename="build" />
-<SampleScripts sample_name="profiles" basename="profile-default" />
-<SampleScripts sample_name="profiles" basename="profile-test" />
-<SampleScripts sample_name="profiles" basename="profile-prod" />
+<SampleScripts sample_name="profiles" basename="build" source_dir="snippets/releases/migrating/profiles" />
+<SampleScripts sample_name="profiles" basename="profile-default" source_dir="snippets/releases/migrating/profiles" />
+<SampleScripts sample_name="profiles" basename="profile-test" source_dir="snippets/releases/migrating/profiles" />
+<SampleScripts sample_name="profiles" basename="profile-prod" source_dir="snippets/releases/migrating/profiles" />
 
 <CalloutList>
 
@@ -544,7 +544,7 @@ As an example, here’s a configuration that treats the source files as [Groovy 
 
 **Filtering the content of resources via the `processResources` task**
 
-<SampleScripts sample_name="basic" basename="build" tag="process-resources" />
+<SampleScripts sample_name="basic" basename="build" tag="process-resources" source_dir="snippets/releases/migrating/basic" />
 
 See the API docs for <JavaDocLink class="org.gradle.api.file.CopySpec" /> to see all the options available to you.
 
@@ -607,7 +607,7 @@ In this case, the corresponding Gradle configuration is as follows:
 
 **Configuring the Gradle Checkstyle Plugin**
 
-<SampleScripts sample_name="basic" basename="build" tag="checkstyle" />
+<SampleScripts sample_name="basic" basename="build" tag="checkstyle" source_dir="snippets/releases/migrating/basic" />
 
 The Checkstyle tasks are automatically added as dependencies of the `check` task, which also includes `test`.
 If you want to ensure that Checkstyle runs before the tests, then just specify an ordering with the
@@ -615,7 +615,7 @@ If you want to ensure that Checkstyle runs before the tests, then just specify a
 
 **Controlling when the `checkstyle` task runs**
 
-<SampleScripts sample_name="basic" basename="build" tag="depends-on" />
+<SampleScripts sample_name="basic" basename="build" tag="depends-on" source_dir="snippets/releases/migrating/basic" />
 
 As you can see, the Gradle configuration is often much shorter than the Maven equivalent.
 You also have a much more flexible execution model since you are no longer constrained by Maven’s fixed phases.
@@ -631,7 +631,7 @@ For example, you can use Ant’s Echo task like this:
 
 **Invoking Ant tasks**
 
-<SampleScripts sample_name="ant" basename="build" />
+<SampleScripts sample_name="ant" basename="build" source_dir="snippets/releases/migrating/ant" />
 
 Even Ant properties and filesets are supported natively.
 To learn more, see <Xref page="ant" section="Using Ant from Gradle">Using Ant from Gradle</Xref>.

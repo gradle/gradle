@@ -64,12 +64,21 @@ describe("remarkSubstituteVariables", () => {
     expect(tree.children[0].value).toBe("literal %%gradleVersion%% and %%notAVariable%%");
   });
 
-  it("rejects a token in a prose text node, pointing at the JSX alternative", () => {
+  it("substitutes in prose text nodes (the converter emits tokens in sentences too)", () => {
     const tree = {
       type: "root",
       children: [{ type: "text", value: "Gradle %%gradleVersion%% rocks" }],
     };
-    expect(() => run(tree)).toThrow(/JSX expression/);
+    run(tree);
+    expect(tree.children[0].value).toBe("Gradle 9.7.0 rocks");
+  });
+
+  it("rejects an unknown token in prose (typo guard)", () => {
+    const tree = {
+      type: "root",
+      children: [{ type: "text", value: "Gradle %%notAVariable%% rocks" }],
+    };
+    expect(() => run(tree)).toThrow(/unknown variable token/);
   });
 
   it("rejects a token in a link url", () => {

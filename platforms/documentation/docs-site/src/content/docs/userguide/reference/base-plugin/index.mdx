@@ -10,7 +10,7 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 
 Applying the Base Plugin:
 
-<SampleScripts sample_name="base-plugin" basename="build" tag="apply-base-plugin" />
+<SampleScripts sample_name="base-plugin" basename="build" tag="apply-base-plugin" source_dir="snippets/reference/core-plugins/basePlugin" />
 
 ## Task
 
@@ -87,7 +87,7 @@ Instead, task dependencies should be declared directly on the `assemble` task.
 The Base Plugin adds the <GroovyDocLink class="org.gradle.api.plugins.BasePluginExtension">`base` extension</GroovyDocLink> to the project.
 This allows to configure the following properties inside a dedicated DSL block.
 
-<SampleScripts sample_name="archives-changed-base-name" basename="build" tag="base-plugin-config" />
+<SampleScripts sample_name="archives-changed-base-name" basename="build" tag="base-plugin-config" source_dir="snippets/reference/core-plugins/archivesChangedBaseName" />
 
 <dl>
 <dt>`archivesName` — default: `$project.name`</dt>

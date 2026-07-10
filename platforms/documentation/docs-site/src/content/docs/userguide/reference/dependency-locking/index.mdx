@@ -6,7 +6,7 @@ import { GroovyDocLink, SampleScripts, Xref } from '#/components';
 
 Using <Xref page="dependency-versions" section="Declaring dynamic versions">dynamic dependency versions</Xref> (e.g., `1.+` or `[1.0,2.0)`) can cause builds to break unexpectedly because the exact version of a dependency that gets resolved can change over time:
 
-<SampleScripts sample_name="troubleshooting-cache-dynamic" basename="build" tag="dynamic" />
+<SampleScripts sample_name="troubleshooting-cache-dynamic" basename="build" tag="dynamic" source_dir="snippets/reference/dependency-management/dependency-management/troubleshooting-cache-dynamic" />
 
 To ensure [reproducible builds](https://reproducible-builds.org/), it’s necessary to **lock versions** of dependencies and their transitive dependencies.
 This guarantees that a build with the same inputs will always resolve to the same module versions, a process known as **dependency locking**.
@@ -37,7 +37,7 @@ Gradle will emit a warning when persisting the lock state if changing dependenci
 
 Locking of a configuration happens through the <GroovyDocLink class="org.gradle.api.artifacts.ResolutionStrategy" /> API:
 
-<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="locking-single" />
+<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="locking-single" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingSingleFilePerProject" />
 
 Only configurations that can be resolved will have lock state attached to them.
 Applying locking on non resolvable-configurations is a no-op.
@@ -46,7 +46,7 @@ Applying locking on non resolvable-configurations is a no-op.
 
 The following locks all configurations:
 
-<SampleScripts sample_name="dependency-locking-locking-all-configurations" basename="build" tag="locking-all" />
+<SampleScripts sample_name="dependency-locking-locking-all-configurations" basename="build" tag="locking-all" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingAllConfigurations" />
 
 The above will lock all _project_ configurations, but not the _buildscript_ ones.
 
@@ -56,7 +56,7 @@ You can also disable locking on a specific configuration.
 
 This can be useful if a plugin configured locking on all configurations, but you happen to add one that should not be locked:
 
-<SampleScripts sample_name="dependency-locking-unlocking-single-configuration" basename="build" tag="locking-one" />
+<SampleScripts sample_name="dependency-locking-unlocking-single-configuration" basename="build" tag="locking-one" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-unlockingSingleConfiguration" />
 
 ## Activate locking for a buildscript classpath configuration
 
@@ -64,7 +64,7 @@ If you apply plugins to your build, you may want to leverage dependency locking 
 
 To lock the <Xref page="plugins-intermediate" section="5. Applying plugins using the `buildscript{}` block">`classpath` configuration</Xref> used for script plugins:
 
-<SampleScripts sample_name="dependency-locking-locking-classpath-configuration" basename="build" tag="locking-classpath" />
+<SampleScripts sample_name="dependency-locking-locking-classpath-configuration" basename="build" tag="locking-classpath" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingClasspathConfiguration" />
 
 ## Generating and updating dependency locks
 
@@ -108,7 +108,7 @@ You have two options for this:
 
 This custom task resolves all configurations, locking them in the process:
 
-<SampleScripts sample_name="dependency-locking-locking-all-configurations" basename="build" tag="resolve-all" />
+<SampleScripts sample_name="dependency-locking-locking-all-configurations" basename="build" tag="resolve-all" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingAllConfigurations" />
 
 By filtering and resolving specific configurations, you ensure that only the relevant ones are locked, tailoring the locking process to your project’s needs.
 This is especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
@@ -143,7 +143,7 @@ Lockfiles should be checked in to source control.
 
 Consider the following dependency declaration:
 
-<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="locking-explicit" />
+<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="locking-explicit" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingSingleFilePerProject" />
 
 With the above configuration, the generated `gradle.lockfile` will look like this:
 
@@ -186,7 +186,7 @@ This capability allows you to specify a file name based on project properties, e
 
 For example, in the JVM ecosystem, the Scala version is often included in artifact coordinates:
 
-<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="locking-file-name" />
+<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="locking-file-name" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingSingleFilePerProject" />
 
 ## Running a build with lock state present
 
@@ -228,7 +228,7 @@ This mode offers flexibility for situations where you might want to explore or t
 
 The lock mode can be controlled from the `dependencyLocking` block as shown below:
 
-<SampleScripts sample_name="dependency-locking-lock-mode-selection" basename="build" tag="lock-mode" />
+<SampleScripts sample_name="dependency-locking-lock-mode-selection" basename="build" tag="lock-mode" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockModeSelection" />
 
 ## Updating lock state entries selectively
 
@@ -278,7 +278,7 @@ This approach can compromise reproducibility. Consider using [different lock mod
 
 You can configure dependencies to be ignored in the `dependencyLocking` project extension:
 
-<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="ignore-dependencies" />
+<SampleScripts sample_name="dependency-locking-locking-single-file-per-project" basename="build" tag="ignore-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/dependencyLocking-lockingSingleFilePerProject" />
 
 The notation `<group>:<name>` is used to specify dependencies, where `*` acts as a trailing wildcard. Note that `*:*` is not accepted, as it effectively disables locking.
 See [the description](#sec:selectively-updating-lock-state-entries) on updating lock files for more details.

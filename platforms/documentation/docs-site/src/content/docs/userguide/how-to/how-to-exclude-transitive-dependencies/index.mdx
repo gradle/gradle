@@ -28,22 +28,22 @@ You can use the `dependencies` task for this.
 
 In this example, we want to remove the `commons-collections` dependency:
 
-<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-full" />
+<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-full" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases how `commons-collections` is brought in by `commons-beanutils`:
 
-<SampleFile sample_name="exclude-transitives" path="tests/dependencies.out" />
+<SampleFile sample_name="exclude-transitives" path="tests/dependencies.out" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 You can exclude a transitive dependency ***per dependency declaration*** by specifying the `group` and `module` attributes in an `exclude()` rule:
 
-<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-ex" />
+<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-ex" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 - This removes `commons-collections` from the transitive dependencies of `commons-beanutils`.
 - The exclusion only applies to ***this specific dependency*** (i.e., `commons-beanutils`).
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
-<SampleFile sample_name="exclude-transitives" path="tests/dependencies-excluded.out" />
+<SampleFile sample_name="exclude-transitives" path="tests/dependencies-excluded.out" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 If your application only uses ***a subset*** of the library that does not require the excluded dependency, this approach is safe.
 
@@ -52,13 +52,13 @@ If your application only uses ***a subset*** of the library that does not requir
 Exclusions ***only apply if all dependency declarations agree*** on the exclusion.
 If another dependency in your project ***still requires*** the excluded dependency, Gradle ***will not exclude it***.
 
-<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-extra" />
+<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-extra" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 In this case, `commons-collections` is ***still included*** because `opencsv` brings it back.
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
-<SampleFile sample_name="exclude-transitives" path="tests/dependencies-extra.out" />
+<SampleFile sample_name="exclude-transitives" path="tests/dependencies-extra.out" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 To ***fully exclude*** `commons-collections`, you must also exclude it from `opencsv`.
 
@@ -66,13 +66,13 @@ To ***fully exclude*** `commons-collections`, you must also exclude it from `ope
 
 You must repeat Step 1 for any additional dependency:
 
-<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-extra-ex" />
+<SampleScripts sample_name="exclude-transitives" basename="build" tag="dependency-extra-ex" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 This example actually goes a step further as `com.opencsv:opencsv` actually brings in `commons-collections4`.
 
 Now `commons-collections` AND `commons-collections4` are ***fully excluded*** from all dependencies that reference it:
 
-<SampleFile sample_name="exclude-transitives" path="tests/dependencies-extra-excluded.out" />
+<SampleFile sample_name="exclude-transitives" path="tests/dependencies-extra-excluded.out" source_dir="snippets/how-to/dependency-management/dependency-management/exclude-transitives" />
 
 ## Summary
 

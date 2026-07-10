@@ -147,7 +147,7 @@ It is possible to change the behavior of a task based on project properties spec
 Suppose you’d like to ensure release builds are only triggered by CI.
 A simple way to handle this is through an `isCI` project property:
 
-<SampleScripts sample_name="configure-task-using-project-property" basename="build" />
+<SampleScripts sample_name="configure-task-using-project-property" basename="build" source_dir="snippets/reference/runtime-configuration/configureTaskUsingProjectProperty" />
 
 ```bash
 $ ./gradlew performRelease -PisCI=true --quiet

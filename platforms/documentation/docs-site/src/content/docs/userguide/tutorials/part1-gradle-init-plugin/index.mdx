@@ -139,7 +139,7 @@ When you’re writing a plugin, you’ll use the `java-gradle-plugin` to:
 
 This is what the `gradlePlugin {}` and `plugins {}` block looks like:
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="plugin-init" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="plugin-init" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 - `gradlePlugin {}`: This is where you configure the plugins you’re authoring.
 - `val greeting by plugins.creating {}` or `plugins.greeting {}`: This registers a new plugin definition with the ID `org.example.greeting`.
@@ -153,9 +153,7 @@ You can find it at `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt`:
 
 You can find it at `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy`:
 
-<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt" />
-
-<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy" />
+<SampleFile sample_name="plugin-tutorial" path="{lang}/plugin/src/main/{lang}/org/example/PluginTutorialPlugin.{srcExt}" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 - `Plugin<Project>`: Our plugin needs to implement this interface to work with a `Project` object.
 - `apply()`: This method is the entry point. Gradle calls it when the plugin is applied to a project.

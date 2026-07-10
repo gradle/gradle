@@ -12,7 +12,7 @@ Over time, TestKit has focused on functional/black-box testing, and that remains
 
 Add TestKit to your test dependencies:
 
-<SampleScripts sample_name="junit-quickstart" basename="build" tag="declare-gradle-testkit-dependency" />
+<SampleScripts sample_name="junit-quickstart" basename="build" tag="declare-gradle-testkit-dependency" source_dir="snippets/reference/plugin-development/junitQuickstart" />
 
 The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <Xref page="tooling-api" section="Embedding Gradle using the Tooling API">Gradle Tooling API client</Xref>.
 It does not include a version of [JUnit](https://junit.org), [TestNG](https://testng.org), or any other test execution framework.
@@ -20,7 +20,7 @@ Such a dependency must be explicitly declared.
 
 For JUnit 5:
 
-<SampleScripts sample_name="junit-quickstart" basename="build" tag="declare-junit-dependency" />
+<SampleScripts sample_name="junit-quickstart" basename="build" tag="declare-junit-dependency" source_dir="snippets/reference/plugin-development/junitQuickstart" />
 
 ## Functional testing with the Gradle runner
 
@@ -192,7 +192,7 @@ These conventions can be customized using the <JavaDocLink class="org.gradle.plu
 
 The following sample shows the default setup for automatic plugin classpath injection:
 
-<SampleScripts sample_name="automatic-classpath-injection-quickstart" basename="build" tag="automatic-classpath" />
+<SampleScripts sample_name="automatic-classpath-injection-quickstart" basename="build" tag="automatic-classpath" source_dir="snippets/reference/plugin-development/automaticClasspathInjectionQuickstart" />
 
 :::caution
 The automatic classpath injection provided by `GradleRunner.withPluginClasspath()` is ***incompatible*** with plugins that use `compileOnly` to depend on another plugin’s API.
@@ -234,7 +234,7 @@ If your project uses a custom test source set (for example, a dedicated function
 A dedicated DSL for modeling such test suites is provided by the incubating <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite plugin</Xref>.
 :::
 
-<SampleScripts sample_name="automatic-classpath-injection-custom-test-source-set" basename="build" tag="custom-test-source-set" />
+<SampleScripts sample_name="automatic-classpath-injection-custom-test-source-set" basename="build" tag="custom-test-source-set" source_dir="snippets/reference/plugin-development/automaticClasspathInjectionCustomTestSourceSet" />
 
 ## Controlling the build environment
 

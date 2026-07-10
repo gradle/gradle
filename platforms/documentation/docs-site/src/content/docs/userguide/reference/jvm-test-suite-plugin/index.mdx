@@ -16,7 +16,7 @@ The JVM Test Suite plugin is an <Xref page="feature-lifecycle" section="2. Incub
 
 This plugin is applied automatically by the `java` plugin but can be additionally applied explicitly if desired. The plugin cannot be used without a JVM language plugin applied as it relies on several conventions of the `java` plugin.
 
-<SampleScripts sample_name="test-suite-plugin" basename="build" tag="apply-jvm-test-suite" />
+<SampleScripts sample_name="test-suite-plugin" basename="build" tag="apply-jvm-test-suite" source_dir="snippets/reference/platforms/jvm/test-suite-plugin" />
 
 The plugins adds the following objects to the project:
 
@@ -80,7 +80,7 @@ Here are several examples to illustrate the configurability of test suites.
 
 ## Declare an additional test suite
 
-<SampleScripts sample_name="test-suite-plugin" basename="build" tag="configure-testing-extension" />
+<SampleScripts sample_name="test-suite-plugin" basename="build" tag="configure-testing-extension" source_dir="snippets/reference/platforms/jvm/test-suite-plugin" />
 
 <CalloutList>
 
@@ -119,7 +119,7 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 
 ## Configure the built-in `test` suite
 
-<SampleScripts sample_name="test-suite-configure-default-suite" basename="build" tag="configure-default-suite" />
+<SampleScripts sample_name="test-suite-configure-default-suite" basename="build" tag="configure-default-suite" source_dir="snippets/reference/platforms/jvm/test-suite-configure-default-suite" />
 
 <CalloutList>
 
@@ -131,7 +131,7 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 
 ## Configure dependencies of a test suite
 
-<SampleScripts sample_name="test-suite-configure-suite-dependencies" basename="build" tag="configure-suite-dependencies" />
+<SampleScripts sample_name="test-suite-configure-suite-dependencies" basename="build" tag="configure-suite-dependencies" source_dir="snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies" />
 
 <CalloutList>
 
@@ -143,7 +143,7 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 
 ## Configure dependencies of a test suite to reference project outputs
 
-<SampleScripts sample_name="test-suite-configure-suite-dependencies-project" basename="build" tag="configure-suite-dependencies-project" />
+<SampleScripts sample_name="test-suite-configure-suite-dependencies-project" basename="build" tag="configure-suite-dependencies-project" source_dir="snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-project" />
 
 <CalloutList>
 
@@ -155,7 +155,7 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 
 ## Configure source directories of a test suite
 
-<SampleScripts sample_name="test-suite-configure-source-dir" basename="build" tag="configure-source-dir" />
+<SampleScripts sample_name="test-suite-configure-source-dir" basename="build" tag="configure-source-dir" source_dir="snippets/reference/platforms/jvm/test-suite-configure-source-dir" />
 
 <CalloutList>
 
@@ -168,7 +168,7 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 
 ## Configure the `Test` task for a test suite
 
-<SampleScripts sample_name="test-suite-configure-source-dir" basename="build" tag="configure-test-task" />
+<SampleScripts sample_name="test-suite-configure-source-dir" basename="build" tag="configure-test-task" source_dir="snippets/reference/platforms/jvm/test-suite-configure-source-dir" />
 
 <CalloutList>
 
@@ -191,7 +191,7 @@ There are several ways to share configuration between multiple test suites to av
 
 This is the most straightforward way to share configuration across _every_ test suite.  The configuration is applied to each test suite.
 
-<SampleScripts sample_name="test-suite-multi-configure-each" basename="build" tag="multi-configure" />
+<SampleScripts sample_name="test-suite-multi-configure-each" basename="build" tag="multi-configure" source_dir="snippets/reference/platforms/jvm/test-suite-multi-configure-each" />
 
 <CalloutList>
 
@@ -206,7 +206,7 @@ This is the most straightforward way to share configuration across _every_ test 
 
 This method adds filtering commands to only apply the configuration to a subset of the test suites, as identified by name.
 
-<SampleScripts sample_name="test-suite-multi-configure-each-matching" basename="build" tag="multi-configure" />
+<SampleScripts sample_name="test-suite-multi-configure-each-matching" basename="build" tag="multi-configure" source_dir="snippets/reference/platforms/jvm/test-suite-multi-configure-each-matching" />
 
 <CalloutList>
 
@@ -220,7 +220,7 @@ This method adds filtering commands to only apply the configuration to a subset 
 
 This method is the most flexible, but also the most imperative.
 
-<SampleScripts sample_name="test-suite-multi-configure-each-extracted" basename="build" tag="multi-configure" />
+<SampleScripts sample_name="test-suite-multi-configure-each-extracted" basename="build" tag="multi-configure" source_dir="snippets/reference/platforms/jvm/test-suite-multi-configure-each-extracted" />
 
 <CalloutList>
 

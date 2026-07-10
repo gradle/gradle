@@ -21,15 +21,13 @@ To perform such additions or modifications, the `AdhocComponentWithVariants` int
 To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
 Adding a variant is then very simple:
 
-<SampleFile sample_name="modeling-features-cross-project-publications-advanced-published" path="kotlin/buildSrc/src/main/kotlin/com/acme/InstrumentedJarsPlugin.kt" tag="add_variant_to_existing_component" />
-
-<SampleFile sample_name="modeling-features-cross-project-publications-advanced-published" path="groovy/buildSrc/src/main/groovy/com/acme/InstrumentedJarsPlugin.groovy" tag="add_variant_to_existing_component" />
+<SampleFile sample_name="modeling-features-cross-project-publications-advanced-published" path="{lang}/buildSrc/src/main/{lang}/com/acme/InstrumentedJarsPlugin.{srcExt}" tag="add_variant_to_existing_component" source_dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published" />
 
 In other cases, you might want to modify a variant that was added by one of the Java plugins already.
 For example, if you activate publishing of Javadoc and sources, these become additional variants of the `java` component.
 If you only want to publish one of them, e.g. only Javadoc but no sources, you can modify the `sources` variant to not being published:
 
-<SampleScripts sample_name="java-project" basename="build" tag="publish-modify-component" />
+<SampleScripts sample_name="java-project" basename="build" tag="publish-modify-component" source_dir="snippets/reference/dependency-management/publishing/javaProject" />
 
 ## Creating and publishing custom components
 
@@ -40,9 +38,7 @@ Declaring _what_ a custom component publishes is also done via the <JavaDocLink 
 For a custom component, the first step is to create custom outgoing variants, following the instructions in <Xref page="variant-aware-resolution" section="Variant Selection and Attribute Matching">this chapter</Xref>.
 At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
 
-<SampleFile sample_name="modeling-features-cross-project-publications-advanced-published" path="kotlin/buildSrc/src/main/kotlin/com/acme/InstrumentedJarsPlugin.kt" tag="create_adhoc_component" />
-
-<SampleFile sample_name="modeling-features-cross-project-publications-advanced-published" path="groovy/buildSrc/src/main/groovy/com/acme/InstrumentedJarsPlugin.groovy" tag="create_adhoc_component" />
+<SampleFile sample_name="modeling-features-cross-project-publications-advanced-published" path="{lang}/buildSrc/src/main/{lang}/com/acme/InstrumentedJarsPlugin.{srcExt}" tag="create_adhoc_component" source_dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published" />
 
 First we use the factory to create a new adhoc component.
 Then we add a variant through the `addVariantsFromConfiguration` method, which is described in more detail in the [previous section](#sec:adding-variants-to-existing-components).
@@ -85,11 +81,11 @@ In general, there are two options:
 To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle configuration of your choice.
 The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `conf` configuration:
 
-<SampleScripts sample_name="publish-artifact" basename="build" tag="custom-artifact" />
+<SampleScripts sample_name="publish-artifact" basename="build" tag="custom-artifact" source_dir="snippets/reference/dependency-management/publishing/publish-artifact" />
 
 The `artifacts.add()` method — from <GroovyDocLink class="org.gradle.api.artifacts.dsl.ArtifactHandler" /> — returns an artifact object of type <JavaDocLink class="org.gradle.api.artifacts.PublishArtifact" /> that can then be used in defining a publication, as shown in the following sample:
 
-<SampleScripts sample_name="publish-artifact" basename="build" tag="custom-artifact-publication" />
+<SampleScripts sample_name="publish-artifact" basename="build" tag="custom-artifact-publication" source_dir="snippets/reference/dependency-management/publishing/publish-artifact" />
 
 - The `artifact()` method accepts _publish artifacts_ as argument — like `rpmArtifact` in the sample — as well as any type of argument accepted by <GroovyDocLink class="org.gradle.api.Project" method="file(java.lang.Object)" />, such as a `File` instance, a string file path or a archive task.
 - Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <Xref page="publishing-maven" section="The Maven Publish Plugin">Maven Publish Plugin</Xref> and the <Xref page="publishing-ivy" section="The Ivy Publish Plugin">Ivy Publish Plugin</Xref>.
@@ -104,13 +100,13 @@ If you really want to add an artifact to a publication based on a component, ins
 
 When you have defined multiple publications or repositories, you often want to control which publications are published to which repositories. For instance, consider the following sample that defines two publications — one that consists of just a binary and another that contains the binary and associated sources — and two repositories — one for internal use and one for external consumers:
 
-<SampleScripts sample_name="conditional-publishing" basename="build" tag="publishing" />
+<SampleScripts sample_name="conditional-publishing" basename="build" tag="publishing" source_dir="snippets/reference/dependency-management/publishing/conditional-publishing" />
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let’s say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
 
 Gradle allows you to skip any task you want based on a condition via the <GroovyDocLink class="org.gradle.api.Task" method="onlyIf(java.lang.String,org.gradle.api.specs.Spec)">Task.onlyIf(String, org.gradle.api.specs.Spec)</GroovyDocLink> method. The following sample demonstrates how to implement the constraints we just mentioned:
 
-<SampleScripts sample_name="conditional-publishing" basename="build" tag="task-config" />
+<SampleScripts sample_name="conditional-publishing" basename="build" tag="task-config" source_dir="snippets/reference/dependency-management/publishing/conditional-publishing" />
 
 ```bash
 $ ./gradlew publish
@@ -140,7 +136,7 @@ You may also want to define your own aggregate tasks to help with your workflow.
 
 The following sample demonstrates how you can do this by defining an aggregate task — `publishToExternalRepository` — that depends on all the relevant publish tasks:
 
-<SampleScripts sample_name="conditional-publishing" basename="build" tag="shorthand-tasks" />
+<SampleScripts sample_name="conditional-publishing" basename="build" tag="shorthand-tasks" source_dir="snippets/reference/dependency-management/publishing/conditional-publishing" />
 
 This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="withType-java.lang.Class-">TaskCollection.withType(java.lang.Class)</JavaDocLink> with the <GroovyDocLink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" /> task type. You can do the same with <GroovyDocLink class="org.gradle.api.publish.ivy.tasks.PublishToIvyRepository" /> if you’re publishing to Ivy-compatible repositories.
 
@@ -150,6 +146,6 @@ The publishing plugins create their non-aggregate tasks after the project has be
 
 For example, imagine you want to change where the `generatePomFileFor_PubName_Publication` tasks write their POM files. You can do this by using the <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="withType-java.lang.Class-">TaskCollection.withType(java.lang.Class)</JavaDocLink> method, as demonstrated by this sample:
 
-<SampleScripts sample_name="java-library" basename="build" tag="configure-generate-task" />
+<SampleScripts sample_name="java-library" basename="build" tag="configure-generate-task" source_dir="snippets/reference/dependency-management/publishing/javaLibrary" />
 
 The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don’t have to worry about such conflicts since there will only be one POM file.

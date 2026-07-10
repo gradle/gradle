@@ -17,7 +17,7 @@ Note that if you want to benefit from the <Xref page="java-library-plugin" secti
 
 To use the Scala plugin, include the following in your build script:
 
-<SampleScripts sample_name="scala-quickstart" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="scala-quickstart" basename="build" tag="use-plugin" source_dir="snippets/reference/platforms/jvm/scalaQuickstart" />
 
 ## Tasks
 
@@ -142,7 +142,7 @@ Scala source files for the given source set. May also contain Java source files 
 
 Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test source files.
 
-<SampleScripts sample_name="scala-customized-layout" basename="build" tag="custom-source-locations" />
+<SampleScripts sample_name="scala-customized-layout" basename="build" tag="custom-source-locations" source_dir="snippets/reference/platforms/jvm/scalaCustomizedLayout" />
 
 ## Scala version
 
@@ -154,11 +154,11 @@ The `scalaToolchainRuntimeClasspath` configuration resolves the dependencies dec
 Direct dependencies on the Scala SDK do not need to be declared when the `scalaVersion` property is set.
 :::
 
-<SampleScripts sample_name="scala-quickstart" basename="build" tag="scala-version" />
+<SampleScripts sample_name="scala-quickstart" basename="build" tag="scala-version" source_dir="snippets/reference/platforms/jvm/scalaQuickstart" />
 
 Configuring Gradle to use Scala 3 is no different from Scala 2.
 
-<SampleScripts sample_name="scala3" basename="build" tag="scala-version" />
+<SampleScripts sample_name="scala3" basename="build" tag="scala-version" source_dir="snippets/reference/platforms/jvm/scala3" />
 
 :::note
 The `scalaVersion` property is incubating.
@@ -172,15 +172,15 @@ Omitting the Scala version from the `scala` extension will be deprecated in a fu
 
 Scala 2 projects need to declare a `scala-library` dependency.
 
-<SampleScripts sample_name="scala-quickstart" basename="build" subpath="inferred-version" tag="scala-dependency" />
+<SampleScripts sample_name="scala-quickstart" basename="build" subpath="inferred-version" tag="scala-dependency" source_dir="snippets/reference/platforms/jvm/scalaQuickstart" />
 
 Scala 3 projects need to declare a `scala3-library_3` dependency instead:
 
-<SampleScripts sample_name="scala3" basename="build" subpath="inferred-version" tag="scala-dependency" />
+<SampleScripts sample_name="scala3" basename="build" subpath="inferred-version" tag="scala-dependency" source_dir="snippets/reference/platforms/jvm/scala3" />
 
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testImplementation` configuration:
 
-<SampleScripts sample_name="scala-dependency" basename="build" tag="scala-test-dependency" />
+<SampleScripts sample_name="scala-dependency" basename="build" tag="scala-test-dependency" source_dir="snippets/reference/platforms/jvm/scalaDependency" />
 
 ## Automatic configuration of scalaClasspath
 
@@ -199,7 +199,7 @@ The Scala plugin uses a configuration named `zinc` to resolve the [Zinc compiler
 Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can change it.
 Gradle supports version 1.6.0 of Zinc and above.
 
-<SampleScripts sample_name="zinc-dependency" basename="build" tag="zinc-dependency" />
+<SampleScripts sample_name="zinc-dependency" basename="build" tag="zinc-dependency" source_dir="snippets/reference/platforms/jvm/zincDependency" />
 
 The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
 Gradle takes care of specifying a compatible version of `scala-library` for you.
@@ -218,7 +218,7 @@ You can diagnose problems with the version of the Zinc compiler selected by runn
 
 The Scala plugin adds a configuration named `scalaCompilerPlugins` which is used to declare and resolve optional compiler plugins.
 
-<SampleScripts sample_name="compiler-plugin" basename="build" tag="compiler-plugin" />
+<SampleScripts sample_name="compiler-plugin" basename="build" tag="compiler-plugin" source_dir="snippets/reference/platforms/jvm/compilerPlugin" />
 
 ## Convention properties
 
@@ -289,7 +289,7 @@ Scala compilation takes place in an external process.
 
 Memory settings for the external process default to the defaults of the JVM. To adjust memory settings, configure the `scalaCompileOptions.forkOptions` property as needed:
 
-<SampleScripts sample_name="zinc" basename="build" tag="adjust-memory" />
+<SampleScripts sample_name="zinc" basename="build" tag="adjust-memory" source_dir="snippets/reference/platforms/jvm/zinc" />
 
 ## Incremental compilation
 
@@ -297,7 +297,7 @@ By compiling only classes whose source code has changed since the previous compi
 
 The Scala plugin defaults to incremental compilation by integrating with [Zinc](https://github.com/typesafehub/zinc), a standalone version of [sbt](https://github.com/harrah/xsbt)'s incremental Scala compiler. If you want to disable the incremental compilation, set `force = true` in your build file:
 
-<SampleScripts sample_name="force" basename="build" tag="force-compilation" />
+<SampleScripts sample_name="force" basename="build" tag="force-compilation" source_dir="snippets/reference/platforms/jvm/force" />
 
 _Note:_ This will only cause all classes to be recompiled if at least one input source file has changed. If there are no changes to the source files, the `compileScala` task will still be considered `UP-TO-DATE` as usual.
 
@@ -315,4 +315,4 @@ When the Eclipse plugin encounters a Scala project, it adds additional configura
 
 When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically, the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project’s class path. The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK by configuring `targetVersion` on <GroovyDocLink class="org.gradle.plugins.ide.idea.model.IdeaModel" />.
 
-<SampleScripts sample_name="idea-target-version" basename="build" tag="scala-idea-target-version" />
+<SampleScripts sample_name="idea-target-version" basename="build" tag="scala-idea-target-version" source_dir="snippets/reference/platforms/jvm/ideaTargetVersion" />

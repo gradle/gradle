@@ -70,7 +70,7 @@ The method has a <JavaDocLink class="org.gradle.api.artifacts.transform.Transfor
 
 Here, `MyTransform` is the custom transform action that converts a `jar` artifact to a `transformed-jar` artifact:
 
-<SampleScripts sample_name="artifact-transforms-simple" basename="build" tag="artifact-transform-imp" />
+<SampleScripts sample_name="artifact-transforms-simple" basename="build" tag="artifact-transform-imp" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple" />
 
 ### 2. Declare request Attributes
 
@@ -78,7 +78,7 @@ Attributes specify the required properties of a dependency.
 
 Here we specify that we need the `transformed-jar` format for the `runtimeClasspath` configuration:
 
-<SampleScripts sample_name="artifact-transforms-simple" basename="build" tag="artifact-transform-use" />
+<SampleScripts sample_name="artifact-transforms-simple" basename="build" tag="artifact-transform-use" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple" />
 
 ### 3. Register a Transform
 
@@ -86,7 +86,7 @@ A transform must be registered using the <JavaDocLink class="org.gradle.api.arti
 
 Here, our transform is registered with the <JavaDocLink class="org.gradle.api.Project" method="dependencies(groovy.lang.Closure)">`dependencies`</JavaDocLink> block:
 
-<SampleScripts sample_name="artifact-transforms-simple" basename="build" tag="artifact-transform-registration" />
+<SampleScripts sample_name="artifact-transforms-simple" basename="build" tag="artifact-transform-registration" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple" />
 
 "To" attributes are used to describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
 
@@ -165,7 +165,7 @@ Gradle will run these transformations on the original artifacts found in a varia
 
 In the example below, the `TestTransform` class defines a transformation that is registered to process artifacts of type "jar" into artifacts of type "stub":
 
-<SampleScripts sample_name="artifact-transforms-view" basename="build" tag="artifact-views-with-custom-attribute" />
+<SampleScripts sample_name="artifact-transforms-view" basename="build" tag="artifact-views-with-custom-attribute" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-view" />
 
 The `testArtifact` task resolves artifacts of type "stub" using the `runtimeClasspath` configuration.
 This is achieved by creating an `ArtifactView` that filters for artifacts with `ARTIFACT_TYPE_ATTRIBUTE = "stub"`.
@@ -233,7 +233,7 @@ Then, during execution:
 To set up the `minified` attribute so that the above works you must add the attribute to all JAR variants being produced, and also add it to all resolvable configurations being requested.
 You should also register the attribute in the attributes schema.
 
-<SampleScripts sample_name="artifact-transforms-minify" basename="build" tag="artifact-transform-attribute-setup" />
+<SampleScripts sample_name="artifact-transforms-minify" basename="build" tag="artifact-transform-attribute-setup" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify" />
 
 <CalloutList>
 
@@ -309,7 +309,7 @@ For example, if the selected input variant contains the artifacts `lib1.jar`, `l
 Here is the implementation of an `Unzip` transform, which unzips a JAR file into a `classes` directory.
 The `Unzip` transform does not require any parameters:
 
-<SampleScripts sample_name="artifact-transforms-unzip" basename="build" tag="artifact-transform-unzip" />
+<SampleScripts sample_name="artifact-transforms-unzip" basename="build" tag="artifact-transform-unzip" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip" />
 
 <CalloutList>
 
@@ -336,7 +336,7 @@ All getters need to have proper input annotations, as described in the increment
 Here is the implementation of a `Minify` transform that makes JARs smaller by only keeping certain classes in them.
 The `Minify` transform requires knowledge of the classes to keep within each JAR, which is provided as an `Map` property within its parameters:
 
-<SampleScripts sample_name="artifact-transforms-minify" basename="build" tag="artifact-transform-minify" />
+<SampleScripts sample_name="artifact-transforms-minify" basename="build" tag="artifact-transform-minify" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify" />
 
 <CalloutList>
 
@@ -368,7 +368,7 @@ For cacheable transforms, you must annotate its <JavaDocLink class="org.gradle.a
 The following example demonstrates a more complex transform that relocates specific classes within a JAR to a different package.
 This process involves rewriting the bytecode of both the relocated classes and any classes that reference them (class relocation):
 
-<SampleScripts sample_name="artifact-transforms-relocate" basename="build" tag="artifact-transform-relocate" />
+<SampleScripts sample_name="artifact-transforms-relocate" basename="build" tag="artifact-transform-relocate" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-relocate" />
 
 <CalloutList>
 
@@ -396,7 +396,7 @@ For more information on how to use <GroovyDocLink class="org.gradle.work.InputCh
 
 Here is an example of an incremental transform that counts the lines of code in Java source files:
 
-<SampleScripts sample_name="artifact-transforms-incremental" basename="build" tag="artifact-transform-countloc" />
+<SampleScripts sample_name="artifact-transforms-incremental" basename="build" tag="artifact-transform-countloc" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-incremental" />
 
 <CalloutList>
 
@@ -425,12 +425,12 @@ There are a few points to consider when using `registerTransform()`:
 For example, imagine you want to unpack some dependencies and put the unpacked directories and files on the classpath.
 You can do so by registering an artifact transform action of type `Unzip`, as shown here:
 
-<SampleScripts sample_name="artifact-transforms-unzip" basename="build" tag="artifact-transform-registration" />
+<SampleScripts sample_name="artifact-transforms-unzip" basename="build" tag="artifact-transform-registration" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip" />
 
 Another example is that you want to minify JARs by only keeping some `class` files from them.
 Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform:
 
-<SampleScripts sample_name="artifact-transforms-minify" basename="build" tag="artifact-transform-registration" />
+<SampleScripts sample_name="artifact-transforms-minify" basename="build" tag="artifact-transform-registration" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify" />
 
 ## Executing Artifact Transforms
 

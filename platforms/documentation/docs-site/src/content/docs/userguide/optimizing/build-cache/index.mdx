@@ -236,7 +236,7 @@ In this case, the relative path of the input files can be used to identify them.
 
 Note that it is possible to override property annotations from the base class by overriding the getter of the base class and annotating that method.
 
-<SampleScripts sample_name="cacheable-bundle-task" basename="build" tag="bundle-task" />
+<SampleScripts sample_name="cacheable-bundle-task" basename="build" tag="bundle-task" source_dir="snippets/optimizing-builds/build-cache/cacheable-bundle-task" />
 
 - (1) Add `@CacheableTask` to enable caching for the task.
 - (2) Override the getter of a property of the base class to change the input annotation to `@Internal`.
@@ -252,7 +252,7 @@ The declarations via the runtime API have the same effect as the annotations des
 Note that you cannot override file inputs and outputs via the runtime API.
 Input properties can be overridden by specifying the same property name.
 
-<SampleScripts sample_name="cacheable-bundle" basename="build" tag="bundle-task" />
+<SampleScripts sample_name="cacheable-bundle" basename="build" tag="bundle-task" source_dir="snippets/optimizing-builds/build-cache/cacheable-bundle" />
 
 ## Configure the Build Cache
 
@@ -281,7 +281,7 @@ These behaviors are controlled independently through two properties:
 
 This allows for the complete disabling of the cache, or for reading while preventing new entries from being stored:
 
-<SampleScripts sample_name="configure-built-in-caches" basename="settings" tag="configure-directory-build-cache" />
+<SampleScripts sample_name="configure-built-in-caches" basename="settings" tag="configure-directory-build-cache" source_dir="snippets/optimizing-builds/build-cache/configure-built-in-caches" />
 
 For more details on the configuration options, refer to the DSL documentation of <GroovyDocLink class="org.gradle.caching.local.DirectoryBuildCache" />.
 
@@ -295,7 +295,7 @@ How often Gradle will perform this clean-up and how long entries will be retaine
 
 With the following configuration, the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
-<SampleScripts sample_name="http-build-cache" basename="settings" tag="http-build-cache" />
+<SampleScripts sample_name="http-build-cache" basename="settings" tag="http-build-cache" source_dir="snippets/optimizing-builds/build-cache/http-build-cache" />
 
 When attempting to load an entry, a `GET` request is made to `\https://example.com:8123/cache/«cache-key»`.
 The response must have a `2xx` status and the cache entry as the body, or a `404 Not Found` status if the entry does not exist.
@@ -308,7 +308,7 @@ A `413 Payload Too Large` response may be returned to indicate that the payload 
 
 [HTTP Basic Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) is supported, with credentials being sent preemptively.
 
-<SampleScripts sample_name="configure-built-in-caches" basename="settings" tag="configure-http-build-cache" />
+<SampleScripts sample_name="configure-built-in-caches" basename="settings" tag="configure-http-build-cache" source_dir="snippets/optimizing-builds/build-cache/configure-built-in-caches" />
 
 #### Redirects
 
@@ -340,7 +340,7 @@ The trust requirement can be disabled by setting <GroovyDocLink class="org.gradl
 Enabling this option is a security risk, as it allows any cache server to impersonate the intended server.
 It should only be used as a temporary measure or in very tightly controlled network environments.
 
-<SampleScripts sample_name="http-build-cache" basename="settings" tag="allow-untrusted-server" />
+<SampleScripts sample_name="http-build-cache" basename="settings" tag="allow-untrusted-server" source_dir="snippets/optimizing-builds/build-cache/http-build-cache" />
 
 #### HTTP expect-continue
 
@@ -356,18 +356,18 @@ Be sure to check that your cache server does support it before enabling.
 
 To enable, set <GroovyDocLink class="org.gradle.caching.http.HttpBuildCache" method="useExpectContinue">HttpBuildCache.isUseExpectContinue()</GroovyDocLink> to `true`.
 
-<SampleScripts sample_name="http-build-cache" basename="settings" tag="use-expect-continue" />
+<SampleScripts sample_name="http-build-cache" basename="settings" tag="use-expect-continue" source_dir="snippets/optimizing-builds/build-cache/http-build-cache" />
 
 ### Configuration use cases
 
 The recommended use case for the remote build cache is that your continuous integration server populates it from clean builds while developers only load from it.
 The configuration would then look as follows.
 
-<SampleScripts sample_name="developer-ci-setup" basename="settings" tag="developer-ci-setup" />
+<SampleScripts sample_name="developer-ci-setup" basename="settings" tag="developer-ci-setup" source_dir="snippets/optimizing-builds/build-cache/developer-ci-setup" />
 
 It is also possible to configure the build cache from an <Xref page="init-scripts" section="Invoking an init script">init script</Xref>, which can be used from the command line, added to your Gradle User Home or be a part of your custom Gradle distribution.
 
-<SampleScripts sample_name="configure-by-init-script" basename="init" />
+<SampleScripts sample_name="configure-by-init-script" basename="init" source_dir="snippets/optimizing-builds/build-cache/configure-by-init-script" />
 
 ### Build cache, composite builds and `buildSrc`
 

@@ -27,7 +27,7 @@ Learn how to verify your plugin can be published by pushing it to a local Maven 
 
 In your `plugin/build.gradle(.kts)` file, apply the `maven-publish` plugin and make sure you have the `group` and `version` defined:
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="publish" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="publish" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 :::tip
 The `group` and `version` ***must*** be set or the `publish` task will fail.
@@ -37,7 +37,7 @@ The `group` and `version` ***must*** be set or the `publish` task will fail.
 
 Use the `publishing {}` block from the `maven-publish` plugin to add a Maven repository that points to `build/local-repo` in your plugin’s build file:
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="repo" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="repo" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 Publish the plugin:
 
@@ -71,11 +71,11 @@ Take a moment to look at these files.
 
 Point your ***consumer*** build to that repo and apply the plugin ***with a version***:
 
-<SampleScripts sample_name="plugin-tutorial" basename="settings" subpath="consumer" tag="repo" />
+<SampleScripts sample_name="plugin-tutorial" basename="settings" subpath="consumer" tag="repo" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 ## Step 4: Apply the Plugin in the `consumer` Project
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="consumer" tag="repo" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="consumer" tag="repo" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 Now run something in the consumer (e.g., your `test` task or `build`):
 

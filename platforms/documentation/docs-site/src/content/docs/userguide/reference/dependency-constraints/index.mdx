@@ -26,7 +26,7 @@ You can declare constraints:
 - Alongside <Xref page="declaring-dependencies-basics" section="Declaring Dependencies">dependencies</Xref> in a single project (scoped to the same configuration buckets like `implementation`, `runtimeOnly`, `testImplementation`, etc.).
 - Centrally in a <Xref page="platforms" section="Platforms">platform</Xref> (recommended for multi-project builds) using the `java-platform` plugin:
 
-<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="full-platform" />
+<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="full-platform" source_dir="snippets/reference/dependency-management/declaring-dependencies/recommender" />
 
 You cannot declare constraints in <Xref page="version-catalogs" section="Version Catalogs">version catalogs</Xref>.
 
@@ -37,7 +37,7 @@ They apply whenever that dependency is encountered during resolution.
 
 The `constraints {}` block is used within the `dependencies {}` block to declare these constraints:
 
-<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="use-plugin,constraints" />
+<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="use-plugin,constraints" source_dir="snippets/reference/platforms/jvm/javaPlatformQuickstart" />
 
 1. `api("commons-httpclient:commons-httpclient:3.1")`: ensures ≥ 3.1 for `api`.
 2. `runtime("org.postgresql:postgresql:42.2.5")`: ensures ≥ 42.2.5 for `runtime`.
@@ -49,7 +49,7 @@ If none exists, resolution **fails** with an error describing the conflict.
 
 Use constraints to select transitive modules **without** introducing them as direct dependencies:
 
-<SampleScripts sample_name="managing-transitive-dependencies-versions-with-constraints" basename="build" tag="dependency-constraints" />
+<SampleScripts sample_name="managing-transitive-dependencies-versions-with-constraints" basename="build" tag="dependency-constraints" source_dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints" />
 
 If `commons-codec` isn’t brought in transitively, the constraint is a no-op (it doesn’t add the module).
 If it is brought in, the constraint guides the version selection.
@@ -58,7 +58,7 @@ If it is brought in, the constraint guides the version selection.
 
 You can attach <Xref page="dependency-versions" section="Declaring rich versions">**rich versions**</Xref> to constraints:
 
-<SampleScripts sample_name="managing-transitive-dependencies-versions-with-constraints" basename="build" tag="dependency-strictly" />
+<SampleScripts sample_name="managing-transitive-dependencies-versions-with-constraints" basename="build" tag="dependency-strictly" source_dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints" />
 
 ## Transitivity of constraints
 

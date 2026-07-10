@@ -33,7 +33,7 @@ A plugin project must at least declare:
 - A ***plugin ID*** and ***implementation class*** (so Gradle knows what to apply)
 - A ***group*** and ***version*** (so the plugin can be published and resolved)
 
-<SampleScripts sample_name="plugin-with-variants" basename="build" tag="publish-1" />
+<SampleScripts sample_name="plugin-with-variants" basename="build" tag="publish-1" source_dir="snippets/reference/plugin-development/pluginWithVariants" />
 
 This lets Gradle generate the ***plugin marker module*** (`org.example.greeting.gradle.plugin`) and other metadata required by repositories and consumers.
 
@@ -41,7 +41,7 @@ This lets Gradle generate the ***plugin marker module*** (`org.example.greeting.
 
 Before publishing remotely, publish to a local Maven directory:
 
-<SampleScripts sample_name="plugin-with-variants" basename="build" tag="publish-2" />
+<SampleScripts sample_name="plugin-with-variants" basename="build" tag="publish-2" source_dir="snippets/reference/plugin-development/pluginWithVariants" />
 
 Run:
 
@@ -92,7 +92,7 @@ You’ll see:
 
 To consume locally, point the consumer project’s `pluginManagement` to the local repo:
 
-<SampleScripts sample_name="plugin-with-variants" basename="settings" tag="publish-3" />
+<SampleScripts sample_name="plugin-with-variants" basename="settings" tag="publish-3" source_dir="snippets/reference/plugin-development/pluginWithVariants" />
 
 Consumers can then apply your plugin by ***ID*** without publishing to a public repository.
 

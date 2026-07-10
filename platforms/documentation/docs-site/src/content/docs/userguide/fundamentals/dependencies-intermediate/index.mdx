@@ -14,7 +14,7 @@ Gradle provides a rich and flexible model for declaring dependencies, managing v
 
 The `dependencies{}` block is where you declare the external libraries, internal modules, or files your project needs to compile, run, or test:
 
-<SampleScripts sample_name="declaring-dependencies-basic" basename="build" subpath="app" tag="java-dependency-mgmt" />
+<SampleScripts sample_name="declaring-dependencies-basic" basename="build" subpath="app" tag="java-dependency-mgmt" source_dir="snippets/fundamentals/authoring-builds/declaringDependencies-basic" />
 
 Each dependency is added to a ***bucket configuration***.
 For example `implementation`, `runtimeOnly`, or `testImplementation`.
@@ -24,42 +24,42 @@ The ***set of configurations available*** depends on the plugins you apply (e.g.
 Gradle recommends the ***single-string notation*** for external modules.
 The map notation is deprecated as of Gradle 9.1.0 and will fail your build in Gradle 10:
 
-<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="string-notation" />
+<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="string-notation" source_dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate" />
 
 ## Centralize Versions with Version Catalogs
 
 Gradle recommends using version catalogs to declare dependency versions in a single, reusable location:
 
-<SampleFile sample_name="generated" path="groovy/gradle/libs.versions.toml" />
+<SampleFile sample_name="generated" path="{lang}/gradle/libs.versions.toml" source_dir="snippets/fundamentals/authoring-builds/generated" />
 
 You can then use these aliases in your build scripts:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" source_dir="snippets/fundamentals/authoring-builds/generated" />
 
 ## Enforce and Constrain Versions
 
 Gradle allows you to constrain dependency versions to avoid unwanted upgrades or enforce known good versions:
 
-<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-full" />
+<SampleScripts sample_name="downgrade-transitives" basename="build" tag="dependency-full" source_dir="snippets/fundamentals/authoring-builds/downgrade-transitives" />
 
 You can also constrain a module globally:
 
-<SampleScripts sample_name="managing-transitive-dependencies-versions-with-constraints" basename="build" tag="dependency-constraints" />
+<SampleScripts sample_name="managing-transitive-dependencies-versions-with-constraints" basename="build" tag="dependency-constraints" source_dir="snippets/fundamentals/authoring-builds/managingTransitiveDependencies-versionsWithConstraints" />
 
 ## Resolve Conflicts with Capabilities
 
 Sometimes multiple libraries provide the same functionality under different coordinates. This can lead to classpath conflicts:
 
-<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="conflict-deps" />
+<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="conflict-deps" source_dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate" />
 
 Gradle lets you model these cases using capabilities.
 For example:
 
-<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="capability-deps" />
+<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="capability-deps" source_dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate" />
 
 Then declare capabilities via a component metadata rule:
 
-<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="metadata-rule" />
+<SampleScripts sample_name="dependencies-intermediate" basename="build" tag="metadata-rule" source_dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate" />
 
 Gradle will now treat `jaxen` and `jdom2` as alternate implementations and select the one with a required capability.
 

@@ -12,11 +12,11 @@ To use the Java library distribution plugin, include the following in your build
 
 **Using the Java library distribution plugin**
 
-<SampleScripts sample_name="java-library-distribution" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="java-library-distribution" basename="build" tag="use-plugin" source_dir="snippets/reference/platforms/jvm/javaLibraryDistribution" />
 
 To define the name for the distribution you have to set the `baseName` property as shown below:
 
-<SampleScripts sample_name="java-library-distribution" basename="build" tag="name-conf" />
+<SampleScripts sample_name="java-library-distribution" basename="build" tag="name-conf" source_dir="snippets/reference/platforms/jvm/javaLibraryDistribution" />
 
 The plugin builds a distribution for your library. The distribution will package up the runtime dependencies of the library. All files stored in `src/main/dist` will be added to the root of the archive distribution. You can run gradle distZip to create a ZIP file containing the distribution.
 
@@ -39,4 +39,4 @@ Creates a full distribution ZIP archive including runtime libraries.
 
 All of the files from the `src/dist` directory are copied. To include any static files in the distribution, simply arrange them in the `src/dist` directory, or add them to the content of the distribution.
 
-<SampleScripts sample_name="java-library-distribution" basename="build" tag="custom-distribution" />
+<SampleScripts sample_name="java-library-distribution" basename="build" tag="custom-distribution" source_dir="snippets/reference/platforms/jvm/javaLibraryDistribution" />

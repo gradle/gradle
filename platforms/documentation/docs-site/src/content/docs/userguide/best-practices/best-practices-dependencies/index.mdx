@@ -2,7 +2,7 @@
 title: "Best Practices for Dependencies"
 ---
 
-import { CalloutList, GitHubButton, SampleFile, SampleScripts, Xref } from '#/components';
+import { CalloutList, SampleFile, SampleScripts, Xref } from '#/components';
 
 ## Use Version Catalogs to Centralize Dependency Versions
 
@@ -25,7 +25,7 @@ To influence resolved versions, check out <Xref page="platforms" section="Platfo
 
 Avoid declaring versions in `project.ext`, constants, or local variables:
 
-<SampleScripts sample_name="use-version-catalogs-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="use-version-catalogs-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/useVersionCatalogs-avoid" />
 
 Avoid misusing version catalogs for unrelated concerns:
 
@@ -36,11 +36,11 @@ Avoid misusing version catalogs for unrelated concerns:
 
 Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 
-<SampleFile sample_name="use-version-catalogs-do" path="common/gradle/libs.versions.toml" />
+<SampleFile sample_name="use-version-catalogs-do" path="common/gradle/libs.versions.toml" source_dir="snippets/best-practices/useVersionCatalogs-do" />
 
-<GitHubButton sample="use-version-catalogs-do" action="download" />
 
-<SampleScripts sample_name="use-version-catalogs-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="use-version-catalogs-do" basename="build" tag="do-this" source_dir="snippets/best-practices/useVersionCatalogs-do" />
 
 ### References
 
@@ -88,11 +88,11 @@ The following guidelines help in naming catalog entries effectively:
 
 ### Example
 
-<SampleFile sample_name="version-catalog-naming-do" path="common/gradle/libs.versions.toml" />
+<SampleFile sample_name="version-catalog-naming-do" path="common/gradle/libs.versions.toml" source_dir="snippets/best-practices/versionCatalogNaming-do" />
 
-<GitHubButton sample="version-catalog-naming-do" action="download" />
 
-<SampleScripts sample_name="version-catalog-naming-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="version-catalog-naming-do" basename="build" tag="do-this" source_dir="snippets/best-practices/versionCatalogNaming-do" />
 
 ### References
 
@@ -124,15 +124,15 @@ While [`dependencyResolutionManagement.repositories` is an incubating API](https
 
 You could set up repositories in individual `build.gradle.kts` files with:
 
-<SampleScripts sample_name="settings-repositories-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="settings-repositories-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/settingsRepositories-avoid" />
 
 #### Do This Instead
 
 Instead, you should set them up in `settings.gradle.kts` like this:
 
-<GitHubButton sample="settings-repositories-do" action="download" />
 
-<SampleScripts sample_name="settings-repositories-do" basename="settings" tag="do-this" />
+
+<SampleScripts sample_name="settings-repositories-do" basename="settings" tag="do-this" source_dir="snippets/best-practices/settingsRepositories-do" />
 
 ### Tags
 
@@ -155,7 +155,7 @@ Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the 
 
 #### Don’t Do This
 
-<SampleScripts sample_name="kotlin-std-lib-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="kotlin-std-lib-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/kotlinStdLib-avoid" />
 
 <CalloutList>
 
@@ -165,9 +165,9 @@ Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the 
 
 #### Do This Instead
 
-<GitHubButton sample="kotlin-std-lib-do" action="download" />
 
-<SampleScripts sample_name="kotlin-std-lib-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="kotlin-std-lib-do" basename="build" tag="do-this" source_dir="snippets/best-practices/kotlinStdLib-do" />
 
 <CalloutList>
 
@@ -198,7 +198,7 @@ Duplicating dependencies in Gradle build scripts can lead to:
 
 #### Don’t Do This
 
-<SampleScripts sample_name="avoid-duplicate-dependencies-avoid" basename="build" />
+<SampleScripts sample_name="avoid-duplicate-dependencies-avoid" basename="build" source_dir="snippets/best-practices/avoidDuplicateDependencies-avoid" />
 
 <CalloutList>
 
@@ -208,9 +208,9 @@ Duplicating dependencies in Gradle build scripts can lead to:
 
 #### Do This Instead
 
-<GitHubButton sample="avoid-duplicate-dependencies-do" action="download" />
 
-<SampleScripts sample_name="avoid-duplicate-dependencies-do" basename="build" />
+
+<SampleScripts sample_name="avoid-duplicate-dependencies-do" basename="build" source_dir="snippets/best-practices/avoidDuplicateDependencies-do" />
 
 <CalloutList>
 
@@ -239,7 +239,7 @@ This format is also recommended by [Maven Central](https://central.sonatype.com/
 
 #### Don’t Do This
 
-<SampleScripts sample_name="use-gav-string-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="use-gav-string-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/useGavString-avoid" />
 
 <CalloutList>
 
@@ -250,9 +250,9 @@ This format is also recommended by [Maven Central](https://central.sonatype.com/
 
 #### Do This Instead
 
-<GitHubButton sample="use-gav-string-do" action="download" />
 
-<SampleScripts sample_name="use-gav-string-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="use-gav-string-do" basename="build" tag="do-this" source_dir="snippets/best-practices/useGavString-do" />
 
 <CalloutList>
 
@@ -302,22 +302,22 @@ This setup can result in inadvertently (and silently) resolving dependencies fro
 
 Don’t add multiple repositories without content filtering:
 
-<SampleScripts sample_name="content-filtering-avoid" basename="settings" tag="content-filtering-avoid" />
+<SampleScripts sample_name="content-filtering-avoid" basename="settings" tag="content-filtering-avoid" source_dir="snippets/best-practices/contentFiltering-avoid" />
 
 #### Do This Instead
 
 Use content filtering to ensure that the proper repositories are searched first for the expected artifacts:
 
-<GitHubButton sample="content-filtering-do" action="download" />
 
-<SampleScripts sample_name="content-filtering-do" basename="settings" tag="content-filtering-do" />
+
+<SampleScripts sample_name="content-filtering-do" basename="settings" tag="content-filtering-do" source_dir="snippets/best-practices/contentFiltering-do" />
 
 In many cases, it is better to use exclusive content filtering, as it ensures that dependencies _can only be found in the expected repository_.
 If they are not present there, they will not be found at all.
 
-<GitHubButton sample="content-filtering-exclusive-do" action="download" />
 
-<SampleScripts sample_name="content-filtering-exclusive-do" basename="settings" tag="content-filtering-do" />
+
+<SampleScripts sample_name="content-filtering-exclusive-do" basename="settings" tag="content-filtering-do" source_dir="snippets/best-practices/contentFilteringExclusive-do" />
 
 ### References
 
@@ -350,7 +350,7 @@ When excluding transitive dependencies, keep the scope as narrow as possible:
 
 #### Don’t Do This
 
-<SampleScripts sample_name="apply-exclusions-narrowly-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="apply-exclusions-narrowly-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/applyExclusionsNarrowly-avoid" />
 
 <CalloutList>
 
@@ -368,9 +368,9 @@ If future dependencies rely on `org.ow2.asm:asm-util`, they may fail at compile 
 
 Exclude transitive dependencies as narrowly as possible, ideally on individual dependencies:
 
-<GitHubButton sample="apply-exclusions-narrowly-do" action="download" />
 
-<SampleScripts sample_name="apply-exclusions-narrowly-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="apply-exclusions-narrowly-do" basename="build" tag="do-this" source_dir="snippets/best-practices/applyExclusionsNarrowly-do" />
 
 <CalloutList>
 
@@ -430,7 +430,7 @@ Avoid creating consumable and resolvable configurations without attributes:
 
 In `producer/build.gradle(.kts)`:
 
-<SampleScripts sample_name="avoid-configurations-without-attributes-avoid" basename="build" subpath="producer" tag="avoid-this" />
+<SampleScripts sample_name="avoid-configurations-without-attributes-avoid" basename="build" subpath="producer" tag="avoid-this" source_dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-avoid" />
 
 <CalloutList>
 
@@ -440,7 +440,7 @@ In `producer/build.gradle(.kts)`:
 
 In `consumer/build.gradle(.kts)`:
 
-<SampleScripts sample_name="avoid-configurations-without-attributes-avoid" basename="build" subpath="consumer" tag="avoid-this" />
+<SampleScripts sample_name="avoid-configurations-without-attributes-avoid" basename="build" subpath="consumer" tag="avoid-this" source_dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-avoid" />
 
 <CalloutList>
 
@@ -455,11 +455,11 @@ Resolving configurations by name should be avoided.
 
 Always declare attributes on consumable and resolvable configurations:
 
-<GitHubButton sample="avoid-configurations-without-attributes-do" action="download" />
+
 
 In `producer/build.gradle(.kts)`:
 
-<SampleScripts sample_name="avoid-configurations-without-attributes-do" basename="build" subpath="producer" tag="do-this" />
+<SampleScripts sample_name="avoid-configurations-without-attributes-do" basename="build" subpath="producer" tag="do-this" source_dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-do" />
 
 <CalloutList>
 
@@ -470,7 +470,7 @@ In `producer/build.gradle(.kts)`:
 
 In `consumer/build.gradle(.kts)`:
 
-<SampleScripts sample_name="avoid-configurations-without-attributes-do" basename="build" subpath="consumer" tag="do-this" />
+<SampleScripts sample_name="avoid-configurations-without-attributes-do" basename="build" subpath="consumer" tag="do-this" source_dir="snippets/best-practices/avoidConfigurationsWithoutAttributes-do" />
 
 <CalloutList>
 

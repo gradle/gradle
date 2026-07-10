@@ -80,7 +80,7 @@ You can select tests to run based on:
 You can enable filtering either in the build script or via the `--tests` command-line option.
 Here’s an example of some filters that are applied every time the build runs:
 
-<SampleScripts sample_name="test-filtering" basename="build" tag="test-filtering" />
+<SampleScripts sample_name="test-filtering" basename="build" tag="test-filtering" source_dir="snippets/reference/platforms/native/testFiltering" />
 
 For more details and examples of declaring filters in the build script, please see the TestFilter reference.
 
@@ -133,8 +133,8 @@ There is also a standalone <GroovyDocLink class="org.gradle.api.tasks.testing.Te
 All it requires are a value for `destinationDir` and the test results you want included in the report.
 Here is a sample which generates a combined report for the unit tests from all subprojects:
 
-<SampleScripts sample_name="test-report" basename="myproject.xctest-conventions" subpath="buildSrc/src/main/{lang}" tag="test-report" />
-<SampleScripts sample_name="test-report" basename="build" tag="test-report" />
+<SampleScripts sample_name="test-report" basename="myproject.xctest-conventions" subpath="buildSrc/src/main/{lang}" tag="test-report" source_dir="snippets/reference/platforms/native/testReport" />
+<SampleScripts sample_name="test-report" basename="build" tag="test-report" source_dir="snippets/reference/platforms/native/testReport" />
 
 In this example, we use a convention plugin `myproject.xctest-conventions` to expose the test results from a project to Gradle’s <Xref page="variant-aware-resolution" section="Variant Selection and Attribute Matching">variant aware dependency management engine</Xref>.
 

@@ -195,7 +195,7 @@ Caches are classified into six categories:
 
 The retention period for each category can be configured independently via an <Xref page="init-scripts" section="Initialization Scripts and Init Plugins">init script</Xref> in the Gradle User Home:
 
-<SampleScripts sample_name="cache-retention" basename="cache-settings.init" subpath="gradleUserHome/init.d" />
+<SampleScripts sample_name="cache-retention" basename="cache-settings.init" subpath="gradleUserHome/init.d" source_dir="snippets/reference/runtime-configuration/cacheRetention" />
 
 The frequency at which cache cleanup is invoked is also configurable.
 
@@ -213,7 +213,7 @@ There are three possible settings:
 
 To disable cache cleanup:
 
-<SampleScripts sample_name="disable-cache-cleanup" basename="cache-settings.init" subpath="gradleUserHome/init.d" />
+<SampleScripts sample_name="disable-cache-cleanup" basename="cache-settings.init" subpath="gradleUserHome/init.d" source_dir="snippets/reference/runtime-configuration/disableCacheCleanup" />
 
 :::note
 Cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home.
@@ -252,11 +252,11 @@ The version-compliant script should reside somewhere other than the `init.d` dir
 
 To configure cache cleanup in a version-safe manner:
 
-<SampleScripts sample_name="multi-version-cache-retention" basename="cache-settings.init" subpath="gradleUserHome/init.d" />
+<SampleScripts sample_name="multi-version-cache-retention" basename="cache-settings.init" subpath="gradleUserHome/init.d" source_dir="snippets/reference/runtime-configuration/multiVersionCacheRetention" />
 
 Version-compliant cache configuration script:
 
-<SampleScripts sample_name="multi-version-cache-retention" basename="cache-settings.init" subpath="gradleUserHome/init.d/gradle8" />
+<SampleScripts sample_name="multi-version-cache-retention" basename="cache-settings.init" subpath="gradleUserHome/init.d/gradle8" source_dir="snippets/reference/runtime-configuration/multiVersionCacheRetention" />
 
 ### Cache marking
 
@@ -271,7 +271,7 @@ By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in t
 
 The cache marking feature can be configured via an init script in the Gradle User Home:
 
-<SampleScripts sample_name="cache-marking" basename="cache-settings.init" subpath="gradleUserHome/init.d" />
+<SampleScripts sample_name="cache-marking" basename="cache-settings.init" subpath="gradleUserHome/init.d" source_dir="snippets/reference/runtime-configuration/cacheMarking" />
 
 :::note
 Cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home to which those settings apply and limits the possibility of different conflicting settings from different projects being applied to the same directory.

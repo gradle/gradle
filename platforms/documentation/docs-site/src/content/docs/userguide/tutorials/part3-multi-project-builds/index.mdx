@@ -73,7 +73,7 @@ $ cd lib
 
 Create a file called `build.gradle(.kts)` and add the following lines to it:
 
-<SampleScripts sample_name="multi-project-builds-lib-build" basename="build" tag="lib-build" />
+<SampleScripts sample_name="multi-project-builds-lib-build" basename="build" tag="lib-build" source_dir="snippets/tutorials/authoring-builds/multiProjectBuilds-libBuild" />
 
 Your project should look like this:
 
@@ -182,7 +182,7 @@ However, the `lib` subproject does not belong to the build, and you won’t be a
 
 To add `lib` to the build, update the `settings.gradle(.kts)` file in the root accordingly:
 
-<SampleScripts sample_name="multi-project-builds-add-subproject" basename="settings" tag="add-subproject" />
+<SampleScripts sample_name="multi-project-builds-add-subproject" basename="settings" tag="add-subproject" source_dir="snippets/tutorials/authoring-builds/multiProjectBuilds-addSubproject" />
 
 Let’s add the `lib` subproject as an `app` dependency in `app/build.gradle(.kts)`:
 
@@ -396,7 +396,7 @@ include('plugin')
 
 To add our `license-plugin` build to the root project, update the root `settings.gradle(.kts)` file accordingly:
 
-<SampleScripts sample_name="multi-project-builds-add-build" basename="settings" tag="add-build" />
+<SampleScripts sample_name="multi-project-builds-add-build" basename="settings" tag="add-build" source_dir="snippets/tutorials/authoring-builds/multiProjectBuilds-addBuild" />
 
 You can view the structure of the root project by running `./gradlew projects` in the root folder `authoring-tutorial`:
 

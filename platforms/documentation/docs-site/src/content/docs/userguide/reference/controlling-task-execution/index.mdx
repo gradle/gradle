@@ -62,7 +62,7 @@ include('some-logic')
 Let’s imagine that the `app` subproject depends on the subproject called `some-logic`, which contains some Java code.
 We add this dependency in the `app` build script:
 
-<SampleScripts sample_name="task-dependencies" basename="build" subpath="app" tag="app-build-script" />
+<SampleScripts sample_name="task-dependencies" basename="build" subpath="app" tag="app-build-script" source_dir="snippets/reference/task-development/taskDependencies" />
 
 If we run `:app:build` again, we see the Java code of `some-logic` is also compiled by Gradle automatically:
 
@@ -156,7 +156,7 @@ When you use "must run after", you specify that `taskY` must always run after `t
 So if you only run `taskY` with `mustRunAfter`, you won’t cause `taskX` to run.
 This is expressed as `taskY.mustRunAfter(taskX)`.
 
-<SampleScripts sample_name="must-run-after" basename="build" />
+<SampleScripts sample_name="must-run-after" basename="build" source_dir="snippets/reference/task-development/mustRunAfter" />
 
 ```bash
 $ ./gradlew -q taskY taskX
@@ -174,7 +174,7 @@ The "should run after" ordering rule is similar but less strict, as it will be i
 
 You should use "should run after" where the ordering is helpful but not strictly required:
 
-<SampleScripts sample_name="should-run-after" basename="build" />
+<SampleScripts sample_name="should-run-after" basename="build" source_dir="snippets/reference/task-development/shouldRunAfter" />
 
 ```bash
 $ ./gradlew -q taskY taskX
@@ -197,7 +197,7 @@ taskY
 
 The "should run after" ordering rule will be ignored if it introduces an ordering cycle:
 
-<SampleScripts sample_name="should-run-after-with-cycle" basename="build" />
+<SampleScripts sample_name="should-run-after-with-cycle" basename="build" source_dir="snippets/reference/task-development/shouldRunAfterWithCycle" />
 
 ```bash
 $ ./gradlew -q taskX
@@ -224,7 +224,7 @@ Finalizer tasks are automatically added to the task graph when the finalized tas
 To specify a finalizer task, you use the <JavaDocLink class="org.gradle.api.Task" method="finalizedBy-java.lang.Object&#8230;&#8203;-">Task.finalizedBy(java.lang.Object…​)</JavaDocLink> method.
 This method accepts a task instance, a task name, or any other input accepted by <JavaDocLink class="org.gradle.api.Task" method="dependsOn-java.lang.Object&#8230;&#8203;-">Task.dependsOn(java.lang.Object…​)</JavaDocLink>:
 
-<SampleScripts sample_name="finalizers" basename="build" />
+<SampleScripts sample_name="finalizers" basename="build" source_dir="snippets/reference/task-development/finalizers" />
 
 ```bash
 $ ./gradlew -q taskX
@@ -237,7 +237,7 @@ taskY
 
 Finalizer tasks are executed even if the finalized task fails or if the finalized task is considered `UP-TO-DATE`:
 
-<SampleScripts sample_name="finalizers-with-failure" basename="build" />
+<SampleScripts sample_name="finalizers-with-failure" basename="build" source_dir="snippets/reference/task-development/finalizersWithFailure" />
 
 ```bash
 $ ./gradlew -q taskX
@@ -276,7 +276,7 @@ The predicate is evaluated just before the task is executed.
 
 Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped:
 
-<SampleScripts sample_name="task-only-if" basename="build" />
+<SampleScripts sample_name="task-only-if" basename="build" source_dir="snippets/reference/task-development/taskOnlyIf" />
 
 ```bash
 $ ./gradlew hello -PskipHello
@@ -311,7 +311,7 @@ If the logic for skipping a task can’t be expressed with a predicate, you can 
 If this exception is thrown by an action, the task action as well as the execution of any following action is skipped.
 The build continues by executing the next task:
 
-<SampleScripts sample_name="stop-execution-exception" basename="build" />
+<SampleScripts sample_name="stop-execution-exception" basename="build" source_dir="snippets/reference/task-development/stopExecutionException" />
 
 ```bash
 $ ./gradlew -q myTask
@@ -331,7 +331,7 @@ Setting it to `false` prevents executing the task’s actions.
 
 A disabled task will be labeled `SKIPPED`:
 
-<SampleScripts sample_name="disable-task" basename="build" />
+<SampleScripts sample_name="disable-task" basename="build" source_dir="snippets/reference/task-development/disableTask" />
 
 ```bash
 $ ./gradlew disableMe
@@ -355,16 +355,16 @@ If `--continue` is used, other tasks continue running.
 Tasks that don’t respond to interrupts can’t be timed out.
 All of Gradle’s built-in tasks respond to timeouts.
 
-<SampleScripts sample_name="timeout" basename="build" tag="without-import" />
+<SampleScripts sample_name="timeout" basename="build" tag="without-import" source_dir="snippets/reference/task-development/timeout" />
 
-<SampleScripts sample_name="timeout" basename="build" />
+<SampleScripts sample_name="timeout" basename="build" source_dir="snippets/reference/task-development/timeout" />
 
 ## Task rules
 
 Sometimes you want to have a task whose behavior depends on a large or infinite number value range of parameters.
 A very nice and expressive way to provide such tasks are task rules:
 
-<SampleScripts sample_name="add-rules" basename="build" tag="task-rule" />
+<SampleScripts sample_name="add-rules" basename="build" tag="task-rule" source_dir="snippets/reference/task-development/addRules" />
 
 ```bash
 $ ./gradlew -q pingServer1
@@ -379,7 +379,7 @@ The `String` parameter is used as a description for the rule, which is shown wit
 Rules are not only used when calling tasks from the command line.
 You can also create `dependsOn` relations on rule based tasks:
 
-<SampleScripts sample_name="add-rules" basename="build" tag="all" />
+<SampleScripts sample_name="add-rules" basename="build" tag="all" source_dir="snippets/reference/task-development/addRules" />
 
 ```bash
 $ ./gradlew -q groupPing

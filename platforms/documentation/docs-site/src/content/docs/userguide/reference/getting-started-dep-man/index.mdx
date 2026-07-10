@@ -15,7 +15,7 @@ It is also important when you want to reuse existing libraries, or you need to u
 Let’s look at a Java project where the code relies on [Guava](https://mvnrepository.com/artifact/com.google.guava/guava) which is a suite of Google Core libraries for Java.
 The build file of the project includes the following:
 
-<SampleScripts sample_name="introduction-dependencies" basename="build" tag="dependency-intro" />
+<SampleScripts sample_name="introduction-dependencies" basename="build" tag="dependency-intro" source_dir="snippets/reference/dependency-management/introductionDependencies" />
 
 Within the `dependencies` block, there are three things to notice when a dependency is declared:
 
@@ -30,7 +30,7 @@ To let Gradle know where to find external dependencies, use the `repositories{}`
 
 Let’s expand our example:
 
-<SampleScripts sample_name="introduction-dependencies" basename="build" tag="dependency-repo" />
+<SampleScripts sample_name="introduction-dependencies" basename="build" tag="dependency-repo" source_dir="snippets/reference/dependency-management/introductionDependencies" />
 
 In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the [Maven Central](https://repo1.maven.org/maven2/) and [Google](https://maven.google.com/) _repositories_.
 

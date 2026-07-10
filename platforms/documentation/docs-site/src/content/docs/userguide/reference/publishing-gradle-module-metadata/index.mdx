@@ -55,7 +55,7 @@ If you want to suppress warnings, you can use the following APIs to do so:
 - For Maven, see the `suppress*` methods in <GroovyDocLink class="org.gradle.api.publish.maven.MavenPublication" method="suppressAllPomMetadataWarnings()">MavenPublication</GroovyDocLink>
 - For Ivy, see the `suppress*` methods in <GroovyDocLink class="org.gradle.api.publish.ivy.IvyPublication" method="suppressAllIvyMetadataWarnings()">IvyPublication</GroovyDocLink>
 
-<SampleScripts sample_name="modeling-features-outgoing-capabilities" basename="build" tag="ignore-pom-warnings" />
+<SampleScripts sample_name="modeling-features-outgoing-capabilities" basename="build" tag="ignore-pom-warnings" source_dir="snippets/reference/dependency-management/publishing/modelingFeatures-outgoingCapabilities" />
 
 ## Interactions with other build tools
 
@@ -74,7 +74,7 @@ This must be seen as a _performance optimization_: instead of having to do 2 net
 
 If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls by configuring the metadata sources for a repository:
 
-<SampleScripts sample_name="modeling-features-cross-project-publications-advanced-published" basename="build" subpath="producer" tag="gradle_metadata_source" />
+<SampleScripts sample_name="modeling-features-cross-project-publications-advanced-published" basename="build" subpath="producer" tag="gradle_metadata_source" source_dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published" />
 
 ## Gradle Module Metadata validation
 
@@ -97,7 +97,7 @@ However, if neither build inputs nor build scripts changed, the task result is e
 If users desire to have a unique `module` file per build invocation, it is possible to link an identifier in the produced metadata to the build that created it.
 Users can choose to enable this unique identifier in their `publication`:
 
-<SampleScripts sample_name="java-library" basename="build" tag="enable-build-id" />
+<SampleScripts sample_name="java-library" basename="build" tag="enable-build-id" source_dir="snippets/reference/dependency-management/publishing/javaLibrary" />
 
 With the changes above, the generated Gradle Module Metadata file will always be different, forcing downstream tasks to consider it out-of-date.
 
@@ -110,4 +110,4 @@ There are situations where you might want to disable publication of Gradle Modul
 
 In this case, disabling the publication of Gradle Module Metadata is done simply by disabling the task which generates the metadata file:
 
-<SampleScripts sample_name="modeling-features-cross-project-publications-advanced-published" basename="build" subpath="producer" tag="disable_gradle_metadata_publication" />
+<SampleScripts sample_name="modeling-features-cross-project-publications-advanced-published" basename="build" subpath="producer" tag="disable_gradle_metadata_publication" source_dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published" />

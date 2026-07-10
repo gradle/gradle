@@ -56,7 +56,7 @@ There are three kinds of dependencies: module dependencies, project dependencies
 Module dependencies are the most common dependencies.
 They refer to a module in a repository:
 
-<SampleScripts sample_name="catalogs-settings" basename="build" tag="use_catalog_equiv" />
+<SampleScripts sample_name="catalogs-settings" basename="build" tag="use_catalog_equiv" source_dir="snippets/reference/dependency-management/basics/catalogs-settings" />
 
 ### 2. Project dependencies
 
@@ -65,7 +65,7 @@ This is useful in multi-project builds where multiple projects are part of the s
 
 Project dependencies are declared by referencing the project path:
 
-<SampleScripts sample_name="declaring-dependencies-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" />
+<SampleScripts sample_name="declaring-dependencies-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" source_dir="snippets/reference/dependency-management/basics/declaringDependencies-projectDependencies" />
 
 ### 3. File dependencies
 
@@ -78,7 +78,7 @@ These are known as file dependencies because they represent files without any me
 
 To add files as dependencies for a configuration, you simply pass a <Xref page="working-with-files" section="Using `FileCollection`">file collection</Xref> as a dependency:
 
-<SampleScripts sample_name="external-dependencies" basename="build" tag="file-dependencies" />
+<SampleScripts sample_name="external-dependencies" basename="build" tag="file-dependencies" source_dir="snippets/reference/dependency-management/basics/externalDependencies" />
 
 :::caution
 It is recommended to use project dependencies or external dependencies over file dependencies.
@@ -92,11 +92,11 @@ Let’s imagine an example for a Java application which uses [Guava](https://git
 
 The Java app contains the following Java class:
 
-<SampleFile sample_name="declaring-dependencies-basic" path="common/app/src/main/java/org/example/InitializeCollection.java" />
+<SampleFile sample_name="declaring-dependencies-basic" path="common/app/src/main/java/org/example/InitializeCollection.java" source_dir="snippets/reference/dependency-management/basics/declaringDependencies-basic" />
 
 To add the [Guava](https://mvnrepository.com/artifact/com.google.guava/guava) library to your Gradle project as a dependency, you must add the following line to your build file:
 
-<SampleScripts sample_name="managing-transitive-dependencies-disable-for-configuration" basename="build" tag="dependency-config" />
+<SampleScripts sample_name="managing-transitive-dependencies-disable-for-configuration" basename="build" tag="dependency-config" source_dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-disableForConfiguration" />
 
 Where:
 
@@ -117,7 +117,7 @@ This task can be particularly useful for debugging dependency issues, such as ve
 
 For example, let’s say our `app` project contains the follow lines in its build script:
 
-<SampleScripts sample_name="declaring-dependencies-basic" basename="build" subpath="app" tag="java-dependency-mgmt" />
+<SampleScripts sample_name="declaring-dependencies-basic" basename="build" subpath="app" tag="java-dependency-mgmt" source_dir="snippets/reference/dependency-management/basics/declaringDependencies-basic" />
 
 Running the `dependencies` task on the `app` project yields the following:
 

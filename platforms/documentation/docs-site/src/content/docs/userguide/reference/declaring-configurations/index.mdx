@@ -34,7 +34,7 @@ These configurations help organize and categorize dependencies for different par
 
 For example, to express a dependency on another project, you would use a **declarable configurations** like `implementation`:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="declare-configuration" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="declare-configuration" source_dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching" />
 
 **Configurations used for declaring dependencies** define and manage the specific libraries or projects your code requires for tasks such as compilation or testing.
 
@@ -49,7 +49,7 @@ When resolved, they represent the classpaths needed for compilation and runtime,
 
 The following shows three different APIs available to create a resolvable configuration called `compileClasspath`:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="concrete-classpath" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="concrete-classpath" source_dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching" />
 
 **Resolvable configurations** are those that can be resolved to produce a set of files or artifacts.
 These configurations are used to define the classpath for different stages of a build process, such as compilation or runtime.
@@ -64,7 +64,7 @@ For example, the `exposedApi` configuration is a ***consumable configuration*** 
 
 The following shows three different APIs available to create a consumable configuration called `exposedApi`:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="setup-configurations" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="setup-configurations" source_dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching" />
 
 A library typically provides consumable configurations like `apiElements` (for compilation) and `runtimeElements` (for runtime dependencies).
 These configurations expose the necessary artifacts for other projects to consume, without being resolvable within the current project.
@@ -87,7 +87,7 @@ When you apply the Java or Java Library (`java`, `java-library`, `application`) 
 3. **Consumable** (Gradle publishes these so other projects can depend on you):
    - `apiElements` (`java-library` only) and `runtimeElements`.
 
-<SampleScripts sample_name="dependency-basics" basename="build" tag="configurations" />
+<SampleScripts sample_name="dependency-basics" basename="build" tag="configurations" source_dir="snippets/reference/dependency-management/declaring-dependencies/dependencyBasics" />
 
 There is a relationship between these configurations.
 
@@ -123,7 +123,7 @@ Each variant has its own declarable, resolvable, and consumable configurations, 
    `debugApiElements`, `debugRuntimeElements`, `releaseApiElements`, and `releaseRuntimeElements`.
    These control what other modules receive when they declare a dependency on a particular variant of your library.
 
-<SampleScripts sample_name="declaring-configurations-android" basename="build" tag="configurations" />
+<SampleScripts sample_name="declaring-configurations-android" basename="build" tag="configurations" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-android" />
 
 There is a relationship between these configurations, similar to the Java plugin, but ***scoped per variant***.
 
@@ -160,7 +160,7 @@ The same underlying concepts apply — declarable, resolvable, and consumable �
    - `jvmApiElements`, `jvmRuntimeElements`, `jsApiElements`, `iosArm64ApiElements`, etc.
    - When you publish a KMP library, these configurations define the artifacts and metadata that Gradle and consumers use to resolve the right variant for their platform.
 
-<SampleScripts sample_name="declaring-configurations-kmp" basename="build" subpath="shared" tag="configurations" />
+<SampleScripts sample_name="declaring-configurations-kmp" basename="build" subpath="shared" tag="configurations" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp" />
 
 There is a relationship between these configurations, similar to Java and Android, but ***organized per source set and target***.
 
@@ -201,7 +201,7 @@ For backwards compatibility, the flags have a default value of `true`, but as a 
 
 This example demonstrates how to manually declare the core Java configurations (normally provided by the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref>) in Gradle:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="java-configuration-example" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="java-configuration-example" source_dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching" />
 
 The following configurations are created:
 
@@ -218,7 +218,7 @@ To benefit from this, make sure your build logic doesn’t force configurations 
 
 For example:
 
-<SampleScripts sample_name="declaring-configurations-lazy-config" basename="build" tag="lazy-config" />
+<SampleScripts sample_name="declaring-configurations-lazy-config" basename="build" tag="lazy-config" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-lazyConfig" />
 
 `all {}` iterates every configuration eagerly at configuration time, while `configureEach {}` registers the action but delays running it until the configuration is actually realized.
 
@@ -242,7 +242,7 @@ You can define custom configurations to declare separate scopes of dependencies 
 Suppose you want to generate Javadocs with AsciiDoc formatting embedded within your Java source code comments.
 By setting up the `asciidoclet` configuration, you enable Gradle to use Asciidoclet, allowing your Javadoc task to produce HTML documentation with enhanced formatting options:
 
-<SampleScripts sample_name="asciidoclet" basename="build" tag="create-custom-doclet" />
+<SampleScripts sample_name="asciidoclet" basename="build" tag="create-custom-doclet" source_dir="snippets/reference/dependency-management/declaring-dependencies/asciidoclet" />
 
 You can manage custom configurations using the `configurations` block.
 Configurations must have names and can extend each other.
@@ -291,7 +291,7 @@ To reuse the existing test framework dependencies, the `smokeTest` configuration
 This allows smoke tests to leverage the same dependencies as unit tests without duplication.
 The configuration can be declared in `build.gradle(.kts)` as follows:
 
-<SampleScripts sample_name="defining-using-configurations-inheritance" basename="build" tag="configuration-definition" />
+<SampleScripts sample_name="defining-using-configurations-inheritance" basename="build" tag="configuration-definition" source_dir="snippets/reference/dependency-management/declaring-dependencies/definingUsingConfigurations-inheritance" />
 
 This setup enables the `smokeTest` source set to inherit JUnit and any other testing dependencies, making it easier to define and execute smoke tests while keeping them separate from unit tests.
 
@@ -324,11 +324,11 @@ Consider the following example that demonstrates how to declare a set of configu
 This example uses incubating APIs.
 :::
 
-<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="declare-configurations" />
+<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="declare-configurations" source_dir="snippets/reference/dependency-management/declaring-dependencies/performingResolution-resolutionResult" />
 
 Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <Xref page="declaring-dependencies" section="1. Declaring dependencies">Declaring Dependencies</Xref> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
 
-<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="declaring-dependencies" />
+<SampleScripts sample_name="performing-resolution-resolution-result" basename="build" tag="declaring-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/performingResolution-resolutionResult" />
 
 Now that we’ve created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle’s <Xref page="dependency-resolution" section="Dependency Resolution">dependency resolution APIs</Xref> to access the results of resolution.
 

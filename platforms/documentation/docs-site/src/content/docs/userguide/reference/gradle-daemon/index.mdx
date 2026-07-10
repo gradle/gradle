@@ -279,7 +279,7 @@ $ ./gradlew updateDaemonJvm --jvm-version=17
 
 Or configure the task in the build script of the root project:
 
-<SampleScripts sample_name="customized-task" basename="build" tag="customized-daemon-jvm-task" />
+<SampleScripts sample_name="customized-task" basename="build" tag="customized-daemon-jvm-task" source_dir="snippets/reference/runtime-configuration/customized-task" />
 
 And then run the task:
 
@@ -392,7 +392,7 @@ Gradle sets, by convention, build platforms based on architectures `X86_64` and 
 
 These platforms can be configured through the `toolchainPlatforms` property of the `UpdateDaemonJvm` task.
 
-<SampleScripts sample_name="customized-task" basename="build" tag="customized-plat-daemon-jvm-task" />
+<SampleScripts sample_name="customized-task" basename="build" tag="customized-plat-daemon-jvm-task" source_dir="snippets/reference/runtime-configuration/customized-task" />
 
 Gradle resolves JDK download URLs for these platforms by using the <Xref page="toolchains" section="Toolchain Download Repositories">configured toolchain download repositories</Xref>.
 If no such repositories are configured and the `toolchainPlatforms` property has at least one value, the `updateDaemonJvm` task will fail.
@@ -400,7 +400,7 @@ If no such repositories are configured and the `toolchainPlatforms` property has
 Alternatively, users can directly configure the JDK URLs for specific platforms using the `toolchainDownloadUrls` property.
 This property is a `Map<BuildPlatform, URI>` and can be configured as shown in the following example:
 
-<SampleScripts sample_name="customized-task" basename="build" tag="customized-uri-daemon-jvm-task" />
+<SampleScripts sample_name="customized-task" basename="build" tag="customized-uri-daemon-jvm-task" source_dir="snippets/reference/runtime-configuration/customized-task" />
 
 :::tip
 A full package name is required for <JavaDocLink class="org.gradle.platform.Architecture">`org.gradle.platform.Architecture`</JavaDocLink> and <JavaDocLink class="org.gradle.platform.OperatingSystem">`org.gradle.platform.OperatingSystem`</JavaDocLink> due to a naming conflict with other types in different packages, which are resolved first alphabetically.
@@ -417,7 +417,7 @@ toolchainVersion=17
 
 If you want to disable the generation of URLs by the `updateDaemonJvm` task:
 
-<SampleScripts sample_name="customized-task" basename="build" tag="customized-noplat-daemon-jvm-task" />
+<SampleScripts sample_name="customized-task" basename="build" tag="customized-noplat-daemon-jvm-task" source_dir="snippets/reference/runtime-configuration/customized-task" />
 
 Removing all platforms means that there is no longer a need for the <Xref page="toolchains" section="Toolchain Download Repositories">toolchain download repositories</Xref> to be configured.
 

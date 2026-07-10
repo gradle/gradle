@@ -99,7 +99,7 @@ Because the task configuration action can now run immediately, later, or never, 
 
 Consider the following code:
 
-<SampleScripts sample_name="task-configuration-avoidance-side-effects" basename="build" tag="side-effects" />
+<SampleScripts sample_name="task-configuration-avoidance-side-effects" basename="build" tag="side-effects" source_dir="snippets/reference/task-development/taskConfigurationAvoidance-sideEffects" />
 
 Executing the `check` task should execute `verificationTask`, but with this example, it won’t.
 This is because the dependency between `verificationTask` and `check` only happens when `verificationTask` is realized.

@@ -11,7 +11,7 @@ A composite build is similar to a Gradle <Xref page="multi-project-builds" secti
 
 This is done either [using the Settings file](#settings_defined_composite) and adding a build using `includeBuild()`:
 
-<SampleScripts sample_name="composite-builds-basic" basename="settings" tag="inc" />
+<SampleScripts sample_name="composite-builds-basic" basename="settings" tag="inc" source_dir="snippets/structuring-builds/composite-builds-basic" />
 
 Or [using the CLI flag](#command_line_composite) `--include-build`:
 
@@ -181,7 +181,7 @@ In this example, `my-composite` is a composite build that includes the `my-app` 
 
 The `my-composite` root settings file looks as follows:
 
-<SampleScripts sample_name="composite-builds-basic" basename="settings" />
+<SampleScripts sample_name="composite-builds-basic" basename="settings" source_dir="snippets/structuring-builds/composite-builds-basic" />
 
 ## Defining a Composite Build via the Settings file
 
@@ -289,7 +289,7 @@ $ ./gradlew :my-app:app:compileJava --exclude-task :my-app:app:test
 
 You can optionally define a `run` task in `my-composite` that depends on `my-app:app:run`:
 
-<SampleScripts sample_name="composite-builds-basic" basename="build" tag="run" />
+<SampleScripts sample_name="composite-builds-basic" basename="build" tag="run" source_dir="snippets/structuring-builds/composite-builds-basic" />
 
 So that you can execute `./gradlew run` from the `my-composite` directory:
 
@@ -314,7 +314,7 @@ Using these APIs, it is possible to declare a dependency on a task in a particul
 
 Or you can declare a dependency on tasks with a certain path in all of the included builds:
 
-<SampleScripts sample_name="composite-builds-hierarchical-multirepo" basename="build" />
+<SampleScripts sample_name="composite-builds-hierarchical-multirepo" basename="build" source_dir="snippets/structuring-builds/composite-builds-hierarchical-multirepo" />
 
 ### Referencing Projects
 
@@ -387,7 +387,7 @@ version = "1.0.0"
 
 So that the main build can reference it:
 
-<SampleScripts sample_name="composite-builds-referencing-projects" basename="build" tag="referencing-projects" />
+<SampleScripts sample_name="composite-builds-referencing-projects" basename="build" tag="referencing-projects" source_dir="snippets/structuring-builds/composite-builds-referencingProjects" />
 
 Gradle uses the metadata from the included build to "discover" which coordinates it provides.
 As long as the coordinates match, Gradle replaces the external dependency with a project dependency at execution time, see [#included_build_declaring_substitutions](#included_build_declaring_substitutions) to learn more.
@@ -441,11 +441,11 @@ Plugins that will be applied in project build scripts (e.g., `build.gradle.kts`)
 
 This approach is recommended over using the `--include-build` CLI flag, as it provides more reliable plugin resolution, especially when using the modern `plugins {}` block:
 
-<SampleScripts sample_name="composite-builds-basic" basename="settings" subpath="my-app" tag="mag" />
+<SampleScripts sample_name="composite-builds-basic" basename="settings" subpath="my-app" tag="mag" source_dir="snippets/structuring-builds/composite-builds-basic" />
 
 Then the plugin is used as follows:
 
-<SampleScripts sample_name="composite-builds-basic" basename="build" subpath="my-app/app" tag="plugin_dependencies" />
+<SampleScripts sample_name="composite-builds-basic" basename="build" subpath="my-app/app" tag="plugin_dependencies" source_dir="snippets/structuring-builds/composite-builds-basic" />
 
 ### Plugins for Settings Files
 
@@ -454,7 +454,7 @@ These builds should be included using the `includeBuild` statement inside the `p
 
 Using this mechanism, the included build may contribute a settings plugin that can be applied in the settings file:
 
-<SampleScripts sample_name="composite-builds-settings-plugin" basename="settings" tag="settings-plugin" />
+<SampleScripts sample_name="composite-builds-settings-plugin" basename="settings" tag="settings-plugin" source_dir="snippets/structuring-builds/composite-builds-settingsPlugin" />
 
 :::note
 While the `--include-build` CLI flag can work for plugins applied via the `buildscript {}` block, it may not work reliably for plugins applied using the modern `plugins {}` block, especially for unpublished plugins.
@@ -479,14 +479,14 @@ For these cases, explicitly declaring the substitutions for an included build is
 
 For example, a single-project build called `anonymous-library`, produces a Java utility library but does not declare a value for the group attribute:
 
-<SampleScripts sample_name="composite-builds-declared-substitution" basename="build" subpath="anonymous-library" />
+<SampleScripts sample_name="composite-builds-declared-substitution" basename="build" subpath="anonymous-library" source_dir="snippets/structuring-builds/composite-builds-declared-substitution" />
 
 When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:anonymous-library` (`undefined` being the default value for `project.group`, and `anonymous-library` being the root project name).
 Clearly, this isn’t useful in a composite build.
 
 To use the unpublished library in a composite build, you can explicitly declare the substitutions that it provides:
 
-<SampleScripts sample_name="composite-builds-declared-substitution" basename="settings" tag="composite_substitution" />
+<SampleScripts sample_name="composite-builds-declared-substitution" basename="settings" tag="composite_substitution" source_dir="snippets/structuring-builds/composite-builds-declared-substitution" />
 
 With this configuration, the `my-app` composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of `anonymous-library`.
 
@@ -510,7 +510,7 @@ This is necessary because the rules are globally applied in the build, and Gradl
 For example, we create a separate `publishedRuntimeClasspath` configuration that gets resolved to the published versions of modules that also exist in one of the local builds.
 This is done by deactivating global dependency substitution rules:
 
-<SampleScripts sample_name="customizing-resolution-deactivate-global-substitution" basename="build" tag="disableGlobalDependencySubstitutionRules" />
+<SampleScripts sample_name="customizing-resolution-deactivate-global-substitution" basename="build" tag="disableGlobalDependencySubstitutionRules" source_dir="snippets/structuring-builds/customizingResolution-deactivateGlobalSubstitution" />
 
 A use-case would be to compare published and locally built JAR files.
 

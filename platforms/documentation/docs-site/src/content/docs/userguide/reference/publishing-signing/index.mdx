@@ -12,7 +12,7 @@ The <Xref page="signing-plugin" section="The Signing Plugin">Signing Plugin</Xre
 
 Here’s an example that configures the plugin to sign the `mavenJava` publication:
 
-<SampleScripts sample_name="maven-publish" basename="build" tag="sign-publication" />
+<SampleScripts sample_name="maven-publish" basename="build" tag="sign-publication" source_dir="snippets/reference/dependency-management/publishing/maven-publish" />
 
 This will create a `Sign` task for each publication you specify and wire all `publish_PubName_PublicationTo_RepoName_Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
 

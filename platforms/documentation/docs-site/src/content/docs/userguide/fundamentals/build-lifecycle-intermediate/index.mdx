@@ -32,8 +32,8 @@ Gradle runs these phases in order:
 
 The following example shows which parts of settings and build files correspond to various build phases:
 
-<SampleScripts sample_name="basic" basename="settings" />
-<SampleScripts sample_name="basic" basename="build" />
+<SampleScripts sample_name="basic" basename="settings" source_dir="snippets/fundamentals/authoring-builds/basic" />
+<SampleScripts sample_name="basic" basename="build" source_dir="snippets/fundamentals/authoring-builds/basic" />
 
 The following command executes the `test` task and `testBoth` task specified above.
 Because Gradle only configures the tasks that are required to run (i.e., the requested task and its dependencies), the `configured` task will not be configured or executed:

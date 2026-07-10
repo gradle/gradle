@@ -2,7 +2,7 @@
 title: "Best Practices for Tasks"
 ---
 
-import { CalloutList, GitHubButton, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { CalloutList, JavaDocLink, SampleScripts, Xref } from '#/components';
 import { TabItem, Tabs } from '@astrojs/starlight/components';
 
 ## Avoid DependsOn
@@ -21,7 +21,7 @@ This can lead to unnecessary task execution and decreased build performance.
 
 Here is a task that writes output to two separate files:
 
-<SampleScripts sample_name="avoid-depends-on-do" basename="build" tag="depended-upon-task-setup" />
+<SampleScripts sample_name="avoid-depends-on-do" basename="build" tag="depended-upon-task-setup" source_dir="snippets/best-practices/avoidDependsOn-do" />
 
 <CalloutList>
 
@@ -34,7 +34,7 @@ Here is a task that writes output to two separate files:
 
 If you want to translate the greeting in the `message.txt` file using another task, you could do this:
 
-<SampleScripts sample_name="avoid-depends-on-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="avoid-depends-on-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/avoidDependsOn-avoid" />
 
 <CalloutList>
 
@@ -47,9 +47,9 @@ If you want to translate the greeting in the `message.txt` file using another ta
 
 Instead, you should explicitly wire task inputs and outputs like this:
 
-<GitHubButton sample="avoid-depends-on-do" action="download" />
 
-<SampleScripts sample_name="avoid-depends-on-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="avoid-depends-on-do" basename="build" tag="do-this" source_dir="snippets/best-practices/avoidDependsOn-do" />
 
 <CalloutList>
 
@@ -91,7 +91,7 @@ Remember that only tasks that produce reproducible and relocatable output should
 
 If you want to reuse the output of a task, you shouldn’t do this:
 
-<SampleScripts sample_name="use-cacheability-annotations-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="use-cacheability-annotations-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/useCacheabilityAnnotations-avoid" />
 
 <CalloutList>
 
@@ -105,9 +105,9 @@ If you want to reuse the output of a task, you shouldn’t do this:
 
 As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
 
-<GitHubButton sample="use-cacheability-annotations-do" action="download" />
 
-<SampleScripts sample_name="use-cacheability-annotations-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="use-cacheability-annotations-do" basename="build" tag="do-this" source_dir="snippets/best-practices/useCacheabilityAnnotations-do" />
 
 <CalloutList>
 
@@ -145,7 +145,7 @@ It is preferable to avoid explicitly evaluating a `Provider` at all, and deferri
 
 Here is a task that writes an input `String` to a file:
 
-<SampleScripts sample_name="avoid-provider-get-outside-task-action-avoid" basename="build" tag="provider-get-task-setup" />
+<SampleScripts sample_name="avoid-provider-get-outside-task-action-avoid" basename="build" tag="provider-get-task-setup" source_dir="snippets/best-practices/avoidProviderGetOutsideTaskAction-avoid" />
 
 <CalloutList>
 
@@ -158,7 +158,7 @@ Here is a task that writes an input `String` to a file:
 
 You could call `get()` at configuration time to set up this task:
 
-<SampleScripts sample_name="avoid-provider-get-outside-task-action-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="avoid-provider-get-outside-task-action-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/avoidProviderGetOutsideTaskAction-avoid" />
 
 <CalloutList>
 
@@ -171,9 +171,9 @@ You could call `get()` at configuration time to set up this task:
 
 Instead, you should explicitly wire task inputs and outputs like this:
 
-<GitHubButton sample="avoid-provider-get-outside-task-action-do" action="download" />
 
-<SampleScripts sample_name="avoid-provider-get-outside-task-action-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="avoid-provider-get-outside-task-action-do" basename="build" tag="do-this" source_dir="snippets/best-practices/avoidProviderGetOutsideTaskAction-do" />
 
 <CalloutList>
 
@@ -220,7 +220,7 @@ Tasks with no group are hidden from the <Xref page="command-line-interface" sect
 
 Tasks without a group appear under the "other" category in `./gradlew tasks --all` output, making them harder to locate:
 
-<SampleScripts sample_name="group-tasks-avoid" basename="build" subpath="app" tag="avoid-this" />
+<SampleScripts sample_name="group-tasks-avoid" basename="build" subpath="app" tag="avoid-this" source_dir="snippets/best-practices/groupTasks-avoid" />
 
 ```text
 $ gradlew :app:tasks --all
@@ -245,9 +245,9 @@ startScripts - Creates OS specific scripts to run the project as a JVM applicati
 
 When defining custom tasks, always assign a clear `group` and `description`:
 
-<GitHubButton sample="group-tasks-do" action="download" />
 
-<SampleScripts sample_name="group-tasks-do" basename="build" subpath="app" tag="do-this" />
+
+<SampleScripts sample_name="group-tasks-do" basename="build" subpath="app" tag="do-this" source_dir="snippets/best-practices/groupTasks-do" />
 
 ```text
 $ gradlew :app:tasks --all
@@ -294,7 +294,7 @@ Be sure to check the actual behavior when using configurations in an atypical wa
 
 #### Don’t Do This
 
-<SampleScripts sample_name="avoid-jdk-collection-api-on-file-collections-avoid" basename="build" subpath="lib" tag="avoid-this" />
+<SampleScripts sample_name="avoid-jdk-collection-api-on-file-collections-avoid" basename="build" subpath="lib" tag="avoid-this" source_dir="snippets/best-practices/avoidJdkCollectionApiOnFileCollections-avoid" />
 
 <CalloutList>
 
@@ -311,9 +311,9 @@ The implementation of `Configuration` doesn’t override the plus operator for r
 To avoid issues, always defer resolution until the execution phase.
 Use APIs that support lazy evaluation.
 
-<GitHubButton sample="avoid-jdk-collection-api-on-file-collections-do" action="download" />
 
-<SampleScripts sample_name="avoid-jdk-collection-api-on-file-collections-do" basename="build" subpath="lib" tag="do-this" />
+
+<SampleScripts sample_name="avoid-jdk-collection-api-on-file-collections-do" basename="build" subpath="lib" tag="do-this" source_dir="snippets/best-practices/avoidJdkCollectionApiOnFileCollections-do" />
 
 <CalloutList>
 
@@ -344,7 +344,7 @@ In addition to correctness concerns, resolving configurations during the configu
 
 #### Don’t Do This
 
-<SampleScripts sample_name="avoid-resolving-configurations-manually-avoid" basename="build" subpath="app" tag="avoid-this" />
+<SampleScripts sample_name="avoid-resolving-configurations-manually-avoid" basename="build" subpath="app" tag="avoid-this" source_dir="snippets/best-practices/avoidResolvingConfigurationsManually-avoid" />
 
 <CalloutList>
 
@@ -360,9 +360,9 @@ The `lib` project will not be built when the `:app:badClasspathPrinter` task is 
 
 To avoid issues, always defer resolution to the execution phase by using lazy APIs like <JavaDocLink class="org.gradle.api.file.FileCollection" />.
 
-<GitHubButton sample="avoid-resolving-configurations-manually-do" action="download" />
 
-<SampleScripts sample_name="avoid-resolving-configurations-manually-do" basename="build" subpath="app" tag="do-this" />
+
+<SampleScripts sample_name="avoid-resolving-configurations-manually-do" basename="build" subpath="app" tag="do-this" source_dir="snippets/best-practices/avoidResolvingConfigurationsManually-do" />
 
 <CalloutList>
 
@@ -406,7 +406,7 @@ If no `@PathSensitive` annotation is provided, `PathSensitivity.ABSOLUTE` is the
 
 #### Don’t Do This
 
-<SampleScripts sample_name="prefer-path-sensitivity-none-avoid" basename="build" />
+<SampleScripts sample_name="prefer-path-sensitivity-none-avoid" basename="build" source_dir="snippets/best-practices/preferPathSensitivityNone-avoid" />
 
 <CalloutList>
 
@@ -418,9 +418,9 @@ If no `@PathSensitive` annotation is provided, `PathSensitivity.ABSOLUTE` is the
 
 #### Do this Instead
 
-<GitHubButton sample="prefer-path-sensitivity-none-do" action="download" />
 
-<SampleScripts sample_name="prefer-path-sensitivity-none-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="prefer-path-sensitivity-none-do" basename="build" tag="do-this" source_dir="snippets/best-practices/preferPathSensitivityNone-do" />
 
 <CalloutList>
 
@@ -451,7 +451,7 @@ Ensuring that each task uses its own unique output files and directories, both w
 
 #### Don’t Do This
 
-<SampleScripts sample_name="unique-outputs-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="unique-outputs-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/uniqueOutputs-avoid" />
 
 <CalloutList>
 
@@ -478,7 +478,7 @@ Instead, tasks should only declare the exact outputs and consume the exact input
 The _simplest_ change to make here is to use distinct output directories for each `GreetingTask`.
 This alone is sufficient to fix the problem.
 
-<SampleScripts sample_name="unique-outputs-simple-do" basename="build" tag="simple-do-this" />
+<SampleScripts sample_name="unique-outputs-simple-do" basename="build" tag="simple-do-this" source_dir="snippets/best-practices/uniqueOutputs-simple-do" />
 
 <CalloutList>
 
@@ -493,9 +493,9 @@ However, a more _complete and idiomatic_ approach realizes that:
 1. Tasks that produce single output files should make this clear from the type of their `@Output` properties.
 2. Tasks that only consume single input files should make this clear from the type of their `@Input` properties.
 
-<GitHubButton sample="unique-outputs-do" action="download" />
 
-<SampleScripts sample_name="unique-outputs-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="unique-outputs-do" basename="build" tag="do-this" source_dir="snippets/best-practices/uniqueOutputs-do" />
 
 <CalloutList>
 
@@ -536,7 +536,7 @@ As a plugin author, provide a DSL extension for users to configure behavior decl
 
 #### Don’t Do This
 
-<SampleScripts sample_name="avoid-hardcoding-task-names-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="avoid-hardcoding-task-names-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/avoidHardcodingTaskNames-avoid" />
 
 <CalloutList>
 
@@ -547,11 +547,11 @@ As a plugin author, provide a DSL extension for users to configure behavior decl
 
 #### Do This Instead
 
-<GitHubButton sample="avoid-hardcoding-task-names-do" action="download" />
+
 
 A better option for the `compileJava` configuration is to use a public constant — this task name is part of <Xref page="public-apis" section="Public Gradle APIs">public API</Xref>, so referencing it via the constant is safe:
 
-<SampleScripts sample_name="avoid-hardcoding-task-names-do" basename="build" tag="ok" />
+<SampleScripts sample_name="avoid-hardcoding-task-names-do" basename="build" tag="ok" source_dir="snippets/best-practices/avoidHardcodingTaskNames-do" />
 
 <CalloutList>
 
@@ -561,7 +561,7 @@ A better option for the `compileJava` configuration is to use a public constant 
 
 The best option is to use the plugin DSL where possible — this avoids referring to tasks by name or type at all:
 
-<SampleScripts sample_name="avoid-hardcoding-task-names-do" basename="build" tag="best" />
+<SampleScripts sample_name="avoid-hardcoding-task-names-do" basename="build" tag="best" source_dir="snippets/best-practices/avoidHardcodingTaskNames-do" />
 
 <CalloutList>
 
@@ -596,7 +596,7 @@ The problem arises when `Project` is accessed during _task execution_ (e.g., ins
 
 #### Don’t Do This
 
-<SampleScripts sample_name="dont-access-project-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="dont-access-project-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/dontAccessProject-avoid" />
 
 <CalloutList>
 
@@ -611,12 +611,12 @@ There are two main problems with this setup:
 
 #### Do This Instead
 
-<GitHubButton sample="dont-access-project-do" action="download" />
+
 
 To ensure compatibility, avoid accessing the `Project` instance during task execution.
 Instead, tasks should explicitly declare all required inputs.
 
-<SampleScripts sample_name="dont-access-project-do" basename="build" tag="do-this" />
+<SampleScripts sample_name="dont-access-project-do" basename="build" tag="do-this" source_dir="snippets/best-practices/dontAccessProject-do" />
 
 <CalloutList>
 
@@ -712,7 +712,7 @@ Both examples below use the same `generatorTask` producer; only the consumer dif
 
 ##### Don’t Do This
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-avoid" basename="build" tag="config-time-read" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-avoid" basename="build" tag="config-time-read" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-avoid" />
 
 <CalloutList>
 
@@ -725,7 +725,7 @@ Both examples below use the same `generatorTask` producer; only the consumer dif
 Use the `flatMap`/`map` chain instead.
 The `map` on a `flatMap` result is evaluated lazily at execution time, when the file exists:
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="flatmap-provider" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="flatmap-provider" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-do" />
 
 <CalloutList>
 
@@ -745,7 +745,7 @@ Both examples below use the same `generatorTask` producer; only the consumer dif
 
 ##### Don’t Do This
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-ex-avoid" basename="build" tag="naked-provider" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-ex-avoid" basename="build" tag="naked-provider" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-ex-avoid" />
 
 <CalloutList>
 
@@ -772,7 +772,7 @@ When a task’s output is computed via `.map {}` rather than directly annotated 
 
 ##### Don’t Do This
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-avoid" basename="build" tag="derived-property" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-avoid" basename="build" tag="derived-property" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-avoid" />
 
 <CalloutList>
 
@@ -784,7 +784,7 @@ When a task’s output is computed via `.map {}` rather than directly annotated 
 
 As a workaround, use `.map { it.property.get() }` to preserve the dependency:
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="derived-property-fix" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="derived-property-fix" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-do" />
 
 <CalloutList>
 
@@ -794,7 +794,7 @@ As a workaround, use `.map { it.property.get() }` to preserve the dependency:
 
 The preferred approach is to use directly annotated abstract getters instead of derived ones, so that `flatMap` works reliably:
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="direct-annotation" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="direct-annotation" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-do" />
 
 <CalloutList>
 
@@ -809,7 +809,7 @@ The `flatMap` closure must return a `Provider`; wrapping a plain value in a stan
 
 ##### Do This
 
-<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="eager-property" />
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="eager-property" source_dir="snippets/best-practices/beCarefulWithMapFlatmap-do" />
 
 <CalloutList>
 

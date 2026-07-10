@@ -23,7 +23,7 @@ That parameter tells Gradle that the action only wants to process the changed in
 
 In addition, the task needs to declare at least one incremental file input property by using either <JavaDocLink class="org.gradle.work.Incremental">`@Incremental`</JavaDocLink> or <JavaDocLink class="org.gradle.api.tasks.SkipWhenEmpty">`@SkipWhenEmpty`</JavaDocLink>:
 
-<SampleScripts sample_name="custom-tasks-incremental-task" basename="build" tag="incremental-task" />
+<SampleScripts sample_name="custom-tasks-incremental-task" basename="build" tag="incremental-task" source_dir="snippets/reference/task-development/customTasks-incrementalTask" />
 
 :::danger
 To query incremental changes for an input file property, that property must always return the same instance.
@@ -43,7 +43,7 @@ The method returns an `Iterable` of type <JavaDocLink class="org.gradle.work.Fil
 The following example demonstrates an incremental task that has a directory input.
 It assumes that the directory contains a collection of text files and copies them to an output directory, reversing the text within each file:
 
-<SampleScripts sample_name="incremental-task" basename="build" tag="incremental-task" />
+<SampleScripts sample_name="incremental-task" basename="build" tag="incremental-task" source_dir="snippets/reference/task-development/incrementalTask" />
 
 :::note
 The type of the `inputDir` property, its annotations, and the `execute()` action use `getFileChanges()` to process the subset of files that have changed since the last build.
@@ -85,7 +85,7 @@ Consider an instance of `IncrementalReverseTask` executed against a set of input
 
 In this case, all inputs will be considered `ADDED`, as shown here:
 
-<SampleScripts sample_name="incremental-task" basename="build" tag="reverse" />
+<SampleScripts sample_name="incremental-task" basename="build" tag="reverse" source_dir="snippets/reference/task-development/incrementalTask" />
 
 The build layout:
 
@@ -127,7 +127,7 @@ When an input file is modified in some way or a new input file is added, then re
 
 The following example modifies the content of one file and adds another before running the incremental task:
 
-<SampleScripts sample_name="incremental-task" basename="build" tag="updated-inputs" />
+<SampleScripts sample_name="incremental-task" basename="build" tag="updated-inputs" source_dir="snippets/reference/task-development/incrementalTask" />
 
 ```bash
 $ ./gradlew -q updateInputs incrementalReverse
@@ -148,7 +148,7 @@ When an existing input file is removed, then re-executing the task results in th
 
 The following example removes one of the existing files before executing the incremental task:
 
-<SampleScripts sample_name="incremental-task" basename="build" tag="removed-input" />
+<SampleScripts sample_name="incremental-task" basename="build" tag="removed-input" source_dir="snippets/reference/task-development/incrementalTask" />
 
 ```bash
 $ ./gradlew -q removeInput incrementalReverse
@@ -165,7 +165,7 @@ In this case, details for _all_ the input files for the given property are retur
 The following example removes one of the output files from the build directory.
 However, all the input files are considered to be `ADDED`:
 
-<SampleScripts sample_name="incremental-task" basename="build" tag="removed-output" />
+<SampleScripts sample_name="incremental-task" basename="build" tag="removed-output" source_dir="snippets/reference/task-development/incrementalTask" />
 
 ```bash
 $ ./gradlew -q removeOutput incrementalReverse
@@ -262,7 +262,7 @@ A single dash does not qualify as valid syntax for a task option.
 
 Building upon the earlier example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option:
 
-<SampleScripts sample_name="command-line-option-string-option" basename="build" tag="task" />
+<SampleScripts sample_name="command-line-option-string-option" basename="build" tag="task" source_dir="snippets/reference/task-development/commandLineOption-stringOption" />
 
 ```bash
 $ ./gradlew -q verifyUrl --url=http://www.google.com/
@@ -498,7 +498,7 @@ Verification failures are used in exactly this manner by the <Xref page="test-re
 
 Verification failures are also useful for tasks that need to report a failure even after producing useful output consumable by other tasks.
 
-<SampleScripts sample_name="verification-failure" basename="build" tag="verification-failure" />
+<SampleScripts sample_name="verification-failure" basename="build" tag="verification-failure" source_dir="snippets/reference/task-development/verificationFailure" />
 
 <CalloutList>
 

@@ -15,6 +15,7 @@ export const sidebarIcons: Record<string, string> = {
   "Upgrading Gradle": "up-arrow",
   "Migrating to Gradle": "random",
   "Learning Gradle Basics": "open-book",
+  "Licenses": "document",
   "Writing Build Scripts": "pencil",
   "Creating Plugins": "puzzle",
   "Best Practices": "approve-check-circle",

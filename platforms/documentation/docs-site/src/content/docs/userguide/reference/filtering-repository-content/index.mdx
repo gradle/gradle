@@ -15,7 +15,7 @@ It’s even more important when considering that the declared order of repositor
 
 ## Declaring a repository filter
 
-<SampleScripts sample_name="declaring-repositories-filtering" basename="build" tag="repository-filter" />
+<SampleScripts sample_name="declaring-repositories-filtering" basename="build" tag="repository-filter" source_dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering" />
 
 By default, repositories include everything and exclude nothing:
 
@@ -43,7 +43,7 @@ If you do so:
 Using exclusive repository content filters is a <Xref page="best-practices-dependencies" section="Use Content Filtering with multiple Repositories">Gradle Best Practice</Xref>.
 :::
 
-<SampleScripts sample_name="declaring-repositories-filtering" basename="build" tag="exclusive-repository-filter" />
+<SampleScripts sample_name="declaring-repositories-filtering" basename="build" tag="exclusive-repository-filter" source_dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering" />
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
 See <JavaDocLink class="org.gradle.api.artifacts.repositories.InclusiveRepositoryContentDescriptor" /> for details.
@@ -61,7 +61,7 @@ Your options are either to declare all repositories in settings or to use non-ex
 For <Xref page="supported-repository-types" section="Maven repositories">Maven repositories</Xref>, it’s often the case that a repository would either contain releases or snapshots.
 Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
 
-<SampleScripts sample_name="declaring-repositories-filtering" basename="build" tag="repository-snapshots" />
+<SampleScripts sample_name="declaring-repositories-filtering" basename="build" tag="repository-snapshots" source_dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering" />
 
 ## Enabling Ivy dynamic resolve mode
 
@@ -75,7 +75,7 @@ This provides more flexibility in dependency resolution, particularly when worki
 
 You need to explicitly enable dynamic resolve mode when declaring an Ivy repository:
 
-<SampleScripts sample_name="customizing-resolution-ivy-dynamic-mode" basename="build" tag="ivy-repo-dynamic-mode" />
+<SampleScripts sample_name="customizing-resolution-ivy-dynamic-mode" basename="build" tag="ivy-repo-dynamic-mode" source_dir="snippets/reference/dependency-management/declaring-repositories/customizingResolution-ivyDynamicMode" />
 
 :::note
 Dynamic resolve mode is only available for Gradle’s Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.

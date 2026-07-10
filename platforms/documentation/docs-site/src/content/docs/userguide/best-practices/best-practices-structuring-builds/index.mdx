@@ -2,7 +2,7 @@
 title: "Best Practices for Structuring Builds"
 ---
 
-import { CalloutList, GitHubButton, KotlinDocLink, SampleFile, SampleScripts, Xref } from '#/components';
+import { CalloutList, KotlinDocLink, SampleFile, SampleScripts, Xref } from '#/components';
 import { TabItem, Tabs } from '@astrojs/starlight/components';
 
 ## Modularize Your Builds
@@ -78,9 +78,9 @@ However, you should typically err on the side of adding more projects rather tha
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="modularize-your-build-avoid" basename="settings" tag="avoid-this" />
+<SampleScripts sample_name="modularize-your-build-avoid" basename="settings" tag="avoid-this" source_dir="snippets/best-practices/modularizeYourBuild-avoid" />
 
-<SampleScripts sample_name="modularize-your-build-avoid" basename="build" subpath="app" tag="avoid-this" />
+<SampleScripts sample_name="modularize-your-build-avoid" basename="build" subpath="app" tag="avoid-this" source_dir="snippets/best-practices/modularizeYourBuild-avoid" />
 
 <CalloutList>
 
@@ -173,13 +173,13 @@ However, you should typically err on the side of adding more projects rather tha
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="modularize-your-build-do" basename="settings" tag="do-this" />
+<SampleScripts sample_name="modularize-your-build-do" basename="settings" tag="do-this" source_dir="snippets/best-practices/modularizeYourBuild-do" />
 
-<SampleScripts sample_name="modularize-your-build-do" basename="build" subpath="app" tag="do-this" />
+<SampleScripts sample_name="modularize-your-build-do" basename="build" subpath="app" tag="do-this" source_dir="snippets/best-practices/modularizeYourBuild-do" />
 
-<SampleScripts sample_name="modularize-your-build-do" basename="build" subpath="util-commons" tag="do-this" />
+<SampleScripts sample_name="modularize-your-build-do" basename="build" subpath="util-commons" tag="do-this" source_dir="snippets/best-practices/modularizeYourBuild-do" />
 
-<SampleScripts sample_name="modularize-your-build-do" basename="build" subpath="util-guava" tag="do-this" />
+<SampleScripts sample_name="modularize-your-build-do" basename="build" subpath="util-guava" tag="do-this" source_dir="snippets/best-practices/modularizeYourBuild-do" />
 
 <CalloutList>
 
@@ -254,7 +254,7 @@ Setting up your build like this from the start will also make it easier to add n
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="no-source-in-root-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="no-source-in-root-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/noSourceInRoot-avoid" />
 
 <CalloutList>
 
@@ -298,9 +298,9 @@ Setting up your build like this from the start will also make it easier to add n
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="no-source-in-root-do" basename="settings" tag="do-this" />
+<SampleScripts sample_name="no-source-in-root-do" basename="settings" tag="do-this" source_dir="snippets/best-practices/noSourceInRoot-do" />
 
-<SampleScripts sample_name="no-source-in-root-do" basename="build" subpath="core" tag="do-this" />
+<SampleScripts sample_name="no-source-in-root-do" basename="build" subpath="core" tag="do-this" source_dir="snippets/best-practices/noSourceInRoot-do" />
 
 <CalloutList>
 
@@ -391,17 +391,17 @@ Since setting up a composite build requires only minimal additional configuratio
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="favor-composite-builds-avoid" basename="build" subpath="buildSrc" tag="avoid-this" />
+<SampleScripts sample_name="favor-composite-builds-avoid" basename="build" subpath="buildSrc" tag="avoid-this" source_dir="snippets/best-practices/favorCompositeBuilds-avoid" />
 
 **Set up a Plugin Build**: This is the same using either method.
 
-<SampleScripts sample_name="favor-composite-builds-avoid" basename="settings" tag="avoid-this" />
+<SampleScripts sample_name="favor-composite-builds-avoid" basename="settings" tag="avoid-this" source_dir="snippets/best-practices/favorCompositeBuilds-avoid" />
 
 **`buildSrc` products are automatically usable**: There is no additional configuration with this method.
 
 #### Do This Instead
 
-<GitHubButton sample="favor-composite-builds-do" action="download" />
+
 
 <Tabs syncKey="script-language">
 <TabItem label="Kotlin">
@@ -444,13 +444,13 @@ Since setting up a composite build requires only minimal additional configuratio
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="favor-composite-builds-do" basename="build" subpath="build-logic/plugin" tag="do-this" />
+<SampleScripts sample_name="favor-composite-builds-do" basename="build" subpath="build-logic/plugin" tag="do-this" source_dir="snippets/best-practices/favorCompositeBuilds-do" />
 
 **Set up a Plugin Build**: This is the same using either method.
 
-<SampleScripts sample_name="favor-composite-builds-do" basename="settings" tag="do-this" />
+<SampleScripts sample_name="favor-composite-builds-do" basename="settings" tag="do-this" source_dir="snippets/best-practices/favorCompositeBuilds-do" />
 
-<SampleScripts sample_name="favor-composite-builds-do" basename="settings" subpath="build-logic" tag="do-this" />
+<SampleScripts sample_name="favor-composite-builds-do" basename="settings" subpath="build-logic" tag="do-this" source_dir="snippets/best-practices/favorCompositeBuilds-do" />
 
 <CalloutList>
 
@@ -563,7 +563,7 @@ If you find yourself facing ambiguity about project locations, consider simplify
 
 </CalloutList>
 
-<SampleScripts sample_name="avoid-empty-projects-avoid" basename="settings" tag="avoid-this" />
+<SampleScripts sample_name="avoid-empty-projects-avoid" basename="settings" tag="avoid-this" source_dir="snippets/best-practices/avoidEmptyProjects-avoid" />
 
 <CalloutList>
 
@@ -572,13 +572,13 @@ If you find yourself facing ambiguity about project locations, consider simplify
 
 </CalloutList>
 
-<SampleFile sample_name="avoid-empty-projects-avoid" path="tests/avoidEmptyProjects-avoid.out" />
+<SampleFile sample_name="avoid-empty-projects-avoid" path="tests/avoidEmptyProjects-avoid.out" source_dir="snippets/best-practices/avoidEmptyProjects-avoid" />
 
 The output of running the `projects` report on the above build shows that Gradle created empty projects for `:subs` and `:subs:web`.
 
 #### Do This Instead
 
-<SampleScripts sample_name="avoid-empty-projects-do" basename="settings" tag="do-this" />
+<SampleScripts sample_name="avoid-empty-projects-do" basename="settings" tag="do-this" source_dir="snippets/best-practices/avoidEmptyProjects-do" />
 
 <CalloutList>
 
@@ -586,7 +586,7 @@ The output of running the `projects` report on the above build shows that Gradle
 
 </CalloutList>
 
-<SampleFile sample_name="avoid-empty-projects-do" path="tests/avoidEmptyProjects-do.out" />
+<SampleFile sample_name="avoid-empty-projects-do" path="tests/avoidEmptyProjects-do.out" source_dir="snippets/best-practices/avoidEmptyProjects-do" />
 
 The output of running the `projects` report on the above build shows that now Gradle only creates the intended projects for this build.
 
@@ -628,8 +628,8 @@ As mentioned in [Favor `build-logic` Composite Builds for Build Logic](#favor_co
 
 #### Don’t Do This
 
-<SampleScripts sample_name="use-convention-plugins-avoid" basename="build" subpath="project-a" tag="avoid-this" />
-<SampleScripts sample_name="use-convention-plugins-avoid" basename="build" subpath="project-b" tag="avoid-this" />
+<SampleScripts sample_name="use-convention-plugins-avoid" basename="build" subpath="project-a" tag="avoid-this" source_dir="snippets/best-practices/useConventionPlugins-avoid" />
+<SampleScripts sample_name="use-convention-plugins-avoid" basename="build" subpath="project-b" tag="avoid-this" source_dir="snippets/best-practices/useConventionPlugins-avoid" />
 
 <CalloutList>
 
@@ -644,8 +644,8 @@ As mentioned in [Favor `build-logic` Composite Builds for Build Logic](#favor_co
 
 Create included build containing convention plugins for your build in `build-logic` and add it to your settings file:
 
-<SampleScripts sample_name="use-convention-plugins-do" basename="settings" tag="do-this" />
-<SampleScripts sample_name="use-convention-plugins-do" basename="build" subpath="build-logic" tag="do-this" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="settings" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="build" subpath="build-logic" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
 
 <CalloutList>
 
@@ -656,9 +656,9 @@ Create included build containing convention plugins for your build in `build-log
 
 Create convention plugins for each type of project in `build-logic`:
 
-<SampleScripts sample_name="use-convention-plugins-do" basename="my.base-java-library" subpath="build-logic/src/main/{lang}" tag="do-this" />
-<SampleScripts sample_name="use-convention-plugins-do" basename="my.java-library" subpath="build-logic/src/main/{lang}" tag="do-this" />
-<SampleScripts sample_name="use-convention-plugins-do" basename="my.java-use-junit5" subpath="build-logic/src/main/{lang}" tag="do-this" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="my.base-java-library" subpath="build-logic/src/main/{lang}" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="my.java-library" subpath="build-logic/src/main/{lang}" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="my.java-use-junit5" subpath="build-logic/src/main/{lang}" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
 
 <CalloutList>
 
@@ -670,8 +670,8 @@ Create convention plugins for each type of project in `build-logic`:
 
 And apply these plugin in any build files to use the shared logic:
 
-<SampleScripts sample_name="use-convention-plugins-do" basename="build" subpath="project-a" tag="do-this" />
-<SampleScripts sample_name="use-convention-plugins-do" basename="build" subpath="project-b" tag="do-this" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="build" subpath="project-a" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
+<SampleScripts sample_name="use-convention-plugins-do" basename="build" subpath="project-b" tag="do-this" source_dir="snippets/best-practices/useConventionPlugins-do" />
 
 ### References
 

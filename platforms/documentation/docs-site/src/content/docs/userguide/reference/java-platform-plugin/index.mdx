@@ -25,7 +25,7 @@ Conceptually a project is either a platform, with no binaries, _or_ produces bin
 
 To use the Java Platform plugin, include the following in your build script:
 
-<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="use-plugin" source_dir="snippets/reference/platforms/jvm/javaPlatformQuickstart" />
 
 ## API and runtime separation
 
@@ -35,7 +35,7 @@ While many users will only care about declaring constraints for _compile time_ d
 For this purpose, the plugin exposes two <Xref page="dependency-configurations" section="Understanding dependency configurations">configurations</Xref> that can be used to declare dependencies: `api` and `runtime`.
 The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
 
-<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="constraints" />
+<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="constraints" source_dir="snippets/reference/platforms/jvm/javaPlatformQuickstart" />
 
 Note that this example makes use of _constraints_ and not dependencies.
 In general, this is what you would like to do: constraints will only apply if such a component is added to the dependency graph, either directly or transitively.
@@ -50,13 +50,13 @@ If a dependency brings in `org:foo:1.0`, then we would select `org:foo:1.1` to s
 By default, in order to avoid the common mistake of adding a dependency in a platform instead of a constraint, Gradle will fail if you try to do so.
 If, for some reason, you also want to add _dependencies_ in addition to constraints, you need to enable it explicitly:
 
-<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="allow-dependencies" />
+<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="allow-dependencies" source_dir="snippets/reference/platforms/jvm/javaPlatformQuickstart" />
 
 ## Local project constraints
 
 If you have a multi-project build and want to publish a platform that links to subprojects, you can do it by declaring constraints on the subprojects which belong to the platform, as in the example below:
 
-<SampleScripts sample_name="multiproject" basename="build" subpath="platform" tag="project-constraints" />
+<SampleScripts sample_name="multiproject" basename="build" subpath="platform" tag="project-constraints" source_dir="snippets/reference/platforms/jvm/multiproject" />
 
 The project notation will become a classical `group:name:version` notation in the published metadata.
 
@@ -66,13 +66,13 @@ Sometimes the platform you define is an extension of another existing platform.
 
 In order to have your platform include the constraints from that third party platform, it needs to be imported as a `platform` _dependency_:
 
-<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="platform" />
+<SampleScripts sample_name="java-platform-quickstart" basename="build" tag="platform" source_dir="snippets/reference/platforms/jvm/javaPlatformQuickstart" />
 
 ## Publishing platforms
 
 Publishing Java platforms is done by applying the `maven-publish` plugin and configuring a Maven publication that uses the `javaPlatform` component:
 
-<SampleScripts sample_name="multiproject" basename="build" subpath="platform" tag="publishing" />
+<SampleScripts sample_name="multiproject" basename="build" subpath="platform" tag="publishing" source_dir="snippets/reference/platforms/jvm/multiproject" />
 
 This will generate a BOM file for the platform, with a `<dependencyManagement>` block where its `<dependencies>` correspond to the constraints defined in the platform module.
 
@@ -81,8 +81,8 @@ This will generate a BOM file for the platform, with a `<dependencyManagement>` 
 Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <Xref page="platforms" section="Importing a platform">managing transitive dependencies</Xref> section.
 For example, if you want to share dependency versions between subprojects, you can define a platform module which would declare all versions:
 
-<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="define-platform" />
+<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="define-platform" source_dir="snippets/reference/platforms/jvm/recommender" />
 
 And then have subprojects depend on the platform to get recommendations:
 
-<SampleScripts sample_name="recommender" basename="build" subpath="consumer" tag="get-recommendations" />
+<SampleScripts sample_name="recommender" basename="build" subpath="consumer" tag="get-recommendations" source_dir="snippets/reference/platforms/jvm/recommender" />

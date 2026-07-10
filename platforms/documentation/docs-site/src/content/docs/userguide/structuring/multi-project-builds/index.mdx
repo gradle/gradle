@@ -101,11 +101,11 @@ You can modify these descriptors in the settings file at any time.
 
 To access a descriptor, you can:
 
-<SampleScripts sample_name="custom-layout" basename="settings" tag="lookup-project" />
+<SampleScripts sample_name="custom-layout" basename="settings" tag="lookup-project" source_dir="snippets/structuring-builds/customLayout" />
 
 Using this descriptor, you can change the name, project directory, and build file of a project:
 
-<SampleScripts sample_name="custom-layout" basename="settings" tag="change-project" />
+<SampleScripts sample_name="custom-layout" basename="settings" tag="change-project" source_dir="snippets/structuring-builds/customLayout" />
 
 Consult the <JavaDocLink class="org.gradle.api.initialization.ProjectDescriptor" /> class in the API documentation for more information.
 
@@ -230,10 +230,10 @@ For example:
 - `:shared` refers to the `shared` subproject
 - `services:person-service` refers to a nested subproject
 
-<SampleScripts sample_name="basic-dependencies" basename="settings" />
-<SampleScripts sample_name="basic-dependencies" basename="build" subpath="shared" />
-<SampleScripts sample_name="basic-dependencies" basename="build" subpath="api" />
-<SampleScripts sample_name="basic-dependencies" basename="build" subpath="services/person-service" />
+<SampleScripts sample_name="basic-dependencies" basename="settings" source_dir="snippets/structuring-builds/basic-dependencies" />
+<SampleScripts sample_name="basic-dependencies" basename="build" subpath="shared" source_dir="snippets/structuring-builds/basic-dependencies" />
+<SampleScripts sample_name="basic-dependencies" basename="build" subpath="api" source_dir="snippets/structuring-builds/basic-dependencies" />
+<SampleScripts sample_name="basic-dependencies" basename="build" subpath="services/person-service" source_dir="snippets/structuring-builds/basic-dependencies" />
 
 For more details on project paths, consult the DSL documentation for [Settings.include(String…​)](https://docs.gradle.org/current/dsl/).
 

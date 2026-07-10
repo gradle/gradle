@@ -10,7 +10,7 @@ The PMD plugin performs quality checks on your project’s Java source files usi
 
 To use the PMD plugin, include the following in your build script:
 
-<SampleScripts sample_name="code-quality" basename="build" tag="use-pmd-plugin" />
+<SampleScripts sample_name="code-quality" basename="build" tag="use-pmd-plugin" source_dir="snippets/reference/core-plugins/codeQuality" />
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 
@@ -63,7 +63,7 @@ The PMD plugin adds the following dependency configurations:
 
 ## Configuration
 
-<SampleScripts sample_name="code-quality" basename="build" tag="customize-pmd" />
+<SampleScripts sample_name="code-quality" basename="build" tag="customize-pmd" source_dir="snippets/reference/core-plugins/codeQuality" />
 
 See the <GroovyDocLink class="org.gradle.api.plugins.quality.PmdExtension" /> class in the API documentation.
 
@@ -71,7 +71,7 @@ See the <GroovyDocLink class="org.gradle.api.plugins.quality.PmdExtension" /> cl
 
 You can configure the number of threads to be used by PMD for running its analysis.
 
-<SampleScripts sample_name="code-quality" basename="build" tag="pmd-threads" />
+<SampleScripts sample_name="code-quality" basename="build" tag="pmd-threads" source_dir="snippets/reference/core-plugins/codeQuality" />
 
 :::note
 This configuration is internal to PMD and is not linked to <Xref page="performance" section="2. Enable Parallel Execution">the number of workers</Xref> used by Gradle.

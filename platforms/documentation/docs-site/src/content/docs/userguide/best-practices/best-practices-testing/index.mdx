@@ -2,7 +2,7 @@
 title: "Best Practices for Testing"
 ---
 
-import { CalloutList, FileTree, GitHubButton, SampleFile, SampleScripts, Xref } from '#/components';
+import { CalloutList, FileTree, SampleFile, SampleScripts, Xref } from '#/components';
 import { TabItem, Tabs } from '@astrojs/starlight/components';
 
 ## Test your custom Task and Plugins with TestKit
@@ -31,7 +31,7 @@ The only way to verify that the task and plugin work as intended is to run the b
 
 There are several problems with the sample below:
 
-<SampleScripts sample_name="use-test-kit-avoid" basename="build" />
+<SampleScripts sample_name="use-test-kit-avoid" basename="build" source_dir="snippets/best-practices/useTestKit-avoid" />
 
 <CalloutList>
 
@@ -44,7 +44,7 @@ There are several problems with the sample below:
 
 #### Do This Instead
 
-<GitHubButton sample="use-test-kit-do" action="download" />
+
 
 In this updated version of the build, the custom types are defined in an included `build-logic` <Xref page="best-practices-structuring-builds" section="Favor `build-logic` Composite Builds for Build Logic">composite build</Xref>, which now includes a basic set of functional tests using Gradle TestKit.
 
@@ -108,7 +108,7 @@ Because they reside in a separate, complete Gradle build, they can be thoroughly
 
 We’ve corrected the issues with the plugin and task from the previous example:
 
-<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/main/java/org/example/MyTask.java" />
+<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/main/java/org/example/MyTask.java" source_dir="snippets/best-practices/useTestKit-do" />
 
 <CalloutList>
 
@@ -116,7 +116,7 @@ We’ve corrected the issues with the plugin and task from the previous example:
 
 </CalloutList>
 
-<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/main/java/org/example/MyPlugin.java" />
+<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/main/java/org/example/MyPlugin.java" source_dir="snippets/best-practices/useTestKit-do" />
 
 <CalloutList>
 
@@ -131,7 +131,7 @@ We defined a functional test suite within the `build-logic` project.
 Because TestKit tests tend to be slower and more complex than unit tests, they are typically kept separate.
 Locating these tests in a dedicated `functionalTest` suite also clarifies their purpose for other developers.
 
-<SampleScripts sample_name="use-test-kit-do" basename="build" subpath="build-logic" tag="do-this" />
+<SampleScripts sample_name="use-test-kit-do" basename="build" subpath="build-logic" tag="do-this" source_dir="snippets/best-practices/useTestKit-do" />
 
 <CalloutList>
 
@@ -154,7 +154,7 @@ In the functional test class, we use TestKit to initialize a temporary Gradle pr
 
 The example tests below show various techniques used to verify the plugin’s behavior against actual, ad-hoc Gradle builds defined within the tests:
 
-<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/functionalTest/java/org/example/MyPluginFunctionalTest.java" />
+<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/functionalTest/java/org/example/MyPluginFunctionalTest.java" source_dir="snippets/best-practices/useTestKit-do" />
 
 <CalloutList>
 

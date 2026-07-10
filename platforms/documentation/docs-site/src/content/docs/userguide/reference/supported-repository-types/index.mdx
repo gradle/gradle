@@ -16,7 +16,7 @@ You can resolve dependencies from:
 Many organizations host dependencies in Maven repositories.
 Gradle can declare Maven repositories by specifying their URL:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-like-repo" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-like-repo" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ### Strict limitation for Maven repositories
 
@@ -37,14 +37,14 @@ See <Xref page="supported-repository-protocols" section="Supported Protocols">Su
 
 Gradle can consume dependencies from a local Maven repository, that is repositories on the local file system:
 
-<SampleScripts sample_name="custom-plugin" basename="build" subpath="java-gradle-plugin" tag="local-maven" />
+<SampleScripts sample_name="custom-plugin" basename="build" subpath="java-gradle-plugin" tag="local-maven" source_dir="snippets/reference/dependency-management/declaring-repositories/customPlugin" />
 
 Gradle can consume dependencies from the [local Maven repository](https://maven.apache.org/guides/introduction/introduction-to-repositories.html).
 This is useful for teams that want to test their setup locally before publishing their plugin.
 
 You should ensure that using the local Maven repository is necessary before adding `mavenLocal()` to your build script:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-local" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-local" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 :::note
 Gradle manages its own <Xref page="dependency-caching" section="1. The dependency cache">cache</Xref> and doesn’t need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository. Even without `mavenLocal()` declared, Gradle may reuse already-downloaded artifacts from it as a cache — see <Xref page="dependency-caching" section="Artifact reuse">Artifact reuse</Xref>.
@@ -81,7 +81,7 @@ Despite its drawbacks, there are rare cases where `mavenLocal()` can be useful:
 
 To mitigate risks, consider restricting `mavenLocal()` to specific dependencies using a repository filter:
 
-<SampleScripts sample_name="supported-repository-types-maven-local-filter" basename="build" tag="maven-local-filter" />
+<SampleScripts sample_name="supported-repository-types-maven-local-filter" basename="build" tag="maven-local-filter" source_dir="snippets/reference/dependency-management/declaring-repositories/supportedRepositoryTypes-mavenLocalFilter" />
 
 This ensures that `mavenLocal()` is only used for expected dependencies and avoids unexpected resolution issues.
 
@@ -93,13 +93,13 @@ Many organizations host dependencies in Ivy repositories.
 
 To declare an Ivy repository with the standard layout, simply specify the URL:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo" />
+<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ### Named layout Ivy repository
 
 You can specify that your repository follows the Ivy default layout:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-maven-layout" />
+<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-maven-layout" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 Valid named layout values are `gradle` (default), `maven`, and `ivy`.
 Refer to <GroovyDocLink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" method="layout(java.lang.String)" /> in the API documentation for more details.
@@ -108,15 +108,15 @@ Refer to <GroovyDocLink class="org.gradle.api.artifacts.repositories.IvyArtifact
 
 To define an Ivy repository with a non-standard layout, you can set up a pattern layout:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-pattern-layout" />
+<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-pattern-layout" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 For an Ivy repository that fetches Ivy files and artifacts from different locations, define separate patterns:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-custom-pattern" />
+<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-custom-pattern" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 Optionally, you can enable Maven-style layout for the 'organisation' part, with forward slashes replacing dots:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-m2compatible-layout" />
+<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo-with-m2compatible-layout" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ### Authenticated Ivy repository
 
@@ -127,14 +127,14 @@ See <Xref page="supported-repository-protocols" section="Supported Protocols">Su
 
 Gradle can consume dependencies from a local Ivy repository, that is repositories on the local file system:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="local-ivy-repo" />
+<SampleScripts sample_name="define-repository" basename="build" tag="local-ivy-repo" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ## Flat directory repository
 
 Some projects store dependencies on a shared drive or within the project’s source code rather than using a binary repository.
 To use a flat filesystem directory as a repository, you can configure it like this:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="flat-dir-multi" />
+<SampleScripts sample_name="define-repository" basename="build" tag="flat-dir-multi" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 This configuration adds repositories that search specified directories for dependencies.
 

@@ -121,7 +121,7 @@ The <Xref page="build-init-plugin" section="Build Init Plugin">Build Init plugin
 
 The `settings.gradle(.kts)` file describes the project structure to Gradle:
 
-<SampleScripts sample_name="basic-multiproject" basename="settings" />
+<SampleScripts sample_name="basic-multiproject" basename="settings" source_dir="snippets/structuring-builds/basic-multiproject" />
 
 In this case, Gradle will look for a build file for the `app` subproject in the `./app` directory.
 
@@ -158,7 +158,7 @@ In this example, the `app` subproject is a Java application that applies the <Xr
 
 The application prints `Hello World` to the console:
 
-<SampleScripts sample_name="basic-multiproject" basename="build" subpath="app" />
+<SampleScripts sample_name="basic-multiproject" basename="build" subpath="app" source_dir="snippets/structuring-builds/basic-multiproject" />
 
 ```java
 package com.example;
@@ -186,7 +186,7 @@ Hello, world!
 
 In the settings file, you can use the `include` method to add another subproject to the root project:
 
-<SampleScripts sample_name="standard-layouts" basename="settings" tag="hierarchical-layout" />
+<SampleScripts sample_name="standard-layouts" basename="settings" tag="hierarchical-layout" source_dir="snippets/structuring-builds/standardLayouts" />
 
 The `include` method takes <Xref page="multi-project-builds-intermediate" section="Multi-Project Paths">project paths</Xref> as arguments.
 The project path is assumed to be equal to the relative physical file system path.
@@ -198,7 +198,7 @@ Let’s add another subproject called `lib` to the previously created project.
 
 All we need to do is add another `include` statement in the root settings file:
 
-<SampleScripts sample_name="multiple-subprojects" basename="settings" />
+<SampleScripts sample_name="multiple-subprojects" basename="settings" source_dir="snippets/structuring-builds/multiple-subprojects" />
 
 Gradle will then look for the build file of the new `lib` subproject in the `./lib/` directory:
 
@@ -434,7 +434,7 @@ Instead, we treat it as an included build, a distinct build that we can use with
 
 In the root `settings.gradle(.kts)`, we tell Gradle to include `lib` as part of a composite build using `includeBuild()`:
 
-<SampleScripts sample_name="customizing-resolution-capability-substitution-rule" basename="settings" tag="inc" />
+<SampleScripts sample_name="customizing-resolution-capability-substitution-rule" basename="settings" tag="inc" source_dir="snippets/structuring-builds/customizingResolution-capabilitySubstitutionRule" />
 
 You can learn more about multi-project builds in <Xref page="composite-builds" section="Composite Builds (Included Builds)">Composite Builds</Xref>.
 

@@ -88,7 +88,9 @@ export function pluginCallouts() {
         height: 1.35rem;
         padding-inline: 0.25rem;
         margin-inline-start: 0.4rem;
-        vertical-align: -0.3em;
+        vertical-align: middle;
+        position: relative;
+        top: -0.07em;
         border-radius: 999px;
         background: var(--gd-callout-bg, var(--sl-color-white));
         color: var(--gd-callout-fg, var(--sl-color-black));

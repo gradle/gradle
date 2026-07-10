@@ -2,7 +2,7 @@
 title: "Gradle Kotlin DSL Primer"
 ---
 
-import { CalloutList, GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { CalloutList, GroovyDocLink, JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
 import { TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import intellijBuildImportPopup from './intellij-build-import-popup.png';
@@ -168,13 +168,13 @@ These limitations will be removed in a future Gradle release.
 The set of type-safe model accessors available is determined right before evaluating the script body, immediately after the `plugins {}` block.
 Model elements contributed after that point, such as configurations defined in your build script, ***will not work*** with type-safe model accessors:
 
-<SampleScripts sample_name="basics" basename="build" tag="basics" />
+<SampleScripts sample_name="basics" basename="build" tag="basics" source_dir="snippets/reference/dsl-apis/basics" />
 
 However, this means you can use type-safe accessors for any model elements contributed by plugins that are _applied by parent projects_.
 
 The following project build script demonstrates how you can access various configurations, extensions and other elements using type-safe accessors:
 
-<SampleScripts sample_name="accessors" basename="build" tag="accessors" />
+<SampleScripts sample_name="accessors" basename="build" tag="accessors" source_dir="snippets/reference/dsl-apis/accessors" />
 
 <CalloutList>
 
@@ -196,11 +196,11 @@ For example, on `tasks`, accessors are of type `TaskProvider<T>` and provide a l
 
 Here are some examples illustrating when configuration avoidance applies:
 
-<SampleScripts sample_name="basics" basename="build" tag="lazy" />
+<SampleScripts sample_name="basics" basename="build" tag="lazy" source_dir="snippets/reference/dsl-apis/basics" />
 
 For all other containers, accessors for elements are of type `NamedDomainObjectProvider<T>`, providing the same behavior:
 
-<SampleScripts sample_name="basics" basename="build" tag="container" />
+<SampleScripts sample_name="basics" basename="build" tag="container" source_dir="snippets/reference/dsl-apis/basics" />
 
 ### Understanding what to do when type-safe model accessors are not available
 
@@ -210,7 +210,7 @@ The following sample is identical, except it uses the `apply()` method to apply 
 In this case, the build script cannot use type-safe accessors because the `apply()` call occurs in the body of the build script.
 You must use another techniques instead, as demonstrated here:
 
-<SampleScripts sample_name="no-accessors" basename="build" tag="no-accessors" />
+<SampleScripts sample_name="no-accessors" basename="build" tag="no-accessors" source_dir="snippets/reference/dsl-apis/noAccessors" />
 
 Type-safe accessors are unavailable for model elements contributed by the following:
 
@@ -229,7 +229,7 @@ We will now show you how these can be discovered by examining the script in deta
 
 The following sample demonstrates how to reference and configure artifact configurations without type-safe accessors:
 
-<SampleScripts sample_name="no-accessors" basename="build" tag="dependencies" />
+<SampleScripts sample_name="no-accessors" basename="build" tag="dependencies" source_dir="snippets/reference/dsl-apis/noAccessors" />
 
 The code looks similar to that of the type-safe accessors, except that the configuration names are string literals.
 You can use string literals for configuration names in dependency declarations and within the `configurations {}` block.
@@ -244,7 +244,7 @@ However, the Kotlin DSL only needs to know the type to configure them.
 The following sample shows the `sourceSets {}` and `java {}` blocks from the original example build script.
 The [`configure<T>()`](https://docs.gradle.org/current/kotlin-dsl/) function is used with the corresponding type:
 
-<SampleScripts sample_name="no-accessors" basename="build" tag="project-extension" />
+<SampleScripts sample_name="no-accessors" basename="build" tag="project-extension" source_dir="snippets/reference/dsl-apis/noAccessors" />
 
 Note that `sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer`.
 In the example above, `java` refers to the <JavaDocLink class="org.gradle.api.tasks.SourceSet" method="getJava--">`SourceSet.java`</JavaDocLink> property (a `SourceDirectorySet`), not the top-level `JavaPluginExtension`.
@@ -256,7 +256,7 @@ As a last resort, you can check the plugin’s source code, though this should n
 
 You can also use the [`the<T>()`](https://docs.gradle.org/current/kotlin-dsl/) function if you only need a reference to the extension without configuring it, or if you want to perform a one-line configuration:
 
-<SampleScripts sample_name="basics" basename="build" tag="source" />
+<SampleScripts sample_name="basics" basename="build" tag="source" source_dir="snippets/reference/dsl-apis/basics" />
 
 The snippet above also demonstrates one way to configure elements of a project extension that is a container.
 
@@ -267,7 +267,7 @@ Container-based project extensions, such as `SourceSetContainer`, allow you to c
 In our sample build script, we want to configure a source set named `main` within the source set container.
 We can do this by using the <JavaDocLink class="org.gradle.api.NamedDomainObjectCollection" method="named-java.lang.String-">named()</JavaDocLink> method instead of an accessor:
 
-<SampleScripts sample_name="no-accessors" basename="build" tag="project-container-extension" />
+<SampleScripts sample_name="no-accessors" basename="build" tag="project-container-extension" source_dir="snippets/reference/dsl-apis/noAccessors" />
 
 All elements within a container-based project extension have a name, so you can use this technique in all such cases.
 
@@ -282,7 +282,7 @@ Tasks are not managed through a container-based project extension, but they are 
 This means that you can configure tasks in the same way as you do for source sets.
 The following example illustrates this approach:
 
-<SampleScripts sample_name="no-accessors" basename="build" tag="tasks" />
+<SampleScripts sample_name="no-accessors" basename="build" tag="tasks" source_dir="snippets/reference/dsl-apis/noAccessors" />
 
 We are using the Gradle API to refer to tasks by name and type, rather than using accessors.
 
@@ -327,7 +327,7 @@ The simplest way to interact with containers is through these interfaces.
 
 The following example demonstrates how you can use the <GroovyDocLink class="org.gradle.api.NamedDomainObjectContainer" method="named(java.lang.String)">named()</GroovyDocLink> method to configure existing tasks, and the <GroovyDocLink class="org.gradle.api.NamedDomainObjectContainer" method="register(java.lang.String)">register()</GroovyDocLink> method to create new tasks:
 
-<SampleScripts sample_name="containers-api" basename="build" tag="api" />
+<SampleScripts sample_name="containers-api" basename="build" tag="api" source_dir="snippets/reference/dsl-apis/containers-api" />
 
 <CalloutList>
 
@@ -352,7 +352,7 @@ When configuring several elements of a container, you can group interactions in 
 
 The following example demonstrates a combination of type-safe accessors and the container API:
 
-<SampleScripts sample_name="containers-scope" basename="build" tag="scope" />
+<SampleScripts sample_name="containers-scope" basename="build" tag="scope" source_dir="snippets/reference/dsl-apis/containers-scope" />
 
 ## Working with extra properties
 
@@ -361,7 +361,7 @@ Extra properties are available on any object that implements the
 
 The Kotlin DSL provides the `extra` accessor for working with extra properties as a map:
 
-<SampleScripts sample_name="basics" basename="build" tag="extra" />
+<SampleScripts sample_name="basics" basename="build" tag="extra" source_dir="snippets/reference/dsl-apis/basics" />
 
 <CalloutList>
 
@@ -375,7 +375,7 @@ This approach works for all Gradle scripts: project build scripts, script plugin
 
 You can also access extra properties on a root project from a subproject using the following syntax:
 
-<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="prop" />
+<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="prop" source_dir="snippets/reference/dsl-apis/basics" />
 
 <CalloutList>
 
@@ -388,7 +388,7 @@ For example, `Task` extends `ExtensionAware`, so you can attach extra properties
 
 Here’s an example that defines a new `reportType` on the `test` task and then uses that property to initialize another task:
 
-<SampleScripts sample_name="basics" basename="build" tag="test-task" />
+<SampleScripts sample_name="basics" basename="build" tag="test-task" source_dir="snippets/reference/dsl-apis/basics" />
 
 <CalloutList>
 
@@ -409,7 +409,7 @@ A property represents a value that can be set and read lazily:
 - Setting a value: `property.set(value)` or `property = value`
 - Accessing the value: `property.get()`
 
-<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="property" />
+<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="property" source_dir="snippets/reference/dsl-apis/basics" />
 
 ### Using a `Provider`
 
@@ -418,7 +418,7 @@ A provider represents a read-only, lazily-evaluated value:
 - Accessing the value: `provider.get()`
 - Chaining: `provider.map { transform(it) }`
 
-<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="provider" />
+<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="provider" source_dir="snippets/reference/dsl-apis/basics" />
 
 ### Using a `NamedDomainObjectProvider`
 
@@ -427,7 +427,7 @@ A named domain object provider represents a lazily-evaluated named object from a
 - Accessing the object: `namedObjectProvider.get()`
 - Configuring the object: `namedObjectProvider.configure { …​ }`
 
-<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="named" />
+<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="named" source_dir="snippets/reference/dsl-apis/basics" />
 
 ## Lazy property assignment
 
@@ -439,7 +439,7 @@ Since properties must be `final`, we generally recommend avoiding custom setters
 
 Using the `=` operator is the preferred way to call `set()` in the Kotlin DSL:
 
-<SampleScripts sample_name="assignment" basename="build" tag="assignment" />
+<SampleScripts sample_name="assignment" basename="build" tag="assignment" source_dir="snippets/reference/dsl-apis/assignment" />
 
 <CalloutList>
 
@@ -473,7 +473,7 @@ Using an unexpected version of the `kotlin-dsl` plugin will emit a warning and c
 
 This is the basic configuration you need to use the plugin:
 
-<SampleScripts sample_name="kotlin-dsl-plugin" basename="build" subpath="buildSrc" tag="apply" />
+<SampleScripts sample_name="kotlin-dsl-plugin" basename="build" subpath="buildSrc" tag="apply" source_dir="snippets/reference/dsl-apis/kotlinDslPlugin" />
 
 The Kotlin DSL Plugin leverages <Xref page="toolchains" section="Toolchains for JVM projects">Java Toolchains</Xref>.
 By default, the code will target Java 8.
@@ -563,14 +563,14 @@ Both the Groovy and Kotlin languages support extending existing classes via [Gro
 
 To call a Kotlin extension function from Groovy, call it as a static function, passing the receiver as the first parameter:
 
-<SampleScripts sample_name="interoperability-static-extensions" basename="build" tag="kotlin-from-groovy" />
+<SampleFile sample_name="interoperability-static-extensions" path="kotlin/build.gradle" tag="kotlin-from-groovy" source_dir="snippets/reference/dsl-apis/interoperability-static-extensions" />
 
 Kotlin extension functions are package-level functions.
 You can learn how to locate the name of the type declaring a given Kotlin extension in the [Package-Level Functions](https://kotlinlang.org/docs/reference/java-to-kotlin-interop.html#package-level-functions) section of the Kotlin reference documentation.
 
 To call a Groovy extension method from Kotlin, the same approach applies: call it as a static function passing the receiver as the first parameter:
 
-<SampleScripts sample_name="interoperability-static-extensions" basename="build" tag="groovy-from-kotlin" />
+<SampleScripts sample_name="interoperability-static-extensions" basename="build" tag="groovy-from-kotlin" source_dir="snippets/reference/dsl-apis/interoperability-static-extensions" />
 
 ### Named parameters and default arguments
 
@@ -632,7 +632,7 @@ bintray {
 
 In other cases, like with the [Gretty Plugin](https://plugins.gradle.org/plugin/org.gretty) when configuring farms, the plugin expects a delegate closure:
 
-<SampleScripts sample_name="interoperability-delegate-closure-of" basename="build" tag="delegateClosureOf" />
+<SampleScripts sample_name="interoperability-delegate-closure-of" basename="build" tag="delegateClosureOf" source_dir="snippets/reference/dsl-apis/interoperability-delegate-closure-of" />
 
 There sometimes isn’t a good way to tell, from looking at the source code, which version to use.
 Usually, if you get a `NullPointerException` with `closureOf<T> {}`, using `delegateClosureOf<T> {}`
@@ -641,7 +641,7 @@ will resolve the problem.
 These two utility functions are useful for _configuration closures_, but some plugins might expect Groovy closures for other purposes.
 The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions to Groovy closures with more flexibility:
 
-<SampleScripts sample_name="interoperability-kotlin-closure" basename="build" tag="kotlinClosure" />
+<SampleScripts sample_name="interoperability-kotlin-closure" basename="build" tag="kotlinClosure" source_dir="snippets/reference/dsl-apis/interoperability-kotlinClosure" />
 
 ### The Kotlin DSL Groovy Builder
 
@@ -651,7 +651,7 @@ The Kotlin DSL provides a `withGroovyBuilder {}` utility extension that attaches
 
 The following example demonstrates several features of the method on the object `target`:
 
-<SampleScripts sample_name="interoperability-groovy-builder" basename="build" tag="withGroovyBuilder" />
+<SampleScripts sample_name="interoperability-groovy-builder" basename="build" tag="withGroovyBuilder" source_dir="snippets/reference/dsl-apis/interoperability-groovy-builder" />
 
 <CalloutList>
 

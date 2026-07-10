@@ -32,7 +32,7 @@ First, create a custom task that generates MD5 hashes of a configurable set of f
 
 In a new directory, create a `buildSrc/build.gradle(.kts)` file:
 
-<SampleScripts sample_name="md5-custom-task" basename="build" subpath="buildSrc" />
+<SampleScripts sample_name="md5-custom-task" basename="build" subpath="buildSrc" source_dir="snippets/unused/worker-api/md5CustomTask" />
 
 <CalloutList>
 
@@ -93,7 +93,7 @@ abstract public class CreateMD5 extends SourceTask { // (1)
 
 Next, create a `build.gradle(.kts)` that registers your new `CreateMD5` task:
 
-<SampleScripts sample_name="md5-custom-task" basename="build" />
+<SampleScripts sample_name="md5-custom-task" basename="build" source_dir="snippets/unused/worker-api/md5CustomTask" />
 
 <CalloutList>
 
@@ -291,7 +291,7 @@ If you wanted the user to be able to configure the task to run with a different 
 First, you must change the dependency in `buildSrc/build.gradle` to be `compileOnly`.
 This tells Gradle that it should use this dependency when building the classes, but should not put it on the build script classpath:
 
-<SampleScripts sample_name="md5-classloader-isolation" basename="build" subpath="buildSrc" />
+<SampleScripts sample_name="md5-classloader-isolation" basename="build" subpath="buildSrc" source_dir="snippets/unused/worker-api/md5ClassloaderIsolation" />
 
 Next, change the `CreateMD5` task to allow the user to configure the version of the codec library that they want to use.
 It will resolve the appropriate version of the library at runtime and configure the workers to use this version.
@@ -350,7 +350,7 @@ abstract public class CreateMD5 extends SourceTask {
 Next, you need to configure your build so that it has a repository to look up the codec version at task execution time.
 We also create a dependency to resolve our codec library from this repository:
 
-<SampleScripts sample_name="md5-classloader-isolation" basename="build" />
+<SampleScripts sample_name="md5-classloader-isolation" basename="build" source_dir="snippets/unused/worker-api/md5ClassloaderIsolation" />
 
 <CalloutList>
 
@@ -510,7 +510,7 @@ This process can be configured with different settings than the Gradle JVM using
 
 When using `processIsolation()`, Gradle will start a long-lived _worker daemon_ process that can be reused for future work items.
 
-<SampleScripts sample_name="worker-daemon" basename="build" tag="worker-daemon" />
+<SampleScripts sample_name="worker-daemon" basename="build" tag="worker-daemon" source_dir="snippets/unused/worker-api/workerDaemon" />
 
 When a unit of work for a worker daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.
 If so, it will send the unit of work to the idle daemon, marking it as busy.

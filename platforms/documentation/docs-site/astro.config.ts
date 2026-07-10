@@ -53,6 +53,8 @@ export default defineConfig({
       title: "Gradle",
       components: {
         PageTitle: "./src/components/overrides/PageTitle.astro",
+        // Adds the docs.gradle.org site menu to the header, CF-docs style
+        Header: "./src/components/overrides/Header.astro",
         Sidebar: "./src/components/overrides/Sidebar.astro",
       },
       sidebar,
@@ -61,7 +63,11 @@ export default defineConfig({
         maxHeadingLevel: 3,
       },
       logo: {
-        src: "./src/assets/gradle-logo.svg",
+        // Landscape brand logos (include the wordmark, hence replacesTitle);
+        // separate variants per color scheme.
+        light: "./src/assets/gradle-logo-light.svg",
+        dark: "./src/assets/gradle-logo-dark.svg",
+        replacesTitle: true,
       },
       social: [
         {
