@@ -16,8 +16,9 @@
 
 package org.gradle.api;
 
+import com.google.common.collect.Iterables;
 import org.gradle.internal.exceptions.ResolutionProvider;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -28,17 +29,16 @@ import java.util.List;
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
  * @since 0.7
  */
+@NullMarked
 public class GradleException extends RuntimeException implements ResolutionProvider {
-    private final List<String> resolutions;
+    private final List<String> resolutions = new ArrayList<>();
 
     /**
      * Creates a new {@code GradleException}.
      *
      * @since 0.7
      */
-    public GradleException() {
-        this.resolutions = new ArrayList<>();
-    }
+    public GradleException() { /* Empty */ }
 
     /**
      * Creates a new {@code GradleException}.
@@ -46,8 +46,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      * @since 0.7
      */
     public GradleException(String message) {
-        super(message);
-        this.resolutions = new ArrayList<>();
+        this(message, (Throwable) null);
     }
 
     /**
@@ -56,8 +55,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      * @since 0.7
      */
     public GradleException(String message, @Nullable Throwable cause) {
-        super(message, cause);
-        this.resolutions = new ArrayList<>();
+        this(message, cause, Collections.emptyList());
     }
 
     /**
@@ -65,9 +63,8 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      *
      * @since 9.9.0
      */
-    public GradleException(String message, List<String> resolutions) {
-        super(message);
-        this.resolutions = new ArrayList<>(resolutions);
+    public GradleException(String message, Iterable<String> resolutions) {
+        this(message, null, resolutions);
     }
 
     /**
@@ -75,9 +72,9 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      *
      * @since 9.9.0
      */
-    public GradleException(String message, @Nullable Throwable cause, List<String> resolutions) {
+    public GradleException(String message, @Nullable Throwable cause, Iterable<String> resolutions) {
         super(message, cause);
-        this.resolutions = new ArrayList<>(resolutions);
+        Iterables.addAll(this.resolutions, resolutions);
     }
 
     /**
@@ -98,7 +95,6 @@ public class GradleException extends RuntimeException implements ResolutionProvi
         resolutions.clear();
     }
 
-    @NonNull
     @Override
     public List<String> getResolutions() {
         return Collections.unmodifiableList(resolutions);
