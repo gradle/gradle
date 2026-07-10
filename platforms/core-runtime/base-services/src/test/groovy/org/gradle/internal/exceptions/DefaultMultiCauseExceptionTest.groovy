@@ -157,6 +157,57 @@ class DefaultMultiCauseExceptionTest extends Specification {
         parentMultiFail.getResolutions() == ['resolutionParent', 'resolutionChild']
     }
 
+    def "initCauses replaces resolutions contributed by former causes"() {
+        given:
+        def oldCause = new TestResolutionProviderException('oldResolution')
+        def newCause = new TestResolutionProviderException('newResolution')
+        def multiFail = new DefaultMultiCauseException('failure', oldCause)
+
+        when:
+        multiFail.initCauses([newCause])
+
+        then:
+        multiFail.getResolutions() == ['newResolution']
+    }
+
+    def "initCauses does not duplicate resolutions when a cause is re-added"() {
+        given:
+        def cause = new TestResolutionProviderException('resolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+
+        when:
+        multiFail.initCauses([cause])
+
+        then:
+        multiFail.getResolutions() == ['resolution']
+    }
+
+    def "initCauses preserves resolutions added directly via addResolution"() {
+        given:
+        def cause = new TestResolutionProviderException('causeResolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+        multiFail.addResolution('directResolution')
+
+        when:
+        multiFail.initCauses([new TestResolutionProviderException('newCauseResolution')])
+
+        then:
+        multiFail.getResolutions() == ['directResolution', 'newCauseResolution']
+    }
+
+    def "clearResolutions only clears directly-added resolutions, not cause contributions"() {
+        given:
+        def cause = new TestResolutionProviderException('causeResolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+        multiFail.addResolution('directResolution')
+
+        when:
+        multiFail.clearResolutions()
+
+        then:
+        multiFail.getResolutions() == ['causeResolution']
+    }
+
     private static class TestMultiCauseException extends DefaultMultiCauseException {
         TestMultiCauseException(String message, Iterable<? extends Throwable> causes) {
             super(message, causes)
