@@ -78,19 +78,21 @@ public class GradleException extends RuntimeException implements ResolutionProvi
     }
 
     /**
-     * Appends a resolution suggestion to this exception.
+     * Adds a potential resolution to this exception.
      *
      * @since 9.9.0
      */
+    @Incubating
     public final void addResolution(String resolution) {
         resolutions.add(resolution);
     }
 
     /**
-     * Removes all resolution suggestions from this exception.
+     * Clears the resolutions.
      *
      * @since 9.9.0
      */
+    @Incubating
     public final void clearResolutions() {
         resolutions.clear();
     }
