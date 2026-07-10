@@ -141,6 +141,39 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     }
     // endregion Secondary Variant with an Artifact and an Artifact explicitly added to main variant
 
+    // region Deprecation of the empty-primary fallback pass
+    def "empty-primary fallback resolution emits a deprecation warning"() {
+        given:
+        settingsFile << "rootProject.name = 'fv-deprecation-test'"
+
+        when:
+        executer.expectDocumentedDeprecationWarning(
+            "Resolving artifacts for root project 'fv-deprecation-test' matched a variant tagged 'org.gradle.fallback-variant=true' because no other variant satisfied the request. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+                "To keep matching this variant, request 'org.gradle.fallback-variant=true' explicitly on the consumer. " +
+                "Otherwise, expose a variant that carries the attributes this request needs. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
+        )
+
+        then:
+        succeeds("resolve", "-PregisterSecondaryVariant=true")
+        assertResolved([])
+    }
+
+    def "requesting fallback-variant=true explicitly does not emit the deprecation warning"() {
+        given:
+        buildKotlinFile << """
+            resolvableConfiguration.get().attributes {
+                attribute(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE, objects.named(FallbackVariant::class.java, FallbackVariant.TRUE))
+            }
+        """
+
+        expect:
+        succeeds("resolve", "-PregisterSecondaryVariant=true")
+        assertResolved([])
+    }
+    // endregion Deprecation of the empty-primary fallback pass
+
     def setup() {
         buildKotlinFile << """
             val myAttribute = Attribute.of("myAttribute", String::class.java)

@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -94,7 +95,9 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         // with the original (unaugmented) request, so that an empty fallback primary can still
         // act as a "nothing to resolve" backstop when neither a secondary nor a transform chain
         // can satisfy the request. See FallbackVariantSupport for the producer-side tagging contract.
+        boolean ranAugmentedPass = false;
         if (anyCandidateCarriesFallbackVariant(producer.getCandidates())) {
+            ranAugmentedPass = true;
             ImmutableAttributes augmentedAttrs = fallbackVariantSupport.augmentConsumerWithDefault(targetAttributes, attributesFactory);
             ResolvedArtifactSet augmentedResult = tryMatchOrTransform(producer, augmentedAttrs, matcher, true);
             if (augmentedResult != null) {
@@ -103,7 +106,25 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         // Augmented pass produced no match and no transform chain. Try using the original attributes for
-        // matching so that the fallback primary can still satisfy a no-op resolution.
+        // matching so that the fallback primary can still satisfy a no-op resolution. This second pass
+        // preserves the pre-fallback-variant-attribute behaviour and is deprecated: producers that expose
+        // an empty primary alongside secondary variants should rely on the augmented match, and consumers
+        // that require the empty primary should request org.gradle.fallback-variant='true' explicitly.
+        if (ranAugmentedPass) {
+            DeprecationLogger.deprecateBehaviour(
+                "Resolving artifacts for " + producer.asDescribable().getDisplayName() +
+                    " matched a variant tagged '" + FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName() +
+                    "=" + FallbackVariant.TRUE + "' because no other variant satisfied the request."
+            )
+                .withAdvice(
+                    "To keep matching this variant, request '" + FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName() +
+                        "=" + FallbackVariant.TRUE + "' explicitly on the consumer. Otherwise, expose a variant that " +
+                        "carries the attributes this request needs."
+                )
+                .willBecomeAnErrorInNextMajorGradleVersion()
+                .withUpgradeGuideSection(9, "variants_with_no_artifacts")
+                .nagUser();
+        }
         ResolvedArtifactSet result = tryMatchOrTransform(producer, targetAttributes, matcher, false);
         if (result != null) {
             return result;
