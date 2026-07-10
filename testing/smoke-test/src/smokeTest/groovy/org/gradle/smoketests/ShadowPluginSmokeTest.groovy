@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -142,7 +144,6 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
     }
 
-    @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
     def 'can publish shadowed project'() {
         given:
         MavenFileRepository mavenRepo = new MavenFileRepository(file("maven-repo"))
@@ -211,6 +212,4 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.gradleup.shadow': Versions.of(TestedVersions.shadow)
         ]
     }
-
-
 }

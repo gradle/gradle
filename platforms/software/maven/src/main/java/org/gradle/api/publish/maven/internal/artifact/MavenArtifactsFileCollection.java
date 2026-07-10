@@ -82,18 +82,30 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
     }
 
     /**
-     * Returns the serialization provider for the given artifact: either the underlying
-     * {@link ProviderInternal} of a {@link LazyPublishArtifact} (so the codec can defer
-     * resolution to task-execution time), or a fixed-value provider wrapping the resolved
-     * {@link java.io.File} for eager artifacts.
-     *
-     * <p><strong>Scope.</strong> The lazy-provider fast-path only matches the internal
+     * Returns the serialization provider for the given artifact.
+     * <p>
+     * For eager artifacts (those whose file can be resolved at configuration time without
+     * requiring a producing task to have run) the result is a fixed-value provider wrapping the
+     * resolved {@link java.io.File}. This includes both non-{@link LazyPublishArtifact} artifacts
+     * and {@link LazyPublishArtifact}s whose underlying provider reports {@code hasFixedValue()}
+     * — notably archive-task-backed publications such as {@code artifact(tasks.shadowJar)}, whose
+     * {@code TaskProvider<AbstractArchiveTask>} is settled at configuration time even though the
+     * task has not yet run. For those, the pre-existing {@link LazyPublishArtifact#getFile()}
+     * dispatch converts {@code Task → File} without ever surfacing the {@code Task} reference to
+     * the configuration cache serializer.
+     * <p>
+     * For truly-changing artifacts (the issue-29253 pattern:
+     * {@code artifact(taskOutput.map { … })} whose {@code TransformBackedProvider} would trip
+     * {@code beforeRead} at store time) the result is the raw underlying provider, deferring
+     * resolution to task execution time.
+     * <p>
+     * <strong>Scope.</strong> The lazy-provider fast-path only matches the internal
      * {@code PublishArtifactBasedMavenArtifact → DecoratingPublishArtifact → LazyPublishArtifact}
      * chain produced by {@code MavenArtifactNotationParserFactory} for {@code artifact(provider)}
      * calls. Third-party {@code PublishArtifact} implementations that are lazily backed by their
      * own provider machinery, but do not fit this exact chain, will fall through to eager
      * {@code artifact.getFile()} and reproduce the original CC-store failure. Fixing that class
-     * of case is out of scope of issue #29253 and is tracked by the umbrella #24329.</p>
+     * of case is out of scope of issue #29253 and is tracked by the umbrella #24329.
      */
     private static ProviderInternal<File> classify(MavenArtifact artifact) {
         if (artifact instanceof PublishArtifactBasedMavenArtifact) {
@@ -103,10 +115,19 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
             if (inner instanceof DecoratingPublishArtifact) {
                 inner = ((DecoratingPublishArtifact) inner).getPublishArtifact();
             }
-            if (inner instanceof LazyPublishArtifact) {
-                @SuppressWarnings("unchecked")
-                var fileProvider = (ProviderInternal<File>)((LazyPublishArtifact) inner).getProvider();
-                return fileProvider;
+            if (inner instanceof LazyPublishArtifact lazy) {
+                if (lazy.getProvider().calculateExecutionTimeValue().hasFixedValue()) {
+                    // Provider is settled at configuration time. Reuse the existing
+                    // File / FileSystemLocation / Task / generic-Object dispatch inside
+                    // LazyPublishArtifact.getDelegate() to arrive at a File.
+                    return Providers.of(lazy.getFile());
+                } else {
+                    // Provider is still changing (e.g. issue #29253's .map(...) chain).
+                    // Capture the raw provider; the codec defers resolution to task execution.
+                    @SuppressWarnings("unchecked")
+                    var fileProvider = (ProviderInternal<File>) lazy.getProvider();
+                    return fileProvider;
+                }
             }
         }
         return Providers.of(artifact.getFile());
