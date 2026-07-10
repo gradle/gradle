@@ -2102,6 +2102,21 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public interface BeanWithProviderProp {
+        Provider<String> getProp();
+    }
+
+    public static abstract class AbstractCovariantPropertyBeanWithForwarderSetter implements BeanWithProviderProp {
+        // The covariant override makes javac emit a concrete bridge getter.
+        // The bridge only delegates here, so it cannot be managing a backing field either.
+        @Override
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
     interface InterfaceWithTypeParameter<T> {
         @Inject
         T getThing();
