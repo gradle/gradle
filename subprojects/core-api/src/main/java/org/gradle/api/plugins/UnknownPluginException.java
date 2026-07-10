@@ -45,6 +45,21 @@ public class UnknownPluginException extends InvalidUserDataException {
     }
 
     /**
+     * Creates an exception with the given message and cause, carrying the id of the plugin that could not be found.
+     *
+     * @param message the exception message
+     * @param cause the underlying failure that led to this exception, or {@code null}
+     * @param pluginId the id of the plugin that could not be found, or {@code null} if it is not known
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    public UnknownPluginException(String message, @Nullable Throwable cause, @Nullable String pluginId) {
+        super(message, cause);
+        this.pluginId = pluginId;
+    }
+
+    /**
      * Returns the id of the plugin that could not be found, if it is known.
      *
      * @return the missing plugin id, or {@code null} if it is not known

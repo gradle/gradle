@@ -19,6 +19,14 @@
             "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.lang.Throwable,java.lang.Iterable)",
             "acceptation": "Making GradleException implement ResolutionProvider",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.UnknownPluginException",
+            "member": "Constructor org.gradle.api.plugins.UnknownPluginException(java.lang.String,java.lang.Throwable,java.lang.String)",
+            "acceptation": "Making GradleException implement ResolutionProvider",
+            "changes": [
+                "ANNOTATION_ADDED"
+            ]
         }
     ]
 }
