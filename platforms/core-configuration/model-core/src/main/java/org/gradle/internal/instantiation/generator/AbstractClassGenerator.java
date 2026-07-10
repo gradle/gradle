@@ -1101,27 +1101,32 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         boolean claimPropertyImplementation(PropertyMetadata property) {
-            // Skip properties with non-abstract getter or setter implementations
+            boolean hasAbstractGetter = false;
             for (MethodMetadata getter : property.getters) {
-                if (getter.shouldImplement() && !getter.isAbstract()) {
-                    return false;
-                }
-            }
-            boolean allAbstract = allGettersAreAbstract(property);
-            for (Method setter : property.setters) {
-                // When every getter is abstract, the user cannot be managing a backing field
-                // themselves (an abstract getter has no body to read it from). Any concrete
-                // setter must then be a forwarder (e.g. setX(value) { getX().set(value); }),
-                // so it shouldn't prevent the property from being claimed and given a managed body.
-                if (allAbstract) {
+                if (!getter.shouldImplement()) {
+                    // A bridge getter cannot manage state: its compiler-generated body only delegates to the real getter
                     continue;
                 }
-                if (!Modifier.isAbstract(setter.getModifiers())) {
+                if (!getter.isAbstract()) {
+                    // A concrete real getter reads user-managed state (e.g. a handwritten field), so the property is not ours to claim
                     return false;
+                }
+                hasAbstractGetter = true;
+            }
+
+            if (!hasAbstractGetter) {
+                for (Method setter : property.setters) {
+                    if (!Modifier.isAbstract(setter.getModifiers())) {
+                        // At this point we know that:
+                        //  - The property has no getter at all (write-only, e.g. Task.setOnlyIf): a concrete getter would have returned above, an abstract one would have set the flag.
+                        //  - This setter is concrete, and with no getter to work through, it can only be managing its own state.
+                        // So the property is not ours to claim.
+                        return false;
+                    }
                 }
             }
 
-            // Property is readable and all getters and setters are abstract
+            // Property has no user-managed state
             if (isManagedProperty(property)) {
                 // Abstract read-only property with managed type
                 readOnlyProperties.add(property);
@@ -1134,18 +1139,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Read only but unrecognized type
                 return false;
             }
-        }
-
-        private boolean allGettersAreAbstract(PropertyMetadata property) {
-            if (property.getters.isEmpty()) {
-                return false;
-            }
-            for (MethodMetadata getter : property.getters) {
-                if (!getter.isAbstract()) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         @Override
