@@ -12,8 +12,6 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.jspecify)
-
-    implementation(libs.guava)
 }
 
 gradleModule {
