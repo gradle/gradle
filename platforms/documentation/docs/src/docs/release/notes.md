@@ -72,6 +72,30 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### Task state and actions can capture the build script object
+
+Ad-hoc task actions — a Groovy `doLast` closure or a Kotlin `doLast` lambda — often capture their enclosing build script, to call a script-defined method or read a top-level `val`/`def`.
+Previously the Configuration Cache rejected such an entry when it was stored (in Kotlin) or used (in Groovy), because the captured script couldn't be serialized.
+
+Gradle now stores the script object but drops its connection to the build model, for both Kotlin DSL and Groovy scripts.
+
+An action capturing the script object keeps working if it uses only script-defined methods and variables or Project-independent script utilities like `file(...)` or `logger`:
+
+```kotlin
+val path = "hello-world.txt"
+
+tasks.register("greet") {
+    doLast {
+        logger.lifecycle(file(path).readText()) // captures the script; now stored and reused
+    }
+}
+```
+
+Reaching the build model — the `Project`, `Settings` or `Gradle` object — through a captured action is still unsupported.
+
+It now fails with a clear problem when the task runs, rather than failing to store the cache entry.
+See the [requirements](userguide/configuration_cache_requirements.html#config_cache:requirements:use_project_during_execution) for how to keep task actions independent of the build model.
+
 #### `ResolutionResult` is fully Configuration Cache compatible
 
 A [`ResolutionResult`](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html) may now be included directly as a task input when using Configuration Cache.

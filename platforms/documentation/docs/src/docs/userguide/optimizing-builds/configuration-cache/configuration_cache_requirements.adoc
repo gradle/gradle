@@ -307,7 +307,14 @@ Use a task input or output property or a script variable to capture the result o
 == Reducing Captured References in Ad-Hoc Tasks
 
 When using ad-hoc tasks in build scripts, task actions (such as `doLast {}`) can inadvertently capture references to the enclosing build script scope.
-The Configuration Cache must serialize these captured references, and project-level objects are not serializable.
+The Configuration Cache stores the captured build script object, but drops its connection to the build model, so an action that uses only Project-independent
+script state keeps working.
+
+Accessing the functions and variables defined in the script, as well as script-provided utilities such as `file(...)`, is allowed.
+Note that the script instance is isolated per task, so mutable variables defined in the script will not be shared across tasks; instead, each
+task will work with a copy of that state.
+
+Accessing the build model, such as the `Project`, through the script object at execution time fails and reports a problem.
 
 === Implicit project property capture
 
@@ -325,24 +332,6 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedRefe
 ====
 <1> Assigns the project property to a local variable at configuration time.
 <2> The action now captures only the local variable, not the project.
-
-=== Script-level variable capture (Kotlin DSL)
-
-In Kotlin DSL scripts, top-level `val` and `var` declarations are compiled as properties of the build script class.
-Referencing them inside a `doLast {}` lambda causes the lambda to capture the build script object, which is not serializable:
-
-====
-include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/kotlin",files="build.gradle.kts[tags=dont]"]
-====
-<1> References the script-level `outputFile`, causing the action to capture the build script object.
-
-To fix this, shadow the script-level property with a local variable inside the task configuration block:
-
-====
-include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/kotlin",files="build.gradle.kts[tags=do]"]
-====
-<1> Shadows the script-level property with a local variable (`val reportFile = reportFile`).
-<2> The action now captures only the local variable, not the build script object.
 
 === Type widening (Kotlin DSL)
 
