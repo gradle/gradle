@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal.install.exceptions;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
@@ -27,8 +26,6 @@ import java.util.Arrays;
 
 @Contextual
 public class ToolchainDownloadException extends GradleException {
-
-    @SuppressWarnings("this-escape")
     public ToolchainDownloadException(JavaToolchainSpec spec, String url, @Nullable String cause) {
         super(getMessage(spec, url, cause), Arrays.asList(ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION, ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION));
     }
@@ -37,7 +34,6 @@ public class ToolchainDownloadException extends GradleException {
         super(getMessage(spec, uri.toString(), cause.getMessage()), cause);
     }
 
-    @NonNull
     private static String getMessage(JavaToolchainSpec spec, String url, @Nullable String cause) {
         return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + url + "'" + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
     }
