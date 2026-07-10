@@ -3,6 +3,7 @@ import com.github.gradle.node.npm.task.NpxTask
 plugins {
     id("com.github.node-gradle.node") version "7.1.0"
     id("gradlebuild.docs-site")
+    base
 }
 
 node {
@@ -33,11 +34,8 @@ val preparePublicDir = tasks.register<Sync>("preparePublicDir") {
     into(layout.buildDirectory.dir("public"))
 }
 
-val stageGradleVersion = tasks.register<Sync>("stageGradleVersion") {
-    description = "Stages version.txt into the docs-site package so it can be imported by TS without reaching outside the package."
-    from(gradleVersionFile)
-    into(layout.buildDirectory.dir("generated"))
-}
+// src/config/variables.ts picks this up and substitutes it into doc content at build time.
+val gradleVersion = gradleVersionFile.flatMap { it.elements }.map { it.single().asFile.readText().trim() }
 
 val cleanSiteOutput = tasks.register<Delete>("cleanSiteOutput") {
     description = "Removes the Astro build output directory before a fresh production build."
@@ -47,17 +45,20 @@ val cleanSiteOutput = tasks.register<Delete>("cleanSiteOutput") {
 val buildDocs = tasks.register<NpxTask>("buildDocs") {
     description = "Builds the complete documentation site (user guide + javadoc + kotlin-dsl + dsl)."
     group = "documentation"
-    dependsOn(tasks.npmInstall, preparePublicDir, stageGradleVersion, cleanSiteOutput)
+    dependsOn(tasks.npmInstall, preparePublicDir, cleanSiteOutput)
     command.set("astro")
     args.set(listOf("build"))
+    environment.put("PUBLIC_GRADLE_VERSION", gradleVersion)
     inputs.file("package.json")
     inputs.file("package-lock.json")
     inputs.file("astro.config.ts")
+    inputs.file("ec.config.mjs")
     inputs.file("tsconfig.json")
     inputs.file("sidebar-structure.json")
+    inputs.file("sidebar-structure.ts")
+    inputs.dir("plugins")
     inputs.dir("src")
     inputs.dir(layout.buildDirectory.dir("public"))
-    inputs.dir(layout.buildDirectory.dir("generated"))
     outputs.dir(layout.buildDirectory.dir("site"))
 }
 
@@ -67,15 +68,21 @@ configurations.named("gradleDocumentationSiteElements") {
     }
 }
 
+// Wire the site build into the standard lifecycle so `assemble` (and thus `build`) produces the site.
+tasks.named("assemble") {
+    dependsOn(buildDocs)
+}
+
 tasks.register<NpxTask>("serveDev") {
     description = """Starts a documentation development server.
         | File watching and hot-reloading enabled. Local search is unavailable in dev mode.
         | First startup builds the reference docs (javadoc, kotlin-dsl, dsl); subsequent runs are fast.
     """.trimMargin()
     group = "documentation"
-    dependsOn(tasks.npmInstall, preparePublicDir, stageGradleVersion)
+    dependsOn(tasks.npmInstall, preparePublicDir)
     command.set("astro")
     args.set(listOf("dev"))
+    environment.put("PUBLIC_GRADLE_VERSION", gradleVersion)
 }
 
 tasks.register<NpxTask>("serveProd") {
@@ -108,8 +115,7 @@ tasks.register<NpxTask>("formatWrite") {
     args.set(listOf("--write", "src/**/*.mdx"))
 }
 
-tasks.register<Delete>("clean") {
-    description = "Removes the Astro build output and Node tooling artifacts."
-    group = "documentation"
-    delete(layout.buildDirectory, "node_modules", ".astro")
+// `base` already registers `clean` to remove the build directory; extend it to also drop the Node tooling artifacts.
+tasks.named<Delete>("clean") {
+    delete("node_modules", ".astro")
 }

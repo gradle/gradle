@@ -1,0 +1,15 @@
+plugins {
+    id("java-library")
+}
+
+group = "com.example"
+version = "1.0"
+
+// tag::register_test_fixtures[]
+java {
+    registerFeature("testFixtures") {
+        usingSourceSet(sourceSets.create("testFixtures"))
+        capability("com.example", "library-test-fixtures", version.toString())
+    }
+}
+// end::register_test_fixtures[]

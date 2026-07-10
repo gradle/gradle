@@ -1,0 +1,343 @@
+---
+title: "Enabling and Configuring the Configuration Cache"
+---
+
+import { JavaDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import configurationCache5 from './configuration-cache-5.png';
+
+## Enabling the Configuration Cache
+
+By default, Gradle does not use the Configuration Cache.
+
+To enable it at build time, use the `configuration-cache` flag:
+
+```bash
+$ ./gradlew --configuration-cache
+```
+
+To enable the cache persistently, set the `org.gradle.configuration-cache` property in `gradle.properties`:
+
+```properties
+org.gradle.configuration-cache=true
+```
+
+If enabled in `gradle.properties`, you can override it and disable the cache at build time using the `no-configuration-cache` flag:
+
+```bash
+$ ./gradlew --no-configuration-cache
+```
+
+### Ignoring Configuration Cache Problems
+
+By default, Gradle fails the build if Configuration Cache problems occur.
+However, when working on adopting the Configuration Cache in the build, it can be useful to temporarily turn problems into warnings by enabling _warning mode_.
+For example, if you want to see execution time problems without fixing the whole configuration phase.
+
+To change this behavior at build time, use the following flag:
+
+```bash
+$ ./gradlew --configuration-cache-problems=warn
+```
+
+:::note
+This does not guarantee that the build will succeed.
+:::
+
+Alternatively, configure it in `gradle.properties`:
+
+```properties
+org.gradle.configuration-cache.problems=warn
+```
+
+:::caution
+Warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+With warning mode enabled, Gradle stores cache entries even when problems are present.
+On a cache hit, tasks run against deserialized state that may be incomplete or incorrect, which can produce silently wrong results or confusing errors — such as missing dependency information or empty inputs.
+Instead, we recommend explicitly marking problematic tasks as <Xref page="configuration-cache-debugging" section="Declare Incompatible Tasks">incompatible</Xref> and keeping the default `problems=fail`.
+:::
+
+### Allowing a Maximum Number of Problems
+
+When Configuration Cache problems are treated as warnings, Gradle will fail the build if `512` problems are found by default.
+
+You can adjust this limit by specifying the maximum number of allowed problems on the command line:
+
+```bash
+$ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
+```
+
+Or configure it in a `gradle.properties` file:
+
+```properties
+org.gradle.configuration-cache.max-problems=5
+```
+
+### Enabling Parallel Configuration Caching
+
+By default, Configuration Cache storing and loading are sequential.
+Enabling parallel storing and loading can improve performance, but not all builds are compatible with it.
+
+To enable parallel configuration caching at build time, use:
+
+```bash
+$ ./gradlew -Dorg.gradle.configuration-cache.parallel=true
+```
+
+Or persistently in a `gradle.properties` file:
+
+```properties
+org.gradle.configuration-cache.parallel=true
+```
+
+:::caution
+The parallel configuration caching feature is _incubating_, and some builds may not work correctly.
+A common symptom of incompatibility is `ConcurrentModificationException` errors during the <Xref page="build-lifecycle-intermediate" section="Phase 2. Configuration">configuration phase</Xref>.
+However, this feature is expected to work well for <Xref page="configuration-on-demand" section="Decoupled projects">decoupled</Xref> multi-project builds.
+:::
+
+### Making the Configuration Cache Read-Only
+
+In some builds, such as CI builds running in ephemeral environments, it may be desirable for Gradle to use the Configuration Cache only when there’s a cache hit.
+If there’s a miss, caching offers no benefit since the disk state won’t be preserved across builds.
+
+To enable read-only configuration caching at build time, use:
+
+```bash
+$ ./gradlew -Dorg.gradle.configuration-cache.read-only=true
+```
+
+Or set it persistently in `gradle.properties`:
+
+```properties
+org.gradle.configuration-cache.read-only=true
+```
+
+Note that if you enable this persistently, you’ll need to explicitly disable it via the command line in order for Gradle to ever write to the configuration cache.
+
+:::caution
+The read-only configuration caching feature is _incubating_.
+:::
+
+## Enabling Strict Configuration Cache Mode
+
+To help teams adopt configuration caching, Gradle provides a strict mode behind a dedicated feature flag.
+
+You can enable this feature flag in your build using the following configuration:
+
+<SampleScripts sample_name="stable-feature-flag" basename="settings" />
+
+Enabling the `STABLE_CONFIGURATION_CACHE` feature flag activates stricter validation and introduces the following behavior:
+
+<dl>
+<dt>Undeclared Shared Build Service Usage</dt>
+<dd>
+
+If a task uses a <Xref page="build-services" section="Using Shared Build Services">shared Build Service</Xref> without explicitly declaring the requirement using the `Task.usesService` method, Gradle will emit a deprecation warning.
+
+</dd>
+<dt>Deprecation Enforcement Without Configuration Cache</dt>
+<dd>
+
+Even when the Configuration Cache is not enabled, Gradle will warn if the following deprecated features are used:
+
+- <Xref page="configuration-cache-requirements" section="Using Build Listeners">Registering build listeners</Xref>
+- <Xref page="configuration-cache-requirements" section="Accessing Task Extensions or Conventions">Using task extensions and conventions at execution time</Xref>
+
+</dd>
+</dl>
+
+We recommend enabling this flag early to detect and resolve potential issues before the stricter behavior becomes the default in a future release.
+
+## Invalidating the Configuration Cache
+
+The Configuration Cache is automatically invalidated when inputs to the configuration phase change.
+However, some inputs are not yet tracked, meaning you may need to manually invalidate the cache when untracked inputs change.
+This is more likely if you have [ignored problems](#config_cache:usage:ignore_problems).
+
+See the <Xref page="configuration-cache-requirements" section="Configuration Cache Requirements for your Build Logic">Configuration Cache Requirements for your Build Logic</Xref> and <Xref page="configuration-cache-status" section="Not Yet Implemented">Not Yet Implemented</Xref> sections for more details.
+
+The Configuration Cache state is stored in a `.gradle/configuration-cache` directory in the root of your Gradle build.
+
+To manually invalidate the cache, delete this directory:
+
+```bash
+$ rm -rf .gradle/configuration-cache
+```
+
+Gradle periodically checks (at most every 24 hours) whether cached entries are still in use.
+Entries that have not been used for 7 days are automatically deleted.
+
+## Adopting the Configuration Cache
+
+The following stages outline a recommended path for adopting the Configuration Cache.
+These steps apply to both builds and plugins:
+
+1. [Not using / Not enabled](#sec:not_using)
+2. [Using locally](#sec:using_locally)
+3. [Using on CI / Enable everywhere](#sec:using_ci)
+
+### 1. Not using / Not enabled
+
+An important prerequisite is to keep your Gradle version and plugins up to date.
+
+While following this process, refer to the HTML report and the solutions explained in the <Xref page="configuration-cache-requirements" section="Configuration Cache Requirements for your Build Logic">Requirements</Xref> page.
+
+If any problem is found caching or reusing the configuration, an HTML report is generated to help you diagnose and fix the issues.
+The report also shows detected build configuration inputs like system properties, environment variables and value suppliers read during the configuration phase.
+
+See the <Xref page="configuration-cache-debugging" section="Use the Configuration Report">Debugging</Xref> page for more information.
+
+<Image src={configurationCache5} alt="configuration cache 5" />
+
+### 2. Using locally
+
+1. Start with `help`
+
+   Always begin by testing your build or plugin with the simplest task: `help`.
+   This exercises the minimal configuration phase of your build or plugin.
+2. Progressively target useful tasks
+
+   Avoid running `build` right away. Instead:
+   - Use `--dry-run` to identify configuration time problems first.
+   - When working on a build, focus on your development feedback loop, such as running tests after modifying source code.
+   - When working on a plugin, progressively target the contributed or configured tasks.
+3. Explore by turning problems into warnings
+
+   Don’t stop at the first build failure—[turn problems into warnings](#config_cache:usage:ignore_problems) to better understand how your build and plugins behave.
+   If a build fails:
+   - Use the HTML report to analyze the reported problems.
+   - Continue testing more tasks to get a full picture of the issues affecting your build and plugins.
+   - Keep in mind that when turning problems into warnings, you may need to [manually invalidate the cache](#config_cache:usage:invalidate) in case of unexpected behavior.
+   - Mark tasks as incompatible if needed using `myTask.notCompatibleWithConfigurationCache("because")`.
+4. Step back and fix problems iteratively
+
+   Once you have a clear understanding of the issues, start fixing them iteratively.
+   Use the HTML report and this documentation to guide your process:
+   - Begin with problems reported when _storing_ the Configuration Cache.
+   - Once those are fixed, move on to addressing any problems encountered when _loading_ the Configuration Cache.
+5. Report encountered issues
+
+   If you encounter issues with a <Xref page="configuration-cache-status" section="Not Yet Implemented">Gradle Feature</Xref> or a <Xref page="configuration-cache-status" section="Core Gradle Plugins">Core Gradle Plugin</Xref> that is not covered by this documentation, report it to [`gradle/gradle`](https://github.com/gradle/gradle/issues/new/choose).
+
+   For community Gradle plugins, check if the issue is already listed at [gradle/gradle#13490](https://github.com/gradle/gradle/issues/13490) and report it to the plugin’s issue tracker if necessary.
+
+   A good bug report should include:
+   - A link to this documentation.
+   - The plugin version you tested.
+   - Any custom plugin configuration, or ideally a reproducer build.
+   - A description of what fails (e.g., problems with a specific task).
+   - A copy of the build failure output.
+   - The self-contained `configuration-cache-report.html` file.
+6. Test, test, test
+
+   Add tests for your build logic to catch issues early.
+   See <Xref page="configuration-cache-debugging" section="Test your Build Logic">Testing Your Build Logic</Xref> for details on testing Configuration Cache compatibility.
+   This will help during iterations and prevent regressions.
+
+### 3. Using on CI / Enable everywhere
+
+Once your developer workflow (e.g., running tests from the IDE) is stable, consider enabling the Configuration Cache for your team:
+
+- Initially, introduce it as an opt-in feature.
+- If necessary, turn problems into warnings and set a maximum number of allowed problems in your `gradle.properties` file.
+- Keep the Configuration Cache disabled by default, and encourage team members to opt in by configuring their IDE run settings.
+- When more workflows are stable, reverse this approach:
+  - Enable the Configuration Cache by default.
+  - Configure CI to disable it where needed.
+  - Communicate any unsupported workflows that require disabling the Configuration Cache.
+
+Once everything is stable locally and within your team, consider enabling the Configuration Cache on CI:
+
+- This ensures your builds stays CC compliant, and developers can’t introduce problems accidentally!
+- CC overhead is compensated for by the intra-project task parallelism.
+- Getting cache hits may not be possible initially (this is normal).
+
+When you are ready to focus on hit rates:
+
+- Consider reducing or removing build logic inputs.
+- Track hit rates with Develocity’s [Reporting & Visualization Kit](https://gradle.com/develocity/product/reporting-and-visualization/).
+- Fix issues with [Build Scan](https://gradle.com/develocity/product/build-scan/).
+
+### Reacting to the Configuration Cache in the Build
+
+Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
+
+The <JavaDocLink class="org.gradle.api.configuration.BuildFeature" method="getActive--">active</JavaDocLink> status of the Configuration Cache is provided in the corresponding <JavaDocLink class="org.gradle.api.configuration.BuildFeatures" method="getConfigurationCache--">build feature</JavaDocLink>.
+You can access it by <Xref page="service-injection" section="Services and Service Injection">injecting</Xref> the <JavaDocLink class="org.gradle.api.configuration.BuildFeatures" /> service into your code.
+
+This information can be used to:
+
+- Configure plugin features differently when the Configuration Cache is enabled.
+- Disable an optional feature that is not yet compatible with the Configuration Cache.
+- Provide additional guidance to users, such as informing them of temporary limitations or suggesting adjustments to their setup.
+
+### Adopting changes in the Configuration Cache behavior
+
+Gradle releases continuously enhance the Configuration Cache by detecting more cases where configuration logic interacts with the environment.
+These improvements increase cache correctness by preventing false cache hits but also introduce stricter rules that plugins and build logic must follow for optimal caching.
+
+Some newly detected configuration inputs may not impact the configured tasks but can still cause cache invalidation.
+To minimize unnecessary cache misses, follow these steps:
+
+- Identify problematic configuration inputs using the <Xref page="configuration-cache-debugging" section="Use the Configuration Report">Configuration Cache report</Xref>.
+  - Fix undeclared configuration inputs accessed by project build logic.
+  - Report issues caused by third-party plugins to their maintainers and update plugins once they are fixed.
+- Use opt-out options for specific cases to temporarily revert to earlier behavior and prevent Gradle from tracking certain inputs.
+This can help mitigate performance issues caused by outdated plugins.
+
+It is possible to _temporarily_ opt out of configuration input detection in the following cases:
+
+1. Gradle now tracks file system interactions, including checks such as `File.exists()` or `File.isFile()`, as configuration inputs.
+
+   To prevent input tracking from invalidating the cache due to these file system checks, use the `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` property in `gradle.properties`.
+   List the paths to be ignored, relative to the root project directory, separated by `;`.
+   Wildcards (`*` for segments, `**` for multiple segments) are supported.
+   Paths prefixed with `~/` are relative to the user’s home directory.
+   For example:
+
+   ```text
+   org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
+       ~/.third-party-plugin/*.lock;\
+       ../../externalOutputDirectory/**;\
+       build/analytics.json
+   ```
+2. Prior to Gradle 8.4, some undeclared configuration inputs that were never used during configuration could still be read when the Configuration Cache serialized the task graph.
+However, these changes did not invalidate the cache.
+
+   Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now cause cache invalidation.
+
+   To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
+
+With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
+To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
+
+1. Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
+<JavaDocLink class="org.gradle.api.services.BuildServiceRegistry" method="registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)">`BuildServiceRegistry.registerIfAbsent`</JavaDocLink>
+or
+<JavaDocLink class="org.gradle.api.services.BuildServiceRegistration" method="getService()">`BuildServiceRegistration.getService`</JavaDocLink>
+as an argument for
+<JavaDocLink class="org.gradle.build.event.BuildEventsListenerRegistry" method="onTaskCompletion(org.gradle.api.provider.Provider)">`BuildEventsListenerRegistry.onTaskCompletion`</JavaDocLink>.
+
+   Prior to Gradle 9, unsupported providers were silently discarded and never received events during cache-hit builds.
+
+   To temporarily revert to the previous behavior, set the Gradle property:
+
+   ```properties
+   org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
+   ```
+2. Starting with Gradle 9.8.0, standard output and error listeners registered on a task’s logging manager during configuration (for example via
+<JavaDocLink class="org.gradle.api.logging.LoggingOutput" method="addStandardOutputListener(org.gradle.api.logging.StandardOutputListener)">`LoggingOutput.addStandardOutputListener`</JavaDocLink> or
+<JavaDocLink class="org.gradle.api.logging.LoggingOutput" method="addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)">`LoggingOutput.addStandardErrorListener`</JavaDocLink>) are stored in the Configuration Cache and re-registered on a cache hit, so a listener that cannot be serialized is now reported as a problem.
+
+   Prior to Gradle 9.8.0, these listeners were silently discarded and never received output during cache-hit builds.
+
+   To temporarily revert to the previous behavior, set the Gradle property:
+
+   ```properties
+   org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
+   ```
+
+Use these opt-out options sparingly and only when they do not impact task execution results.
+These options are intended as temporary workarounds and will be removed in future Gradle releases.

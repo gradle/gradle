@@ -1,0 +1,98 @@
+---
+title: "Part 2: Add an Extension"
+---
+
+import { SampleFile, SampleScripts, Xref } from '#/components';
+
+Learn about extensions and how to add them to your plugin to make it configurable.
+
+:::note
+***In this section, you’ll:***
+- Understand what plugin extensions are and why they are useful.
+- Add an extension class to your plugin with configurable properties.
+- Register the extension to make it available to users in their build scripts.
+:::
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in <Xref page="part1-gradle-init-plugin" section="Step 0: Before you Begin">part 1</Xref>.
+
+## Step 1: Understanding Plugin Extensions
+
+A ***plugin extension*** is a powerful feature that allows users to configure your plugin using a declarative DSL block in their `build.gradle(.kts)` file.
+This keeps plugin configuration clean and easy to read.
+
+For example, a user could configure your plugin like this:
+
+```text
+slack {
+    token = "..."
+    channel = "#builds"
+    message = "Build completed!"
+}
+```
+
+Behind the scenes, this `slack {}` block maps directly to a Kotlin or Groovy class with properties.
+Gradle handles the magic of injecting the values into your plugin’s logic.
+
+## Step 2: Rename the Plugin Class
+
+First, let’s rename our plugin class from the generic "Hello World" example.
+
+Rename the file `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
+
+Rename the file `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy` to `plugin/src/main/groovy/org/example/SlackPlugin.groovy`.
+
+:::tip
+Most modern IDEs, like IntelliJ IDEA, can automatically handle both the file and class name updates for you.
+:::
+
+Next, we’ll update the class name.
+The `abstract` keyword is important here because it allows Gradle to use its dependency injection framework to provide the plugin with services it needs, like the `ObjectFactory`.
+
+Change `class PluginTutorialPlugin: Plugin<Project> {}` to `abstract class SlackPlugin: Plugin<Project> {}`.
+
+Change `class PluginTutorialPlugin implements Plugin<Project> {}` to `abstract class SlackPlugin implements Plugin<Project> {}`.
+
+<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/SlackPlugin.kt" tag="slack-plugin" />
+
+<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/SlackPlugin.groovy" tag="slack-plugin" />
+
+You’ll also need to update the `build.gradle(.kts)` file to point to the new plugin class name:
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="gradle-plugin" />
+
+## Step 3: Define the Extension Class
+
+Now, let’s define the class that holds the configurable properties for our plugin.
+We’ll use Gradle’s `Property<T>` type for these properties, as this makes them configurable lazily and fully compatible with the Configuration Cache.
+
+Declare the extension as an `abstract class` with `abstract` property getters.
+These are <Xref page="properties-providers" section="Using Gradle Managed Properties">managed properties</Xref>: Gradle generates the implementation at runtime through class decoration and creates the `Property<T>` instances for you, so there is no need to write a constructor or to inject an `ObjectFactory` manually.
+
+:::tip
+An extension that carries no custom logic can also be declared as an `interface` with abstract getters. Gradle will fully instantiate it for you in the same way.
+:::
+
+Create a new file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
+
+<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/SlackExtension.kt" />
+
+<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/SlackExtension.groovy" />
+
+This class will provide the configuration for the `slack` DSL block we saw earlier.
+
+## Step 4: Register the Extension in the Plugin
+
+The final step is to register the `SlackExtension` in our `SlackPlugin` class.
+This tells Gradle to create the extension and make it available in the build script.
+
+Let’s update the `apply` method to register our new extension and modify the dummy task to use its properties.
+
+<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/SlackPlugin.kt" tag="slack-extension" />
+
+<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/SlackPlugin.groovy" tag="slack-extension" />
+
+After this step, a user can configure your plugin, and the `sendTestSlackMessage` task will use those values when it runs.
+
+***Next Step:*** <Xref page="part3-create-custom-task" section="Part 3: Creating Tasks">Create a Custom Task</Xref> \>\>

@@ -1,0 +1,372 @@
+---
+title: "C++ Unit Test"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import cppUnitTestTaskGraph from './cpp-unit-test-task-graph.png';
+import cppUnitTestVariantTaskGraph from './cpp-unit-test-variant-task-graph.png';
+import cppUnitTestConfigurations from './cpp-unit-test-configurations.png';
+
+The C++ Unit Test Plugin provides the tasks, configurations and conventions for integrating with a C++ executable-based testing framework, such as [Google Test](https://github.com/google/googletest).
+
+## Usage
+
+<SampleScripts sample_name="cpp-unit-test" basename="build" tag="apply-plugin" />
+
+## Build variants
+
+The C++ Unit Test Plugin understands the following dimensions.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+
+<dl>
+<dt>Target machines - defaults to the tested component (if present) or build host (otherwise)</dt>
+<dd>
+
+The target machine expresses which machines the application expects to run.
+A target machine is identified by its operating system and architecture.
+Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
+
+</dd>
+</dl>
+
+The target machine can be configured as follows:
+
+<SampleScripts sample_name="cpp-unit-test" basename="build" tag="configure-target-machines" />
+
+## Tasks
+
+The following diagram shows the relationships between tasks added by this plugin.
+
+<Image src={cppUnitTestTaskGraph} alt="cpp unit test task graph" />
+
+### Variant-dependent Tasks
+
+The C++ Unit Test Plugin creates tasks based on the variants of the unit test component.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+The following diagrams show the relationship between variant-dependent tasks.
+
+<Image src={cppUnitTestVariantTaskGraph} alt="cpp unit test variant task graph" />
+
+<dl>
+<dt>`compileTest_Variant_Cpp` (e.g. `compileTestCpp`)  - <GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" /></dt>
+<dd>
+
+Depends on: All tasks that contribute source files to the compilation
+::
+Compiles C++ source files using the selected compiler.
+
+</dd>
+<dt>`linkTest_Variant_` (e.g. `linkTest`) - <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" /></dt>
+<dd>
+
+Depends on: All tasks which contribute to the link executable, including `link_Variant_` and `create_Variant_` tasks from projects that are resolved via project dependencies and tested component
+::
+Links executable from compiled object files using the selected linker.
+
+</dd>
+<dt>`installTest_Variant_` (e.g. `installTest`) - <GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" /></dt>
+<dd>
+
+Depends on: `linkTest_Variant_` and all tasks which contribute to the runtime of the executable, including `link_Variant_` tasks from projects that are resolved via project dependencies
+::
+Installs the executable and all of it’s runtime dependencies for easy execution.
+
+</dd>
+<dt>`runTest_Variant_` (e.g. `runTest`) - <GroovyDocLink class="org.gradle.nativeplatform.test.tasks.RunTestExecutable" /></dt>
+<dd>
+
+Depends on: `installTest_Variant_`
+::
+Run the installed executable.
+
+</dd>
+</dl>
+
+### Lifecycle Tasks
+
+The C++ Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <Xref page="base-plugin" section="The Base Plugin">Base Plugin chapter</Xref> — which the C++ Unit Test Plugin applies automatically:
+
+<dl>
+<dt>`assemble` - Task (lifecycle)</dt>
+<dd>
+
+Aggregate task that assembles the debug variant of the tested component for the current host (if present) in the project.
+For example, the <Xref page="cpp-application-plugin" section="C++ Application">C++ Application Plugin</Xref> and <Xref page="cpp-library-plugin" section="C++ Library">C++ Library Plugin</Xref> attach their link and create tasks to this lifecycle task.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`test` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `runTest_Variant_` that most closely matches the build host
+::
+Aggregate task of the variant that most closely match the build host for testing the component.
+
+</dd>
+<dt>`check` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `test`
+::
+Aggregate task that performs verification tasks, such as running the tests.
+Some plugins add their own verification task to `check`.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`build` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `check`, `assemble`
+::
+Aggregate tasks that perform a full build of the project.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`clean` - Delete</dt>
+<dd>
+
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+</dl>
+
+## Dependency management
+
+Just like the tasks created by the C++ Unit Test Plugin, the configurations are created based on the variant of the application component.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+The following graph describes the configurations added by the C++ Unit Test Plugin:
+
+<Image src={cppUnitTestConfigurations} alt="cpp unit test configurations" />
+
+- The configurations in white are the ones a user should use to declare dependencies
+- The configurations in blue, also known as resolvable denoted by (R), are internal to the component, for its own use
+
+The following configurations are used to declare dependencies:
+
+<dl>
+<dt>`testImplementation`</dt>
+<dd>
+
+Used for declaring implementation dependencies for all variants of the test component.
+This is where you should declare dependencies of any variants.
+Note this configuration inherit all dependencies declared on the tested component (library or application).
+
+</dd>
+<dt>`test_Variant_ExecutableImplementation` (e.g. `testExecutableImplementation`) extends `testImplementation`</dt>
+<dd>
+
+Used for declaring implementation dependencies for a specific variant of the test component.
+This is where you should declare dependencies of the specific variant.
+
+</dd>
+</dl>
+
+There is no configurations that can be used by consumers for this plugin.
+
+The following configurations are used by the unit test itself:
+
+<dl>
+<dt>`cppCompileTest_Variant_` (e.g. `cppCompileTest`) extends `test_Variant_ExecutableImplementation`</dt>
+<dd>
+
+Used for compiling the unit test.
+This configuration contains the compile include roots of the unit test and is therefore used when invoking the C++ compiler to compile it.
+
+</dd>
+<dt>`nativeLinkTest_Variant_` (e.g. `nativeLinkTest`) extends `test_Variant_ExecutableImplementation`</dt>
+<dd>
+
+Used for linking the unit test.
+This configuration contains the libraries of the unit test and is therefore used when invoking the C++ linker to link it.
+
+</dd>
+<dt>`nativeRuntimeTest_Variant_` (e.g. `nativeRuntimeTest`) extends `test_Variant_ExecutableImplementation`</dt>
+<dd>
+
+Used for executing the unit test.
+This configuration contains the runtime libraries of the unit test.
+
+</dd>
+</dl>
+
+## Conventions
+
+The C++ Unit Test Plugin adds conventions for sources and tasks, shown below.
+
+### Project layout
+
+The C++ Unit Test Plugin assumes the project layout shown below.
+None of these directories needs to exist or have anything in them.
+The C++ Unit Test Plugin will compile whatever it finds, and handles anything which is missing.
+
+<dl>
+<dt>`src/test/cpp`</dt>
+<dd>
+
+C++ source with extension of `.cpp`, `.c++` or `.cc`
+
+</dd>
+<dt>`src/test/headers`</dt>
+<dd>
+
+Headers - headers needed to compile the unit test
+
+</dd>
+</dl>
+
+You <Xref page="building-cpp-projects" section="Customizing file and directory locations">configure the project layout</Xref> by configuring the `source` and `privateHeaders` respectively on the `unitTest` script block.
+
+### `compileTest_Variant_Cpp` Task
+
+The C++ Unit Test Plugin adds a <GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" /> instance for each variant of the test component to build (e.g. `compileTestCpp`).
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="compilerArgs">compilerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="includes">includes</GroovyDocLink></dt>
+<dd>
+
+`configurations.cppCompileTest_Variant_` + `unitTest.privateHeaders`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="macros">macros</GroovyDocLink></dt>
+<dd>
+
+[:]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="objectFileDir">objectFileDir</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("obj/test/_$variant_")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="optimized">optimized</GroovyDocLink></dt>
+<dd>
+
+`false`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="positionIndependentCode">positionIndependentCode</GroovyDocLink></dt>
+<dd>
+
+`false`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`unitTest.cppSource`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="systemIncludes">systemIncludes</GroovyDocLink></dt>
+<dd>
+
+derived from the tool chain
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-cpp-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+### `linkTest_Variant_` Task
+
+The C++ Unit Test Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" /> instance for each variant of the test component - e.g. `linkTest`.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="libs">libs</GroovyDocLink></dt>
+<dd>
+
+`configurations.nativeLinkTest_Variant_`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="linkedFile">linkedFile</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("exe/test/_$variant_/baseName")` (*nix) or `layout.buildDirectory.dir("exe\test\_$variant_\baseName.exe")` (Windows)
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="linkerArgs">linkerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`compile_Variant_Cpp.objects` (if present) + `compileTest_Variant_Cpp.objects`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-cpp-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+### `installTest_Variant_` Task
+
+The C++ Unit Test Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" /> instance for each variant of the test component - e.g. `installTest`.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+There is no need to configure any properties on the task.
+
+### `runTest_Variant_` Task
+
+The C++ Unit Test Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.test.tasks.RunTestExecutable" /> instance for each variant of the test component - e.g. `runTest`.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.tasks.RunTestExecutable" method="args">args</GroovyDocLink></dt>
+<dd>
+
+`[]`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.tasks.RunTestExecutable" method="ignoreFailures">ignoreFailures</GroovyDocLink></dt>
+<dd>
+
+`false`
+
+</dd>
+</dl>

@@ -1,0 +1,5 @@
+compileClasspath - Compile classpath for source set 'main'.
++--- com.google.guava:guava:33.0.0-jre
++--- org.apache.commons:commons-lang3:3.14.0
++--- com.google.errorprone:error_prone_annotations:2.26.1
+\--- com.google.code.findbugs:jsr305:3.0.2

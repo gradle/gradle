@@ -1,0 +1,16 @@
+plugins {
+    id('java-library')
+}
+
+// tag::configureTask[]
+def configureJar = tasks.register('configureJar') {
+    doLast {
+        tasks.jar.manifest {
+            def classPath = configurations.runtimeClasspath.collect { it.name }.join(" ")
+            attributes('Class-Path': classPath)
+        }
+    }
+}
+
+tasks.named('jar') { dependsOn(configureJar) }
+// end::configureTask[]

@@ -1,0 +1,7 @@
+> Task :app:printProperties
+propertyA in app: fixedValue
+propertyB in app: someValue
+
+> Task :util:printProperties
+propertyA in util: fixedValue
+propertyB in util: otherValue

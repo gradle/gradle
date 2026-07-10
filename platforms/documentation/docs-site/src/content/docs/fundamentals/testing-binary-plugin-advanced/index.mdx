@@ -1,0 +1,293 @@
+---
+title: "Binary Plugin Testing"
+---
+
+import { FileTree, SampleScripts, Xref, YouTube } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Gradle provides a robust mechanism for testing binary plugins.
+
+Gradle’s <Xref page="test-kit" section="Testing Build Logic with TestKit">`TestKit`</Xref> allows you to programmatically execute synthetic builds that use the plugin under development, all within the plugin’s own build.
+
+A well-tested plugin typically includes two levels of testing:
+
+1. Unit Tests
+2. Functional Tests
+
+The directory of our plugin looks as follows:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+.
+└── plugin
+    ├── settings.gradle.kts
+    ├── build.gradle.kts
+    └── src
+       ├── main
+       │   └── java/org/example
+       │       ├── FileSizeDiffTask.java
+       │       ├── FileSizeDiffPlugin.java
+       │       └── FileSizeDiffExtension.java
+       ├── test
+       │   └── java/org/example
+       │       └── FileSizeDiffPluginTest.java
+       └── functionalTest
+           └── java/org/example
+               └── FileSizeDiffPluginFunctionalTest.java
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+.
+└── plugin
+    ├── settings.gradle
+    ├── build.gradle
+    └── src
+       ├── main
+       │   └── java/org/example
+       │       ├── FileSizeDiffTask.java
+       │       ├── FileSizeDiffPlugin.java
+       │       └── FileSizeDiffExtension.java
+       ├── test
+       │   └── java/org/example
+       │       └── FileSizeDiffPluginTest.java
+       └── functionalTest
+           └── java/org/example
+               └── FileSizeDiffPluginFunctionalTest.java
+```
+
+</TabItem>
+</Tabs>
+
+## 1. Unit Test
+
+**Unit tests** validate the internal behavior of your plugin in a lightweight, isolated project.
+These tests simulate applying your plugin without needing a full Gradle execution.
+
+They test:
+
+- The plugin applies without errors
+- Tasks or extensions are registered correctly
+
+<YouTube id="kwNkBHKfmzQ" />
+
+<YouTube id="Zh0Kew2y35M" />
+
+The unit test for the `filesizediff` plugin looks as follows:
+
+```java
+package org.example;
+
+import org.gradle.testfixtures.ProjectBuilder;
+import org.gradle.api.Project;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class FileSizeDiffPluginTest {
+    @Test void pluginRegistersATask() {
+        // Create a test project and apply the plugin
+        Project project = ProjectBuilder.builder().build();
+        project.getPlugins().apply("org.example.filesizediff");
+
+        // Verify the result
+        assertNotNull(project.getTasks().findByName("fileSizeDiff"));
+    }
+}
+```
+
+This test checks that the `org.example.filesizediff` plugin is applied and a `fileSizeDiff` task is added.
+
+Unit tests are fast and useful for verifying the basic mechanics of your plugin logic.
+
+## 2. Functional Test
+
+**Functional tests** (also known as end-to-end plugin tests) use Gradle’s <Xref page="test-kit" section="Testing Build Logic with TestKit">`TestKit`</Xref> to launch real Gradle builds in a temporary directory.
+This is how you verify your plugin works correctly in real-world usage.
+
+They test:
+
+- The plugin can be applied to a real build
+- The plugin task runs correctly and produces the expected output
+- Users can configure the plugin via the DSL
+
+<YouTube id="AcuQcYuQ2uw" />
+
+The functional test for the `filesizediff` plugin looks as follows:
+
+```java
+package org.example;
+
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.TaskOutcome;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class FileSizeDiffPluginFunctionalTest {
+    // Temporary directory for each test, automatically cleaned up after the test run
+    @TempDir
+    File projectDir;
+
+    // Helper to get reference to build.gradle in the temp project
+    private File getBuildFile() {
+        return new File(projectDir, "build.gradle");
+    }
+
+    // Helper to get reference to settings.gradle in the temp project
+    private File getSettingsFile() {
+        return new File(projectDir, "settings.gradle");
+    }
+
+    // Create minimal build and settings files before each test
+    @BeforeEach
+    void setup() throws IOException {
+        // Empty settings.gradle
+        writeString(getSettingsFile(), "");
+
+        // Apply the plugin and configure the extension in build.gradle
+        writeString(getBuildFile(), """
+            plugins {
+                id("org.example.filesizediff")
+            }
+            diff {
+                file1 = file("a.txt")
+                file2 = file("b.txt")
+            }
+        """
+        );
+    }
+
+    // Test case: both input files have the same size (empty)
+    @Test
+    void canDiffTwoFilesOfTheSameSize() throws IOException {
+        // Create empty file a.txt
+        writeString(new File(projectDir, "a.txt"), "");
+        // Create empty file b.txt
+        writeString(new File(projectDir, "b.txt"), "");
+
+        // Run the build with the plugin classpath and invoke the fileSizeDiff task
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(projectDir)
+                .withPluginClasspath()
+                .withArguments("fileSizeDiff")
+                .build();
+
+        // Verify the output message and successful task result
+        assertTrue(result.getOutput().contains("Files have the same size"));
+        assertEquals(TaskOutcome.SUCCESS, result.task(":fileSizeDiff").getOutcome());
+    }
+
+    // Test case: first file is larger than second file
+    @Test
+    void canDiffTwoFilesOfDiffSize() throws IOException {
+        // File a.txt has 7 bytes
+        writeString(new File(projectDir, "a.txt"), "dsdsdad");
+        // File b.txt is empty
+        writeString(new File(projectDir, "b.txt"), "");
+
+        // Run the build and invoke the plugin task
+        BuildResult result = GradleRunner.create()
+                .withProjectDir(projectDir)
+                .withPluginClasspath()
+                .withArguments("fileSizeDiff")
+                .build();
+
+        // Verify the output message indicates a.txt is larger
+        assertTrue(result.getOutput().contains("a.txt was larger: 7 bytes"));
+        assertEquals(TaskOutcome.SUCCESS, result.task(":fileSizeDiff").getOutcome());
+    }
+
+    // Helper method to write string content to a file
+    private static void writeString(File file, String string) throws IOException {
+        Files.writeString(file.toPath(), string);
+    }
+}
+```
+
+`GradleRunner` is the core API provided by `TestKit` for executing builds in a test environment.
+`GradleRunner` simulates a Gradle invocation.
+Each test creates a temporary project with a `build.gradle` file, input files, and runs the plugin task using `GradleRunner`.
+
+Unlike unit tests in `src/test/java` that test individual classes, functional tests live in `src/functionalTest/java` and verify that your plugin behaves correctly in a real build.
+Gradle doesn’t automatically recognize custom test source sets, so you need to declare a `functionalTest` source set and configure a task to run it.
+
+Fortunately, `gradle init` can scaffold this setup for you:
+
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" subpath="plugin" />
+
+## Consumer Project
+
+You can optionally create a consumer project that uses your plugin:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+<FileTree>
+
+- .
+  - settings.gradle.kts // Include custom plugin
+  - build.gradle.kts    // Applies custom plugin
+  - plugin
+    - settings.gradle.kts
+    - build.gradle.kts
+    - src
+- ...
+
+</FileTree>
+
+</TabItem>
+<TabItem label="Groovy">
+
+<FileTree>
+
+- .
+  - settings.gradle // Include custom plugin
+  - build.gradle    // Applies custom plugin
+  - plugin
+    - settings.gradle
+    - build.gradle
+    - src
+- ...
+
+</FileTree>
+
+</TabItem>
+</Tabs>
+
+<YouTube id="p84BiAMS8e8" />
+
+First you can point to the plugin as an included build in the `consumer` settings file:
+
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="settings" />
+
+Then in the build file of the `consumer` project, you apply the plugin and test it:
+
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" />
+
+In the `consumer` project, you can create dummy `a.txt` and `b.txt` files and run `./gradlew fileSizeDiff`:
+
+```bash
+$ ./gradlew fileSizeDiff
+```
+
+```text
+> Task :fileSizeDiff
+Files have the same size: 0 bytes
+Wrote diff result to /home/user/gradle/samples/build/diff-result.txt
+
+BUILD SUCCESSFUL in 0s
+```
+
+***Next Step:*** <Xref page="publishing-binary-plugin-advanced" section="Binary Plugin Publishing">Learn how to publish Binary Plugins</Xref> \>\>

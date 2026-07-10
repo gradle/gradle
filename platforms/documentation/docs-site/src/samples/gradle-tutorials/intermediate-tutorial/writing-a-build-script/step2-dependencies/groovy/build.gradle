@@ -1,4 +1,0 @@
-dependencies {
-    // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
-    implementation 'org.apache.commons:commons-lang3:3.13.0'
-}

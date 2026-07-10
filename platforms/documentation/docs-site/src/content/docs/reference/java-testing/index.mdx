@@ -1,0 +1,982 @@
+---
+title: "Testing in Java & JVM projects"
+---
+
+import { CalloutList, FileTree, GroovyDocLink, JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Testing on the JVM is a rich subject matter. There are many different testing libraries and frameworks, as well as many different types of test. All need to be part of the build, whether they are executed frequently or infrequently. This chapter is dedicated to explaining how Gradle handles differing requirements between and within builds, with significant coverage of how it integrates with the two most common testing frameworks: [JUnit](https://junit.org/) and [TestNG](https://testng.org/).
+
+It explains:
+
+- Ways to control how the tests are run ([Test execution](#sec:test_execution))
+- How to select specific tests to run ([Test filtering](#test_filtering))
+- What test reports are generated and how to influence the process ([Test reporting](#test_reporting))
+- How Gradle finds tests to run ([Test detection](#sec:test_detection))
+- How to make use of the major frameworks' mechanisms for grouping tests together ([Test grouping](#test_grouping))
+
+But first, let’s look at the basics of JVM testing in Gradle.
+
+:::note
+A new configuration DSL for modeling test execution phases is available via the incubating <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite</Xref> plugin.
+:::
+
+## The basics
+
+All JVM testing revolves around a single task type: <GroovyDocLink class="org.gradle.api.tasks.testing.Test" />. This runs a collection of test cases using any supported test library — JUnit, JUnit Platform or TestNG — and collates the results. You can then turn those results into a report via an instance of the <GroovyDocLink class="org.gradle.api.tasks.testing.TestReport" /> task type.
+
+In order to operate, the `Test` task type requires just two pieces of information:
+
+- Where to find the compiled test classes (property: <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="testClassesDirs">Test.getTestClassesDirs()</GroovyDocLink>)
+- The execution classpath, which should include the classes under test as well as the test library that you’re using (property: <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="classpath">Test.getClasspath()</GroovyDocLink>)
+
+When you’re using a JVM language plugin — such as the <Xref page="java-plugin" section="The Java Plugin">Java Plugin</Xref> — you will automatically get the following:
+
+- A dedicated `test` source set for unit tests
+- A `test` task of type `Test` that runs those unit tests
+
+The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <Xref page="organizing-tasks" section="Lifecycle tasks">lifecycle task</Xref>.
+
+It’s also worth bearing in mind that the `test` source set automatically creates <Xref page="java-plugin" section="SourceSet dependency configurations">corresponding dependency configurations</Xref> — of which the most useful are `testImplementation` and `testRuntimeOnly` — that the plugins tie into the `test` task’s classpath.
+
+All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit Platform and changes the maximum heap size for the tests' JVM to 1 gigabyte:
+
+<SampleScripts sample_name="java-basic" basename="build" tag="java-basic-test-config" />
+
+The <GroovyDocLink class="org.gradle.api.tasks.testing.Test" /> task has many generic configuration options as well as several framework-specific ones that you can find described in <JavaDocLink class="org.gradle.api.tasks.testing.junit.JUnitOptions" />, <JavaDocLink class="org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions" /> and <JavaDocLink class="org.gradle.api.tasks.testing.testng.TestNGOptions" />. We cover a significant number of them in the rest of the chapter.
+
+If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in [Configuring integration tests](#sec:configuring_java_integration_tests).
+
+## Test execution
+
+Gradle executes tests in a separate ('forked') JVM, isolated from the main build process. This prevents classpath pollution and excessive memory consumption for the build process. It also allows you to run the tests with different JVM arguments than the build is using.
+
+You can control how the test process is launched via several properties on the `Test` task, including the following:
+
+<dl>
+<dt>`maxParallelForks` — default: 1</dt>
+<dd>
+
+You can run your tests in parallel by setting this property to a value greater than 1. This may make your test suites complete faster, particularly if you run them on a multi-core CPU. When using parallel test execution, make sure your tests are properly isolated from one another. Tests that interact with the filesystem are particularly prone to conflict, causing intermittent test failures.
+
+Your tests can distinguish between parallel test processes by using the value of the `org.gradle.test.worker` property, which is unique for each process. You can use this for anything you want, but it’s particularly useful for filenames and other resource identifiers to prevent the kind of conflict we just mentioned.
+
+</dd>
+<dt>`forkEvery` — default: 0 (no maximum)</dt>
+<dd>
+
+This property specifies the maximum number of test classes (or test definitions, for non-class-based testing) that Gradle should run on a test process before it’s disposed of and a fresh one created. This is mainly used as a way to manage leaky tests or frameworks that have static state that can’t be cleared or reset between tests.
+
+**Warning: a low value (other than 0) can severely hurt the performance of the tests**
+
+</dd>
+<dt>`ignoreFailures` — default: false</dt>
+<dd>
+
+If this property is `true`, Gradle will continue with the project’s build once the tests have completed, even if some of them have failed. Note that, by default, the `Test` task always executes every test that it detects, irrespective of this setting.
+
+</dd>
+<dt>`failFast` —  (since Gradle 4.6) default: false</dt>
+<dd>
+
+Set this to `true` if you want the build to fail and finish as soon as one of your tests fails. This can save a lot of time when you have a long-running test suite and is particularly useful when running the build on continuous integration servers. When a build fails before all tests have run, the test reports only include the results of the tests that have completed, successfully or not.
+
+You can also enable this behavior by using the `--fail-fast` command line option, or disable it respectively with `--no-fail-fast`.
+
+</dd>
+<dt>`testLogging` — default: _not set_</dt>
+<dd>
+
+This property represents a set of options that control which test events are logged and at what level. You can also configure other logging behavior via this property. See <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLoggingContainer" /> for more detail.
+
+</dd>
+<dt>`dryRun` — default: false</dt>
+<dd>
+
+If this property is `true`, Gradle will simulate the execution of the tests without actually running them. This will still generate reports, allowing for inspection of what tests were selected. This can be used to verify that your test filtering configuration is correct without actually running the tests.
+
+You can also enable this behavior by using the `--test-dry-run` command-line option, or disable it respectively with `--no-test-dry-run`.
+
+</dd>
+</dl>
+
+See <GroovyDocLink class="org.gradle.api.tasks.testing.Test" /> for details on all the available configuration options.
+
+## Test filtering
+
+It’s a common requirement to run subsets of a test suite, such as when you’re fixing a bug or developing a new test case. Gradle provides two mechanisms to do this:
+
+- Filtering (the preferred option)
+- Test inclusion/exclusion
+
+Filtering supersedes the inclusion/exclusion mechanism, but you may still come across the latter in the wild.
+
+With Gradle’s test filtering you can select tests to run based on:
+
+- A fully-qualified class name or fully qualified method name, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`
+- A simple class name or method name if the pattern starts with an upper-case letter, e.g. `SomeTest`, `SomeTest.someMethod` (since Gradle 4.7)
+- '*' wildcard matching
+
+You can enable filtering either in the build script or via the `--tests` command-line option. Here’s an example of some filters that are applied every time the build runs:
+
+<SampleScripts sample_name="filtering" basename="build" tag="test-filtering" />
+
+For more details and examples of declaring filters in the build script, please see the <JavaDocLink class="org.gradle.api.tasks.testing.TestFilter" /> reference.
+
+The command-line option is especially useful to execute a single test method. When you use `--tests`, be aware that the inclusions declared in the build script are still honored. It is also possible to supply multiple `--tests` options, all of whose patterns will take effect. The following sections have several examples of using the command-line option.
+
+:::note
+Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
+However, the vast majority of tests and use cases work perfectly well with Gradle’s filtering mechanism.
+:::
+
+The following two sections look at the specific cases of simple class/method names and fully-qualified names.
+
+### Simple name pattern
+
+Since 4.7, Gradle has treated a pattern starting with an uppercase letter as a simple class name, or a class name + method name. For example, the following command lines run either all or exactly one of the tests in the `SomeTestClass` test case, regardless of what  package it’s in:
+
+Executes all tests in `SomeTestClass`:
+
+```bash
+$ ./gradlew test --tests SomeTestClass
+```
+
+Executes a single specified test in `SomeTestClass`:
+
+```bash
+$ ./gradlew test --tests SomeTestClass.someSpecificMethod
+$ ./gradlew test --tests SomeTestClass.*someMethod*
+```
+
+### Fully-qualified name pattern
+
+Prior to 4.7 or if the pattern doesn’t start with an uppercase letter, Gradle treats the pattern as fully-qualified. So if you want to use the test class name irrespective of its package, you would use `--tests *.SomeTestClass`. Here are some more examples:
+
+Specific class:
+
+```bash
+$ ./gradlew test --tests org.gradle.SomeTestClass
+```
+
+Specific class and method:
+
+```bash
+$ ./gradlew test --tests org.gradle.SomeTestClass.someSpecificMethod
+```
+
+Method name containing spaces:
+
+```bash
+$ ./gradlew test --tests "org.gradle.SomeTestClass.some method containing spaces"
+```
+
+All classes at specific package (recursively):
+
+```bash
+$ ./gradlew test --tests 'all.in.specific.package*'
+```
+
+Specific method at specific package (recursively):
+
+```bash
+$ ./gradlew test --tests 'all.in.specific.package*.someSpecificMethod'
+$ ./gradlew test --tests '*IntegTest'
+$ ./gradlew test --tests '*IntegTest*ui*'
+$ ./gradlew test --tests '*ParameterizedTest.foo*'
+```
+
+The second iteration of a parameterized test:
+
+```bash
+$ ./gradlew test --tests '*ParameterizedTest.*[2]'
+```
+
+Note that the wildcard '*' has no special understanding of the '.' package separator. It’s purely text based. So `--tests *.SomeTestClass` will match any package, regardless of its 'depth'.
+
+You can also combine filters defined at the command line with <Xref page="command-line-interface" section="Continuous build">continuous build</Xref> to re-execute a subset of tests immediately after every change to a production or test source file. The following executes all tests in the 'com.mypackage.foo' package or subpackages whenever a change triggers the tests to run:
+
+```bash
+$ ./gradlew test --continuous --tests "com.mypackage.foo.*"
+```
+
+## Test reporting
+
+The `Test` task generates the following results by default:
+
+- An HTML test report
+- XML test results in a format compatible with the Ant JUnit report task — one that is supported by many other tools, such as CI servers
+- An efficient binary format of the results used by the `Test` task to generate the other formats
+
+In most cases, you’ll work with the standard HTML report, which automatically includes the results from _all_ your `Test` tasks, even the ones you explicitly add to the build yourself. For example, if you add a `Test` task for integration tests, the report will include the results of both the unit tests and the integration tests if both tasks are run.
+
+:::note
+To aggregate test results across multiple subprojects, see the <Xref page="test-report-aggregation-plugin" section="The Test Report Aggregation Plugin">Test Report Aggregation Plugin</Xref>.
+:::
+
+Unlike with many of the testing configuration options, there are several project-level convention properties that affect the test reports. For example, you can change the destination of the test results and reports like so:
+
+<SampleScripts sample_name="custom-dirs" basename="build" tag="custom-report-dirs" />
+
+```bash
+$ ./gradlew -q showDirs
+```
+
+```text
+my-reports
+build/my-test-results
+```
+
+Follow the link to the convention properties for more details.
+
+There is also a standalone <GroovyDocLink class="org.gradle.api.tasks.testing.TestReport" /> task type that you can use to generate a custom HTML test report. All it requires are a value for `destinationDir` and the test results you want included in the report. Here is a sample which generates a combined report for the unit tests from all subprojects:
+
+<SampleScripts sample_name="test-report" basename="myproject.java-conventions" subpath="buildSrc/src/main/{lang}" tag="test-report" />
+<SampleScripts sample_name="test-report" basename="build" tag="test-report" />
+
+In this example, we use a convention plugin `myproject.java-conventions` to expose the test results from a project to Gradle’s <Xref page="variant-aware-resolution" section="Variant Selection and Attribute Matching">variant aware dependency management engine</Xref>.
+
+The plugin declares a consumable `binaryTestResultsElements` configuration that represents the binary test results of the `test` task.
+In the aggregation project’s build file, we declare the `testReportData` configuration and depend on all of the projects that we want to aggregate the results from. Gradle will automatically select the binary test result variant from each of the subprojects instead of the project’s jar file.
+Lastly, we add a `testReport` task that aggregates the test results from the `testResultsDirs` property, which contains all of the binary test results resolved from the `testReportData` configuration.
+
+You should note that the `TestReport` type combines the results from multiple test tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.
+
+### Communicating test results to CI servers and other tools via XML files
+
+The Test tasks creates XML files describing the test results, in the "JUnit XML" pseudo standard.
+This standard is used by the JUnit 4, JUnit Jupiter, and TestNG test frameworks, and is configured using the same DSL block for each of these.
+It is common for CI servers and other tooling to observe test results via these XML files.
+
+By default, the files are written to `layout.buildDirectory.dir("test-results/$testTaskName")` with a file per test class.
+The location can be changed for all test tasks of a project, or individually per test task.
+
+<SampleScripts sample_name="junit-xml-results" basename="build" tag="configure-location-convention" />
+
+With the above configuration, the XML files will be written to `layout.buildDirectory.dir("junit-xml/$testTaskName")`.
+
+<SampleScripts sample_name="junit-xml-results" basename="build" tag="configure-location-task" />
+
+With the above configuration, the XML files for the `test` task will be written to `layout.buildDirectory.dir("test-results/test-junit-xml")`.
+The location of the XML files for other test tasks will be unchanged.
+
+#### Configuration options
+
+The content of the XML files can also be configured to convey the results differently, by configuring the
+<JavaDocLink class="org.gradle.api.tasks.testing.JUnitXmlReport" /> options.
+
+<SampleScripts sample_name="junit-xml-results" basename="build" tag="configure-content" />
+
+##### includeSystemOutLog & includeSystemErrLog
+
+The `includeSystemOutLog` option allows configuring whether or not test output written to standard out is exported to the XML report file.
+The `includeSystemErrLog` option allows configuring whether or not test error output written to standard error is exported to the XML report file.
+
+These options affect both test-suite level output (such as `@BeforeClass`/`@BeforeAll` output) and test class and method-specific output (`@Before`/`@BeforeEach` and `@Test`).
+If either option is disabled, the element that normally contains that content will be excluded from the XML report file.
+
+The default for each option is `true`.
+
+##### outputPerTestCase
+
+The `outputPerTestCase` option, when enabled, associates any output logging generated during a test case to that test case in the results.
+When disabled (the default) output is associated with the test class as whole and not the individual test cases (e.g. test methods) that produced the logging output.
+Most modern tools that observe JUnit XML files support the "output per test case" format.
+
+If you are using the XML files to communicate test results, it is recommended to enable this option as it provides more useful reporting.
+
+##### mergeReruns
+
+When `mergeReruns` is enabled, if a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`.
+This is effectively the reporting produced by the [surefire plugin of Apache Maven™](https://maven.apache.org/components/surefire/maven-surefire-plugin/examples/rerun-failing-tests.html) when enabling reruns.
+If your CI server understands this format, it will indicate that the test was flaky.
+If it does not, it will indicate that the test succeeded as it will ignore the `<flakyFailure>` information.
+If the test does not succeed (i.e. it fails for every retry), it will be indicated as having failed whether your tool understands this format or not.
+
+When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
+
+If you are using [Build Scan](https://scans.gradle.com) or [Develocity](https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/),
+flaky tests will be detected regardless of this setting.
+
+Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle’s determination of whether the build failed or not,
+and you wish to not consider the build failed if all failed tests passed when retried.
+This is the case for the Jenkins CI server and its [JUnit plugin](https://plugins.jenkins.io/junit/).
+With `mergeReruns` enabled, tests that pass-on-retry will no longer cause this Jenkins plugin to consider the build to have failed.
+However, failed test executions will be omitted from the Jenkins test result visualizations as it does not consider `<flakyFailure>` information.
+The separate [Flaky Test Handler Jenkins plugin](https://plugins.jenkins.io/flaky-test-handler) can be used in addition to the JUnit Jenkins plugin to have such "flaky failures" also be visualized.
+
+Tests are grouped and merged based on their reported name.
+When using any kind of test parameterization that affects the reported test name,
+or any other kind of mechanism that produces a potentially dynamic test name,
+care should be taken to ensure that the test name is stable and does not unnecessarily change.
+
+Enabling the `mergeReruns` option does not add any retry/rerun functionality to test execution.
+Rerunning can be enabled by the test execution framework (e.g. JUnit’s [@RepeatedTest](https://junit.org/junit5/docs/current/user-guide/#writing-tests-repeated-tests)),
+or via the separate [Test Retry Gradle plugin](https://github.com/gradle/test-retry-gradle-plugin).
+
+## Test detection
+
+By default, Gradle will run all tests that it detects, which it does by inspecting the compiled test classes. This detection uses different criteria depending on the test framework used.
+
+For _JUnit_, Gradle scans for both JUnit 3 and 4 test classes. A class is considered to be a JUnit test if it:
+
+- Ultimately inherits from `TestCase` or `GroovyTestCase`
+- Is annotated with `@RunWith`
+- Contains a method annotated with `@Test` or a super class does
+
+For _TestNG_, Gradle scans for methods annotated with `@Test`.
+
+Note that abstract classes are not executed. In addition, be aware that Gradle scans up the inheritance tree into jar files on the test classpath. So if those JARs contain test classes, they will also be run.
+
+If you don’t want to use test class detection, you can disable it by setting the `scanForTestClasses` property on <GroovyDocLink class="org.gradle.api.tasks.testing.Test" /> to `false`. When you do that, the test task uses only the `includes` and `excludes` properties to find test classes.
+
+If `scanForTestClasses` is false and no include or exclude patterns are specified, Gradle defaults to running any class that matches the patterns `**/*Tests.class` and `**/*Test.class`, excluding those that match `**/Abstract*.class`.
+
+:::note
+With [JUnit Platform](http://junit.org/junit5/docs/current/user-guide), only `includes` and `excludes` are used to filter test classes — `scanForTestClasses` has no effect.
+:::
+
+## Test logging
+
+Gradle allows fine-tuned control over events that are logged to the console.
+Logging is configurable on a per-log-level basis and by default, the following events are logged:
+
+| When the log level is | Events that are logged | Additional configuration |
+| --- | --- | --- |
+| `ERROR`, `QUIET` or `WARNING` | None | None |
+| `LIFECYCLE` | <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogEvent" method="FAILED">Test failures</JavaDocLink> | Exception format is <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestExceptionFormat" method="SHORT">SHORT</JavaDocLink> |
+| `INFO` | <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogEvent" method="FAILED">Test failures</JavaDocLink>, <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogEvent" method="SKIPPED">skipped tests</JavaDocLink>, <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogEvent" method="STANDARD_OUT">test standard output</JavaDocLink> and <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogEvent" method="STANDARD_ERROR">test standard error</JavaDocLink> | Stacktraces are truncated. |
+| `DEBUG` | <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogEvent">All events</JavaDocLink> | Full stacktraces are logged. |
+
+Test logging can be modified on a per-log-level basis by adjusting the appropriate <JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLogging" /> instances in the <JavaDocLink class="org.gradle.api.tasks.testing.AbstractTestTask" method="getTestLogging--">testLogging</JavaDocLink> property of the test task.
+For example, to adjust the `INFO` level test logging configuration, modify the
+<JavaDocLink class="org.gradle.api.tasks.testing.logging.TestLoggingContainer" method="getInfo--">TestLoggingContainer.getInfo()</JavaDocLink> property.
+
+:::note
+Test-framework startup failures (for example, a TestNG test class whose constructor throws, a JUnit 4 suite that fails to initialize, or a Jupiter `@BeforeAll` lifecycle hook that aborts a container) bypass the granularity filter and are always written to the console.
+This ensures that initialization failures are not silently dropped, which would otherwise leave the build reporting only `> There were failing tests` with no underlying cause.
+The `testLogging.events` predicate still applies: explicitly silencing `FAILED` events is honored.
+:::
+
+## Test grouping
+
+JUnit, JUnit Platform and TestNG allow sophisticated groupings of test methods.
+
+:::note
+This section applies to grouping individual test classes or methods within a collection of tests that serve the same testing purpose (unit tests, integration tests, acceptance tests, etc.).
+For dividing test classes based upon their purpose, see the incubating <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite</Xref> plugin.
+:::
+
+JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classes and methods.[^1](https://github.com/junit-team/junit/wiki/Categories).] <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="useJUnit(org.gradle.api.Action)" /> allows you to specify the JUnit categories you want to include and exclude. For example, the following configuration includes tests in `CategoryA` and excludes those in `CategoryB` for the `test` task:
+
+<SampleScripts sample_name="junit-categories" basename="build" tag="test-categories" />
+
+[JUnit Platform](http://junit.org/junit5/docs/current/user-guide) introduced [tagging](http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering) to replace categories. You can specify the included/excluded tags via <JavaDocLink class="org.gradle.api.tasks.testing.Test" method="useJUnitPlatform-org.gradle.api.Action-">Test.useJUnitPlatform(org.gradle.api.Action)</JavaDocLink>, as follows:
+
+<SampleScripts sample_name="junitplatform-tagging" basename="build" tag="test-tags" />
+
+The TestNG framework uses the concept of test groups for a similar effect.[^2](https://testng.org/#_test_groups).] You can configure which test groups to include or exclude during the test execution via the <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="useTestNG(org.gradle.api.Action)" /> setting, as seen here:
+
+<SampleScripts sample_name="testng-groups" basename="build" tag="test-config" />
+
+## Using JUnit 5
+
+[JUnit 5](http://junit.org/junit5) is the latest version of the well-known JUnit test framework.
+Unlike its predecessor, JUnit 5 is modularized and composed of several modules:
+
+```text
+JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+```
+
+The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
+ and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. JUnit Vintage provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
+
+The following code enables JUnit Platform support in `build.gradle`:
+
+<SampleScripts sample_name="junitplatform-jupiter" basename="build" tag="enabling-junit-platform" />
+
+See <JavaDocLink class="org.gradle.api.tasks.testing.Test" method="useJUnitPlatform--">Test.useJUnitPlatform()</JavaDocLink> for more details.
+
+### Compiling and executing JUnit Jupiter tests
+
+To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependency:
+
+<SampleScripts sample_name="junitplatform-jupiter" basename="build" tag="jupiter-dependencies" />
+
+You can then put your test cases into _src/test/java_ as normal and execute them with `gradle test`.
+
+### Executing legacy tests with JUnit Vintage
+
+If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
+
+<SampleScripts sample_name="junitplatform-mix" basename="build" tag="vintage-dependencies" />
+
+In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
+
+### Filtering test engine
+
+JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
+[junit-jupiter-engine](https://junit.org/junit5/docs/current/api/org.junit.jupiter.engine/module-summary.html) and [junit-vintage-engine](https://junit.org/junit5/docs/current/api/org.junit.vintage.engine/module-summary.html).
+You can also write and plug in your own `TestEngine` implementation as documented [here](https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom).
+
+By default, all test engines on the test runtime classpath will be used.
+To control specific test engine implementations explicitly, you can add the following setting to your build script:
+
+<SampleScripts sample_name="junitplatform-engine" basename="build" tag="filter-engine" />
+
+## Test execution order in TestNG
+
+TestNG allows explicit control of the execution order of tests when you use a _testng.xml_ file. Without such a file — or an equivalent one configured by <JavaDocLink class="org.gradle.api.tasks.testing.testng.TestNGOptions" method="getSuiteXmlBuilder--">TestNGOptions.getSuiteXmlBuilder()</JavaDocLink> — you can’t specify the test execution order. However, what you _can_ do is control whether all aspects of a test — including its associated `@BeforeXXX` and `@AfterXXX` methods, such as those annotated with `@Before/AfterClass` and `@Before/AfterMethod` — are executed before the next test starts. You do this by setting the <JavaDocLink class="org.gradle.api.tasks.testing.testng.TestNGOptions" method="getPreserveOrder--">TestNGOptions.getPreserveOrder()</JavaDocLink> property to `true`. If you set it to `false`, you may encounter scenarios in which the execution order is something like: `TestA.doBeforeClass()` → `TestB.doBeforeClass()` → `TestA` tests.
+
+While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the [TestNG API](https://javadoc.io/doc/org.testng/testng/latest/org/testng/TestNG.html) that is used by Gradle’s TestNG integration executes tests in unpredictable order by default.[^3](http://testng.org/doc/documentation-main.html#testng-xml).] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
+
+<SampleScripts sample_name="testng-preserveorder" basename="build" tag="test-config" />
+
+The `groupByInstance` property controls whether tests should be grouped by instance rather than by class. The [TestNG documentation](http://testng.org/doc/documentation-main.html#dependencies-with-annotations) explains the difference in more detail, but essentially, if you have a test method `A()` that depends on `B()`, grouping by instance ensures that each A-B pairing, e.g. `B(1)`-`A(1)`, is executed before the next pairing. With group by class, all `B()` methods are run and then all `A()` ones.
+
+Note that you typically only have more than one instance of a test if you’re using a data provider to parameterize it. Also, grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
+
+<SampleScripts sample_name="testng-groupbyinstances" basename="build" tag="test-config" />
+
+### TestNG parameterized methods and reporting
+
+TestNG supports [parameterizing test methods](http://testng.org/doc/documentation-main.html#parameters), allowing a particular test method to be executed multiple times with different inputs. Gradle includes the parameter values in its reporting of the test method execution.
+
+Given a parameterized test method named `aTestMethod` that takes two parameters, it will be reported with the name `aTestMethod(toStringValueOfParam1, toStringValueOfParam2)`. This makes it easy to identify the parameter values for a particular iteration.
+
+## Configuring integration tests
+
+A common requirement for projects is to incorporate integration tests in one form or another.
+Their aim is to verify that the various parts of the project are working together properly.
+This often means that they require special execution setup and dependencies compared to unit tests.
+
+The simplest way to add integration tests to your build is by leveraging the incubating <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite</Xref> plugin.
+If an incubating solution is not something for you, here are the steps you need to take in your build:
+
+1. Create a new <Xref page="building-java-projects" section="Declaring your source files via source sets">source set</Xref> for them
+2. Add the dependencies you need to the appropriate configurations for that source set
+3. Configure the compilation and runtime classpaths for that source set
+4. Create a task to run the integration tests
+
+You may also need to perform some additional configuration depending on what form the integration tests take. We will discuss those as we go.
+
+Let’s start with a practical example that implements the first three steps in a build script, centered around a new source set `intTest`:
+
+<SampleScripts sample_name="java-basic" basename="build" tag="practical-integ-test-source-set" />
+
+This will set up a new source set called `intTest` that automatically creates:
+
+- `intTestImplementation`, `intTestCompileOnly`, `intTestRuntimeOnly` configurations (and <Xref page="java-plugin" section="SourceSet dependency configurations">a few others</Xref> that are less commonly needed)
+- A `compileIntTestJava` task that will compile all the source files under _src/intTest/java_
+
+:::note
+If you are working with the IntelliJ IDE, you may wish to flag the directories in these additional source sets as containing test source rather than production source as explained in the <Xref page="idea-plugin" section="Identifying additional test directories">Idea Plugin</Xref> documentation.
+:::
+
+The example also does the following, not all of which you may need for your specific integration tests:
+
+- Adds the production classes from the `main` source set to the compilation and runtime classpaths of the integration tests — `sourceSets.main.output` is a <Xref page="working-with-files" section="Using `FileCollection`">file collection</Xref> of all the directories containing compiled production classes and resources
+- Makes the `intTestImplementation` configuration extend from `implementation`, which means that all the declared dependencies of the production code also become dependencies of the integration tests
+- Does the same for the `intTestRuntimeOnly` configuration
+
+In most cases, you want your integration tests to have access to the classes under test, which is why we ensure that those are included on the compilation and runtime classpaths in this example. But some types of test interact with the production code in a different way. For example, you may have tests that run your application as an executable and verify the output. In the case of web applications, the tests may interact with your application via HTTP. Since the tests don’t need direct access to the classes under test in such cases, you don’t need to add the production classes to the test classpath.
+
+Another common step is to attach all the unit test dependencies to the integration tests as well — via `intTestImplementation.extendsFrom testImplementation` — but that only makes sense if the integration tests require _all_ or nearly all the same dependencies that the unit tests have.
+
+There are a couple of other facets of the example you should take note of:
+
+- `+=` allows you to append paths and collections of paths to `compileClasspath` and `runtimeClasspath` instead of overwriting them
+- If you want to use the convention-based configurations, such as `intTestImplementation`, you _must_ declare the dependencies _after_ the new source set
+
+Creating and configuring a source set automatically sets up the compilation stage, but it does nothing with respect to running the integration tests. So the last piece of the puzzle is a custom test task that uses the information from the new source set to configure its runtime classpath and the test classes:
+
+<SampleScripts sample_name="java-basic" basename="build" tag="integ-test-task" />
+
+Again, we’re accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDirs` property — and what needs to be on the classpath when running them — `classpath`.
+
+Users commonly want to run integration tests after the unit tests, because they are often slower to run and you want the build to fail early on the unit tests rather than later on the integration tests. That’s why the above example adds a `shouldRunAfter()` declaration. This is preferred over `mustRunAfter()` so that Gradle has more flexibility in executing the build in parallel.
+
+For information on how to determine code coverage for tests in additional source sets, see the <Xref page="jacoco-plugin" section="The JaCoCo Plugin">JaCoCo Plugin</Xref> and the <Xref page="jacoco-report-aggregation-plugin" section="The JaCoCo Report Aggregation Plugin">JaCoCo Report Aggregation Plugin</Xref> chapters.
+
+## Troubleshooting common problems
+
+### Test process starts but test dependencies are missing
+
+Once the test process starts, it may fail to find its required dependencies if they are missing from the test runtime classpath.
+
+Test dependencies need to be declared on the appropriate configuration.
+The <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite</Xref> plugin automatically configures all necessary dependencies, but if you are manually creating a `Test` task or using the built-in `test` task, you need to ensure that all required dependencies are declared on the appropriate configuration.
+
+- For JUnit Jupiter-based tests, you need to declare dependencies on the JUnit Jupiter, JUnit Platform and JUnit Platform launcher libraries.
+- For JUnit4-based tests, you need to declare a dependency on a single JUnit 4.x library.
+- For TestNG-based tests, you need to declare a dependency on a single TestNG library.
+
+Prior to Gradle 9.0.0, Gradle <Xref page="upgrading-version-8" section="Relying on automatic test framework implementation dependencies">leaked internal dependencies</Xref> into the test’s runtime classpath which may have masked missing dependencies.
+
+### Tests are not detected or executed
+
+If no tests are detected, Gradle will skip the `Test` task entirely.
+
+This can occur for several reasons:
+
+- No test sources exist. This is expected behavior for empty test suites.
+- Test sources exist but are not compiled. This may happen if:
+  - The source files are located in the wrong directory.
+  - The source set is not configured correctly.
+- No test classes are configured on the `Test` task. By default, only the built-in `Test` task is automatically configured to use the test source set.
+If you’re using a custom `Test` task, you must manually configure both `testClassesDirs` and `classpath`.
+
+Prior to Gradle 9.0.0, all `Test` tasks were <Xref page="upgrading-version-8" section="Relying on conventions for custom Test tasks">implicitly configured</Xref> to use the `test` source set.
+
+### Test process fails to start or stay running
+
+The test process may fail to start if configured incorrectly.
+For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start.
+
+Similarly, if a test requires changes to the environment that are not compatible with Gradle’s test worker process, the test process may fail to start.
+For example, tests that rely on modifying the [`SecurityManager`](https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityManager.html) may interfere with Gradle’s internal messaging communication between the build and test worker.
+
+### Test process fails with unusual exit code
+
+The test process can exit with an unusual exit code (non-zero).
+
+This can be caused by a variety of issues, such as:
+
+- A test calls `System.exit()` directly.
+- Too many processes are running which causes the OS to kill the test process.
+- The test process runs out of memory.
+
+### Output from `@BeforeClass` and `@AfterClass` methods are incorrectly assigned to the wrong test
+
+When using a JUnit 4 version below 4.13, output from `@BeforeClass` and `@AfterClass` methods may be incorrectly assigned to a test earlier or later in the test execution order.
+This is due to a lack of events for when a class is started or finished, which were added in JUnit 4.13.
+
+This also applies to TestNG versions below 6.9.13.3 and its `@BeforeClass` and `@AfterClass` methods.
+
+## Testing Java Modules
+
+If you are <Xref page="java-library-plugin" section="The Java Library Plugin">developing Java Modules</Xref>, everything described in this chapter still applies and any of the supported test frameworks can be used.
+However, there are some things to consider depending on whether you need module information to be available, and module boundaries to be enforced, during test execution.
+In this context, the terms _whitebox testing_ (module boundaries are deactivated or relaxed) and _blackbox testing_ (module boundaries are in place) are often used.
+Whitebox testing is used/needed for unit testing and blackbox testing fits functional or integration test requirements.
+
+### Whitebox unit test execution on the classpath
+
+The simplest setup to write unit tests for functions or classes in modules is to _not_ use module specifics during test execution.
+For this, you just need to write tests the same way you would write them for normal libraries.
+If you don’t have a `module-info.java` file in your test source set (`src/test/java`) this source set will be considered as traditional Java library during compilation and test runtime.
+This means, all dependencies, including Jars with module information, are put on the classpath.
+The advantage is that all internal classes of your (or other) modules are then accessible directly in tests.
+This may be a totally valid setup for unit testing, where we do not care about the larger module structure, but only about testing single functions.
+
+:::note
+If you are using Eclipse: By default, Eclipse also runs unit tests as modules using module patching (see [below](#sec:java_testing_modular_patching)).
+In an imported Gradle project, unit testing a module with the Eclipse test runner might fail.
+You then need to manually adjust the classpath/module path in the test run configuration or delegate test execution to Gradle.
+This only concerns the test execution.
+Unit test compilation and development works fine in Eclipse.
+:::
+
+### Blackbox integration testing
+
+For integration tests, you have the option to define the test set itself as additional module.
+You do this similar to how you turn your main sources into a module:
+by adding a `module-info.java` file to the corresponding source set (e.g. `integrationTests/java/module-info.java`).
+
+:::note
+In Eclipse, compiling multiple modules in one project is currently not supported.
+Therefore the integration test (blackbox) setup described here only works in Eclipse if the tests are moved to a separate subproject.
+:::
+
+### Whitebox test execution with module patching
+
+Another approach for whitebox testing is to stay in the module world by _patching_ the tests into the module under test.
+This way, module boundaries stay in place, but the tests themselves become part of the module under test and can then access the module’s internals.
+
+For which uses cases this is relevant and how this is best done is a topic of discussion.
+There is no general best approach at the moment.
+Thus, there is no special support for this in Gradle right now.
+
+You can however, setup module patching for tests like this:
+
+- Add a `module-info.java` to your test source set that is a copy of the main `module-info.java` with additional dependencies needed for testing (e.g. `requires org.junit.jupiter.api`).
+- Configure both the `testCompileJava` and `test` tasks with arguments to patch the main classes with the test classes as shown below.
+
+<SampleScripts sample_name="patch-module" basename="build" tag="patchArgs" />
+
+:::note
+If custom arguments are used for patching, these are not picked up by Eclipse and IDEA.
+You will most likely see invalid compilation errors in the IDE.
+:::
+
+## Skipping the tests
+
+If you want to skip the tests when running a build, you have a few options. You can either do it via <Xref page="command-line-interface" section="Excluding tasks from execution">command line arguments</Xref> or <Xref page="controlling-task-execution" section="Skipping tasks">in the build script</Xref>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
+
+```bash
+$ ./gradlew build -x test
+```
+
+This excludes the `test` task and any other task that it _exclusively_ depends on, i.e. no other task depends on the same task. Those tasks will not be marked "SKIPPED" by Gradle, but will simply not appear in the list of tasks executed.
+
+Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the <GroovyDocLink class="org.gradle.api.Task" method="onlyIf(java.lang.String,org.gradle.api.specs.Spec)">Task.onlyIf(String, org.gradle.api.specs.Spec)</GroovyDocLink> method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
+
+<SampleScripts sample_name="java-basic" basename="build" tag="skip-tests-condition" />
+
+In this case, Gradle will mark the skipped tests as "SKIPPED" rather than exclude them from the build.
+
+## Forcing tests to run
+
+In well-defined builds, you can rely on Gradle to only run tests if the tests themselves or the production code change. However, you may encounter situations where the tests rely on a third-party service or something else that might change but can’t be modeled in the build.
+
+You can always use the `--rerun` <Xref page="command-line-interface" section="Built-in task options">built-in task option</Xref> to force a task to rerun.
+
+```bash
+$ ./gradlew test --rerun
+```
+
+Alternatively, if <Xref page="build-cache" section="Enable the Build Cache">build caching</Xref> is not enabled, you can also force tests to run by cleaning the output of the relevant `Test` task — say `test` — and running the tests again, like so:
+
+```bash
+$ ./gradlew cleanTest test
+```
+
+`cleanTest` is based on a task rule provided by the <Xref page="base-plugin" section="Task">Base Plugin</Xref>. You can use it for _any_ task.
+
+## Debugging when running tests
+
+On the few occasions that you want to debug your code while the tests are running, it can be helpful if you can attach a debugger at that point. You can either set the <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="debug">Test.getDebug()</GroovyDocLink> property to `true` or use the `--debug-jvm` command line option, or use `--no-debug-jvm` to set it to false.
+
+When debugging for tests is enabled, Gradle will start the test process suspended and listening on port 5005.
+
+You can also enable debugging in the DSL, where you can also configure other properties:
+
+```properties
+test {
+    debugOptions {
+        enabled = true
+        host = 'localhost'
+        port = 4455
+        server = true
+        suspend = true
+    }
+}
+```
+
+With this configuration the test JVM will behave just like when passing the `--debug-jvm` argument but it will listen on port 4455.
+
+To debug the test process remotely via network,  the `host` needs to be set to the machine’s IP address or `"*"` (listen on all interfaces).
+
+## Using test fixtures
+
+### Producing and using test fixtures within a single project
+
+Test fixtures are commonly used to setup the code under test, or provide utilities aimed at facilitating the tests of a component.
+Java projects can enable test fixtures support by applying the `java-test-fixtures` plugin, in addition to the `java` or `java-library` plugins:
+
+<SampleScripts sample_name="fixtures" basename="build" subpath="lib" tag="use-plugin" />
+
+This will automatically create a `testFixtures` source set, in which you can write your test fixtures.
+Test fixtures are configured so that:
+
+- they can see the _main_ source set classes
+- _test_ sources can see the _test fixtures_ classes
+
+For example for this main class:
+
+```java
+public class Person {
+    private final String firstName;
+    private final String lastName;
+
+    public Person(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    // ...
+
+```
+
+A test fixture can be written in `src/testFixtures/java`:
+
+```java
+public class Simpsons {
+    private static final Person HOMER = new Person("Homer", "Simpson");
+    private static final Person MARGE = new Person("Marjorie", "Simpson");
+    private static final Person BART = new Person("Bartholomew", "Simpson");
+    private static final Person LISA = new Person("Elisabeth Marie", "Simpson");
+    private static final Person MAGGIE = new Person("Margaret Eve", "Simpson");
+    private static final List<Person> FAMILY = new ArrayList<Person>() {{
+        add(HOMER);
+        add(MARGE);
+        add(BART);
+        add(LISA);
+        add(MAGGIE);
+    }};
+
+    public static Person homer() { return HOMER; }
+
+    public static Person marge() { return MARGE; }
+
+    public static Person bart() { return BART; }
+
+    public static Person lisa() { return LISA; }
+
+    public static Person maggie() { return MAGGIE; }
+
+    // ...
+```
+
+### Declaring dependencies of test fixtures
+
+Similarly to the [Java Library Plugin](java_library_plugin.html), test fixtures expose an API and an implementation configuration:
+
+<SampleScripts sample_name="fixtures" basename="build" subpath="lib" tag="test_fixtures_deps" />
+
+It’s worth noticing that if a dependency is an _implementation_ dependency of test fixtures, then _when compiling tests that depend on those test fixtures_, the implementation dependencies will _not leak_ into the compile classpath.
+This results in improved separation of concerns and better compile avoidance.
+
+### Consuming test fixtures of another project
+
+Test fixtures are not limited to a single project.
+It is often the case that a dependent project tests also needs the test fixtures of the dependency.
+This can be achieved very easily using the `testFixtures` keyword:
+
+<SampleScripts sample_name="fixtures" basename="build" tag="consumer_dependencies" />
+
+### Publishing test fixtures
+
+One of the advantages of using the `java-test-fixtures` plugin is that test fixtures are published.
+By convention, test fixtures will be published with an artifact having the `test-fixtures` classifier.
+For both Maven and Ivy, an artifact with that classifier is simply published alongside the regular artifacts.
+However, if you use the `maven-publish` or `ivy-publish` plugin, test fixtures are published as additional variants in [Gradle Module Metadata](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md) and you can directly depend on test fixtures of external libraries in another Gradle project:
+
+<SampleScripts sample_name="fixtures" basename="build" tag="external-test-fixtures-dependency" />
+
+It’s worth noting that if the external project is _not_ publishing Gradle Module Metadata, then resolution will fail with an error indicating that such a variant cannot be found:
+
+```bash
+$ ./gradlew dependencyInsight --configuration functionalTestClasspath --dependency gson
+```
+
+```text
+
+> Task :dependencyInsight
+com.google.code.gson:gson:2.13.1 FAILED
+   Failures:
+      - Could not resolve com.google.code.gson:gson:2.13.1.
+          - Unable to find a variant of 'com.google.code.gson:gson:2.13.1' with the requested capability: feature 'test-fixtures':
+               - Variant 'compile' provides 'com.google.code.gson:gson:2.13.1'
+               - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.13.1'
+               - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.13.1'
+               - Variant 'javadoc' provides 'com.google.code.gson:gson:2.13.1'
+               - Variant 'platform-compile' provides 'com.google.code.gson:gson-derived-platform:2.13.1'
+               - Variant 'platform-runtime' provides 'com.google.code.gson:gson-derived-platform:2.13.1'
+               - Variant 'runtime' provides 'com.google.code.gson:gson:2.13.1'
+               - Variant 'sources' provides 'com.google.code.gson:gson:2.13.1'
+
+com.google.code.gson:gson:2.13.1 FAILED
+\--- functionalTestClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed
+```
+
+The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
+That’s because by convention, for projects that use the `java-test-fixtures` plugin, Gradle automatically creates test fixtures variants with a capability whose name is the name of the main component, with the appendix `-test-fixtures`.
+
+:::note
+If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
+:::
+
+<SampleScripts sample_name="fixtures" basename="build" subpath="lib" tag="disable-test-fixtures-publishing" />
+
+## Non-class-based testing
+
+### Overview
+
+Some testing frameworks do not use classes to define tests (for instance [Cucumber](https://cucumber.io/)).
+Gradle supports non-class-based testing via JUnit Platform [`TestEngine`](https://docs.junit.org/current/user-guide/#test-engines)s.
+
+To use a non-class-based testing framework, you need to:
+
+- Add the appropriate `TestEngine` dependency to the test runtime classpath
+- Configure the `Test` task to use JUnit Platform
+- Tell the `TestEngine` where to find the tests using the <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="testDefinitionDirs">`testDefinitionDirs`</GroovyDocLink> property of the Test task.
+
+This is all that is necessary to run non-class-based tests.
+The exact details of how to define these tests will depend on the specific `TestEngine` being used.
+
+:::note
+Though possible, it is not recommended to mix class-based and non-class-based tests in the same `Test` task.  Create a separate `Test` task for each type of test instead.  Using <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">Java Test Suites</Xref> makes this easy to do.
+:::
+
+### Basic Example
+
+Here is an example project structure for a non-class-based testing setup.
+Test Engines for non-class-based testing are commonly added as test `runtimeOnly` dependencies.
+
+Typically these would be added via a 3rd party library, but in this simple example the build defines a custom JUnit Platform `TestEngine` in the `test-engine` project and uses it to run tests in the `lib` project.
+
+This example uses <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">Java Test Suites</Xref>, but the same process can be applied to manually configured `Test` tasks as well.
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+├── test-engine
+│    ├── build.gradle.kts
+│    └── src                 // Source for an example JUnit Platform TestEngine implementation
+├── lib
+│    ├── build.gradle.kts
+│    └── src
+│        ├── main            // Production code to be tested
+│        └── test
+│            └── definitions // Non-class files that also define tests would go here
+├── settings.gradle.kts
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+├── test-engine
+│    ├── build.gradle
+│    └── src                 // Source for an example JUnit Platform TestEngine implementation
+├── lib
+│    ├── build.gradle
+│    └── src
+│        ├── main            // Production code to be tested
+│        └── test
+│            └── definitions // Non-class files that also define tests would go here
+├── settings.gradle
+```
+
+</TabItem>
+</Tabs>
+
+Note that the `src/test/java` directory is absent in this example, as no class-based tests are present.
+While you can mix class-based and non-class-based tests in the same test task, this is not recommended.
+It is better to separate class-based and non-class-based tests into different tasks so that they can be configured independently.
+Using Java Test Suites makes this easy to do.
+
+<SampleScripts sample_name="non-class-based-testing" basename="build" subpath="lib" tag="test-setup" />
+
+<CalloutList>
+
+1. Ensure the test task uses the JUnit Jupiter test framework.  When not using Test Suites, you should call `useJUnitPlatform()` on the `Test` task itself.
+2. Add the `TestEngine` dependency to the test runtime classpath.
+3. Tell the `Test` task which directories contain non-class-based test definitions.  These can be relative paths from the project dir or absolute paths.
+
+</CalloutList>
+
+This example engine uses XML files with a very simple structure to define tests.
+These files are idiomatically located in the `src/test/definitions` directory.
+
+<FileTree>
+
+- src
+  - test
+    - definitions
+      - sub
+        - MoreTests.xml
+      - ExampleTests.xml
+
+</FileTree>
+
+The test definition files in this example are very simple and look like this:
+
+<SampleFile sample_name="non-class-based-testing" path="common/lib/src/test/definitions/ExampleTests.xml" />
+
+<SampleFile sample_name="non-class-based-testing" path="common/lib/src/test/definitions/sub/MoreTests.xml" />
+
+The custom engine in this example logs messages when discovering and executing tests.
+When `./gradlew test --info` is run, the output contains lines that confirm that the custom `TestEngine` is being used to discover and execute the tests defined in the XML files:
+
+```text
+    INFO: Discovering tests with engine: [engine:rbt-engine] using selectors:
+    	DirectorySelector [path = '/home/user/gradle/samples/lib/src/test/definitions']
+    INFO: Test specification file: /home/user/gradle/samples/lib/src/test/definitions/ExampleTests.xml
+    INFO: Test specification file: /home/user/gradle/samples/lib/src/test/definitions/sub/MoreTests.xml
+
+    INFO: Executing tests with engine: [engine:rbt-engine]
+    INFO: Executing resource-based test: Test[file=ExampleTests.xml, name=foo]
+    INFO: Executing resource-based test: Test[file=ExampleTests.xml, name=bar]
+    INFO: Executing resource-based test: Test[file=MoreTests.xml, name=baz]
+```
+
+### Filtering
+
+Non-class-based tests can be filtered in the same way as [class-based tests](#test_filtering) using the <JavaDocLink class="org.gradle.api.tasks.testing.TestFilter" /> API or `--tests` command line option.
+
+:::note
+Non-class-based filtering is an <Xref page="feature-lifecycle" section="2. Incubating">incubating</Xref> feature that may change.
+:::
+
+Non-class-based test filtering is performed by converting the relative file path into a fully qualified name. The package structure is constructed from the test definition directory.
+File path separators are converted into dots (`.`) and the file extension is removed.
+
+| File path | Fully qualified name |
+| --- | --- |
+| src/test/definitions/ExampleTests.xml | ExampleTests |
+| src/test/definitions/sub/MoreTests.xml | sub.MoreTests |
+
+To run only the tests in `ExampleTests.xml`:
+
+```bash
+$ ./gradlew test --tests "ExampleTests*"
+```
+
+To run all tests within the `sub` directory:
+
+```bash
+$ ./gradlew test --tests "sub.*"
+```
+
+#### Ambiguity with test selection
+
+The goal of following the same selection rules as class-based tests is to make it easier for users to run all tests within a logical grouping without knowing if they are class-based or non-class-based.
+
+The conversion from file path to fully qualified name will be ambiguous for some directory structures.
+Directory names that contain dots or file names that contain multiple dots can make it impossible to select an individual test file.
+Some directory or file names may be awkward to select (e.g., paths with spaces, `$` or other special characters).
+Non-class-based test definitions should use a single unambiguous naming convention for directories and files.
+Our recommendation is to follow [Java package naming conventions](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html) for directories and use simple names for the test files.
+
+All of the following file paths appear to be the same test and cannot be filtered individually.
+
+| File path | Fully qualified name |
+| --- | --- |
+| src/test/definitions/sub.ExampleTests.xml | sub.ExampleTests |
+| src/test/definitions/sub/ExampleTests.xml | sub.ExampleTests |
+| src/test/definitions/sub/ExampleTests | sub.ExampleTests |
+
+:::note
+Filtering is only supported at a file level granularity for non-class-based tests. There is no support for filtering individual tests within a test definition file.
+:::
+
+### Parallel Execution
+
+Parallelism in non-class-based tests is controlled via the <JavaDocLink class="org.gradle.api.tasks.testing.Test" method="getMaxParallelForks--">`Test.getMaxParallelForks()`</JavaDocLink> property of the `Test` task.
+If this property is set to a value greater than `1`, Gradle will attempt to distribute each test definition **directory** present in the `testDefinitionDirs` property across multiple test worker processes.
+
+Files within a single test definition directory will always be executed sequentially within the same test worker process.
+
+### Tooling API
+
+Non-class-based tests can be run through the <Xref page="tooling-api" section="Tooling API">Tooling API</Xref> in the same manner as class-based tests.
+
+[^1]: The JUnit wiki contains a detailed description on how to work with JUnit categories: [https://github.com/junit-team/junit/wiki/Categories
+[^2]: The TestNG documentation contains more details about test groups: [https://testng.org/#_test_groups
+[^3]: The TestNG documentation contains more details about test ordering when working with `testng.xml` files: [http://testng.org/doc/documentation-main.html#testng-xml

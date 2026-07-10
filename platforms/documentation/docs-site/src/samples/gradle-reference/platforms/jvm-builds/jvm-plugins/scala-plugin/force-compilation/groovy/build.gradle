@@ -1,5 +1,0 @@
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.with {
-        force = true
-    }
-}

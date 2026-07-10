@@ -1,3 +1,0 @@
-abstract class MyCopyTask : DefaultTask() {
-
-}

@@ -1,4 +1,0 @@
-// Setting a provider
-def simpleMessageProvider = project.providers.provider { "Hello, World from a Provider!" }
-// Accessing a provider
-println(simpleMessageProvider.get())

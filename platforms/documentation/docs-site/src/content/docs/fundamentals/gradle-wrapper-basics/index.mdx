@@ -1,0 +1,134 @@
+---
+title: "Wrapper Basics"
+---
+
+import { CalloutList, FileTree, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import gradleBasic2 from './gradle-basic-2.png';
+import wrapperWorkflow from './wrapper-workflow.png';
+
+The ***recommended way to execute any Gradle build*** is with the Gradle Wrapper.
+
+<Image src={gradleBasic2} alt="gradle basic 2" />
+
+The wrapper script invokes a declared version of Gradle, downloading it beforehand if necessary.
+
+<Image src={wrapperWorkflow} alt="wrapper workflow" />
+
+It is available as a `gradlew` or `gradlew.bat` file in the project root directory:
+
+<FileTree>
+
+- root
+  - gradlew     // THE WRAPPER FOR Linux / macOS
+  - gradlew.bat // THE WRAPPER FOR Windows
+  - ...
+
+</FileTree>
+
+If your project does not include these files, it is likely **not** a Gradle project—or the wrapper has not been set up yet.
+
+:::tip
+The wrapper is **not** something you download from the internet.
+You must generate it by running `gradle :wrapper` from a machine with Gradle <Xref page="installation" section="Installing Gradle">installed</Xref>.
+:::
+
+The wrapper provides the following benefits:
+
+1. **Automatically downloads** and uses a specific **Gradle** version.
+2. **Standardizes** a project on **a** given **Gradle version**.
+3. **Provisions the same Gradle version for different users** and environments (IDEs, CI servers…​).
+4. Makes it easy to **run Gradle builds without installing Gradle** manually.
+
+## Using the Gradle Wrapper
+
+It’s important to distinguish between two ways of running Gradle:
+
+1. **Using a system-installed Gradle distribution** — by running the `gradle` command.
+2. **Using the Gradle Wrapper** — by running the `gradlew` or `gradlew.bat` script included in a Gradle project.
+
+The Gradle Wrapper is always the recommended way to execute a build to ensure a reliable, controlled, and standardized execution of the build.
+
+1. Using a system-installed Gradle distribution:
+
+   ```bash
+   $ gradle build
+   ```
+2. Using the Gradle Wrapper:
+   - Wrapper invocation on a Linux or OSX machine:
+
+     ```bash
+     $ ./gradlew build
+     ```
+   - Wrapper invocation on Windows PowerShell:
+
+     ```bash
+     $ gradlew.bat build
+     ```
+
+If you want to run the command in a different directory, you must provide the relative path to the wrapper:
+
+```bash
+$ ../gradlew build
+```
+
+The following console output demonstrates the use of the wrapper on a Windows machine, in the command prompt (cmd), for a Java-based project:
+
+```bash
+$ gradlew.bat build
+```
+
+```text
+Downloading https://services.gradle.org/distributions/gradle-5.0-all.zip
+.....................................................................................
+Unzipping C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-5.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-5.0-all.zip to C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-5.0-al\ac27o8rbd0ic8ih41or9l32mv
+Set executable permissions for: C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-5.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-5.0\bin\gradle
+
+BUILD SUCCESSFUL in 12s
+1 actionable task: 1 executed
+```
+
+## Understanding the Wrapper files
+
+The following files are part of the Gradle Wrapper:
+
+```text callouts
+.
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar  // (1)
+│       └── gradle-wrapper.properties   // (2)
+├── gradlew // (3)
+└── gradlew.bat // (4)
+```
+
+<CalloutList>
+
+1. `gradle-wrapper.jar`: This is a small JAR file that contains the Gradle Wrapper code. It is responsible for downloading and installing the correct version of Gradle for a project if it’s not already installed.
+2. `gradle-wrapper.properties`: This file contains configuration properties for the Gradle Wrapper, such as the distribution URL (where to download Gradle from) and the distribution type (ZIP or TARBALL).
+3. `gradlew`: This is a shell script (Unix-based systems) that acts as a wrapper around `gradle-wrapper.jar`. It is used to execute Gradle tasks on Unix-based systems without needing to manually install Gradle.
+4. `gradlew.bat`: This is a batch script (Windows) that serves the same purpose as `gradlew` but is used on Windows systems.
+
+</CalloutList>
+
+:::danger
+You should never alter these files.
+:::
+
+If you want to view or update the Gradle version of your project, use the command line:
+
+```bash
+$ ./gradlew --version
+$ ./gradlew :wrapper --gradle-version 7.2
+```
+
+```cmd
+$ gradlew.bat --version
+$ gradlew.bat :wrapper --gradle-version 7.2
+```
+
+:::caution
+Do not edit the wrapper files manually.
+:::
+
+***Next Step:*** <Xref page="command-line-interface-basics" section="Command-Line Interface Basics">Learn about the Gradle CLI</Xref> \>\>

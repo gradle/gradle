@@ -1,5 +1,0 @@
-.   // <1>
-├── app // <2>
-│   ... // <3>
-│   └── build.gradle // <4>
-└── settings.gradle  // <5>

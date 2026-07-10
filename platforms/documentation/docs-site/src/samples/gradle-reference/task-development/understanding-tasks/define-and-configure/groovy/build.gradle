@@ -1,5 +1,0 @@
-tasks.register('copy', Copy) {
-   from 'resources'
-   into 'target'
-   include('**/*.txt', '**/*.xml', '**/*.properties')
-}

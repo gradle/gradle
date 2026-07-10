@@ -1,1 +1,0 @@
-application.applicationName = "my-app"

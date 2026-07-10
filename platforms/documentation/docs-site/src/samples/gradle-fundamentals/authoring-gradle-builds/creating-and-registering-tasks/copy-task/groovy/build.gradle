@@ -1,5 +1,0 @@
-tasks.register('copyTask', Copy) {
-    from("source")
-    into("target")
-    include("*.war")
-}

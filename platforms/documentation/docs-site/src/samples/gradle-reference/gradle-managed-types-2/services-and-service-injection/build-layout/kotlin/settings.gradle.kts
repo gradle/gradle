@@ -1,2 +1,0 @@
-println("Root Directory: ${settings.layout.rootDirectory}")
-println("Settings Directory: ${settings.layout.settingsDirectory}")

@@ -1,0 +1,826 @@
+---
+title: "Best Practices for Tasks"
+---
+
+import { CalloutList, GitHubButton, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+## Avoid DependsOn
+
+The task <JavaDocLink class="org.gradle.api.DefaultTask" method="setDependsOn(java.lang.Iterable)">dependsOn</JavaDocLink> method should only be used for <Xref page="organizing-tasks" section="Lifecycle tasks">lifecycle tasks</Xref> (tasks without task actions).
+
+### Explanation
+
+Tasks with actions should declare their inputs and outputs so that Gradle’s up-to-date checking can automatically determine when these tasks need to be run or rerun.
+
+Using `dependsOn` to link tasks is a much coarser-grained mechanism that does ***not*** allow Gradle to understand why a task requires a prerequisite task to run, or which specific files from a prerequisite task are needed.
+`dependsOn` forces Gradle to assume that _every_ file produced by a prerequisite task is needed by this task.
+This can lead to unnecessary task execution and decreased build performance.
+
+### Example
+
+Here is a task that writes output to two separate files:
+
+<SampleScripts sample_name="avoid-depends-on-do" basename="build" tag="depended-upon-task-setup" />
+
+<CalloutList>
+
+1. **Task With Multiple Outputs**: `helloWorld` task prints "Hello" to its `messageFile` and "World" to its `audienceFile`.
+2. **Registering the Task**: `helloWorld` produces "message.txt" and "audience.txt" outputs.
+
+</CalloutList>
+
+#### Don’t Do This
+
+If you want to translate the greeting in the `message.txt` file using another task, you could do this:
+
+<SampleScripts sample_name="avoid-depends-on-avoid" basename="build" tag="avoid-this" />
+
+<CalloutList>
+
+1. **Translation Task Setup**: `translateBad` requires `helloWorld` to run first to produce the message file otherwise it will fail with an error as the file does not exist.
+2. **Explicit Task Dependency**: Running `translateBad` will cause `helloWorld` to run first, but Gradle does not understand _why_.
+
+</CalloutList>
+
+#### Do This Instead
+
+Instead, you should explicitly wire task inputs and outputs like this:
+
+<GitHubButton sample="avoid-depends-on-do" action="download" />
+
+<SampleScripts sample_name="avoid-depends-on-do" basename="build" tag="do-this" />
+
+<CalloutList>
+
+1. **Register Implicit Task Dependency**: `translateGood` requires only one of the files that is produced by `helloWorld`.
+
+</CalloutList>
+
+Gradle now understands that `translateGood` requires `helloWorld` to have run successfully first because it needs to create the `message.txt` file which is then used by the translation task.
+Gradle can use this information to optimize task scheduling.
+Using the `map` method avoids eagerly retrieving the `helloWorld` task until the output is needed to determine if `translateGood` should run.
+
+### References
+
+- Task Inputs and Outputs
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`, `<Xref page="tags-reference" section="`#up-to-date-checking`">#up-to-date-checking</Xref>`
+
+## Favor `@CacheableTask` and `@DisableCachingByDefault` over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`
+
+The <JavaDocLink class="org.gradle.api.tasks.TaskOutputs" method="cacheIf(org.gradle.api.specs.Spec)">`cacheIf`</JavaDocLink> and <JavaDocLink class="org.gradle.api.tasks.TaskOutputs" method="doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)">`doNotCacheIf`</JavaDocLink> methods should only be used in situations where the <Xref page="build-cache" section="Build Cache">cacheability</Xref> of a task varies between different task instances or cannot be determined until the task is executed by Gradle.
+You should instead favor annotating the task class itself with <JavaDocLink class="org.gradle.api.tasks.CacheableTask">`@CacheableTask`</JavaDocLink> annotation for any task that is _always_ cacheable.
+Likewise, the <JavaDocLink class="org.gradle.work.DisableCachingByDefault">`@DisableCachingByDefault`</JavaDocLink> should be used to always disable caching for all instances of a task type.
+
+### Explanation
+
+Annotating a task type will ensure that _each task instance_ of that type is properly understood by Gradle to be cacheable (or not cacheable).
+This removes the need to remember to configure each of the task instances separately in build scripts.
+
+Using the annotations also _documents_ the intended cacheability of the task type within its own source, appearing in Javadoc and making the task’s behavior clear to other developers without requiring them to inspect each task instance’s configuration.
+It is also slightly more efficient than running a test to determine cacheability.
+
+Remember that only tasks that produce reproducible and relocatable output should be marked as `@CacheableTask`.
+
+### Example
+
+#### Don’t Do This
+
+If you want to reuse the output of a task, you shouldn’t do this:
+
+<SampleScripts sample_name="use-cacheability-annotations-avoid" basename="build" tag="avoid-this" />
+
+<CalloutList>
+
+1. **Define a Task**: The `BadCalculatorTask` type is deterministic and produces relocatable output, but is not annotated.
+2. **Mark the Task Instance as Cacheable**: This example shows how to mark a specific task instance as cacheable.
+3. **Forget to Mark a Task Instance as Cacheable**: Unfortunately, the `addBad2` instance of the `BadCalculatorTask` type is not marked as cacheable, so it will not be cached, despite behaving the same as `addBad1`.
+
+</CalloutList>
+
+#### Do This Instead
+
+As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
+
+<GitHubButton sample="use-cacheability-annotations-do" action="download" />
+
+<SampleScripts sample_name="use-cacheability-annotations-do" basename="build" tag="do-this" />
+
+<CalloutList>
+
+1. **Annotate the Task Type**: Applying the `@CacheableTask` to a task type informs Gradle that instances of this task should _always_ be cached.
+2. **Nothing Else Needs To Be Done**: When we register task instances, nothing else needs to be done - Gradle knows to cache them.
+
+</CalloutList>
+
+### References
+
+- <Xref page="more-about-tasks" section="Caching tasks">Caching Tasks</Xref>
+- <Xref page="build-cache" section="Cacheable tasks">Cacheable Tasks</Xref>
+- <Xref page="build-cache-concepts" section="Non-cacheable tasks">Non-cacheable Tasks</Xref>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#caching`">#caching</Xref>`
+
+## Do not call `get()` on a Provider outside a Task action
+
+When configuring tasks and extensions do not call <JavaDocLink class="org.gradle.api.provider.Provider" method="get()">`get()`</JavaDocLink> on a provider, use <JavaDocLink class="org.gradle.api.provider.Provider" method="map(org.gradle.api.Transformer)">`map()`</JavaDocLink>, or <JavaDocLink class="org.gradle.api.provider.Provider" method="flatMap(org.gradle.api.Transformer)">`flatMap()`</JavaDocLink> instead.
+
+### Explanation
+
+A provider should be evaluated as late as possible.
+Calling `get()` forces immediate evaluation, which can trigger unintended side effects, such as:
+
+- The value of the provider becomes an input to configuration, causing potential configuration cache misses.
+- The value may be evaluated too early, meaning you might not be using the final or correct value of the property. This may lead to painful and hard to debug ordering issues.
+- It breaks Gradle’s ability to build dependencies and to track task inputs and outputs, making automatic task dependency wiring impossible. See <Xref page="lazy-configuration" section="Working with task inputs and outputs">Working with task inputs and outputs</Xref>
+
+It is preferable to avoid explicitly evaluating a `Provider` at all, and deferring to `map`/`flatMap` to connect `Providers` to `Providers` implicitly.
+
+### Example
+
+Here is a task that writes an input `String` to a file:
+
+<SampleScripts sample_name="avoid-provider-get-outside-task-action-avoid" basename="build" tag="provider-get-task-setup" />
+
+<CalloutList>
+
+1. Using `Provider.get()` in the task action
+2. Gradle property that we wish to use as input
+
+</CalloutList>
+
+#### Don’t Do This
+
+You could call `get()` at configuration time to set up this task:
+
+<SampleScripts sample_name="avoid-provider-get-outside-task-action-avoid" basename="build" tag="avoid-this" />
+
+<CalloutList>
+
+1. **Reading the value of `currentEnvironment` at configuration time**: This value might change by the time the task start executing.
+2. **Reading the value of `buildDirectory` at configuration time**: This value might change by the time the task start executing.
+
+</CalloutList>
+
+#### Do This Instead
+
+Instead, you should explicitly wire task inputs and outputs like this:
+
+<GitHubButton sample="avoid-provider-get-outside-task-action-do" action="download" />
+
+<SampleScripts sample_name="avoid-provider-get-outside-task-action-do" basename="build" tag="do-this" />
+
+<CalloutList>
+
+1. **Using `map()` to transform `currentEnvironment`**: `map` transform runs only when the value is read.
+2. **Using `file()` to create a new `Provider<RegularFile>`**: the value of the `buildDirectory` is only checked when the value of the provider is read.
+
+</CalloutList>
+
+### References
+
+- Task Inputs and Outputs
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`
+
+## Group and Describe custom Tasks
+
+When defining custom task types or registering ad-hoc tasks, always set a clear `group` and `description`.
+
+### Explanation
+
+A good group name is short, lowercase, and reflects the purpose or domain of the task.
+For example: `documentation`, `verification`, `release`, or `publishing`.
+
+Before creating a new group, look for an existing group name that aligns with your task’s intent.
+It’s often better to reuse an established category to keep the task output organized and familiar to users.
+
+This information is used in the <Xref page="command-line-interface" section="Listing tasks">Tasks Report</Xref> (shown via `./gradlew tasks`) to group and describe available tasks in a readable format.
+
+Providing a group and description ensures that your tasks are:
+
+- Displayed clearly in the report
+- Categorized appropriately
+- Understandable to other users (and to your future self)
+
+:::note
+Tasks with no group are hidden from the <Xref page="command-line-interface" section="Listing tasks">Tasks Report</Xref> unless `--all` is specified.
+:::
+
+### Example
+
+#### Don’t Do This
+
+Tasks without a group appear under the "other" category in `./gradlew tasks --all` output, making them harder to locate:
+
+<SampleScripts sample_name="group-tasks-avoid" basename="build" subpath="app" tag="avoid-this" />
+
+```text
+$ gradlew :app:tasks --all
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+compileTestJava - Compiles test Java source.
+generateDocs
+processResources - Processes main resources.
+processTestResources - Processes test resources.
+startScripts - Creates OS specific scripts to run the project as a JVM application.
+```
+
+#### Do this Instead
+
+When defining custom tasks, always assign a clear `group` and `description`:
+
+<GitHubButton sample="group-tasks-do" action="download" />
+
+<SampleScripts sample_name="group-tasks-do" basename="build" subpath="app" tag="do-this" />
+
+```text
+$ gradlew :app:tasks --all
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Documentation tasks
+-------------------
+generateDocs - Generates project documentation from source files.
+javadoc - Generates Javadoc API documentation for the 'main' feature.
+```
+
+### References
+
+- <Xref page="more-about-tasks" section="Task group and description">Task Group and Description</Xref>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`
+
+## Avoid using eager APIs on File Collections
+
+When working with Gradle’s file collection types, be careful to avoid triggering dependency resolution during the configuration phase.
+
+### Explanation
+
+Gradle’s <JavaDocLink class="org.gradle.api.artifacts.Configuration" /> and <JavaDocLink class="org.gradle.api.file.FileCollection" /> types extend the JDK’s `Collection<File>` interface.
+
+However, calling some available methods from this interface—such as `.size()`, `.isEmpty()`, `getFiles()`, `asPath()`, or `.toList()`—on these Gradle types will implicitly trigger resolution of their dependencies.
+The same is possible using Kotlin stdlib collection extension methods or Groovy GDK collection extensions.
+Converting a `Configuration` to a `Set<File>` also discards any implicit task dependencies it carries.
+
+You should avoid using these methods when configuring your build.
+Instead, use the methods defined directly on the Gradle interfaces - this is a necessary _first step_ towards preventing eager resolutions.
+Be sure to use <Xref page="lazy-configuration" section="Working with files">lazy types and APIs</Xref> that defer resolution to wire task dependencies and inputs correctly.
+Some methods that cause resolution are not obvious.
+Be sure to check the actual behavior when using configurations in an atypical way.
+
+### Example
+
+#### Don’t Do This
+
+<SampleScripts sample_name="avoid-jdk-collection-api-on-file-collections-avoid" basename="build" subpath="lib" tag="avoid-this" />
+
+<CalloutList>
+
+1. **`isEmpty()` causes resolution**: Many seemingly harmless Collection API methods like `isEmpty()` cause Gradle to resolve dependencies.
+2. **Accessing files directly**: Using `getFiles()` to access the files in a `Configuration` will also cause Gradle to resolve the file collection.
+3. **Adding a file via plus operator**: Using the plus operator will force the `runtimeClasspath` configuration to be resolved implicitly.
+The implementation of `Configuration` doesn’t override the plus operator for regular files, therefore it falls back to using the eager API, which causes resolution.
+4. **Be careful with indirect inputs**: Some built-in tasks, for example subtypes of `AbstractCopyTask` like `Zip`, allow adding inputs indirectly and can have the same problems.
+
+</CalloutList>
+
+#### Do This Instead
+
+To avoid issues, always defer resolution until the execution phase.
+Use APIs that support lazy evaluation.
+
+<GitHubButton sample="avoid-jdk-collection-api-on-file-collections-do" action="download" />
+
+<SampleScripts sample_name="avoid-jdk-collection-api-on-file-collections-do" basename="build" subpath="lib" tag="do-this" />
+
+<CalloutList>
+
+1. **Add configurations to Task properties or Specs directly**: This will defer resolution until the task is executed.
+2. **Add files to Specs separately**: This allows combining files with file collections without triggering implicit resolutions.
+
+</CalloutList>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`, `<Xref page="tags-reference" section="`#configurations`">#configurations</Xref>`
+
+## Don’t resolve Configurations before Task Execution
+
+Resolving configurations before the task execution phase can lead to incorrect results and slower builds.
+
+### Explanation
+
+Resolving a configuration - either directly via calling its <JavaDocLink class="org.gradle.api.artifacts.Configuration" method="resolve()">`resolve()`</JavaDocLink> method or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
+
+Configurations _are_ file collections and can be added to `@InputFiles` properties on other tasks.
+It is important to do this correctly to avoid breaking automatic task dependency wiring between a consumer task and any tasks that are implicitly required to produce the artifacts being consumed.
+For example, if a configuration contains a project dependency, Gradle knows that consumers of the configuration must first run any tasks that produce that project’s artifacts.
+
+In addition to correctness concerns, resolving configurations during the configuration phase can slow down the build, even when running unrelated tasks (e.g., `help`) that don’t require the resolved dependencies.
+
+### Example
+
+#### Don’t Do This
+
+<SampleScripts sample_name="avoid-resolving-configurations-manually-avoid" basename="build" subpath="app" tag="avoid-this" />
+
+<CalloutList>
+
+1. **Add project dependency**: The  `:lib` project must be built in order to resolve the runtime classpath successfully.
+2. **Declare input property as Set of files**: A simple `Set` input doesn’t track task dependencies.
+3. **Dependency artifacts are used to calculate digest**: Artifacts from the already resolved classpath are used to calculate the digest.
+4. **Resolve runtimeClasspath**: The implicit task dependency on `:library:jar` task is lost here when the configuration is resolved prior to task execution.
+The `lib` project will not be built when the `:app:badClasspathPrinter` task is run, leading to a failure in `calculateDigest` because the `lib.jar` file will not exist.
+
+</CalloutList>
+
+#### Do This Instead
+
+To avoid issues, always defer resolution to the execution phase by using lazy APIs like <JavaDocLink class="org.gradle.api.file.FileCollection" />.
+
+<GitHubButton sample="avoid-resolving-configurations-manually-do" action="download" />
+
+<SampleScripts sample_name="avoid-resolving-configurations-manually-do" basename="build" subpath="app" tag="do-this" />
+
+<CalloutList>
+
+1. **Write to a file in the output directory**: This is the same.
+2. **Declare input files property as ConfigurableFileCollection**: This lazy collection type will track task dependencies.
+3. **Dependency artifacts are resolved to calculate digest**: The classpath will be resolved at execution time to calculate the digest.
+4. **Configuration is passed to input property directly**: Using `from` causes the configuration to be lazily wired to the input property.
+The configuration will be resolved when necessary, preserving task dependencies.
+The output reveals that the `lib` project is now built when the `:app:goodClasspathPrinter` task is run because of the implicit task dependency, and the `lib.jar` file is found when calculating the digest.
+
+</CalloutList>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`, `<Xref page="tags-reference" section="`#configurations`">#configurations</Xref>`
+
+## Use `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories
+
+Use <JavaDocLink class="org.gradle.api.tasks.PathSensitivity" method="NONE">`@PathSensitivity.NONE`</JavaDocLink> for file inputs and <JavaDocLink class="org.gradle.api.tasks.PathSensitivity" method="RELATIVE">`@PathSensitivity.RELATIVE`</JavaDocLink> for directory inputs.
+
+### Explanation
+
+Tasks should generally care about the ***contents*** of their input files, not their location on disk.
+
+When annotating file-based input properties (for example, `@InputFile` or `@InputFiles` collections), use `@PathSensitivity.NONE`.
+This tells Gradle to ignore the path and only consider the file contents when determining whether a task is up-to-date.
+
+For directory-based inputs (for example, `@InputDirectory` or `@InputFiles` collections), use `@PathSensitivity.RELATIVE`.
+This tells Gradle to also consider only the name of the directory (ignoring its absolute location) and to relativize the paths of all files within that directory to it when doing up-to-date checks.
+
+Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
+
+`PathSensitivity.NAME_ONLY` tells Gradle to consider a file’s name in addition to its contents, which is rarely useful.
+
+`@PathSensitivity.ABSOLUTE` tells Gradle to consider a file’s complete absolute path.
+This prevents <Xref page="build-cache" section="Build Cache">Build Cache</Xref> and <Xref page="configuration-cache" section="Configuration Cache">Configuration Cache</Xref> hits across different machines or checkout locations, making your build non-relocatable.
+It can also lead to confusing behavior where the same build produces different task outcomes when run from different directories.
+If no `@PathSensitive` annotation is provided, `PathSensitivity.ABSOLUTE` is the default.
+
+### Example
+
+#### Don’t Do This
+
+<SampleScripts sample_name="prefer-path-sensitivity-none-avoid" basename="build" />
+
+<CalloutList>
+
+1. The `AnimalSearchTask` task type uses a file input property annotated with `@PathSensitivity.ABSOLUTE`.  This means that the absolute path of the input file is used to determine if the task is `UP-TO-DATE` or if it can be loaded from cache.  Yet the path is irrelevant for the operation of the task’s `@TaskAction`, which only cares about file contents.
+2. The `copy` task will move the _exact same_ `candidates.txt` to different destination directories, depending on if the `useAlternateInput` project property is set.
+3. The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`. Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
+
+</CalloutList>
+
+#### Do this Instead
+
+<GitHubButton sample="prefer-path-sensitivity-none-do" action="download" />
+
+<SampleScripts sample_name="prefer-path-sensitivity-none-do" basename="build" tag="do-this" />
+
+<CalloutList>
+
+1. Everything remains the same, except that the input property is now annotated with `@PathSensitivity.NONE`.  Only the contents of this input file matter to this task.  When the `search` task is rerun with `-PuseAlternateInput`, it remains `UP-TO-DATE`.
+
+</CalloutList>
+
+### References
+
+- <Xref page="build-cache-concepts" section="Path sensitivity and relocatability">Input Relocatability</Xref>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`
+
+## Use unique output files and directories
+
+Overlapping output files or directories cause tasks to rerun unnecessarily and waste work.
+
+### Explanation
+
+Gradle tracks all output files and directories declared by tasks to decide whether a task needs to be rerun.
+For example, if the contents of a task’s output directory change after its last execution, Gradle will rerun that task.
+
+Ensuring that each task uses its own unique output files and directories, both within a project and across the entire build, prevents unnecessary work.
+
+### Example
+
+#### Don’t Do This
+
+<SampleScripts sample_name="unique-outputs-avoid" basename="build" tag="avoid-this" />
+
+<CalloutList>
+
+1. **Write to a file in the output directory**: This task produces a single file in the `outputDirectory`, named based on the `type` input.
+2. **Read a specific file in the input directory**: This task only needs to read a single `a.txt` file in the input directory.
+3. **Set output directory**: Sets `outputDirectory` to a subdirectory in `buildDirectory`.
+4. **Set output directory**: Same as above, using the same shared `greetings` directory.
+5. **Wire `greeterA` to consumer**: Makes sure that `greeterA` runs and produces the output directory before it is used by `consumer`.
+
+</CalloutList>
+
+With this setup, if you run the `consumer` task, then `greeterB`, the `consumer` task will be invalidated.
+
+The next time `consumer` is run it will **not** be `UP-TO-DATE` and will have to run again despite not using the output from `greeterB`.
+
+This happens because `greeterB` changes the contents of the shared output directory `greetings`, which is an output of `greeterA` that `consumer` depends on (despite `consumer` only actually using the unchanged `a.txt` file in that directory).
+
+#### Do This Instead
+
+To avoid issues, avoid using shared task output directories and files.
+
+Instead, tasks should only declare the exact outputs and consume the exact inputs that they actually produce and consume.
+
+The _simplest_ change to make here is to use distinct output directories for each `GreetingTask`.
+This alone is sufficient to fix the problem.
+
+<SampleScripts sample_name="unique-outputs-simple-do" basename="build" tag="simple-do-this" />
+
+<CalloutList>
+
+1. **Set unique output directories**: Each `GreetingTask` is assigned its own unique output directory based on the `type` input.
+
+</CalloutList>
+
+Now when running `consumer` task, then `greeterB`, then `consumer` task remains `UP-TO-DATE` as Gradle knows that it is not using the output from `greeterB`, since `greeterA` and `greeterB` write to distinct output directories.
+
+However, a more _complete and idiomatic_ approach realizes that:
+
+1. Tasks that produce single output files should make this clear from the type of their `@Output` properties.
+2. Tasks that only consume single input files should make this clear from the type of their `@Input` properties.
+
+<GitHubButton sample="unique-outputs-do" action="download" />
+
+<SampleScripts sample_name="unique-outputs-do" basename="build" tag="do-this" />
+
+<CalloutList>
+
+1. **Write to a specific output file**: This task produces a single file to a directly specified `outputFile` without registering an entire output directory.
+2. **Read a specific file**: Unlike the previous example the input is a single directly specified `inputFile` file.
+3. **Set output file**: Sets `outputFile` to a file that is inside a `shared` subdirectory of `buildDirectory`.
+4. **Wire `greeterA` to consumer**: Makes sure that `greeterA` produces the output file before it is used by `consumer` by wiring task inputs to outputs directly.
+
+</CalloutList>
+
+Now when running `consumer` task, then `greeterB`, the `consumer` task remains `UP-TO-DATE` as Gradle knows that it is not using the output from `greeterB`, since `greeterA` and `greeterB` _produce and consume distinct files_ (that happen to be in created in the same directory).
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`
+
+## Don’t hardcode Task names unless they are documented as Public API
+
+Hardcoding task names can make a build fragile when upgrading Gradle or third-party plugins.
+
+### Explanation
+
+Some task names in Gradle are part of the <Xref page="public-apis" section="Public Gradle APIs">Gradle public API</Xref> and are stable.
+Most other task names in Gradle and third-party plugins are internal implementation details. They may be renamed or removed in future versions and should not be relied upon.
+Task types are also not guaranteed to remain stable; plugin authors may refactor them.
+
+In practice, configuring tasks by type is usually more robust than depending on specific names, especially in ecosystems like Android or Kotlin where many tasks are generated dynamically.
+
+Prefer, in order:
+
+1. **Plugin DSL** - Configure tasks via extension blocks provided by a plugin that are automatically wired to the tasks that plugin creates.  This is the most future-proof and stable option.
+2. **Task types** - More robust than names in many cases, but can still change across plugin versions, depending on the plugin’s backwards compatibility policies.
+3. **Task names** - Use only when they are explicitly documented as <Xref page="public-apis" section="Public Gradle APIs">public API</Xref>.
+
+As a plugin author, provide a DSL extension for users to configure behavior declaratively. Internally wire the configuration into your tasks. Avoid exposing task names as part of your public API unless you are prepared to maintain them with deprecation cycles.
+
+### Example
+
+#### Don’t Do This
+
+<SampleScripts sample_name="avoid-hardcoding-task-names-avoid" basename="build" tag="avoid-this" />
+
+<CalloutList>
+
+1. Looking up `compileJava` by name: This relies on the hardcoded `"compileJava"` string.
+2. Using `tasks.named` to get the `generatePomFileForMavenPublication` task: This unnecessarily relies on this task’s name, even though it’s the only `GenerateMavenPom` task that needs configuring.
+
+</CalloutList>
+
+#### Do This Instead
+
+<GitHubButton sample="avoid-hardcoding-task-names-do" action="download" />
+
+A better option for the `compileJava` configuration is to use a public constant — this task name is part of <Xref page="public-apis" section="Public Gradle APIs">public API</Xref>, so referencing it via the constant is safe:
+
+<SampleScripts sample_name="avoid-hardcoding-task-names-do" basename="build" tag="ok" />
+
+<CalloutList>
+
+1. Using `tasks.named` with `JavaPlugin.COMPILE_JAVA_TASK_NAME`: Replaces the hardcoded string with a public constant.
+
+</CalloutList>
+
+The best option is to use the plugin DSL where possible — this avoids referring to tasks by name or type at all:
+
+<SampleScripts sample_name="avoid-hardcoding-task-names-do" basename="build" tag="best" />
+
+<CalloutList>
+
+1. Using Java DSL: Entirely avoids implementation details of `java-library` plugin and sets `sourceCompatibility` for all `JavaCompile` tasks.
+2. Using publishing DSL: Avoids hardcoding task names and ensures that the generated POM has the expected URL.
+
+</CalloutList>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#upgrades`">#upgrades</Xref>`
+
+## Don’t access a `Project` instance during Task Execution
+
+Do not access a `Project` instance inside a task action or task property.
+
+### Explanation
+
+Accessing the `Project` instance during task execution is not compatible with the <Xref page="configuration-cache" section="Configuration Cache">Configuration Cache</Xref> and should be avoided.
+Alternatives exist for almost every use case involving data or operations from the `Project` object:
+
+- Specify the data you were previously retrieving from the `Project` instance as an explicit task input.
+- Use similar functionality already exposed through the `Task` object (e.g., `Task.getLogger()` instead of `Project.getLogger()`).
+- Capture `Project` values in a local variable during task configuration, which can then be referenced during execution.
+
+:::note
+Accessing the `Project` instance during _task configuration_ is expected and safe — this is how you wire task input properties to project properties.
+The problem arises when `Project` is accessed during _task execution_ (e.g., inside `@TaskAction` or `doLast`).
+:::
+
+### Example
+
+#### Don’t Do This
+
+<SampleScripts sample_name="dont-access-project-avoid" basename="build" tag="avoid-this" />
+
+<CalloutList>
+
+1. **Reading `project.version` in a task action**: Inside the task’s action, the `Project` instance is accessed to read the `version` property.
+
+</CalloutList>
+
+There are two main problems with this setup:
+
+1. Accessing the `Project` instance during task execution will cause Configuration Cache failures.
+2. Because the version is not declared as a task input, Gradle cannot track it. This leads to incorrect up-to-date results if the project version changes.
+
+#### Do This Instead
+
+<GitHubButton sample="dont-access-project-do" action="download" />
+
+To ensure compatibility, avoid accessing the `Project` instance during task execution.
+Instead, tasks should explicitly declare all required inputs.
+
+<SampleScripts sample_name="dont-access-project-do" basename="build" tag="do-this" />
+
+<CalloutList>
+
+1. **Declare the version as an input property**: This allows Gradle to track the version string for up-to-date checks.
+2. **Assign the version during configuration**: It is safe to read `project.version` during the configuration phase to assign it to a task input.
+3. **Set the output location**: Use `project.layout` during configuration to define the task’s output directory.
+
+</CalloutList>
+
+Now, when running the task, there are no "hidden inputs" that Gradle cannot track.
+This ensures that up-to-date checks accurately determine when a task needs to run again.
+Additionally, because the `Project` object is not accessed after configuration, the Configuration Cache will function correctly.
+
+### References
+
+- <Xref page="configuration-cache-requirements" section="Using the `Project` Object at Execution Time">Configuration Cache Requirements</Xref>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#inputs-and-outputs`">#inputs-and-outputs</Xref>`
+
+## Wire lazy task outputs using `map` and `flatMap`
+
+Use `flatMap` to extract a `Provider`-typed output from a task, and `map` to transform the resulting value.
+Together, they preserve the task dependency chain so Gradle knows which tasks must run first.
+
+### Explanation
+
+When wiring task outputs to inputs, `flatMap` extracts a `Provider`-typed output from a task while preserving the task dependency that the output `Provider` carries.
+Then `map` transforms that value.
+For example, reading a file’s contents or extracting a path, without breaking the chain.
+The typical pattern looks like:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+consumer.inputContent.set(
+    producer.flatMap { it.outputFile }       // extract the Provider, keeping the task dependency
+        .map { it.asFile.readText() }        // transform the value lazily at execution time
+)
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+consumer.inputContent.set(
+    producer.flatMap { it.outputFile }       // extract the Provider, keeping the task dependency
+        .map { it.asFile.text }              // transform the value lazily at execution time
+)
+```
+
+</TabItem>
+</Tabs>
+
+For dependency tracking to work, task outputs should be directly annotated abstract getters:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+@get:OutputFile
+abstract val outputFile: RegularFileProperty
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+@OutputFile
+abstract RegularFileProperty getOutputFile()
+```
+
+</TabItem>
+</Tabs>
+
+With this pattern, `flatMap` reliably carries the task dependency and `map` safely transforms the result.
+
+A few specific patterns break this chain:
+
+1. ***Do not call `.get()` inside `map` or `flatMap`*** — the file doesn’t exist yet at configuration time, breaking lazy configuration and task dependency tracking
+2. ***Do not use standalone `provider {}` to wrap task outputs*** — `provider {}` produces a disconnected provider with no task dependency information
+3. ***Use directly annotated abstract getters for task outputs*** — `flatMap` can only track dependencies through directly annotated abstract getters, not task outputs that exist only to define transforms of other properties. Getters that return `Provider` instead of `Property` also break tracking, even when annotated.
+4. ***Use `map` for plain values, `flatMap` for `Provider`-typed outputs*** — `flatMap` requires its closure to return a `Provider`; use `map` to extract `File` or `String` values
+
+#### 1. Do not call `.get()` inside `map` or `flatMap`
+
+Calling `.get()` inside `map` to read file content fails because the file does not exist yet at configuration time — the producer task has not run.
+This pattern also breaks the Configuration Cache.
+
+Both examples below use the same `generatorTask` producer; only the consumer differs.
+
+##### Don’t Do This
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-avoid" basename="build" tag="config-time-read" />
+
+<CalloutList>
+
+1. **File read at configuration time**: `.get()` realizes the file before the producer task has run; reading it here fails because the file doesn’t exist yet.
+
+</CalloutList>
+
+##### Do This Instead
+
+Use the `flatMap`/`map` chain instead.
+The `map` on a `flatMap` result is evaluated lazily at execution time, when the file exists:
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="flatmap-provider" />
+
+<CalloutList>
+
+1. **Lazy wiring via `flatMap`**: extracts the `outputFile` Provider while preserving the dependency on `generator`.
+2. **Read content lazily**: chaining `map` on the `flatMap` result defers reading until execution time.
+
+</CalloutList>
+
+This preserves the task dependency because the provider chain remains connected to the original task.
+
+#### 2. Do not use standalone `provider {}` to wrap task outputs
+
+A standalone `provider {}` creates a provider with no connection to any task.
+Gradle cannot determine that it depends on the producer task, so the producer will not be added to the task graph.
+
+Both examples below use the same `generatorTask` producer; only the consumer differs.
+
+##### Don’t Do This
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-ex-avoid" basename="build" tag="naked-provider" />
+
+<CalloutList>
+
+1. **Disconnected `provider {}` block**: has no link to the generator task; Gradle cannot infer that `consumeNaked` depends on `generator` from this provider alone.
+
+</CalloutList>
+
+##### Do This Instead
+
+Use `flatMap` to extract the `Provider`-typed output, then chain `map` to transform the value:
+
+
+
+<CalloutList>
+
+1. **Lazy wiring via `flatMap`**: extracts the `outputFile` Provider while preserving the dependency on `generator`.
+2. **Read content lazily**: chaining `map` on the `flatMap` result defers reading until execution time.
+
+</CalloutList>
+
+#### 3. Use directly annotated abstract getters for task outputs
+
+When a task’s output is computed via `.map {}` rather than directly annotated with `@OutputFile`, `flatMap` may extract the mapped provider without preserving the task dependency.
+
+##### Don’t Do This
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-avoid" basename="build" tag="derived-property" />
+
+<CalloutList>
+
+1. **Derived output property**: when `outputFile` is built via `.map { …​ }` rather than annotated directly, `flatMap` may lose the task dependency.
+
+</CalloutList>
+
+##### Do This Instead
+
+As a workaround, use `.map { it.property.get() }` to preserve the dependency:
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="derived-property-fix" />
+
+<CalloutList>
+
+1. **Workaround with `.map { it.property.get() }`**: preserves the task dependency at the cost of an explicit `.get()` call.
+
+</CalloutList>
+
+The preferred approach is to use directly annotated abstract getters instead of derived ones, so that `flatMap` works reliably:
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="direct-annotation" />
+
+<CalloutList>
+
+1. **Directly annotated abstract getter**: with `@OutputFile` on an abstract `RegularFileProperty`, `flatMap` carries the task dependency reliably.
+
+</CalloutList>
+
+#### 4. Use `map` for plain values, `flatMap` for `Provider`-typed outputs
+
+When a task uses old-style getters (like `File`) instead of `Provider`-typed outputs, use `map` instead of `flatMap` to extract the value.
+The `flatMap` closure must return a `Provider`; wrapping a plain value in a standalone `provider {}` would compile, but — as in item 2 — it would drop the task dependency.
+
+##### Do This
+
+<SampleScripts sample_name="be-careful-with-map-flatmap-do" basename="build" tag="eager-property" />
+
+<CalloutList>
+
+1. **Use `map` for non-Provider outputs**: when the producer exposes a plain `File` instead of a Provider, `map` is the right extractor.
+
+</CalloutList>
+
+### References
+
+- <Xref page="lazy-configuration" section="Working with task inputs and outputs">Working with task inputs and outputs</Xref>
+
+### Tags
+
+`<Xref page="tags-reference" section="`#tasks`">#tasks</Xref>`, `<Xref page="tags-reference" section="`#task-configuration-avoidance`">#task-configuration-avoidance</Xref>`

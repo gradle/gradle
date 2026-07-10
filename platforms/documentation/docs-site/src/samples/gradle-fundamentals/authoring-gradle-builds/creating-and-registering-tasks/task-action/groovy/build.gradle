@@ -1,9 +1,0 @@
-abstract class GreetingTask extends DefaultTask {
-    @TaskAction
-    def greet() {
-        println 'hello from GreetingTask'
-    }
-}
-
-// Create a task using the task type
-tasks.register('hello', GreetingTask)

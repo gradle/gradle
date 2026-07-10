@@ -1,4 +1,0 @@
-application {
-    mainModule = "org.gradle.sample.app" // name defined in module-info.java
-    mainClass = "org.gradle.sample.Main"
-}

@@ -1,0 +1,4 @@
+ArtifactView with attribute 'category = production' for runtimeClasspath:
+- Attributes:
+  - org.gradle.category = production
+- Artifact: production.jar

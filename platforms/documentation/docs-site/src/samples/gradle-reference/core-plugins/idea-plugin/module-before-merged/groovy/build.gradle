@@ -1,5 +1,0 @@
-idea.module.iml {
-    beforeMerged { module ->
-        module.dependencies.clear()
-    }
-}

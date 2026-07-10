@@ -1,0 +1,165 @@
+---
+title: "Dataflow Actions"
+---
+
+import { CalloutList, JavaDocLink, Xref } from '#/components';
+
+:::note
+The dataflow actions support is an <Xref page="feature-lifecycle" section="The Feature Lifecycle">incubating</Xref> feature and is subject to change.
+:::
+
+A preferred way of executing work in a Gradle build is using a task.
+However, some kinds of work do not fit tasks well, such as custom handling of the build failure.
+
+What if you want to play a cheerful sound when the build succeeds and a sad one when it fails?
+This work piece has to process the task execution result, so it cannot be a task itself.
+
+The Dataflow Actions API provides a way to schedule this type of work.
+A dataflow action is a parameterized isolated piece of work that becomes eligible for execution as soon as all input parameters become available.
+
+## Implementing a dataflow action
+
+The first step is to implement the action itself.
+You must create a class implementing the <JavaDocLink class="org.gradle.api.flow.FlowAction" /> interface:
+
+```kotlin
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
+
+abstract class ReportConsumption : FlowAction<ReportConsumption.Params> {
+
+    interface Params : FlowParameters {
+
+    }
+
+    override fun execute(parameters: Params) {
+
+    }
+}
+```
+
+The `execute` method must be implemented because this is where the work happens.
+An action implementation is treated as a <Xref page="properties-providers" section="Properties and Providers">custom Gradle type</Xref> and can use any of the features available to custom Gradle types.
+In particular, some Gradle services can be injected into the implementation.
+
+A dataflow action may accept parameters.
+To provide parameters, you define an abstract class (or interface) to hold the parameters:
+
+- The parameters type must implement (or extend) <JavaDocLink class="org.gradle.api.flow.FlowParameters" />.
+- The parameters type is also a <Xref page="properties-providers" section="Properties and Providers">custom Gradle type</Xref>.
+- The action implementation gets the parameters as an argument of the `execute` method.
+
+When the action requires no parameters, you can use <JavaDocLink class="org.gradle.api.flow.FlowParameters.None">FlowParameters.None</JavaDocLink> as the type of parameter.
+
+Here is an example of a dataflow action that takes a shared build service and a file path as parameters:
+
+```java callouts
+package org.gradle.sample.sound;
+
+import org.gradle.api.flow.FlowAction;
+import org.gradle.api.flow.FlowParameters;
+import org.gradle.api.provider.Property;
+import org.gradle.api.services.ServiceReference;
+import org.gradle.api.tasks.Input;
+
+import java.io.File;
+
+public abstract class SoundPlay implements FlowAction<SoundPlay.Parameters> {
+    interface Parameters extends FlowParameters {
+        @ServiceReference // (1)
+        Property<SoundService> getSoundService();
+
+        @Input // (2)
+        Property<File> getMediaFile();
+    }
+
+    @Override
+    public void execute(Parameters parameters) {
+        parameters.getSoundService().get().playSoundFile(parameters.getMediaFile().get());
+    }
+}
+```
+
+<CalloutList>
+
+1. Parameters in the parameter type must be annotated. If a parameter is annotated with <JavaDocLink class="org.gradle.api.services.ServiceReference">`@ServiceReference`</JavaDocLink>, then a suitable shared build service implementation is automatically assigned to the parameter when the action is created, according to the <Xref page="build-services" section="Registering a build service to be consumed via `@ServiceReference` task properties">usual rules</Xref>.
+2. All other parameters must be annotated with <JavaDocLink class="org.gradle.api.tasks.Input">`@Input`</JavaDocLink>.
+
+</CalloutList>
+
+## Using lifecycle event providers
+
+Besides the usual value providers, Gradle provides dedicated providers for build lifecycle events, like build completion.
+These providers are intended for dataflow actions and provide additional ordering guarantees when used as inputs.
+The ordering also applies if you derive a provider from the event provider by, for example, calling `map` or `flatMap`.
+You can obtain these providers from the <JavaDocLink class="org.gradle.api.flow.FlowProviders" /> class.
+
+```groovy
+flowProviders.buildWorkResult.map {
+    [
+        buildInvocationId: scopeIdsService.buildInvocationId,
+        workspaceId: scopeIdsService.workspaceId,
+        userId: scopeIdsService.userId
+    ]
+}
+```
+
+:::caution
+If you’re not using a lifecycle event provider as an input to the dataflow action, then the exact timing when the action is executed is not defined and may change in the next version of Gradle.
+:::
+
+## Supplying the action for execution
+
+You should not create `FlowAction` objects manually.
+Instead, you request to execute them in the appropriate scope of <JavaDocLink class="org.gradle.api.flow.FlowScope" />.
+In doing so, you can configure the parameters for the task:
+
+```java callouts
+package org.gradle.sample.sound;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.flow.FlowProviders;
+import org.gradle.api.flow.FlowScope;
+import org.gradle.api.initialization.Settings;
+
+import javax.inject.Inject;
+import java.io.File;
+
+public abstract class SoundFeedbackPlugin implements Plugin<Settings> {
+    @Inject
+    protected abstract FlowScope getFlowScope(); // (1)
+
+    @Inject
+    protected abstract FlowProviders getFlowProviders(); // (1)
+
+    @Override
+    public void apply(Settings settings) {
+        final File soundsDir = new File(settings.getSettingsDir(), "sounds");
+        getFlowScope().always( // (2)
+            SoundPlay.class,  // (3)
+            spec ->  // (4)
+                spec.getParameters().getMediaFile().set(
+                    getFlowProviders().getBuildWorkResult().map(result -> // (5)
+                        new File(
+                            soundsDir,
+                            result.getFailure().isPresent() ? "sad-trombone.mp3" : "tada.mp3"
+                        )
+                    )
+                )
+        );
+    }
+}
+```
+
+<CalloutList>
+
+1. Use service injection to obtain `FlowScope` and `FlowProviders` instances. They are available for project and settings plugins.
+2. Use an appropriate scope to run your actions. As the name suggests, actions in the `always` scope are executed every time the build runs.
+3. Specify the class that implements the action.
+4. Use the spec argument to configure the action parameters.
+5. A lifecycle event provider can be mapped into something else while preserving the action order.
+
+</CalloutList>
+
+As a result, when you run the build, and it completes successfully, the action will play the "tada" sound.
+If the build fails at configuration or execution time, you’ll hear "sad-trombone" sound — assuming that build configuration proceeds far enough for the action to be registered.

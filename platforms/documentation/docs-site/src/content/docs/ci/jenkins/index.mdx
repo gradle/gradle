@@ -1,0 +1,189 @@
+---
+title: "Gradle on Jenkins"
+---
+
+This page is a reference for integrating Gradle with [Jenkins](https://www.jenkins.io/).
+
+## The Gradle plugin
+
+The [Gradle plugin](https://plugins.jenkins.io/gradle) adds first-class Gradle support to Jenkins.
+Install it from **Manage Jenkins → Plugins → Available plugins**.
+
+The plugin provides:
+
+- An **Invoke Gradle script** build step for Freestyle projects.
+- Automatic detection of [Build Scan®](https://scans.gradle.com) links published during the build.
+- A `withGradle` pipeline wrapper that captures Build Scan links in Pipeline jobs.
+- Optional auto-injection of the Develocity Gradle plugin for centralized build analytics.
+
+## Freestyle projects
+
+Add an **Invoke Gradle script** build step and configure it:
+
+| Field | Description |
+| --- | --- |
+| **Use Gradle Wrapper** | When selected, Jenkins runs the `gradlew` script from the workspace. Recommended for all projects — ensures the build uses the Gradle version checked into the repository. |
+| **Wrapper location** | Relative path to `gradlew` if it is not in the workspace root. |
+| **Tasks** | Space-separated Gradle tasks, e.g. `clean build`. Defaults to the project’s default task when blank. |
+| **Switches** | Command-line flags passed to Gradle, e.g. `--scan -s --no-daemon`. |
+| **Build File** | Relative path to `build.gradle` or `build.gradle.kts` if it is not in the workspace root. |
+| **System properties** | `-D` properties forwarded to the Gradle JVM. |
+| **Project properties** | `-P` properties passed to the Gradle build. |
+| **Gradle installation** | A pre-configured Gradle installation from **Manage Jenkins → Tools**. Ignored when **Use Gradle Wrapper** is selected. |
+
+:::tip
+Job parameters are automatically quoted by the plugin, so special characters in property values are handled correctly.
+:::
+
+## Pipeline projects (Jenkinsfile)
+
+For Pipeline-as-code, invoke the Gradle Wrapper via `sh` (Linux/macOS) or `bat` (Windows) and wrap it with `withGradle` to capture Build Scan links:
+
+```groovy
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk-21'
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                withGradle {
+                    sh './gradlew build'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                withGradle {
+                    sh './gradlew check'
+                }
+            }
+            post {
+                always {
+                    junit '**/build/test-results/test/TEST-*.xml'
+                }
+            }
+        }
+    }
+}
+```
+
+- `tools { jdk 'jdk-21' }` selects a JDK configured in **Manage Jenkins → Tools**. The Gradle Wrapper handles the Gradle distribution, so no Gradle tool entry is required.
+- `withGradle { …​ }` tells the Gradle plugin to scan the build output for Build Scan links and display them on the build page.
+- The `junit` post step archives test results so they appear in the Jenkins test report.
+
+To search for Build Scan links across an entire pipeline run (for example when Gradle is invoked inside a shell script without `withGradle`), add a `findBuildScans()` step at the end of the pipeline.
+
+### Scripted pipeline
+
+In a scripted pipeline, use `withGradle` the same way:
+
+```groovy
+node {
+    stage('Build') {
+        checkout scm
+        withGradle {
+            sh './gradlew build'
+        }
+    }
+}
+```
+
+## Using the Gradle Wrapper
+
+The Gradle Wrapper is the recommended way to invoke Gradle on Jenkins.
+With the Wrapper checked into the repository, build agents need only a JDK — no Gradle installation is required.
+
+In Freestyle projects, select **Use Gradle Wrapper** in the build step.
+In Pipelines, call `./gradlew` directly via `sh` or `bat`.
+
+## Build Scans and Develocity integration
+
+### Capturing Build Scan links
+
+The Gradle plugin automatically detects Build Scan URLs printed to the console log.
+In Freestyle projects, this works out of the box.
+In Pipelines, wrap Gradle invocations with `withGradle` or call `findBuildScans()` at the end of the pipeline.
+
+### Enriched Build Scan display
+
+When a Develocity server URL and access key are configured (see below), the plugin fetches metadata from the Develocity API and displays project name, requested tasks, build tool version, and outcome alongside the Build Scan link.
+
+:::note
+Enriched metadata requires a Develocity server — it is not available for scans published to the public `scans.gradle.com`.
+:::
+
+### Auto-injecting the Develocity plugin
+
+The Gradle plugin can automatically inject the Develocity Gradle plugin into builds without modifying project sources.
+Configure this under **Manage Jenkins → System → Develocity**:
+
+| Setting | Description |
+| --- | --- |
+| **Develocity server URL** | URL of your Develocity instance. Can optionally be enforced over project-defined URLs. |
+| **Develocity Gradle plugin version** | The version to inject into builds. |
+| **Allow untrusted server** | Accept self-signed TLS certificates. |
+| **VCS repository filter** | Newline-delimited patterns (`+:repo-pattern`, `-:repo-pattern`) to include or exclude repositories from injection. |
+| **Enabled/disabled agent labels** | Control which Jenkins agents receive injection. Disabled labels take precedence. |
+| **Short-lived access tokens** | Preferred over long-lived access keys. Requires Develocity 2024.1+. Tokens are retrieved at job execution time. |
+
+To auto-accept Build Scan terms of use without plugin injection, configure the Develocity plugin directly in `settings.gradle[.kts]`:
+
+```kotlin
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        publishing.onlyIf { true }
+    }
+}
+```
+
+## Test reporting
+
+Gradle produces JUnit-compatible XML reports under `build/test-results/`.
+Archive them with the `junit` step so Jenkins displays test counts, durations, and failure details on the build page:
+
+```groovy
+post {
+    always {
+        junit '**/build/test-results/test/TEST-*.xml'
+    }
+}
+```
+
+In Freestyle projects, add a **Publish JUnit test result report** post-build action with the same glob pattern.
+
+## Caching and performance
+
+Jenkins agents are typically long-lived, so `~/.gradle` (the Gradle User Home) is preserved between builds on the same agent.
+Downloaded dependencies, Wrapper distributions, and the local build cache persist automatically.
+
+For ephemeral or distributed agents, consider:
+
+- A [Gradle Remote Build Cache](https://docs.gradle.org/current/userguide/build_cache.html) to share task outputs across agents.
+- A repository manager ([Artifactory](https://jfrog.com/), [Sonatype Nexus](https://www.sonatype.com/products/sonatype-nexus-repository)) to proxy external dependencies within your network.
+- The `--no-daemon` flag for short-lived agents where daemon startup cost is wasted.
+
+## Managing credentials
+
+Store publishing tokens, signing keys, and other secrets as [Jenkins credentials](https://www.jenkins.io/doc/book/using/using-credentials/).
+Bind them to environment variables in a Pipeline with `withCredentials`:
+
+```groovy
+withCredentials([string(credentialsId: 'publish-token', variable: 'PUBLISH_TOKEN')]) {
+    withGradle {
+        sh './gradlew publish'
+    }
+}
+```
+
+Access the variable in `build.gradle[.kts]` with `System.getenv("PUBLISH_TOKEN")` or `providers.environmentVariable("PUBLISH_TOKEN")`.

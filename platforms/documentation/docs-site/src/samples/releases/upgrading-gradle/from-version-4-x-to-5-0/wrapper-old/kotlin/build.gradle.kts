@@ -1,3 +1,0 @@
-task<Wrapper>("wrapper") {
-    ...
-}

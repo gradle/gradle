@@ -1,0 +1,61 @@
+---
+title: "Configuration On Demand"
+---
+
+import { Xref } from '#/components';
+
+Configuration-on-demand attempts to configure only the relevant projects for the requested tasks, i.e., it only evaluates the build script file of projects participating in the build.
+This way, the configuration time of a large multi-project build can be reduced.
+
+The configuration-on-demand feature is _incubating_, so only some builds are guaranteed to work correctly.
+The feature works well for [decoupled](#sec:decoupled_projects) multi-project builds.
+
+In configuration-on-demand mode, projects are configured as follows:
+
+- The root project is always configured.
+- The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks.<br/>
+This way, the default tasks behave correctly when projects are configured on demand.
+- The standard project dependencies are supported, and relevant projects are configured.<br/>
+If project A has a compile dependency on project B, then building A causes the configuration of both projects.
+- The task dependencies declared via the task path are supported and cause relevant projects to be configured.<br/>
+Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
+- A task requested via task path from the command line (or tooling API) causes the relevant project to be configured.<br/>
+For example, building `project-a:project-b:someTask` causes configuration of `project-b`.
+
+## Enable `configure-on-demand`
+
+You can enable configuration-on-demand using the `--configure-on-demand` flag or adding `org.gradle.configureondemand=true` to the `gradle.properties` file.
+
+To configure on demand with every build run, see <Xref page="build-environment" section="Gradle properties">Gradle properties</Xref>.
+
+To configure on demand for a given build, see <Xref page="command-line-interface" section="Performance options">command-line performance-oriented options</Xref>.
+
+## Decoupled projects
+
+Gradle allows projects to access each other’s configurations and tasks during the configuration and execution phases.
+While this flexibility empowers build authors, it limits Gradle’s ability to perform optimizations such as [parallel project builds](#sec:parallel_execution) and [configuration on demand](#configuration_and_execution).
+
+Projects are considered decoupled when they interact solely through declared dependencies and task dependencies.
+Any direct modification or reading of another project’s object creates coupling between the projects.
+Coupling during configuration can result in flawed build outcomes when using 'configuration on demand', while coupling during execution can affect parallel execution.
+
+One common source of coupling is configuration injection, such as using `allprojects{}` or `subprojects{}` in build scripts.
+
+To avoid coupling issues, it’s recommended to:
+
+- Refrain from referencing other subprojects' build scripts and prefer cross-project configuration from the root project.
+- Avoid dynamically changing other projects' configurations during execution.
+
+As Gradle evolves, it aims to provide features that leverage decoupled projects while offering solutions for common use cases like configuration injection without introducing coupling.
+
+## Parallel projects
+
+Gradle’s parallel execution feature optimizes CPU utilization to accelerate builds by concurrently executing tasks from different projects.
+
+To enable parallel execution, use the `--parallel` <Xref page="command-line-interface" section="Performance options">command-line argument</Xref> or configure your <Xref page="build-environment" section="Gradle properties">build environment</Xref>.
+Gradle automatically determines the optimal number of parallel threads based on CPU cores.
+
+During parallel execution, each worker handles a specific project exclusively.
+Task dependencies are respected, with workers prioritizing upstream tasks.
+However, tasks may not execute in alphabetical order, as in sequential mode.
+It’s crucial to correctly declare task dependencies and inputs/outputs to avoid ordering issues.

@@ -1,9 +1,0 @@
-testing {
-    suites {
-        test {
-            targets {
-                otherTest
-            }
-        }
-    }
-}

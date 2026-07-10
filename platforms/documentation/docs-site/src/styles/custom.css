@@ -1,5 +1,154 @@
+/*
+ * Gradle docs theme
+ *
+ */
+
 :root {
   --sl-font: "Lato";
+
+  /* Gradle brand primitives */
+  --gradle-blue: #02303a;
+  --gradle-teal: #1da2bd;
+  --gradle-teal-dark: #04598d;
+  --gradle-cyan: #35c1e4;
+  --gradle-teal-tint: rgba(29, 162, 189, 0.15); /* sidebar pill fill, light */
+  --gradle-cyan-tint: rgba(53, 193, 228, 0.18); /* sidebar pill fill, dark */
+
+  /* Starlight accent ramp — light mode */
+  --sl-color-accent-low: #d6eef4;
+  --sl-color-accent: var(--gradle-teal);
+  --sl-color-accent-high: var(--gradle-blue);
+  --sl-color-text-accent: var(--gradle-teal);
+
+  /* Cloudflare-style hairlines and hover fills */
+  --gradle-header-line: rgb(0 0 0 / 0.12);
+  --gradle-hover-fill: rgb(0 0 0 / 0.05);
+  --gradle-table-tint: rgb(0 0 0 / 0.03);
+
+  /* One corner radius for all content boxes: code frames (also set as
+   * borderRadius in astro.config.ts expressiveCode styleOverrides — keep in
+   * sync), asides, tables, file trees, inline code. */
+  --gradle-content-radius: 0.25rem;
+
+  /* Callout bubbles (EC plugin + <CalloutList>): Gradle Blue number on the
+   * same teal tint as the sidebar's selected pill. */
+  --gd-callout-bg: var(--gradle-teal-tint);
+  --gd-callout-fg: var(--gradle-blue);
+}
+
+:root[data-theme="dark"] {
+  /* Starlight accent ramp — dark mode (lighter accent, like CF's orange flip) */
+  --sl-color-accent-low: var(--gradle-blue);
+  --sl-color-accent: var(--gradle-cyan);
+  --sl-color-accent-high: #a9e3f1;
+  --sl-color-text-accent: var(--gradle-cyan);
+
+  --gradle-header-line: rgb(255 255 255 / 0.1);
+  --gradle-hover-fill: rgb(255 255 255 / 0.07);
+  --gradle-table-tint: rgb(255 255 255 / 0.04);
+
+  --gd-callout-bg: var(--gradle-cyan-tint);
+  --gd-callout-fg: var(--gradle-cyan);
+
+  /* Slight blue-black page tint instead of pure gray, echoing Gradle Blue */
+  --sl-color-bg: #0d1b1f;
+  --sl-color-bg-nav: #0d1b1f;
+  --sl-color-bg-sidebar: #0d1b1f;
+}
+
+/* ---------------------------------------------------------------------------
+ * Header — flat, site-colored, hairline bottom border (CF style)
+ * ------------------------------------------------------------------------- */
+
+header.header {
+  background-color: var(--sl-color-bg);
+  border-bottom: 1px solid var(--gradle-header-line);
+}
+
+/* Rounded, bordered search control */
+header.header site-search button[data-open-modal] {
+  border: 1px solid var(--gradle-header-line);
+  border-radius: 0.5rem;
+  background-color: var(--gradle-hover-fill);
+}
+
+/* ---------------------------------------------------------------------------
+ * Sidebar — CF-style: every row identical (size, weight, padding); groups are
+ * plain rows with a right chevron; current page gets a quiet neutral pill.
+ * ------------------------------------------------------------------------- */
+
+/* One visual voice for all rows: links AND group toggles */
+.sidebar-content a,
+.sidebar-content details > summary {
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: var(--sl-text-sm);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--sl-color-gray-2);
+}
+
+/* Kill Starlight's big bold group labels — match regular rows */
+.sidebar-content summary .group-label > span.large {
+  font-size: var(--sl-text-sm);
+  font-weight: 400;
+  color: inherit;
+}
+
+.sidebar-content a:hover,
+.sidebar-content details > summary:hover {
+  background-color: var(--gradle-teal-tint);
+  color: var(--gradle-blue);
+  font-weight: 700;
+}
+
+:root[data-theme="dark"] .sidebar-content a:hover,
+:root[data-theme="dark"] .sidebar-content details > summary:hover {
+  background-color: var(--gradle-cyan-tint);
+  color: var(--gradle-cyan);
+}
+
+/* Right-aligned, subdued chevron (CF style) */
+.sidebar-content summary .caret {
+  color: var(--sl-color-gray-4);
+}
+
+/* Entry icons (rendered by the SidebarSublist override, CF style) */
+.sidebar-content svg.sidebar-icon {
+  flex-shrink: 0;
+  vertical-align: -0.1875em;
+  margin-inline-end: 0.5rem;
+  color: var(--sl-color-gray-3);
+}
+
+.sidebar-content a:hover svg.sidebar-icon,
+.sidebar-content summary:hover svg.sidebar-icon,
+.sidebar-content a[aria-current="page"] svg.sidebar-icon {
+  color: inherit;
+}
+
+/* Current page: Gradle-teal tinted pill */
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover {
+  background-color: var(--gradle-teal-tint);
+  color: var(--gradle-blue);
+  font-weight: 700;
+}
+
+:root[data-theme="dark"] .sidebar-content a[aria-current="page"],
+:root[data-theme="dark"] .sidebar-content a[aria-current="page"]:hover {
+  background-color: var(--gradle-cyan-tint);
+  color: var(--gradle-cyan);
+}
+
+/* Even rhythm: no per-item margins, small consistent gap */
+.sidebar-content ul li {
+  margin-block: 1px;
+}
+
+/* Nested items: single hairline indent guide, like CF's sub-lists */
+.sidebar-content ul ul li {
+  border-inline-start: 1px solid var(--sl-color-hairline-light);
 }
 
 /* Top-level sidebar groups styled as non-interactive section separators */
@@ -31,11 +180,232 @@ ul.top-level > li > details > summary {
     display: none;
   }
 
-  & .large {
-    font-size: var(--sl-text-xs);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--sl-color-gray-3);
+}
+
+/* Top-level section headers ("Gradle User Manual", …) — CF-style faint labels.
+ * Full selector needed to out-rank the row-normalizing span.large rule above. */
+.sidebar-content ul.top-level > li > details > summary .group-label > span.large {
+  font-size: 0.6875rem; /* 11px, like CF's section labels */
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8b8b8b;
+}
+
+:root[data-theme="dark"] .sidebar-content ul.top-level > li > details > summary .group-label > span.large {
+  color: #7e9097;
+}
+
+/* ---------------------------------------------------------------------------
+ * Content — rounded code surfaces, striped tables, tidy headings (CF style)
+ * ------------------------------------------------------------------------- */
+
+/* Non-Expressive-Code <pre> blocks match the EC frame radius (0.25rem, set
+ * via expressiveCode styleOverrides in astro.config.ts) */
+.sl-markdown-content pre:not(.expressive-code pre) {
+  border-radius: var(--gradle-content-radius);
+}
+
+/* Close off the filename tab: EC's editor frame draws the tab's top/left
+ * borders but leaves the right edge open; match the frame border. */
+.expressive-code .frame.has-title:not(.is-terminal) figcaption.header span.title {
+  border-inline-end: var(--ec-brdWd) solid var(--ec-brdCol);
+}
+
+.sl-markdown-content table {
+  border-collapse: collapse;
+  border-radius: var(--gradle-content-radius);
+  overflow: auto; /* clips the corner cells so the radius shows */
+}
+
+.sl-markdown-content tr:nth-child(2n) {
+  background-color: var(--gradle-table-tint);
+}
+
+.sl-markdown-content th {
+  background-color: var(--gradle-hover-fill);
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+  border: 1px solid var(--sl-color-gray-6);
+  padding: 0.5rem 0.75rem;
+}
+
+/* Right-hand "On this page" — accent the active section like CF */
+starlight-toc a[aria-current="true"] {
+  color: var(--sl-color-text-accent);
+  font-weight: 700;
+}
+
+/* Inline code chips share the content radius */
+.sl-markdown-content code:not(pre code) {
+  border-radius: var(--gradle-content-radius);
+}
+
+/* FileTree boxes share the content radius */
+.sl-markdown-content starlight-file-tree {
+  border-radius: var(--gradle-content-radius);
+}
+
+/* Content images (screenshots are often mostly white and vanish on the page
+ * background): hairline border + shared radius so they read as objects. */
+.sl-markdown-content img {
+  border: 1px solid var(--gradle-header-line);
+  border-radius: var(--gradle-content-radius);
+}
+
+/* Callout explanation lists (<CalloutList>): numbered bubbles matching the
+ * ones the gradle-callouts EC plugin renders inside code blocks. */
+.gd-callout-list ol {
+  list-style: none;
+  counter-reset: gd-callout;
+  padding-inline-start: 0.25rem;
+}
+
+.gd-callout-list ol > li {
+  counter-increment: gd-callout;
+  position: relative;
+  padding-inline-start: 1.75rem;
+}
+
+.gd-callout-list ol > li {
+  padding-inline-start: 2rem;
+}
+
+/* Same bubble style as .gd-callout in the EC callouts plugin (callouts.mjs) —
+ * keep the two in sync. */
+.gd-callout-list ol > li::before {
+  content: counter(gd-callout);
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.15em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding-inline: 0.25rem;
+  border-radius: 999px;
+  background: var(--gd-callout-bg);
+  color: var(--gd-callout-fg);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------------------------
+ * Asides / admonitions — Cloudflare-docs style: no border, 4px radius, soft
+ * solid tint, content indented to align past the title icon.
+ * Note + caution colors are lifted verbatim from cloudflare-docs (asides.css);
+ * tip + danger extend the same recipe with the matching shades (green-9/1,
+ * red-9/1) from their palette.
+ * ------------------------------------------------------------------------- */
+
+.starlight-aside {
+  border: unset;
+  border-radius: var(--gradle-content-radius);
+}
+
+.starlight-aside--note {
+  background-color: rgb(236, 244, 255);
+}
+
+.starlight-aside--tip {
+  background-color: #e3f8eb;
+  /* Starlight's tip accent is purple; recolor title + icon to match the green box */
+  --sl-color-asides-text-accent: #196535;
+}
+
+.starlight-aside--caution {
+  background-color: rgb(255, 248, 228);
+}
+
+.starlight-aside--danger {
+  background-color: #ffefee;
+}
+
+.starlight-aside .starlight-aside__title {
+  margin-left: 30px;
+}
+
+.starlight-aside .starlight-aside__title svg {
+  margin-left: -30px;
+}
+
+.starlight-aside .starlight-aside__content {
+  margin-top: unset;
+  margin-left: 30px;
+}
+
+:root[data-theme="dark"] .starlight-aside--note {
+  background-color: #002b67;
+}
+
+:root[data-theme="dark"] .starlight-aside--tip {
+  background-color: #0e381d;
+  --sl-color-asides-text-accent: #55d584;
+}
+
+:root[data-theme="dark"] .starlight-aside--caution {
+  background-color: #361a02;
+}
+
+:root[data-theme="dark"] .starlight-aside--danger {
+  background-color: #5a0801;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pagination (prev/next) — Cloudflare-docs style, lifted from their
+ * pagination.css: no card boxes, just compact text links with a small
+ * "Previous/Next" caption, pinned to opposite edges.
+ * ------------------------------------------------------------------------- */
+
+.pagination-links {
+  display: flex !important;
+  justify-content: space-between;
+  margin-top: 3rem;
+
+  & > a {
+    flex-basis: unset;
+    flex-grow: unset;
+    width: fit-content;
+
+    padding: unset;
+    border: unset;
+    box-shadow: unset;
+
+    &[rel="prev"] {
+      text-align: right;
+      margin-right: auto;
+    }
+
+    &[rel="next"] {
+      text-align: left;
+      margin-left: auto;
+    }
+
+    & > span {
+      font-size: 0.75rem;
+
+      .link-title {
+        font-size: 1rem;
+      }
+    }
+
+    & > svg {
+      align-self: self-end;
+      color: var(--pagination-arrow-color);
+      font-size: 1.25rem;
+      margin-bottom: 1px;
+    }
   }
+}
+
+:root {
+  --pagination-arrow-color: #1d1d1d;
+}
+
+:root[data-theme="dark"] {
+  --pagination-arrow-color: #f2f2f2;
 }

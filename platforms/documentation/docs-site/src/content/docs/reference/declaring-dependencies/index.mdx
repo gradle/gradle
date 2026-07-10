@@ -1,0 +1,157 @@
+---
+title: "1. Declaring dependencies"
+---
+
+import { JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import declaringDependencies1 from './declaring-dependencies-1.png';
+import dependencyManagementFileDependencies from './dependency-management-file-dependencies.png';
+import declaringDependencies2 from './declaring-dependencies-2.png';
+
+Declaring dependencies in Gradle involves specifying libraries or files that your project depends on.
+
+## Understanding producers and consumers
+
+In dependency management, it is essential to understand the distinction between _producers_ and _consumers_.
+
+When you build a library, you are acting as a _producer_, creating artifacts that will be consumed by others, the _consumers_.
+
+When you depend on that library, you are acting as a _consumer_.
+_Consumers_ can be broadly defined as:
+
+- Projects that depend on other projects.
+- Configurations that declare dependencies on specific artifacts.
+
+The decisions we make in dependency management often depend on the type of project we are building, specifically, what kind of _consumer_ we are.
+
+<Image src={declaringDependencies1} alt="declaring dependencies 1" />
+
+## Adding a dependency
+
+To add a dependency in Gradle, you use the <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler">`dependencies{}`</JavaDocLink> block in your build script.
+
+The `dependencies` block allows you to specify various types of dependencies such as external libraries, local JAR files, or other projects within a multi-project build.
+
+External dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID (group), artifact ID (name), and version.
+
+```groovy
+dependencies {
+    // Configuration Name + Dependency Notation - GroupID : ArtifactID (Name) : Version
+    configuration('<group>:<name>:<version>')
+}
+```
+
+Note:
+
+1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
+2. Gradle offers several  <Xref page="dependency-configurations" section="2. Dependency Configurations">_configuration_</Xref> options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
+3. You can specify the <Xref page="declaring-repositories-basics" section="Declaring Repositories Basics">repositories</Xref> where Gradle should look for dependencies in your build file.
+
+## Understanding types of dependencies
+
+There are three kinds of dependencies: module dependencies, project dependencies, and file dependencies.
+
+### 1. Module dependencies
+
+Module dependencies are the most common dependencies.
+They refer to a module in a repository:
+
+<SampleScripts sample_name="catalogs-settings" basename="build" tag="use_catalog_equiv" />
+
+### 2. Project dependencies
+
+Project dependencies allow you to declare dependencies on other projects within the same build.
+This is useful in multi-project builds where multiple projects are part of the same Gradle build.
+
+Project dependencies are declared by referencing the project path:
+
+<SampleScripts sample_name="declaring-dependencies-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" />
+
+### 3. File dependencies
+
+In some projects, you might not rely on binary repository products like [JFrog Artifactory](https://jfrog.com/artifactory/) or [Sonatype Nexus](https://www.sonatype.com/products/sonatype-nexus-repository) for hosting and resolving external dependencies.
+Instead, you might host these dependencies on a shared drive or to check them into version control alongside the project source code.
+
+These are known as file dependencies because they represent files without any metadata (such as information about transitive dependencies, origin, or author) attached to them.
+
+<Image src={dependencyManagementFileDependencies} alt="dependency management file dependencies" />
+
+To add files as dependencies for a configuration, you simply pass a <Xref page="working-with-files" section="Using `FileCollection`">file collection</Xref> as a dependency:
+
+<SampleScripts sample_name="external-dependencies" basename="build" tag="file-dependencies" />
+
+:::caution
+It is recommended to use project dependencies or external dependencies over file dependencies.
+:::
+
+## Looking at an example
+
+Let’s imagine an example for a Java application which uses [Guava](https://github.com/google/guava), a set of core Java libraries from Google:
+
+<Image src={declaringDependencies2} alt="declaring dependencies 2" />
+
+The Java app contains the following Java class:
+
+<SampleFile sample_name="declaring-dependencies-basic" path="common/app/src/main/java/org/example/InitializeCollection.java" />
+
+To add the [Guava](https://mvnrepository.com/artifact/com.google.guava/guava) library to your Gradle project as a dependency, you must add the following line to your build file:
+
+<SampleScripts sample_name="managing-transitive-dependencies-disable-for-configuration" basename="build" tag="dependency-config" />
+
+Where:
+
+- `implementation` is the configuration.
+- `com.google.guava:guava:23.0` specifies the group, name, and version of the library:
+  - `com.google.guava` is the group ID.
+  - `guava` is the artifact ID (i.e., name).
+  - `23.0` is the version.
+
+Take a quick look at the [Guava page in Maven Central](https://mvnrepository.com/artifact/com.google.guava/guava) as a reference.
+
+## Listing project dependencies
+
+The `dependencies` task provides an overview of the dependencies of your project.
+It helps you understand what dependencies are being used, how they are resolved, and their relationships, including any transitive dependencies by rendering a dependency tree from the command line.
+
+This task can be particularly useful for debugging dependency issues, such as version conflicts or missing dependencies.
+
+For example, let’s say our `app` project contains the follow lines in its build script:
+
+<SampleScripts sample_name="declaring-dependencies-basic" basename="build" subpath="app" tag="java-dependency-mgmt" />
+
+Running the `dependencies` task on the `app` project yields the following:
+
+```bash
+$ ./gradlew app:dependencies
+```
+
+```text
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+implementation - Implementation dependencies for the 'main' feature. (n)
+\--- com.google.guava:guava:30.0-jre (n)
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- com.google.guava:guava:30.0-jre
+|    +--- com.google.guava:failureaccess:1.0.1
+|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- org.checkerframework:checker-qual:3.5.0
+|    +--- com.google.errorprone:error_prone_annotations:2.3.4
+|    \--- com.google.j2objc:j2objc-annotations:1.3
+\--- org.apache.commons:commons-lang3:3.14.0
+
+runtimeOnly - Runtime-only dependencies for the 'main' feature. (n)
+\--- org.apache.commons:commons-lang3:3.14.0 (n)
+```
+
+We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` dependency has been added.
+As for the `runtimeOnly` configuration, the `org.org.apache.commons:commons-lang3:3.14.0` dependency has been added.
+
+We also see a list of transitive dependencies for `com.google.guava:guava:30.0-jre` (which are the dependencies for the `guava` library), such as `com.google.guava:failureaccess:1.0.1` in the `runtimeClasspath` configuration.
+
+***Next Step:*** <Xref page="dependency-configurations" section="2. Dependency Configurations">Learn about Dependency Configurations</Xref> \>\>

@@ -1,1 +1,0 @@
-include("sub-project-1", "sub-project-2", "sub-project-3")

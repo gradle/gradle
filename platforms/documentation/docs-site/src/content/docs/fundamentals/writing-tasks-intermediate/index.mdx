@@ -1,0 +1,291 @@
+---
+title: "Creating and Registering Tasks"
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref, YouTube } from '#/components';
+import { Image } from 'astro:assets';
+import gradleBasic14 from './gradle-basic-14.png';
+
+The work that Gradle can do on a project is defined by one or more _tasks_.
+
+<Image src={gradleBasic14} alt="gradle basic 14" />
+
+A **task** represents some independent unit of work that a build performs.
+This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
+
+When a user runs `./gradlew build` in the command line, Gradle will execute the `build` **task** along with any other tasks it depends on.
+
+## Task Types
+
+A **task type** defines what kind of work a **task** can do.
+It’s like a blueprint or class.
+
+<YouTube id="UNwswHpGptA" />
+
+Gradle includes many **built-in task types**, such as `Copy`, `Jar`, and `Test`, and you can also define your own.
+By default, a **task** is of **type** <JavaDocLink class="org.gradle.api.DefaultTask" /> .
+
+Let’s start with a simple custom task that prints a message:
+
+<SampleScripts sample_name="hello" basename="build" />
+
+You just registered a **task** called `hello` of **type** `DefaultTask` and gave it an action using `doLast{}`.
+
+A task is **created** in the build script using the <JavaDocLink class="org.gradle.api.tasks.TaskContainer">`TaskContainer.register()`</JavaDocLink> method, which allows it to be then used in the build logic.
+
+When you run the `hello` task in the command-line using `./gradlew hello`, it prints your message:
+
+```bash
+$ ./gradlew hello
+```
+
+```text
+Hello world!
+```
+
+When you **register** (i.e. create) a **task** in your build script, you can:
+
+- Use the default **task type** (`DefaultTask`) and define the behavior inline.
+- Use a **built-in task type**, like `Copy`, to take advantage of pre-defined behavior.
+- Create and use a **custom task type** if you need reusable behavior across tasks.
+
+This example registers a **task** called `copyTask` which copies `*.war` files from the `source` directory to the `target` directory using the `Copy` **built-in task type**:
+
+<SampleScripts sample_name="task-tutorial" basename="build" tag="copy" />
+
+## Built-in Task Types
+
+<YouTube id="yIxZhQJ8WSY" />
+
+Gradle provides many **built-in task types** with common and popular functionality, such as copying or deleting files.
+
+This registers a Gradle **task** named `removeOutput` of **type** `Delete`.
+When the **task** runs, it will delete the file `build/outputs/1.txt` relative to the project directory.
+
+<SampleScripts sample_name="incremental-task" basename="build" tag="removed-output" />
+
+There are many **task types** developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are detailed in the <GroovyDocLink class="org.gradle.api.plugins.antlr.AntlrTask">DSL</GroovyDocLink>.
+
+## Custom Task Types
+
+Gradle **tasks** are a subclass of <JavaDocLink class="org.gradle.api.Task" />.
+
+<YouTube id="2CSMFt0a7YQ" />
+
+In the example below, the `HelloTask` class, a **custom task type**, is created by extending <JavaDocLink class="org.gradle.api.DefaultTask" /> (our default task type):
+
+<SampleScripts sample_name="tutorial-task" basename="build" tag="hello" />
+
+The `hello` **task** is registered with the new **type** `HelloTask`.
+
+Executing our new `hello` **task** results in the following:
+
+```bash
+$ ./gradlew hello
+```
+
+```text
+> Task :app:hello
+hello from HelloTask
+```
+
+The Gradle `help` **task** can reveal the specifications of the `hello` task:
+
+```bash
+$ ./gradlew help --task hello
+```
+
+```text
+> Task :help
+Detailed task information for hello
+
+Path
+:app:hello
+
+Type
+HelloTask (Build_gradle$HelloTask)
+
+Options
+--rerun     Causes the task to be re-run even if up-to-date.
+
+Description
+A lovely greeting task.
+
+Group
+Custom tasks
+```
+
+## Task Input and Outputs
+
+For a **custom task** to do useful work, it typically needs some **inputs** which it uses to produce **outputs**.
+
+<YouTube id="Fgb9miYkVak" />
+
+A **task** can declare those **inputs** (files, values) and **outputs** (files it creates).
+Ideally, these inputs and outputs leverage Gradle managed types.
+This helps Gradle skip work when nothing has changed:
+
+<SampleScripts sample_name="tutorial-task" basename="build" tag="default" />
+
+Now Gradle knows what the **task** needs and what it produces.
+If nothing changes, the **task** is skipped.
+
+<YouTube id="McB2d4zp6f8" />
+
+## Task Action
+
+**Task actions** are the blocks of code that define what the **custom task** does when it runs.
+
+Every **task** can have one or more actions, and they’re executed during the execution phase of the Gradle build lifecycle.
+
+<YouTube id="l3MT7Ie5Dcs" />
+
+In the example below, a **custom task type** is created called `GreetingTask`.
+The `@TaskAction` annotation marks a method that Gradle should call when the **task** of this **type** is executed:
+
+<SampleScripts sample_name="custom-task" basename="build" tag="add-action" />
+
+A **task action** can also be added using `doLast {}` or `doFirst {}`:
+
+
+
+In this example, the **action** is `println("Hello world!")`.
+It will run when the **task** is executed.
+
+## Task Group and Description
+
+***Group*** and ***description*** are metadata properties used to organize and document tasks.
+They are primarily used to make the project easier to navigate for developers.
+
+<YouTube id="lU0KG3AESaY" />
+
+1. The group acts as a ***category*** for the task.
+When you run `./gradlew tasks`, Gradle clusters all tasks with the same group name together.
+2. The description is a ***short summary*** explaining what the task actually does.
+
+## Task Dependencies
+
+You can declare **tasks** that depend on other **tasks**:
+
+<SampleScripts sample_name="intro" basename="build" />
+
+```bash
+$ gradle -q intro
+```
+
+```text
+Hello world!
+I'm Gradle
+```
+
+<YouTube id="nQczpMWYI7g" />
+
+The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
+
+<SampleScripts sample_name="lazy-depends-on" basename="build" />
+
+```bash
+$ ./gradlew -q taskX
+```
+
+```text
+taskY
+taskX
+```
+
+The `hello` **task** from the previous example is updated to include a dependency:
+
+<SampleScripts sample_name="dynamic-depends" basename="build" tag="hello" />
+
+The `hello` **task** now depends on the `assemble` **task**, which means that Gradle must execute the `assemble` **task** **before** it can execute the `hello` **task**:
+
+```bash
+$ ./gradlew :app:hello
+```
+
+```text
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+
+> Task :app:hello
+Hello world!
+```
+
+## Task Configuration
+
+Once registered, **tasks** can be accessed via the <JavaDocLink class="org.gradle.api.tasks.TaskProvider" /> API for further configuration.
+
+For instance, you can add behavior to an existing **task**:
+
+<SampleScripts sample_name="hello-enhanced" basename="build" />
+
+```bash
+$ ./gradlew -q hello
+```
+
+```text
+Hello Venus
+Hello Earth
+Hello Mars
+Hello Jupiter
+```
+
+:::tip
+The calls `doFirst` and `doLast` can be executed multiple times.
+They add an action to the beginning or the end of the task’s actions list.
+When the task executes, the actions in the action list are executed in order.
+:::
+
+A task is optionally **configured** in a build script using the <JavaDocLink class="org.gradle.api.tasks.TaskCollection">`TaskCollection.named()`</JavaDocLink> method.
+
+## Task Classification
+
+There are two classes of tasks that can be executed:
+
+1. **Actionable tasks** have some action(s) attached to do work in your build: `compileJava`.
+2. **Lifecycle tasks** are tasks with no actions attached: `assemble`, `build`.
+
+Typically, a **lifecycle** tasks depends on many **actionable** tasks, and is used to execute many tasks at once.
+
+## Task Performance
+
+To write "good" Gradle tasks, you should focus on three things: ***speed***, ***clarity***, and ***intelligence***.
+
+<YouTube id="c8fgpky91rE" />
+
+### 1. Load configuration lazily
+
+A "fast" task is one that loads configuration lazily.
+
+Use lazy APIs like `tasks.register()` instead of eager ones like `tasks.create()`.
+`register()` tells Gradle to only configure the task if someone actually runs it.
+If you use `create()`, Gradle sets up that task every single time you do **anything** (even just checking the version), which adds up to a very slow experience.
+
+### 2. Define inputs and outputs
+
+A "clear" task is one that knows when it doesn’t need to run.
+
+By defining your inputs and outputs, Gradle can perform ***up-to-date checks***.
+If you run the task twice and nothing has changed, Gradle should say `UP-TO-DATE` and finish in milliseconds.
+
+### 3. Do work during execution
+
+A "smart" task does the work during the Execution Phase, not the Configuration Phase.
+
+One of the most common beginner mistakes is putting code in the wrong place:
+
+- ***Configuration Block:*** Use this only to set up settings (like the `group` or `description`).
+- ***Execution Block (`doLast` or `@TaskAction`):*** Use this for the actual work (moving files, compiling code, etc.)
+
+### 4. Document Your Work
+
+A "good" task defines a `group` and a `description`.
+When a teammate runs `./gradlew tasks`, your custom task will appear in a neat category with a clear explanation of what it does, rather than being buried in the "Other" category.
+
+***Next Step:*** <Xref page="plugins-intermediate" section="Working with Plugins">Learn about Plugins</Xref> \>\>

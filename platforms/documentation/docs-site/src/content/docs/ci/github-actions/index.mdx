@@ -1,0 +1,156 @@
+---
+title: "Gradle on GitHub Actions"
+---
+
+This page is a reference for integrating Gradle with [GitHub Actions](https://github.com/features/actions/) using the official [`gradle/actions`](https://github.com/gradle/actions).
+
+## Available actions
+
+The [`gradle/actions`](https://github.com/gradle/actions) repository publishes three composable actions.
+All examples on this page target the current major version, `v6`.
+
+| Action | Purpose |
+| --- | --- |
+| [`gradle/actions/setup-gradle`](https://github.com/gradle/actions/tree/main/setup-gradle) | Configures the runner for Gradle builds. Restores and saves the Gradle User Home cache, validates the Gradle Wrapper, and captures Build Scan® links in the job summary. |
+| [`gradle/actions/dependency-submission`](https://github.com/gradle/actions/tree/main/dependency-submission) | Generates a dependency graph for the project and submits it to the GitHub Dependency Submission API, enabling Dependabot alerts and supply-chain security features. |
+| [`gradle/actions/wrapper-validation`](https://github.com/gradle/actions/tree/main/wrapper-validation) | Validates the checksum of every `gradle-wrapper.jar` in the repository. `setup-gradle` runs this check automatically; use this action standalone when you do not need the rest of `setup-gradle`. |
+
+:::note
+`gradle/actions/setup-gradle` is the successor to the deprecated `gradle/gradle-build-action`.
+New projects should use `gradle/actions/setup-gradle@v6`.
+:::
+
+## Configuring builds with `setup-gradle`
+
+A minimal workflow that builds a Gradle project and publishes a Build Scan:
+
+```yaml
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
+
+      - run: ./gradlew build
+```
+
+### Key inputs
+
+| Input | Description |
+| --- | --- |
+| `gradle-version` | Gradle version to provision on the runner. Accepts an explicit version (e.g. `8.14`) or an alias: `wrapper` (default), `current`, `release-candidate`, `nightly`, `release-nightly`. |
+| `cache-provider` | Caching backend. `enhanced` (default, optimized proprietary cache — free for public repos) or `basic` (open-source wrapper over `actions/cache`). New in v6. |
+| `cache-disabled` | Set to `true` to disable all caching. |
+| `cache-read-only` | Read cache entries but do not write them back. Typical for feature branches so only the default branch updates the cache. |
+| `cache-write-only` | Start with a clean Gradle User Home and save state at job end. Useful for seeding a fresh cache. |
+| `cache-cleanup` | Purge unused files from Gradle User Home before saving. One of `always`, `on-success` (default), or `never`. |
+| `cache-encryption-key` | Base64-encoded AES key used to encrypt configuration-cache entries, which may contain credentials. Required to cache the configuration cache across jobs. |
+| `gradle-home-cache-includes` / `gradle-home-cache-excludes` | Glob patterns that add to or subtract from the set of Gradle User Home paths that are cached. |
+| `build-scan-publish` | When `true`, publishes a Build Scan for every Gradle invocation in the job. |
+| `build-scan-terms-of-use-url` / `build-scan-terms-of-use-agree` | Required when `build-scan-publish` is enabled. Set the URL to `https://gradle.com/terms-of-service` and agreement to `yes`. |
+| `develocity-access-key` | Access key for publishing Build Scans to a private Develocity server. Provide via `secrets`. |
+| `add-job-summary` | Controls the GitHub Actions job summary produced by the action: `always` (default), `on-failure`, or `never`. |
+| `add-job-summary-as-pr-comment` | Mirror the job summary as a pull-request comment: `never` (default), `on-failure`, or `always`. |
+
+See the [`setup-gradle` documentation](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md) for the complete input reference.
+
+### Caching behavior
+
+`setup-gradle` automatically saves and restores the Gradle User Home (`~/.gradle`), which contains the Gradle distribution, resolved dependencies, and the local build cache.
+A cache entry is written at job completion when the job is a push to the default branch; other jobs restore from existing entries.
+
+Starting with version 6.1.0, the default cache backend is the **enhanced** provider, which offers higher hit rates than the standard GitHub Actions cache.
+Set `cache-provider: basic` to use the fully open-source implementation over `actions/cache`.
+
+## Submitting dependency graphs
+
+The `dependency-submission` action runs the Gradle build in a dedicated mode that captures the resolved dependency graph, then submits it to GitHub via the [Dependency Submission API](https://docs.github.com/en/rest/dependency-graph/dependency-submission).
+Once submitted, the graph powers Dependabot alerts and the Insights → Dependency graph view.
+
+```yaml
+name: Dependency Submission
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/dependency-submission@v6
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
+```
+
+:::note
+The workflow requires `contents: write` permission to submit the graph. Both **Dependency graph** and **Dependabot alerts** must be enabled in repository settings.
+:::
+
+### Key inputs
+
+| Input | Description |
+| --- | --- |
+| `dependency-graph` | What to do with the generated graph: `generate-and-submit` (default), `generate-and-upload` (save as workflow artifact only), `generate-submit-and-upload`, or `clear` to remove previously submitted graphs. |
+| `dependency-graph-continue-on-failure` | If `true`, a failure to generate or submit the graph does not fail the job. |
+| `dependency-graph-include-projects` / `-exclude-projects` | Regex filters on Gradle subproject paths, e.g. `:app` or `:libs:.*`. |
+| `dependency-graph-include-configurations` / `-exclude-configurations` | Regex filters on configuration names, e.g. exclude `testRuntimeClasspath` from the submitted graph. |
+| `dependency-resolution-task` | Task used to resolve dependencies. Defaults to the built-in `GitHubDependencyGraphPlugin` resolution; override only if a custom task is required. |
+| `additional-arguments` | Extra arguments appended to the Gradle invocation (for example `--no-configuration-cache`). |
+| `build-root-directory` | Path to the Gradle build if it is not at the repository root. |
+| `artifact-retention-days` | Retention for uploaded dependency-graph artifacts (default `30`). |
+
+See the [`dependency-submission` documentation](https://github.com/gradle/actions/blob/main/docs/dependency-submission.md) for the complete input reference.
+
+## Validating the Gradle Wrapper
+
+`setup-gradle` validates every `gradle-wrapper.jar` in the repository on each run. Projects that do not otherwise use `setup-gradle` (for example, those building with a pre-installed Gradle distribution) can run the standalone action:
+
+```yaml
+- uses: gradle/actions/wrapper-validation@v6
+```
+
+## Build Scans in job summaries
+
+When `setup-gradle` or `dependency-submission` detects a published Build Scan, it appends the scan link and a task-execution summary to the GitHub Actions job summary. Use `add-job-summary-as-pr-comment: on-failure` to surface the same information on the pull request when a build fails.
+
+## Matrix builds
+
+For matrix builds, use `cache-read-only: true` on non-primary matrix legs so only one leg writes to the cache:
+
+```yaml
+strategy:
+  matrix:
+    java: [17, 21]
+steps:
+  - uses: gradle/actions/setup-gradle@v6
+    with:
+      cache-read-only: ${{ matrix.java != 21 }}
+```

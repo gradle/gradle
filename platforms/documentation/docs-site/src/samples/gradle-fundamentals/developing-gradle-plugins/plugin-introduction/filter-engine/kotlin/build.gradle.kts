@@ -1,6 +1,0 @@
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform {
-        includeEngines("junit-vintage")
-        // excludeEngines("junit-jupiter")
-    }
-}

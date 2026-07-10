@@ -1,0 +1,153 @@
+---
+title: "Visual Studio"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import visualStudioTaskGraph from './visual-studio-task-graph.png';
+
+The Visual Studio Plugin generate files that are used by the [Visual Studio IDE](https://visualstudio.microsoft.com/), thus making it possible to open the solution into Visual Studio (`File` - `Open` - `Project/Solution…​`).
+
+What exactly the `visual-studio` plugin generates depends on which other plugins are used:
+
+**Visual Studio Plugin behavior**
+
+| Plugin | Description |
+| --- | --- |
+| None | Generates minimal solution file. |
+| <Xref page="cpp-application-plugin" section="C++ Application">C++ Application</Xref> | Adds a project representing the C++ application to the solution file. |
+| <Xref page="cpp-library-plugin" section="C++ Library">C++ Library</Xref> | Adds a project for each specified linkage representing the shared and/or static library to the solution file. |
+
+## Usage
+
+<SampleScripts sample_name="visual-studio" basename="build" tag="apply-plugin" />
+
+The Visual Studio Plugin adds a number of tasks to your project.
+The main tasks that you will use are the `visualStudio`, `cleanVisualStudio` and `openVisualStudio` tasks.
+
+## Tasks
+
+The following diagram shows the relationships between tasks added by this plugin.
+
+<Image src={visualStudioTaskGraph} alt="visual studio task graph" />
+
+### Lifecycle Tasks
+
+<dl>
+<dt>`visualStudio` — <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+_Depends on_: `_projectName_VisualStudioSolution` and all Visual Studio project file generation tasks
+
+Generates all Visual Studio configuration files.
+
+</dd>
+<dt>`cleanVisualStudio` — <GroovyDocLink class="org.gradle.api.tasks.Delete" /></dt>
+<dd>
+
+_Depends on_: all Visual Studio project and solution file clean tasks
+
+Removes all Visual Studio configuration files.
+
+</dd>
+<dt>`openVisualStudio` - <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+_Depends on_: `visualStudio`
+
+Open the Visual Studio solution inside the IDE.
+
+</dd>
+</dl>
+
+### IDE Workspace Tasks
+
+<dl>
+<dt>`_projectName_VisualStudioSolution` - <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask" /></dt>
+<dd>
+
+Generates the `.sln` file. This task is only available on the root project.
+
+</dd>
+</dl>
+
+### IDE Project Tasks
+
+#### C++ Application Plugin Tasks
+
+<dl>
+<dt>`_projectName_VisualStudioProject` — <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask">GenerateProjectFileTask</GroovyDocLink></dt>
+<dd>
+
+Generates the `.vcxproj` file for the application component.
+
+</dd>
+<dt>`_projectName_VisualStudioFilters` — <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask" /></dt>
+<dd>
+
+Generates the `.vcxproj.filters` file for the application component.
+
+</dd>
+<dt>`mainVisualStudio` - <GroovyDocLink class="org.gradle.api.Task" /> (lifecycle)</dt>
+<dd>
+
+_Depends on_: `_projectName_VisualStudioProject` and `_projectName_VisualStudioFilters`
+
+Generates all Visual Studio project files for the application component.
+
+</dd>
+</dl>
+
+#### C++ Library Plugin Tasks
+
+<dl>
+<dt>`_projectName_DllVisualStudioProject` — <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask">GenerateProjectFileTask</GroovyDocLink></dt>
+<dd>
+
+Generates the `.vcxproj` file for the shared linkage of the `main` component.
+
+</dd>
+<dt>`_projectName_DllVisualStudioFilters` — <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask" /></dt>
+<dd>
+
+Generates the `.vcxproj.filters` file for the shared linkage of the `main` component.
+
+</dd>
+<dt>`_projectName_LibVisualStudioProject` — <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask">GenerateProjectFileTask</GroovyDocLink></dt>
+<dd>
+
+Generates the `.vcxproj` file for the static linkage of the `main` component.
+
+</dd>
+<dt>`_projectName_LibVisualStudioFilters` — <GroovyDocLink class="org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask" /></dt>
+<dd>
+
+Generates the `.vcxproj.filters` file for the static linkage of the `main` component.
+
+</dd>
+<dt>`mainVisualStudio` - <GroovyDocLink class="org.gradle.api.Task" /> (lifecycle)</dt>
+<dd>
+
+_Depends on_: `_projectName_DllVisualStudioProject` (for shared linkage), `_projectName_DllVisualStudioFilters` (for shared linkage), `_projectName_LibVisualStudioProject` (for static linkage) and `_projectName_LibVisualStudioFilters` (for static linkage)
+
+Generates all Visual Studio project files for the library component.
+
+</dd>
+</dl>
+
+## Configuration
+
+The Visual Studio Plugin allows for some customization of the generated files.
+The following sections are shows the customization.
+
+### Change solution generated file location
+
+The location of the generated solution can be configured on the root project:
+
+<SampleScripts sample_name="visual-studio" basename="build" tag="configure-solution-location" />
+
+### Change project generated files location
+
+The location of the generated project files can be configured on any project:
+
+<SampleScripts sample_name="visual-studio" basename="build" tag="configure-project-and-filters-location" />

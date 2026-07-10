@@ -1,0 +1,180 @@
+---
+title: "Best Practices for Testing"
+---
+
+import { CalloutList, FileTree, GitHubButton, SampleFile, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+## Test your custom Task and Plugins with TestKit
+
+You should test any custom tasks or plugins you create using <Xref page="test-kit" section="Testing Build Logic with TestKit">`Gradle TestKit`</Xref>.
+
+### Explanation
+
+Gradle’s flexibility supports a natural evolution of custom types as they mature.
+
+Creating new tasks and plugins directly in a `build.gradle(.kts)` file is a great way to prototype new functionality.
+As that functionality stabilizes, you should extract these definitions into `buildSrc` or a standalone plugin project for better reusability and maintainability.
+Once types exist outside of a single build file, you can easily write functional tests for them using TestKit.
+
+A mature build should include functional tests for its custom types to ensure they behave as expected.
+
+### Example
+
+#### Don’t Do This
+
+The following build defines a custom task and a custom plugin that applies it within the `build.gradle(.kts)` file.
+The plugin adds multiple custom tasks that print a greeting using properties defined in a custom extension.
+
+This is a common pattern for prototyping new functionality, but it lacks tests to verify the behavior of the custom types.
+The only way to verify that the task and plugin work as intended is to run the build manually and inspect the output.
+
+There are several problems with the sample below:
+
+<SampleScripts sample_name="use-test-kit-avoid" basename="build" />
+
+<CalloutList>
+
+1. **The Task is declared as cacheable**: However, the task’s output differs depending on when it is run, so it should not be cached.
+2. **The current time is used as an undeclared input**: Inputs to a task must be explicitly declared using the appropriate annotations, otherwise Gradle cannot track changes to them.
+3. **Error in task property wiring**: The `lastName` property is linked to the `firstName` property on the extension, which is likely a mistake.
+4. **The wrong variable is assigned during task configuration**: The `greeter` variable from the buildscript is mistakenly assigned instead of the task’s `greeting` property.
+
+</CalloutList>
+
+#### Do This Instead
+
+<GitHubButton sample="use-test-kit-do" action="download" />
+
+In this updated version of the build, the custom types are defined in an included `build-logic` <Xref page="best-practices-structuring-builds" section="Favor `build-logic` Composite Builds for Build Logic">composite build</Xref>, which now includes a basic set of functional tests using Gradle TestKit.
+
+While these custom types are written in Java for demonstration purposes, they could just as easily be implemented in Groovy or Kotlin.
+Because they reside in a separate, complete Gradle build, they can be thoroughly tested using TestKit.
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+<FileTree>
+
+- build-logic/
+  - src
+    - main
+      - java
+        - org
+          - example
+            - MyExtension.java
+            - MyPlugin.java
+            - MyTask.java
+    - functionalTest
+      - java
+        - org
+          - example
+            - MyPluginFunctionalTest.java
+  - build.gradle.kts
+  - settings.gradle.kts
+- settings.gradle.kts
+- build.gradle.kts
+
+</FileTree>
+
+</TabItem>
+<TabItem label="Groovy">
+
+<FileTree>
+
+- build-logic/
+  - src
+    - main
+      - java
+        - org
+          - example
+            - MyExtension.java
+            - MyPlugin.java
+            - MyTask.java
+    - functionalTest
+      - java
+        - org
+          - example
+            - MyPluginFunctionalTest.java
+  - build.gradle
+  - settings.gradle
+- settings.gradle
+- build.gradle
+
+</FileTree>
+
+</TabItem>
+</Tabs>
+
+We’ve corrected the issues with the plugin and task from the previous example:
+
+<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/main/java/org/example/MyTask.java" />
+
+<CalloutList>
+
+1. **`Today` is a proper `@Input`**: This allows Gradle’s `UP-TO-DATE` checking to properly consider it when rerunning the task.
+
+</CalloutList>
+
+<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/main/java/org/example/MyPlugin.java" />
+
+<CalloutList>
+
+1. **Corrected typo in assignment**: The last name convention set to the value of the last name from the extension.
+2. **`Today` is set to the same value on all tasks**: Only calling `Instant.now()` once, rather than every time a task is created.
+
+</CalloutList>
+
+Writing and running the tests as described below helped identify the bugs in the plugin implementation.
+
+We defined a functional test suite within the `build-logic` project.
+Because TestKit tests tend to be slower and more complex than unit tests, they are typically kept separate.
+Locating these tests in a dedicated `functionalTest` suite also clarifies their purpose for other developers.
+
+<SampleScripts sample_name="use-test-kit-do" basename="build" subpath="build-logic" tag="do-this" />
+
+<CalloutList>
+
+1. **Define the new test suite**: Creates a `functionalTest` <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite</Xref>.
+2. **Add TestKit dependency**: This contains the `GradleRunner` class we’ll use to write tests.
+3. **Make the `java-gradle-plugin` aware of the new test suite**: Now the usable plugin source from the project’s main production code will be available to these tests.
+
+</CalloutList>
+
+With this setup in place, we can write functional tests for our plugin in the `build-logic/src/functionalTest/java` directory.
+You can run `./gradlew :build-logic:functionalTest` or `./gradlew :build-logic:check` from the root project directory to execute these tests.
+
+:::note
+By default, tests within the included `build-logic` build are not executed when you run tests in the root project.
+Because the root project only requires the build artifacts from `build-logic`, Gradle will build the project without running its internal tests.
+To run them, you must explicitly invoke the tasks: `./gradlew :build-logic:check`.
+:::
+
+In the functional test class, we use TestKit to initialize a temporary Gradle project, apply our plugin, and verify that it behaves as expected.
+
+The example tests below show various techniques used to verify the plugin’s behavior against actual, ad-hoc Gradle builds defined within the tests:
+
+<SampleFile sample_name="use-test-kit-do" path="common/build-logic/src/functionalTest/java/org/example/MyPluginFunctionalTest.java" />
+
+<CalloutList>
+
+1. **testTaskRegistration**: This test runs the `tasks` report and verifies the output.
+2. **testTaskExecution**: This test runs the custom task and verifies its output file.
+3. **testTaskDeterminism**: This test runs the build twice - forcing tasks to rerun the second time - to ensure the output is identical, which is necessary for caching.
+4. **testTaskCacheability**: This test checks that when the task is run twice in a row, the second run is loaded from cache.
+
+</CalloutList>
+
+These examples only scratch the surface of what you can achieve with TestKit.
+For instance, a comprehensive test for cacheability should verify that changes to inputs correctly trigger re-execution and include tests for <Xref page="build-cache-debugging" section="Testing cache relocatability">relocatability</Xref>.
+
+You can find more information in the <Xref page="test-kit" section="Testing Build Logic with TestKit">Gradle TestKit documentation</Xref>.
+
+### References
+
+- <Xref page="test-kit" section="Testing Build Logic with TestKit">`Gradle TestKit`</Xref>
+- <Xref page="testing-binary-plugin-advanced" section="Binary Plugin Testing">`Testing Binary Plugins`</Xref>
+
+### Tags
+
+<Xref page="tags-reference" section="`#plugins`">`#plugins`</Xref>, <Xref page="tags-reference" section="`#testing`">`#testing`</Xref>

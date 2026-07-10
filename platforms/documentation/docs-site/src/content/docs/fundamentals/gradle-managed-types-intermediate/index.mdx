@@ -1,0 +1,104 @@
+---
+title: "Gradle Managed Types"
+---
+
+import { SampleScripts, Xref, YouTube } from '#/components';
+import { Image } from 'astro:assets';
+import gradleBasic12 from './gradle-basic-12.png';
+
+Gradle Managed Types are the building blocks for writing modern, efficient, and cache-friendly build logic.
+
+<Image src={gradleBasic12} alt="gradle basic 12" />
+
+<YouTube id="GbHRL4lz4oc" />
+
+When writing build logic, you’ll often reach for standard Groovy or Kotlin types.
+However, Gradle provides its own managed types that are lazy, making them far better suited for build logic.
+
+These types enable:
+
+- Incremental builds
+- Build cache support
+- Configuration cache compatibility
+- Accurate tracking of task inputs and outputs
+
+For example, instead of using a `String`, you should use a `Property<String>`:
+
+<SampleScripts sample_name="example" basename="build" subpath="app" tag="demo" />
+
+```bash
+$ ./gradlew demoTask
+```
+
+```text
+>> DURING CONFIGURATION
+>>> eagerMessage type: class kotlin.String
+>>> eagerMessage value: Hello from eager
+>>> lazyMessage type: class org.gradle.api.internal.provider.DefaultProperty
+>>> lazyMessage value: property(java.lang.String, map(java.lang.String provider(?) check-type()))
+
+> Task :app:demoTask
+>> DURING EXECUTION
+>>> eagerMessage type: class kotlin.String
+>>> eagerMessage value: Hello from eager
+>>> lazyMessage type: class org.gradle.api.internal.provider.DefaultProperty
+>>> lazyMessage value: Hello from lazy
+```
+
+This example showcases that:
+
+- **Eager values** are computed immediately when the script is loaded (configuration phase).
+- **Lazy values** (like `Property` or `Provider`) defer computation until the task is executed (execution phase).
+
+It’s always best to ensure Gradle evaluates task logic only during the execution phase to avoid wasting time during configuration.
+Using lazy types and values in Gradle ensures builds are fast, efficient, and compatible with performance features like incremental builds, the Build Cache, and the Configuration Cache.
+
+## Common Managed Types
+
+Here is a list of common Gradle managed types you can use in your build logic:
+
+| Type | Purpose | Use-Case |
+| --- | --- | --- |
+| `Property<T>` | Lazy scalar value (e.g., a version number) | A version string |
+| `ListProperty<T>` | Lazy list of values (e.g., compiler args) | A list of compiler args |
+| `MapProperty<K, V>` | Lazy map of values (e.g., environment vars) | A map of Maven Pom properties |
+| `RegularFileProperty` | Lazy reference to a single file (input or output) | A single file input/output |
+| `DirectoryProperty` | Lazy reference to a directory (input or output) | A destination directory |
+| `Provider<T>` | Lazily evaluated, read-only value (e.g., task output) | A dependency on task output |
+
+Gradle distinguishes between **eager** and **lazy** evaluation to control ***when*** values are computed and ***how*** they participate in up-to-date checks, caching, and task wiring.
+Let’s review the differences one more time:
+
+## Eager Evaluation
+
+- Happens ***immediately*** during the configuration phase.
+- Values are resolved **as soon as the line is executed**.
+- Prevents Gradle from optimizing build logic.
+
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="eager-evaluation" />
+
+These eager values are resolved even if the task isn’t run, breaking configuration cache compatibility and reducing build performance.
+
+## Lazy Evaluation
+
+- Defers computation until it’s actually needed (usually during task execution).
+- Enables Gradle to apply caching, parallel execution, and configuration avoidance.
+- Fully supports configuration cache and incremental builds.
+
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="lazy-evaluation" />
+
+Here, nothing is resolved immediately—Gradle delays evaluation until it’s actually required.
+
+Let’s take a look at an example.
+
+## Example
+
+This task will break the Configuration Cache due to **eager** access:
+
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="eager-task" />
+
+The fix: use a **lazy** `Provider` or a `Property<String>`:
+
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="lazy-task" />
+
+***Next Step:*** <Xref page="dependencies-intermediate" section="Declaring and Managing Dependencies">Learn about Declaring and Managing Dependencies</Xref> \>\>

@@ -1,0 +1,134 @@
+---
+title: "The Base Plugin"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+
+The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <Xref page="organizing-tasks" section="Lifecycle tasks">_lifecycle_ tasks</Xref> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
+
+## Usage
+
+Applying the Base Plugin:
+
+<SampleScripts sample_name="base-plugin" basename="build" tag="apply-base-plugin" />
+
+## Task
+
+<dl>
+<dt>`clean` — `Delete`</dt>
+<dd>
+
+Deletes the build directory and everything in it, i.e. the path specified by the <GroovyDocLink class="org.gradle.api.file.ProjectLayout" method="buildDirectory">layout.buildDirectory</GroovyDocLink> project property.
+
+</dd>
+<dt>`check` — _lifecycle task_</dt>
+<dd>
+
+Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(_task_)`.
+
+</dd>
+<dt>`assemble` — _lifecycle task_</dt>
+<dd>
+
+Plugins and build authors should attach tasks that produce distributions and other consumable artifacts to this lifecycle task. For example, `jar` produces the consumable artifact for Java libraries. Attach tasks to this lifecycle task using `assemble.dependsOn(_task_)`.
+
+</dd>
+<dt>`build` — _lifecycle task_</dt>
+<dd>
+
+_Depends on_: `check`, `assemble`
+
+Intended to build everything, including running all tests, producing the production artifacts and generating documentation. You will probably rarely attach concrete tasks directly to `build` as `assemble` and `check` are typically more appropriate.
+
+</dd>
+<dt>`build_Configuration_` — task rule</dt>
+<dd>
+
+Assembles those artifacts attached to the named configuration. For example, `buildRuntimeElements` will execute any task that is required to create any artifact attached to the `runtimeElements` configuration.
+
+</dd>
+<dt>`clean_Task_` — task rule</dt>
+<dd>
+
+Removes the defined outputs of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+
+</dd>
+</dl>
+
+## Dependency management
+
+The Base Plugin adds no <Xref page="dependency-configurations" section="Understanding dependency configurations">configurations for dependencies</Xref>, but it does add the following configurations:
+
+<dl>
+<dt>`default`</dt>
+<dd>
+
+A fallback configuration used when dependency resolution is performed without request attributes.
+
+**New builds and plugins should not be using the `default` configuration!**
+It remains solely for backwards compatibility.
+Dependency resolution should be performed with request attributes.
+
+</dd>
+<dt>`archives`</dt>
+<dd>
+
+All artifacts defined on the `archives` configuration are automatically built by the `assemble` task.
+
+**New builds and plugins should not be using the `archives` configuration!**
+It remains solely for backwards compatibility.
+Instead, task dependencies should be declared directly on the `assemble` task.
+
+</dd>
+</dl>
+
+## Contributed extensions
+
+The Base Plugin adds the <GroovyDocLink class="org.gradle.api.plugins.BasePluginExtension">`base` extension</GroovyDocLink> to the project.
+This allows to configure the following properties inside a dedicated DSL block.
+
+<SampleScripts sample_name="archives-changed-base-name" basename="build" tag="base-plugin-config" />
+
+<dl>
+<dt>`archivesName` — default: `$project.name`</dt>
+<dd>
+
+Provides the default <GroovyDocLink class="org.gradle.api.tasks.bundling.AbstractArchiveTask" method="archiveBaseName">AbstractArchiveTask.getArchiveBaseName()</GroovyDocLink> for archive tasks.
+
+</dd>
+<dt>`distsDirectory` — default: `layout.buildDirectory.dir("distributions")`</dt>
+<dd>
+
+Default name of the directory in which distribution archives, i.e. non-JARs, are created.
+
+</dd>
+<dt>`libsDirectory` — default: `layout.buildDirectory.dir("libs")`</dt>
+<dd>
+
+Default name of the directory in which library archives, i.e. JARs, are created.
+
+</dd>
+</dl>
+
+The plugin also provides default values for the following properties on any task that extends <GroovyDocLink class="org.gradle.api.tasks.bundling.AbstractArchiveTask" />:
+
+<dl>
+<dt>`destinationDirectory`</dt>
+<dd>
+
+Defaults to `distsDirectory` for non-JAR archives and `libsDirectory` for JARs and derivatives of JAR, such as WARs.
+
+</dd>
+<dt>`archiveVersion`</dt>
+<dd>
+
+Defaults to `$project.version` or 'unspecified' if the project has no version.
+
+</dd>
+<dt>`archiveBaseName`</dt>
+<dd>
+
+Defaults to `archivesName`.
+
+</dd>
+</dl>

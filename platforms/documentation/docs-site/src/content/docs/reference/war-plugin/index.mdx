@@ -1,0 +1,110 @@
+---
+title: "The War Plugin"
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import warPluginTasks from './warPluginTasks.png';
+
+The War plugin extends the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref> to add support for assembling web application WAR files.
+It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
+
+## Usage
+
+To use the War plugin, include the following in your build script:
+
+<SampleScripts sample_name="web-application" basename="build" tag="use-war-plugin" />
+
+## Project layout
+
+In addition to the <Xref page="java-plugin" section="Project layout">standard Java project layout</Xref>, the War Plugin adds:
+
+<dl>
+<dt>`src/main/webapp`</dt>
+<dd>
+
+Web application sources
+
+</dd>
+</dl>
+
+## Tasks
+
+The War plugin adds and modifies the following tasks:
+
+<dl>
+<dt>`war` — <GroovyDocLink class="org.gradle.api.tasks.bundling.War" /></dt>
+<dd>
+
+_Depends on_: `compile`
+
+Assembles the application WAR file.
+
+</dd>
+<dt>`assemble` - _lifecycle task_</dt>
+<dd>
+
+_Depends on_: `war`
+
+</dd>
+</dl>
+
+The War plugin adds the following dependencies to tasks added by the Java plugin;
+
+<Image src={warPluginTasks} alt="warPluginTasks" />
+
+## Dependency management
+
+The War plugin adds two dependency configurations:
+
+<dl>
+<dt>`providedCompile`</dt>
+<dd>
+
+This configuration should be used for dependencies required at compilation but which are provided by the environment in which the WAR is deployed.
+Dependencies declared here are thus visible to the `main` and `test` compilation classpaths.
+
+</dd>
+<dt>`providedRuntime`</dt>
+<dd>
+
+This configuration should be used for dependencies required at runtime but which are provided by the environment in which the WAR is deployed.
+Dependencies declared here are only visible to the `main` and `test` runtime classpaths.
+
+</dd>
+</dl>
+
+:::note
+It is important to note that these `provided` configurations work transitively.
+Let’s say you add `commons-httpclient:commons-httpclient:3.0` to any of the provided configurations.
+This dependency has a dependency on `commons-codec`.
+Because this is a "provided" configuration, this means that neither of these dependencies will be added to your WAR, even if the `commons-codec` library is an explicit dependency of your `implementation` configuration.
+If you don’t want this transitive behavior, simply declare your `provided` dependencies like `commons-httpclient:commons-httpclient:3.0@jar`.
+:::
+
+## Publishing
+
+<dl>
+<dt>`components.web`</dt>
+<dd>
+
+A <JavaDocLink class="org.gradle.api.component.SoftwareComponent" /> for <Xref page="publishing-setup" section="Publishing a project as module">publishing</Xref> the production WAR created by the `war` task.
+
+</dd>
+</dl>
+
+## War
+
+The default behavior of the `War` task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are compiled to `WEB-INF/classes`. All the dependencies of the `runtime` [^1] configuration are copied to `WEB-INF/lib`.
+
+The <GroovyDocLink class="org.gradle.api.tasks.bundling.War" /> class in the API documentation has additional useful information.
+
+## Customizing
+
+Here is an example with the most important customization options:
+
+<SampleScripts sample_name="customized" basename="build" tag="customization" />
+
+Of course one can configure the different file-sets with a closure to define excludes and includes.
+
+[^1]: The `runtime` configuration extends the `compile` configuration.

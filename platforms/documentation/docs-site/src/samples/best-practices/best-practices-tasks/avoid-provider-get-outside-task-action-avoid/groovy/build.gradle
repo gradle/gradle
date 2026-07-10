@@ -1,0 +1,26 @@
+// tag::provider-get-task-setup[]
+abstract class MyTask extends DefaultTask {
+    @Input
+    abstract Property<String> getMyInput()
+
+    @OutputFile
+    abstract RegularFileProperty getMyOutput()
+
+    @TaskAction
+    void doAction() {
+        def outputFile = myOutput.get().asFile
+        def outputText = myInput.get() // <1>
+        println(outputText)
+        outputFile.write(outputText)
+    }
+}
+
+Provider<String> currentEnvironment = providers.gradleProperty("currentEnvironment").orElse("234") // <2>
+// end::provider-get-task-setup[]
+
+// tag::avoid-this[]
+tasks.register("avoidThis", MyTask) {
+    myInput = "currentEnvironment=${currentEnvironment.get()}"  // <1>
+    myOutput = new File(layout.buildDirectory.get().asFile, "output-avoid.txt")  // <2>
+}
+// end::avoid-this[]

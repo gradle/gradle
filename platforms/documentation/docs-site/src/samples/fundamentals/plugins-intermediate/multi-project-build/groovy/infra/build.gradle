@@ -1,0 +1,10 @@
+// tag::root[]
+plugins {
+    id 'java-library'
+    id 'com.gradleup.shadow'
+}
+// end::root[]
+
+tasks.named('shadowJar') {
+    minimize()
+}

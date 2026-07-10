@@ -4,16 +4,31 @@
   "version": "0.0.1",
   "imports": {
     "#/*": "./src/*",
-    "#/components": "./src/components/index.ts",
-    "#gradle-version": "./build/generated/version.txt"
+    "#/components": "./src/components/index.ts"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "check:links": "npm run build && node tools/run-lychee-internal-links.mjs",
+    "xrefs:update-baseline": "XREF_UPDATE_BASELINE=1 astro build",
+    "check:content": "node tools/check-content.mjs",
+    "astro": "astro",
+    "format": "prettier --write '**/*.{ts,mts,js,mjs,cjs}'",
+    "format:check": "prettier --check '**/*.{ts,mts,js,mjs,cjs}'"
   },
   "dependencies": {
-    "@astrojs/starlight": "0.39.2",
+    "@astrojs/starlight": "0.37.7",
     "@fontsource/lato": "5.2.7",
-    "astro": "6.3.3",
+    "astro": "5.18.1",
     "sharp": "0.34.5"
   },
   "devDependencies": {
-    "prettier": "3.8.3"
+    "http-server": "14.1.1",
+    "prettier": "3.8.1",
+    "sass": "1.97.3",
+    "vitest": "4.1.9"
   }
 }

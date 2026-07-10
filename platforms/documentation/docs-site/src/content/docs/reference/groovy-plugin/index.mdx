@@ -1,0 +1,301 @@
+---
+title: "The Groovy Plugin"
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import groovyPluginTasks from './groovyPluginTasks.png';
+
+The Groovy plugin extends the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref> to add support for [Groovy](https://groovy-lang.org/) projects.
+It can deal with Groovy code, mixed Groovy and Java code, and even pure Java code (although we don’t necessarily recommend to use it for the latter).
+The plugin supports _joint compilation_, which allows you to freely mix and match Groovy and Java code, with dependencies in both directions.
+For example, a Groovy class can extend a Java class that in turn extends a Groovy class.
+This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
+
+Note that if you want to benefit from the <Xref page="java-library-plugin" section="API and implementation separation">API / implementation separation</Xref>, you can also apply the `java-library` plugin to your Groovy project.
+
+## Usage
+
+To use the Groovy plugin, include the following in your build script:
+
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="use-plugin" />
+
+## Tasks
+
+The Groovy plugin adds the following tasks to the project.
+Information about altering the dependencies to Java compile tasks are found <Xref page="building-java-projects" section="Building other JVM language projects">here</Xref>.
+
+<dl>
+<dt>`compileGroovy` — <GroovyDocLink class="org.gradle.api.tasks.compile.GroovyCompile" /></dt>
+<dd>
+
+_Depends on_: `compileJava`
+
+Compiles production Groovy source files.
+
+</dd>
+<dt>`compileTestGroovy` — <GroovyDocLink class="org.gradle.api.tasks.compile.GroovyCompile" /></dt>
+<dd>
+
+_Depends on_: `compileTestJava`
+
+Compiles test Groovy source files.
+
+</dd>
+<dt>`compile_SourceSet_Groovy` — <GroovyDocLink class="org.gradle.api.tasks.compile.GroovyCompile" /></dt>
+<dd>
+
+_Depends on_: `compile_SourceSet_Java`
+
+Compiles the given source set’s Groovy source files.
+
+</dd>
+<dt>`groovydoc` — <GroovyDocLink class="org.gradle.api.tasks.javadoc.Groovydoc" /></dt>
+<dd>
+
+Generates API documentation for the production Groovy source files.
+
+</dd>
+</dl>
+
+The Groovy plugin adds the following dependencies to tasks added by the Java plugin.
+
+**Groovy plugin - additional task dependencies**
+
+| Task name | Depends on |
+| --- | --- |
+| `classes` | `compileGroovy` |
+| `testClasses` | `compileTestGroovy` |
+| `_sourceSet_Classes` | `compile_SourceSet_Groovy` |
+
+<Image src={groovyPluginTasks} alt="groovyPluginTasks" />
+
+## Project layout
+
+The Groovy plugin assumes the project layout shown in [Groovy Layout](#groovylayout). All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.[^1](https://github.com/Gant/Gant).] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
+
+<dl>
+<dt>`src/main/java`</dt>
+<dd>
+
+Production Java source.
+
+</dd>
+<dt>`src/main/resources`</dt>
+<dd>
+
+Production resources, such as XML and properties files.
+
+</dd>
+<dt>`src/main/groovy`</dt>
+<dd>
+
+Production Groovy source. May also contain Java source files for joint compilation.
+
+</dd>
+</dl>
+
+<dl>
+<dt>`src/test/java`</dt>
+<dd>
+
+Test Java source.
+
+</dd>
+<dt>`src/test/resources`</dt>
+<dd>
+
+Test resources.
+
+</dd>
+<dt>`src/test/groovy`</dt>
+<dd>
+
+Test Groovy source. May also contain Java source files for joint compilation.
+
+</dd>
+</dl>
+
+<dl>
+<dt>`src/_sourceSet_/java`</dt>
+<dd>
+
+Java source for the source set named _sourceSet_.
+
+</dd>
+<dt>`src/_sourceSet_/resources`</dt>
+<dd>
+
+Resources for the source set named _sourceSet_.
+
+</dd>
+<dt>`src/_sourceSet_/groovy`</dt>
+<dd>
+
+Groovy source files for the given source set. May also contain Java source files for joint compilation.
+
+</dd>
+</dl>
+
+### Changing the project layout
+
+Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
+
+<SampleScripts sample_name="customized-layout" basename="build" tag="custom-source-locations" />
+
+## Dependency management
+
+Because Gradle’s build language is based on Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
+
+If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
+
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="groovy-dependency" />
+
+If Groovy is only used for test code, the Groovy dependency should be added to the `testImplementation` configuration:
+
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="groovy-test-dependency" />
+
+To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
+
+<SampleScripts sample_name="groovy-dependency" basename="build" tag="bundled-groovy-dependency" />
+
+## Automatic configuration of groovyClasspath
+
+The `GroovyCompile` and `Groovydoc` tasks consume Groovy code in two ways: on their `classpath`, and on their `groovyClasspath`. The former is used to locate classes referenced by the source code, and will typically contain the Groovy library along with other libraries. The latter is used to load and execute the Groovy compiler and Groovydoc tool, respectively, and should only contain the Groovy library and its dependencies.
+
+Unless a task’s `groovyClasspath` is configured explicitly, the Groovy (base) plugin will try to infer it from the task’s `classpath`. This is done as follows:
+
+- If a `groovy-all(-indy)` Jar is found on `classpath`, that jar will be added to `groovyClasspath`.
+- If a `groovy(-indy)` jar is found on `classpath`, and the project has at least one repository declared, a corresponding `groovy(-indy)` repository dependency will be added to `groovyClasspath`.
+- Otherwise, execution of the task will fail with a message saying that `groovyClasspath` could not be inferred.
+
+Note that the -indy variation of each jar refers to the version with `invokedynamic` support.
+
+## Convention properties
+
+The Groovy plugin does not add any convention properties to the project.
+
+## Source set properties
+
+The Groovy plugin adds the following extensions to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
+
+### Groovy Plugin — source set properties
+
+<dl>
+<dt>`groovy` — <GroovyDocLink class="org.gradle.api.tasks.GroovySourceDirectorySet" /> (read-only)</dt>
+<dd>
+
+_Default value_: Not null
+
+The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
+
+</dd>
+<dt>`groovy.srcDirs` — `Set<File>`</dt>
+<dd>
+
+_Default value_: `[_projectDir_/src/_name_/groovy]`
+
+The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <Xref page="working-with-files" section="Understanding implicit conversion to file collections">Specifying Multiple Files</Xref>.
+
+</dd>
+</dl>
+
+The Groovy plugin also modifies some source set properties:
+
+### Groovy Plugin - modified source set properties
+
+| Property name | Change |
+| --- | --- |
+| `allJava` | Adds all `.java` files found in the Groovy source directories. |
+| `allSource` | Adds all source files found in the Groovy source directories. |
+
+## GroovyCompile
+
+The Groovy plugin adds a <GroovyDocLink class="org.gradle.api.tasks.compile.GroovyCompile" /> task for each source set in the project.
+The task type shares much with the `JavaCompile` task by extending `AbstractCompile` (see <Xref page="building-java-projects" section="Compiling your code">the relevant Java Plugin section</Xref>).
+The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The task can also leverage the <Xref page="toolchains" section="Toolchains for JVM projects">Java toolchain support</Xref>.
+
+**Groovy plugin - GroovyCompile properties**
+
+| Task Property | Type | Default Value |
+| --- | --- | --- |
+| `classpath` | <JavaDocLink class="org.gradle.api.file.FileCollection" /> | `_sourceSet_.compileClasspath` |
+| `source` | <JavaDocLink class="org.gradle.api.file.FileTree" />.<br/>Can set using anything described in <Xref page="working-with-files" section="Understanding implicit conversion to file collections">Specifying Multiple Files</Xref>. | `_sourceSet_.groovy` |
+| `destinationDirectory` | `File`. | `_sourceSet_.groovy.destinationDirectory` |
+| `groovyClasspath` | <JavaDocLink class="org.gradle.api.file.FileCollection" /> | `groovy` configuration if non-empty; Groovy library found on `classpath` otherwise |
+| `javaLauncher` | `Property<JavaLauncher>`, see the <Xref page="toolchains" section="Toolchains for JVM projects">toolchain documentation</Xref>. | None but will be configured if a toolchain is defined on the `java` extension. |
+
+### Compilation avoidance
+
+_Caveat: Groovy compilation avoidance is an incubating feature since Gradle 5.6. There are known inaccuracies so please enable it at your own risk._
+
+To enable the incubating support for Groovy compilation avoidance, add a <JavaDocLink class="org.gradle.api.initialization.Settings" method="enableFeaturePreview-java.lang.String-">`enableFeaturePreview`</JavaDocLink> to your settings file:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="settings.gradle.kts"
+enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="settings.gradle"
+enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
+```
+
+</TabItem>
+</Tabs>
+
+If a dependent project has changed in an [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)-compatible way (only its private API has changed), then Groovy compilation tasks will be up-to-date.
+This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won’t recompile `A`.
+
+See <Xref page="java-plugin" section="Compilation avoidance">Java compile avoidance</Xref> for a detailed list of the types of changes that do not affect the ABI and are ignored.
+
+However, similar to Java’s annotation processing, there are various ways to [customize the Groovy compilation process](https://melix.github.io/blog/2011/05/12/customizing_groovy_compilation_process.html), for which implementation details matter.
+Some well-known examples are [Groovy AST transformations](https://groovy-lang.org/metaprogramming.html#_code_generation_transformations).
+In these cases, these dependencies must be declared separately in a classpath called `astTransformationClasspath`:
+
+<SampleScripts sample_name="compilation-avoidance" basename="build" subpath="ast-transformation-consumer" tag="groovy-compilation-avoidance" />
+
+## Incremental Groovy compilation
+
+Since 5.6, Gradle introduces an experimental incremental Groovy compiler. To enable incremental compilation for Groovy, you need:
+
+- Enable [Groovy compilation avoidance](#sec:groovy_compilation_avoidance).
+- Explicitly enable incremental Groovy compilation in the build script:
+
+<SampleScripts sample_name="incremental-compilation" basename="myproject.groovy-conventions" subpath="buildSrc/src/main/{lang}" tag="enable-groovy-incremental" />
+
+This gives you the following benefits:
+
+- Incremental builds are much faster.
+- If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
+Classes that don’t need to be recompiled remain unchanged in the output directory.
+For example, if you only change a few Groovy test classes, you don’t need to recompile all Groovy test source files — only the changed ones need to be recompiled.
+
+To understand how incremental compilation works, see <Xref page="java-plugin" section="Incremental Java compilation">Incremental Java compilation</Xref> for a detailed overview.
+Note that there’re several differences from Java incremental compilation:
+
+The Groovy compiler doesn’t keep `@Retention` in generated annotation class bytecode ([GROOVY-9185](https://issues.apache.org/jira/browse/GROOVY-9185)), thus all annotations are `RUNTIME`.
+This means that changes to source-retention annotations won’t trigger a full recompilation.
+
+### Known issues
+
+Also see <Xref page="java-plugin" section="Known issues">Known issues for incremental Java compilation</Xref>.
+
+- Changes to resources won’t trigger a recompilation, this might result in some incorrectness — for example [Extension Modules](https://mrhaki.blogspot.com/2013/01/groovy-goodness-adding-extra-methods.html).
+
+## Compiling and testing for Java 6 or Java 7
+
+With <Xref page="toolchains" section="Toolchains for JVM projects">toolchain support</Xref> added to `GroovyCompile`, it is possible to compile Groovy code using a different Java version than the one running Gradle.
+If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler is used, as can be seen in the <Xref page="building-java-projects" section="Targeting a specific Java version">Java plugin</Xref> documentation.
+
+### Example: Configure Java 7 build for Groovy
+
+<SampleScripts sample_name="cross-compilation" basename="build" tag="groovy-cross-compilation" />
+
+[^1]: Gradle uses the same conventions as introduced by Russel Winder’s [Gant tool

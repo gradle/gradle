@@ -1,0 +1,460 @@
+---
+title: "C++ Library"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import cppSharedLibraryTaskGraph from './cpp-shared-library-task-graph.png';
+import cppStaticLibraryTaskGraph from './cpp-static-library-task-graph.png';
+import cppLibraryVariantTaskGraph from './cpp-library-variant-task-graph.png';
+import cppLibraryConfigurations from './cpp-library-configurations.png';
+
+The C++ Library Plugin provides the tasks, conventions and conventions for building a C++ library.
+In particular, a C++ library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <Xref page="cpp-application-plugin" section="C++ Application">C++ Application Plugin</Xref>).
+
+## Usage
+
+<SampleScripts sample_name="cpp-library" basename="build" tag="apply-plugin" />
+
+## Build variants
+
+The C++ Library Plugin understands the following dimensions.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+
+<dl>
+<dt>Build types - always set to _debug_ and _release_</dt>
+<dd>
+
+The build type controls the debuggability as well as the optimization of the generated binaries.
+
+- `debug` - Generate debug symbols and don’t optimized the binary
+- `release` - Generate debug symbols and optimize, but extract the debug symbols from the binary
+
+</dd>
+<dt>Linkages - default to _shared_</dt>
+<dd>
+
+The linkage expresses whether a shared library or static library should be created. Libraries can produce a shared library, a static library or both.
+
+</dd>
+</dl>
+
+The linkage can be configured as follows:
+
+<SampleScripts sample_name="cpp-library" basename="build" tag="configure-linkages" />
+
+<dl>
+<dt>Target machines - defaults to the build host</dt>
+<dd>
+
+The target machine expresses which machines the application expects to run.
+A target machine is identified by its operating system and architecture.
+Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
+
+</dd>
+</dl>
+
+The target machine can be configured as follows:
+
+<SampleScripts sample_name="cpp-library" basename="build" tag="configure-target-machines" />
+
+## Tasks
+
+The following diagram shows the relationships between tasks added by this plugin.
+
+Note the default linkage of a C++ library is shared linkage as shown in the diagram.
+
+<Image src={cppSharedLibraryTaskGraph} alt="cpp shared library task graph" />
+
+With static linkage, the diagram changes to the following:
+
+<Image src={cppStaticLibraryTaskGraph} alt="cpp static library task graph" />
+
+### Variant-dependent Tasks
+
+The C++ Library Plugin creates tasks based on variants of the library component.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+The following diagrams show the relationship between variant-dependent tasks.
+
+<Image src={cppLibraryVariantTaskGraph} alt="cpp library variant task graph" />
+
+:::note
+Depending on the linkage property
+:::
+
+<dl>
+<dt>`compile_Variant_Cpp` (e.g. `compileDebugCpp` and `compileReleaseCpp`)  - <GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" /></dt>
+<dd>
+
+Depends on: All tasks that contribute source files to the compilation
+::
+Compiles C++ source files using the selected compiler.
+
+</dd>
+<dt>`link_Variant_` (e.g. `linkDebug` and `linkRelease`) - <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" /> (shared linkage)</dt>
+<dd>
+
+Depends on: All tasks which contribute to the link libraries, including `link_Variant_` and `create_Variant_` tasks from projects that are resolved via project dependencies
+::
+Links shared library from compiled object files using the selected linker.
+
+</dd>
+<dt>`create_Variant_` (e.g. `createDebug` and `createRelease`) - <GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" /> (static linkage)</dt>
+<dd>
+
+Creates static library from compiled object files using selected archiver
+
+</dd>
+<dt>`assemble_Variant_` (e.g. `assembleDebug` and `assembleRelease`) - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `link_Variant_` (shared linkage) or `create_Variant_` (static linkage)
+::
+Aggregates tasks that assemble the specific variant of this library.
+
+</dd>
+</dl>
+
+### Lifecycle Tasks
+
+The C++ Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <Xref page="base-plugin" section="The Base Plugin">Base Plugin chapter</Xref> — which the C++ Library Plugin applies automatically:
+
+<dl>
+<dt>`assemble` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `linkDebug` when linkage includes `shared` or `createDebug` otherwise.
+::
+Aggregate task that assembles the debug variant of the shared library (if available) for the current host (if present) in the project.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`check` - Task (lifecycle)</dt>
+<dd>
+
+Aggregate task that performs verification tasks, such as running the tests.
+Some plugins add their own verification task to `check`.
+For example, the <Xref page="cpp-unit-test-plugin" section="C++ Unit Test">C++ Unit Test Plugin</Xref> attach its test task to this lifecycle task.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`build` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `check`, `assemble`
+::
+Aggregate tasks that perform a full build of the project.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`clean` - Delete</dt>
+<dd>
+
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+</dl>
+
+## Dependency management
+
+Just like the tasks created by the C++ Library Plugin, multiple configurations are created based on the variants of the library component.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+The following graph describes the configurations added by the C++ Library Plugin:
+
+<Image src={cppLibraryConfigurations} alt="cpp library configurations" />
+
+- The configurations in white are the ones a user should use to declare dependencies
+- The configurations in pink, also known as consumable denoted by (C), are the ones used when a component compiles, links, or runs against the library
+- The configurations in blue, also known as resolvable denoted by (R), are internal to the component, for its own use
+
+The following configurations are used to declare dependencies:
+
+<dl>
+<dt>`api`</dt>
+<dd>
+
+Used for declaring API dependencies (see [API vs implementation section](#sec:cpp_library_api_vs_implementation)).
+This is where you should declare dependencies which are transitively exported to consumers, for compile and link.
+
+</dd>
+<dt>`implementation` extends `api`</dt>
+<dd>
+
+Used for declaring implementation dependencies for all variants of the main component (see [API vs implementation section](#sec:cpp_library_api_vs_implementation)).
+This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of any variants.
+
+</dd>
+<dt>`main_Variant_Implementation` (e.g. `mainDebugImplementation` and `mainReleaseImplementation`) extends `implementation`</dt>
+<dd>
+
+Used for declaring implementation dependencies for a specific variant of the main component (see [API vs implementation section](#sec:cpp_library_api_vs_implementation)).
+This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of this specific variant.
+
+</dd>
+</dl>
+
+The following configurations are used by consumers:
+
+<dl>
+<dt>`cppApiElements` extends `main_Variant_Implementation`</dt>
+<dd>
+
+Used for compiling against the library.
+This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against the library.
+
+</dd>
+<dt>`_variant_LinkElements` (e.g. `debugLinkElements` and `releaseLinkElements`) extends `main_Variant_Implementation`</dt>
+<dd>
+
+Used for linking against the library.
+This configuration is meant to be used by consumers, to retrieve all the elements necessary to link against the library.
+
+</dd>
+<dt>`_variant_RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements) extends `main_Variant_Implementation`</dt>
+<dd>
+
+Used for executing the library.
+This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against the library.
+
+</dd>
+</dl>
+
+The following configurations are used by the library itself:
+
+<dl>
+<dt>`cppCompile_Variant_` (e.g. `cppCompileDebug` and `cppCompileRelease`) extends `main_Variant_Implementation`</dt>
+<dd>
+
+Used for compiling the library.
+This configuration contains the compile include roots of the library and is therefore used when invoking the C++ compiler to compile it.
+
+</dd>
+<dt>`nativeLink_Variant_` (e.g. `nativeLinkDebug` and `nativeLinkRelease`) extends `main_Variant_Implementation`</dt>
+<dd>
+
+Used for linking the library the shared library only.
+This configuration contains the libraries of the library and is therefore used when invoking the C++ linker to link it.
+
+</dd>
+<dt>`nativeRuntime_Variant_` (e.g. `nativeRuntimeDebug` and `nativeRuntimeRelease`) extends `main_Variant_Implementation`</dt>
+<dd>
+
+Used for executing the library.
+This configuration contains the runtime libraries of the library.
+
+</dd>
+</dl>
+
+### API vs implementation
+
+The plugin exposes two configurations that can be used to declare dependencies: `api` and `implementation`.
+The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
+
+<SampleScripts sample_name="cpp-library" basename="build" tag="dependency-management" />
+
+Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile include root and link libraries of consumers.
+Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumer’s compile include root and link libraries.
+This comes with several benefits:
+
+- dependencies do not leak into the compile include roots and link libraries of consumers, so they can never accidentally depend on a transitive dependency
+- faster compilation thanks to the reduced include roots and link libraries
+- fewer recompilations when implementation dependencies change since the consumer would not need to be recompiled
+
+## Conventions
+
+The C++ Library Plugin adds conventions for sources and tasks, shown below.
+
+### Project layout
+
+The C++ Library Plugin assumes the project layout shown below.
+None of these directories needs to exist or have anything in them.
+The C++ Library Plugin will compile whatever it finds and ignore anything missing.
+
+<dl>
+<dt>`src/main/cpp`</dt>
+<dd>
+
+C++ source with extension of `.cpp`, `.C++` or `.cc`
+
+</dd>
+<dt>`src/main/headers`</dt>
+<dd>
+
+Private headers - headers needed to compile the library but are not needed by consumers
+
+</dd>
+<dt>`src/main/public`</dt>
+<dd>
+
+Public headers - headers needed to compile the library and required by consumers
+
+</dd>
+</dl>
+
+You <Xref page="building-cpp-projects" section="Customizing file and directory locations">configure the project layout</Xref> by configuring the `source`, `privateHeaders` and `publicHeaders` respectively on the `library` script block.
+
+### `compile_Variant_Cpp` Task
+
+The C++ Library Plugin adds a <GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" /> instance for each variant of the library component to build (e.g. `compileDebugCpp` and `compileReleaseCpp`).
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="compilerArgs">compilerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="includes">includes</GroovyDocLink></dt>
+<dd>
+
+`configurations.cppCompile_Variant_` + `library.publicHeaders` + `library.privateHeaders`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="macros">macros</GroovyDocLink></dt>
+<dd>
+
+[:]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="objectFileDir">objectFileDir</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("obj/main/_$variant_")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="optimized">optimized</GroovyDocLink></dt>
+<dd>
+
+`false` for debug build type or `true` otherwise
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="positionIndependentCode">positionIndependentCode</GroovyDocLink></dt>
+<dd>
+
+`true` for shared linkage or `false` otherwise
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`library.cppSource`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="systemIncludes">systemIncludes</GroovyDocLink></dt>
+<dd>
+
+derived from the tool chain
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.cpp.tasks.CppCompile" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-cpp-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+### `link_Variant_` Task
+
+The C++ Library Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" /> instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="libs">libs</GroovyDocLink></dt>
+<dd>
+
+`configurations.nativeLink_Variant_`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="linkedFile">linkedFile</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("lib/main/_$variant_/libBaseName[.so|dylib]")` (*nix) or `layout.buildDirectory.dir("lib\main\_$variant_\baseName.dll")` (Windows)
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="linkerArgs">linkerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`compile_Variant_Cpp.objects`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkSharedLibrary" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-cpp-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+### `create_Variant_` Task
+
+The C++ Library Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" /> instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
+Read the <Xref page="building-cpp-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" method="outputFile">outputFile</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("lib/main/_variant_/libBaseName.a")` (*nix) or `layout.buildDirectory.dir("lib\main\_variant_\baseName.lib")` (Windows)
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`compile_Variant_Cpp.objects`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" method="staticLibArgs">staticLibArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-cpp-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>

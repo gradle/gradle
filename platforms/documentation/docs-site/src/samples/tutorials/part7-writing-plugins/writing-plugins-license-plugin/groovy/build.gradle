@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+class LicenseTask extends DefaultTask {}
+
+// tag::license-plugin[]
+class LicensePlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.tasks.register("license", LicenseTask) { task ->
+            task.setDescription("add a license header to source code")  // Add description
+            task.setGroup("from license plugin")                        // Add group
+        }
+    }
+}
+// end::license-plugin[]

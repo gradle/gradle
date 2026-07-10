@@ -1,0 +1,133 @@
+---
+title: "The Distribution Plugin"
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+
+The Distribution Plugin facilitates building archives that serve as distributions of the project.
+Distribution archives typically contain the executable application and other supporting files, such as documentation.
+
+## Base Plugin
+
+The distribution plugin is split into the `distribution` and `distribution-base` plugins.
+
+The `distribution-base` plugin adds an extension named `distributions` of type <GroovyDocLink class="org.gradle.api.distribution.DistributionContainer" /> to the project.
+
+The `distribution` plugin applies the `distribution-base` plugin and creates a single distribution in the distributions container extension named `main`.
+
+If your build produces only one distribution, you only need to configure the distribution or rely on the defaults.
+
+## Usage
+
+To use the Distribution Plugin, include the following in your build script:
+
+<SampleScripts sample_name="distribution" basename="build" tag="use-plugin" />
+
+You can run `gradle distZip` to package the main distribution as a ZIP, or `gradle distTar` to create a TAR file. To build both types of archives just run `gradle assembleDist`.
+The files will be created at `_layout.buildDirectory.dir_("distributions/_${project.name}_-_${project.version}_._«ext»_")`.
+
+You can run `gradle installDist` to assemble the uncompressed distribution into `_layout.buildDirectory.dir_("install/_${project.name}_")`.
+
+## Tasks
+
+The Distribution Plugin adds a number of tasks to your project, as shown below.
+
+<dl>
+<dt>`distZip` — <GroovyDocLink class="org.gradle.api.tasks.bundling.Zip" /></dt>
+<dd>
+
+Creates a ZIP archive of the distribution contents.
+
+</dd>
+<dt>`distTar` — <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+Creates a TAR archive of the distribution contents.
+
+</dd>
+<dt>`assembleDist` — <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+_Depends on_: `distTar`, `distZip`
+
+Creates ZIP and TAR archives of the distribution contents.
+
+</dd>
+<dt>`installDist` — <GroovyDocLink class="org.gradle.api.tasks.Sync" /></dt>
+<dd>
+
+Assembles the distribution content and installs it on the current machine.
+
+</dd>
+</dl>
+
+For each additional distribution you add to the project, the Distribution Plugin adds the following tasks, where _distributionName_ comes from <JavaDocLink class="org.gradle.api.distribution.Distribution" method="getName--">Distribution.getName()</JavaDocLink>:
+
+<dl>
+<dt>`_distributionName_DistZip` — <GroovyDocLink class="org.gradle.api.tasks.bundling.Zip" /></dt>
+<dd>
+
+Creates a ZIP archive of the distribution contents.
+
+</dd>
+<dt>`_distributionName_DistTar` — <GroovyDocLink class="org.gradle.api.tasks.bundling.Tar" /></dt>
+<dd>
+
+Creates a TAR archive of the distribution contents.
+
+</dd>
+<dt>`assemble_DistributionName_Dist` — <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+_Depends on_: `_distributionName_DistTar`, `_distributionName_DistZip`
+
+Creates ZIP and TAR archives of the distribution contents.
+
+</dd>
+<dt>`install_DistributionName_Dist` — <GroovyDocLink class="org.gradle.api.tasks.Sync" /></dt>
+<dd>
+
+Assembles the distribution content and installs it on the current machine.
+
+</dd>
+</dl>
+
+The following sample creates a `custom` distribution that will cause four additional tasks to be added to the project: `customDistZip`, `customDistTar`, `assembleCustomDist`, and `installCustomDist`:
+
+<SampleScripts sample_name="distribution" basename="build" tag="custom-distribution" />
+
+Given that the project name is `myproject` and version `1.2`, running `gradle customDistZip` will produce a ZIP file named `myproject-custom-1.2.zip`.
+
+Running `gradle installCustomDist` will install the distribution contents into `_layout.buildDirectory.dir_("install/custom")`.
+
+## Distribution contents
+
+All of the files in the `src/_$distribution.name_/dist` directory will automatically be included in the distribution. You can add additional files by configuring the <JavaDocLink class="org.gradle.api.distribution.Distribution" /> object that is part of the container.
+
+<SampleScripts sample_name="distribution" basename="build" tag="configure-distribution" />
+
+In the example above, the content of the `src/readme` directory will be included in the distribution (along with the files in the `src/main/dist` directory which are added by default).
+
+The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
+
+<SampleScripts sample_name="distribution-plugin" basename="build" tag="configure-distribution" />
+
+In the example above, <Xref page="working-with-files" section="Understanding file copying">CopySpec</Xref> defines the contents, ensuring the `bin/config` directory is automatically created if it doesn’t already exist, and the contents of the `config` directory are copied into it. The same process applies to the `lib/samples` directory.
+
+Gradle provides a robust set of APIs to simplify handling files, managing file dependencies, generating reports, and more. <Xref page="working-with-files" section="Understanding file copying">CopySpec</Xref> is simply one example.
+
+File operations are covered in <Xref page="working-with-files" section="Working With Files">Working With Files</Xref>.
+
+## Publishing
+
+A distribution can be published using the <Xref page="publishing-ivy" section="The Ivy Publish Plugin">Ivy Publish Plugin</Xref> or <Xref page="publishing-maven" section="The Maven Publish Plugin">Maven Publish Plugin</Xref>.
+
+### Using the Ivy/Maven Publish Plugins
+
+To publish a distribution to an Ivy repository with the <Xref page="publishing-ivy" section="The Ivy Publish Plugin">Ivy Publish Plugin</Xref>, add one or both of its archive tasks to an <GroovyDocLink class="org.gradle.api.publish.ivy.IvyPublication" />. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
+
+<SampleScripts sample_name="distribution-ivy-publish" basename="build" tag="publishing" />
+
+Similarly, to publish a distribution to a Maven repository using the <Xref page="publishing-maven" section="The Maven Publish Plugin">Maven Publish Plugin</Xref>, add one or both of its archive tasks to a <GroovyDocLink class="org.gradle.api.publish.maven.MavenPublication" /> as follows:
+
+<SampleScripts sample_name="distribution-maven-publish" basename="build" tag="publishing" />

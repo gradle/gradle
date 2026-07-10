@@ -1,0 +1,102 @@
+{
+  "formatVersion": "1.0",
+  "component": {
+    "group": "org.gradle.demo",
+    "module": "producer",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "5.3-20190124175634+0000",
+      "buildId": "l63zt5h46neu3ahqbi73jsdqaa"
+    }
+  },
+  "variants": [
+    {
+      "name": "runtime",
+      "attributes": {
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "producer-1.0.jar",
+          "url": "producer-1.0.jar",
+          "size": 261,
+          "sha1": "29acdaf26447e93ce0c8af7357e6fd4e2d1db71d",
+          "md5": "6c53fdd588deb0abfc636c382e25d92e"
+        }
+      ]
+    },
+    {
+      "name": "api",
+      "attributes": {
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "producer-1.0.jar",
+          "url": "producer-1.0.jar",
+          "size": 261,
+          "sha1": "29acdaf26447e93ce0c8af7357e6fd4e2d1db71d",
+          "md5": "6c53fdd588deb0abfc636c382e25d92e"
+        }
+      ]
+    },
+    {
+      "name": "mongodbSupportApi",
+      "attributes": {
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "producer-1.0.jar",
+          "url": "producer-1.0.jar",
+          "size": 261,
+          "sha1": "29acdaf26447e93ce0c8af7357e6fd4e2d1db71d",
+          "md5": "6c53fdd588deb0abfc636c382e25d92e"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "org.gradle.demo",
+          "name": "producer-mongodb-support",
+          "version": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "mongodbSupportRuntime",
+      "attributes": {
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.mongodb",
+          "module": "mongodb-driver-sync",
+          "version": {
+            "requires": "3.9.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "producer-1.0.jar",
+          "url": "producer-1.0.jar",
+          "size": 261,
+          "sha1": "29acdaf26447e93ce0c8af7357e6fd4e2d1db71d",
+          "md5": "6c53fdd588deb0abfc636c382e25d92e"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "org.gradle.demo",
+          "name": "producer-mongodb-support",
+          "version": "1.0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+---
+title: "Part 6: Writing Tasks"
+---
+
+import { CalloutList, GroovyDocLink, KotlinDocLink, SampleScripts, Xref } from '#/components';
+
+Learn the basics of authoring Gradle tasks by creating a simple one in your Build script.
+
+:::note
+***In this section, you will:***
+- Understand Tasks
+- Create a custom Task for the Plugin
+:::
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in <Xref page="part1-gradle-init-project" section="Step 0. Before you Begin">part 1</Xref>.
+2. You understand the Gradle Build Lifecycle from <Xref page="part2-build-lifecycle" section="Step 0. Before you Begin">part 2</Xref>.
+3. You added a subproject and a separate Build in <Xref page="part3-multi-project-builds" section="Step 0. Before you Begin">part3</Xref>.
+4. You viewed a Settings file in <Xref page="part4-settings-file" section="Step 0. Before you Begin">part 4</Xref>.
+5. You authored a Build script in <Xref page="part5-build-scripts" section="Step 0. Before you Begin">part 5</Xref>.
+
+## Step 1. Understand Tasks
+
+A Task is an executable piece of code that contains sequences of actions.
+
+Actions are added to a Task via the `doFirst{}` and `doLast{}` closures.
+
+A Task can depend on other tasks.
+
+## Step 2. Register and Configure Tasks
+
+Early on in the tutorial, we registered and configured `task1` in the `app` build script:
+
+<SampleScripts sample_name="writing-tasks-register-configure" basename="build" tag="register-configure" />
+
+<CalloutList>
+
+1. You can use the `register()` method to create new tasks.
+2. You can use the `named()` method to configure existing tasks.
+
+</CalloutList>
+
+## Step 3. Create a custom Task
+
+To create a custom task, you must subclass <GroovyDocLink class="org.gradle.api.DefaultTask" method="org.gradle.api.DefaultTask">`DefaultTask`</GroovyDocLink> in Groovy DSL or <KotlinDocLink class="org.gradle.api.DefaultTask" /> in Kotlin DSL.
+
+Create a custom class called `LicenseTask` with the code below and add it to the bottom of the `gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt` or `gradle/license-plugin/plugin/src/main/groovy/license/LicensePlugin.groovy` file:
+
+<SampleScripts sample_name="writing-tasks-license-task" basename="build" tag="license-task" />
+
+The `LicenseTask` class encapsulates the task action logic and declares any inputs and outputs the task expects.
+
+The task action is annotated with `@TaskAction`.
+Inside, the logic first finds a file called "license.txt".
+This file contains text for an Apache license:
+
+```text
+/*
+* Licensed under the Apache License
+*/
+```
+
+The task then looks for files with the extension `.java` and adds a license header.
+
+The task has a single input, the license file name, annotated with `@Input`.
+
+Gradle uses the `@Input` annotation to determine if the task needs to run.
+If the task has not run before or if the input value has changed since the previous execution, then Gradle will execute the task.
+
+While a custom class has been created, it is not yet added to the `LicensePlugin`.
+Running `LicenseTask` is not currently possible.
+
+All you can do for now is make sure `./gradlew build` runs without failing:
+
+```bash
+$ ./gradlew build
+```
+
+```text
+SETTINGS FILE: This is executed during the initialization phase
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase
+
+BUILD SUCCESSFUL in 1s
+13 actionable tasks: 6 executed, 7 up-to-date
+```
+
+***Next Step:*** <Xref page="part7-writing-plugins" section="Part 7: Writing Plugins">Writing Plugins</Xref> \>\>

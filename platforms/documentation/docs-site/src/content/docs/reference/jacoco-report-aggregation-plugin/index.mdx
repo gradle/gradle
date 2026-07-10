@@ -1,0 +1,123 @@
+---
+title: "The JaCoCo Report Aggregation Plugin"
+---
+
+import { CalloutList, GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+The JaCoCo Report Aggregation plugin (plugin id: `jacoco-report-aggregation`) provides the ability to aggregate the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.  The binary data backing the coverage reports are produced by <GroovyDocLink class="org.gradle.api.tasks.testing.Test" /> task invocations; see more at the <Xref page="jacoco-plugin" section="The JaCoCo Plugin">JaCoCo Plugin</Xref> chapter.
+
+## Usage
+
+To use the JaCoCo Report Aggregation plugin, include the following in your build script:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+plugins {
+    id("jacoco-report-aggregation")
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+plugins {
+    id 'jacoco-report-aggregation'
+}
+```
+
+</TabItem>
+</Tabs>
+
+Note that this plugin takes no action unless applied in concert with the <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite Plugin</Xref>.  The <Xref page="java-plugin" section="The Java Plugin">Java Plugin</Xref> automatically applies the JVM Test Suite Plugin.
+
+There are now two ways to collect code coverage results across multiple subprojects:
+
+1. From the distribution’s project, such as an application or WAR subproject
+2. Using a standalone project to specify subprojects
+
+Example 2 could also be used to aggregate results via the root project.
+
+:::caution
+The JaCoCo Report Aggregation plugin does not currently work with the `com.android.application` plugin.
+:::
+
+## Tasks
+
+When the project also applies the `jvm-test-suite` plugin, the following tasks are added for each test suite:
+
+<dl>
+<dt>`_testSuite_CodeCoverageReport` — <GroovyDocLink class="org.gradle.testing.jacoco.tasks.JacocoReport" /></dt>
+<dd>
+
+_Depends on_: Artifacts of variants matching the below attributes
+
+Collects variants of direct and transitive project dependencies via the `jacocoAggregation` configuration. The following Attributes will be matched:
+
+</dd>
+</dl>
+
+```text callouts
+    - org.gradle.category         = verification     // (1)
+    - org.gradle.testsuite.name   = test             // (2)
+    - org.gradle.verificationtype = jacoco-results   // (3)
+```
+
+<CalloutList>
+
+1. Category attribute; value is fixed.
+2. TestSuiteName attribute; value is derived from <JavaDocLink class="org.gradle.testing.base.TestSuite" method="getName--">TestSuite#getName()</JavaDocLink>.
+3. VerificationType attribute; value is fixed.
+
+</CalloutList>
+
+More information about the variants produced by test execution with JaCoCo are available in the <Xref page="jacoco-plugin" section="Outgoing Variants">Outgoing Variants</Xref> section of the JaCoCo Plugin documentation.
+
+## Reports
+
+:::danger
+By default, Gradle stops executing tasks when any task fails — including test failures.
+To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command.
+For more information, see <Xref page="command-line-interface" section="Continue the build after a task failure">continuing the build when a failure occurs</Xref>.
+:::
+
+### Automatic report creation
+
+When the project also applies the `jvm-test-suite` plugin, the following reporting objects are added for each test suite:
+
+<dl>
+<dt>`_testSuite_CodeCoverageReport` — <JavaDocLink class="org.gradle.testing.jacoco.plugins.JacocoCoverageReport" /></dt>
+<dd>
+
+Creates an aggregate Jacoco report aggregating all test suites with a given <JavaDocLink class="org.gradle.api.attributes.TestSuiteName">name</JavaDocLink> across all project dependencies.
+
+</dd>
+</dl>
+
+### Manual report creation
+
+When the project does not apply the `jvm-test-suite` plugin, you must manually register one or more reports:
+
+<SampleScripts sample_name="jvm-multi-project-with-code-coverage-standalone" basename="build" subpath="code-coverage-report" tag="create_report" />
+
+<CalloutList>
+
+1. Creates a report named `testCodeCoverageReport` of type `JacocoCoverageReport`, aggregating all test suites from all project dependencies with a given <JavaDocLink class="org.gradle.testing.base.TestSuite" method="getName--">TestSuite#getName()</JavaDocLink>.
+
+</CalloutList>
+
+Report creation automatically creates backing tasks to aggregate coverage results for the given test suite type value.
+
+## Dependency management
+
+The JaCoCo Report Aggregation plugin adds the following dependency configurations:
+
+| Name | Meaning |
+| --- | --- |
+| `jacocoAggregation` | The configuration used to declare all project dependencies having code coverage data to be aggregated. |
+| `aggregateCodeCoverageReportResults` | Consumes the project dependencies from the `jacocoAggregation` configuration using <Xref page="variant-aware-resolution" section="Variant Attribute Matching">variant-aware matching</Xref> to find the appropriate test suite type. |
+
+It is not necessary to explicitly add dependencies to the `jacocoAggregation` configuration if the project also applies the `jvm-test-suite` plugin.

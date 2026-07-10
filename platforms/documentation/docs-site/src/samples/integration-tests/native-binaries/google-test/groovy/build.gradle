@@ -1,0 +1,93 @@
+// tag::complete-example[]
+plugins {
+    id "cpp"
+    id 'google-test-test-suite'
+}
+
+model {
+    flavors {
+        passing
+        failing
+    }
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            googleTest {
+                headers.srcDir "libs/googleTest/1.7.0/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                        file("libs/googleTest/1.7.0/lib/" +
+                             findGoogleTestCoreLibForPlatform(targetPlatform))
+                }
+            }
+        }
+    }
+    components {
+        operators(NativeLibrarySpec) {
+            targetPlatform "x86"
+        }
+    }
+    testSuites {
+        operatorsTest(GoogleTestTestSuiteSpec) {
+            testing $.components.operators
+        }
+    }
+}
+// tag::configure-test-binary[]
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+
+            if (flavor == flavors.failing) {
+                cppCompiler.define "PLUS_BROKEN"
+            }
+
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+
+                if (toolChain instanceof Gcc || toolChain instanceof Clang) {
+                    // Use C++03 with the old ABIs, as this is what the googletest binaries were built with
+                    cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                    linker.args '-std=c++03'
+                }
+            }
+        }
+    }
+}
+// end::configure-test-binary[]
+// end::complete-example[]
+
+model {
+    binaries {
+        all {
+            if (toolChain instanceof Gcc) {
+                cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                linker.args '-std=c++03'
+            }
+        }
+    }
+}
+
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
+
+def findGoogleTestCoreLibForPlatform(Platform platform) {
+    if (platform.operatingSystem.windows) {
+//        return "vs2013/gtest.lib"
+        return "vs2015/gtest.lib"
+//        return "vs2013/gtest-core.lib"
+//        return "cygwin/gtest-core.lib"
+//        return "mingw/gtest-core.lib"
+    } else if (platform.operatingSystem.macOsX) {
+        return "osx/libgtest.a"
+    } else {
+        return "linux/libgtest.a"
+    }
+}

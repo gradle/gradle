@@ -1,7 +1,0 @@
-tasks.register('printMessage') {
-    doLast {
-        def providerFactory = project.providers
-        def messageProvider = providerFactory.provider { "Hello, Gradle!" }
-        println messageProvider.get()
-    }
-}

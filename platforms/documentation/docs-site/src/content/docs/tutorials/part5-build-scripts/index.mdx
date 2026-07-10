@@ -1,0 +1,251 @@
+---
+title: "Part 5: Writing a Build Script"
+---
+
+import { CalloutList, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Learn the basics of authoring Gradle by developing the Build Script.
+
+:::note
+***In this section, you will:***
+- Understand the Project object
+- Update the Build script
+- Update the Plugin
+- Apply the Plugin
+- Run a task from the Plugin
+:::
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in <Xref page="part1-gradle-init-project" section="Step 0. Before you Begin">part 1</Xref>.
+2. You understand the Gradle Build Lifecycle from <Xref page="part2-build-lifecycle" section="Step 0. Before you Begin">part 2</Xref>.
+3. You added a subproject and a separate Build in <Xref page="part3-multi-project-builds" section="Step 0. Before you Begin">part3</Xref>.
+4. You viewed a Settings file in <Xref page="part4-settings-file" section="Step 0. Before you Begin">part 4</Xref>.
+
+## Step 1. The `Project` object
+
+Build scripts invoke Gradle APIs to configure the build.
+
+During the configuration phase, Gradle finds the build script(s) in the root and subproject directories.
+
+When a build script, `build.gradle(.kts)`, is found, Gradle configures a <JavaDocLink class="org.gradle.api.Project" /> object.
+
+The purpose of the <JavaDocLink class="org.gradle.api.Project" /> object is to create a collection of <JavaDocLink class="org.gradle.api.Task" /> objects, apply plugins, and retrieve dependencies.
+
+You can use any of the methods and properties on the <JavaDocLink class="org.gradle.api.Project" /> interface directly in your script.
+
+For example:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+defaultTasks("some-task")      // Delegates to Project.defaultTasks()
+reportsDir = file("reports")   // Delegates to Project.file() and the Java Plugin
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+defaultTasks 'some-task'      // Delegates to Project.defaultTasks()
+reportsDir = file('reports')  // Delegates to Project.file() and the Java Plugin
+```
+
+</TabItem>
+</Tabs>
+
+## Step 2. The Build script
+
+Let’s break down the build script for the plugin:
+
+<SampleScripts sample_name="build-scripts-plugin-build" basename="build" tag="plugin-build-script" />
+
+<CalloutList>
+
+1. Apply plugins using the `plugins{}` block
+2. Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+3. Apply a language plugin (Kotlin JVM or Groovy)
+4. Use `Project.repositories()` to configure the repositories for this project
+5. Use [Maven Central](https://repo.maven.apache.org/maven2/) for resolving dependencies
+6. Use `Project.dependencies()` to configure the dependencies for this project
+7. Add test dependencies
+8. Use the `gradlePlugin{}` block to configure plugin development
+9. Define the plugin `id` and `implementationClass`
+
+</CalloutList>
+
+Plugins, which enhance your build capabilities, are included like this:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+plugins {
+    id("java")                          // core plugin, no version required
+    id("org.some.plugin") version "2.8" // community plugin, version required
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+plugins {
+    id 'java'                          // core plugin, no version required
+    id 'org.some.plugin' version '2.8' // community plugin, version required
+}
+```
+
+</TabItem>
+</Tabs>
+
+The repositories section lets Gradle know where to pull dependencies from:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+repositories {
+    mavenCentral()  // get dependencies from the Maven central repository
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+repositories {
+    mavenCentral()  // get dependencies from the Maven central repository
+}
+```
+
+</TabItem>
+</Tabs>
+
+Dependencies are requirements for building your application or library:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+dependencies {
+    // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    implementation("org.apache.commons:commons-lang3:3.13.0")
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+dependencies {
+    // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    implementation 'org.apache.commons:commons-lang3:3.13.0'
+}
+```
+
+</TabItem>
+</Tabs>
+
+In this example, `implementation()` means that the `commons-lang3` library must be added to the Java classpath.
+
+Every dependency declared for a Gradle project must apply to a scope.
+That is, the dependency is either needed at compile time, runtime, or both.
+This is called a configuration and the `implementation` configuration is used when the dependency is only needed in the runtime classpath.
+
+Configuration blocks (not to be confused with dependency configurations above) are typically used to configure an applied plugin:
+
+<SampleScripts sample_name="build-scripts-gradle-plugin-config" basename="build" tag="gradle-plugin-config" />
+
+When the `java-gradle-plugin` is applied, users must configure the plugin they are developing using the `gradlePlugin{}` configuration block.
+
+Tasks are units of work executed during your build.
+They can be defined by plugins or inline:
+
+<SampleScripts sample_name="build-scripts-task-definitions" basename="build" tag="task-definitions" />
+
+In the example generated by Gradle init, we define two tasks:
+
+1. `functionalTest`: This task is registered using `tasks.register()`. It configures the test task for functional tests.
+2. `test`: This task is configured using `tasks.named()` for the existing `test` task. It also configures the task to use JUnit Jupiter for unit tests.
+
+## Step 3. Update the Build scripts
+
+Over the following sections, we will update `LicensePlugin` to a plugin that automatically generates license headers for source code files.
+Let’s first update the build script with the proper name for our new `license` plugin:
+
+<SampleScripts sample_name="build-scripts-plugin-setup" basename="build" tag="update-plugin-config" />
+
+## Step 4. Apply the Plugin
+
+Let’s apply our `license` plugin to the `app` subproject:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="app/build.gradle.kts"
+plugins {
+    application
+    id("com.tutorial.license")  // Apply the license plugin
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="app/build.gradle"
+plugins {
+    id 'application'
+    id('com.tutorial.license')  // Apply the license plugin
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Step 5. View Plugin Task
+
+Build init creates a "hello world" plugin when generating a Gradle plugin project.
+Inside `LicensePlugin` is simply a task that prints a greeting to the console, the task name is `greeting`:
+
+<SampleScripts sample_name="build-scripts-plugin-setup" basename="build" tag="greeting-plugin" />
+
+As we can see, the `license` plugin, when applied, exposes a `greeting` task with a simple print statement.
+
+## Step 6. View Plugin Tasks
+
+When the `license` plugin is applied to the `app` project, the `greeting` task becomes available:
+
+To view the task in the root directory, run:
+
+```bash
+$ ./gradlew tasks --all
+```
+
+```text
+------------------------------------------------------------
+Tasks runnable from root project 'authoring-tutorial'
+------------------------------------------------------------
+...
+Other tasks
+-----------
+app:greeting
+app:task1
+app:task2
+lib:task3
+```
+
+Finally, run the `greeting` task using `./gradlew greeting` or:
+
+```bash
+$ ./gradlew :app:greeting
+```
+
+```text
+> Task :app:greeting
+Hello from plugin 'com.tutorial.greeting'
+```
+
+***Next Step:*** <Xref page="part6-writing-tasks" section="Part 6: Writing Tasks">Writing Tasks</Xref> \>\>

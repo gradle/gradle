@@ -1,4 +1,0 @@
-plugins {
-    id 'application'
-    id('com.tutorial.license')  // Apply the license plugin
-}

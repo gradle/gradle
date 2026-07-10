@@ -1,0 +1,79 @@
+---
+title: "Best Practices Index"
+---
+
+import { Xref } from '#/components';
+
+The table below provides a complete list of documented Gradle Best Practices.
+
+{/* converter-gap: node=pass
+<div style="border: 2px solid #ddd; padding: 1.25em; margin: 10px 0;">
+  There are currently <strong><span id="best-practices-total">X</span> Best Practices</strong><span id="best-practices-filtered-text"></span>.
+</div>
+*/}
+
+Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
+
+{/* converter-gap: node=pass
+<div style="margin: 10px 0;">
+  <label for="section-filter" style="margin-right: 10px;">Filter by Section:</label>
+  <select id="section-filter" style="margin-right: 20px; width: auto;">
+    <option value="">All Sections</option>
+  </select>
+  <label for="version-filter" style="margin-right: 10px;">Filter by Version:</label>
+  <select id="version-filter" style="width: auto;">
+    <option value="">All Versions</option>
+  </select>
+</div>
+*/}
+
+| Title | Section | Added in Gradle Version |
+| --- | --- | --- |
+| <Xref page="best-practices-general" section="Use Kotlin DSL">Use Kotlin DSL</Xref> | General | 8.14 |
+| <Xref page="best-practices-general" section="Use the Latest Minor Version of Gradle">Use the Latest Minor Version of Gradle</Xref> | General | 8.14 |
+| <Xref page="best-practices-general" section="Apply Plugins Using the `plugins` Block">Apply Plugins Using the plugins Block</Xref> | General | 8.14 |
+| <Xref page="best-practices-general" section="Do Not Use Internal APIs">Do Not Use Internal APIs</Xref> | General | 8.14 |
+| <Xref page="best-practices-general" section="Set Build Flags in `gradle.properties`">Set build flags in gradle.properties</Xref> | General | 9.0.0 |
+| <Xref page="best-practices-general" section="Name Your Root Project">Name Your Root Project</Xref> | General | 9.2.0 |
+| <Xref page="best-practices-general" section="Do not use `gradle.properties` in subprojects">Do not use gradle.properties in subprojects</Xref> | General | 9.2.0 |
+| <Xref page="best-practices-general" section="Avoid `afterEvaluate`">Avoid afterEvaluate</Xref> | General | 9.6.0 |
+| <Xref page="best-practices-general" section="Consider use of `@Incubating` APIs carefully">Consider use of `@Incubating` APIs carefully</Xref> | General | 9.7.0 |
+| <Xref page="best-practices-structuring-builds" section="Modularize Your Builds">Modularize Your Builds</Xref> | Structuring Builds | 9.0.0 |
+| <Xref page="best-practices-structuring-builds" section="Do Not Put Source Files in the Root Project">Do Not Put Source Files in the Root Project</Xref> | Structuring Builds | 9.0.0 |
+| <Xref page="best-practices-structuring-builds" section="Favor `build-logic` Composite Builds for Build Logic">Favor build-logic Composite Builds for Build Logic</Xref> | Structuring Builds | 9.0.0 |
+| <Xref page="best-practices-structuring-builds" section="Avoid Unintentionally Creating Empty Projects">Avoid Unintentionally Creating Empty Projects</Xref> | Structuring Builds | 9.1.0 |
+| <Xref page="best-practices-structuring-builds" section="Use Convention Plugins for Common Build Logic">Use Convention Plugins</Xref> | Structuring Builds | 9.3.0 |
+| <Xref page="best-practices-dependencies" section="Declare Dependencies using a single GAV (`group:artifact:version`) String">Single GAV String</Xref> | Dependencies | 8.14 |
+| <Xref page="best-practices-dependencies" section="Use Version Catalogs to Centralize Dependency Versions">Use Version Catalogs to Centralize Dependency Versions</Xref> | Dependencies | 9.0.0 |
+| <Xref page="best-practices-dependencies" section="Name Version Catalog Entries Appropriately">Name Version Catalog Entries Appropriately</Xref> | Dependencies | 9.0.0 |
+| <Xref page="best-practices-dependencies" section="Set up your Dependency Repositories in the Settings file">Set up your Dependency Repositories in the Settings file</Xref> | Dependencies | 9.0.0 |
+| <Xref page="best-practices-dependencies" section="Don't Explicitly Depend on the Kotlin Standard Library">Don’t Explicitly Depend on the Kotlin Standard Library</Xref> | Dependencies | 9.0.0 |
+| <Xref page="best-practices-dependencies" section="Avoid Redundant Dependency Declarations">Avoid Redundant Dependency Declarations</Xref> | Dependencies | 9.0.0 |
+| <Xref page="best-practices-dependencies" section="Use Content Filtering with multiple Repositories">Use Content Filtering with multiple Repositories</Xref> | Dependencies | 9.1.0 |
+| <Xref page="best-practices-dependencies" section="Apply Exclusions Narrowly">Apply Exclusions Narrowly</Xref> | Dependencies | 9.2.0 |
+| <Xref page="best-practices-dependencies" section="Always Declare Attributes on Consumable and Resolvable Configurations">Always Declare Attributes on Consumable and Resolvable Configurations</Xref> | Dependencies | 9.7.0 |
+| <Xref page="best-practices-tasks" section="Avoid DependsOn">Avoid DependsOn</Xref> | Task | 8.14 |
+| <Xref page="best-practices-tasks" section="Favor `@CacheableTask` and `@DisableCachingByDefault` over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`">Favor @CacheableTask and @DisableCachingByDefault over cacheIf(Spec) and doNotCacheIf(String, Spec)</Xref> | Task | 8.14 |
+| <Xref page="best-practices-tasks" section="Group and Describe custom Tasks">Group and Describe custom Tasks</Xref> | Task | 9.0.0 |
+| <Xref page="best-practices-tasks" section="Do not call `get()` on a Provider outside a Task action">Do not call `get()` on a Provider outside a Task action</Xref> | Task | 9.1.0 |
+| <Xref page="best-practices-tasks" section="Don't resolve Configurations before Task Execution">Don’t resolve Configurations before Task Execution</Xref> | Task | 9.1.0 |
+| <Xref page="best-practices-tasks" section="Avoid using eager APIs on File Collections">Avoid using eager APIs on File Collections</Xref> | Task | 9.1.0 |
+| <Xref page="best-practices-tasks" section="Use `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories">Prefer `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories</Xref> | Task | 9.2.0 |
+| <Xref page="best-practices-tasks" section="Use unique output files and directories">Use unique output files and directories</Xref> | Task | 9.3.0 |
+| <Xref page="best-practices-tasks" section="Don't hardcode Task names unless they are documented as Public API">Don’t hardcode task names when referring to them</Xref> | Task | 9.7.0 |
+| <Xref page="best-practices-tasks" section="Don't access a `Project` instance during Task Execution">Don’t access a `Project` instance during Task Execution</Xref> | Task | 9.7.0 |
+| <Xref page="best-practices-tasks" section="Wire lazy task outputs using `map` and `flatMap`">Wiring Task Outputs with `map` and `flatMap`</Xref> | Task | 9.7.0 |
+| <Xref page="best-practices-performance" section="Use UTF-8 File Encoding">Enable UTF‑8</Xref> | Performance | 9.0.0 |
+| <Xref page="best-practices-performance" section="Use the Build Cache">Use the Build Cache</Xref> | Performance | 9.1.0 |
+| <Xref page="best-practices-performance" section="Use the Configuration Cache">Use the Configuration Cache</Xref> | Performance | 9.1.0 |
+| <Xref page="best-practices-performance" section="Avoid Expensive Computations in Configuration Phase">Avoid Expensive Computations in Configuration Phase</Xref> | Performance | 9.0.0 |
+| <Xref page="best-practices-performance" section="Prefer the `-bin` Gradle Distribution">Prefer the `-bin` Gradle Distribution</Xref> | Performance | 9.4.0 |
+| <Xref page="best-practices-security" section="Best Practices for Security">Validate the Gradle Distribution SHA-256 Checksum</Xref> | Security | 9.1.0 |
+| <Xref page="best-practices-security" section="Validate the Gradle Wrapper on every Upgrade">Validate the Gradle Wrapper on every Upgrade</Xref> | Security | 9.3.0 |
+| <Xref page="best-practices-security" section="Do not Run `./gradlew` on Untrusted Projects">Do not Run `./gradlew` on Untrusted Projects</Xref> | Security | 9.7.0 |
+| <Xref page="best-practices-security" section="Build Output Should Be Byte-for-Byte Reproducible">Build Output Should Be Byte-for-Byte Reproducible</Xref> | Security | 9.7.0 |
+| <Xref page="best-practices-testing" section="Test your custom Task and Plugins with TestKit">Test your custom Task and Plugins with TestKit</Xref> | Testing | 9.4.0 |
+
+{/* converter-gap: node=pass
+<script src="js/best-practices-filter-sort.js"></script>
+*/}

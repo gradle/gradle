@@ -10,12 +10,12 @@ interface Props {
   tag?: string;
 }
 
-const { sample_name, sample, basename, subpath } = Astro.props;
+const { sample_name, sample, basename, subpath, tag } = Astro.props;
 const samplePath = getPageScopedSamplePath(
   Astro.url.pathname,
   sample_name ?? sample ?? '',
 );
-const { scripts } = loadSampleScripts(samplePath, basename, subpath);
+const { scripts } = loadSampleScripts(samplePath, basename, subpath, tag);
 ---
 
 <Tabs syncKey='script-language'>

@@ -1,0 +1,86 @@
+---
+title: "Build File Basics"
+---
+
+import { CalloutList, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import gradleBasic4 from './gradle-basic-4.png';
+
+Generally, a build script (`build.gradle(.kts)`) details **build configuration, tasks, and plugins**.
+
+<Image src={gradleBasic4} alt="gradle basic 4" />
+
+Every Gradle build comprises at least one _build script_.
+
+## Build scripts
+
+The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file in Kotlin.
+
+The [Groovy DSL](https://docs.gradle.org/current/dsl/) and the [Kotlin DSL](https://docs.gradle.org/current/kotlin-dsl/) are the only accepted languages for Gradle scripts.
+
+In multi-project builds, each subproject typically has its own build file located in its root directory.
+
+Inside a build script, you’ll typically specify:
+
+- **Plugins**: Tools that extend Gradle’s functionality for tasks like compiling code, running tests, or packaging artifacts.
+- **Dependencies**: External libraries and tools your project uses.
+
+Specifically, build scripts contain two main types of dependencies:
+
+- **Gradle and Build Script Dependencies**: These include plugins and libraries required by Gradle itself or the build script logic.
+- **Project Dependencies**: Libraries required directly by your project’s source code to compile and run correctly.
+
+Let’s take a look at an example and break it down:
+
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init" />
+
+<CalloutList>
+
+1. Add plugins.
+2. Add dependencies.
+3. Use convention properties.
+
+</CalloutList>
+
+## 1. Add plugins
+
+Plugins extend Gradle’s functionality and can contribute tasks to a project.
+
+Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
+
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-plugins" />
+
+The `application` plugin facilitates creating an executable JVM application.
+
+Applying the <Xref page="application-plugin" section="The Application Plugin">Application plugin</Xref> also implicitly applies the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref>.
+The `java` plugin adds Java compilation along with testing and bundling capabilities to a project.
+
+## 2. Add dependencies
+
+Your project needs external libraries to compile, run, and test.
+
+In this example, the project uses `JUnit Jupiter` for testing and Google’s `Guava` library in the main application code:
+
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-dep" />
+
+## 3. Use convention properties
+
+A plugin adds tasks to a project.
+It also adds properties and methods to a project.
+
+The `application` plugin defines tasks that package and distribute an application, such as the `run` task.
+
+The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
+
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-app" />
+
+In this example, the main class (i.e., the point where the program’s execution begins) is `org.example.App`.
+
+Build scripts are evaluated during the configuration phase of a build, and they serve as the main entry point for defining a (sub)project’s build logic.
+In addition to applying plugins and setting convention properties, build scripts can:
+
+- Declare dependencies
+- Configure tasks
+- Reference shared settings (from version catalogs or convention plugins)
+
+***Next Step:*** <Xref page="dependency-management-basics" section="Dependencies and Dependency Management Basics">Learn about Dependency Management</Xref> \>\>

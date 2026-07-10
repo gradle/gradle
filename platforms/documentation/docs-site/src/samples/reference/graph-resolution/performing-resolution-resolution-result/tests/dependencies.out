@@ -1,0 +1,7 @@
+runtimeClasspath
+\--- com.google.guava:guava:33.2.1-jre
+     +--- com.google.guava:failureaccess:1.0.2
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.42.0
+     \--- com.google.errorprone:error_prone_annotations:2.26.1

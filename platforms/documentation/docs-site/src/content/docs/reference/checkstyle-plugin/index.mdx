@@ -1,0 +1,160 @@
+---
+title: "The Checkstyle Plugin"
+---
+
+import { CalloutList, GroovyDocLink, SampleFile, SampleScripts } from '#/components';
+
+The Checkstyle plugin performs quality checks on your project’s Java source files using [Checkstyle](https://checkstyle.org/index.html) and generates reports from these checks.
+
+## Usage
+
+To use the Checkstyle plugin, include the following in your build script:
+
+<SampleScripts sample_name="code-quality" basename="build" tag="use-checkstyle-plugin" />
+
+The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
+
+Note that Checkstyle will run with the same Java version used to run Gradle.
+
+## Tasks
+
+The Checkstyle plugin adds the following tasks to the project:
+
+<dl>
+<dt>`checkstyleMain` — <GroovyDocLink class="org.gradle.api.plugins.quality.Checkstyle" /></dt>
+<dd>
+
+_Depends on_: `classes`
+
+Runs Checkstyle against the production Java source files.
+
+</dd>
+<dt>`checkstyleTest` — <GroovyDocLink class="org.gradle.api.plugins.quality.Checkstyle" /></dt>
+<dd>
+
+_Depends on_: `testClasses`
+
+Runs Checkstyle against the test Java source files.
+
+</dd>
+<dt>`checkstyle_SourceSet_` — <GroovyDocLink class="org.gradle.api.plugins.quality.Checkstyle" /></dt>
+<dd>
+
+_Depends on_: `_sourceSet_Classes`
+
+Runs Checkstyle against the given source set’s Java source files.
+
+</dd>
+</dl>
+
+### Dependencies added to other tasks
+
+The Checkstyle plugin adds the following dependencies to tasks defined by the Java plugin.
+
+<dl>
+<dt>`check`</dt>
+<dd>
+
+_Depends on_: All Checkstyle tasks, including `checkstyleMain` and `checkstyleTest`.
+
+</dd>
+</dl>
+
+## Project layout
+
+By default, the Checkstyle plugin expects configuration files to be placed in the root project, but this can be changed.
+
+```text callouts
+<root>
+└── config
+    └── checkstyle           // (1)
+        └── checkstyle.xml   // (2)
+        └── suppressions.xml
+```
+
+<CalloutList>
+
+1. Checkstyle configuration files go here
+2. Primary Checkstyle configuration file
+
+</CalloutList>
+
+## Dependency management
+
+The Checkstyle plugin adds the following dependency configurations:
+
+**Checkstyle plugin - dependency configurations**
+
+| Name | Meaning |
+| --- | --- |
+| `checkstyle` | The Checkstyle libraries to use |
+
+By default, the `checkstyle` configuration uses [`com.puppycrawl.tools:checkstyle`](https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle).
+The version of `com.puppycrawl.tools:checkstyle` used is derived from the extension’s tool version:
+
+```kotlin
+checkstyle {
+    toolVersion = "10.12.4"
+}
+```
+
+If another dependency is added, the default `com.puppycrawl.tools:checkstyle` dependency will be removed:
+
+<SampleScripts sample_name="checkstyle-plugin-dependencies" basename="build" tag="replace-dependency" />
+
+To add a dependency to the `checkstyle` configuration while also retaining a dependency on `com.puppycrawl.tools:checkstyle`, use the following solution:
+
+<SampleScripts sample_name="checkstyle-plugin-dependencies" basename="build" tag="add-dependency" />
+
+## Configuration
+
+See the <GroovyDocLink class="org.gradle.api.plugins.quality.CheckstyleExtension" /> class in the API documentation for comprehensive configuration options.
+
+### Configuring Checkstyle with Java Toolchains
+
+Checkstyle imposes a minimum requirement of JDK 11, with an anticipated transition to JDK 17 in forthcoming releases. For projects targeting earlier JDK versions, such as JDK 8, this presents a compatibility challenge. Historically, users have resorted to backport dependencies (e.g., `com.puppycrawl.tools:checkstyle-backport-jre8`) to bridge this gap. However, as both Checkstyle and Gradle align with modern Java versions, a more robust and future-proof solution is available through Gradle’s Java toolchains.
+
+By leveraging the `javaLauncher` property, you can explicitly configure Checkstyle tasks to execute with a designated JDK version, independent of the JDK used for your project’s compilation or Gradle’s runtime. The following configuration ensures that Checkstyle operates with JDK 17:
+
+```groovy
+tasks.withType(Checkstyle).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+```
+
+This approach offers several advantages:
+
+- ***Decoupling***: Checkstyle execution is isolated from the project’s JDK, enabling compatibility without altering your build’s core environment.
+- ***Automation***: Gradle’s toolchain support automatically provisions the specified JDK, streamlining setup and ensuring consistency across environments.
+- ***Sustainability***: It eliminates reliance on community-maintained backports, which may lag behind official releases or introduce maintenance overhead.
+
+We strongly recommend adopting this configuration as the preferred method for managing Checkstyle’s JDK requirements, particularly as the ecosystem progresses toward JDK 17 and beyond.
+
+### Built-in variables
+
+The Checkstyle plugin defines a `config_loc` property that can be used in Checkstyle configuration files to define paths to other configuration files like `suppressions.xml`.
+
+<SampleFile sample_name="code-quality" path="groovy/config/checkstyle/checkstyle.xml" tag="use-config-loc" />
+
+## Customizing the HTML report
+
+The HTML report generated by the <GroovyDocLink class="org.gradle.api.plugins.quality.Checkstyle" /> task can be customized using a XSLT stylesheet, for example to highlight specific errors or change its appearance:
+
+<SampleScripts sample_name="code-quality" basename="build" tag="customize-checkstyle-report" />
+
+[View a sample Checkstyle stylesheet.](https://github.com/checkstyle/contribution/tree/master/xsl)
+
+## Generate SARIF report
+
+[SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) report is supported on Checkstyle versions 10.3.3 and newer. It is not enabled by default.
+
+<SampleScripts sample_name="code-quality" basename="build" tag="enable-checkstyle-sarif-report" />
+
+## Changing the amount of memory given to Checkstyle
+
+Checkstyle analysis is performed in a separate process. By default, the Checkstyle process is given a max heap of 512MB. When analyzing many source files, you may need to provide additional memory to this process.
+You can change the amount of memory for Checkstyle by configuring the <GroovyDocLink class="org.gradle.api.plugins.quality.Checkstyle" method="maxHeapSize" />.
+
+<SampleScripts sample_name="code-quality" basename="build" tag="customize-checkstyle-memory" />

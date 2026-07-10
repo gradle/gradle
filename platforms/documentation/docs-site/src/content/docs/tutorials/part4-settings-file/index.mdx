@@ -1,0 +1,85 @@
+---
+title: "Part 4: Writing the Settings File"
+---
+
+import { CalloutList, GroovyDocLink, JavaDocLink, KotlinDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Learn the basics of authoring Gradle by developing the Settings File.
+
+:::note
+***In this section, you will:***
+- Understand the Settings object
+- Understand the Settings file
+- Understand Gradle scripting
+:::
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in <Xref page="part1-gradle-init-project" section="Step 0. Before you Begin">part 1</Xref>.
+2. You understand the Gradle Build Lifecycle from <Xref page="part2-build-lifecycle" section="Step 0. Before you Begin">part 2</Xref>.
+3. You added a subproject and a separate Build in <Xref page="part3-multi-project-builds" section="Step 0. Before you Begin">part3</Xref>.
+
+## Step 1. Gradle scripts
+
+Build scripts and setting files are code.
+They are written in Kotlin or Groovy.
+
+You use the [Kotlin DSL](https://docs.gradle.org/current/kotlin-dsl/), [Groovy DSL](https://docs.gradle.org/current/dsl/) and [Gradle APIs](https://docs.gradle.org/current/javadoc/) to write the scripts.
+
+The methods that can be used within a Gradle script primarily include:
+
+- Gradle APIs - such as `getRootProject()` from the <JavaDocLink class="org.gradle.api.initialization.Settings">Settings API</JavaDocLink>
+- Blocks defined in the DSL - such as the `plugins{}` block from <KotlinDocLink class="org.gradle.kotlin.dsl.KotlinSettingsScript" />
+- Extensions defined by Plugins - such as `implementation()` and `api()` provided by the `java` plugin when applied
+
+## Step 2. The `Settings` object
+
+The settings file is the entry point of every Gradle build.
+
+During the initialization phase, Gradle finds the settings file in your project root directory.
+
+When the settings file, `settings.gradle(.kts)`, is found, Gradle instantiates a <GroovyDocLink class="org.gradle.api.initialization.Settings" /> object.
+
+One of the purposes of the <GroovyDocLink class="org.gradle.api.initialization.Settings" /> object is to allow you to declare all the projects to be included in the build.
+
+You can use any of the methods and properties on the <GroovyDocLink class="org.gradle.api.initialization.Settings" /> interface directly in your settings file.
+
+For example:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+includeBuild("some-build")                         // Delegates to Settings.includeBuild()
+reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+includeBuild('some-build')                         // Delegates to Settings.includeBuild()
+reportsDir = findProject('/myInternalProject')     // Delegates to Settings.findProject()
+```
+
+</TabItem>
+</Tabs>
+
+## Step 3. The Settings file
+
+Let’s break down the settings file in our project root directory:
+
+<SampleScripts sample_name="settings-file-breakdown" basename="settings" tag="settings-breakdown" />
+
+<CalloutList>
+
+1. `plugins({})` from the <GroovyDocLink class="org.gradle.plugin.use.PluginDependenciesSpec">PluginDependenciesSpec API</GroovyDocLink>
+2. `id()` method from the <GroovyDocLink class="org.gradle.plugin.use.PluginDependenciesSpec">PluginDependenciesSpec API</GroovyDocLink>
+3. `getRootProject()` method from the <GroovyDocLink class="org.gradle.api.initialization.Settings">Settings API</GroovyDocLink>
+4. `include()` method from the <GroovyDocLink class="org.gradle.api.initialization.Settings">Settings API</GroovyDocLink>
+5. `includeBuild()` method from the <GroovyDocLink class="org.gradle.api.initialization.Settings">Settings API</GroovyDocLink>
+
+</CalloutList>
+
+***Next Step:*** <Xref page="part5-build-scripts" section="Part 5: Writing a Build Script">Writing a Build Script</Xref> \>\>

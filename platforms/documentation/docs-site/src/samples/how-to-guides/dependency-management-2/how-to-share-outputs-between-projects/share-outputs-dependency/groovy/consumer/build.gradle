@@ -1,4 +1,0 @@
-dependencies {
-    // Declare a project dependency on the producer's instrumented output
-    add("instrumentedRuntimeDependencies", project(":producer"))
-}

@@ -1,0 +1,90 @@
+---
+title: "Part 8: Publish your Plugin Locally"
+---
+
+import { SampleScripts, Xref } from '#/components';
+
+Learn how to verify your plugin can be published by pushing it to a local Maven repository, then consuming it like any external plugin.
+
+:::note
+***In this section, you’ll:***
+- Update your plugin with publishable metadata
+- Publish your plugin to a local throwable Maven repository
+- Use the published version of the plugin in the `consumer` project
+:::
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in <Xref page="part1-gradle-init-plugin" section="Step 0: Before you Begin">part 1</Xref>.
+2. You added an extension to your plugin in <Xref page="part2-add-extension" section="Step 0: Before you Begin">part 2</Xref>.
+3. You created a custom task in <Xref page="part3-create-custom-task" section="Step 0: Before you Begin">part3</Xref>.
+4. You wrote a unit test in <Xref page="part4-unit-test" section="Step 0: Before you Begin">part 4</Xref>.
+5. You added a dataflow action to your plugin in <Xref page="part5-add-dataflow-action" section="Step 0: Before you Begin">part 5</Xref>.
+6. You wrote a functional test in <Xref page="part6-functional-test" section="Step 0: Before you Begin">part 6</Xref>.
+7. You created a dummy consumer project in <Xref page="part7-use-consumer-project" section="Step 0: Before you Begin">part 7</Xref>.
+
+## Step 1: Add Plugin Metadata
+
+In your `plugin/build.gradle(.kts)` file, apply the `maven-publish` plugin and make sure you have the `group` and `version` defined:
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="publish" />
+
+:::tip
+The `group` and `version` ***must*** be set or the `publish` task will fail.
+:::
+
+## Step 2: Publish to a Local Folder
+
+Use the `publishing {}` block from the `maven-publish` plugin to add a Maven repository that points to `build/local-repo` in your plugin’s build file:
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="repo" />
+
+Publish the plugin:
+
+```bash
+./gradlew :plugin:publishAllPublicationsToLocalRepoRepository
+```
+
+```text
+> Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :plugin:pluginDescriptors UP-TO-DATE
+> Task :plugin:processResources UP-TO-DATE
+> Task :plugin:generatePomFileForPluginMavenPublication
+> Task :plugin:generatePomFileForSlackPluginMarkerMavenPublication
+> Task :plugin:publishSlackPluginMarkerMavenPublicationToLocalRepoRepository
+> Task :plugin:compileKotlin
+> Task :plugin:compileJava NO-SOURCE
+> Task :plugin:classes UP-TO-DATE
+> Task :plugin:jar
+> Task :plugin:generateMetadataFileForPluginMavenPublication
+> Task :plugin:publishPluginMavenPublicationToLocalRepoRepository
+> Task :plugin:publishAllPublicationsToLocalRepoRepository
+
+BUILD SUCCESSFUL in 1s
+9 actionable tasks: 7 executed, 2 up-to-date
+```
+
+You should now see artifacts under `plugin/build/local-repo/`.
+Take a moment to look at these files.
+
+## Step 3: Configure the Local Repository in `consumer`
+
+Point your ***consumer*** build to that repo and apply the plugin ***with a version***:
+
+<SampleScripts sample_name="plugin-tutorial" basename="settings" subpath="consumer" tag="repo" />
+
+## Step 4: Apply the Plugin in the `consumer` Project
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="consumer" tag="repo" />
+
+Now run something in the consumer (e.g., your `test` task or `build`):
+
+```bash
+./gradlew :consumer:build
+```
+
+You’ve now proven the plugin is ***publishable*** and ***consumable*** like a real, external plugin, no portals or private repos required.
+
+You can easily clean up the artifacts by running `rm -rf plugin/build/local-repo` if you want to republish from scratch.
+
+Congratulations, you have completed the tutorial!

@@ -1,0 +1,393 @@
+---
+title: "Testing Build Logic with TestKit"
+---
+
+import { JavaDocLink, SampleScripts, Xref } from '#/components';
+
+The Gradle TestKit helps you functionally test Gradle plugins and build logic by executing real builds in an isolated temp project and asserting on their results.
+You’ll typically pair TestKit with a test framework (JUnit or Spock) and a few small fixtures to generate test projects on the fly.
+Over time, TestKit has focused on functional/black-box testing, and that remains its sweet spot.
+
+## Using TestKit
+
+Add TestKit to your test dependencies:
+
+<SampleScripts sample_name="junit-quickstart" basename="build" tag="declare-gradle-testkit-dependency" />
+
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <Xref page="tooling-api" section="Embedding Gradle using the Tooling API">Gradle Tooling API client</Xref>.
+It does not include a version of [JUnit](https://junit.org), [TestNG](https://testng.org), or any other test execution framework.
+Such a dependency must be explicitly declared.
+
+For JUnit 5:
+
+<SampleScripts sample_name="junit-quickstart" basename="build" tag="declare-junit-dependency" />
+
+## Functional testing with the Gradle runner
+
+A modern way to organize plugin tests is to add a dedicated functional test suite using the JVM Test Suite plugin (added transitively by `java-gradle-plugin`).
+This cleanly separates unit and functional tests and wires TestKit for you.
+
+The <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" /> allows you to programmatically execute Gradle builds and inspect their results.
+
+A test can create a minimal or contrived build (either programmatically or from a template) that exercises the logic under test.
+The functional test then runs that build, potentially using different tasks, arguments, or Gradle versions, and verifies correctness by asserting any combination of the following:
+
+- The build output
+- The build’s logging
+- The tasks that executed and their outcomes (e.g., FAILED, UP-TO-DATE, FROM-CACHE)
+
+After creating and configuring a runner instance, execute the build using <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="build--">`GradleRunner.build()`</JavaDocLink> or <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="buildAndFail--">`GradleRunner.buildAndFail()`</JavaDocLink>, depending on whether the build is expected to succeed or fail.
+
+The following demonstrates the usage of the Gradle runner in a Java JUnit test:
+
+```java
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.GradleRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class BuildLogicFunctionalTest {
+
+    @TempDir File testProjectDir;
+    private File settingsFile;
+    private File buildFile;
+
+    @BeforeEach
+    public void setup() {
+        settingsFile = new File(testProjectDir, "settings.gradle");
+        buildFile = new File(testProjectDir, "build.gradle");
+    }
+
+    @Test
+    public void testHelloWorldTask() throws IOException {
+        writeFile(settingsFile, "rootProject.name = 'hello-world'");
+        String buildFileContent = "task helloWorld {" +
+                                  "    doLast {" +
+                                  "        println 'Hello world!'" +
+                                  "    }" +
+                                  "}";
+        writeFile(buildFile, buildFileContent);
+
+        BuildResult result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments("helloWorld")
+            .build();
+
+        assertTrue(result.getOutput().contains("Hello world!"));
+        assertEquals(SUCCESS, result.task(":helloWorld").getOutcome());
+    }
+
+    private void writeFile(File destination, String content) throws IOException {
+        BufferedWriter output = null;
+        try {
+            output = new BufferedWriter(new FileWriter(destination));
+            output.write(content);
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+    }
+}
+```
+
+Any test framework can be used.
+
+Because Gradle build scripts are often written in Groovy, many users find it productive to write functional tests in Groovy as well.
+The [Spock](https://spockframework.org) framework provides expressive assertions, data-driven tests, and powerful fixtures that work well with TestKit.
+Similarly, Kotlin users often choose either JUnit Jupiter or [Kotest](https://kotest.io) for a more idiomatic Kotlin testing experience.
+
+The following demonstrates the usage of the Gradle runner in a Groovy Spock test:
+
+```groovy
+import org.gradle.testkit.runner.GradleRunner
+import static org.gradle.testkit.runner.TaskOutcome.*
+import spock.lang.TempDir
+import spock.lang.Specification
+
+class BuildLogicFunctionalTest extends Specification {
+    @TempDir File testProjectDir
+    File settingsFile
+    File buildFile
+
+    def setup() {
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
+    }
+
+    def "hello world task prints hello world"() {
+        given:
+        settingsFile << "rootProject.name = 'hello-world'"
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments('helloWorld')
+            .build()
+
+        then:
+        result.output.contains('Hello world!')
+        result.task(":helloWorld").outcome == SUCCESS
+    }
+}
+```
+
+When implementing more complex build logic (such as custom plugins or task types), you can package that logic into external classes and test them in isolation using "normal" unit tests.
+Functional tests using TestKit then validate that the plugin behaves correctly when applied to a real Gradle build.
+
+## Getting the plugin-under-test into the test build
+
+The `GradleRunner` uses the <Xref page="tooling-api" section="Embedding Gradle using the Tooling API">Tooling API</Xref> to execute builds.
+This means that builds run in a **separate** process from your tests.
+As a result:
+
+- The test build does not share the same classpath or classloaders as the test process.
+- The code under test (for example, your plugin implementation) is ***not*** automatically visible to the build executed by `GradleRunner`.
+
+:::note
+`GradleRunner` supports the same range of Gradle versions as the Tooling API.
+The supported versions are defined in the <Xref page="tooling-api" section="Compatibility of Java and Gradle versions">compatibility matrix</Xref>.
+Builds with older Gradle versions **may** still work, but there are no guarantees.
+:::
+
+To make your plugin (or other build logic under test) available to the test build, Gradle provides a conventional mechanism to inject the **plugin-under-test** onto the classpath used by `GradleRunner`.
+
+### Automatic injection with the Java Gradle Plugin Development plugin
+
+The <Xref page="java-gradle-plugin" section="Gradle Plugin Development Plugin">Java Gradle Plugin Development plugin</Xref> provides built-in integration with TestKit.
+When applied to a project, it automatically:
+
+- adds the `gradleTestKit()` dependency to the appropriate test configuration, and
+- generates the plugin-under-test classpath and injects it into any `GradleRunner` instance created by your tests via <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath--">`GradleRunner.withPluginClasspath()`</JavaDocLink>.
+
+This allows functional tests to execute a “real” Gradle build that can apply and exercise your plugin without requiring any manual classpath wiring.
+
+:::note
+Automatic classpath injection only works when the plugin-under-test is applied in the test build using the <Xref page="plugins-intermediate" section="1. Applying plugins using the `plugins{}` block">`plugins {}` DSL</Xref>.
+:::
+
+By default, the Java Gradle Plugin Development plugin uses the following conventions:
+
+- Code under test is taken from: `sourceSets.main`
+- The generated plugin classpath metadata is produced from: `sourceSets.test`
+
+These conventions can be customized using the <JavaDocLink class="org.gradle.plugin.devel.GradlePluginDevelopmentExtension" />.
+
+The following sample shows the default setup for automatic plugin classpath injection:
+
+<SampleScripts sample_name="automatic-classpath-injection-quickstart" basename="build" tag="automatic-classpath" />
+
+:::caution
+The automatic classpath injection provided by `GradleRunner.withPluginClasspath()` is ***incompatible*** with plugins that use `compileOnly` to depend on another plugin’s API.
+- ***Symptom:*** Your tests will fail with a `ClassNotFoundException` because the required base plugin classes are not included in the isolated test classpath.
+- ***Reason:*** The recommended practice of using `compileOnly` prevents plugin API classes from being packaged with your plugin, but `withPluginClasspath` fails to correctly resolve those missing classes from the build environment.
+If your plugin uses `compileOnly`, you must use a testing setup that involves:
+1. Publishing your plugin to a local Maven repository.
+2. Configuring the test project’s `settings.gradle` file to pull your plugin from that local repository.
+:::
+
+The following example automatically injects the code under test classes into test builds:
+
+```groovy
+    def "hello world task prints hello world"() {
+        given:
+        settingsFile << "rootProject.name = 'hello-world'"
+        buildFile << """
+            plugins {
+                id 'org.gradle.sample.helloworld'
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments('helloWorld')
+            .withPluginClasspath()
+            .build()
+
+        then:
+        result.output.contains('Hello world!')
+        result.task(":helloWorld").outcome == SUCCESS
+    }
+```
+
+If your project uses a custom test source set (for example, a dedicated functional test suite), you can reconfigure the plugin development extension to generate the plugin classpath metadata from that source set instead.
+
+:::note
+A dedicated DSL for modeling such test suites is provided by the incubating <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite plugin</Xref>.
+:::
+
+<SampleScripts sample_name="automatic-classpath-injection-custom-test-source-set" basename="build" tag="custom-test-source-set" />
+
+## Controlling the build environment
+
+`GradleRunner` executes test builds in an isolated environment.
+Each build runs in its own dedicated working directory inside the JVM’s temporary directory (the location defined by the `java.io.tmpdir` system property, typically `/tmp`).
+
+Because the test build runs in this isolated directory:
+
+- Configuration from the default Gradle User Home (for example, `~/.gradle/gradle.properties`) is ***not*** used.
+- The test build does not inherit settings, caches, or environment customizations from the machine running the tests.
+
+The TestKit does not currently expose fine-grained control over all environmental aspects—for example, selecting a JDK for the executed build. Future versions of TestKit may offer more explicit configuration options.
+
+TestKit uses dedicated Gradle daemon processes for the builds it runs.
+These daemons are distinct from any daemons used by "normal" Gradle invocations and are automatically shut down after the tests complete.
+
+By default, the working directories created for each test build are ***not*** deleted.
+To keep the filesystem clean or to store TestKit state in a location managed by your build (such as a project’s `build/` directory), you can specify a custom TestKit directory using one of the following:
+
+- The `org.gradle.testkit.dir` system property
+- <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withTestKitDir-java.io.File-">`GradleRunner.withTestKitDir(File testKitDir)`</JavaDocLink>
+
+## Setting the Gradle version used to test
+
+The Gradle runner requires a Gradle distribution in order to execute the build.
+The TestKit does not depend on all of Gradle’s implementation.
+
+By default, the runner will attempt to find a Gradle distribution based on where the `GradleRunner` class was loaded from.
+That is, it is expected that the class was loaded from a Gradle distribution, as is the case when using the `gradleTestKit()` dependency declaration.
+
+When using the runner as part of tests _being executed by Gradle_ (e.g. executing the `test` task of a plugin project), the same distribution used to execute the tests will be used by the runner.
+When using the runner as part of tests _being executed by an IDE_, the same Gradle distribution that was used when importing the project will be used.
+This means that the plugin will be effectively tested with the same version of Gradle that it is being built with.
+
+Alternatively, a different and specific version of Gradle to use can be specified by the following `GradleRunner` methods:
+
+- <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withGradleVersion-java.lang.String-">`GradleRunner.withGradleVersion(java.lang.String)`</JavaDocLink>
+- <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withGradleInstallation-java.io.File-">`GradleRunner.withGradleInstallation(java.io.File)`</JavaDocLink>
+- <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withGradleDistribution-java.net.URI-">`GradleRunner.withGradleDistribution(java.net.URI)`</JavaDocLink>
+
+This can potentially be used to test build logic across Gradle versions.
+The following demonstrates a cross-version compatibility test written as a Groovy Spock test:
+
+```groovy
+import org.gradle.testkit.runner.GradleRunner
+import static org.gradle.testkit.runner.TaskOutcome.*
+import spock.lang.TempDir
+import spock.lang.Specification
+
+class BuildLogicFunctionalTest extends Specification {
+    @TempDir File testProjectDir
+    File settingsFile
+    File buildFile
+
+    def setup() {
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
+    }
+
+    def "can execute hello world task with Gradle version #gradleVersion"() {
+        given:
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    logger.quiet 'Hello world!'
+                }
+            }
+        """
+        settingsFile << ""
+
+        when:
+        def result = GradleRunner.create()
+            .withGradleVersion(gradleVersion)
+            .withProjectDir(testProjectDir)
+            .withArguments('helloWorld')
+            .build()
+
+        then:
+        result.output.contains('Hello world!')
+        result.task(":helloWorld").outcome == SUCCESS
+
+        where:
+        gradleVersion << ['5.0', '6.0.1']
+    }
+}
+```
+
+## Debugging build logic
+
+The runner uses the <Xref page="tooling-api" section="Embedding Gradle using the Tooling API">Tooling API</Xref> to execute builds.
+An implication of this is that the builds are executed in a separate process (i.e., not the same process executing the tests).
+Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect.
+Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
+
+The TestKit provides two different ways to enable the debug mode:
+
+- Setting org.gradle.testkit.debug system property to `true` for the JVM _using_ the `GradleRunner` (i.e., not the build being executed with the runner);
+- Calling the <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withDebug-boolean-">`GradleRunner.withDebug(boolean)`</JavaDocLink> method.
+
+The system property approach can be used when it is desirable to enable debugging support without making an ad hoc change to the runner configuration.
+Most IDEs offer the capability to set JVM system properties for test execution, and this feature can be used to set the desired system property.
+
+## Testing with the Build Cache
+
+To enable the <Xref page="build-cache" section="Build Cache">Build Cache</Xref> in your tests, you can pass the `--build-cache` argument to <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" /> or use one of the other methods described in <Xref page="build-cache" section="Enable the Build Cache">Enable the Build Cache</Xref>.
+You can then check for the task outcome <JavaDocLink class="org.gradle.testkit.runner.TaskOutcome" method="FROM_CACHE" /> when your plugin’s custom task is cached.
+
+```groovy
+    def "cacheableTask is loaded from cache"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'org.gradle.sample.helloworld'
+            }
+        """
+
+        when:
+        def result = runner()
+            .withArguments( '--build-cache', 'cacheableTask')
+            .build()
+
+        then:
+        result.task(":cacheableTask").outcome == SUCCESS
+
+        when:
+        new File(testProjectDir, 'build').deleteDir()
+        result = runner()
+            .withArguments( '--build-cache', 'cacheableTask')
+            .build()
+
+        then:
+        result.task(":cacheableTask").outcome == FROM_CACHE
+    }
+```
+
+Note that TestKit re-uses a Gradle User Home between tests (see <JavaDocLink class="org.gradle.testkit.runner.GradleRunner" method="withTestKitDir-java.io.File-">`GradleRunner.withTestKitDir(java.io.File)`</JavaDocLink>), which contains the default location for the local Build Cache.
+For testing with the build cache, the Build Cache directory should be cleaned between tests.
+The easiest way to accomplish this is to configure the local Build Cache to use a temporary directory:
+
+```groovy
+    @TempDir File testProjectDir
+    File buildFile
+    File localBuildCacheDirectory
+
+    def setup() {
+        localBuildCacheDirectory = new File(testProjectDir, 'local-cache')
+        buildFile = new File(testProjectDir,'settings.gradle') << """
+            buildCache {
+                local {
+                    directory = '${localBuildCacheDirectory.toURI()}'
+                }
+            }
+        """
+        buildFile = new File(testProjectDir,'build.gradle')
+    }
+```

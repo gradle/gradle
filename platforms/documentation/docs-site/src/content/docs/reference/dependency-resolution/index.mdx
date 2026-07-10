@@ -1,0 +1,35 @@
+---
+title: "Dependency Resolution"
+---
+
+import { Xref } from '#/components';
+import { Image } from 'astro:assets';
+import depManAdv1 from './dep-man-adv-1.png';
+
+Dependency resolution in Gradle can largely be thought of as a two-step process.
+
+First, the _graph resolution_ phase constructs the dependency graph based on declared dependencies.
+Second, the _artifact resolution_ phase fetches the actual files (artifacts) for the resolved components:
+
+1. ***Graph resolution phase***:
+   - Driven by declared dependencies and their metadata
+   - Uses the request attributes defined by the configuration being resolved
+2. ***Artifact resolution phase***:
+   - Based on nodes in the resolved dependency graph
+   - Matches each node to a variant and an artifact
+
+<Image src={depManAdv1} alt="dep man adv 1" />
+
+## 1. Graph Resolution
+
+During the _graph resolution_ phase, Gradle constructs a **dependency graph**, which models the relationships between different components and their variants.
+
+See <Xref page="graph-resolution" section="Graph Resolution">Graph Resolution</Xref> to learn more.
+
+## 2. Artifact Resolution
+
+Once the dependency graph is resolved, the _artifact resolution_ phase determines which **artifacts** (i.e. files) need to be downloaded or retrieved for each variant.
+
+See <Xref page="artifact-resolution" section="Artifact Resolution">Artifact Resolution</Xref> to learn more.
+
+***Next Step:*** <Xref page="graph-resolution" section="Graph Resolution">Learn about Graph Resolution</Xref> \>\>

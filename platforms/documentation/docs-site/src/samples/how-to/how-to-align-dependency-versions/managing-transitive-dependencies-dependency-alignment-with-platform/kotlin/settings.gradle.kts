@@ -1,0 +1,3 @@
+rootProject.name = "dependency-alignment-with-platform"
+
+include("core", "lib", "utils", "platform")

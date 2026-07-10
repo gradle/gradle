@@ -1,0 +1,427 @@
+---
+title: "XCTest"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import xctestTaskGraph from './xctest-task-graph.png';
+import xctestVariantTaskGraph from './xctest-variant-task-graph.png';
+import xctestConfigurations from './xctest-configurations.png';
+
+The XCTest Plugin provides the tasks, configurations and conventions for integrating with a [XCTest testing framework on macOS](https://developer.apple.com/documentation/xctest) as well as [Linux’s open source implementation](https://github.com/apple/swift-corelibs-xctest).
+
+## Usage
+
+<SampleScripts sample_name="swift-x-c-test" basename="build" tag="apply-plugin" />
+
+## Build variants
+
+The XCTest Plugin understands the following dimensions.
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+
+<dl>
+<dt>Target machines - defaults to the tested component (if present) or build host (otherwise)</dt>
+<dd>
+
+The target machine expresses which machines the application expects to run.
+A target machine is identified by its operating system and architecture.
+Gradle uses the target machine to decide which tool chain to choose based on availability on the host machine.
+
+</dd>
+</dl>
+
+The target machine can be configured as follows:
+
+<SampleScripts sample_name="swift-x-c-test" basename="build" tag="configure-target-machines" />
+
+## Tasks
+
+The following diagram shows the relationships between tasks added by this plugin.
+
+<Image src={xctestTaskGraph} alt="xctest task graph" />
+
+### Variant-dependent Tasks
+
+The XCTest Plugin creates tasks based on the variants of the test component.
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+The following diagrams show the relationship between variant-dependent tasks.
+
+<Image src={xctestVariantTaskGraph} alt="xctest variant task graph" />
+
+<dl>
+<dt>`compileTest_Variant_Swift` (e.g. `compileTestSwift`)  - <GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" /></dt>
+<dd>
+
+Depends on: All tasks that contribute source files to the compilation
+::
+Compiles Swift source files using the selected compiler.
+
+</dd>
+<dt>`linkTest_Variant_` (e.g. `linkTest`) - <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" /> (on macOS) or <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" /> (on Linux)</dt>
+<dd>
+
+Depends on: All tasks which contribute to the link executable, including `link_Variant_` and `create_Variant_` tasks from projects that are resolved via project dependencies and tested component
+::
+Links executable from compiled object files using the selected linker.
+
+</dd>
+<dt>`installTest_Variant_` (e.g. `installTest`) - <GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle" /> (on macOS) or <GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" /> (on Linux)</dt>
+<dd>
+
+Depends on: `linkTest_Variant_` and all tasks which contribute to the runtime of the executable, including `link_Variant_` tasks from projects that are resolved via project dependencies
+::
+Installs the executable and all of it’s runtime dependencies for easy execution.
+
+</dd>
+<dt>`xcTest_Variant_` (e.g. `xcTest`) - <GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" /></dt>
+<dd>
+
+Depends on: `installTest_Variant_`
+::
+Run the installed executable.
+
+</dd>
+</dl>
+
+### Lifecycle Tasks
+
+The XCTest Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <Xref page="base-plugin" section="The Base Plugin">Base Plugin chapter</Xref> — which the XCTest Plugin applies automatically:
+
+<dl>
+<dt>`assemble` - Task (lifecycle)</dt>
+<dd>
+
+Aggregate task that assembles the debug variant of the tested component for the current host (if present) in the project.
+For example, the <Xref page="swift-application-plugin" section="Swift Application">Swift Application Plugin</Xref> and <Xref page="swift-library-plugin" section="Swift Library">Swift Library Plugin</Xref> attach their link and create tasks to this lifecycle task.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`test` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `xcTest_Variant_` that most closely matches the build host
+::
+Aggregate task of the variant that most closely match the build host for testing the component.
+
+</dd>
+<dt>`check` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `test`
+::
+Aggregate task that performs verification tasks, such as running the tests.
+Some plugins add their own verification task to `check`.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`build` - Task (lifecycle)</dt>
+<dd>
+
+Depends on: `check`, `assemble`
+::
+Aggregate tasks that perform a full build of the project.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+<dt>`clean` - Delete</dt>
+<dd>
+
+Deletes the build directory and everything in it, i.e. the path specified by the `layout.buildDirectory` project property.
+This task is added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+</dd>
+</dl>
+
+## Dependency management
+
+Just like the tasks created by the XCTest Plugin, the configurations are created based on the variant of the application component.
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+The following graph describes the configurations added by the XCTest Plugin:
+
+<Image src={xctestConfigurations} alt="xctest configurations" />
+
+- The configurations in white are the ones a user should use to declare dependencies
+- The configurations in blue, also known as resolvable denoted by (R), are internal to the component, for its own use
+
+The following configurations are used to declare dependencies:
+
+<dl>
+<dt>`testImplementation`</dt>
+<dd>
+
+Used for declaring implementation dependencies for all variants of the test component.
+This is where you should declare dependencies of any variants.
+Note this configuration inherit all dependencies declared on the tested component (library or application).
+
+</dd>
+<dt>`test_Variant_ExecutableImplementation` (e.g. `testExecutableImplementation`) extends `testImplementation`</dt>
+<dd>
+
+Used for declaring implementation dependencies for a specific variant of the test component.
+This is where you should declare dependencies of the specific variant.
+
+</dd>
+</dl>
+
+There is no configurations that can be used by consumers for this plugin.
+
+The following configurations are used by the test component itself:
+
+<dl>
+<dt>`swiftCompileTest_Variant_` (e.g. `swiftCompileTest`) extends `test_Variant_ExecutableImplementation`</dt>
+<dd>
+
+Used for compiling the test component.
+This configuration contains the compile module of the test component and is therefore used when invoking the Swift compiler to compile it.
+
+</dd>
+<dt>`nativeLinkTest_Variant_` (e.g. `nativeLinkTest`) extends `test_Variant_ExecutableImplementation`</dt>
+<dd>
+
+Used for linking the test component.
+This configuration contains the libraries of the test component and is therefore used when invoking the Swift linker to link it.
+
+</dd>
+<dt>`nativeRuntimeTest_Variant_` (e.g. `nativeRuntimeTest`) extends `test_Variant_ExecutableImplementation`</dt>
+<dd>
+
+Used for executing the test component.
+This configuration contains the runtime libraries of the test component.
+
+</dd>
+</dl>
+
+## Conventions
+
+The XCTest Plugin adds conventions for sources and tasks, shown below.
+
+### Project layout
+
+The XCTest Plugin assumes the project layout shown below.
+None of these directories needs to exist or have anything in them.
+The XCTest Plugin will compile whatever it finds, and handles anything which is missing.
+
+<dl>
+<dt>`src/test/swift`</dt>
+<dd>
+
+Swift source with extension of `.swift`
+
+</dd>
+</dl>
+
+You <Xref page="building-swift-projects" section="Customizing file and directory locations">configure the project layout</Xref> by configuring the `source` on the `xctest` script block.
+
+### `compileTest_Variant_Swift` Task
+
+The XCTest Plugin adds a <GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" /> instance for each variant of the test component to build (e.g. `compileTestSwift`).
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="compilerArgs">compilerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="modules">modules</GroovyDocLink></dt>
+<dd>
+
+`configurations.swiftCompileTest_Variant_`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="macros">macros</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="objectFileDir">objectFileDir</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("obj/test/_$variant_")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="optimized">optimized</GroovyDocLink></dt>
+<dd>
+
+`false`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`xctest.swiftSource`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.language.swift.tasks.SwiftCompile" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-swift-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+### `linkTest_Variant_` Task
+
+The XCTest Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" /> instance on macOS or <GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" /> instance on Linux for each variant of the test component - e.g. `linkTest`.
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+#### macOS
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="libs">libs</GroovyDocLink></dt>
+<dd>
+
+`configurations.nativeLinkTest_Variant_`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="linkedFile">linkedFile</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("exe/test/_$variant_/module")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="linkerArgs">linkerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`compile_Variant_Swift.objects` (if present) + `compileTest_Variant_Swift.objects`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-swift-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+#### Linux
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="debuggable">debuggable</GroovyDocLink></dt>
+<dd>
+
+`true`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="libs">libs</GroovyDocLink></dt>
+<dd>
+
+`configurations.nativeLinkTest_Variant_`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="linkedFile">linkedFile</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("exe/test/_$variant_/baseName")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="linkerArgs">linkerArgs</GroovyDocLink></dt>
+<dd>
+
+[]
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="source">source</GroovyDocLink></dt>
+<dd>
+
+`compile_Variant_Swift.objects` (if present) + `compileTest_Variant_Swift.objects`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="targetPlatform">targetPlatform</GroovyDocLink></dt>
+<dd>
+
+derived from the `TargetMachine` of the binary
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.LinkExecutable" method="toolChain">toolChain</GroovyDocLink></dt>
+<dd>
+
+<Xref page="building-swift-projects" section="Supported tool chain">automatically selected based on target machine</Xref>
+
+</dd>
+</dl>
+
+### `installTest_Variant_` Task
+
+The XCTest Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle" /> instance on macOS or <GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" /> instance on Linux for each variant of the test component - e.g. `installTest`.
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+There is no need to configure any properties on the task.
+
+### `xcTest_Variant_` Task
+
+The XCTest Plugin adds a <GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" /> instance for each variant of the test component - e.g. `xcTest`.
+Read the <Xref page="building-swift-projects" section="Introducing build variants">introduction to build variants</Xref> for more information.
+Some of the most common configuration options are shown below.
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" method="binResultDir">binResultDir</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("test-results/xctest/_$variant_/")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" method="ignoreFailures">ignoreFailures</GroovyDocLink></dt>
+<dd>
+
+`false`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" method="reports">reports</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("reports/tests/xctest/_$variant_/")` (HTML only)
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" method="runScriptFile">runScriptFile</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("install/test/_$variant_/_${xctest.module}_")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" method="testInstallDirectory">testInstallDirectory</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("install/test/_$variant_/")`
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.test.xctest.tasks.XCTest" method="workingDirectory">workingDirectory</GroovyDocLink></dt>
+<dd>
+
+`layout.buildDirectory.dir("install/test/_$variant_/")`
+
+</dd>
+</dl>

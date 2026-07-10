@@ -1,3 +1,0 @@
-pmd {
-    threads = 4
-}

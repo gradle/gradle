@@ -1,0 +1,182 @@
+---
+title: "Part 7: Writing Plugins"
+---
+
+import { SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Learn the basics of writing and applying Gradle plugins.
+
+:::note
+***In this section, you will:***
+- Add a custom task to the Plugin
+- Apply the Plugin to a subproject
+- Use the Plugin
+:::
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in <Xref page="part1-gradle-init-project" section="Step 0. Before you Begin">part 1</Xref>.
+2. You understand the Gradle Build Lifecycle from <Xref page="part2-build-lifecycle" section="Step 0. Before you Begin">part 2</Xref>.
+3. You added a subproject and a separate Build in <Xref page="part3-multi-project-builds" section="Step 0. Before you Begin">part3</Xref>.
+4. You viewed a Settings file in <Xref page="part4-settings-file" section="Step 0. Before you Begin">part 4</Xref>.
+5. You authored a Build script in <Xref page="part5-build-scripts" section="Step 0. Before you Begin">part 5</Xref>.
+6. You authored a Task in <Xref page="part6-writing-tasks" section="Step 0. Before you Begin">part 6</Xref>.
+
+## Step 1. Develop the Plugin
+
+Let’s tie our custom `LicenseTask` to our plugin.
+
+Update the `LicensePlugin` with the code for the `Plugin` below (don’t change anything else in the file):
+
+<SampleScripts sample_name="writing-plugins-license-plugin" basename="build" tag="license-plugin" />
+
+## Step 2. Add a license.txt file
+
+Add a file called `license.txt` to the root directory of the project and add the following text to it:
+
+```text
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+## Step 3. Apply the Plugin
+
+Apply the plugin to the `app` subproject (if not done already):
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="app/build.gradle.kts"
+plugins {
+    application
+    id("com.tutorial.license") // Apply custom plugin
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="app/build.gradle"
+plugins {
+    id 'application'
+    id('com.tutorial.license') // Apply custom plugin
+}
+```
+
+</TabItem>
+</Tabs>
+
+Make sure the plugin is correctly applied by listing the available tasks in the `app` subproject:
+
+```bash
+$ ./gradlew :app:tasks
+```
+
+```text
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+...
+
+From license plugin tasks
+-------------------------
+license - add a license header to source code
+```
+
+## Step 4. Run the custom Task
+
+Finally, it’s time to run the new task.
+
+First, let’s inspect some source code:
+
+```java
+package authoring.tutorial;
+
+import com.gradle.CustomLib;
+
+public class App {
+    public String getGreeting() {
+        return "CustomLib identifier is: " + CustomLib.identifier;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+```
+
+Next, let’s run the task with `./gradlew :app:license`:
+
+```bash
+$ ./gradlew :app:license
+```
+
+```text
+> Task :license-plugin:plugin:compileKotlin UP-TO-DATE
+> Task :license-plugin:plugin:compileJava NO-SOURCE
+> Task :license-plugin:plugin:pluginDescriptors UP-TO-DATE
+> Task :license-plugin:plugin:processResources UP-TO-DATE
+> Task :license-plugin:plugin:classes UP-TO-DATE
+> Task :license-plugin:plugin:jar UP-TO-DATE
+
+> Configure project :app
+
+> Task :app:license
+
+BUILD SUCCESSFUL in 410ms
+5 actionable tasks: 1 executed, 4 up-to-date
+```
+
+Now inspect the same source code, which should include a license header:
+
+```java
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package authoring.tutorial;
+
+import com.gradle.CustomLib;
+
+public class App {
+    public String getGreeting() {
+        return "CustomLib identifier is: " + CustomLib.identifier;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+```
+
+Congratulations, you have completed the tutorial!
+
+## Step 4. Next steps
+
+If you haven’t read the <Xref page="gradle-directories-intermediate" section="Anatomy of a Gradle Build">Beyond the Basics</Xref> section yet, we recommend starting there to learn important mid-level topics.
+
+Already comfortable with intermediate concepts? Great — you’re ready to move on to the advanced concepts next.
+
+***Next Step:*** Deep Dive Into Gradle \>\>

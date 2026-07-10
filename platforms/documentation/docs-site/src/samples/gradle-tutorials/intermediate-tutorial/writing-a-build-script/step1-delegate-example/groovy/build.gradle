@@ -1,2 +1,0 @@
-defaultTasks 'some-task'      // Delegates to Project.defaultTasks()
-reportsDir = file('reports')  // Delegates to Project.file() and the Java Plugin

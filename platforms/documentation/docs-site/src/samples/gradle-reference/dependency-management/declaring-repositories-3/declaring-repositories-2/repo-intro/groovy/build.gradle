@@ -1,6 +1,0 @@
-repositories {
-    mavenCentral()
-    maven {
-        url = 'https://repo.spring.io/snapshot/'
-    }
-}

@@ -1,3 +1,0 @@
-    // setting convention from declaration
-    @Input
-    final Property<String> greeter = project.objects.property(String).convention("person1")

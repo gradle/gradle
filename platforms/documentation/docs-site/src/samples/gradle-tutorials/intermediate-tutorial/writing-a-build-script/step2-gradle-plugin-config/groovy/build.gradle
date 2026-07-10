@@ -1,8 +1,0 @@
-gradlePlugin {  // Define a custom plugin
-    plugins {
-        greeting {  // Define a plugin named greeting
-            id = 'license.greeting' // using the id
-            implementationClass = 'license.LicensePlugin' // and implementationClass
-        }
-    }
-}

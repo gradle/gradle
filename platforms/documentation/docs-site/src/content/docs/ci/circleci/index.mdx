@@ -1,0 +1,281 @@
+---
+title: "Gradle on CircleCI"
+---
+
+This page is a reference for integrating Gradle with [CircleCI](https://circleci.com/).
+
+CircleCI provides a [Gradle orb](https://circleci.com/developer/orbs/orb/circleci/gradle) (`circleci/gradle`) that simplifies building and testing Gradle projects.
+The orb wraps common tasks — running Gradle with dependency caching, publishing test results, and selecting a JDK — into reusable configuration blocks.
+
+## The Gradle orb
+
+The [`circleci/gradle`](https://github.com/CircleCI-Public/gradle-orb) orb (current version 4.x) provides a job and a command.
+
+| Element | Purpose |
+| --- | --- |
+| **Job:** `gradle/run` | A ready-made job that checks out code, restores the Gradle dependency cache, runs a Gradle command, saves the cache, and optionally stores test results. Suitable for most single-step builds. |
+| **Command:** `gradle/run_with_cache` | A reusable command you can embed in your own job definition. Performs the same cache-restore → Gradle invocation → cache-save cycle, giving you control over the executor and surrounding steps. |
+
+## Minimal configuration
+
+### Using the orb job
+
+The simplest way to build a Gradle project on CircleCI.
+Add a `.circleci/config.yml` to your repository:
+
+```yaml
+version: 2.1
+
+orbs:
+  gradle: circleci/gradle@4.1
+
+workflows:
+  build:
+    jobs:
+      - gradle/run:
+          command: build
+```
+
+This checks out the project, restores cached dependencies, runs `./gradlew build`, and saves the updated cache.
+
+### Manual configuration (no orb)
+
+If you prefer full control over each step, use the Gradle Wrapper directly:
+
+```yaml
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/openjdk:21.0
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - gradle-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle.kts" }}
+            - gradle-
+
+      - run:
+          name: Build
+          command: ./gradlew build --no-daemon
+
+      - save_cache:
+          key: gradle-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle.kts" }}
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/wrapper
+
+      - store_test_results:
+          path: build/test-results
+
+workflows:
+  build:
+    jobs:
+      - build
+```
+
+- `cimg/openjdk:21.0` is CircleCI’s [convenience image](https://circleci.com/developer/images?imageType=docker&amp;category=languages) for JDK 21. The Gradle Wrapper supplies the Gradle distribution.
+- `--no-daemon` avoids daemon startup overhead in short-lived containers.
+- `store_test_results` parses JUnit XML reports so test counts and failures appear in the CircleCI UI.
+
+## Orb job parameters
+
+The `gradle/run` job accepts several parameters to customize the build:
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `command` | `build` | Gradle tasks to execute (e.g. `clean build`, `check`, `assemble`). |
+| `executor` | `gradle/default` (cimg/openjdk) | The executor to run the job on. Override to use a different JDK or a machine executor. |
+| `app_src_directory` | `.` | Path to the Gradle project root, relative to the repository root. Useful for monorepos. |
+| `cache_key` | (generated) | Override the default cache key. The default incorporates `build.gradle*`, `settings.gradle*`, and `gradle-wrapper.properties`. |
+| `deps_checksum_file` | `build.gradle` | File used in the cache checksum. Set to `build.gradle.kts` for Kotlin DSL projects. |
+| `test_results_path` | `build/test-results` | Path to JUnit XML reports, relative to `app_src_directory`. |
+| `reports_path` | `build/reports` | Path to HTML reports, stored as CircleCI artifacts. |
+| `wrapper` | `true` | When `true`, invokes `./gradlew`. Set to `false` to use a Gradle installation on the executor. |
+
+## Choosing an executor
+
+The orb’s default executor uses `cimg/openjdk`, which provides common JDK versions on an Ubuntu base.
+Override it when you need a different JDK or an Android SDK:
+
+```yaml
+version: 2.1
+
+orbs:
+  gradle: circleci/gradle@4.1
+
+executors:
+  jdk17:
+    docker:
+      - image: cimg/openjdk:17.0
+
+workflows:
+  build:
+    jobs:
+      - gradle/run:
+          executor: jdk17
+          command: build
+```
+
+For Android projects, use the [`circleci/android`](https://circleci.com/developer/orbs/orb/circleci/android) orb or the `cimg/android` image, which bundles the Android SDK alongside a JDK.
+
+## Caching and performance
+
+CircleCI containers are ephemeral — the filesystem is discarded after every job.
+There are two layers of caching to consider: the **CI cache** (managed by CircleCI) and the **Gradle build cache** (managed by Gradle).
+
+### CI dependency cache
+
+The Gradle orb’s `run_with_cache` command automatically saves and restores `~/.gradle/caches` and `~/.gradle/wrapper`.
+The default cache key incorporates the Gradle Wrapper properties and your build files, so the cache is invalidated when dependencies or the Gradle version change.
+
+If you are not using the orb, replicate this with `save_cache` / `restore_cache` as shown in the [manual configuration](#circleci_minimal_manual) above.
+
+:::tip
+Keep the cache focused on downloaded dependencies and the Wrapper distribution.
+Avoid caching the entire `~/.gradle` directory — it includes daemon logs, lock files, and other transient data that bloat the archive without improving build speed.
+:::
+
+### Gradle build cache
+
+The CI dependency cache stores **downloaded artifacts**.
+The [Gradle build cache](https://docs.gradle.org/current/userguide/build_cache.html) stores **task outputs** — compiled classes, test results, processed resources — and can skip tasks entirely when inputs have not changed.
+
+For a single CircleCI job, the local build cache has limited value because each container starts clean.
+A **remote build cache** (either a Develocity instance or an [HTTP build cache node](https://docs.gradle.org/current/userguide/build_cache.html#sec:build_cache_setup_http_backend)) provides the biggest speedup by sharing outputs across jobs, branches, and developers.
+
+Enable the build cache in `gradle.properties`:
+
+```properties
+org.gradle.caching=true
+```
+
+Configure a remote cache in `settings.gradle[.kts]`.
+A common pattern is to let CI push to the remote cache while developers and feature-branch jobs only pull:
+
+```kotlin
+buildCache {
+    local {
+        isEnabled = true
+    }
+    remote<HttpBuildCache> {
+        url = uri("https://my-cache-node.example.com/cache/")
+        isPush = System.getenv("CI") != null
+    }
+}
+```
+
+CircleCI sets `CI=true` automatically.
+
+## Publishing Build Scans
+
+To publish a [Build Scan®](https://scans.gradle.com) for every CI build, apply the Develocity plugin in `settings.gradle[.kts]` and accept the terms of use:
+
+```kotlin
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        publishing.onlyIf { true }
+    }
+}
+```
+
+The Build Scan URL is printed in the CircleCI job log.
+
+:::tip
+Build Scans are especially valuable on CircleCI because the ephemeral container environment makes it difficult to inspect build outputs after the job completes.
+A Build Scan preserves full details — task execution timeline, dependency resolution, test results, and environment info — in a shareable link.
+:::
+
+## Test reporting
+
+CircleCI can parse JUnit XML reports to display test counts, durations, and failure details in the job UI.
+Gradle produces these reports by default under `build/test-results/`.
+
+When using the orb, set `test_results_path` if your reports are in a non-default location.
+When configuring manually, add a `store_test_results` step:
+
+```yaml
+- store_test_results:
+    path: build/test-results
+```
+
+For multi-project builds, use a glob path to capture reports from all subprojects:
+
+```yaml
+- store_test_results:
+    path: .
+```
+
+CircleCI recursively searches for `TEST-*.xml` files under the given path.
+
+## Parallelism and workflows
+
+CircleCI workflows allow you to run jobs in parallel or in sequence.
+A common pattern for Gradle projects splits the build and test stages:
+
+```yaml
+version: 2.1
+
+orbs:
+  gradle: circleci/gradle@4.1
+
+workflows:
+  build-and-test:
+    jobs:
+      - gradle/run:
+          name: compile
+          command: classes testClasses
+
+      - gradle/run:
+          name: unit-tests
+          command: test
+          requires:
+            - compile
+
+      - gradle/run:
+          name: integration-tests
+          command: integrationTest
+          requires:
+            - compile
+```
+
+The `compile` job runs first; `unit-tests` and `integration-tests` run in parallel once compilation succeeds.
+
+For CPU-intensive builds, CircleCI’s [parallelism](https://circleci.com/docs/parallelism-faster-jobs/) feature splits work across multiple containers.
+Combine it with Gradle’s `--parallel` flag to maximize throughput:
+
+```yaml
+- run:
+    name: Build
+    command: ./gradlew build --parallel --no-daemon
+```
+
+## Managing credentials
+
+Store publishing tokens, signing keys, and other secrets as [CircleCI environment variables](https://circleci.com/docs/env-vars/) (project-level or context-level).
+
+Access them in `build.gradle[.kts]` with `System.getenv("VAR_NAME")` or `providers.environmentVariable("VAR_NAME")`.
+
+```kotlin
+publishing {
+    repositories {
+        maven {
+            url = uri("https://repo.example.com/releases")
+            credentials {
+                username = System.getenv("REPO_USER")
+                password = System.getenv("REPO_TOKEN")
+            }
+        }
+    }
+}
+```
+
+Use [contexts](https://circleci.com/docs/contexts/) to share credentials across multiple projects while restricting access to specific teams.

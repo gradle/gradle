@@ -1,0 +1,16 @@
+
+------------------------------------------------------------
+Root project 'dependencies-report'
+------------------------------------------------------------
+
+scm
+\--- org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r
+     +--- com.jcraft:jsch:0.1.54
+     +--- com.googlecode.javaewah:JavaEWAH:1.1.6
+     +--- org.apache.httpcomponents:httpclient:4.3.6
+     |    +--- org.apache.httpcomponents:httpcore:4.3.3
+     |    +--- commons-logging:commons-logging:1.1.3
+     |    \--- commons-codec:commons-codec:1.6
+     \--- org.slf4j:slf4j-api:1.7.2
+
+A web-based, searchable dependency report is available by adding the --scan option.

@@ -1,0 +1,200 @@
+---
+title: "How to Create Feature Variants for a Library in Gradle"
+---
+
+import { SampleScripts, Xref } from '#/components';
+
+Gradle supports the concept of **feature <Xref page="variant-attributes" section="Variants and Attributes">variants</Xref>**, allowing a single library to be split into multiple related but distinct modules.
+Each **feature variant** can declare its own set of dependencies and can be consumed individually alongside the main library.
+
+For example, a producer can register a feature variant:
+
+<SampleScripts sample_name="feature-variants-intro" basename="build" subpath="library" tag="producer" />
+
+And a consumer can require the feature’s capability:
+
+<SampleScripts sample_name="feature-variants-intro" basename="build" subpath="consumer" tag="consumer" />
+
+## Why Use Feature Variants?
+
+Feature variants offer several advantages over traditional dependency management:
+
+- **Improved modularity**: Clearly defined boundaries between different library functionalities.
+- **Fine-grained dependency management**: Consumers only include the dependencies they specifically require.
+- **Support for multiple variants**: A single library can expose variants tailored to different use cases (e.g., `debug` vs. `release` builds).
+
+Common use-cases include:
+
+- Providing optional dependencies (a robust alternative to [Maven optional dependencies](https://maven.apache.org/guides/introduction/introduction-to-optional-and-excludes-dependencies.html)).
+- Offering multiple mutually-exclusive implementations of runtime features, requiring users to select exactly one variant.
+- Supporting optional runtime features that each have unique dependencies.
+- Distributing supplementary modules like test fixtures or integration support.
+- Enabling additional artifacts that can be optionally included with the main library artifact.
+
+## Step 1: Selection of Features via Capabilities
+
+Dependencies are typically declared using coordinates known as GAV (group, artifact, version), which identify the component.
+However, a single component can provide multiple variants, each suited for different usages—such as compilation or runtime execution.
+
+Each variant provides a set of capabilities, also identified by GAV coordinates, but best understood as feature descriptions, for example:
+
+- "I provide an SLF4J binding"
+- "I provide runtime support for MySQL"
+- "I provide a Groovy runtime"
+
+It’s important to note:
+
+- By default, ***each variant provides a capability*** that matches the component’s GAV coordinates.
+- Two variants providing the same capability cannot coexist in the dependency graph.
+- Multiple variants of a single component can coexist if they provide distinct capabilities.
+
+For example, a typical Java library has API and runtime variants, both providing the same capability.
+Consequently, it’s an error to include both variants simultaneously in a dependency graph.
+However, it’s permissible to use both runtime and test-fixtures runtime variants simultaneously, as long as these variants declare different capabilities.
+
+To achieve this, consumers must explicitly declare separate dependencies:
+
+- One dependency for the main library (the "main" feature).
+- Another dependency explicitly requiring the capability of the additional feature (e.g., test fixtures).
+
+<SampleScripts sample_name="feature-variants-test-fixtures" basename="build" tag="register_test_fixtures" />
+
+:::note
+While the resolution engine supports multi-variant components independently of the ecosystem, **feature variants** are currently **only supported by the Java plugins**.
+:::
+
+## Step 2: Registering features
+
+Features can be declared by applying the `java-library` plugin.
+
+The following code illustrates how to declare a feature named `mongodbSupport`:
+
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="register_variant,register_variant2" />
+
+Gradle will automatically set up a number of things for you, in a very similar way to how the <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library Plugin</Xref> sets up configurations.
+
+When creating feature variants, Gradle automatically configures the following dependency scopes:
+
+- `featureNameApi` for API dependencies of the feature.
+- `featureNameImplementation` for implementation-specific dependencies.
+- `featureNameRuntimeOnly` for runtime-only dependencies.
+- `featureCompileOnly` for compile-only dependencies.
+
+In the example, the feature called "mongodbSupport" automatically creates these configurations:
+
+- `mongodbSupportApi` - used to _declare API dependencies_ for this feature
+- `mongodbSupportImplementation` - used to _declare implementation dependencies_ for this feature
+- `mongodbSupportRuntimeOnly` - used to _declare runtime-only dependencies_ for this feature
+- `mongodbSupportCompileOnly` - used to _declare compile-only dependencies_ for this feature
+
+Additionally, Gradle exposes two variant-specific configurations for external consumption:
+
+- `mongodbSupportApiElements` - used by consumers to fetch the artifacts and API dependencies of this feature
+- `mongodbSupportRuntimeElements` - used by consumers to fetch the artifacts and runtime dependencies of this feature
+
+A feature variant should have a corresponding _source set_ named identically.
+
+Gradle automatically creates a `Jar` task for each feature’s source set, using a classifier matching the feature name.
+
+:::caution
+Do not use the _main_ source set when registering a feature. This behavior will be deprecated in a future version of Gradle.
+:::
+
+Most users will only care about the dependency scope configurations, to declare the specific dependencies of this feature:
+
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="variant_dependencies" />
+
+By convention, Gradle maps a feature variant’s capability using the same group and version as the main component, while the capability’s name is constructed from the main component name followed by a `-` and the kebab-case version of the feature name.
+
+For example, if your component has:
+
+- group: `org.gradle.demo`
+- name: `provider`
+- version: `1.0`
+
+And you define a feature named `mongodbSupport`, the feature’s capability would be:
+
+- `org.gradle.demo:provider-mongodb-support:1.0`
+
+If you choose a custom capability name or add additional capabilities, it’s recommended to follow this convention.
+
+## Step 3: Publishing features
+
+:::tip
+Publishing feature variants is only supported using the `maven-publish` and `ivy-publish` plugins.
+:::
+
+The Java Library Plugin automatically registers additional variants for you, requiring no extra configuration beyond the standard publication setup:
+
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="plugins,publishing" />
+
+Depending on the metadata format used, publishing features may vary:
+
+- Using [Gradle Module Metadata](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md), all features are fully preserved, and consumers can fully utilize feature variants.
+- Using POM metadata (Maven), features are represented as **optional dependencies**, and the feature artifacts are published with distinct classifiers.
+- Using Ivy metadata, features are published as additional configurations, which are not automatically included by the default configuration.
+
+### Adding Javadoc and Sources JARs
+
+Similar to the <Xref page="building-java-projects" section="Packaging and publishing">main Javadoc and sources JARs</Xref>, you can configure feature variants to produce their own Javadoc and sources JARs:
+
+<SampleScripts sample_name="producer-separate-sourceset" basename="build" tag="register_variant_extra_jars" />
+
+## Step 4: Dependencies on Features
+
+When consuming feature variants, it’s important to note that feature support can be limited or "lossy" depending on how the features are published. A consumer project can depend on feature variants under these conditions:
+
+- Using a project dependency within a multi-project Gradle build.
+- Using Gradle Module Metadata, which must have been explicitly published by the producer.
+- Using Ivy metadata, explicitly specifying dependencies on configurations that represent the desired features.
+
+Consumers declare specific feature dependencies by explicitly requiring their capabilities.
+For example, if a producer defines a feature variant for "MySQL support" as follows:
+
+<SampleScripts sample_name="requiring-features" basename="build" subpath="producer" tag="producer" />
+
+A consumer project can explicitly depend on the "MySQL support" feature by requiring its capability:
+
+<SampleScripts sample_name="requiring-features" basename="build" subpath="consumer" tag="consumer" />
+
+This setup automatically includes the mysql-connector-java dependency on the consumer’s runtime classpath. If multiple dependencies are grouped under the feature variant, all of them are included when the capability is required.
+
+Similarly, when external libraries with feature variants are published using [Gradle Module Metadata](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md), consumers can explicitly depend on these external features:
+
+<SampleScripts sample_name="requiring-features-external" basename="build" subpath="project" tag="consumer" />
+
+## Step 5: Handling Mutually Exclusive Variants
+
+Using **capabilities** to manage **feature variants** provides a precise way to handle compatibility between variants.
+
+The key rule to remember is:
+
+> No two variants within a dependency graph may provide the same capability.
+
+This rule allows Gradle to enforce exclusivity between mutually exclusive variants.
+
+For example, suppose you have a library that provides multiple mutually exclusive implementations of a database feature (such as `MySQL`, `PostgreSQL`, and `MongoDB`).
+By assigning each variant a shared capability, you ensure that these variants cannot coexist in the same dependency graph.
+
+For instance, the producer might define variants as follows:
+
+<SampleScripts sample_name="incompatible-variants" basename="build" subpath="producer" tag="producer" />
+
+Here:
+
+- The `mysql-support` variant provides capabilities: `db-support` and `mysql-support`.
+- The `postgres-support` variant provides capabilities: `db-support` and `postgres-support`.
+- The `mongo-support` variant provides capabilities: `db-support` and `mongo-support`.
+
+If a consumer attempts to include multiple conflicting features, such as both `MySQL` and `PostgreSQL` support:
+
+<SampleScripts sample_name="incompatible-variants" basename="build" subpath="consumer" tag="consumer" />
+
+Dependency resolution will fail with a clear and informative error message:
+
+```text
+Cannot choose between
+   org.gradle.demo:producer:1.0 variant mysqlSupportRuntimeElements and
+   org.gradle.demo:producer:1.0 variant postgresSupportRuntimeElements
+   because they provide the same capability: org.gradle.demo:producer-db-support:1.0
+```

@@ -1,0 +1,106 @@
+---
+title: "Managing Dependencies of JVM Projects"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+
+This chapter explains how to apply basic dependency management concepts to JVM-based projects.
+For a detailed introduction to dependency management, see <Xref page="getting-started-dep-man" section="Dependency Management">dependency management in Gradle</Xref>.
+
+## Dissecting a typical build script
+
+Let’s have a look at a very simple build script for a JVM-based project.
+It applies the <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library plugin</Xref> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
+
+<SampleScripts sample_name="dependency-basics" basename="build" />
+
+The <GroovyDocLink class="org.gradle.api.Project" method="dependencies(groovy.lang.Closure)">Project.dependencies\{\}</GroovyDocLink> code block declares that Hibernate core 3.6.7.Final is required to compile the project’s production source code. It also states that junit \>= 4.0 is required to compile the project’s tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by <GroovyDocLink class="org.gradle.api.Project" method="repositories(groovy.lang.Closure)">Project.repositories\{\}</GroovyDocLink>. The following sections explain each aspect in more detail.
+
+## Declaring module dependencies
+
+There are various <Xref page="declaring-dependencies" section="Understanding types of dependencies">types of dependencies</Xref> that you can declare.
+One such type is a _module dependency_.
+A <Xref page="declaring-dependencies-basics" section="1. Module dependencies">module dependency</Xref> represents a dependency on a module with a specific version built outside the current build.
+Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
+
+To define an module dependency, you add it to a [dependency configuration](#sec:configurations_java_tutorial):
+
+<SampleScripts sample_name="external-dependencies" basename="build" tag="define-dependency" />
+
+To find out more about defining dependencies, have a look at <Xref page="declaring-dependencies" section="1. Declaring dependencies">Declaring Dependencies</Xref>.
+
+## Using dependency configurations
+
+A <GroovyDocLink class="org.gradle.api.artifacts.Configuration" /> is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
+
+<dl>
+<dt>Declaring dependencies</dt>
+<dd>
+
+A plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin. For example a plugin may need the Spring web framework dependency to compile the source code.
+
+</dd>
+<dt>Resolving dependencies</dt>
+<dd>
+
+A plugin uses configurations to find (and possibly download) inputs to the tasks it defines. For example Gradle needs to download Spring web framework JAR files from Maven Central.
+
+</dd>
+<dt>Exposing artifacts for consumption</dt>
+<dd>
+
+A plugin uses configurations to define what _artifacts_ it generates for other projects to consume. For example the project would like to publish its compiled source code packaged in the JAR file to an in-house Artifactory repository.
+
+</dd>
+</dl>
+
+With those three purposes in mind, let’s take a look at a few of the <Xref page="java-library-plugin" section="Dependency configurations">standard configurations defined by the Java Library Plugin</Xref>.
+
+<dl>
+<dt>implementation</dt>
+<dd>
+
+The dependencies required to compile the production source of the project which _are not_ part of the API exposed by the project. For example the project uses Hibernate for its internal persistence layer implementation.
+
+</dd>
+<dt>api</dt>
+<dd>
+
+The dependencies required to compile the production source of the project which _are_ part of the API exposed by the project. For example the project uses Guava and exposes public interfaces with Guava classes in their method signatures.
+
+</dd>
+<dt>testImplementation</dt>
+<dd>
+
+The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
+
+</dd>
+</dl>
+
+Various plugins add further standard configurations.
+You can also define your own custom configurations in your build via <GroovyDocLink class="org.gradle.api.Project" method="configurations(groovy.lang.Closure)">Project.configurations\{\}</GroovyDocLink>.
+See <Xref page="dependency-configurations" section="Understanding dependency configurations">What are dependency configurations</Xref> for the details of defining and customizing dependency configurations.
+
+## Declaring common Java repositories
+
+How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_.
+A repository is a collection of modules, organized by `group`, `name` and `version`.
+Gradle understands different <Xref page="supported-repository-types" section="Repository Types">repository types</Xref>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
+
+By default, Gradle does not define any repositories. You need to define at least one with the help of <GroovyDocLink class="org.gradle.api.Project" method="repositories(groovy.lang.Closure)">Project.repositories\{\}</GroovyDocLink> before you can use module dependencies. One option is use the Maven Central repository:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-central" />
+
+You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
+
+**Usage of a local Ivy directory**
+
+<SampleScripts sample_name="define-repository" basename="build" tag="local-ivy-repo" />
+
+A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
+
+To find out more about defining repositories, have a look at <Xref page="declaring-repositories" section="3. Declaring repositories">Declaring Repositories</Xref>.
+
+## Publishing artifacts
+
+To learn more about publishing artifacts, have a look at <Xref page="publishing-setup" section="Publishing a project as module">publishing plugins</Xref>.

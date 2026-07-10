@@ -1,0 +1,37 @@
+// tag::accessing-metadata-artifact[]
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:18.0'
+}
+
+tasks.register('printGuavaMetadata') {
+    dependsOn configurations.compileClasspath
+
+    ArtifactResolutionQuery query = dependencies.createArtifactResolutionQuery()
+            .forModule('com.google.guava', 'guava', '18.0')
+            .withArtifacts(MavenModule, MavenPomArtifact)
+    ArtifactResolutionResult result = query.execute()
+
+    def artifactFiles = result.resolvedComponents.collect { component ->
+        Set<ArtifactResult> mavenPomArtifacts = component.getArtifacts(MavenPomArtifact)
+        ArtifactResult guavaPomArtifact = mavenPomArtifacts.find { it.file.name == 'guava-18.0.pom' }
+        guavaPomArtifact.file
+    }
+
+    doLast {
+        artifactFiles.each {
+            def xml = new groovy.xml.XmlSlurper().parse(it)
+            println it.name
+            println xml.name
+            println xml.description
+        }
+    }
+}
+// end::accessing-metadata-artifact[]

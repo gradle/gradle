@@ -1,0 +1,354 @@
+---
+title: "Avoiding Unnecessary Task Configuration"
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import taskConfigurationAvoidanceNavigateToPerformance from './taskConfigurationAvoidance-navigate-to-performance.png';
+import taskConfigurationAvoidancePerformanceAnnotated from './taskConfigurationAvoidance-performance-annotated.png';
+
+We recommend that the configuration avoidance APIs be used whenever tasks are created.
+
+## Task configuration avoidance API
+
+The configuration avoidance API avoids configuring tasks if they will not be used for a build, which can significantly impact total configuration time.
+
+For example, when running a `compile` task (with the `java` plugin applied), other unrelated tasks (such as `clean`, `test`, `javadocs`), will not be executed.
+
+To avoid creating and configuring a task not needed for a build, we can **register** that task instead.
+
+When a task is registered, it is known to the build.
+It can be configured, and references to it can be passed around, but the task object itself has not been created, and its actions have not been executed.
+The registered task will remain in this state until something in the build needs the instantiated task object.
+If the task object is never needed, the task will remain registered, and the cost of creating and configuring the task will be avoided.
+
+In Gradle, you register a task using <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="register(java.lang.String)" />.
+Instead of returning a task instance, the `register(…​)` method returns a <JavaDocLink class="org.gradle.api.tasks.TaskProvider" />, which is a reference to the task that can be used in many places where a normal task object might be used (i.e., when creating task dependencies).
+
+## Guidelines
+
+### Defer task creation
+
+Effective task configuration avoidance requires build authors to change instances of <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="create(java.lang.String)" /> to <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="register(java.lang.String)" />.
+
+Older versions of Gradle only support the `create(…​)` API.
+The `create(…​)` API eagerly creates and configures tasks when called and should be avoided.
+
+:::note
+Using `register(…​)` alone may not be enough to avoid all task configuration completely.
+You may need to change other code that configures tasks by name or by type, see below.
+:::
+
+### Defer task configuration
+
+Eager APIs like <JavaDocLink class="org.gradle.api.DomainObjectCollection" method="all(org.gradle.api.Action)" /> and <JavaDocLink class="org.gradle.api.DomainObjectCollection" method="withType(java.lang.Class,org.gradle.api.Action)">`DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)`</JavaDocLink> will immediately create and configure any registered task.
+To defer task configuration, you must migrate to a configuration avoidance API equivalent.
+See the [table below](#sec:old_vs_new_configuration_api_overview) to identify the best alternative.
+
+### Reference a registered task
+
+Instead of referencing a task object, you can work with a registered task via a <JavaDocLink class="org.gradle.api.tasks.TaskProvider" /> object.
+A <JavaDocLink class="org.gradle.api.tasks.TaskProvider" /> can be obtained in several ways including the <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="register(java.lang.String)" /> and the <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="named(java.lang.String)" /> method.
+
+Calling <JavaDocLink class="org.gradle.api.provider.Provider" method="get()" /> or looking up a task by name with <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="getByName(java.lang.String)" /> will cause the task to be created and configured.
+
+Methods like <JavaDocLink class="org.gradle.api.Task" method="dependsOn(java.lang.Object&#8230;&#8203;)">`Task.dependsOn(java.lang.Object)`</JavaDocLink> and <JavaDocLink class="org.gradle.api.file.ConfigurableFileCollection" method="builtBy(java.lang.Object&#8230;&#8203;)">`ConfigurableFileCollection.builtBy(java.lang.Object)`</JavaDocLink> work with <JavaDocLink class="org.gradle.api.tasks.TaskProvider" /> the same way as <GroovyDocLink class="org.gradle.api.Task" /> so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
+
+You must use the configuration avoidance equivalent to configure a task by name.
+See the [table below](#sec:old_vs_new_configuration_api_overview) to identify the best alternative.
+
+### Reference a task instance
+
+In the event you need to get access to a Task instance, you can use <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="named(java.lang.String)" /> and <JavaDocLink class="org.gradle.api.provider.Provider" method="get()" />.
+This will cause the task to be created and configured, but everything should work as it had with the eager APIs.
+
+### Task ordering with configuration avoidance
+
+Calling ordering methods will not cause task creation by itself.
+All these methods do is declare relationships.
+
+:::note
+The existence of these relationships might indirectly cause task creation in later stages of the build process.
+:::
+
+When task relationships need to be established (i.e., `dependsOn`, `finalizedBy`, `mustRunAfter`, `shouldRunAfter`), a distinction can be made between soft and strong relationships.
+Their effects on task creation during the configuration phase differ:
+
+- <GroovyDocLink class="org.gradle.api.Task" method="mustRunAfter(java.lang.Object[])">`Task.mustRunAfter(…​)`</GroovyDocLink> and <GroovyDocLink class="org.gradle.api.Task" method="shouldRunAfter(java.lang.Object[])">`Task.shouldRunAfter(…​)`</GroovyDocLink> represent soft relationships, which can only change the order of existing tasks, but can’t trigger their creation.
+- <GroovyDocLink class="org.gradle.api.Task" method="dependsOn(java.lang.Object[])">`Task.dependsOn(…​)`</GroovyDocLink> and <GroovyDocLink class="org.gradle.api.Task" method="finalizedBy(java.lang.Object[])">`Task.finalizedBy(…​)`</GroovyDocLink> represent strong relationships, which force the execution of referenced tasks, even if they hadn’t been created otherwise.
+- If a task _is not_ executed, regardless if it was created with <GroovyDocLink class="org.gradle.api.tasks.TaskContainer" method="register(java.lang.String)">`Task.register(…​)`</GroovyDocLink> or <GroovyDocLink class="org.gradle.api.tasks.TaskContainer" method="create(java.lang.String)">`Task.create(…​)`</GroovyDocLink>, the defined relationships will not trigger task creation at configuration time.
+- If a task _is_ executed, all strongly associated tasks must be created and configured at configuration time, as they might have other `dependsOn` or `finalizedBy` relationships.
+This will happen transitively until the task graph contains all strong relationships.
+
+## Migration guide
+
+The following sections will go through some [general guidelines](#sec:task_configuration_avoidance_general) to adhere to when migrating your build logic.
+We’ve also provided some recommended [steps](#sec:task_configuration_avoidance_migration_steps) to follow along with [troubleshooting](#sec:task_configuration_avoidance_troubleshooting) and [common pitfalls](#sec:task_configuration_avoidance_pitfalls).
+
+### Migration guidelines
+
+#### 1. Use help task as a benchmark during the migration
+
+The `help` task is the perfect candidate to benchmark your migration process.
+In a build that uses only the configuration avoidance API, a [Build Scan](https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd) shows no tasks created during configuration, and only the tasks executed are created.
+
+#### 2. Only mutate the current task inside a configuration action
+
+Because the task configuration action can now run immediately, later, or never, mutating anything other than the current task can cause indeterminate behavior in your build.
+
+Consider the following code:
+
+<SampleScripts sample_name="task-configuration-avoidance-side-effects" basename="build" tag="side-effects" />
+
+Executing the `check` task should execute `verificationTask`, but with this example, it won’t.
+This is because the dependency between `verificationTask` and `check` only happens when `verificationTask` is realized.
+To avoid issues like this, you must only modify the task associated with the configuration action.
+
+Other tasks should be modified in their own configuration action:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+val check = tasks.register("check")
+val verificationTask = tasks.register("verificationTask") {
+    // Configure verificationTask
+}
+check { dependsOn(verificationTask) }
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+def check = tasks.register("check")
+def verificationTask = tasks.register("verificationTask") {
+    // Configure verificationTask
+}
+check.configure { dependsOn verificationTask }
+```
+
+</TabItem>
+</Tabs>
+
+In the future, Gradle will consider this sort of antipattern an error and produce an exception.
+
+#### 3. Prefer small incremental changes
+
+Smaller changes are easier to sanity check.
+If you ever break your build logic, analyzing the changelog since the last successful verification will be easier.
+
+#### 4. Ensure a good plan is established for validating the build logic
+
+Usually, a simple build task invocation should do the trick to validate your build logic.
+However, some builds may need additional verification — understand the behavior of your build and make sure you have a good verification plan.
+
+#### 5. Prefer automatic testing to manual testing
+
+Writing integration test for your build logic using <Xref page="test-kit" section="Testing Build Logic with TestKit">TestKit</Xref> is good practice.
+
+#### 6. Avoid referencing a task by name
+
+Usually, referencing a task by name is a fragile pattern and should be avoided.
+Although the task name is available on the `TaskProvider`, an effort should be made to use references from a strongly typed model instead.
+
+#### 7. Use the new task API as much as possible.
+
+Eagerly realizing some tasks may cause a cascade of other tasks to be realized.
+Using `TaskProvider` helps create an indirection that protects against transitive realization.
+
+#### 8. Some APIs may be disallowed if you try to access them from the new API’s configuration blocks.
+
+For example, <GroovyDocLink class="org.gradle.api.Project" method="afterEvaluate(org.gradle.api.Action)">`Project.afterEvaluate()`</GroovyDocLink> cannot be called when configuring a task registered with the new API.
+Since `afterEvaluate` is used to delay configuring a `Project`, mixing delayed configuration with the new API can cause errors that are hard to diagnose because tasks registered with the new API are not always configured, but an `afterEvaluate` block may always be expected to execute.
+
+### Migration steps
+
+The first part of the migration process is to go through the code and manually migrate eager task creation and configuration to use configuration avoidance APIs.
+
+#### 1. Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(…​) {}`)
+
+This will cause your build to eagerly create fewer tasks that are registered by plugins.
+
+#### 2. Migrate tasks configured by name
+
+This will cause your build to eagerly create fewer tasks that are registered by plugins.
+For example, logic that uses `TaskContainer#getByName(String, Closure)` should be converted to `TaskContainer#named(String, Action)`.
+This also includes [task configuration via DSL blocks](#task_configuration_avoidance_pitfalls_hidden_eager_task_realization).
+
+#### 3. Migrate tasks creation to `register(…​)`
+
+At this point, you should change any task creation (using `create(…​)` or similar) to use `register` instead.
+
+After making these changes, you should see an improvement in the number of tasks eagerly created at configuration time.
+
+### Migration troubleshooting
+
+#### What tasks are being realized?
+
+Use a [Build Scan](https://scans.gradle.com/) to troubleshoot by following these steps:
+
+1. Execute the Gradle command using the --scan flag.
+2. Navigate to the configuration performance tab:
+
+   <Image src={taskConfigurationAvoidanceNavigateToPerformance} alt="taskConfigurationAvoidance navigate to performance" />
+3. All the information required will be presented:
+
+   <Image src={taskConfigurationAvoidancePerformanceAnnotated} alt="taskConfigurationAvoidance performance annotated" />
+   1. Total tasks present when each task is created or not.
+      - **Created immediately** represents tasks created using the eager task APIs.
+      - **Created during configuration** represents tasks created using the configuration avoidance APIs, but were realized explicitly (via `TaskProvider#get()`) or implicitly using the eager task query APIs.
+      - Both **Created immediately and Created during configuration** numbers are considered "bad" numbers that should be minimized as much as possible.
+      - Created during task execution represents the tasks created after the task graph has been created.
+      Any tasks created at this point won’t be executed as part of the graph.
+      Ideally, this number should be zero.
+      - **Created during task graph calculation** represents the tasks created when building the execution task graph.
+      Ideally, this number would be equal to the number of tasks executed.
+      - **Not Created** represents the tasks avoided in this build session.
+      Ideally, this number is as large as possible.
+   2. The next section helps answer the question of where a task was realized.
+   For each script, plugin, or lifecycle callback, the last column represents the tasks created immediately or during configuration.
+   Ideally, this column should be empty.
+   3. Focusing on a script, plugin, or lifecycle callback will show a breakdown of the tasks that were created.
+
+### Migration pitfalls
+
+#### Beware of the hidden eager task realization
+
+There are many ways that a task can be configured eagerly.
+For example, configuring a task using the task name and a DSL block will cause the task to be created (when using the Groovy DSL) immediately:
+
+```groovy
+// Given a task lazily created with
+tasks.register("someTask")
+
+// Some time later, the task is configured using a DSL block
+someTask {
+    // This causes the task to be created and this configuration to be executed immediately
+}
+```
+
+Instead, use the `named()` method to acquire a reference to the task and configure it:
+
+```groovy
+tasks.named("someTask")
+{
+    // ...
+    // Beware of the pitfalls here
+}
+```
+
+Similarly, Gradle has syntactic sugar that allows tasks to be referenced by name without an explicit query method.
+This can also cause the task to be immediately created:
+
+```groovy
+tasks.register("someTask")
+
+// Sometime later, an eager task is configured like task
+anEagerTask {
+    // The following will cause "someTask" to be looked up and immediately created
+    dependsOn someTask
+}
+```
+
+There are several ways this premature creation can be avoided:
+
+##### 1. Use a `TaskProvider` variable
+
+Useful when the task is referenced multiple times in the same build script.
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+val someTask = tasks.register("someTask")
+
+task("anEagerTask") {
+    dependsOn(someTask)
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+def someTask = tasks.register("someTask")
+
+task anEagerTask {
+    dependsOn someTask
+}
+```
+
+</TabItem>
+</Tabs>
+
+##### 2. Migrate the consumer task to the new API
+
+```groovy
+tasks.register("someTask")
+
+tasks.register("anEagerTask") {
+    dependsOn someTask
+}
+```
+
+##### 3. Lookup the task lazily.
+
+Useful when the tasks are not created by the same plugin.
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+tasks.register("someTask")
+
+task("anEagerTask") {
+    dependsOn(tasks.named("someTask"))
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+tasks.register("someTask")
+
+task anEagerTask {
+    dependsOn tasks.named("someTask")
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Lazy APIs to use
+
+| API | Note |
+| --- | --- |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="getByName(java.lang.String)">`TaskContainer.register()`</JavaDocLink> | Returns a `TaskProvider` instead of a `Task`. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="named(java.lang.String)">`TaskCollection.named()`</JavaDocLink> | Returns a `TaskProvider` instead of a `Task`. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="withType(java.lang.Class)">`TaskCollection.withType()`</JavaDocLink> | Ok to use, but adding a closure (e.g., `tasks.withType(Class) { …​ }`) makes it an eager API.<br/><br/>For a lazy alternative, use `withType().configureEach()`. |
+| <JavaDocLink class="org.gradle.api.DomainObjectCollection" method="configureEach(org.gradle.api.Action)">`DomainObjectCollection.configureEach()`</JavaDocLink> | Returns void, so it cannot be chained. |
+
+## Eager APIs to avoid
+
+| API | Note |
+| --- | --- |
+| `task myTask(type: MyTask) {}` | Do not use the shorthand notation. Use `register()` instead. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="create(java.lang.String)">`TaskContainer.create()`</JavaDocLink> | Use `register()` instead. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="getByPath(java.lang.String)">`TaskContainer.getByPath()`</JavaDocLink> | Do not use. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="findByPath(java.lang.String)">`TaskContainer.findByPath()`</JavaDocLink> | Do not use. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="replace(java.lang.String)">`TaskContainer.replace()`</JavaDocLink> | Avoid calling this. The behavior may change in the future. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="withType(java.lang.Class)">`TaskCollection.withType().getByName()`</JavaDocLink> | Use `named()` instead. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="getByName(java.lang.String)">`TaskCollection.getByName()`</JavaDocLink> | Use `named()` instead. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="whenTaskAdded(groovy.lang.Closure)">`TaskCollection.whenTaskAdded()`</JavaDocLink> | Use `DomainObjectCollection.configureEach()` instead. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="matching(groovy.lang.Closure)">`TaskCollection.matching()`</JavaDocLink> | If you are matching based on the name, use `named()` instead which will be lazy.<br/>`matching()` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType().matching()`. |
+| <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="getAt(java.lang.String)">TaskCollection.getAt()</JavaDocLink> | Use `named()` instead. |
+| <JavaDocLink class="org.gradle.api.DomainObjectCollection" method="withType(java.lang.Class,org.gradle.api.Action)">`DomainObjectCollection.withType()`</JavaDocLink> | Use `withType().configureEach()` instead. |
+| <JavaDocLink class="org.gradle.api.DomainObjectCollection" method="all(org.gradle.api.Action)">`DomainObjectCollection.all()`</JavaDocLink> | Use `configureEach()` instead. |
+| <JavaDocLink class="org.gradle.api.DomainObjectCollection" method="whenObjectAdded(org.gradle.api.Action)">`DomainObjectCollection.whenObjectAdded()`</JavaDocLink> | Use `configureEach()` instead. |
+| <JavaDocLink class="org.gradle.api.NamedDomainObjectSet" method="findAll(groovy.lang.Closure)">NamedDomainObjectSet.findAll()</JavaDocLink> | Avoid calling this method. `matching()` and `configureEach()` are more appropriate in most cases. |
+| <JavaDocLink class="org.gradle.api.NamedDomainObjectCollection" method="findByName(java.lang.String)">NamedDomainObjectCollection.findByName()</JavaDocLink> | Do not use. `named()` is the closest equivalent, but will fail if the task does not exist. |
+| `iterator()` or implicit iteration over the `Task` collection | Avoid doing this as it requires creating and configuring all tasks. |
+| `remove()` | Avoid calling this. The behavior may change in the future. |

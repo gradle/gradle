@@ -1,0 +1,234 @@
+---
+title: "Gradle Docker Images"
+---
+
+import { Xref } from '#/components';
+
+Gradle publishes [Docker Official Images](https://hub.docker.com/_/gradle) for running Gradle builds inside containers.
+The images are maintained by Gradle, Inc. in the [gradle/docker-gradle](https://github.com/gradle/docker-gradle) repository on GitHub.
+
+:::note
+Gradle assumed ownership of the official Docker image from its long-time community maintainer in September 2025.
+See the [announcement blog post](https://blog.gradle.org/docker-image-ownership) for background.
+:::
+
+## When to use the Gradle image vs. a plain JDK image
+
+The `gradle` image bundles a pre-installed Gradle distribution alongside a JDK.
+This is convenient for quick experiments and for CI systems that do not check out your project’s source tree (and therefore cannot use the Gradle Wrapper).
+
+:::caution
+You should not use it for production builds.
+:::
+
+For projects that include the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) (the recommended practice), a plain JDK image such as `eclipse-temurin:21` is sufficient — the Wrapper downloads the correct Gradle distribution automatically.
+Using a JDK-only image keeps the container layer smaller and avoids a potential version mismatch between the image’s pre-installed Gradle and the version declared in `gradle/wrapper/gradle-wrapper.properties`.
+
+## Image variants
+
+Every image tag follows the pattern `gradle:<gradle-version>-jdk<jdk-version>-<base>`.
+Omitting a segment selects the default: the latest Gradle version, the current LTS JDK, and the `noble` (Ubuntu) base.
+
+### Base images
+
+| Base | Description |
+| --- | --- |
+| `noble` (default) | Ubuntu 24.04 LTS with Eclipse Temurin JDK. The most broadly compatible choice. |
+| `jammy` | Ubuntu 22.04 LTS with Eclipse Temurin JDK. Available for teams that have not yet moved to Noble. |
+| `alpine` | Alpine Linux with Eclipse Temurin JDK. Produces the smallest image, but uses musl libc — some native libraries may require additional work. |
+| `corretto` | Amazon Linux 2023 with Amazon Corretto JDK. Well suited for AWS workloads. |
+| `ubi` / `ubi9` / `ubi10` | Red Hat Universal Base Image. Required for OpenShift and Red Hat-certified environments. |
+| `graal` | GraalVM-based image for projects that need native-image or polyglot capabilities. |
+
+### JDK versions
+
+The following JDK versions are available across base image variants.
+Not every JDK/base combination is published — see the [Docker Hub tags page](https://hub.docker.com/_/gradle/tags) for the full matrix.
+
+| JDK | Notes |
+| --- | --- |
+| 25 | Current release. Default for `latest` and unqualified tags. |
+| 21 | Long-term support (LTS). Widely used in production. |
+| 17 | Long-term support (LTS). Still common in existing projects. |
+| 11 | Legacy LTS. Available only on Gradle 8.x and 7.x images. |
+| 8 | Legacy. Available only on Gradle 8.x, 7.x, and 6.x images. |
+
+### Multi-JDK images
+
+Tags matching `jdk-lts-and-current` bundle both the current LTS JDK and the latest GA JDK in a single image.
+These are useful for projects that compile against one JDK and test against another.
+
+### Supported architectures
+
+All images are published for `amd64`, `arm64v8`, `arm32v7`, `ppc64le`, `riscv64`, and `s390x` where the underlying JDK and base image provide support.
+
+## Running a build
+
+Mount your project directory and invoke Gradle:
+
+```bash
+docker run --rm -u gradle \
+  -v "$PWD":/home/gradle/project \
+  -w /home/gradle/project \
+  gradle gradle build
+```
+
+- `-u gradle` runs the build as the non-root `gradle` user created by the image.
+- `-v "$PWD":/home/gradle/project` bind-mounts the project source into the container.
+- `-w /home/gradle/project` sets the working directory.
+
+If your project includes the Gradle Wrapper, use `./gradlew` instead:
+
+```bash
+docker run --rm -u gradle \
+  -v "$PWD":/home/gradle/project \
+  -w /home/gradle/project \
+  eclipse-temurin:21 ./gradlew build
+```
+
+## Using Gradle Docker images in CI
+
+Most CI platforms allow you to specify a container image for each job.
+The examples below show how to reference the Gradle Docker image on popular platforms.
+
+### GitHub Actions
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: gradle:jdk21
+    steps:
+      - uses: actions/checkout@v4
+      - run: gradle build
+```
+
+In practice, the [`setup-gradle`](https://github.com/gradle/actions/tree/main/setup-gradle) action with a plain runner is preferred over a container job because it provides caching, Build Scan integration, and Wrapper validation.
+See <Xref page="github-actions" section="Gradle on GitHub Actions">Gradle on GitHub Actions</Xref>.
+
+### GitLab CI
+
+```yaml
+build:
+  image: gradle:jdk21
+  script:
+    - gradle build
+```
+
+See <Xref page="gitlab-ci" section="Gradle on GitLab CI">Gradle on GitLab CI</Xref>.
+
+### Jenkins (Pipeline)
+
+```groovy
+pipeline {
+    agent {
+        docker { image 'gradle:jdk21' }
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'gradle build'
+            }
+        }
+    }
+}
+```
+
+See <Xref page="jenkins" section="Gradle on Jenkins">Gradle on Jenkins</Xref>.
+
+## Caching and performance
+
+Containers are typically ephemeral, so the Gradle User Home (`~/.gradle`) is discarded after every run unless you take steps to preserve it.
+
+### Mount a persistent volume
+
+Bind-mount a host directory to `GRADLE_USER_HOME` so downloaded dependencies and Wrapper distributions survive between runs:
+
+```bash
+docker run --rm -u gradle \
+  -v "$PWD":/home/gradle/project \
+  -v gradle-cache:/home/gradle/.gradle \
+  -w /home/gradle/project \
+  gradle gradle build
+```
+
+The named volume `gradle-cache` persists across container restarts.
+
+### CI-specific caching
+
+Each CI platform has its own caching mechanism:
+
+- **GitHub Actions** — `setup-gradle` handles Gradle User Home caching automatically.
+- **GitLab CI** — use the `cache:` directive with `GRADLE_USER_HOME` inside `$CI_PROJECT_DIR`.
+- **Jenkins** — agents are typically long-lived, so `~/.gradle` persists on the agent host.
+
+For distributed or ephemeral agents, a [Gradle Remote Build Cache](https://docs.gradle.org/current/userguide/build_cache.html) provides the best build-time savings across all CI platforms.
+
+### Disabling the daemon
+
+The Gradle daemon improves performance across consecutive builds on the same machine.
+In short-lived containers that execute a single build, the daemon provides no benefit and adds startup overhead.
+Disable it by passing `--no-daemon` or setting the environment variable:
+
+```bash
+docker run --rm -u gradle \
+  -e GRADLE_OPTS="-Dorg.gradle.daemon=false" \
+  -v "$PWD":/home/gradle/project \
+  -w /home/gradle/project \
+  gradle gradle build
+```
+
+## Publishing Build Scans
+
+To publish a [Build Scan®](https://scans.gradle.com) from a containerized build, apply the Develocity plugin in `settings.gradle[.kts]` and accept the terms of use:
+
+```kotlin
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        publishing.onlyIf { true }
+    }
+}
+```
+
+The Build Scan URL is printed to the build log.
+No additional container configuration is required — the container needs only outbound HTTPS access.
+
+## Building a custom image
+
+For production CI pipelines, building a project-specific image locks the JDK, Gradle version, and any additional tools your build needs:
+
+```dockerfile
+FROM eclipse-temurin:21-noble
+
+# Copy Gradle Wrapper
+COPY gradlew /app/gradlew
+COPY gradle /app/gradle
+RUN /app/gradlew --version   # pre-download the distribution
+
+COPY . /app
+WORKDIR /app
+```
+
+Using the Gradle Wrapper in the custom image is preferred over the `gradle` base image because the Wrapper version is pinned in your repository and is not affected by Docker image updates.
+
+## Environment variables
+
+The `gradle` image respects the standard Gradle environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `GRADLE_USER_HOME` | Location for caches, Wrapper distributions, and init scripts. Defaults to `/home/gradle/.gradle`. |
+| `GRADLE_OPTS` | JVM arguments for the Gradle client and daemon, e.g. `-Xmx2g -Dorg.gradle.daemon=false`. |
+| `JAVA_HOME` | Set by the base image. Override only when an alternative JDK is mounted into the container. |
+
+## Security considerations
+
+- Run as the non-root `gradle` user (`-u gradle`) to avoid creating root-owned files on the bind-mounted host directory.
+- Pin image tags to a specific Gradle and JDK version (e.g. `gradle:9.3.1-jdk21-noble`) rather than using `latest` to ensure reproducible builds.
+- Verify image provenance with `docker trust inspect gradle` or review the [image metadata](https://github.com/docker-library/repo-info/tree/master/repos/gradle) published by Docker.

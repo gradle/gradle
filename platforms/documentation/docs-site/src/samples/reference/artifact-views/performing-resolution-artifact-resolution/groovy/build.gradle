@@ -1,0 +1,95 @@
+plugins {
+    id("java-library")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+}
+
+// tag::file-resolution-task[]
+abstract class ResolveFiles extends DefaultTask {
+
+    @InputFiles
+    abstract ConfigurableFileCollection getFiles()
+
+    @TaskAction
+    void print() {
+        files.each {
+            println(it.name)
+        }
+    }
+}
+// end::file-resolution-task[]
+
+// tag::implicit-file-resolution[]
+tasks.register("resolveConfiguration", ResolveFiles) {
+    files.from(configurations.runtimeClasspath)
+}
+// end::implicit-file-resolution[]
+
+// tag::artifact-resolution-task[]
+class ArtifactDetails {
+    ComponentArtifactIdentifier id
+    ResolvedVariantResult variant
+
+    ArtifactDetails(ComponentArtifactIdentifier id, ResolvedVariantResult variant) {
+        this.id = id
+        this.variant = variant
+    }
+}
+
+abstract class ResolveArtifacts extends DefaultTask {
+
+    @Input
+    abstract ListProperty<ArtifactDetails> getDetails()
+
+    @InputFiles
+    abstract ListProperty<File> getFiles()
+
+    void from(Provider<Set<ResolvedArtifactResult>> artifacts) {
+        details.set(artifacts.map {
+            it.collect { artifact -> new ArtifactDetails(artifact.id, artifact.variant) }
+        })
+        files.set(artifacts.map {
+            it.collect { artifact -> artifact.file }
+        })
+    }
+
+    @TaskAction
+    void print() {
+        List<ArtifactDetails> allDetails = details.get()
+        List<File> allFiles = files.get()
+
+        assert allDetails.size() == allFiles.size()
+        for (int i = 0; i < allDetails.size(); i++) {
+            def details = allDetails.get(i)
+            def file = allFiles.get(i)
+            println("${details.variant.displayName}:${file.name}")
+        }
+    }
+}
+// end::artifact-resolution-task[]
+
+// tag::implicit-artifact-resolution[]
+tasks.register("resolveIncomingArtifacts", ResolveArtifacts) {
+    from(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
+}
+// end::implicit-artifact-resolution[]
+
+// tag::variant-reselection[]
+tasks.register("resolveSources", ResolveFiles) {
+    files.from(configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME));
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION));
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL));
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES));
+        }
+    }.files)
+}
+// end::variant-reselection[]

@@ -1,0 +1,140 @@
+---
+title: "The Ear Plugin"
+---
+
+import { CalloutList, FileTree, GroovyDocLink, SampleScripts, Xref } from '#/components';
+
+The Ear plugin adds support for assembling web application EAR files.
+It adds a default EAR archive task.
+It doesn’t require the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref>, but for projects that also use the Java plugin it disables the default JAR archive generation.
+
+## Usage
+
+To use the Ear plugin, include the following in your build script:
+
+<SampleScripts sample_name="ear-with-war" basename="build" tag="use-ear-plugin" />
+
+## Tasks
+
+The Ear plugin adds the following tasks to the project.
+
+<dl>
+<dt>`ear` — <GroovyDocLink class="org.gradle.plugins.ear.Ear" /></dt>
+<dd>
+
+_Depends on_: `compile` (only if the Java plugin is also applied)
+
+Assembles the application EAR file.
+
+</dd>
+</dl>
+
+### Dependencies added to other tasks
+
+The Ear plugin adds the following dependencies to tasks added by the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
+
+<dl>
+<dt>`assemble`</dt>
+<dd>
+
+_Depends on_: `ear`.
+
+</dd>
+</dl>
+
+## Project layout
+
+```text callouts
+.
+└── src
+    └── main
+        └── application // (1)
+```
+
+<CalloutList>
+
+1. Ear resources, such as a META-INF directory
+
+</CalloutList>
+
+## Dependency management
+
+The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All dependencies in the `deploy` configuration are placed in the root of the EAR archive, and are _not_ transitive. All dependencies in the `earlib` configuration are placed in the 'lib' directory in the EAR archive and _are_ transitive.
+
+## Ear
+
+The default behavior of the Ear task is to copy the content of `src/main/application` to the root of the archive. If your `application` directory doesn’t contain a `META-INF/application.xml` deployment descriptor then one will be generated for you.
+
+The <GroovyDocLink class="org.gradle.plugins.ear.Ear" /> class in the API documentation has additional useful information.
+
+## Customizing
+
+Here is an example with the most important customization options:
+
+<SampleScripts sample_name="ear-customized" basename="build" subpath="ear" />
+
+You can also use customization options that the <GroovyDocLink class="org.gradle.plugins.ear.Ear" /> task provides, such as `from` and `metaInf`.
+
+## Skinny WAR Pattern
+
+The Ear plugin supports the Skinny WAR deployment pattern, where shared libraries are placed in the EAR’s `lib` directory rather than being packaged within individual WAR files.
+
+### Basic Skinny WAR Setup
+
+To implement the Skinny WAR pattern, configure your multi-module project with separate `war` and `ear` modules:
+
+```text callouts
+.
+├── settings.gradle.kts
+├── war/ // (1)
+│   └── src/main/
+│       ├── java/
+│       └── webapp/
+└── ear/ // (2)
+    └── src/main/application/
+        └── META-INF/
+            └── application.xml
+```
+
+<CalloutList>
+
+1. Contains web application code and resources, produces skinny WAR with compileOnly dependencies
+2. Assembles complete enterprise application, packages WAR and shared libraries in lib directory
+
+</CalloutList>
+
+### WAR Module Configuration
+
+Configure the WAR module to use `compileOnly` dependencies for libraries that will be provided by the EAR:
+
+**WAR module build script**
+
+<SampleScripts sample_name="skinny-war" basename="build" subpath="war" />
+
+### EAR Module Configuration
+
+Configure the EAR module to include the WAR and place shared libraries in the `lib` directory:
+
+**EAR module build script**
+
+<SampleScripts sample_name="skinny-war" basename="build" subpath="ear" />
+
+### Runtime Library Resolution
+
+In the Skinny WAR pattern, shared dependencies are centralized in the EAR’s `lib` directory instead of being duplicated in each WAR file. The generated EAR file structure demonstrates this dependency organization:
+
+<FileTree>
+
+- ear.ear
+  - META-INF/
+    - MANIFEST.MF
+    - application.xml
+  - lib/
+    - commons-lang3-3.14.0.jar
+  - war.war (skinny WAR - no shared libraries)
+
+</FileTree>
+
+## Using custom descriptor file
+
+You may already have appropriate settings in a `application.xml` file and want to use that instead of configuring the `ear.deploymentDescriptor` section of the build script. To accommodate that goal, place the `META-INF/application.xml` in the right place inside your source folders (see the `appDirName` property). The file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.

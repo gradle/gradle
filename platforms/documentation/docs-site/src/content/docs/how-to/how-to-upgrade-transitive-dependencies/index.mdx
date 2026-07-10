@@ -1,0 +1,42 @@
+---
+title: "How to Upgrade Transitive Dependencies in Gradle"
+---
+
+import { JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
+
+This guide explains how to manage and upgrade versions of ***transitive dependencies*** in Gradle using ***dependency constraints***.
+
+## Why Upgrade a Transitive Dependency?
+
+There are many reasons to upgrade a version of a dependency:
+
+- **Bug fixes** resolve issues present in older versions.
+- **Security patches** address vulnerabilities to keep the project safe.
+- **Performance improvements** make builds faster and more efficient.
+- **New features** provide additional functionality and better compatibility.
+
+## Setting Dependency Constraints on Transitive Dependencies
+
+<Xref page="dependency-constraints" section="Declaring Dependency Constraints">Dependency constraints</Xref> allow you to define the ***version*** or ***version range*** of both direct dependencies and transitive dependencies.
+
+Dependency constraints can also ***override transitive dependencies*** and enforce strict versions, even <Xref page="how-to-downgrade-transitive-dependencies" section="How to Downgrade Transitive Dependencies in Gradle">***downgrading***</Xref> if necessary.
+
+To enforce specific versions of transitive dependencies, use the <JavaDocLink class="org.gradle.api.artifacts.DependencyConstraint">`constraints`</JavaDocLink> block inside <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler">`dependencies {}`</JavaDocLink>:
+
+<SampleScripts sample_name="upgrade-transitives" basename="build" tag="dependency-full" />
+
+- The `implementation` dependency ***omits the version***.
+- The `constraints` block ***enforces specific versions*** for `httpclient` and `commons-codec`.
+- The constraint for `commons-codec` ***only applies if it is pulled transitively***.
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+<SampleFile sample_name="upgrade-transitives" path="tests/dependencies.out" />
+
+## Summary
+
+Use dependency constraints when:
+
+- You want to ***override transitive dependencies*** with a specific version.
+- You need to enforce ***a strict version or range*** across multiple dependencies.
+- You want to ***prevent dependency conflicts*** without manually adding transitive dependencies.

@@ -1,0 +1,64 @@
+import java.time.Instant
+
+interface MyExtension {
+    Property<String> getFirstName()
+    Property<String> getLastName()
+}
+
+def greeter = "Hello"
+
+@CacheableTask // <1>
+abstract class MyTask extends DefaultTask {
+    @Input
+    abstract Property<String> getFirstName()
+    @Input
+    abstract Property<String> getLastName()
+    @Input
+    abstract Property<String> getGreeting()
+
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    private final Instant today = Instant.now() // <2>
+
+    @TaskAction
+    void run() {
+        def output = outputFile.asFile.get()
+        def result = "${greeting.get()}, ${firstName.get()} ${lastName.get()}, it's currently\n$today"
+        println result
+        output.text = result
+    }
+}
+
+abstract class MyPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        def extension = project.extensions.create("myExtension", MyExtension)
+
+        project.tasks.register("task1", MyTask) { task ->
+            task.outputFile.convention(project.layout.buildDirectory.file("output1.txt"))
+        }
+
+        project.tasks.register("task2", MyTask) { task ->
+            task.outputFile.convention(project.layout.buildDirectory.file("output2.txt"))
+        }
+
+        project.tasks.withType(MyTask).configureEach { task ->
+            task.group = "Custom Tasks"
+            task.firstName.convention(extension.firstName)
+            task.lastName.convention(extension.firstName) // <3>
+            task.greeting.convention("Hi")
+        }
+    }
+}
+
+apply plugin: MyPlugin
+
+myExtension {
+    firstName = "John"
+    lastName = "Smith"
+}
+
+tasks.named("task2", MyTask) {
+    greeter = "Bonjour" // <4>
+}

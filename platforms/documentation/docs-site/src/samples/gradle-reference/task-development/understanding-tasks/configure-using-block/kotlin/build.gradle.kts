@@ -1,1 +1,0 @@
-tasks.register<Copy>("myCopy")

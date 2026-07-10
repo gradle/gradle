@@ -1,0 +1,124 @@
+---
+title: "Part 7: Use a Consumer Project"
+---
+
+import { SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Learn how to set up a dummy consumer project to test your plugin without publishing it.
+
+:::note
+***In this section, you’ll:***
+- Create a `consumer` project to use your plugin.
+- Configure a ***Composite Build*** to link the `consumer` and `plugin` projects.
+- Test your plugin in a real-world scenario.
+:::
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in <Xref page="part1-gradle-init-plugin" section="Step 0: Before you Begin">part 1</Xref>.
+2. You added an extension to your plugin in <Xref page="part2-add-extension" section="Step 0: Before you Begin">part 2</Xref>.
+3. You created a custom task in <Xref page="part3-create-custom-task" section="Step 0: Before you Begin">part3</Xref>.
+4. You wrote a unit test in <Xref page="part4-unit-test" section="Step 0: Before you Begin">part 4</Xref>.
+5. You added a dataflow action to your plugin in <Xref page="part5-add-dataflow-action" section="Step 0: Before you Begin">part 5</Xref>.
+6. You wrote a functional test in <Xref page="part6-functional-test" section="Step 0: Before you Begin">part 6</Xref>.
+
+## Step 1: Create a Consumer Project
+
+We will now create a separate `consumer` project.
+This is a best practice for testing plugins because it simulates how a real user would apply your plugin to their own project.
+It also allows you to test your plugin without publishing it to a repository like the Gradle Plugin Portal.
+
+First, update your project structure to include a new `consumer` directory:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+.
+├── gradlew
+├── settings.gradle.kts
+├── plugin/
+└── consumer/   //<1>
+    ├── settings.gradle.kts
+    └── build.gradle.kts
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+.
+├── gradlew
+├── settings.gradle
+├── plugin/
+└── consumer/   //<1>
+    ├── settings.gradle
+    └── build.gradle
+```
+
+</TabItem>
+</Tabs>
+
+Next, we’ll configure a ***Composite Build*** by updating the root `settings.gradle(.kts)` file.
+This tells Gradle to treat the `plugin` project as an included build.
+
+<SampleScripts sample_name="plugin-tutorial" basename="settings" />
+
+The key line here is `includeBuild("plugin")` inside the `pluginManagement {}` block.
+This makes all the plugins from the `plugin` project available to other projects in the composite build by their ID.
+
+Finally, we need to update the `plugin’s build file to account for the composite build setup.
+We’ll change the `id` from a local file to a standard `String`.
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="plugins" />
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="dependencies" />
+
+:::note
+In a Composite Build, the `plugin` project no longer has access to the root `libs.versions.toml` file. For this tutorial, we are using direct dependency declarations.
+:::
+
+## Step 2: Wire the Consumer Project to the Plugin
+
+Now we’ll configure the `consumer` project’s settings file to apply our plugin.
+
+Add this code to `consumer/settings.gradle(.kts)`:
+
+<SampleScripts sample_name="plugin-tutorial" basename="settings" subpath="consumer" tag="entire" />
+
+This tells Gradle that when it encounters a `plugins` block that references your `org.example.slack` plugin, it should look for the plugin in the `plugin` project of the composite build.
+
+## Step 3: Apply and Configure the Plugin in the Consumer
+
+Now, let’s configure the `consumer` project’s `build.gradle(.kts)` file to actually apply and configure our plugin.
+
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="consumer" tag="build" />
+
+Notice that we don’t need a `version` for the plugin! Gradle automatically resolves it from the included build.
+
+## Step 4: Run the Consumer Project
+
+You can now test your plugin by running a task in the `consumer` project.
+
+From the `consumer` directory, you can run your custom task:
+
+```bash
+$ ./gradlew sendTestSlackMessage
+```
+
+Or, from the root directory, you can run the same task using its full path:
+
+```bash
+$ ./gradlew :consumer:sendTestSlackMessage
+```
+
+You can also run a standard lifecycle task like `build`, which will automatically trigger the `FlowAction` to send a Slack notification at the end of the build.
+
+```bash
+$ ./gradlew :consumer:build
+```
+
+You can now iterate on your plugin in the `plugin` directory and test it immediately in the `consumer` project without any publishing overhead.
+
+***Next Step:*** <Xref page="part8-publish-locally" section="Part 8: Publish your Plugin Locally">Publish your Plugin Locally</Xref> \>\>

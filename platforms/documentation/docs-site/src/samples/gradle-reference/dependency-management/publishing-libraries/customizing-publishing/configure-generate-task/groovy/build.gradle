@@ -1,5 +1,0 @@
-tasks.withType(GenerateMavenPom).all {
-    def matcher = name =~ /generatePomFileFor(\w+)Publication/
-    def publicationName = matcher[0][1]
-    destination = layout.buildDirectory.file("poms/${publicationName}-pom.xml").get().asFile
-}

@@ -1,0 +1,600 @@
+---
+title: "Composite Builds (Included Builds)"
+---
+
+import { FileTree, GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+A composite build is a build that includes other builds; those builds are known as included builds.
+
+A composite build is similar to a Gradle <Xref page="multi-project-builds" section="Multi-Project Builds">multi-project build</Xref>, except that instead of including `subprojects`, entire `builds` are included.
+
+This is done either [using the Settings file](#settings_defined_composite) and adding a build using `includeBuild()`:
+
+<SampleScripts sample_name="composite-builds-basic" basename="settings" tag="inc" />
+
+Or [using the CLI flag](#command_line_composite) `--include-build`:
+
+```bash
+$ ./gradlew build --include-build my-utils
+```
+
+## When to Use Composite Builds
+
+Composite builds are useful in three broad scenarios:
+
+1. ***Developing libraries and consumers together***: If you maintain a library that another project depends on, composite builds let you work across both at the same time without publishing the library first.<br/>
+Gradle automatically substitutes the external dependency with a local source, so changes to the library are immediately visible in the consuming project.
+2. ***Organizing large codebases***: Composite builds let you split a large codebase into independent builds that can each be opened and worked on in isolation (for example, in the IDE), while still being buildable together as a whole.<br/>
+This is a common approach in monorepo setups.
+3. ***Sharing build logic***: Composite builds are the <Xref page="best-practices-structuring-builds" section="Favor `build-logic` Composite Builds for Build Logic">recommended way</Xref> to structure and share custom build logic across projects.<br/>
+<Xref page="sharing-build-logic-between-subprojects" section="About the `buildSrc` directory">`buildSrc`</Xref> is _essentially_ an included build that Gradle manages automatically; a <Xref page="sharing-build-logic-between-subprojects" section="Using a Composite Build Named `build-logic`">`build-logic`</Xref> build included via `includeBuild()` in your settings file is the same idea, made explicit.
+
+## Composite Build Layout
+
+Included builds do not share any configuration with other included builds.
+
+:::danger
+Each included build is **configured** in isolation — included builds do not share repositories, plugins, or properties with one another or with the root build, but they can be **executed** together and depend on each other’s tasks.
+:::
+
+Composite builds typically take one of two layouts depending on the use case: a [**co-development** layout](#codev_composite), where an included build lives outside the consumer and is substituted temporarily during development; or a [**monorepo** layout](#separate_composite), where an uber-root build knits together a set of independent builds that can also be worked on in isolation.
+
+:::note
+For reference, a **build tree** consists of the root build and all of its included builds, recursively.
+:::
+
+### Co-development Layout Example
+
+The following example demonstrates **co-development** — temporarily substituting a dependency to work across a library and its consumer simultaneously.
+You simply include the library directly into the consumer build:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+<FileTree>
+
+- my-app/                             // The consumer build (your working directory)
+  - settings.gradle.kts             // includeBuild("../my-utils")
+  - build.gradle.kts
+  - app/
+    - build.gradle.kts            // Declares dependencies on 'number-utils' and 'string-utils'
+    - src/main/java/...
+- my-utils/                           // The library build (Included Build)
+  - settings.gradle.kts             // Defines 'number-utils' and 'string-utils' subprojects
+  - number-utils/
+    - build.gradle.kts
+    - src/main/java/...
+  - string-utils/
+    - build.gradle.kts
+    - src/main/java/...
+
+</FileTree>
+
+</TabItem>
+<TabItem label="Groovy">
+
+<FileTree>
+
+- my-app/                             // The consumer build (your working directory)
+  - settings.gradle                 // includeBuild("../my-utils")
+  - build.gradle
+  - app/
+    - build.gradle                // Declares dependencies on 'number-utils' and 'string-utils'
+    - src/main/java/...
+- my-utils/                           // The library build (Included Build)
+  - settings.gradle                 // Defines 'number-utils' and 'string-utils' subprojects
+  - number-utils/
+    - build.gradle
+    - src/main/java/...
+  - string-utils/
+    - build.gradle
+    - src/main/java/...
+
+</FileTree>
+
+</TabItem>
+</Tabs>
+
+In this example, `my-utils` lives outside of `my-app` and is included temporarily during development. Once the library changes are published, the `includeBuild` can be removed.
+
+The `my-app` root settings file looks as follows:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="settings.gradle.kts"
+rootProject.name = "my-app"
+
+include("app")
+includeBuild("../my-utils")
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="settings.gradle"
+rootProject.name = "my-app"
+
+include("app")
+includeBuild("../my-utils")
+```
+
+</TabItem>
+</Tabs>
+
+### Monorepo Layout Example
+
+The following example demonstrates a **monorepo** layout in which an uber-root build knits together independent builds.
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+<FileTree>
+
+- my-composite/                       // The root of the Composite Build
+  - settings.gradle.kts
+  - my-app/                         // The application build (Included Build #1)
+    - settings.gradle.kts
+    - app/
+      - build.gradle.kts        // Declares dependencies on 'number-utils' and 'string-utils'
+      - src/main/java/...
+  - my-utils/                       // The utility library build (Included Build #2)
+    - settings.gradle.kts         // Defines 'number-utils' and 'string-utils' subprojects
+    - number-utils/
+      - build.gradle.kts
+      - src/main/java/...
+    - string-utils/
+      - build.gradle.kts
+      - src/main/java/...
+
+</FileTree>
+
+</TabItem>
+<TabItem label="Groovy">
+
+<FileTree>
+
+- my-composite/                       // The root of the Composite Build
+  - settings.gradle
+  - my-app/                         // The application build (Included Build #1)
+    - settings.gradle
+    - app/
+      - build.gradle            // Declares dependencies on 'number-utils' and 'string-utils'
+      - src/main/java/...
+  - my-utils/                       // The utility library build (Included Build #2)
+    - settings.gradle             // Defines 'number-utils' and 'string-utils' subprojects
+    - number-utils
+      - build.gradle
+      - src/main/java/...
+    - string-utils
+      - build.gradle
+      - src/main/java/...
+
+</FileTree>
+
+</TabItem>
+</Tabs>
+
+In this example, `my-composite` is a composite build that includes the `my-app` build and the `my-utils` build.
+`my-app` and `my-utils` are included builds:
+
+The `my-composite` root settings file looks as follows:
+
+<SampleScripts sample_name="composite-builds-basic" basename="settings" />
+
+## Defining a Composite Build via the Settings file
+
+The settings file, `settings.gradle(.kts)`, can be used to add subprojects and included builds simultaneously using <GroovyDocLink class="org.gradle.api.initialization.Settings" method="includeBuild(java.lang.Object)" />.
+
+Included builds are added by location using a file path:
+
+- ***Relative paths*** are resolved relative to the directory containing the settings file - `includeBuild("../my-utils")`
+- ***Absolute paths*** can also be used but are heavily discouraged - `includeBuild("/Users/user/projects/my-utils")`
+
+The path should point to the ***root directory*** of the build (the directory containing the `settings.gradle(.kts)` file of the included build):
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="settings.gradle.kts"
+includeBuild("../dir/other-build")
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="settings.gradle"
+includeBuild("../dir/other-build")
+```
+
+</TabItem>
+</Tabs>
+
+## Defining a Composite Build via `--include-build`
+
+The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build:
+
+```bash
+$ ./gradlew --include-build ../my-utils run
+```
+
+```text
+> Task :my-plugin:pluginDescriptors
+> Task :my-plugin:processResources
+> Task :my-plugin:compileJava NO-SOURCE
+> Task :my-plugin:classes
+> Task :my-plugin:jar
+> Task :app:processResources NO-SOURCE
+> Task :my-utils:number-utils:compileJava
+> Task :my-utils:string-utils:compileJava
+> Task :my-utils:string-utils:processResources NO-SOURCE
+> Task :my-utils:string-utils:classes
+> Task :my-utils:string-utils:jar
+> Task :my-utils:number-utils:processResources NO-SOURCE
+> Task :my-utils:number-utils:classes
+> Task :my-utils:number-utils:jar
+> Task :app:compileJava
+> Task :app:classes
+
+> Task :app:run
+The answer is 42
+
+BUILD SUCCESSFUL in 0s
+10 actionable tasks: 10 executed
+```
+
+## Interacting with a Composite Build
+
+Interacting with a composite build is generally similar to a regular multi-project build.
+Tasks can be executed, tests can be run, and builds can be imported into the IDE.
+
+### Executing Tasks
+
+Tasks from an included build can be executed from the command-line or IDE in the same way as tasks from a regular multi-project build.
+Executing a task will result in task dependencies being executed, as well as those tasks required to build dependency artifacts from other included builds.
+
+You can call a task in an included build using a fully qualified path, for example, `:included-build-name:project-name:taskName`:
+
+```bash
+$ ./gradlew :included-build:subproject-a:compileJava
+```
+
+```text
+> Task :included-build:subproject-a:compileJava
+```
+
+Build, project, and task names can all be <Xref page="command-line-interface" section="Name abbreviation">abbreviated</Xref>:
+
+```bash
+$ ./gradlew :i-b:sA:cJ
+```
+
+```text
+> Task :included-build:subproject-a:compileJava
+```
+
+With reference to the [example build](#defining_composite_builds), to execute the `run` task in the `my-app` build from `my-composite`:
+
+```bash
+$ cd my-composite
+$ ./gradlew :my-app:app:run
+```
+
+To <Xref page="command-line-interface" section="Excluding tasks from execution">exclude a task from the command line</Xref>, you need to provide the fully qualified path to the task:
+
+```bash
+$ ./gradlew :my-app:app:compileJava --exclude-task :my-app:app:test
+```
+
+You can optionally define a `run` task in `my-composite` that depends on `my-app:app:run`:
+
+<SampleScripts sample_name="composite-builds-basic" basename="build" tag="run" />
+
+So that you can execute `./gradlew run` from the `my-composite` directory:
+
+```bash
+$ cd my-composite
+$ ./gradlew run
+```
+
+:::note
+Included build tasks are automatically executed to generate required dependency artifacts, or the including build can [declare a dependency on a task](#included_build_task_dependencies) from an included build.
+:::
+
+### Depending on Tasks
+
+While included builds are isolated from one another and cannot declare direct dependencies, a composite build can declare task dependencies on its included builds.
+
+The included builds are accessed using <GroovyDocLink class="org.gradle.api.invocation.Gradle" method="includedBuilds">Gradle.getIncludedBuilds()</GroovyDocLink> or <GroovyDocLink class="org.gradle.api.invocation.Gradle" method="includedBuild(java.lang.String)" />, and a task reference is obtained via the <GroovyDocLink class="org.gradle.api.initialization.IncludedBuild" method="task(java.lang.String)" /> method.
+
+Using these APIs, it is possible to declare a dependency on a task in a particular included build:
+
+
+
+Or you can declare a dependency on tasks with a certain path in all of the included builds:
+
+<SampleScripts sample_name="composite-builds-hierarchical-multirepo" basename="build" />
+
+### Referencing Projects
+
+It is a common mistake to attempt to use `project()` notation to depend on a module that resides in an included build.
+
+:::danger
+Included builds are not subprojects.
+:::
+
+Each build in a composite has its own project hierarchy.
+You cannot use project paths (e.g., `project(":other-build:module")`) to reference a project across build boundaries.
+Doing so will result in an `UnknownProjectException`.
+
+To depend on a project from an included build, you must use its external coordinates (the same coordinates you would use if the library were published to Maven Central or Ivy).
+
+If an included build has a project with `group = "com.example.data"` and `rootProject.name = "core-schema"`, you reference it in your main build like an external dependency.
+For example, if your configuration looks as follows:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+<FileTree>
+
+- app (Composite Build)
+  - build.gradle.kts
+  - settings.gradle.kts  \<-- includeBuild("../core-schema")
+- core-schema (Included Build)
+  - build.gradle.kts
+  - settings.gradle.kts  \<-- rootProject.name = "core-schema"
+
+</FileTree>
+
+</TabItem>
+<TabItem label="Groovy">
+
+<FileTree>
+
+- app (Composite Build)
+  - build.gradle
+  - settings.gradle  \<-- includeBuild("../core-schema")
+- core-schema (Included Build)
+  - build.gradle
+  - settings.gradle  \<-- rootProject.name = "core-schema"
+
+</FileTree>
+
+</TabItem>
+</Tabs>
+
+The included build has the following information:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="core-schema/build.gradle.kts"
+group = "com.example.data"
+version = "1.0.0"
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="core-schema/build.gradle"
+group = "com.example.data"
+version = "1.0.0"
+```
+
+</TabItem>
+</Tabs>
+
+So that the main build can reference it:
+
+<SampleScripts sample_name="composite-builds-referencing-projects" basename="build" tag="referencing-projects" />
+
+Gradle uses the metadata from the included build to "discover" which coordinates it provides.
+As long as the coordinates match, Gradle replaces the external dependency with a project dependency at execution time, see [#included_build_declaring_substitutions](#included_build_declaring_substitutions) to learn more.
+
+## Configuring a Composite Build
+
+A critical aspect of included builds is that they are executed in **isolation**.
+
+This has specific implications for how configuration is (or is not) shared:
+
+- **Gradle Properties**: `gradle.properties` files defined in the root build are not visible to included builds. Each included build must define its own properties or properties must be passed via the CLI.<br/>
+Note that this applies to user-defined properties. Gradle runtime properties (such as `org.gradle.configuration-cache`) are a special case — they are only read from the **root build** and applied to the entire invocation. Any such properties defined in an included build’s `gradle.properties` are ignored.
+- **Shared Configuration**: Included builds do not share any configuration with the root build or other included builds. This includes repositories, plugin management, or dependency versions defined in <Xref page="sharing-build-logic-between-subprojects" section="About the `buildSrc` directory">`buildSrc`</Xref> or version catalogs.
+
+Continuing from the example above, where properties are defined in the CLI and in the root `gradle.properties` file:
+
+```bash
+$ ./gradlew checkAll -PpropertiesMessage="Hello" -DsystemMessage="Hello"
+```
+
+The following output is produced, showcasing the propagation of the properties from the root file and the CLI to the included builds:
+
+```text
+> Configure project :my-app:app
+propertiesFileMessage = null
+systemMessage = Hello
+propertiesMessage = Hello
+
+> Configure project :my-utils:number-utils
+propertiesFileMessage = null
+systemMessage = Hello
+propertiesMessage = Hello
+
+> Configure project :
+propertiesFileMessage = Hello
+systemMessage = Hello
+propertiesMessage = Hello
+```
+
+If you need to share credentials (like repository tokens) or common configuration across a composite build tree, consider using system environment variables or extracting the logic into a shared convention plugin included via `pluginManagement`.
+
+While included builds are isolated and cannot declare direct project dependencies, a composite build can [declare task dependencies](#included_build_task_dependencies) on its included builds.
+
+## Gradle Plugins in Composite Builds
+
+When including builds that provide Gradle plugins, there are different approaches depending on how and where the plugin will be applied.
+
+### Plugins for Build Scripts
+
+Plugins that will be applied in project build scripts (e.g., `build.gradle.kts`) can be included using `includeBuild` in your `settings.gradle(.kts)` file.
+
+This approach is recommended over using the `--include-build` CLI flag, as it provides more reliable plugin resolution, especially when using the modern `plugins {}` block:
+
+<SampleScripts sample_name="composite-builds-basic" basename="settings" subpath="my-app" tag="mag" />
+
+Then the plugin is used as follows:
+
+<SampleScripts sample_name="composite-builds-basic" basename="build" subpath="my-app/app" tag="plugin_dependencies" />
+
+### Plugins for Settings Files
+
+A special case of included builds are builds that define plugins that need to be applied in the **settings file itself**.
+These builds should be included using the `includeBuild` statement inside the `pluginManagement {}` block of the settings file.
+
+Using this mechanism, the included build may contribute a settings plugin that can be applied in the settings file:
+
+<SampleScripts sample_name="composite-builds-settings-plugin" basename="settings" tag="settings-plugin" />
+
+:::note
+While the `--include-build` CLI flag can work for plugins applied via the `buildscript {}` block, it may not work reliably for plugins applied using the modern `plugins {}` block, especially for unpublished plugins.
+:::
+
+For consistent behavior, use `includeBuild` in your settings file.
+For settings plugins (plugins applied in the settings file itself), use `includeBuild` within the `pluginManagement {}` block.
+
+## Dependency Substitution in Composite Builds
+
+By default, Gradle will configure each included build to determine the dependencies it can provide.
+The algorithm for doing this is simple.
+Gradle will inspect the group and name for the projects in the included build and substitute project dependencies for any external dependency matching `${project.group}:${project.name}`.
+
+:::note
+By default, substitutions are not registered for the _main_ build.
+To make the (sub)projects of the main build addressable by `${project.group}:${project.name}`, you can tell Gradle to treat the main build like an included build by self-including it: `includeBuild(".")`.
+:::
+
+There are cases when the default substitutions determined by Gradle are insufficient or must be corrected for a particular composite.
+For these cases, explicitly declaring the substitutions for an included build is possible.
+
+For example, a single-project build called `anonymous-library`, produces a Java utility library but does not declare a value for the group attribute:
+
+<SampleScripts sample_name="composite-builds-declared-substitution" basename="build" subpath="anonymous-library" />
+
+When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:anonymous-library` (`undefined` being the default value for `project.group`, and `anonymous-library` being the root project name).
+Clearly, this isn’t useful in a composite build.
+
+To use the unpublished library in a composite build, you can explicitly declare the substitutions that it provides:
+
+<SampleScripts sample_name="composite-builds-declared-substitution" basename="settings" tag="composite_substitution" />
+
+With this configuration, the `my-app` composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of `anonymous-library`.
+
+:::danger
+Substitutions are not transitive across builds.
+:::
+
+Explicitly declared substitutions are only active for the build that defines them.
+In the example above, while `my-app` knows to substitute `org.sample:number-utils` with the local `anonymous-library`, the `anonymous-library` build itself remains unaware of this rule.
+
+If you run a task directly from within the `anonymous-library` directory that requires `org.sample:number-utils` (for example, in its own test suite), the resolution will fail unless:
+
+1. The substitution is also declared in the `settings.gradle(.kts)` of `anonymous-library`.
+2. (**Recommended**) You align the group and `rootProject.name` of `anonymous-library` to match the expected coordinates, allowing Gradle’s default auto-substitution to work in both directions.
+
+### Disabling Substitutions for a Configuration
+
+If you need to <Xref page="declaring-configurations" section="Declarable, Resolvable, and Consumable configurations">resolve</Xref> a published version of a module that is also available as part of an included build, you can deactivate the included build substitution rules on the <GroovyDocLink class="org.gradle.api.artifacts.ResolutionStrategy" /> of the Configuration that is resolved.
+This is necessary because the rules are globally applied in the build, and Gradle does not consider published versions during resolution by default.
+
+For example, we create a separate `publishedRuntimeClasspath` configuration that gets resolved to the published versions of modules that also exist in one of the local builds.
+This is done by deactivating global dependency substitution rules:
+
+<SampleScripts sample_name="customizing-resolution-deactivate-global-substitution" basename="build" tag="disableGlobalDependencySubstitutionRules" />
+
+A use-case would be to compare published and locally built JAR files.
+
+### When to Declare Substitutions Explicitly
+
+Many builds will function automatically as an included build, without declared substitutions.
+Here are some common cases where declared substitutions are required:
+
+- When the `archivesBaseName` property is used to set the name of the published artifact.
+- When a configuration other than `default` is published.
+- When the `maven-publish` or `ivy-publish` plugins are used for publishing and the publication coordinates don’t match `${project.group}:${project.name}`.
+- When multiple publications are defined for a single project (e.g., a project that publishes two different libraries).
+
+### When Substitutions Won’t Work
+
+Some builds won’t function correctly when included in a composite, even when dependency substitutions are explicitly declared.
+This limitation is because a substituted project dependency will always point to the `default` configuration of the target project.
+Any time the artifacts and dependencies specified for the default configuration of a project don’t match what is published to a repository, the composite build may exhibit different behavior.
+
+Here are some cases where the published module metadata may be different from the project default configuration:
+
+- When the `maven-publish` or `ivy-publish` plugins are used with custom logic in the publication block.
+- When the `POM` or `ivy.xml` file is tweaked as part of publication.
+- When a capability or a custom variant is only defined via publication metadata.
+
+Builds using these features may function incorrectly when included in a composite build.
+
+## Requirements for Composite Builds
+
+Composite builds must maintain unique identifiers for every project across the entire build tree.
+
+To prevent conflicts, Gradle qualifies projects using a build-tree path, which combines the build path (derived from the included build’s directory name) and the project path.
+
+To ensure every project remains uniquely addressable, included builds must satisfy two conditions:
+
+1. **Unique Build Paths:** No two included builds can share the same build path.
+2. **No Namespace Overlap:** An included build path cannot conflict with any existing project path in the root build.
+
+If directory names cause a naming collision, rename the build path in your settings file:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="settings.gradle.kts"
+includeBuild("some-included-build") {
+    name = "other-name"
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="settings.gradle"
+includeBuild('some-included-build') {
+    name = 'other-name'
+}
+```
+
+</TabItem>
+</Tabs>
+
+:::note
+When a composite build includes another composite, Gradle flattens the structure. All included builds share the same parent, regardless of how deeply they were nested.
+:::
+
+## Known Limitations of Composite Builds
+
+Limitations of the current implementation include:
+
+- ***Substitution Limitations***: No support for included builds with publications that don’t mirror the project default configuration.
+See [Cases where composite builds won’t work](#included_build_substitution_limitations).
+- ***Multiple Composite Builds***: Multiple composite builds may conflict when run in parallel if more than one includes the same build.
+Gradle does not share the project lock of a shared composite build between Gradle invocations to prevent concurrent execution.
+- ***Configuration-on-Demand***: See [#composite_build_configuration_on_demand](#composite_build_configuration_on_demand) below.
+
+### Configuration-on-Demand
+
+Using <Xref page="configuration-on-demand" section="Configuration On Demand">Configuration-on-Demand</Xref> with composite builds can significantly impact performance.
+The behavior changes depending on whether you rely on default substitutions or explicitly declared substitutions:
+
+1. You must manually declare all dependency substitutions for every project within that included build that you wish to use. Any project not explicitly mapped will be treated as an external dependency.
+2. The way Gradle discovers what an included build "provides" dictates how much of that build must be configured at startup:
+
+   | Scenario | Behavior | Performance Impact |
+   | --- | --- | --- |
+   | ***Default Rules*** (No explicit substitutions) | Gradle must inspect every project in the included build to find matching `group` and `name`. | **High:** The included build is ***always fully configured***, even if its projects aren’t needed for the current task. |
+   | ***Explicit Rules*** (Using `substitute…​`) | Gradle uses your explicit rules as the source of truth. | **Optimized:** The included build is ***not configured*** unless a task requires one of the substituted projects. |

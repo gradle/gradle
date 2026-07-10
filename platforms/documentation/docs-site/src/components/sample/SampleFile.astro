@@ -1,6 +1,7 @@
 ---
 import { Code } from "@astrojs/starlight/components";
 import { getPageScopedSamplePath } from "../../lib/samples";
+import { selectSampleContent } from "../../lib/sample-tags";
 
 interface Props {
   sample_name?: string;
@@ -11,7 +12,7 @@ interface Props {
   tag?: string;
 }
 
-const { sample_name, sample, path, lang, title } = Astro.props;
+const { sample_name, sample, path, lang, title, tag } = Astro.props;
 
 const samplePath = getPageScopedSamplePath(
   Astro.url.pathname,
@@ -31,6 +32,8 @@ if (content === undefined) {
   throw new Error(`Sample file '${path}' not found in sample '${samplePath}'.`);
 }
 
+const displayContent = selectSampleContent(content, tag, filePath);
+
 function inferLanguage(filename: string): string {
   if (filename.endsWith(".gradle.kts") || filename.endsWith(".kt")) return "kotlin";
   if (filename.endsWith(".gradle") || filename.endsWith(".groovy")) return "groovy";
@@ -48,4 +51,4 @@ const codeLang = lang ?? inferLanguage(path);
 const codeTitle = title ?? path;
 ---
 
-<Code code={content} lang={codeLang} title={codeTitle} />
+<Code code={displayContent} lang={codeLang} title={codeTitle} />

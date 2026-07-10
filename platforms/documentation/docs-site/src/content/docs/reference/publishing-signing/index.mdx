@@ -1,0 +1,41 @@
+---
+title: "Signing artifacts"
+---
+
+import { SampleScripts, Xref } from '#/components';
+
+The <Xref page="signing-plugin" section="The Signing Plugin">Signing Plugin</Xref> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module descriptors. In order to use it:
+
+1. Apply the Signing Plugin
+2. Configure the <Xref page="signing-plugin" section="Signatory credentials">signatory credentials</Xref> — follow the link to see how
+3. Specify the publications you want signed
+
+Here’s an example that configures the plugin to sign the `mavenJava` publication:
+
+<SampleScripts sample_name="maven-publish" basename="build" tag="sign-publication" />
+
+This will create a `Sign` task for each publication you specify and wire all `publish_PubName_PublicationTo_RepoName_Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
+
+## Example: Sign and publish a project
+
+```bash
+$ ./gradlew publish
+```
+
+```text
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :javadoc
+> Task :javadocJar
+> Task :sourcesJar
+> Task :generateMetadataFileForMavenJavaPublication
+> Task :generatePomFileForMavenJavaPublication
+> Task :signMavenJavaPublication
+> Task :publishMavenJavaPublicationToMavenRepository
+> Task :publish
+
+BUILD SUCCESSFUL in 0s
+10 actionable tasks: 10 executed
+```

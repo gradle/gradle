@@ -1,0 +1,181 @@
+---
+title: "Configuration Cache Status"
+---
+
+import { CalloutList, JavaDocLink, SampleScripts, Xref } from '#/components';
+
+:::caution
+This feature is _not enabled by default_.
+:::
+
+## Supported Plugins
+
+The Configuration Cache introduces new requirements for plugin implementations.
+As a result, both Core Gradle plugins and Community Plugins need to be adjusted to ensure compatibility.
+
+This section provides details on the current support in:
+
+- [Core Gradle Plugins](#config_cache:plugins:core)
+- [Community Plugins](#config_cache:plugins:community)
+
+### Core Gradle Plugins
+
+Most <Xref page="plugin-reference" section="Gradle Plugin Reference">Core Gradle Plugins</Xref> support configuration caching at this time:
+
+| **JVM languages and frameworks** | **Native languages** | **Packaging and distribution** |
+| --- | --- | --- |
+| {/* cell-gap: block-content */} | {/* cell-gap: block-content */} | {/* cell-gap: block-content */} |
+| ** Code analysis** | ** IDE integration** | **Utility** |
+| {/* cell-gap: block-content */} | {/* cell-gap: block-content */} | {/* cell-gap: block-content */} |
+
+<dl>
+<dt>✓</dt>
+<dd>
+
+Supported plugin
+
+</dd>
+<dt>⚠</dt>
+<dd>
+
+Partially supported plugin (tasks always disable configuration caching)
+
+</dd>
+<dt>⚠*</dt>
+<dd>
+
+Partially supported plugin (some features may disable configuration caching)
+
+</dd>
+</dl>
+
+### Community Plugins
+
+Please refer to issue [gradle/gradle#13490](https://github.com/gradle/gradle/issues/13490) to learn about the status of Community Plugins.
+
+The two most popular ecosystem plugins are supported:
+
+- ✓ Android Gradle Plugin
+- ✓ Kotlin Gradle Plugin
+
+## Not Yet Implemented
+
+Support for configuration caching with certain Gradle features is not yet available. These features will be supported in future Gradle releases.
+
+### Sharing the Configuration Cache
+
+The Configuration Cache is currently stored locally only.
+It can be reused by both hot and cold local Gradle daemons, but it cannot be shared between developers or CI machines.
+
+See [gradle/gradle#13510](https://github.com/gradle/gradle/issues/13510).
+
+### Fine-grained Tracking of Gradle Properties as Build Configuration Inputs
+
+Currently, all external sources of Gradle properties—such as `gradle.properties` files (both in project directories and in the `<Xref page="directory-layout" section="1. Gradle User Home directory">GRADLE_USER_HOME</Xref>`), environment variables, system properties that set properties, and properties specified via command-line flags—are considered build configuration inputs, regardless of whether they are actually used during configuration.
+
+However, these sources are not included in the Configuration Cache report.
+
+See [gradle/gradle#20969](https://github.com/gradle/gradle/issues/20969).
+
+### Java Object Serialization
+
+Gradle allows objects that support the [Java Object Serialization](https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html) protocol to be stored in the Configuration Cache.
+
+The implementation is currently limited to serializable classes that
+either implement the `java.io.Externalizable` interface, or implement the `java.io.Serializable` interface and define one of the following combination of methods:
+
+- a `writeObject` method combined with a `readObject` method to control exactly which information to store;
+- a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call `ObjectOutputStream.defaultWriteObject`;
+- a `readObject` method with no corresponding `writeObject`; `readObject` must eventually call `ObjectInputStream.defaultReadObject`;
+- a `writeReplace` method to allow the class to nominate a replacement to be written;
+- a `readResolve` method to allow the class to nominate a replacement for the object just read;
+
+The following _Java Object Serialization_ features are ***not*** supported:
+
+- the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the Configuration Cache considers all but `transient` fields serializable;
+- the following methods of `ObjectOutputStream` are not supported and will throw `UnsupportedOperationException`:
+  - `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.
+- the following methods of `ObjectInputStream` are not supported and will throw `UnsupportedOperationException`:
+  - `readLine()`, `readFully(ByteArray)`, `readFully(ByteArray, Int, Int)`, `readUnshared()`, `readFields()`, `transferTo(OutputStream)` and `readAllBytes()`.
+- validations registered via `ObjectInputStream.registerValidation` are simply ignored;
+- the `readObjectNoData` method, if present, is never invoked;
+
+See [gradle/gradle#13588](https://github.com/gradle/gradle/issues/13588).
+
+### Accessing top-level Methods and Variables of a Build Script at Execution Time
+
+A common approach to reuse logic and data in a build script is to extract repeating bits into top-level methods and variables.
+However, calling such methods at execution time is not currently supported if the Configuration Cache is enabled.
+
+For builds scripts written in Groovy, the task fails because the method cannot be found.
+The following snippet uses a top-level method in the `listFiles` task:
+
+<SampleScripts sample_name="top-level" basename="build" tag="not-supported" />
+
+Running the task with the Configuration Cache enabled produces the following error:
+
+```text
+Execution failed for task ':listFiles' (registered in build file 'build.gradle').
+> Could not find method listFiles() for arguments [/home/user/gradle/samples/data] on task ':listFiles' of type org.gradle.api.DefaultTask.
+```
+
+To prevent the task from failing, convert the referenced top-level method to a static method within a class:
+
+<SampleScripts sample_name="top-level" basename="build" tag="workaround" />
+
+Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the Configuration Cache at all.
+This limitation exists because the captured script object references cannot be serialized.
+The first run of the Kotlin version of the `listFiles` task fails with the Configuration Cache problem.
+
+
+
+To make the Kotlin version of this task compatible with the Configuration Cache, make the following changes:
+
+
+
+<CalloutList>
+
+1. Define the method inside an object.
+2. Define the variable in a smaller scope.
+
+</CalloutList>
+
+See [gradle/gradle#22879](https://github.com/gradle/gradle/issues/22879).
+
+### Using Build Services to Invalidate the Configuration Cache
+
+Currently, it is impossible to use a provider of `BuildService` or provider derived from it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
+The same applies when such a `ValueSource` is obtained in a task that executes as part of the configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
+
+Note that using a `@ServiceReference` or storing `BuildService` in an `@Internal`-annotated property of a task is safe.
+
+Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the Configuration Cache.
+
+See [gradle/gradle#24085](https://github.com/gradle/gradle/issues/24085).
+
+### Using Arbitrary Providers as Build Events Listeners
+
+The build event listener registration method <JavaDocLink class="org.gradle.build.event.BuildEventsListenerRegistry" method="onTaskCompletion(org.gradle.api.provider.Provider)">`BuildEventsListenerRegistry.onTaskCompletion`</JavaDocLink>
+accepts arbitrary providers of any <JavaDocLink class="org.gradle.tooling.events.OperationCompletionListener" /> implementations.
+However, only providers returned from <JavaDocLink class="org.gradle.api.services.BuildServiceRegistry" method="registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)">`BuildServiceRegistry.registerIfAbsent`</JavaDocLink> or <JavaDocLink class="org.gradle.api.services.BuildServiceRegistration" method="getService()">`BuildServiceRegistration.getService`</JavaDocLink> are currently supported when the Configuration Cache is used.
+Starting with Gradle 9, using other kinds of providers (including even `registerIfAbsent(…​).map { it }`) results in a Configuration Cache problem being emitted.
+Prior to that, such providers were silently ignored.
+
+Check the <Xref page="configuration-cache-enabling" section="Adopting changes in the Configuration Cache behavior">adoption guide</Xref> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
+build.
+
+See [gradle/gradle#33772](https://github.com/gradle/gradle/issues/33772).
+
+### Selective Exclusion of Sensitive Values from Cache Entries
+
+While Java’s `transient` keyword can be used to exclude individual fields from Configuration Cache serialization, there is no Gradle-level API to selectively mark a property as "do not serialize."
+Sensitive values stored in non-transient task state, such as credentials, tokens, and API keys, are captured in the cache entry alongside the rest of the build configuration.
+
+Gradle encrypts cache entries on disk to mitigate the risk of accidental exposure, but the encryption is per-machine; entries can still be read by anything that has access to both the project’s `.gradle/configuration-cache` directory and the encryption key stored in `<Xref page="directory-layout" section="1. Gradle User Home directory">GRADLE_USER_HOME</Xref>`.
+
+:::tip
+The recommended practice is to store secrets in `<Xref page="directory-layout" section="1. Gradle User Home directory">GRADLE_USER_HOME</Xref>/gradle.properties`, whose contents are not included in cache entries; only the file’s fingerprint is recorded.
+:::
+
+See <Xref page="configuration-cache" section="Security Considerations">Security Considerations</Xref> for additional guidance.
+See [gradle/gradle#3972](https://github.com/gradle/gradle/issues/3972).

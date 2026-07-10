@@ -1,0 +1,79 @@
+> Task :producer:outgoingVariants
+--------------------------------------------------
+Variant apiElements
+--------------------------------------------------
+API elements for the 'main' feature.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+
+Artifacts
+    - build/libs/producer.jar (artifactType = jar)
+
+Secondary variants (*)
+    - Variant : classes
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = 11
+          - org.gradle.libraryelements     = classes
+          - org.gradle.usage               = java-api
+       - Artifacts
+          - build/classes/java/main (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant instrumentedJars
+--------------------------------------------------
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = instrumented-jar
+    - org.gradle.usage               = java-runtime
+
+Artifacts
+    - build/libs/producer-instrumented.jar (artifactType = jar)
+
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Runtime elements for the 'main' feature.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+Artifacts
+    - build/libs/producer.jar (artifactType = jar)
+
+Secondary variants (*)
+    - Variant : classes
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = 11
+          - org.gradle.libraryelements     = classes
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build/classes/java/main (artifactType = java-classes-directory)
+    - Variant : resources
+       - Attributes
+          - org.gradle.category            = library
+          - org.gradle.dependency.bundling = external
+          - org.gradle.jvm.version         = 11
+          - org.gradle.libraryelements     = resources
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build/resources/main (artifactType = java-resources-directory)
+
+
+(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.
+
+BUILD SUCCESSFUL in 0s

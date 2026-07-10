@@ -1,0 +1,1003 @@
+---
+title: "Upgrading from Gradle 4.x to 5.0"
+---
+
+import { GroovyDocLink, JavaDocLink, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import deprecations from './deprecations.png';
+
+This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0.
+In most cases, you will need to apply the changes from all versions that come after the one you’re upgrading from.
+For example, if you’re upgrading from Gradle 4.3 to 5.0, you will also need to apply the changes since 4.4, 4.5, etc up to 5.0.
+
+:::tip
+If you are using Gradle for Android, you need to move to version 3.3 or higher of both the Android Gradle Plugin and Android Studio.
+:::
+
+## For all users
+
+1. If you are not already on the latest 4.10.x release, read the sections [below](#changes_4.10) for help upgrading your project to the latest 4.10.x release.
+We recommend upgrading to the latest 4.10.x release to get the most useful warnings and deprecations information before moving to 5.0.
+Avoid upgrading Gradle and migrating to Kotlin DSL at the same time in order to ease troubleshooting in case of potential issues.
+2. Try running `gradle help --scan` and view the [deprecations view](https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality) of the generated Build Scan.
+If there are no warnings, the Deprecations tab will not appear.
+
+   <Image src={deprecations} alt="Deprecations View of a Gradle Build Scan" />
+
+   This is so that you can see any deprecation warnings that apply to your build.
+   Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it.
+
+   Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+3. Update your plugins.
+
+   Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
+   The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
+
+   In particular, you will need to use at least a 2.x version of the [**Shadow Plugin**](https://plugins.gradle.org/plugin/com.gradleup.shadow).
+4. Run `gradle :wrapper --gradle-version 5.0` to update the project to 5.0
+5. Move to Java 8 or higher if you haven’t already. Whereas Gradle 4.x requires Java 7, Gradle 5 requires Java 8 to run.
+6. Read the [Upgrading from 4.10](#changes_5.0) section and make any necessary changes.
+7. Try to run the project and debug any errors using the Troubleshooting Guide.
+
+In addition, Gradle has added several significant new and improved features that you should consider using in your builds:
+
+- [Maven Publish and Ivy Publish Plugins](#rel4.8:switch_to_publishing_plugins) that now support digital signatures with the <Xref page="signing-plugin" section="The Signing Plugin">Signing Plugin</Xref>.
+- Use native [BOM import](#rel5.0:bom_import) in your builds.
+- The Worker API for enabling units of work to run in parallel.
+- A new API for [creating and configuring tasks lazily](#rel4.9:lazy_task_creation) that can significantly improve your build’s configuration time.
+
+Other notable changes to be aware of that may break your build include:
+
+- [Separation of compile and runtime dependencies when consuming POMs](#rel5.0:pom_compile_runtime_separation)
+- A change that means you should [configure existing `wrapper` and `init` tasks](#rel4.8:configure_internal_tasks) rather than defining your own.
+- The [honoring of implicit wildcards in Maven POM exclusions](#rel4.8:pom_wildcard_exclusions), which may result in dependencies being excluded that weren’t before.
+- A [change to the way you add Java annotation processors to a project](#rel4.6:annotation_processor_configuration).
+- The [default memory settings](#rel5.0:default_memory_settings) for the command-line client, the Gradle daemon, and all workers including compilers and test executors, have been greatly reduced.
+- The [default versions of several code quality plugins](#rel5.0:default_tool_versions) have been updated.
+- Several [library versions used by Gradle](#rel5.0:library_upgrades) have been upgraded.
+
+## Upgrading from 4.10 and earlier
+
+If you are not already on version 4.10, skip down to the section that applies to your current Gradle version and work your way up until you reach here. Then, apply these changes when moving from Gradle 4.10 to 5.0.
+
+### Other changes
+
+- The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` and `enableFeaturePreview('STABLE_PUBLISHING')` flags are no longer necessary. These features are now enabled by default.
+- Gradle now bundles [JAXB](#rel5.0:jaxb_and_java9) for Java 9 and above. You can remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
+### Potential breaking changes
+
+The changes in this section have the potential to break your build, but the vast majority have been deprecated for quite some time and few builds will be affected by a large number of them.
+We strongly recommend upgrading to Gradle 4.10 first to get a report on what deprecations affect your build.
+
+The following breaking changes are not from deprecations, but the result of changes in behavior:
+
+- [Separation of compile and runtime dependencies when consuming POMs](#rel5.0:pom_compile_runtime_separation)
+- The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
+Please use `afterEvaluate {}` if you need to defer evaluation.
+- The <GroovyDocLink class="org.gradle.api.tasks.javadoc.Javadoc" /> and <GroovyDocLink class="org.gradle.api.tasks.javadoc.Groovydoc" /> tasks now delete the destination dir for the documentation before executing. This has been added to remove stale output files from the last task execution.
+- The <Xref page="java-library-distribution-plugin" section="The Java Library Distribution Plugin">Java Library Distribution Plugin</Xref> is now based on the <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library Plugin</Xref> instead of the <Xref page="java-plugin" section="The Java Plugin">Java Plugin</Xref>.
+
+  While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration).
+  Thus, make sure to check whether your build behaves as expected after upgrading.
+- The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a <GroovyDocLink class="org.gradle.api.reporting.CustomizableHtmlReport" /> instance that is easier to configure from statically typed languages like Java and Kotlin.
+- The [Configuration Avoidance API](#rel5.0:configuration_avoidance) has been updated to prevent the creation and configuration of tasks that are never used.
+- The [default memory settings](#rel5.0:default_memory_settings) for the command-line client, the Gradle daemon, and all workers including compilers and test executors, have been greatly reduced.
+- The [default versions of several code quality plugins](#rel5.0:default_tool_versions) have been updated.
+- Several [library versions used by Gradle](#rel5.0:library_upgrades) have been upgraded.
+
+The following breaking changes will appear as deprecation warnings with Gradle 4.10:
+
+<dl>
+<dt>General</dt>
+<dd>
+
+- `<<` for task definitions no longer works. In other words, you can not use the syntax `task myTask << { …​ }`.
+
+  Use the <GroovyDocLink class="org.gradle.api.Task" method="doLast(org.gradle.api.Action)">Task.doLast()</GroovyDocLink> method instead, like this:
+
+  ```groovy
+  task myTask {
+      doLast {
+          ...
+      }
+  }
+  ```
+- You can no longer use any of the following characters in domain object names, such as project and task names: \<space\> `/ \ : < > " ? * |` . You should also not use `.` as a leading or trailing character.
+
+</dd>
+<dt>Running Gradle & build environment</dt>
+<dd>
+
+- As mentioned before, Gradle can no longer be run on Java 7. However, you can still use <Xref page="building-java-projects" section="Targeting a specific Java version">forked compilation and testing</Xref> to build and test software for Java 6 and above.
+- The `-Dtest.single` command-line option has been removed — use <Xref page="java-testing" section="Test filtering">test filtering</Xref> instead.
+- The `-Dtest.debug` command-line option has been removed — use the <Xref page="java-testing" section="Debugging when running tests">`--debug-jvm` option</Xref> instead.
+- The `-u`/`--no-search-upward` command-line option has been removed — make sure all your builds have a _settings.gradle_ file.
+- The `--recompile-scripts` command-line option has been removed.
+- You can no longer have a Gradle build nested in a subdirectory of another Gradle build unless the nested build has a _settings.gradle_ file.
+- The `DirectoryBuildCache.setTargetSizeInMB(long)` method has been removed — use <GroovyDocLink class="org.gradle.caching.local.DirectoryBuildCache" method="removeUnusedEntriesAfterDays" /> instead.
+- The `org.gradle.readLoggingConfigFile` system property no longer does anything — update affected tests to work with your `java.util.logging` settings.
+
+</dd>
+<dt>Working with files</dt>
+<dd>
+
+- You can no longer cast `FileCollection` objects to other types using the `as` keyword or the `asType()` method.
+- You can no longer pass `null` as the configuration action of <JavaDocLink class="org.gradle.api.file.CopySpec" method="from-java.lang.Object-org.gradle.api.Action-">CopySpec.from(Object, Action)</JavaDocLink>.
+- For better compatibility with the Kotlin DSL, <JavaDocLink class="org.gradle.api.file.DuplicatesStrategy">CopySpec.duplicatesStrategy</JavaDocLink> is no longer nullable. The property setter no longer accepts `null` as a way
+to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
+- The `FileCollection.stopExecutionIfEmpty()` method has been removed — use the <JavaDocLink class="org.gradle.api.tasks.SkipWhenEmpty">@SkipWhenEmpty</JavaDocLink> annotation on `FileCollection` task properties instead.
+- The `FileCollection.add()` method has been removed — use <GroovyDocLink class="org.gradle.api.Project" method="files(java.lang.Object[])">Project.files()</GroovyDocLink> and <GroovyDocLink class="org.gradle.api.Project" method="fileTree(java.lang.Object)">Project.fileTree()</GroovyDocLink> to create configurable file collections/file trees and add to them via <JavaDocLink class="org.gradle.api.file.ConfigurableFileCollection" method="from-java.lang.Object...-">ConfigurableFileCollection.from()</JavaDocLink>.
+- `SimpleFileCollection` has been removed — use <GroovyDocLink class="org.gradle.api.Project" method="files(java.lang.Object[])">Project.files(Object…​)</GroovyDocLink> instead.
+- Don’t have your own classes extend `AbstractFileCollection` — use the <GroovyDocLink class="org.gradle.api.Project" method="files(java.lang.Object[])">Project.files()</GroovyDocLink> method instead. This problem may exhibit as a missing `getBuildDependencies()` method.
+
+</dd>
+<dt>Java builds</dt>
+<dd>
+
+- The `CompileOptions.bootClasspath` property has been removed — use <GroovyDocLink class="org.gradle.api.tasks.compile.CompileOptions" method="bootstrapClasspath" /> instead.
+- You can no longer use `-source-path` as a generic compiler argument — use <GroovyDocLink class="org.gradle.api.tasks.compile.CompileOptions" method="sourcepath" /> instead.
+- You can no longer use `-processorpath` as a generic compiler argument — use <GroovyDocLink class="org.gradle.api.tasks.compile.CompileOptions" method="annotationProcessorPath" /> instead.
+- Gradle will no longer automatically apply annotation processors that are on the compile classpath — use <GroovyDocLink class="org.gradle.api.tasks.compile.CompileOptions" method="annotationProcessorPath" /> instead.
+- The `testClassesDir` property has been removed from the <GroovyDocLink class="org.gradle.api.tasks.testing.Test" /> task — use <GroovyDocLink class="org.gradle.api.tasks.testing.Test" method="testClassesDirs">testClassesDirs</GroovyDocLink> instead.
+- The `classesDir` property has been removed from both the _JDepend_ task and <GroovyDocLink class="org.gradle.api.tasks.SourceSetOutput" />. Use the _JDepend.classesDirs_ and <GroovyDocLink class="org.gradle.api.tasks.SourceSetOutput" method="classesDirs" /> properties instead.
+- The `JavaLibrary(PublishArtifact, DependencySet)` constructor has been removed — this was used by the [Shadow Plugin](https://plugins.gradle.org/plugin/com.gradleup.shadow), so make sure you upgrade to at least version 2.x of that plugin.
+- The `JavaBasePlugin.configureForSourceSet()` method has been removed.
+- You can no longer create your own instances of `JavaPluginConvention`, `ApplicationPluginConvention`, `WarPluginConvention`, `EarPluginConvention`, `BasePluginConvention`, and `ProjectReportsPluginConvention`.
+- The `Maven` Plugin used to publish the highly outdated Maven 2 metadata format. This has been changed and it will now publish Maven 3 metadata, just like the `Maven Publish` Plugin.
+
+  With the removal of Maven 2 support, the methods that configure unique snapshot behavior have also been removed. Maven 3 only supports unique snapshots, so we decided to remove them.
+
+</dd>
+<dt>Tasks & properties</dt>
+<dd>
+
+- The following legacy classes and methods related to <Xref page="lazy-configuration" section="Understanding Lazy properties">lazy properties</Xref> have been removed — use <JavaDocLink class="org.gradle.api.model.ObjectFactory" method="property-java.lang.Class-">ObjectFactory.property()</JavaDocLink> to create `Property` instances:
+  - `PropertyState`
+  - `DirectoryVar`
+  - `RegularFileVar`
+  - `ProjectLayout.newDirectoryVar()`
+  - `ProjectLayout.newFileVar()`
+  - `Project.property(Class)`
+  - `Script.property(Class)`
+  - `ProviderFactory.property(Class)`
+- Tasks configured and registered with the <Xref page="task-configuration-avoidance" section="Migration guide">task configuration avoidance</Xref> APIs have more restrictions on the other methods that can be called from a configuration action.
+- The internal `@Option` and `@OptionValues` annotations — package `org.gradle.api.internal.tasks.options` — have been removed. Use the public <JavaDocLink class="org.gradle.api.tasks.options.Option">@Option</JavaDocLink> and <JavaDocLink class="org.gradle.api.tasks.options.OptionValues">@OptionValues</JavaDocLink> annotations instead.
+- The `Task.deleteAllActions()` method has been removed with no replacement.
+- The `Task.dependsOnTaskDidWork()` method has been removed — use declared inputs and outputs instead.
+- The following properties and methods of `TaskInternal` have been removed — use task dependencies, task rules, reusable utility methods, or the Worker API in place of executing a task directly.
+  - `execute()`
+  - `executer`
+  - `getValidators()`
+  - `addValidator()`
+- The <JavaDocLink class="org.gradle.api.tasks.TaskInputs" method="file-java.lang.Object-">TaskInputs.file(Object)</JavaDocLink> method can no longer be called with an argument that resolves to anything other than a single regular file.
+- The <JavaDocLink class="org.gradle.api.tasks.TaskInputs" method="dir-java.lang.Object-">TaskInputs.dir(Object)</JavaDocLink> method can no longer be called with an argument that resolves to anything other than a single directory.
+- You can no longer register invalid inputs and outputs via <JavaDocLink class="org.gradle.api.tasks.TaskInputs" /> and <JavaDocLink class="org.gradle.api.tasks.TaskOutputs" />.
+- The `TaskDestroyables.file()` and `TaskDestroyables.files()` methods have been removed — use <JavaDocLink class="org.gradle.api.tasks.TaskDestroyables" method="register-java.lang.Object...-">TaskDestroyables.register()</JavaDocLink> instead.
+- `SimpleWorkResult` has been removed — use <JavaDocLink class="org.gradle.api.tasks.WorkResult" method="getDidWork--">WorkResult.didWork</JavaDocLink>.
+- Overriding built-in tasks [deprecated in 4.8](#deprecations_4.8) now produces an error.
+
+  Attempting to replace a built-in task will produce an error similar to the following:
+
+  ```text
+  > Cannot add task 'wrapper' as a task with that name already exists.
+  ```
+
+</dd>
+<dt>Scala & Play</dt>
+<dd>
+
+- Play 2.2 is no longer supported — please upgrade the version of Play you are using.
+- The `ScalaDocOptions.styleSheet` property has been removed — the Scaladoc Ant task in Scala 2.11.8 and later no longer supports this property.
+
+</dd>
+<dt>Kotlin DSL</dt>
+<dd>
+
+- Artifact configuration accessors now have the type `NamedDomainObjectProvider<Configuration>` instead of `Configuration`
+- `PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
+
+Both changes could cause script compilation errors. See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl-samples/releases/tag/v1.0.2#breaking-changes) for more information and how to fix builds broken by the changes described above.
+
+</dd>
+<dt>Miscellaneous</dt>
+<dd>
+
+- The `ConfigurableReport.setDestination(Object)` method has been removed — use <JavaDocLink class="org.gradle.api.reporting.ConfigurableReport" method="setDestination-java.io.File-">ConfigurableReport.setDestination(File)</JavaDocLink> instead.
+- The `Signature.setFile(File)` method has been removed — Gradle does not support changing the output file for the generated signature.
+- The read-only `Signature.toSignArtifact` property has been removed — it should never have been part of the public API.
+- The `@DeferredConfigurable` annotation has been removed.
+- The method `isDeferredConfigurable()` was removed from `ExtensionSchema`.
+- `IdeaPlugin.performPostEvaluationActions()` and `EclipsePlugin.performPostEvaluationActions()` have been removed.
+- `The `BroadcastingCollectionEventRegister.getAddAction()` method has been removed with no replacement.
+- The internal `org.gradle.util` package is no longer imported by default.
+
+  Ideally you shouldn’t use classes from this package, but, as a quick fix, you can add explicit imports to your build scripts for those classes.
+- The `gradlePluginPortal()` repository [no longer looks for JARs without a POM by default](#rel5.0:gradle_plugin_portal_metadata).
+- The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. The same applies to builds run through TestKit.
+- Gradle 5.0 requires a minimum Tooling API client version of 3.0. Older client libraries can no longer run builds with Gradle 5.0.
+- The IdeaModule Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of `IdeaModule.getSourceDirs()` and `IdeaModule.getTestSourceDirs()`.
+- In previous Gradle versions, the `source` field in `SourceTask` was accessible from subclasses. This is not the case anymore as the `source` field is now declared as `private`.
+- In the Worker API, [the working directory of a worker can no longer be set](#rel5.0:worker_api).
+- A change in behavior related to [dependency and version constraints](#rel5.0:dependency_constraints) may impact a small number of users.
+- There have been several changes to [property factory methods on DefaultTask](#rel5.0:changes_to_default_task) that may impact the creation of custom tasks.
+
+</dd>
+</dl>
+
+## Upgrading from 4.9 and earlier
+
+If you are not already on version 4.9, skip down to the section that applies to your current Gradle version and work your way up until you reach here. Then, apply these changes when upgrading to Gradle 4.10.
+
+### Deprecated classes, methods and properties
+
+Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
+
+- `TaskContainer.add()` and `TaskContainer.addAll()` — use <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="create-java.lang.String-java.lang.Class-org.gradle.api.Action-">TaskContainer.create()</JavaDocLink> or <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="register-java.lang.String-java.lang.Class-org.gradle.api.Action-">TaskContainer.register()</JavaDocLink> instead
+
+### Potential breaking changes
+
+- There have been several potentially breaking changes in Kotlin DSL — see the _Breaking changes_ section of [that project’s release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3).
+- You can no longer use any of the <GroovyDocLink class="org.gradle.api.Project" method="beforeEvaluate(org.gradle.api.Action)">Project.beforeEvaluate()</GroovyDocLink> or <GroovyDocLink class="org.gradle.api.Project" method="afterEvaluate(org.gradle.api.Action)">Project.afterEvaluate()</GroovyDocLink> methods with lazy task configuration, for example inside a <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="register-java.lang.String-java.lang.Class-org.gradle.api.Action-">TaskContainer.register()</JavaDocLink> block.
+- [Publishing to AWS S3 requires new permissions](#rel4.10:aws_s3_permissions).
+- Both <JavaDocLink class="org.gradle.plugin.devel.tasks.PluginUnderTestMetadata" /> and <JavaDocLink class="org.gradle.plugin.devel.tasks.GeneratePluginDescriptors" /> — classes used by the <Xref page="java-gradle-plugin" section="Gradle Plugin Development Plugin">Java Gradle Plugin Development Plugin</Xref> — have been updated to use the Provider API.
+
+  Use the <JavaDocLink class="org.gradle.api.provider.Property" method="set-T-">Property.set()</JavaDocLink> method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script.
+  Standard property assignment still works in that one case.
+
+## Upgrading from 4.8 and earlier
+
+- [Consider trying the lazy API for task creation and configuration](#rel4.9:lazy_task_creation)
+
+### Potential breaking changes
+
+- You can no longer use GPath syntax with <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="withType-java.lang.Class-">tasks.withType()</JavaDocLink>.
+
+  Use [Groovy’s spread operator](https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator) instead.
+  For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
+
+## Upgrading from 4.7 and earlier
+
+- [Switch to the Maven Publish and Ivy Publish plugins](#rel4.8:switch_to_publishing_plugins)
+- [Use deferred configuration with the publishing plugins](#rel4.8:deferred_configuration)
+- [Configure existing `wrapper` and `init` tasks](#rel4.8:configure_internal_tasks) rather than defining your own
+- Consider migrating to the built-in <Xref page="dependency-locking" section="Activate locking for specific configurations">dependency locking mechanism</Xref> if you are currently using a plugin or custom solution for this
+
+### Potential breaking changes
+
+- Build will now fail if a specified init script is not found.
+- `TaskContainer.remove()` now actually removes the given task — some plugins may have accidentally relied on the old behavior.
+- [Gradle now honors implicit wildcards in Maven POM exclusions](#rel4.8:pom_wildcard_exclusions).
+- The Kotlin DSL now respects JSR-305 package annotations.
+
+  This will lead to some types annotated according to JSR-305 being treated as nullable where they were treated as non-nullable before.
+  This may lead to compilation errors in the build script. See [the relevant Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4) for details.
+- Error messages will be directed to standard error rather than standard output now, unless a console is attached to both standard output and standard error. This may affect tools that scrape a build’s plain console output. Ignore this change if you’re upgrading from an earlier version of Gradle.
+
+### Deprecations
+
+Prior to this release, builds were allowed to replace built-in tasks. [This feature has been deprecated](https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks).
+
+The full list of built-in tasks that should not be replaced is:
+`wrapper`, `init`, `help`, `tasks`, `projects`, `buildEnvironment`, `components`, `dependencies`, `dependencyInsight`, `dependentComponents`, `model`, `properties`.
+
+## Upgrading from 4.6 and earlier
+
+### Potential breaking changes
+
+- Gradle will now, by convention, look for Checkstyle configuration files in the root project’s _config/checkstyle_ directory.
+
+  Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path via <GroovyDocLink class="org.gradle.api.plugins.quality.CheckstyleExtension" method="configDir">checkstyle.configDir</GroovyDocLink> or <GroovyDocLink class="org.gradle.api.plugins.quality.CheckstyleExtension" method="config">checkstyle.config</GroovyDocLink>.
+- The structure of Gradle’s [plain console output](#rel4.7:plain_console_output) has changed, which may break tools that scrape that output.
+- The APIs of many native tasks related to compilation, linking and installation [have changed in breaking ways](#rel:4.6:native_task_api_changes).
+- [Kotlin DSL] Delegated properties used to access Gradle’s build properties — defined in _gradle.properties_ for example — must now be explicitly typed.
+- [Kotlin DSL] Declaring a `plugins {}` block inside a nested scope now throws an exception.
+- [Kotlin DSL] Only one `pluginManagement {}` block is allowed now.
+- The cache control DSL provided by the `org.gradle.api.artifacts.cache.*` interfaces are no longer available.
+- `getEnabledDirectoryReportDestinations()`, `getEnabledFileReportDestinations()` and `getEnabledReportNames()` have all been removed from `org.gradle.api.reporting.ReportContainer`.
+- <JavaDocLink class="org.gradle.StartParameter" method="getProjectProperties--">StartParameter.projectProperties</JavaDocLink> and <JavaDocLink class="org.gradle.StartParameter" method="getSystemPropertiesArgs--">StartParameter.systemPropertiesArgs</JavaDocLink> now return immutable maps.
+
+## Upgrading from 4.5 and earlier
+
+### Deprecations
+
+- You should not put annotation processors on the compile classpath or declare them with the `-processorpath` compiler argument.
+
+  They should be added to the `annotationProcessor` configuration instead.
+  If you don’t want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
+- Use <JavaDocLink class="org.gradle.process.CommandLineArgumentProvider" /> in place of [CompilerArgumentProvider](https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html).
+
+### Potential breaking changes
+
+- The Java plugins now add a `_sourceSet_AnnotationProcessor` configuration for each source set, which might break if any of them match existing configurations you have. We recommend you remove your conflicting configuration declarations.
+- The `StartParameter.taskOutputCacheEnabled` property has been replaced by <JavaDocLink class="org.gradle.StartParameter" method="setBuildCacheEnabled-boolean-">StartParameter.setBuildCacheEnabled(boolean)</JavaDocLink>.
+- The Visual Studio integration now only [configures a single solution for all components in a build](#rel4.6:visual_studio_single_solution).
+- Gradle has replaced HttpClient 4.4.1 with version 4.5.5.
+- Gradle now bundles the `kotlin-stdlib-jdk8` artifact instead of `kotlin-stdlib-jre8`. This may affect your build. Please see the [Kotlin documentation](http://kotlinlang.org/docs/reference/whatsnew12.html#kotlin-standard-library-artifacts-and-split-packages) for more details.
+
+## Upgrading from 4.4 and earlier
+
+- Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project’s name.
+- Gradle now ignores the build cache configuration of included builds (<Xref page="composite-builds" section="Composite Builds (Included Builds)">composite builds</Xref>) and instead uses the root build’s configuration for all the builds.
+
+### Potential breaking changes
+
+- Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script, but that won’t be the case from plugins and other code outside of the build script.
+- The Maven Publish Plugin now produces more complete maven-metadata.xml files, including maintaining a list of `<snapshotVersion>` elements. Some older versions of Maven may not be able to consume this metadata.
+- [`HttpBuildCache` no longer follows redirects](#rel4.5:http_build_cache_no_follow_redirects).
+- The `Depend` task type has been removed.
+- <GroovyDocLink class="org.gradle.api.Project" method="file(java.lang.Object)">Project.file(Object)</GroovyDocLink> no longer normalizes case for file paths on case-insensitive file systems. It now ignores case in such circumstances and does not touch the file system.
+- <JavaDocLink class="org.gradle.api.provider.ListProperty" /> no longer extends <JavaDocLink class="org.gradle.api.provider.Property" />.
+
+## Upgrading from 4.3 and earlier
+
+### Potential breaking changes
+
+- <GroovyDocLink class="org.gradle.api.tasks.testing.AbstractTestTask" /> is now extended by non-JVM test tasks as well as <GroovyDocLink class="org.gradle.api.tasks.testing.Test" />. Plugins should beware configuring all tasks of type `AbstractTestTask` because of this.
+- The default output location for <GroovyDocLink class="org.gradle.plugins.ide.eclipse.model.EclipseClasspath" method="defaultOutputDir" /> has changed from _`$projectDir`/bin_ to _`$projectDir`/bin/default_.
+- The deprecated `InstallExecutable.setDestinationDir(Provider)` was removed — use <GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" method="installDirectory" /> instead.
+- The deprecated `InstallExecutable.setExecutable(Provider)` was removed — use <GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" method="executableFile" /> instead.
+- Gradle will no longer prefer a version of Visual Studio found on the path over other locations. It is now a last resort.
+
+  You can bypass the toolchain discovery by specifying the installation directory of the version of Visual Studio you want via <GroovyDocLink class="org.gradle.nativeplatform.toolchain.VisualCpp" method="installDir">VisualCpp.setInstallDir(Object)</GroovyDocLink>.
+- `pluginManagement.repositories` is now of type <GroovyDocLink class="org.gradle.api.artifacts.dsl.RepositoryHandler" /> rather than `PluginRepositoriesSpec`, which has been removed.
+- 5xx HTTP errors during dependency resolution will now trigger exceptions in the build.
+- The embedded Apache Ant has been upgraded from 1.9.6 to 1.9.9.
+- [Several third-party libraries used by Gradle have been upgraded](#rel4.4:security_library_upgrades) to fix security issues.
+
+## Upgrading from 4.2 and earlier
+
+- The `plugins {}` block can now be <Xref page="plugins-intermediate" section="2. Applying plugins to all subprojects{} or allprojects{}">used in subprojects</Xref> and for <Xref page="plugins-intermediate" section="4. Applying convention plugins from the `buildSrc` directory">plugins in the _buildSrc_ directory</Xref>.
+
+### Other deprecations
+
+- You should no longer run Gradle versions older than 2.6 via the Tooling API.
+- You should no longer run any version of Gradle via an older version of the Tooling API than 3.0.
+- You should no longer chain <JavaDocLink class="org.gradle.api.tasks.TaskInputs" method="property-java.lang.String-java.lang.Object-">TaskInputs.property(String,Object)</JavaDocLink> and <JavaDocLink class="org.gradle.api.tasks.TaskInputs" method="properties-java.util.Map-">TaskInputs.properties(Map)</JavaDocLink> methods.
+
+### Potential breaking changes
+
+- <JavaDocLink class="org.gradle.api.DefaultTask" method="newOutputDirectory--">DefaultTask.newOutputDirectory()</JavaDocLink> now returns a `DirectoryProperty` instead of a `DirectoryVar`.
+- <JavaDocLink class="org.gradle.api.DefaultTask" method="newOutputFile--">DefaultTask.newOutputFile()</JavaDocLink> now returns a `RegularFileProperty` instead of a `RegularFileVar`.
+- <JavaDocLink class="org.gradle.api.DefaultTask" method="newInputFile--">DefaultTask.newInputFile()</JavaDocLink> now returns a `RegularFileProperty` instead of a `RegularFileVar`.
+- <JavaDocLink class="org.gradle.api.file.ProjectLayout" method="getBuildDirectory--">ProjectLayout.buildDirectory</JavaDocLink> now returns a `DirectoryProperty` instead of a `DirectoryVar`.
+- <GroovyDocLink class="org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask" method="compilerArgs" /> is now of type `ListProperty<String>` instead of `List<String>`.
+- <GroovyDocLink class="org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask" method="objectFileDir" /> is now of type `DirectoryProperty` instead of `File`.
+- <GroovyDocLink class="org.gradle.nativeplatform.tasks.AbstractLinkTask" method="linkerArgs" /> is now of type `ListProperty<String>` instead of `List<String>`.
+- `TaskDestroyables.getFiles()` is no longer part of the public API.
+- Overlapping version ranges for a dependency now result in Gradle picking a version that satisfies all declared ranges.
+
+  For example, if a dependency on `some-module` is found with a version range of `[3,6]` and also transitively with a range of `[4,8]`, Gradle now selects version 6 instead of 8. The prior behavior was to select 8.
+- The order of elements in `Iterable` properties marked with either `@OutputFiles` or `@OutputDirectories` now matters. If the order changes, the property is no longer considered up to date.
+
+  Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotations or use `Map` properties with `@OutputFiles`/`@OutputDirectories` instead.
+- Gradle will no longer ignore dependency resolution errors from a repository when there is another repository it can check. Dependency resolution will fail instead. This results in more deterministic behavior with respect to resolution results.
+
+## Upgrading from 4.1 and earlier
+
+### Potential breaking changes
+
+- The `withPathSensitivity()` methods on <JavaDocLink class="org.gradle.api.tasks.TaskFilePropertyBuilder" /> and <JavaDocLink class="org.gradle.api.tasks.TaskOutputFilePropertyBuilder" /> have been removed.
+- The bundled `bndlib` has been upgraded from 3.2.0 to 3.4.0.
+- The FindBugs Plugin no longer renders progress information from its analysis. If you rely on that output in any way, you can enable it with _FindBugs.showProgress_.
+
+## Upgrading from 4.0
+
+- Consider using the new Worker API to enable units of work within your build to run in parallel.
+
+### Deprecated classes, methods and properties
+
+Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
+
+- [Nullable](https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/Nullable.html)
+
+### Potential breaking changes
+
+- Non-Java projects that have a <Xref page="declaring-dependencies-basics" section="2. Project dependencies">project dependency</Xref> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+
+  To override this behavior, you can explicitly declare the configuration to use in the project dependency.
+  For example: `project(path: ':myJavaProject', configuration: 'default')`.
+- Default Zinc compiler upgraded from 0.3.13 to 0.3.15.
+- [Kotlin DSL] Base package renamed from `org.gradle.script.lang.kotlin` to `org.gradle.kotlin.dsl`.
+
+## Changes in detail
+
+### [5.0] Default memory settings changed
+
+The command line client now starts with 64MB of heap instead of 1GB.
+This may affect builds running directly inside the client VM using `--no-daemon` mode.
+We discourage the use of `--no-daemon`, but if you must use it, you can increase the available memory using the `GRADLE_OPTS` environment variable.
+
+The Gradle daemon now starts with 512MB of heap instead of 1GB.
+Large projects may have to increase this setting using the `org.gradle.jvmargs` property.
+
+All workers, including compilers and test executors, now start with 512MB of heap. The previous default was 1/4th of physical memory.
+Large projects may have to increase this setting on the relevant tasks, e.g. `JavaCompile` or <GroovyDocLink class="org.gradle.api.tasks.testing.Test" />.
+
+### [5.0] New default versions for code quality plugins
+
+The default tool versions of the following code quality plugins have been updated:
+
+- The [Checkstyle Plugin](http://checkstyle.sourceforge.net) now uses [8.12](http://checkstyle.sourceforge.net/releasenotes.html#Release_8.12) instead of 6.19 by default.
+- The [CodeNarc Plugin](https://codenarc.org/) now uses [1.2.1](https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-121-aug-2018) instead of 1.1 by default.
+- The [JaCoCo Plugin](https://www.jacoco.org/jacoco/) now uses [0.8.2](https://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.1 by default.
+- The [PMD Plugin](https://pmd.github.io/) now uses [6.8.0](https://pmd.github.io/pmd-6.8.0/pmd_release_notes.html#30-september-2018---680) instead of 5.6.1 by default.
+
+  In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
+
+  We recommend configuring a ruleset explicitly, though.
+
+### [5.0] Library upgrades
+
+Several libraries that are used by Gradle have been upgraded:
+
+- Groovy was upgraded from 2.4.15 to [2.5.4](https://groovy-lang.org/releasenotes/groovy-2.5.html).
+- Ant has been upgraded from 1.9.11 to [1.9.13](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.13.html).
+- The AWS SDK used to access S3-backed Maven/Ivy repositories has been upgraded from 1.11.267 to [1.11.407](https://github.com/aws/aws-sdk-java/blob/master/CHANGELOG.md#111407-2018-09-11).
+- The BND library used by the OSGi Plugin has been upgraded from 3.4.0 to [4.0.0](https://github.com/bndtools/bnd/wiki/Changes-in-4.0.0).
+- The Google Cloud Storage JSON API Client Library used to access Google Cloud Storage backed Maven/Ivy repositories has been upgraded from v1-rev116-1.23.0 to v1-rev136-1.25.0.
+- Ivy has been upgraded from 2.2.0 to [2.3.0](http://ant.apache.org/ivy/history/2.3.0/release-notes.html).
+- The JUnit Platform libraries used by the `Test` task have been upgraded from 1.0.3 to 1.3.1.
+- The Maven Wagon libraries used to access Maven repositories have been upgraded from 2.4 to 3.0.0.
+- SLF4J has been upgraded from 1.7.16 to [1.7.25](https://www.slf4j.org/news.html).
+
+### [5.0] Improved support for dependency and version constraints
+
+Through the Gradle 4.x release stream, new `@Incubating` features were added to the dependency resolution engine.
+These include sophisticated version constraints (`prefer`, `strictly`, `reject`), dependency constraints, and `platform` dependencies.
+
+If you have been using the `IMPROVED_POM_SUPPORT` feature preview, playing with constraints or prefer, reject and other specific version indications, then make sure to take a good look at your dependency resolution results.
+
+### [5.0] BOM import
+
+Gradle now provides support for importing bill of materials (BOM) files, which are effectively POM files that use `<dependencyManagement>` sections to control the versions of direct and transitive dependencies. All you need to do is declare the POM as a `platform` dependency.
+
+The following example picks the versions of the `gson` and `dom4j` dependencies from the declared Spring Boot BOM:
+
+```groovy
+dependencies {
+    // import a BOM
+    implementation platform('org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE')
+
+    // define dependencies without versions
+    implementation 'com.google.code.gson:gson'
+    implementation 'dom4j:dom4j'
+}
+```
+
+### [5.0] Separation of compile and runtime dependencies when consuming POMs
+
+Since Gradle 1.0, runtime-scoped dependencies have been included in the Java compilation classpath, which has some drawbacks:
+
+- The compilation classpath is much larger than it needs to be, slowing down compilation.
+- The compilation classpath includes runtime-scoped files that do not impact compilation, resulting in unnecessary re-compilation when those files change.
+
+With this new behavior, the Java and Java Library plugins both honor the <Xref page="java-library-plugin" section="API and implementation separation">separation of compile and runtime scopes</Xref>. This means that the compilation classpath only includes compile-scoped dependencies, while the runtime classpath adds the runtime-scoped dependencies as well.
+This is particularly useful if you develop and publish Java libraries with Gradle where the separation between `api` and `implementation` dependencies is reflected in the published scopes.
+
+### [5.0] Changes to property factory methods on `DefaultTask`
+
+#### Property factory methods on `DefaultTask` are now final
+
+The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`.
+These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
+
+#### Inputs and outputs are not automatically registered
+
+The Property instances that are returned by these methods are no longer automatically registered as inputs or outputs of the task.
+The Property instances need to be declared as inputs or outputs in the usual ways, such as attaching annotations such as `@OutputFile` or using the runtime API to register the property.
+
+For example, you could previously use the following syntax and have both outputFile instances registered as declared outputs:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+open class MyTask : DefaultTask() {
+    // note: no annotation here
+    val outputFile: RegularFileProperty = newOutputFile()
+}
+
+task("myOtherTask") {
+    val outputFile = newOutputFile()
+    doLast { ... }
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+class MyTask extends DefaultTask {
+    // note: no annotation here
+    final RegularFileProperty outputFile = newOutputFile()
+}
+
+task myOtherTask {
+    def outputFile = newOutputFile()
+    doLast { ... }
+}
+```
+
+</TabItem>
+</Tabs>
+
+Now you have to explicitly register `outputFile`, like this:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+open class MyTask : DefaultTask() {
+    @OutputFile // property needs an annotation
+    val outputFile: RegularFileProperty = project.objects.fileProperty()
+}
+
+task("myOtherTask") {
+    val outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+class MyTask extends DefaultTask {
+    @OutputFile // property needs an annotation
+    final RegularFileProperty outputFile = project.objects.fileProperty()
+}
+
+task myOtherTask {
+    def outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+```
+
+</TabItem>
+</Tabs>
+
+### [5.0] Gradle now bundles JAXB for Java 9 and above
+
+In order to use S3 backed artifact repositories, you previously had to add `--add-modules java.xml.bind` to `org.gradle.jvmargs` when running on Java 9 and above.
+
+Since Java 11 no longer contains the `java.xml.bind` module, Gradle now bundles JAXB 2.3.1 (`com.sun.xml.bind:jaxb-impl`) and uses it on Java 9 and above.
+
+Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
+### [5.0] The `gradlePluginPortal()` repository no longer looks for JARs without a POM by default
+
+With this new behavior, if a plugin or a transitive dependency of a plugin found in the `gradlePluginPortal()` repository has no Maven POM it will fail to resolve.
+
+Artifacts published to a Maven repository without a POM should be fixed.
+If you encounter such artifacts, please ask the plugin or library author to publish a new version with proper metadata.
+
+If you are stuck with a bad plugin, you can work around by re-enabling JARs as metadata source for the `gradlePluginPortal()` repository:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="settings.gradle.kts"
+pluginManagement {
+    repositories {
+        gradlePluginPortal().apply {
+            (this as MavenArtifactRepository).metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+    }
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="settings.gradle"
+pluginManagement {
+    repositories {
+        gradlePluginPortal().tap {
+            metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Java Library Distribution Plugin utilizes Java Library Plugin
+
+The <Xref page="java-library-distribution-plugin" section="The Java Library Distribution Plugin">Java Library Distribution Plugin</Xref> is now based on the
+<Xref page="java-library-plugin" section="The Java Library Plugin">Java Library Plugin</Xref> instead of the <Xref page="java-plugin" section="The Java Plugin">Java Plugin</Xref>.
+
+Additionally, the default distribution created by the plugin will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
+
+### Configuration Avoidance API disallows common configuration errors
+
+The <Xref page="task-configuration-avoidance" section="Avoiding Unnecessary Task Configuration">configuration avoidance API</Xref> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+
+With the existing API, this example adds two tasks (`foo` and `bar`):
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+tasks.create("foo") {
+    tasks.create("bar")
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+tasks.create("foo") {
+    tasks.create("bar")
+}
+```
+
+</TabItem>
+</Tabs>
+
+When converting this to use the new API, something surprising happens: `bar` doesn’t exist.
+The new API only executes configuration actions when necessary,
+so the `register()` for task `bar` only executes when `foo` is configured.
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+```
+
+</TabItem>
+</Tabs>
+
+To avoid this, Gradle now detects this and prevents modification to the underlying container (through `create()` or `register()`) when using the new API.
+
+### [5.0] Worker API: working directory of a worker can no longer be set
+
+Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
+
+All workers now use the same working directory to enable reuse.
+
+Please pass files and directories as arguments instead.
+
+### [4.10] Publishing to AWS S3 requires new permissions
+
+The S3 repository transport protocol allows Gradle to publish artifacts to AWS S3 buckets.
+Starting with this release, every artifact uploaded to an S3 bucket will be equipped with the `bucket-owner-full-control` canned ACL.
+Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAcl` and `s3:PutObjectVersionAcl` permissions, otherwise the upload will fail.
+
+```json
+{
+    "Version":"2012-10-17",
+    "Statement":[
+        // ...
+        {
+            "Effect":"Allow",
+            "Action":[
+                "s3:PutObject", // necessary for uploading objects
+                "s3:PutObjectAcl", // required starting with this release
+                "s3:PutObjectVersionAcl" // if S3 bucket versioning is enabled
+            ],
+            "Resource":"arn:aws:s3:::myCompanyBucket/*"
+        }
+    ]
+}
+```
+
+See <Xref page="supported-repository-protocols" section="S3 Cross Account Access">AWS S3 Cross Account Access</Xref> for more information.
+
+### [4.9] Consider trying the lazy API for task creation and configuration
+
+Gradle 4.9 introduced a new way to create and configure tasks that works lazily.
+When you use this approach for tasks that are expensive to configure, or when you have many, many tasks, your build configuration time can drop significantly when those tasks don’t run.
+
+You can learn more about lazily creating tasks in the <Xref page="task-configuration-avoidance" section="Avoiding Unnecessary Task Configuration">Task Configuration Avoidance</Xref> chapter. You can also read about the background to this new feature in [this blog post](https://blog.gradle.org/preview-avoiding-task-configuration-time).
+
+### [4.8] Switch to the Maven Publish and Ivy Publish Plugins
+
+Now that the publishing plugins are stable, we recommend that you migrate from the legacy publishing mechanism for standard Java projects, i.e. those based on the <Xref page="java-plugin" section="The Java Plugin">Java Plugin</Xref>.
+That includes projects that use any one of: <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library Plugin</Xref>, <Xref page="application-plugin" section="The Application Plugin">Application Plugin</Xref> or <Xref page="war-plugin" section="The War Plugin">War Plugin</Xref>.
+
+To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <Xref page="publishing-setup" section="Publishing a project as module">publishing overview chapter</Xref> for more information.
+
+### [4.8] Use deferred configuration for publishing plugins
+
+Prior to Gradle 4.8, the `publishing {}` block was implicitly treated as if all the logic inside it was executed after the project was evaluated.
+This was confusing, because it was the only block that behaved that way.
+As part of the stabilization effort in Gradle 4.8, we are deprecating this behavior and asking all users to migrate their build.
+
+The new, stable behavior can be switched on by adding the following to your settings file:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="settings.gradle.kts"
+enableFeaturePreview("STABLE_PUBLISHING")
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="settings.gradle"
+enableFeaturePreview('STABLE_PUBLISHING')
+```
+
+</TabItem>
+</Tabs>
+
+We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates.
+In most cases everything should work as before and you are done.
+However, your publishing block may rely on the implicit deferred configuration, particularly if it relies on values that may change during the configuration phase of the build.
+
+For example, under the new behavior, the following logic assumes that `jar.archiveBaseName` doesn’t change after `artifactId` is set:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+subprojects {
+    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                from(components["java"])
+                artifactId = tasks.jar.get().archiveBaseName.get()
+            }
+        }
+    }
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+subprojects {
+    publishing {
+        publications {
+            mavenJava {
+                from components.java
+                artifactId = jar.archiveBaseName
+            }
+        }
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+subprojects {
+    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                from(components["java"])
+                afterEvaluate {
+                    artifactId = tasks.jar.get().archiveBbaseName.get()
+                }
+            }
+        }
+    }
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+subprojects {
+    publishing {
+        publications {
+            mavenJava {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
+                }
+            }
+        }
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+### [4.8] Configure existing `wrapper` and `init` tasks
+
+You should no longer define your own `wrapper` and `init` tasks. Configure the existing tasks instead, for example by converting this:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+task<Wrapper>("wrapper") {
+    ...
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+task wrapper(type: Wrapper) {
+    ...
+}
+```
+
+</TabItem>
+</Tabs>
+
+to this:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+tasks.wrapper {
+    ...
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+wrapper {
+    ...
+}
+```
+
+</TabItem>
+</Tabs>
+
+### [4.8] Gradle now honors implicit wildcards in Maven POM exclusions
+
+If an exclusion in a Maven POM was missing either a `groupId` or `artifactId`, Gradle used to ignore the exclusion.
+Now the missing elements are treated as implicit wildcards — e.g. `<groupId>*</groupId>` — which means that some of your dependencies may now be excluded where they weren’t before.
+
+You will need to explicitly declare any missing dependencies that you need.
+
+### [4.7] Changes to the structure of Gradle’s plain console output
+
+The plain console mode now formats output consistently with the rich console, which means that the output format has changed.
+For example:
+
+- The output produced by a given task is now grouped together, even when other tasks execute in parallel with it.
+- Task execution headers are printed with a "\> Task" prefix.
+- All output produced during build execution is written to the standard output file handle. This includes messages written to System.err unless you are redirecting standard error to a file or any other non-console destination.
+
+This may break tools that scrape details from the plain console output.
+
+### [4.6] Changes to the APIs of native tasks related to compilation, linking and installation
+
+Many tasks related to compiling, linking and installing native libraries and applications have been converted to the Provider API so that they support <Xref page="lazy-configuration" section="Configuring Tasks Lazily">lazy configuration</Xref>.
+This conversion has introduced some breaking changes to the APIs of the tasks so that they match the conventions of the Provider API.
+
+The following tasks have been changed:
+
+<dl>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.AbstractLinkTask" /> and its subclasses</dt>
+<dd>
+
+- `getDestinationDir()` was replaced by `getDestinationDirectory()`.
+- `getBinaryFile()`, `getOutputFile()` was replaced by `getLinkedFile()`.
+- `setOutputFile(File)` was removed. Use `Property.set()` instead.
+- `setOutputFile(Provider)` was removed. Use `Property.set()` instead.
+- `getTargetPlatform()` was changed to return a `Property`.
+- `setTargetPlatform(NativePlatform)` was removed. Use `Property.set()` instead.
+- `getToolChain()` was changed to return a `Property`.
+- `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.CreateStaticLibrary" /></dt>
+<dd>
+
+- `getOutputFile()` was changed to return a `Property`.
+- `setOutputFile(File)` was removed. Use `Property.set()` instead.
+- `setOutputFile(Provider)` was removed. Use `Property.set()` instead.
+- `getTargetPlatform()` was changed to return a `Property`.
+- `setTargetPlatform(NativePlatform)` was removed. Use `Property.set()` instead.
+- `getToolChain()` was changed to return a `Property`.
+- `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
+- `getStaticLibArgs()` was changed to return a `ListProperty`.
+- `setStaticLibArgs(List)` was removed. Use `ListProperty.set()` instead.
+
+</dd>
+<dt><GroovyDocLink class="org.gradle.nativeplatform.tasks.InstallExecutable" /></dt>
+<dd>
+
+- `getSourceFile()` was replaced by `getExecutableFile()`.
+- `getPlatform()` was replaced by `getTargetPlatform()`.
+- `setTargetPlatform(NativePlatform)` was removed. Use `Property.set()` instead.
+- `getToolChain()` was changed to return a `Property`.
+- `setToolChain(NativeToolChain)` was removed. Use `Property.set()` instead.
+
+</dd>
+</dl>
+
+The following have also seen similar changes:
+
+- <GroovyDocLink class="org.gradle.language.assembler.tasks.Assemble" />
+- <GroovyDocLink class="org.gradle.language.rc.tasks.WindowsResourceCompile" />
+- <JavaDocLink class="org.gradle.nativeplatform.tasks.StripSymbols" />
+- <JavaDocLink class="org.gradle.nativeplatform.tasks.ExtractSymbols" />
+- <JavaDocLink class="org.gradle.language.swift.tasks.SwiftCompile" />
+- <JavaDocLink class="org.gradle.nativeplatform.tasks.LinkMachOBundle" />
+
+### [4.6] Visual Studio integration only supports a single solution file for all components of a build
+
+<GroovyDocLink class="org.gradle.ide.visualstudio.VisualStudioExtension" /> no longer has a `solutions` property.
+Instead, you configure a single solution via <GroovyDocLink class="org.gradle.ide.visualstudio.VisualStudioRootExtension" /> in the root project, like so:
+
+<Tabs syncKey="script-language">
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+model {
+    visualStudio {
+        solution {
+            solutionFile.location = "vs/${name}.sln"
+        }
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+In addition, there are no longer individual tasks to generate the solution files for each component, but rather a single `visualStudio` task that generates a solution file that encompasses all components in the build.
+
+### [4.5] `HttpBuildCache` no longer follows redirects
+
+When connecting to an HTTP build cache backend via `HttpBuildCache`, Gradle does not follow redirects any more, treating them as errors instead.
+Getting a redirect from the build cache backend is mostly a configuration error — using an "http" URL instead of "https" for example — and has negative effects on performance.
+
+### [4.4] Third-party dependency upgrades
+
+This version includes several upgrades of third-party dependencies:
+
+- jackson: 2.6.6 → 2.8.9
+- plexus-utils: 2.0.6 → 2.1
+- xercesImpl: 2.9.1 → 2.11.0
+- bsh: 2.0b4 → 2.0b6
+- bouncycastle: 1.57 → 1.58
+
+This fix the following security issues:
+
+- [CVE-2017-7525](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-7525) (critical)
+- SONATYPE-2017-0359 (critical)
+- SONATYPE-2017-0355 (critical)
+- SONATYPE-2017-0398 (critical)
+- [CVE-2013-4002](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4002) (critical)
+- [CVE-2016-2510](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-2510) (severe)
+- SONATYPE-2016-0397 (severe)
+- [CVE-2009-2625](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-2625) (severe)
+- SONATYPE-2017-0348 (severe)
+
+Gradle does not expose public APIs for these 3rd-party dependencies, but those who customize Gradle will want to be aware.

@@ -1,5 +1,0 @@
-configurations.configureEach {
-    resolutionStrategy.capabilitiesResolution.withCapability("org.ow2.asm:asm") {
-        selectHighestVersion()
-    }
-}

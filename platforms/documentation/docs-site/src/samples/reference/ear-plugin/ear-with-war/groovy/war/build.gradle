@@ -1,0 +1,20 @@
+plugins {
+    id 'war'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    war {
+        canBeResolved = false
+        outgoing {
+            artifact(tasks.war)
+        }
+    }
+}
+
+dependencies {
+    implementation("log4j:log4j:1.2.15@jar")
+}

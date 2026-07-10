@@ -1,0 +1,244 @@
+---
+title: "The Signing Plugin"
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+
+The Signing Plugin adds the ability to digitally sign built files and artifacts. These digital signatures can then be used to prove who built the artifact the signature is attached to as well as other information such as when the signature was generated.
+
+The Signing Plugin currently only provides support for generating [OpenPGP signatures](https://en.wikipedia.org/wiki/Pretty_Good_Privacy#OpenPGP) (which is the signature format [required for publication to the Maven Central Repository](http://central.sonatype.org/pages/requirements.html#sign-files-with-gpgpgp)).
+
+## Usage
+
+To use the Signing Plugin, include the following in your build script:
+
+<SampleScripts sample_name="maven-publish" basename="build" tag="use-plugin" />
+
+## Signatory credentials
+
+In order to create OpenPGP signatures, you will need a key pair (instructions on creating a key pair using the [GnuPG tools](https://www.gnupg.org/) can be found in the [GnuPG HOWTOs](https://www.gnupg.org/documentation/howtos.html)). You need to provide the Signing Plugin with your key information, which means three things:
+
+- The public key ID (The last 8 symbols of the keyId. You can use `gpg -K` to get it).
+- The absolute path to the secret key ring file containing your private key. (Since gpg 2.1, you need to export the keys with command `gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg`).
+- The passphrase used to protect your private key.
+
+These items must be supplied as the values of the `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` properties, respectively.
+
+:::note
+Given the personal and private nature of these values, a good practice is to store them in the `gradle.properties` file in the user’s Gradle home directory (described in <Xref page="build-environment" section="System properties">System properties</Xref>) instead of in the project directory itself.
+:::
+
+```properties
+signing.keyId=24875D73
+signing.password=secret
+signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
+```
+
+If specifying this information (especially `signing.password`) in the user `gradle.properties` file is not feasible for your environment, you can supply the information via the command line:
+
+```bash
+$ ./gradlew sign -Psigning.secretKeyRingFile=/Users/me/.gnupg/secring.gpg -Psigning.password=secret -Psigning.keyId=24875D73
+```
+
+### Using in-memory ascii-armored keys
+
+In some setups it is easier to use environment variables to pass the secret key and password used for signing.
+For instance, when using a CI server to sign artifacts, securely providing the keyring file is often troublesome.
+On the other hand, most CI servers provide means to securely store environment variables and provide them to builds.
+Using the following setup, you can pass the secret key (in ascii-armored format) and the password using the `ORG_GRADLE_PROJECT_signingKey` and `ORG_GRADLE_PROJECT_signingPassword` environment variables, respectively:
+
+<SampleScripts sample_name="in-memory" basename="build" tag="signing" />
+
+### Using in-memory ascii-armored OpenPGP subkeys
+
+To prevent sharing of the master key and to keep it secure it is also possible to use in-memory ascii-armored subkeys.
+The main difference between using in-memory ascii-armored keys and subkeys is that it is necessary to specify key identifier as well.
+Using the following setup, you can pass the key identifier, secret key (in ascii-armored format) and the password using the `ORG_GRADLE_PROJECT_signingKeyId`, `ORG_GRADLE_PROJECT_signingKey` and `ORG_GRADLE_PROJECT_signingPassword`
+environment variables respectively:
+
+<SampleScripts sample_name="in-memory-subkey" basename="build" tag="signing" />
+
+### Using OpenPGP subkeys
+
+OpenPGP supports subkeys, which are like the normal keys, except they’re bound to a master key pair. One feature of OpenPGP subkeys is that they can be revoked independently of the master keys which makes key management easier. A practical case study of how subkeys can be leveraged in software development can be read on the [Debian wiki](https://wiki.debian.org/Subkeys).
+
+The Signing Plugin supports OpenPGP subkeys out of the box. Just specify a subkey ID as the value in the `signing.keyId` property.
+
+## Using gpg-agent
+
+By default the Signing Plugin uses a Java-based implementation of PGP for signing. This implementation cannot use the gpg-agent program for managing private keys, though. If you want to use the gpg-agent, you can change the signatory implementation used by the Signing Plugin:
+
+<SampleScripts sample_name="gnupg-signatory" basename="build" tag="configure-signatory" />
+
+This tells the Signing Plugin to use the `GnupgSignatory` instead of the default <JavaDocLink class="org.gradle.plugins.signing.signatory.pgp.PgpSignatory" />. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
+
+Without any further configuration the `gpg` (on Windows: `gpg.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
+
+### Gnupg signatory configuration
+
+The `GnupgSignatory` supports a number of configuration options for controlling how gpg is invoked. These are typically set in gradle.properties:
+
+### Example: Configure the GnupgSignatory
+
+```properties
+signing.gnupg.executable=gpg
+signing.gnupg.useLegacyGpg=true
+signing.gnupg.homeDir=gnupg-home
+signing.gnupg.optionsFile=gnupg-home/gpg.conf
+signing.gnupg.keyName=24875D73
+signing.gnupg.passphrase=gradle
+```
+
+<dl>
+<dt>`signing.gnupg.executable`</dt>
+<dd>
+
+The gpg executable that is invoked for signing. The default value of this property depends on `useLegacyGpg`. If that is `true` then the default value of executable is "gpg" otherwise it is "gpg2".
+
+</dd>
+<dt>`signing.gnupg.useLegacyGpg`</dt>
+<dd>
+
+Must be `true` if GnuPG version 1 is used and `false` otherwise. The default value of the property is `false`.
+
+</dd>
+<dt>`signing.gnupg.homeDir`</dt>
+<dd>
+
+Sets the home directory for GnuPG. If not given the default home directory of GnuPG is used.
+
+</dd>
+<dt>`signing.gnupg.optionsFile`</dt>
+<dd>
+
+Sets a custom options file for GnuPG. If not given GnuPG’s default configuration file is used.
+
+</dd>
+<dt>`signing.gnupg.keyName`</dt>
+<dd>
+
+The id of the key that should be used for signing. If not given then the default key configured in GnuPG will be used.
+
+</dd>
+<dt>`signing.gnupg.passphrase`</dt>
+<dd>
+
+The passphrase for unlocking the secret key. If not given then the gpg-agent program is used for getting the passphrase.
+
+</dd>
+</dl>
+
+All configuration properties are optional.
+
+## Specifying what to sign
+
+As well as configuring how things are to be signed (i.e. the signatory configuration), you must also specify what is to be signed. The Signing Plugin provides a DSL that allows you to specify the tasks and/or configurations that should be signed.
+
+### Signing Publications
+
+When publishing artifacts, you often want to sign them so the consumer of your artifacts can verify their signature. For example, the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref> defines a component that you can use to define a publication to a Maven (or Ivy) repository using the <Xref page="publishing-maven" section="The Maven Publish Plugin">Maven Publish Plugin</Xref> (or the <Xref page="publishing-ivy" section="The Ivy Publish Plugin">Ivy Publish Plugin</Xref>, respectively). Using the Signing DSL, you can specify that all of the artifacts of this publication should be signed.
+
+<SampleScripts sample_name="maven-publish" basename="build" tag="sign-publication" />
+
+This will create a task (of type <GroovyDocLink class="org.gradle.plugins.signing.Sign" />) in your project named `signMavenJavaPublication` that will build all artifacts that are part of the publication (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
+
+### Example: Signing a publication output
+
+```bash
+$ ./gradlew signMavenJavaPublication
+```
+
+```text
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :javadoc
+> Task :javadocJar
+> Task :sourcesJar
+> Task :generateMetadataFileForMavenJavaPublication
+> Task :generatePomFileForMavenJavaPublication
+> Task :signMavenJavaPublication
+
+BUILD SUCCESSFUL in 0s
+9 actionable tasks: 9 executed
+```
+
+In addition, the above DSL allows to `sign` multiple comma-separated publications. Alternatively, you may specify `publishing.publications` to sign all publications, or use `publishing.publications.matching { … }` to sign all publications that match the specified predicate.
+
+### Signing Configurations
+
+It is common to want to sign the artifacts of a configuration. For example, the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref> configures a jar to build and this jar artifact is added to the `runtimeElements` configuration. Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
+
+<SampleScripts sample_name="configurations" basename="build" tag="sign-runtime-elements" />
+
+This will create a task (of type <GroovyDocLink class="org.gradle.plugins.signing.Sign" />) in your project named `signRuntimeElements`, that will build any `runtimeElements` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
+
+### Example: Signing a configuration output
+
+```bash
+$ ./gradlew signRuntimeElements
+```
+
+```text
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :signRuntimeElements
+
+BUILD SUCCESSFUL in 0s
+4 actionable tasks: 4 executed
+```
+
+### Signing Task Output
+
+In some cases the artifact that you need to sign may not be part of a configuration.
+In this case you can directly sign the task that produces the artifact to sign.
+
+<SampleScripts sample_name="tasks" basename="build" tag="sign-task" />
+
+This will create a task (of type <GroovyDocLink class="org.gradle.plugins.signing.Sign" />) in your project named `signStuffZip`, that will build the input task’s archive (if needed) and then sign it.
+The signature file will be placed alongside the artifact being signed.
+
+### Example: Signing a task output
+
+```bash
+$ ./gradlew signStuffZip
+```
+
+```text
+> Task :stuffZip
+> Task :signStuffZip
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed
+```
+
+For a task to be _signable_, it must produce an archive of some type, i.e. it must extend <GroovyDocLink class="org.gradle.api.tasks.bundling.AbstractArchiveTask" />.
+Tasks that do this are the <GroovyDocLink class="org.gradle.api.tasks.bundling.Tar" />, <GroovyDocLink class="org.gradle.api.tasks.bundling.Zip" />, <GroovyDocLink class="org.gradle.api.tasks.bundling.Jar" />, <GroovyDocLink class="org.gradle.api.tasks.bundling.War" /> and <GroovyDocLink class="org.gradle.plugins.ear.Ear" /> tasks.
+
+### Conditional Signing
+
+A common usage pattern is to require the signing of build artifacts only under certain conditions.
+For example, you may not need to sign artifacts for non-release versions.
+To achieve this, you can specify the condition as an argument of the `required()` method.
+
+<SampleScripts sample_name="conditional" basename="build" tag="conditional-signing" />
+
+In this example, we only want to require signing if we are building a release version and we are going to publish it.
+Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation.
+See <JavaDocLink class="org.gradle.plugins.signing.SigningExtension" method="setRequired-java.lang.Object-">SigningExtension.setRequired(java.lang.Object)</JavaDocLink> for more information.
+
+If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured.
+Alternatively, you may want to skip signing entirely whether or not signatory credentials are available.
+If so, you can configure the <GroovyDocLink class="org.gradle.plugins.signing.Sign" /> tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
+
+<SampleScripts sample_name="conditional" basename="build" tag="only-if" />
+
+## Publishing the signatures
+
+When signing [publications](#sec:signing_publications), the resultant signature artifacts are automatically added to the corresponding publication.
+Thus, when publishing to a repository, e.g. by executing the `publish` task, your signatures will be distributed along with the other artifacts without any additional configuration.
+
+When signing [configurations](#sec:signing_configurations) and [tasks](#sec:signing_tasks), the resultant signature artifacts are automatically added to the `signatures` dependency configuration.

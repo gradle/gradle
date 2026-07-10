@@ -1,0 +1,41 @@
+---
+title: "Securing Gradle Builds"
+---
+
+import { Image } from 'astro:assets';
+import securingBuilds1 from './securing-builds-1.png';
+
+Every Gradle build pulls in code from external repositories, executes tools you didn’t author, and publishes artifacts that others will trust. Each step is a potential attack surface.
+
+For a typical Gradle build, the supply chain has three main components:
+
+1. **Dependencies** – Libraries and plugins your project consumes.
+2. **Repositories** – Where artifacts are stored and served.
+3. **Build Tool** – Gradle itself.
+
+Attacks can originate at any layer and then propagate downstream through published artifacts, transitive dependencies, or compromised tools.
+
+Even the build tool itself is an attack vector.
+
+<Image src={securingBuilds1} alt="securing builds 1" />
+
+Common issues and attacks include:
+
+1. **Dependencies**
+   1. Typosquatting
+   2. Compromised artifacts
+   3. Silent version drift
+2. **Repositories**
+   1. Using unauthorized public repositories
+   2. Leaking secure package names
+   3. Artifacts from unauthenticated repositories
+3. **Build Tool**
+   1. Poisoned caches
+   2. Compromised CI
+   3. Compromised wrapper
+
+Gradle provides features to harden each part of this chain:
+
+1. **Dependencies** – Validate libraries and plugins using checksums and signatures.
+2. **Repositories** – Centralize repository definitions and use trusted mirrors.
+3. **Build Tool** – Verify the Gradle distribution and Wrapper JAR file using checksums.

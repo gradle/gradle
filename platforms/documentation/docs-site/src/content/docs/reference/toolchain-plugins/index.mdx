@@ -1,0 +1,64 @@
+---
+title: "Toolchain Resolver Plugins"
+---
+
+import { CalloutList, JavaDocLink, Xref } from '#/components';
+
+In Gradle version 7.6 and above, Gradle provides a way to define Java toolchain auto-provisioning logic in plugins.
+This page explains how to author a toolchain resolver plugin.
+For details on how toolchain auto-provisioning interacts with these plugins, see <Xref page="toolchains" section="Toolchain Download Repositories">Toolchains</Xref>.
+
+## Provide a download URI
+
+Toolchain resolver plugins provide logic to map a <JavaDocLink class="org.gradle.jvm.toolchain.JavaToolchainRequest">toolchain request</JavaDocLink> to a <JavaDocLink class="org.gradle.jvm.toolchain.JavaToolchainDownload">download response</JavaDocLink>.
+At the moment the download response only contains a download URL, but may be extended in the future.
+
+:::caution
+For the download URL only secure protocols like `https` are accepted.
+This is required to make sure no one can tamper with the download in flight.
+:::
+
+The plugins provide the mapping logic via an implementation of <JavaDocLink class="org.gradle.jvm.toolchain.JavaToolchainResolver" />:
+
+```java callouts
+public abstract class JavaToolchainResolverImplementation
+        implements JavaToolchainResolver { // (1)
+
+    public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) { // (2)
+        return Optional.empty(); // custom mapping logic goes here instead
+    }
+}
+```
+
+<CalloutList>
+
+1. This class is `abstract` because `JavaToolchainResolver` is a <Xref page="build-services" section="Using Shared Build Services">build service</Xref>. Gradle provides dynamic implementations for certain abstract methods at runtime.
+2. The mapping method returns a download response wrapped in an `Optional`. If the resolver implementation can’t provide a matching toolchain, the enclosing `Optional` contains an empty value.
+
+</CalloutList>
+
+## Register the resolver in a plugin
+
+Use a settings plugin (`Plugin<Settings>`) to register the `JavaToolchainResolver` implementation:
+
+```java callouts
+public abstract class JavaToolchainResolverPlugin implements Plugin<Settings> { // (1)
+    @Inject
+    protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry(); // (2)
+
+    public void apply(Settings settings) {
+        settings.getPluginManager().apply("jvm-toolchain-management"); // (3)
+
+        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
+        registry.register(JavaToolchainResolverImplementation.class);
+    }
+}
+```
+
+<CalloutList>
+
+1. The plugin uses <Xref page="service-injection" section="Property injection">property injection</Xref>, so it must be `abstract` and a settings plugin.
+2. To register the resolver implementation, use property injection to access the <JavaDocLink class="org.gradle.jvm.toolchain.JavaToolchainResolverRegistry" /> Gradle service.
+3. Resolver plugins must apply the `jvm-toolchain-management` base plugin. This dynamically adds the `jvm` block to `toolchainManagement`, which makes registered toolchain repositories usable from the build.
+
+</CalloutList>

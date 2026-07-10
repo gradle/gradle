@@ -1,0 +1,268 @@
+---
+title: "Supported Protocols"
+---
+
+import { JavaDocLink, SampleScripts, Xref } from '#/components';
+
+Gradle supports a variety of transport protocols for Maven and Ivy repositories.
+
+## Supported transport protocols
+
+These protocols determine how Gradle communicates with the repositories to resolve dependencies.
+
+| Type | Credential types | Link |
+| --- | --- | --- |
+| `file` | none |  |
+| `http` | username/password | [Documentation](#sec:authentication-schemes) |
+| `https` | username/password | [Documentation](#sec:authentication-schemes) |
+| `sftp` | username/password | [Documentation](#sec:authentication-schemes) |
+| `s3` | access key/secret key/session token or Environment variables | [Documentation](#sec:s3-repositories) |
+| `gcs` | [default application credentials](https://developers.google.com/identity/protocols/application-default-credentials) sourced from well known files, Environment variables etc. | [Documentation](#sec:gcs-repositories) |
+
+:::note
+Usernames and passwords should never be stored in plain text in your build files. Instead, store credentials in a local `gradle.properties` file, or provide the credentials via environment variables.
+:::
+
+The transport protocol is specified as part of the repository URL.
+
+Below are examples of how to declare repositories using various protocols:
+
+**Declaring HTTP-based Maven and Ivy Repositories**
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-repository-no-auth" />
+
+**Declaring an SFTP Protocol for a Repository**
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-repository-auth" />
+
+**Declaring an S3-Backed Maven and Ivy Repository**
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-s3-repository" />
+
+**Declaring an S3-Backed Maven and Ivy Repository Using IAM**
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-s3-repository-with-iam" />
+
+**Declaring a GCS-Backed Maven and Ivy Repository**
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-gcs-repository" />
+
+## Configuring authentication schemes
+
+### HTTP(S) authentication schemes configuration
+
+When configuring a repository that uses HTTP or HTTPS transport protocols, several authentication schemes are available.
+By default, Gradle attempts to use all schemes supported by the [Apache HttpClient library](http://hc.apache.org/httpcomponents-client-ga/).
+However, you may want to explicitly specify which authentication schemes should be used when interacting with a remote server.
+When explicitly declared, only those specified schemes will be used.
+
+#### Basic authentication
+
+You can specify credentials for Maven repositories secured by basic authentication using <JavaDocLink class="org.gradle.api.credentials.PasswordCredentials" />:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="authenticated-maven-repo" />
+
+:::note
+When the <Xref page="configuration-cache" section="Configuration Cache">Configuration Cache</Xref> is enabled, credentials passed to a repository may be consumed at configuration time and become part of the cached build configuration.
+The resolved values are captured in the encrypted cache entry on disk.
+See <Xref page="configuration-cache-requirements" section="Handling of Credentials and Secrets">Handling of Credentials and Secrets</Xref> for the implications and recommended ways to store sensitive values.
+:::
+
+#### Digest Authentication
+
+To configure a repository to use only <JavaDocLink class="org.gradle.authentication.http.DigestAuthentication" />:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="digest-authentication" />
+
+#### Supported Authentication Schemes
+
+<dl>
+<dt><JavaDocLink class="org.gradle.authentication.http.BasicAuthentication" /></dt>
+<dd>
+
+Basic access authentication over HTTP. Credentials are sent preemptively.
+
+</dd>
+<dt><JavaDocLink class="org.gradle.authentication.http.DigestAuthentication" /></dt>
+<dd>
+
+Digest access authentication over HTTP.
+
+</dd>
+<dt><JavaDocLink class="org.gradle.authentication.http.HttpHeaderAuthentication" /></dt>
+<dd>
+
+Authentication based on a custom HTTP header, such as private tokens or OAuth tokens.
+
+</dd>
+</dl>
+
+### Using preemptive authentication
+
+By default, Gradle submits credentials only when a server responds with an authentication challenge (HTTP 401).
+However, some servers might respond with a different code (e.g., GitHub returns a 404) that could cause dependency resolution to fail.
+In such cases, you can configure Gradle to send credentials preemptively by explicitly using the <JavaDocLink class="org.gradle.authentication.http.BasicAuthentication" /> scheme:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="preemptive-authentication" />
+
+### Using HTTP header authentication
+
+For Maven repositories that require token-based, OAuth2, or other HTTP header-based authentication, you can use <JavaDocLink class="org.gradle.api.credentials.HttpHeaderCredentials" /> and <JavaDocLink class="org.gradle.authentication.http.HttpHeaderAuthentication" />:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="header-authenticated-maven-repo" />
+
+### AWS S3 repositories configuration
+
+When configuring a repository that uses AWS S3, several options and settings are available.
+
+#### S3 configuration properties
+
+The following system properties can be used to configure interactions with S3 repositories:
+
+<dl>
+<dt>`org.gradle.s3.endpoint`</dt>
+<dd>
+
+Overrides the AWS S3 endpoint when using a non-AWS, S3 API-compatible storage service.
+
+</dd>
+<dt>`org.gradle.s3.maxErrorRetry`</dt>
+<dd>
+
+Specifies the maximum number of retry attempts when the S3 server responds with an HTTP 5xx status code. The default value is 3 if not specified.
+
+</dd>
+</dl>
+
+#### S3 URL formats
+
+S3 URLs must use the 'virtual-hosted-style' format:
+
+```text
+s3://<bucketName>[.<regionSpecificEndpoint>]/<s3Key>
+```
+
+**Example**: `s3://myBucket.s3.eu-central-1.amazonaws.com/maven/release`
+
+- `myBucket`: The AWS S3 bucket name.
+- `s3.eu-central-1.amazonaws.com`: The optional region-specific endpoint.
+- `/maven/release`: The AWS S3 key (a unique identifier for an object within a bucket).
+
+#### S3 proxy settings
+
+A proxy for S3 can be configured using the following system properties:
+
+- For HTTPS:
+  - `https.proxyHost`
+  - `https.proxyPort`
+  - `https.proxyUser`
+  - `https.proxyPassword`
+  - `http.nonProxyHosts` (NOTE: this is not a typo.)
+  *For HTTP (if org.gradle.s3.endpoint is set with an HTTP URI):
+  - `http.proxyHost`
+  - `http.proxyPort`
+  - `http.proxyUser`
+  - `http.proxyPassword`
+  - `http.nonProxyHosts`
+
+#### S3 V4 Signatures (AWS4-HMAC-SHA256)
+
+Some S3 regions (e.g., `eu-central-1` in Frankfurt) require that all HTTP requests are signed using AWS’s signature version 4.
+It is recommended to specify S3 URLs containing the region-specific endpoint when using buckets that require V4 signatures:
+
+```text
+s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
+```
+
+If the region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle defaults to the `us-east-1` region and will issue a warning:
+
+```text
+Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
+```
+
+Failing to specify the region-specific endpoint for such buckets results in:
+
+- **Increased network traffic**: Three round-trips to AWS per file upload/download instead of one.
+- **Slower builds**: Due to increased network latency.
+- **Higher transmission failure rates**: Due to additional network overhead.
+
+#### S3 Cross Account Access
+
+In organizations with multiple AWS accounts (e.g., one per team), the bucket owner may differ from the artifact publisher or consumers.
+To ensure consumers can access the artifacts, the bucket owner must grant the appropriate access.
+Gradle automatically applies the `bucket-owner-full-control` [Canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to uploaded objects.
+Ensure the publisher has the required IAM permissions (`PutObjectAcl` and `PutObjectVersionAcl` if bucket versioning is enabled), either directly or through an assumed IAM Role. For more details, see [AWS S3 Access Permissions](https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html).
+
+### Google Cloud Storage repositories configuration
+
+When configuring a repository that uses Google Cloud Storage (GCS), several configuration options and settings are available.
+
+#### GCS configuration properties
+
+You can use the following system properties to configure interactions with [GCS](https://cloud.google.com/storage/) repositories:
+
+<dl>
+<dt>`org.gradle.gcs.endpoint`</dt>
+<dd>
+
+Overrides the Google Cloud Storage endpoint, useful when working with a storage service compatible with the GCS API but not hosted on Google Cloud Platform.
+
+</dd>
+<dt>`org.gradle.gcs.servicePath`</dt>
+<dd>
+
+Specifies the root service path from which the GCS client builds requests, with a default value of `/`.
+
+</dd>
+</dl>
+
+#### GCS URL formats
+
+GCS URLs use a 'virtual-hosted-style' format and must adhere to the following structure:
+
+```text
+gcs://<bucketName>/<objectKey>
+```
+
+- `<bucketName>`: The name of the Google Cloud Storage bucket.
+- `<objectKey>`: The unique identifier for an object within a bucket.
+
+**Example**: `gcs://myBucket/maven/release`
+
+- `myBucket`: The bucket name.
+- `/maven/release`: The GCS object key.
+
+## Handling credentials
+
+Repository credentials should never be hardcoded in your build script but kept external.
+Gradle provides an <JavaDocLink class="org.gradle.api.artifacts.repositories.AuthenticationSupported" method="credentials-java.lang.Class-">API in artifact repositories</JavaDocLink> that allows you to declare the type of credentials required, with their values being looked up from <Xref page="build-environment" section="Gradle properties">Gradle properties</Xref> during the build.
+
+For example, consider the following repository configuration:
+
+<SampleScripts sample_name="publishing-credentials" basename="build" tag="repositories" />
+
+In this example, the username and password are automatically looked up from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
+
+### Configuration property prefix
+
+The configuration property prefix, known as the **identity**, is derived from the repository name.
+Credentials can be provided through any of the supported Gradle property mechanisms: `gradle.properties` file, command-line arguments, environment variables, or a combination of these.
+
+### Conditional credential requirement
+
+Credentials are only required when the build process needs them. For example, if a project is configured to publish artifacts to a secured repository, but the publishing task isn’t invoked, Gradle won’t require the credentials.
+However, if a task requiring credentials is part of the build process, Gradle will check for their presence before running any tasks to prevent build failures due to missing credentials.
+
+### Supported credential types
+
+Lookup is only supported for the credential types listed in the table below:
+
+| Type | Argument | Base property name | Required? |
+| --- | --- | --- | --- |
+| <JavaDocLink class="org.gradle.api.credentials.PasswordCredentials" /> | `username` | `Username` | required |
+| <JavaDocLink class="org.gradle.api.credentials.PasswordCredentials" /> | `password` | `Password` | required |
+| <JavaDocLink class="org.gradle.api.credentials.AwsCredentials" /> | `accessKey` | `AccessKey` | required |
+| <JavaDocLink class="org.gradle.api.credentials.AwsCredentials" /> | `secretKey` | `SecretKey` | required |
+| <JavaDocLink class="org.gradle.api.credentials.AwsCredentials" /> | `sessionToken` | `SessionToken` | optional |
+| <JavaDocLink class="org.gradle.api.credentials.HttpHeaderCredentials" /> | `name` | `AuthHeaderName` | required |
+| <JavaDocLink class="org.gradle.api.credentials.HttpHeaderCredentials" /> | `value` | `AuthHeaderValue` | required |

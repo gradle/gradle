@@ -1,0 +1,47 @@
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api("org.apache.commons:commons-lang3:3.12.0")
+}
+
+// tag::avoid-this[]
+abstract class FileCounterTask extends DefaultTask {
+    @InputFiles
+    abstract ConfigurableFileCollection getCountMe();
+
+    @TaskAction
+    void countFiles() {
+        logger.lifecycle("Count: " + countMe.files.size())
+    }
+}
+
+tasks.register("badCountingTask", FileCounterTask) {
+    if (!configurations.runtimeClasspath.isEmpty()) { // <1>
+        logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+        countMe.from(configurations.runtimeClasspath)
+    }
+}
+
+tasks.register("badCountingTask2", FileCounterTask) {
+    def files = configurations.runtimeClasspath.files // <2>
+    countMe.from(files)
+    logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+}
+
+tasks.register("badCountingTask3", FileCounterTask) {
+    def files = configurations.runtimeClasspath + layout.projectDirectory.file("extra.txt") // <3>
+    countMe.from(files)
+    logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+}
+
+tasks.register("badZippingTask", Zip) { // <4>
+    if (!configurations.runtimeClasspath.isEmpty()) {
+        logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+        from(configurations.runtimeClasspath)
+    }
+}
+// end::avoid-this[]

@@ -1,0 +1,185 @@
+---
+/**
+ * Gradle docs version selector, mounted at the top of the sidebar.
+ *
+ * Rendered fully static at build time from the versions index (usable without
+ * JS), then upgraded by the <gradle-version-selector> custom element, which
+ * refreshes the list from services.gradle.org via a localStorage cache shared
+ * across all docs versions. See src/lib/versions/contract.ts for the frozen
+ * client contract and the menu renderer both sides share.
+ */
+import { variables } from "../config/variables";
+import { loadVersionsIndex } from "../lib/versions/releases";
+import { renderVersionMenu } from "../lib/versions/version-menu";
+
+const index = await loadVersionsIndex();
+const siteVersion = variables.gradleVersion;
+---
+
+<gradle-version-selector data-site-version={siteVersion}>
+  <details>
+    <summary aria-label={`Gradle version: ${siteVersion}. Switch documentation version`}>
+      <span class="version-label"><span class="version-prefix">Version</span> {siteVersion}</span>
+      <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </summary>
+    <ul class="version-menu" set:html={renderVersionMenu(index, siteVersion)} />
+  </details>
+</gradle-version-selector>
+
+<script>
+  import { isFresh, loadStoredIndex, storeIndex, type VersionsIndex } from "../lib/versions/local-storage";
+  import { reduceVersions, renderVersionMenu, VERSIONS_ENDPOINT } from "../lib/versions/version-menu";
+
+  class GradleVersionSelector extends HTMLElement {
+    connectedCallback() {
+      // Close the dropdown on outside click or Escape.
+      document.addEventListener("click", (event) => {
+        if (!this.contains(event.target as Node)) this.close();
+      });
+      this.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") this.close();
+      });
+      void this.refresh();
+    }
+
+    private close() {
+      this.querySelector("details")?.removeAttribute("open");
+    }
+
+    /**
+     * Serve from the shared localStorage cache when fresh; otherwise fetch and
+     * re-render. Any failure leaves the build-time markup untouched.
+     */
+    private async refresh() {
+      const cached = loadStoredIndex();
+      if (cached) this.render(cached);
+      if (cached && isFresh(cached, Date.now())) return;
+
+      try {
+        const response = await fetch(VERSIONS_ENDPOINT);
+        if (!response.ok) return;
+        const index = reduceVersions(await response.json(), Date.now());
+        storeIndex(index);
+        this.render(index);
+      } catch {
+        // Offline or blocked: the burnt-in (or cached) list stays.
+      }
+    }
+
+    private render(index: VersionsIndex) {
+      const menu = this.querySelector(".version-menu");
+      if (menu) menu.innerHTML = renderVersionMenu(index, this.dataset.siteVersion);
+    }
+  }
+
+  customElements.define("gradle-version-selector", GradleVersionSelector);
+</script>
+
+{/* Global (namespaced by the element name) because the client script re-creates
+    menu items, which would not carry Astro's scoped-style attribute. */}
+<style is:global>
+  gradle-version-selector {
+    position: relative;
+    display: block;
+    font-size: var(--sl-text-sm);
+    margin-bottom: 0.75rem;
+  }
+
+  gradle-version-selector summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.375rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background-color: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-2);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  gradle-version-selector .version-prefix {
+    color: var(--sl-color-gray-3);
+    margin-inline-end: 0.25rem;
+  }
+  gradle-version-selector summary::-webkit-details-marker {
+    display: none;
+  }
+  gradle-version-selector summary:hover {
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-gray-3);
+  }
+  gradle-version-selector details[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  gradle-version-selector .version-menu {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    top: calc(100% + 0.375rem);
+    z-index: var(--sl-z-index-menu, 10);
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+    max-height: min(60vh, 24rem);
+    overflow-y: auto;
+    background-color: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    box-shadow: var(--sl-shadow-md);
+  }
+
+  gradle-version-selector .major-header {
+    position: sticky;
+    top: -0.25rem;
+    padding: 0.375rem 0.625rem 0.25rem;
+    background-color: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  gradle-version-selector .major-header:not(:first-child) {
+    border-top: 1px solid var(--sl-color-gray-6);
+    margin-top: 0.25rem;
+  }
+
+  gradle-version-selector .version-menu a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.25rem;
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+  }
+  gradle-version-selector .version-menu a:hover {
+    background-color: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+  }
+  gradle-version-selector .version-menu a[aria-current="true"] {
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+  }
+
+  gradle-version-selector .badge {
+    font-size: var(--sl-text-xs);
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    background-color: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+  }
+
+  gradle-version-selector .all-releases {
+    border-top: 1px solid var(--sl-color-gray-5);
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+  }
+</style>

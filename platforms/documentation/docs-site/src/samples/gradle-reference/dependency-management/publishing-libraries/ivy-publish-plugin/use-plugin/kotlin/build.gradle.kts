@@ -1,3 +1,0 @@
-plugins {
-    `ivy-publish`
-}

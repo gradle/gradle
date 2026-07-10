@@ -1,3 +1,0 @@
-dependencyLocking {
-    lockMode = LockMode.STRICT
-}

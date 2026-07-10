@@ -1,3 +1,0 @@
-application {
-    applicationDefaultJvmArgs = ['-Dgreeting.language=en']
-}

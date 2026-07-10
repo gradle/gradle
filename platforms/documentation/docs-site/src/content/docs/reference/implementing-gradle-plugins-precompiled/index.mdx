@@ -1,0 +1,216 @@
+---
+title: "Pre-compiled Script Plugins"
+---
+
+import { CalloutList, GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+A **precompiled script plugin** is a `.gradle.kts` (Kotlin DSL) or `.gradle` (Groovy DSL) script stored in a plugin source set (e.g. `buildSrc` or an included build like `build-logic`).
+Gradle automatically compiles it into a proper plugin class, packages it like a normal plugin, and assigns the plugin ID based on the file name.
+
+For example, you place a script in `build-logic/src/main/kotlin/java-library-conventions.gradle.kts`:
+
+```text callouts
+some-project/
+├─ settings.gradle.kts
+├─ build-logic/
+│  ├─ build.gradle.kts
+│  └─ src/
+│     └─ main/
+│        └─ kotlin/
+│           └─ java-library-conventions.gradle.kts  // (1)
+└─ app/
+   ├─ build.gradle.kts                              // (2)
+   └─ src/
+```
+
+<CalloutList>
+
+1. Pre-compiled script plugin
+2. Build file applies the plugin
+
+</CalloutList>
+
+Gradle automatically compiles that script into a plugin.
+The plugin ID is derived from the file name: `java-library-conventions.gradle.kts`.
+
+You can now apply it in any build like a regular plugin.
+In the build file of the `app` project:
+
+```kotlin
+plugins {
+    // Apply by ID derived from the file name:
+    id("java-library-conventions")
+}
+```
+
+## Setting the plugin ID
+
+The plugin ID for a precompiled script is derived from its file name and optional package declaration.
+
+For example, a script named `code-quality.gradle(.kts)` located in `src/main/groovy` (or `src/main/kotlin`) without a package declaration would be exposed as the `code-quality` plugin:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="buildSrc/build.gradle.kts"
+plugins {
+    `kotlin-dsl`
+}
+```
+
+```kotlin title="app/build.gradle.kts"
+plugins {
+    id("code-quality")
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="buildSrc/build.gradle"
+plugins {
+    id 'groovy-gradle-plugin'
+}
+```
+
+```groovy title="app/build.gradle"
+plugins {
+    id 'code-quality'
+}
+```
+
+</TabItem>
+</Tabs>
+
+On the other hand, a script named `code-quality.gradle.kts` located in `src/main/kotlin/my` with the package declaration `my` would be exposed as the `my.code-quality` plugin:
+
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+```
+
+```kotlin
+plugins {
+    id("my.code-quality")
+}
+```
+
+When creating precompiled script plugins intended for settings or init scripts, the filename suffix determines where Gradle applies them:
+
+- `.settings.gradle` or `.settings.gradle.kts` → interpreted as `Plugin<Settings>`
+- `.init.gradle` or `.init.gradle.kts` → interpreted as `Plugin<Gradle>`
+- `.gradle` or `.gradle.kts` → interpreted as the default `Plugin<Project>`
+
+:::danger
+Groovy pre-compiled script plugins cannot have packages.
+:::
+
+## Making a plugin configurable using extensions
+
+**Extension objects** are commonly used in plugins to expose configuration options and additional functionality to build scripts.
+
+When you apply a plugin that defines an extension, you can access the extension object and configure its properties or call its methods to customize the behavior of the plugin or tasks provided by the plugin.
+
+A <GroovyDocLink class="org.gradle.api.Project" /> has an associated <JavaDocLink class="org.gradle.api.plugins.ExtensionContainer" /> object that contains all the settings and properties for the plugins that have been applied to the project.
+You can provide configuration for your plugin by adding an extension object to this container.
+
+Let’s update our `greetings` example:
+
+<SampleScripts sample_name="greeting" basename="greetings" subpath="buildSrc/src/main/{lang}" tag="create-extension" />
+
+You can set the value of the `message` property directly with `extension.message.set("Hi from Gradle,")`.
+
+However, the `GreetingPluginExtension` object becomes available as a project property with the same name as the extension object.
+You can now access `message` like so:
+
+<SampleScripts sample_name="greeting" basename="greetings" subpath="buildSrc/src/main/{lang}" tag="update" />
+
+If you apply the `greetings` plugin, you can set the convention in your build script:
+
+<SampleScripts sample_name="greeting" basename="build" subpath="app" />
+
+## Adding default configuration as conventions
+
+In plugins, you can define default values, also known as **conventions**, using the `project` object.
+
+Convention properties are properties that are initialized with default values but can be overridden:
+
+<SampleScripts sample_name="greeting" basename="greetings" subpath="buildSrc/src/main/{lang}" tag="convention" />
+
+`extension.message.convention(…​)` sets a convention for the `message` property of the extension.
+This convention specifies that the value of `message` should default to `"Hello from Gradle"`.
+
+If the `message` property is not explicitly set, its value will be automatically set to `"Hello from Gradle"`.
+
+## Mapping extension properties to task properties
+
+Using an extension and mapping it to a custom task’s input/output properties is common in plugins.
+
+In this example, the message property of the `GreetingPluginExtension` is mapped to the message property of the `GreetingTask` as an input:
+
+<SampleScripts sample_name="greeting" basename="greetings" subpath="buildSrc/src/main/{lang}" tag="task" />
+
+```bash
+$ ./gradlew -q hello
+```
+
+```text
+Message: Hello from Gradle
+```
+
+This means that changes to the extension’s `message` property will trigger the task to be considered out-of-date, ensuring that the task is re-executed with the new message.
+
+You can find out more about types that you can use in task implementations and extensions in <Xref page="lazy-configuration" section="Configuring Tasks Lazily">Lazy Configuration</Xref>.
+
+## Applying external plugins
+
+In order to apply an external plugin in a precompiled script plugin, it has to be added to the plugin project’s implementation classpath in the plugin’s build file:
+
+<SampleScripts sample_name="precompiled-script-plugins-external-plugins" basename="build" subpath="buildSrc" />
+
+It can then be applied in the precompiled script plugin:
+
+<SampleScripts sample_name="precompiled-script-plugins-external-plugins" basename="my-plugin" subpath="buildSrc/src/main/{lang}" />
+
+The plugin version in this case is defined in the dependency declaration.
+
+The `version "…​"` and `apply false` syntax are not supported in precompiled script plugins. The version for the plugin is determined by the version declared in the plugin’s build file.
+If a plugin needs to be on the classpath but not applied, it can be left out of the `plugins {}` block and only added as a dependency in the plugin’s build file.
+
+## Example of a precompiled script plugin in the `Project` scope
+
+You can see an example <Xref page="pre-compiled-script-plugin-advanced" section="Example of a Precompiled Script Plugin">here</Xref>.
+
+## Example of a precompiled script plugin in the `Settings` scope
+
+Precompiled script plugins can also target the
+<GroovyDocLink class="org.gradle.api.initialization.Settings" /> scope.
+The following example defines a simple plugin in a separate build called `settings-plugin`.
+
+Configure plugin management for the plugin build:
+
+<SampleScripts sample_name="precompiled-script-plugins-settings" basename="settings" subpath="settings-plugin" />
+
+Set up the build to support precompiled script plugins:
+
+<SampleScripts sample_name="precompiled-script-plugins-settings" basename="build" subpath="settings-plugin" />
+
+:::tip
+Notice that we used the practice described in [#sec:applying_external_plugins](#sec:applying_external_plugins).
+:::
+
+Write the precompiled script plugin itself:
+
+<SampleScripts sample_name="precompiled-script-plugins-settings" basename="my-plugin.settings" subpath="settings-plugin/src/main/{lang}" />
+
+Because the file name ends with `.settings.gradle.kts`, Gradle compiles it into a plugin with a `Settings` scope.
+The plugin ID is `my-plugin`.
+You can use it as follows in a consumer project (root settings file of the consuming project):
+
+<SampleScripts sample_name="precompiled-script-plugins-settings" basename="settings" tag="main" />
+
+:::caution
+Because the plugin was precompiled as a <GroovyDocLink class="org.gradle.api.initialization.Settings" /> plugin (the `.settings.gradle(.kts)` suffix), you apply it in the settings file’s `plugins {}` block, not in a project `build.gradle(.kts)` file.
+:::

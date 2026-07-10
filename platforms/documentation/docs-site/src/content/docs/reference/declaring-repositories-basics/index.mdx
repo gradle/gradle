@@ -1,0 +1,107 @@
+---
+title: "Declaring Repositories Basics"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import dependencyManagementShortcutRepositories from './dependency-management-shortcut-repositories.png';
+
+Gradle can resolve local or external dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
+
+Repositories intended for use in a single project are declared in your `build.gradle(.kts)` file:
+
+<SampleScripts sample_name="declaring-dependencies-changing-version" basename="build" tag="repo-intro" />
+
+To centralize repository declarations in your `settings.gradle(.kts)` file, head over to <Xref page="centralizing-repositories" section="Centralizing Repository Declarations">Centralizing Repository Declarations</Xref>.
+
+## Declaring a publicly-available repository
+
+Organizations building software may want to leverage public binary repositories to download and consume publicly available dependencies.
+Popular public repositories include [Maven Central](#sec:maven-central) and the [Google Android](#sec:maven-google) repository.
+
+Gradle provides built-in shorthand notations for these widely-used repositories.
+
+<Image src={dependencyManagementShortcutRepositories} alt="dependency management shortcut repositories" />
+
+Under the covers, Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
+All shorthand notations are available via the <GroovyDocLink class="org.gradle.api.artifacts.dsl.RepositoryHandler" /> API.
+
+Alternatively, you can [explicitly specify the URL of the repository](#sec:declaring-custom-repository) for more fine-grained control.
+
+### Maven Central repository
+
+Maven Central is a popular repository hosting open source libraries for consumption by Java projects.
+
+To declare the [Maven Central repository](https://repo.maven.apache.org/maven2/) for your build add this to your script:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-central" />
+
+### Google Maven repository
+
+The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples, see the [relevant Android documentation](https://developer.android.com/studio/build/dependencies.html#google-maven).
+
+To declare the [Google Maven repository](https://maven.google.com/) add this to your build script:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-google" />
+
+## Declaring a custom repository by URL
+
+Most enterprise projects set up a binary repository available only within an intranet.
+In-house repositories enable teams to publish internal binaries, setup user management and security measures, and ensure uptime and availability.
+
+Specifying a custom URL is also helpful if you want to declare publicly-available repository that Gradle does not provide a shorthand for.
+
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the <GroovyDocLink class="org.gradle.api.artifacts.dsl.RepositoryHandler" /> API:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-like-repo" />
+
+Gradle supports additional <Xref page="supported-repository-protocols" section="Supported Protocols">protocols</Xref> beyond `http` and `https`, such as `file`, `sftp`, and `s3` for custom URLs.
+
+For full coverage, see the section on <Xref page="supported-repository-types" section="Repository Types">supported repository types</Xref>.
+
+You can also <Xref page="supported-repository-types" section="Custom pattern layout Ivy repository">define your own repository layout</Xref> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
+
+<SampleScripts sample_name="define-repository" basename="build" tag="ivy-repo" />
+
+## Declaring a local repository
+
+You can declare local repositories using the `mavenLocal()` or `flatDir` methods inside the repositories block:
+
+<SampleScripts sample_name="declaring-repositories-basics-local-repos" basename="build" tag="local-repos" />
+
+Maven or Ivy can be declared as local repositories by specifying a local filesystem path. Unlike a flat directory repository, they adhere to a structured format and include metadata.
+
+When such a repository is configured, Gradle completely bypasses its dependency cache for it, as there is no guarantee that the content will remain unchanged between executions. This limitation can negatively impact performance.
+
+Additionally, using local Maven or Ivy repositories makes build reproducibility much harder to achieve.
+Therefore, their use should be restricted to prototyping rather than production builds.
+
+## Declaring multiple repositories
+
+You can define more than one repository for resolving dependencies.
+Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other.
+
+You can mix any type of repository described in the <Xref page="supported-repository-types" section="Repository Types">reference section</Xref>.
+
+<SampleScripts sample_name="declaring-repositories-multiple-repositories" basename="build" tag="multiple-repositories" />
+
+The order of repository declaration determines the order that Gradle will search for dependencies during resolution.
+If Gradle finds a dependency’s metadata in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
+
+You can learn more about the inner workings of <Xref page="graph-resolution" section="Metadata Retrieval">dependency downloads</Xref>.
+
+## Declaring plugin repositories
+
+Gradle uses a different set of repositories for resolving Gradle plugins and resolving project dependencies:
+
+1. ***Plugin dependencies:*** When resolving plugins for build scripts, Gradle uses a distinct set of repositories to locate and load the required plugins.
+2. ***Project dependencies:*** When resolving project dependencies, Gradle only uses the repositories declared in the build script and ignores the plugin repositories.
+
+By default, Gradle uses the [Gradle Plugin Portal](http://plugins.gradle.org) to search for plugins:
+
+<SampleScripts sample_name="multi-project-build" basename="settings" tag="repositories" />
+
+However, some plugins may be hosted in other repositories (public or private).
+To include these plugins, you need to specify additional repositories in your build script so Gradle knows where to search.
+
+Since declaring repositories depends on how the plugin is applied, refer to the <Xref page="plugins-intermediate" section="Custom Plugin Repositories">Custom Plugin Repositories</Xref> for more details on configuring repositories for plugins from different sources.

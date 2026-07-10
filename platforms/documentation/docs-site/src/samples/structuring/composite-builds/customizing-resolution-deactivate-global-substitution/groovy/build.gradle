@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+}
+repositories {
+    mavenCentral()
+}
+
+// tag::disableGlobalDependencySubstitutionRules[]
+configurations.create('publishedRuntimeClasspath') {
+    resolutionStrategy.useGlobalDependencySubstitutionRules = false
+
+    extendsFrom(configurations.runtimeClasspath)
+    canBeConsumed = false
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+}
+// end::disableGlobalDependencySubstitutionRules[]
+
+dependencies {
+    api 'org.test:module-a:1.0'
+}
+
+tasks.register('resolve') {
+    FileCollection runtimeClasspath = configurations.runtimeClasspath
+    FileCollection publishedRuntimeClasspath = configurations.publishedRuntimeClasspath
+    doLast {
+        runtimeClasspath.files.each { println(it.name) }
+        publishedRuntimeClasspath.files.each { println(it.name) }
+    }
+}

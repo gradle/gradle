@@ -1,0 +1,13 @@
+> Task :lib:processResources NO-SOURCE
+
+> Task :lib:compileJava
+Lib was compiled
+
+> Task :lib:classes
+> Task :lib:jar
+
+> Task :app:goodClasspathPrinter
+/home/user/gradle/samples/lib/build/libs/lib.jar#0
+
+BUILD SUCCESSFUL in 0s
+3 actionable tasks: 3 executed

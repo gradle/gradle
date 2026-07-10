@@ -1,0 +1,114 @@
+---
+title: "Xcode"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import xcodeTaskGraph from './xcode-task-graph.png';
+
+The Xcode Plugin generate files that are used by the [Xcode IDE](https://developer.apple.com/xcode/) to open Gradle projects into Xcode (`File` - `Open…​`). The generated Xcode project delegates build actions to Gradle.
+
+What exactly the `xcode` plugin generates depends on which other plugins are used:
+
+**Xcode Plugin behavior**
+
+| Plugin | Description |
+| --- | --- |
+| None | Generates minimal solution file. |
+| <Xref page="cpp-application-plugin" section="C++ Application">C++ Application</Xref> | Adds a target representing the C++ application to the project file. |
+| <Xref page="cpp-library-plugin" section="C++ Library">C++ Library</Xref> | Adds a target for each specified linkage representing the shared and/or static library to the project file. |
+| <Xref page="swift-application-plugin" section="Swift Application">Swift Application</Xref> | Adds a target representing the Swift application to the project file. |
+| <Xref page="swift-library-plugin" section="Swift Library">Swift Library</Xref> | Adds a target for each specified linkage representing the shared and/or static library to the project file. |
+| <Xref page="xctest-plugin" section="XCTest">XCTest</Xref> | Adds a target representing the XCTest bundle to the project file. |
+
+## Usage
+
+<SampleScripts sample_name="xcode" basename="build" tag="apply-plugin" />
+
+## Tasks
+
+The Xcode Plugin adds a number of tasks to your project.
+The main tasks that you will use are the `xcode`, `cleanXcode` and `openXcode` tasks.
+
+The following diagram shows the relationships between tasks added by this plugin.
+
+<Image src={xcodeTaskGraph} alt="xcode task graph" />
+
+### Lifecycle Tasks
+
+<dl>
+<dt>`xcode` — <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+_Depends on_: `_projectName_XcodeWorkspace` and all `xcodeProject` tasks
+
+Generates all Xcode configuration files.
+
+</dd>
+<dt>`cleanXcode` — <GroovyDocLink class="org.gradle.api.tasks.Delete" /></dt>
+<dd>
+
+_Depends on_: all Xcode project and workspace file clean tasks
+
+Removes all Xcode configuration files.
+
+</dd>
+<dt>`openXcode` - <GroovyDocLink class="org.gradle.api.Task" /></dt>
+<dd>
+
+_Depends on_: `xcode`
+
+Open the Xcode workspace inside the IDE.
+
+</dd>
+</dl>
+
+### IDE Workspace Tasks
+
+<dl>
+<dt>`xcodeWorkspaceWorkspaceSettings` - <GroovyDocLink class="org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask" /></dt>
+<dd>
+
+Generates the `_projectName_.xcworkspace` file. This task is only available on the root project.
+
+</dd>
+<dt>`xcodeWorkspace` - <GroovyDocLink class="org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask" /></dt>
+<dd>
+
+_Depends on_: `xcodeWorkspaceWorkspaceSettings`
+
+Generates the `_projectName_.xcworkspace` file. This task is only available on the root project.
+
+</dd>
+</dl>
+
+### IDE Project Tasks
+
+Both the <Xref page="cpp-application-plugin" section="C++ Application">C++ Application Plugin</Xref> and <Xref page="cpp-library-plugin" section="C++ Library">C++ Library Plugin</Xref> introduce the same tasks for generating Xcode projects to be included in an Xcode workspace.
+
+<dl>
+<dt>`xcodeProjectWorkspaceSettings` — <GroovyDocLink class="org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask" /></dt>
+<dd>
+
+Generates the `_projectName_.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings` file.
+
+</dd>
+<dt>`xcodeScheme` — <GroovyDocLink class="org.gradle.ide.xcode.tasks.GenerateSchemeFileTask" /></dt>
+<dd>
+
+Generates the `_projectName_.xcodeproj/xcshareddata/xcschemes/_ProjectName_.xcscheme` file.
+
+</dd>
+<dt>`xcodeProject` — <GroovyDocLink class="org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask" /></dt>
+<dd>
+
+_Depends on_: `xcodeProjectWorkspaceSettings` and `xcodeScheme` (if buildable binary present)
+
+Generates the `_projectName_.xcodeproj/project.pbxproj` file.
+
+</dd>
+</dl>
+
+## Configuration
+
+The Xcode Plugin doesn’t allows any customization of the generated files.

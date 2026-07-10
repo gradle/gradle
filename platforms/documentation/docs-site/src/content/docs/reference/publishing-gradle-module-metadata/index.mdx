@@ -1,0 +1,113 @@
+---
+title: "Gradle Module Metadata"
+---
+
+import { GroovyDocLink, SampleScripts, Xref } from '#/components';
+
+Gradle Module Metadata is a format used to serialize the Gradle component model.
+It is similar to [Apache Maven™'s POM file](https://maven.apache.org/pom.html) or [Apache Ivy™ ivy.xml](https://ant.apache.org/ivy/) files.
+The goal of metadata files is to provide _to consumers_ a reasonable model of what is published on a repository.
+
+Gradle Module Metadata is a unique format aimed at improving dependency resolution by making it multi-platform and variant-aware.
+
+In particular, Gradle Module Metadata supports:
+
+- <Xref page="dependency-versions" section="Declaring rich versions">rich version constraints</Xref>
+- <Xref page="dependency-constraints" section="Adding constraints on transitive dependencies">dependency constraints</Xref>
+- <Xref page="component-capabilities" section="Declaring component capabilities">component capabilities</Xref>
+- <Xref page="variant-aware-resolution" section="Variant Selection and Attribute Matching">variant-aware resolution</Xref>
+
+Publication of Gradle Module Metadata will enable better dependency management for your consumers:
+
+- early discovery of problems by detecting <Xref page="component-capabilities" section="Declaring component capabilities">incompatible modules</Xref>
+- consistent selection of <Xref page="variant-attributes" section="JVM ecosystem specific attributes">platform-specific dependencies</Xref>
+- native <Xref page="how-to-align-dependency-versions" section="Option 3: Using the Java Plugin">dependency version alignment</Xref>
+- automatically getting dependencies for specific <Xref page="how-to-create-feature-variants-of-a-library" section="How to Create Feature Variants for a Library in Gradle">features of your library</Xref>
+
+Gradle Module Metadata is automatically published when using the <Xref page="publishing-maven" section="The Maven Publish Plugin">Maven Publish plugin</Xref> or the <Xref page="publishing-ivy" section="The Ivy Publish Plugin">Ivy Publish plugin</Xref>.
+
+The specification for Gradle Module Metadata can be found [here](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md).
+
+## Mapping with other formats
+
+Gradle Module Metadata is automatically published on Maven or Ivy repositories.
+However, it doesn’t replace the _pom.xml_ or _ivy.xml_ files: it is published alongside those files.
+This is done to maximize compatibility with third-party build tools.
+
+Gradle does its best to map Gradle-specific concepts to Maven or Ivy.
+When a build file uses features that can only be represented in Gradle Module Metadata, Gradle will warn you at publication time.
+The table below summarizes how some Gradle specific features are mapped to Maven and Ivy:
+
+**Mapping of Gradle specific concepts to Maven and Ivy**
+
+| Gradle | Maven | Ivy | Description |
+| --- | --- | --- | --- |
+| <Xref page="dependency-constraints" section="Adding constraints on transitive dependencies">dependency constraints</Xref> | `<dependencyManagement>` dependencies | Not published | Gradle dependency constraints are _transitive_, while Maven’s dependency management block _isn’t_ |
+| <Xref page="dependency-versions" section="Declaring rich versions">rich version constraints</Xref> | Publishes the _requires_ version | Published the _requires_ version |  |
+| <Xref page="component-capabilities" section="Declaring component capabilities">component capabilities</Xref> | Not published | Not published | Component capabilities are unique to Gradle |
+| <Xref page="how-to-create-feature-variants-of-a-library" section="How to Create Feature Variants for a Library in Gradle">Feature variants</Xref> | Variant artifacts are uploaded, dependencies are published as _optional_ dependencies | Variant artifacts are uploaded, dependencies are not published | Feature variants are a good replacement for optional dependencies |
+| <Xref page="publishing-customization" section="Creating and publishing custom components">Custom component types</Xref> | Artifacts are uploaded, dependencies are those described by the mapping | Artifacts are uploaded, dependencies are ignored | Custom component types are probably not consumable from Maven or Ivy in any case. They usually exist in the context of a custom ecosystem. |
+
+### Disabling metadata compatibility publication warnings
+
+If you want to suppress warnings, you can use the following APIs to do so:
+
+- For Maven, see the `suppress*` methods in <GroovyDocLink class="org.gradle.api.publish.maven.MavenPublication" method="suppressAllPomMetadataWarnings()">MavenPublication</GroovyDocLink>
+- For Ivy, see the `suppress*` methods in <GroovyDocLink class="org.gradle.api.publish.ivy.IvyPublication" method="suppressAllIvyMetadataWarnings()">IvyPublication</GroovyDocLink>
+
+<SampleScripts sample_name="modeling-features-outgoing-capabilities" basename="build" tag="ignore-pom-warnings" />
+
+## Interactions with other build tools
+
+Because Gradle Module Metadata is not widely spread and because it aims at [maximizing compatibility with other tools](#sub:mapping-with-other-formats), Gradle does a couple of things:
+
+- Gradle Module Metadata is systematically published alongside the normal descriptor for a given repository (Maven or Ivy)
+- the `pom.xml` or `ivy.xml` file will contain a _marker comment_ which tells Gradle that Gradle Module Metadata exists for this module
+
+The goal of the marker is _not_ for other tools to parse module metadata: it’s for Gradle users only.
+It explains to Gradle that a _better_ module metadata file exists and that it should use it instead.
+It doesn’t mean that consumption from Maven or Ivy would be broken either, only that it works in [degraded mode](#sub:mapping-with-other-formats).
+
+:::note
+This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
+:::
+
+If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls by configuring the metadata sources for a repository:
+
+<SampleScripts sample_name="modeling-features-cross-project-publications-advanced-published" basename="build" subpath="producer" tag="gradle_metadata_source" />
+
+## Gradle Module Metadata validation
+
+Gradle Module Metadata is validated before being published.
+
+The following rules are enforced:
+
+- Variant names must be unique,
+- Each variant must have at least <Xref page="variant-attributes" section="Variants and Attributes">one attribute</Xref>,
+- Two variants cannot have the <Xref page="variant-aware-resolution" section="Variant Selection and Attribute Matching">exact same attributes and capabilities</Xref>,
+- If there are dependencies, at least one, across all variants, must carry <Xref page="dependency-versions" section="Declaring rich versions">version information</Xref>.
+
+These rules ensure the quality of the metadata produced, and help confirm that consumption will not be problematic.
+
+## Gradle Module Metadata reproducibility
+
+The task generating the module metadata files is currently never marked `UP-TO-DATE` by Gradle due to the way it is implemented.
+However, if neither build inputs nor build scripts changed, the task result is effectively up-to-date: it always produces the same output.
+
+If users desire to have a unique `module` file per build invocation, it is possible to link an identifier in the produced metadata to the build that created it.
+Users can choose to enable this unique identifier in their `publication`:
+
+<SampleScripts sample_name="java-library" basename="build" tag="enable-build-id" />
+
+With the changes above, the generated Gradle Module Metadata file will always be different, forcing downstream tasks to consider it out-of-date.
+
+## Disabling Gradle Module Metadata publication
+
+There are situations where you might want to disable publication of Gradle Module Metadata:
+
+- the repository you are uploading to rejects the metadata file (unknown format)
+- you are using Maven or Ivy specific concepts which are not properly mapped to Gradle Module Metadata
+
+In this case, disabling the publication of Gradle Module Metadata is done simply by disabling the task which generates the metadata file:
+
+<SampleScripts sample_name="modeling-features-cross-project-publications-advanced-published" basename="build" subpath="producer" tag="disable_gradle_metadata_publication" />

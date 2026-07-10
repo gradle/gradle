@@ -1,0 +1,80 @@
+---
+title: "Gradle & Third-party Tools"
+---
+
+import { Xref } from '#/components';
+
+Gradle can be integrated with many different third-party tools such as IDEs and continuous integration platforms.
+Here we look at some of the more common ones as well as how to integrate your own tool with Gradle.
+
+## IDEs
+
+<dl>
+<dt>Android Studio</dt>
+<dd>
+
+As a variant of IntelliJ IDEA, [Android Studio](https://developer.android.com/studio/) has built-in support for importing and building Gradle projects.
+You can also use the <Xref page="idea-plugin" section="The IDEA Plugin">IDEA Plugin for Gradle</Xref> to fine-tune the import process if that’s necessary.
+
+This IDE also has an [extensive user guide](https://developer.android.com/studio/intro/) to help you get the most out of the IDE and Gradle.
+
+</dd>
+<dt>Eclipse</dt>
+<dd>
+
+If you want to work on a project within Eclipse that has a Gradle build, you should use the [Eclipse Buildship plugin](https://projects.eclipse.org/projects/tools.buildship).
+This will allow you to import and run Gradle builds.
+If you need to fine tune the import process so that the project loads correctly, you can use the <Xref page="eclipse-plugin" section="The Eclipse Plugins">Eclipse Plugins for Gradle</Xref>.
+See [the associated release announcement](https://discuss.gradle.org/t/buildship-1-0-18-is-now-available/19012) for details on what fine tuning you can do.
+
+</dd>
+<dt>IntelliJ IDEA</dt>
+<dd>
+
+IDEA has built-in support for importing Gradle projects.
+If you need to fine tune the import process so that the project loads correctly, you can use the <Xref page="idea-plugin" section="The IDEA Plugin">IDEA Plugin for Gradle</Xref>.
+
+</dd>
+<dt>NetBeans</dt>
+<dd>
+
+Built-in support for Gradle in [Apache NetBeans](https://netbeans.apache.org/)
+
+</dd>
+<dt>Visual Studio</dt>
+<dd>
+
+For developing C++ projects, Gradle comes with a <Xref page="visual-studio-plugin" section="Visual Studio">Visual Studio plugin</Xref>.
+
+</dd>
+<dt>Xcode</dt>
+<dd>
+
+For developing C++ projects, Gradle comes with a <Xref page="xcode-plugin" section="Xcode">Xcode plugin</Xref>.
+
+</dd>
+<dt>CLion</dt>
+<dd>
+
+JetBrains supports building [C++ projects with Gradle](https://blog.jetbrains.com/clion/2018/05/clion-starts-2018-2-eap-sanitizers-gradle-db-performance/).
+
+</dd>
+</dl>
+
+## Continuous integration
+
+We have [dedicated guides](https://cookbook.gradle.org/ci/) showing you how to integrate a Gradle project with several CI platforms.
+
+## How to integrate with Gradle
+
+There are two main ways to integrate a tool with Gradle:
+
+- The Gradle build uses the tool
+- The tool executes the Gradle build
+
+The former case is typically <Xref page="plugins" section="Introduction to Plugins">implemented as a Gradle plugin</Xref>.
+The latter can be accomplished by embedding Gradle through the <Xref page="tooling-api" section="Tooling API">Tooling API</Xref>.
+
+## Test integration
+
+If your platform uses an external testing suite, and you want to integrate with the <Xref page="java-testing" section="Test reporting">HTML Test Report</Xref>, you can use the <Xref page="test-reporting-api" section="Test Event Reporting API">Test Reporting API</Xref>.

@@ -1,0 +1,19 @@
+
+------------------------------------------------------------
+Root project 'language-type'
+------------------------------------------------------------
+
+DocumentationComponent 'docs'
+-----------------------------
+
+Source sets
+    Markdown source 'docs:userguide'
+        srcDir: src/docs/userguide
+    Text source 'docs:reference'
+        srcDir: src/docs/reference
+
+Binaries
+    DocumentationBinary 'docs:exploded'
+        build using task: :docsExploded
+
+Note: currently not all plugins register their components, so some components may not be visible here.

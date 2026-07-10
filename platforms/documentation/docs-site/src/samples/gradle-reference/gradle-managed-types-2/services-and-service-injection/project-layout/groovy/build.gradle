@@ -1,7 +1,0 @@
-tasks.register('showLayout') {
-    doLast {
-        def layout = project.layout
-        println "Project Directory: ${layout.projectDirectory}"
-        println "Build Directory: ${layout.buildDirectory.get()}"
-    }
-}
