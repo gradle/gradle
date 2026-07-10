@@ -305,11 +305,11 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         // normalizedArtifactFor) eagerly calls artifact.getFile() on the LazyPublishArtifact,
         // which invokes TransformBackedProvider.beforeRead. That guard trips for `.map { ... }`
         // chains whose terminus is a raw java.io.File (rather than a FileSystemLocation).
-        // Issue #29253 reports only the CC-store failure, which IS fixed here — hence the
-        // negative-assertion approach below. The downstream execution failure is a separate
-        // defect tracked by the umbrella issue #24329. If either of these string assertions
-        // starts to look fragile after a codec-error-format refactor, replace them with a
-        // property-based check (e.g. inspect the CC problems report).
+        // Issue #29253 reports only the CC-store failure, which IS fixed here — the downstream
+        // execution failure is a separate defect tracked by the umbrella issue #24329.
+        //
+        // `configurationCache.assertStateStored()` is the guard for #29253: it fails if the
+        // CC entry was not stored (which is exactly what the codec bug prevented).
         when:
         fails "publishApksPublicationToMavenLocal"
 

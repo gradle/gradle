@@ -30,20 +30,19 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
  * Files-view of a Maven publication's artifact set that participates in configuration-cache
- * serialization via {@link PublicationArtifactSetFileCollection}. Query-time behavior
- * ({@code getFiles()}, task dependencies) matches the prior {@code MinimalFileSet}-based
- * implementation.
+ * serialization via {@link PublicationArtifactSetFileCollection}. {@code getFiles()} eagerly
+ * resolves each {@link MavenArtifact}'s file via {@link MavenArtifact#getFile()}; task
+ * dependencies are the aggregate of every artifact's own build dependencies.
  */
 @NullMarked
-class MavenArtifactsFileCollection extends AbstractFileCollection implements PublicationArtifactSetFileCollection {
-
+/* package */ class MavenArtifactsFileCollection extends AbstractFileCollection implements PublicationArtifactSetFileCollection {
     private final String publicationName;
     private final Iterable<MavenArtifact> artifacts;
 
@@ -60,7 +59,7 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        Set<File> files = new LinkedHashSet<>();
+        List<File> files = new ArrayList<>();
         for (MavenArtifact artifact : artifacts) {
             files.add(artifact.getFile());
         }
@@ -117,13 +116,17 @@ class MavenArtifactsFileCollection extends AbstractFileCollection implements Pub
             }
             if (inner instanceof LazyPublishArtifact lazy) {
                 if (lazy.getProvider().calculateExecutionTimeValue().hasFixedValue()) {
-                    // Provider is settled at configuration time. Reuse the existing
-                    // File / FileSystemLocation / Task / generic-Object dispatch inside
-                    // LazyPublishArtifact.getDelegate() to arrive at a File.
+                    // Invariant: `hasFixedValue()` reports true iff the provider's value chain
+                    // does not require a producer task to have executed. Under that invariant,
+                    // `lazy.getFile()` -> `getDelegate()` -> `provider.get()` is safe at
+                    // configuration time — no `TransformBackedProvider.beforeRead` guard can
+                    // trip, and the File / FileSystemLocation / Task / generic-Object dispatch
+                    // inside `getDelegate()` will resolve to a File.
                     return Providers.of(lazy.getFile());
                 } else {
-                    // Provider is still changing (e.g. issue #29253's .map(...) chain).
-                    // Capture the raw provider; the codec defers resolution to task execution.
+                    // Provider still has changing content (e.g. issue #29253's `.map(...)`
+                    // chain over a task output). Capture the raw provider; the codec defers
+                    // resolution to task execution time.
                     @SuppressWarnings("unchecked")
                     var fileProvider = (ProviderInternal<File>) lazy.getProvider();
                     return fileProvider;

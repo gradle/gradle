@@ -142,6 +142,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
     }
 
+    @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
     def 'can publish shadowed project'() {
         given:
         MavenFileRepository mavenRepo = new MavenFileRepository(file("maven-repo"))
@@ -210,4 +211,6 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.gradleup.shadow': Versions.of(TestedVersions.shadow)
         ]
     }
+
+
 }
