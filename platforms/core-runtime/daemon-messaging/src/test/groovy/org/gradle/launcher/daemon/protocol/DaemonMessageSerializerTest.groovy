@@ -126,6 +126,19 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result5.value.exception == null
     }
 
+    def "serializes a build failure whose exception cannot be reconstructed by the client as a placeholder"() {
+        expect:
+        def unserializable = new RuntimeException("broken") {
+            def thing = new Object()
+        }
+        def message = new Success(BuildActionResult.failed(unserializable))
+        def result = serialize(message, serializer)
+        result instanceof Success
+        result.value instanceof BuildActionResult
+        result.value.exception instanceof PlaceholderException
+        result.value.exception.message == "broken"
+    }
+
     def "can serialize Failure messages"() {
         expect:
         def failure = new RuntimeException()
