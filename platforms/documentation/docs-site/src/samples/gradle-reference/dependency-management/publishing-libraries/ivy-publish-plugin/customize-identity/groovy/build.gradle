@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'ivy-publish'
+}
+
+publishing {
+    repositories {
+        ivy {
+            url = layout.buildDirectory.dir('repo')
+        }
+    }
+    publications {
+        ivy(IvyPublication) {
+            organisation = 'org.gradle.sample'
+            module = 'project1-sample'
+            revision = '1.1'
+            descriptor.status = 'milestone'
+            descriptor.branch = 'testing'
+            descriptor.extraInfo 'http://my.namespace', 'myElement', 'Some value'
+
+            from components.java
+        }
+    }
+}

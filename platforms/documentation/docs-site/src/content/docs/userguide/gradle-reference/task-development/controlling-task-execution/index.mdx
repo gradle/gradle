@@ -1,0 +1,345 @@
+---
+title: "Controlling Task Execution"
+---
+
+Task dependencies allow tasks to be executed in a specific order based on their dependencies.
+This ensures that tasks dependent on others are only executed after those dependencies have completed.
+
+{/* converter-gap: node=image */}
+
+Task dependencies can be categorized as either **implicit** or **explicit**:
+
+{/* converter-gap: node=dlist */}
+
+Both implicit and explicit dependencies play a crucial role in defining the order of task execution and ensuring that tasks are executed in the correct sequence to produce the desired build output.
+
+## Task dependencies
+
+Gradle inherently understands the dependencies among tasks.
+Consequently, it can determine the tasks that need execution when you target a specific task.
+
+Let&#8217;s take an example application with an `app` subproject and a `some-logic` subproject:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Let&#8217;s imagine that the `app` subproject depends on the subproject called `some-logic`, which contains some Java code.
+We add this dependency in the `app` build script:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+If we run `:app:build` again, we see the Java code of `some-logic` is also compiled by Gradle automatically:
+
+```bash
+$ ./gradlew :app:build
+```
+
+```text
+> Task :app:processResources NO-SOURCE
+> Task :app:processTestResources NO-SOURCE
+> Task :some-logic:compileJava UP-TO-DATE
+> Task :some-logic:processResources NO-SOURCE
+> Task :some-logic:classes UP-TO-DATE
+> Task :some-logic:jar UP-TO-DATE
+> Task :app:compileJava
+> Task :app:classes
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 430ms
+9 actionable tasks: 5 executed, 4 up-to-date
+```
+
+## Adding dependencies
+
+There are several ways you can define the dependencies of a task.
+
+Defining dependencies using task names and the [dependsOn()`]({javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object&#8230;&#8203;-) method is simplest.
+
+The following is an example which adds a dependency from `taskX` to `taskY`:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+```bash
+$ ./gradlew -q taskX
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
+```
+
+For more information about task dependencies, see the [Task]({javadocPath}/org/gradle/api/Task.html) API.
+
+## Ordering tasks
+
+In some cases, it is useful to control the _order_ in which two tasks will execute, without introducing an explicit dependency between those tasks.
+
+The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
+
+Task ordering can be useful in a number of scenarios:
+
+- Enforce sequential ordering of tasks (e.g., `build` never runs before `clean`).
+- Run build validations early in the build (e.g., validate I have the correct credentials before starting the work for a release build).
+- Get feedback faster by running quick verification tasks before long verification tasks (e.g., unit tests should run before integration tests).
+- A task that aggregates the results of all tasks of a particular type (e.g., test report task combines the outputs of all executed test tasks).
+
+Two ordering rules are available: "_must run after_" and "_should run after_".
+
+To specify a "must run after" or "should run after" ordering between 2 tasks, you use the [Task.mustRunAfter(java.lang.Object...)]({javadocPath}/org/gradle/api/Task.html#mustRunAfter-java.lang.Object&#8230;&#8203;-) and [Task.shouldRunAfter(java.lang.Object...)]({javadocPath}/org/gradle/api/Task.html#shouldRunAfter-java.lang.Object&#8230;&#8203;-) methods.
+These methods accept a task instance, a task name, or any other input accepted by [Task.dependsOn(java.lang.Object...)]({javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object&#8230;&#8203;-).
+
+When you use "must run after", you specify that `taskY` must always run after `taskX` when the build requires the execution of `taskX` and `taskY`.
+So if you only run `taskY` with `mustRunAfter`, you won&#8217;t cause `taskX` to run.
+This is expressed as `taskY.mustRunAfter(taskX)`.
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/mustRunAfter/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/mustRunAfter/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q taskY taskX
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
+```
+
+The "should run after" ordering rule is similar but less strict, as it will be ignored in two situations:
+
+1. If using that rule introduces an ordering cycle.
+2. When using parallel execution and all task dependencies have been satisfied apart from the "should run after" task, then this task will be run regardless of whether or not its "should run after" dependencies have been run.
+
+You should use "should run after" where the ordering is helpful but not strictly required:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/shouldRunAfter/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/shouldRunAfter/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q taskY taskX
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out[]
+```
+
+In the examples above, it is still possible to execute `taskY` without causing `taskX` to run:
+
+```bash
+$ ./gradlew -q taskY
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
+```
+
+The "should run after" ordering rule will be ignored if it introduces an ordering cycle:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/shouldRunAfterWithCycle/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/shouldRunAfterWithCycle/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q taskX
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
+```
+
+Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not imply any execution dependency between the tasks:
+
+- It is possible to execute `taskX` and `taskY` independently. The ordering rule only has an effect when both tasks are scheduled for execution.
+- When run with `--continue`, it is possible for `taskY` to execute if `taskX` fails.
+
+## Finalizer tasks
+
+Finalizer tasks are useful when the build creates a resource that must be cleaned up, regardless of whether the build fails or succeeds.
+An example of such a resource is a web container that is started before an integration test task and must be shut down, even if some tests fail.
+
+Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
+
+To specify a finalizer task, you use the [Task.finalizedBy(java.lang.Object&#8230;&#8203;)]({javadocPath}/org/gradle/api/Task.html#finalizedBy-java.lang.Object&#8230;&#8203;-) method.
+This method accepts a task instance, a task name, or any other input accepted by [Task.dependsOn(java.lang.Object&#8230;&#8203;)]({javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object&#8230;&#8203;-):
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/finalizers/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/finalizers/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q taskX
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
+```
+
+Finalizer tasks are executed even if the finalized task fails or if the finalized task is considered `UP-TO-DATE`:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/finalizersWithFailure/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/finalizersWithFailure/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q taskX
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
+```
+
+## Skipping tasks
+
+Gradle offers multiple ways to skip the execution of a task.
+
+### 1. Using a predicate
+
+You can use [`Task.onlyIf`]({javadocPath}/org/gradle/api/Task.html#onlyIf-org.gradle.api.specs.Spec-) to attach a predicate to a task.
+The task&#8217;s actions will only be executed if the predicate is evaluated to be `true`.
+
+The predicate is passed to the task as a parameter and returns `true` if the task will execute and `false` if the task will be skipped.
+The predicate is evaluated just before the task is executed.
+
+Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/taskOnlyIf/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/taskOnlyIf/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew hello -PskipHello
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
+```
+
+To find why a task was skipped, run the build with the `--info` logging level.
+
+```bash
+$ ./gradlew hello -PskipHello --info
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf-info.out[]
+```
+
+### 2. Using `StopExecutionException`
+
+If the logic for skipping a task can&#8217;t be expressed with a predicate, you can use the [`StopExecutionException`]({javadocPath}/org/gradle/api/tasks/StopExecutionException.html).
+
+If this exception is thrown by an action, the task action as well as the execution of any following action is skipped.
+The build continues by executing the next task:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/stopExecutionException/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/stopExecutionException/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q myTask
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionException.out[]
+```
+
+This feature is helpful if you work with tasks provided by Gradle.
+It allows you to add _conditional_ execution of the built-in actions of such a task.{/* converter-gap: node=inline_footnote */}(default_script_imports.mdx#script-default-imports)).]
+
+### 3. Enabling and Disabling tasks
+
+Every task has an `enabled` flag, which defaults to `true`.
+Setting it to `false` prevents executing the task&#8217;s actions.
+
+A disabled task will be labeled `SKIPPED`:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/disableTask/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/disableTask/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew disableMe
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out[]
+```
+
+### 4. Task timeouts
+
+Every task has a `timeout` property, which can be used to limit its execution time.
+When a task reaches its timeout, its task execution thread is interrupted.
+The task will be marked as `FAILED`.
+
+[Finalizer tasks](#sec:finalizer_tasks) are executed.
+If `--continue` is used, other tasks continue running.
+
+Tasks that don&#8217;t respond to interrupts can&#8217;t be timed out.
+All of Gradle&#8217;s built-in tasks respond to timeouts.
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/timeout/kotlin" files="build.gradle.kts[tags=without-import]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/timeout/groovy" files="build.gradle[]" */}
+
+## Task rules
+
+Sometimes you want to have a task whose behavior depends on a large or infinite number value range of parameters.
+A very nice and expressive way to provide such tasks are task rules:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/addRules/kotlin" files="build.gradle.kts[tags=task-rule]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/addRules/groovy" files="build.gradle[tags=task-rule]" */}
+
+```bash
+$ ./gradlew -q pingServer1
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/addRules/tests/taskRule.out[]
+```
+
+The `String` parameter is used as a description for the rule, which is shown with `./gradlew tasks`.
+
+Rules are not only used when calling tasks from the command line.
+You can also create `dependsOn` relations on rule based tasks:
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/addRules/kotlin" files="build.gradle.kts[tags=all]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/task-development/addRules/groovy" files="build.gradle[tags=all]" */}
+
+```bash
+$ ./gradlew -q groupPing
+```
+
+```text
+Unresolved directive in controlling_task_execution.adoc - include::{snippetsPath}/tasks/addRules/tests/taskRuleDependsOn.out[]
+```
+
+If you run `./gradlew -q tasks`, you won&#8217;t find a task named `pingServer1` or `pingServer2`, but this script is executing logic based on the request to run those tasks.
+
+## Exclude tasks from execution
+
+You can exclude a task from execution using the `-x` or `--exclude-task` command-line option and provide the task&#8217;s name to exclude.
+
+```bash
+$ ./gradlew build -x test
+```
+
+For instance, you can run the `check` task but exclude the `test` task from running.
+This approach can lead to unexpected outcomes, particularly if you exclude an actionable task that produces results needed by other tasks.
+Instead of relying on the `-x` parameter, defining a suitable lifecycle task for the desired action is recommended.
+
+Using `-x` is a practice that should be avoided, although still commonly observed.

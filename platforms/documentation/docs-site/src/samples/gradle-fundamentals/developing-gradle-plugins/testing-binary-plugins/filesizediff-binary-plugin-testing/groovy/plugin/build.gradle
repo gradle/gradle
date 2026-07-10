@@ -1,0 +1,66 @@
+// tag::simple[]
+plugins {
+    id('java-gradle-plugin')    // <1>
+}
+
+// tag::plugin-id[]
+group = "org.example"   // <3>
+version = "1.0.0"
+// end::plugin-id[]
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {  // <2>
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.10.0')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.10.0')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+}
+
+// tag::plugin-id[]
+gradlePlugin {  // <3>
+    plugins {
+        filesizediff {
+            id = 'org.example.filesizediff'
+            implementationClass = 'org.example.FileSizeDiffPlugin'
+        }
+    }
+}
+// end::plugin-id[]
+// end::simple[]
+
+// Created by gradle init
+
+// Add a source set for the functional test suite
+sourceSets {
+    functionalTest {
+    }
+}
+
+configurations {
+    functionalTestImplementation.extendsFrom(testImplementation)
+    functionalTestRuntimeOnly.extendsFrom(testRuntimeOnly)
+}
+
+// Add a task to run the functional tests
+tasks.register('functionalTest', Test) {
+    description = 'Runs functional tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+// Include functional test source set in plugin validation
+gradlePlugin.testSourceSets.add(sourceSets.functionalTest)
+
+// Run functional tests as part of check
+tasks.named('check', Task) {
+    dependsOn tasks.named('functionalTest')
+}
+
+// Use JUnit Platform for unit tests
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}

@@ -1,0 +1,7 @@
+AdhocComponentWithVariants javaComponent = (AdhocComponentWithVariants) project.components.findByName("java")
+javaComponent.addVariantsFromConfiguration(outgoing) {
+    // dependencies for this variant are considered runtime dependencies
+    it.mapToMavenScope("runtime")
+    // and also optional dependencies, because we don't want them to leak
+    it.mapToOptional()
+}

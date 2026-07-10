@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=build_lifecycle_intermediate.html">
-++++

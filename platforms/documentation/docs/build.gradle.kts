@@ -35,11 +35,11 @@ androidHomeWarmup {
 }
 
 configurations {
-    consumable("gradleFullDocsElements") {
+    consumable("gradleReferenceDocumentationElements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-reference-documentation"))
         }
     }
 }
@@ -99,13 +99,6 @@ gradleDocumentation {
     }
 }
 
-tasks.named<Sync>("stageDocs") {
-    // Add samples to generated documentation
-    from(samples.distribution.renderedDocumentation) {
-        into("samples")
-    }
-}
-
 samples {
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
     // iterate through each snippets and record their names and locations
@@ -147,21 +140,12 @@ tasks.named<Wrapper>("generateWrapperForSamples") {
     validateDistributionUrl = false
 }
 
-// TODO: The rich console to plain text is flaky
-tasks.named("checkAsciidoctorSampleContents") {
-    enabled = false
-}
-
 // exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
 tasks.withType<InstallSample>().configureEach {
     if (name.contains("ForTest")) {
         excludes.add("gradle/wrapper/**")
         excludes.add("README")
     }
-}
-
-tasks.named("quickTest") {
-    dependsOn("checkDeadInternalLinks")
 }
 
 // TODO add some kind of test precondition support in sample test conf
@@ -290,9 +274,9 @@ tasks.named<Test>("docsTest") {
 // Publications for the docs subproject:
 
 configurations {
-    named("gradleFullDocsElements") {
-        outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot) {
-            builtBy(tasks.named("docs"))
+    named("gradleReferenceDocumentationElements") {
+        outgoing.artifact(layout.buildDirectory.dir("references")) {
+            builtBy(tasks.named("stageReferenceDocs"))
         }
     }
 }

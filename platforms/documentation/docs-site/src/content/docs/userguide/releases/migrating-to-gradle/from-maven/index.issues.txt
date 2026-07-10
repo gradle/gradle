@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 1,
+    "endLine": 654,
+    "problem": "Most internal User Guide links were kept as external docs.gradle.org links because the target pages have not been migrated yet. These should be updated to site-relative links once the corresponding pages are migrated. Affected targets include: java_plugin, java_library_plugin, base_plugin, checkstyle_plugin, publishing_maven, build_init_plugin, distribution_plugin, java_library_distribution_plugin, application_plugin, war_plugin, multi_project_builds, dependency_constraints, dependency_configurations, declaring_dependencies, declaring_repositories_basics, supported_repository_types, dependency_caching, dependency_versions, java_platform_plugin, java_testing, build_lifecycle, organizing_tasks, custom_tasks, incremental_build, working_with_files, build_environment, organizing_gradle_projects, logging, ant, sharing_build_logic_between_subprojects, how_to_create_feature_variants_of_a_library, platforms, building_java_projects, writing_build_scripts."
+  },
+  {
+    "startLine": 370,
+    "endLine": 410,
+    "problem": "The profiles sample in the source adoc shows all four files (build.gradle.kts, profile-default.gradle.kts, profile-test.gradle.kts, profile-prod.gradle.kts) as a single multi-file sample block with a single set of callout descriptions. In the migration, these are shown as four separate SampleScripts components because SampleScripts only supports one basename at a time. The callout annotations (1-4) are split: callouts 1-3 appear after the build script, and callout 4 appears after the profile scripts."
+  },
+  {
+    "startLine": 200,
+    "endLine": 230,
+    "problem": "The source links to 'link:../samples/sample_structuring_software_projects.html' (a relative samples page link). This was kept as an external docs.gradle.org link since there is no local equivalent in the new system yet."
+  }
+]

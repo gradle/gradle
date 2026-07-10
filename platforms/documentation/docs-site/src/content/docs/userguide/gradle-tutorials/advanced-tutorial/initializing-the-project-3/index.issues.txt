@@ -1,0 +1,22 @@
+[
+  {
+    "startLine": 178,
+    "endLine": 185,
+    "problem": "The AsciiDoc source uses [.multi-language-text.lang-kotlin] and [.multi-language-text.lang-groovy] blocks in Step 4 to show language-conditional text ('You can find it at plugin/src/main/kotlin/... (Kotlin)' vs 'plugin/src/main/groovy/... (Groovy)'). The new MDX system has no equivalent for language-conditional inline text. Both paths are merged into a single sentence mentioning both variants."
+  },
+  {
+    "startLine": 20,
+    "endLine": 22,
+    "problem": "The AsciiDoc source uses a ****....**** sidebar block for the 'In this section, you'll' summary. The new MDX system has no direct equivalent sidebar block. It was migrated as a plain bulleted list with HR separators."
+  },
+  {
+    "startLine": 80,
+    "endLine": 99,
+    "problem": "The multi-language project layout trees (Step 2) were originally [.multi-language-sample] blocks with AsciiDoc callout syntax (<1>, <2>, etc.). In the new system, the callout definitions are inlined as comments in the code block since the code represents a directory tree (not runnable code). The callouts were migrated inline as '// <N> Description' comments."
+  },
+  {
+    "startLine": 3,
+    "endLine": 3,
+    "problem": "Source has stray '// tag::plugins[]' line in the Groovy plugin-init tagged content extraction (old-userguide/src/snippets/plugins/plugin-tutorial/groovy/plugin/build.gradle, around line 3 of extracted content). This was omitted in the migrated sample as it is a tag marker artifact and not part of the intended displayed content."
+  }
+]

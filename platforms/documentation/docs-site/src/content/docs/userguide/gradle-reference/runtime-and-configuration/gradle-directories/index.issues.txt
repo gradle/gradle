@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 41,
+    "endLine": 41,
+    "problem": "Link to init_scripts.adoc kept as external URL (https://docs.gradle.org/current/userguide/init_scripts.html) because there is no 'init-scripts' page found in the sidebar structure. Should be updated once that page is migrated."
+  },
+  {
+    "startLine": 52,
+    "endLine": 52,
+    "problem": "Link to build_environment.adoc kept as external URL (https://docs.gradle.org/current/userguide/build_environment.html) because there is no 'build-environment' page found in the sidebar structure. Should be updated once that page is migrated."
+  },
+  {
+    "startLine": 111,
+    "endLine": 111,
+    "problem": "Link to init_scripts.adoc (init script) kept as external URL for same reason as above."
+  }
+]

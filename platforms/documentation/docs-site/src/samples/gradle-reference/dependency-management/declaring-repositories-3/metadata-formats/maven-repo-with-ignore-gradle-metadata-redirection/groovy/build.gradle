@@ -1,0 +1,10 @@
+repositories {
+    maven {
+        url = "http://repo.mycompany.com/repo"
+        metadataSources {
+            mavenPom()
+            artifact()
+            ignoreGradleMetadataRedirection()
+        }
+    }
+}

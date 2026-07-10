@@ -1,0 +1,15 @@
+abstract class MyIntroTask extends DefaultTask {
+    @Input
+    abstract Property<String> getConfiguration()
+
+    @TaskAction
+    void printConfiguration() {
+        println "Configuration value: ${configuration.get()}"
+    }
+}
+
+Provider<String> configurationProvider = project.provider { "Hello, Gradle!" }
+
+tasks.register("myIntroTask", MyIntroTask) {
+    configuration = configurationProvider
+}

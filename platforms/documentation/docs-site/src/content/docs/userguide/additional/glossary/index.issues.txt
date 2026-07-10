@@ -1,0 +1,72 @@
+[
+  {
+    "startLine": 58,
+    "endLine": 58,
+    "problem": "Link to /reference/dependency-management/component-capabilities/#sec:declaring-component-capabilities — target page 'component_capabilities.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 78,
+    "endLine": 78,
+    "problem": "Link to /reference/dependency-management/component-metadata-rules/#component-metadata-rules — target page 'component_metadata_rules.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 86,
+    "endLine": 86,
+    "problem": "Links to /reference/dependency-management/dependency-configurations/#sub:what-are-dependency-configurations and /reference/dependency-management/declaring-configurations/#sec:resolvable-consumable-configs — target pages 'dependency_configurations.adoc' and 'declaring_configurations.adoc' may not yet be migrated. Links preserved as best-effort local paths."
+  },
+  {
+    "startLine": 175,
+    "endLine": 175,
+    "problem": "Link to /reference/dependency-management/declaring-dependencies/#one-declaring-dependencies — target page 'declaring_dependencies.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 184,
+    "endLine": 184,
+    "problem": "Link to /reference/dependency-management/dependency-constraints/#dependency-constraints — target page 'dependency_constraints.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 231,
+    "endLine": 231,
+    "problem": "Link to /reference/dependency-management/how-to-create-feature-variants-of-a-library/#feature_variants — target page 'how_to_create_feature_variants_of_a_library' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 305,
+    "endLine": 305,
+    "problem": "Link to /reference/dependency-management/publishing-gradle-module-metadata/#sec:understanding-gradle-module-md — target page 'publishing_gradle_module_metadata.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 329,
+    "endLine": 329,
+    "problem": "Link to /reference/dependency-management/how-to-align-dependency-versions/#sec:virtual_platform — target page 'how_to_align_dependency_versions.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 332,
+    "endLine": 332,
+    "problem": "Link to /reference/dependency-management/platforms/#sec:bom-import — target page 'platforms.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 382,
+    "endLine": 382,
+    "problem": "Link to /reference/dependency-management/declaring-repositories/#three-declaring-repositories — target page 'declaring_repositories.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 390,
+    "endLine": 390,
+    "problem": "Link to /reference/dependency-management/resolution-rules/#using-resolution-rules — target page 'resolution_rules.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 449,
+    "endLine": 449,
+    "problem": "Link to /reference/dependency-management/variant-aware-resolution/#sec:understanding-variant-selection — target page 'variant_aware_resolution.adoc' may not yet be migrated. Link preserved as best-effort local path."
+  },
+  {
+    "startLine": 460,
+    "endLine": 460,
+    "problem": "Links to /reference/dependency-management/variant-aware-resolution/#sec:understanding-variant-selection and /reference/dependency-management/variant-attributes/#variant-attributes — target pages may not yet be migrated. Links preserved as best-effort local paths."
+  },
+  {
+    "startLine": 73,
+    "endLine": 73,
+    "problem": "The 'Component Metadata Rule' entry has no explicit anchor in the source AsciiDoc (no [[...]] preceding it). No <div id> was added since the source did not define one."
+  }
+]

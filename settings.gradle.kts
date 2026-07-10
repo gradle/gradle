@@ -180,9 +180,8 @@ val core = platform("core") {
 // Documentation Module
 module("documentation") {
     subproject("docs")
-    subproject("docs-asciidoctor-extensions-base")
-    subproject("docs-asciidoctor-extensions")
     subproject("samples")
+    subproject("docs-site")
 }
 
 // IDE Module

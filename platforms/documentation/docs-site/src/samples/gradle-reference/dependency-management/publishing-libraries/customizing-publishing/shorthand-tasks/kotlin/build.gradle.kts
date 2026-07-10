@@ -1,0 +1,7 @@
+tasks.register("publishToExternalRepository") {
+    group = "publishing"
+    description = "Publishes all Maven publications to the external Maven repository."
+    dependsOn(tasks.withType<PublishToMavenRepository>().matching {
+        it.repository == publishing.repositories["external"]
+    })
+}

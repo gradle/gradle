@@ -1,0 +1,5 @@
+tasks.named('integTest') {
+    inputs.property("langEnvironment") {
+        System.getenv("LANG")
+    }
+}

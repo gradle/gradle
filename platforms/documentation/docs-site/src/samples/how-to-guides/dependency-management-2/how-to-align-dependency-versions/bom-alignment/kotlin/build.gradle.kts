@@ -1,0 +1,13 @@
+plugins {
+    id("application")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.8.9"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.8.9")
+    implementation("io.vertx:vertx-core:3.5.3")
+}

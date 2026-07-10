@@ -1,0 +1,27 @@
+[
+  {
+    "startLine": 177,
+    "endLine": 177,
+    "problem": "The link to 'publishing_maven.adoc#publishing_maven:resolved_dependencies' was mapped to the 'maven-publish-plugin' page target (/gradle-reference/dependency-management/publishing-libraries/maven-publish-plugin/#publishing_maven:resolved_dependencies) since that is the target in sidebar-structure.json. The source referenced 'publishing_maven.adoc' but the page is not yet migrated (status=pending). Fragment '#publishing_maven:resolved_dependencies' may need to be updated once the target page is migrated."
+  },
+  {
+    "startLine": 237,
+    "endLine": 237,
+    "problem": "The link to 'platforms.adoc#sec:sharing-dep-versions-between-projects' was mapped to the 'creating-platforms' page target (/gradle-reference/dependency-management/centralizing-dependencies-2/creating-platforms/#sec:sharing-dep-versions-between-projects). The source referenced 'platforms.adoc' but the page is not yet migrated (status=pending). Fragment '#sec:sharing-dep-versions-between-projects' may need to be updated once the target page is migrated."
+  },
+  {
+    "startLine": 288,
+    "endLine": 288,
+    "problem": "The link to 'declaring_dependencies_basics.adoc#sec:file-dependencies' was mapped to 'declaring-dependencies-3' page target (/gradle-reference/dependency-management/declaring-dependencies-4/declaring-dependencies-3/#sec:file-dependencies). Page is not yet migrated (status=pending). Fragment '#sec:file-dependencies' may need to be updated once the target page is migrated."
+  },
+  {
+    "startLine": 62,
+    "endLine": 62,
+    "problem": "The link to 'graph_resolution.adoc#sec:base-version-comparison' was mapped to '/gradle-reference/dependency-management/advanced-concepts/graph-resolution/#sec:base-version-comparison'. Page is not yet migrated (status=pending). Fragment '#sec:base-version-comparison' may need to be updated once the target page is migrated."
+  },
+  {
+    "startLine": 290,
+    "endLine": 290,
+    "problem": "The link to 'graph_resolution.adoc#sec:how-gradle-downloads-deps' was mapped to '/gradle-reference/dependency-management/advanced-concepts/graph-resolution/#sec:how-gradle-downloads-deps'. Page is not yet migrated (status=pending). Fragment '#sec:how-gradle-downloads-deps' may need to be updated once the target page is migrated."
+  }
+]

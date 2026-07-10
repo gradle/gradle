@@ -1,0 +1,98 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+
+export interface Props {
+  sample: string;
+  subpath?: string;
+  action?: 'view' | 'download';
+  label?: string;
+  align?: 'left' | 'right';
+}
+
+const SAMPLE_REPOSITORY_BASE_URL = 'https://github.com/gradle/gradle-user-guide-astro-experiment/tree/main';
+
+function normalizeSubpath(subpath?: string): string {
+  if (!subpath) {
+    return '';
+  }
+
+  return subpath.replace(/^\/+|\/+$/g, '');
+}
+
+function getSamplePrefix(sample: string): string {
+  return `src/samples/${sample}`;
+}
+
+function getSampleRepositoryPath(sample: string, subpath?: string): string {
+  const normalizedSubpath = normalizeSubpath(subpath);
+
+  return normalizedSubpath
+    ? `${getSamplePrefix(sample)}/${normalizedSubpath}`
+    : getSamplePrefix(sample);
+}
+
+const {
+  sample,
+  subpath,
+  action = 'view',
+  label,
+  align = 'right',
+} = Astro.props;
+
+const repositoryPath = getSampleRepositoryPath(sample, subpath);
+const treeUrl = `${SAMPLE_REPOSITORY_BASE_URL}/${repositoryPath}`;
+const href = action === 'download'
+  ? `https://download-directory.github.io/?url=${encodeURIComponent(treeUrl)}`
+  : treeUrl;
+
+const text = label ?? (action === 'download' ? 'Download Sample' : 'View on GitHub');
+const rel = 'noreferrer';
+---
+
+<div class:list={['github-button', `github-button--${align}`]}>
+  <a class="github-button-link" href={href} target="_blank" rel={rel}>
+    <Icon name="github" size="1.1rem" />
+    {text}
+  </a>
+</div>
+
+<style>
+  .github-button {
+    margin: 1rem 0;
+  }
+
+  .github-button--right {
+    text-align: right;
+  }
+
+  .github-button--left {
+    text-align: left;
+  }
+
+  .github-button-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 24%, transparent);
+    border-radius: 999px;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    font-weight: 600;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--sl-color-black) 82%, transparent), var(--sl-color-black)),
+      linear-gradient(135deg, color-mix(in srgb, var(--sl-color-accent) 18%, transparent), transparent 70%);
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .github-button-link :global(svg) {
+    flex: none;
+  }
+
+  .github-button-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--sl-color-accent);
+  }
+</style>

@@ -1,0 +1,14 @@
+interface InjectedFsOps {
+    @Inject //@javax.inject.Inject
+    FileSystemOperations getFs()
+}
+
+tasks.register('myAdHocFileSystemOperationsTask') {
+    def injected = project.objects.newInstance(InjectedFsOps)
+    doLast {
+        injected.fs.copy {
+            from 'source'
+            into 'destination'
+        }
+    }
+}

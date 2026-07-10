@@ -1,0 +1,35 @@
+---
+title: "Toolchain Resolver Plugins"
+---
+
+In Gradle version 7.6 and above, Gradle provides a way to define Java toolchain auto-provisioning logic in plugins.
+This page explains how to author a toolchain resolver plugin.
+For details on how toolchain auto-provisioning interacts with these plugins, see [Toolchains](toolchains.mdx#sub:download_repositories).
+
+## Provide a download URI
+
+Toolchain resolver plugins provide logic to map a [toolchain request]({javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRequest.html) to a [download response]({javadocPath}/org/gradle/jvm/toolchain/JavaToolchainDownload.html).
+At the moment the download response only contains a download URL, but may be extended in the future.
+
+:::caution
+For the download URL only secure protocols like `https` are accepted.
+This is required to make sure no one can tamper with the download in flight.
+:::
+
+The plugins provide the mapping logic via an implementation of [JavaToolchainResolver]({javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html):
+
+```java
+Unresolved directive in toolchain_plugins.adoc - include::{snippetsPath}/reference/platforms/jvm/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverImplementation.java[tags=java-toolchain-resolver-implementation]
+```
+
+{/* converter-gap: node=colist */}
+
+## Register the resolver in a plugin
+
+Use a settings plugin (`Plugin&lt;Settings&gt;`) to register the `JavaToolchainResolver` implementation:
+
+```java
+Unresolved directive in toolchain_plugins.adoc - include::{snippetsPath}/reference/platforms/jvm/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverPlugin.java[tags=java-toolchain-resolver-plugin]
+```
+
+{/* converter-gap: node=colist */}

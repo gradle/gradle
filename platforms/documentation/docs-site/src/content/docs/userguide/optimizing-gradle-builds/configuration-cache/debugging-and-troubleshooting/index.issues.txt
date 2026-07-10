@@ -1,0 +1,32 @@
+[
+  {
+    "startLine": 37,
+    "endLine": 37,
+    "problem": "Source AsciiDoc has a typo in the code block language marker: '[soure,text]' instead of '[source,text]'. Preserved as-is in migration (code block is still rendered as text)."
+  },
+  {
+    "startLine": 38,
+    "endLine": 43,
+    "problem": "The source text code block mixes static text with 'include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]' and then appends a static line 'Configuration Cache entry discarded with 1 problem.' after the include. The included fail.out file already ends with that line, so it appears duplicated. Migrated by inlining the full fail.out content (without duplication) plus the leading static text, matching the intended meaning."
+  },
+  {
+    "startLine": 275,
+    "endLine": 286,
+    "problem": "The TestKit sample files are Kotlin (.kt) and Groovy (.groovy) test files, not build scripts. SampleScripts component only supports .gradle/.gradle.kts/.gradle.dcl files. Migrated using SampleFile with Tabs/TabItem components instead."
+  },
+  {
+    "startLine": 273,
+    "endLine": 275,
+    "problem": "Link to 'test_kit.adoc' (dedicated chapter for TestKit) uses an assumed path '/reference/gradle-optimizations/test-kit/#test_kit'. This page may not be migrated yet; the path is speculative and should be verified."
+  },
+  {
+    "startLine": 64,
+    "endLine": 66,
+    "problem": "Links to 'configuration_cache_requirements.adoc' and 'configuration_cache_status.adoc' are internal links to pages that may not be migrated yet. Paths assumed as '/optimizing-gradle-builds/configuration-cache/configuration-cache-requirements/' and '/optimizing-gradle-builds/configuration-cache/configuration-cache-status/' — should be verified after migration of those pages."
+  },
+  {
+    "startLine": 69,
+    "endLine": 69,
+    "problem": "Link to 'configuration_cache_enabling.adoc' assumes path '/optimizing-gradle-builds/configuration-cache/enabling-the-configuration-cache/'. Should be verified after migration of that page."
+  }
+]

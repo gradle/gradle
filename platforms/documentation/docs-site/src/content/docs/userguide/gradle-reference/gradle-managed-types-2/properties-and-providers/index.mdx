@@ -1,0 +1,206 @@
+---
+title: "Properties and Providers"
+---
+
+Gradle provides properties that are important for [lazy configuration](lazy_configuration.mdx#lazy_configuration).
+When implementing a custom task or plugin, it&#8217;s imperative that you use these lazy properties.
+
+Gradle represents lazy properties with two interfaces:
+
+1. [Property]({javadocPath}/org/gradle/api/provider/Property.html) - Represents a value that can be queried and changed.
+2. [Provider]({javadocPath}/org/gradle/api/provider/Provider.html) - Represents a value that can only be queried and cannot be changed.
+
+Properties and providers manage _values and configurations_ in a build script.
+
+In this example, `configuration` is a `Property&lt;String&gt;` that is set to the `configurationProvider` `Provider&lt;String&gt;`.
+The `configurationProvider` lazily provides the value `"Hello, Gradle!"`:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/kotlin" files="build.gradle.kts[tags=introduction]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/groovy" files="build.gradle[tags=introduction]" */}
+
+## Understanding Properties
+
+Properties in Gradle are variables that hold values.
+They can be defined and accessed within the build script to store information like file paths, version numbers, or custom values.
+
+Properties can be set and retrieved using the `project` object:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/kotlin" files="build.gradle.kts[tags=set-prop]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/groovy" files="build.gradle[tags=set-prop]" */}
+
+Properties:
+
+- Properties with these types are configurable.
+- `Property` extends the `Provider` interface.
+- The method [Property.set(T)]({javadocPath}/org/gradle/api/provider/Property.html#set-T-) specifies a value for the property, overwriting whatever value may have been present.
+- The method [Property.set(Provider)]({javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-) specifies a `Provider` for the value for the property, overwriting whatever value may have been present.
+This allows you to wire together `Provider` and `Property` instances before the values are configured.
+- A `Property` can be created by the factory method [ObjectFactory.property(Class)]({javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-).
+
+## Understanding Providers
+
+Providers are objects that represent a value that may not be immediately available.
+Providers are useful for lazy evaluation and can be used to model values that may change over time or depend on other tasks or inputs:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/kotlin" files="build.gradle.kts[tags=set-prov]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/groovy" files="build.gradle[tags=set-prov]" */}
+
+Providers:
+
+- Properties with these types are read-only.
+- The method [Provider.get()]({javadocPath}/org/gradle/api/provider/Provider.html#get--) returns the current value of the property.
+- A `Provider` can be created from another `Provider` using [Provider.map(Transformer)]({javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-).
+- Many other types extend `Provider` and can be used wherever a `Provider` is required.
+
+## Chaining Providers
+
+Chaining `Providers` preserves laziness and is essential to use when writing build logic.
+
+These methods allow you to transform, combine, or provide fallback values without triggering eager evaluation:
+
+{/* converter-gap: node=table */}
+
+Using `map()` is a common example:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/basics/kotlin/my-sub-project" files="build.gradle.kts[tags=transform]" */}
+
+You can see the following example for a detailed breakdown at `Provider` chaining using `map()`:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/example/groovy/app" files="build.gradle[tags=type]" */}
+
+## Using Gradle Managed Properties
+
+Gradle&#8217;s managed properties allow you to declare properties as getters (Java, Groovy) or properties (Kotlin).
+
+Gradle then automatically provides the implementation for these properties, managing their state.
+
+A property may be _mutable_, meaning that it is of type `Property`, which has both a `get()` and a `set()` method:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/kotlin" files="build.gradle.kts[tags=prop-managed]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/groovy" files="build.gradle[tags=prop-managed]" */}
+
+Or _read-only_, meaning that it is of type `Provider`, which only has a `get()` method:
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/kotlin" files="build.gradle.kts[tags=prov-managed]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/groovy" files="build.gradle[tags=prov-managed]" */}
+
+### Mutable Managed Properties
+
+A mutable managed property is declared using a getter method of type `Property&lt;T&gt;`, where `T` can be any serializable type or a [fully managed Gradle type](#managed_types).
+The property must not have any setter methods.
+
+Here is an example of a task type with an `uri` property of type `URI`:
+
+```java
+Unresolved directive in properties_providers.adoc - include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+```
+
+Note that for a property to be considered a mutable managed property, the property&#8217;s getter methods must have `public` or `protected` visibility.
+It is recommended to also make the property `abstract`, so Gradle can manage the initialization of the property.
+
+The property type must be one of the following:
+
+{/* converter-gap: node=table */}
+
+### Read-only Managed Properties (Providers)
+
+You can declare a read-only managed property, also known as a provider, using a getter method of type `Provider&lt;T&gt;`.
+The method implementation needs to derive the value.
+It can, for example, derive the value from other properties.
+
+Here is an example of a task type with a `uri` provider that is derived from a `location` property:
+
+```java
+Unresolved directive in properties_providers.adoc - include::{snippetsPath}/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+```
+
+### Read-only Managed Nested Properties (Nested Providers)
+
+You can declare a read-only managed nested property by adding an abstract getter method for the property to a type annotated with [`@Nested`]({javadocPath}/org/gradle/api/tasks/Nested.html).
+The property should not have any setter methods.
+Gradle provides the implementation for the getter method and creates a value for the property.
+
+This pattern is useful when a custom type has a nested complex type which has the same lifecycle.
+If the lifecycle is different, consider using `Property&lt;NestedType&gt;` instead.
+
+Here is an example of a task type with a `resource` property.
+The `Resource` type is also a custom Gradle type and defines some managed properties:
+
+```java
+Unresolved directive in properties_providers.adoc - include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+Unresolved directive in properties_providers.adoc - include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+```
+
+### Read-only Managed "name" Property (Provider)
+
+If the type contains an abstract property called "name" of type `String`, Gradle provides an implementation for the getter
+method, and extends each constructor with a "name" parameter, which comes before all other constructor parameters.
+
+If the type is an interface, Gradle will provide a constructor with a single "name" parameter and `@Inject` semantics.
+
+You can have your type implement or extend the [Named]({javadocPath}/org/gradle/api/Named.html) interface, which defines such a read-only "name" property:
+
+```groovy
+import org.gradle.api.Named
+
+interface MyType : Named {
+    // Other properties and methods...
+}
+
+class MyTypeImpl(override val name: String) : MyType {
+    // Implement other properties and methods...
+}
+
+// Usage
+val instance = MyTypeImpl("myName")
+println(instance.name) // Prints: myName
+```
+
+## Using Gradle Managed Types
+
+A managed type as an abstract class or interface with no fields and whose properties are all managed.
+These types have their state entirely managed by Gradle.
+
+For example, this managed type is defined as an interface:
+
+```java
+Unresolved directive in properties_providers.adoc - include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+```
+
+A _named managed type_ is a managed type that additionally has an abstract property "name" of type `String`.
+Named managed types are especially useful as the element type of [NamedDomainObjectContainer]({javadocPath}/org/gradle/api/NamedDomainObjectContainer.html):
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/kotlin" files="build.gradle.kts[tags=named]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/gradle-types/property/groovy" files="build.gradle[tags=named]" */}
+
+## Using Java Bean Properties
+
+Sometimes you may see properties implemented in the Java bean property style.
+That is, they do not use a `Property&lt;T&gt;` or `Provider&lt;T&gt;` types but are instead implemented with concrete setter and getter methods (or corresponding conveniences in Groovy or Kotlin).
+
+This style of property definition is legacy in Gradle and is discouraged:
+
+```java
+public class MyTask extends DefaultTask {
+    private String someProperty;
+
+    public String getSomeProperty() {
+        return someProperty;
+    }
+
+    public void setSomeProperty(String someProperty) {
+        this.someProperty = someProperty;
+    }
+
+    @TaskAction
+    public void myAction() {
+        System.out.println("SomeProperty: " + someProperty);
+    }
+}
+```

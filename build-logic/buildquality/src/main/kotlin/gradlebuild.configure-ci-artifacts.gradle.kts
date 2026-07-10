@@ -15,7 +15,6 @@
  */
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FileLocationProvider
-import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.testcleanup.TestFilesCleanupService
@@ -30,9 +29,6 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
         testFilesCleanupService.get().addTaskReports(path, validatePluginsReports())
     }
 
-    project.tasks.withType<FindBrokenInternalLinks>().configureEach {
-        testFilesCleanupService.get().addTaskReports(path, findBrokenInternalLinksReports())
-    }
     project.tasks.withType<DistributionTest>().configureEach {
         testFilesCleanupService.get().addTaskReports(path, distributionReports())
     }
@@ -45,8 +41,6 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
 }
 
 fun ValidatePlugins.validatePluginsReports(): List<FileLocationProvider> = listOf(outputFile)
-
-fun FindBrokenInternalLinks.findBrokenInternalLinksReports(): List<FileLocationProvider> = listOf(reportFile)
 
 fun DistributionTest.distributionReports(): List<FileLocationProvider> = listOf(
     gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon"),

@@ -427,11 +427,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
         contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
 
-        // Userguide
-        contentsDir.file('docs/userguide/userguide.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
-        contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
+        // User guide (Astro-generated site under /userguide/)
+        contentsDir.file('docs/userguide/index.html').assertIsFile()
 
         // DSL reference
         contentsDir.file('docs/dsl/index.html').assertIsFile()

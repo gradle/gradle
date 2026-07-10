@@ -1,0 +1,10 @@
+.
+├── a-subproject
+│   └── build.gradle.kts
+├── settings.gradle.kts
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew
+└── gradlew.bat

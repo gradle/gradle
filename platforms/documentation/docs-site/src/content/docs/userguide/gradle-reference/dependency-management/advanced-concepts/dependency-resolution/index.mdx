@@ -1,0 +1,27 @@
+---
+title: "Dependency Resolution"
+---
+
+Dependency resolution in Gradle can largely be thought of as a two-step process.
+
+First, the _graph resolution_ phase constructs the dependency graph based on declared dependencies.
+Second, the _artifact resolution_ phase fetches the actual files (artifacts) for the resolved components:
+
+1. ***Graph resolution phase***:
+2. ***Artifact resolution phase***:
+
+{/* converter-gap: node=image */}
+
+## 1. Graph Resolution
+
+During the _graph resolution_ phase, Gradle constructs a **dependency graph**, which models the relationships between different components and their variants.
+
+See [Graph Resolution](graph_resolution.mdx#dependency-graph-resolution) to learn more.
+
+## 2. Artifact Resolution
+
+Once the dependency graph is resolved, the _artifact resolution_ phase determines which **artifacts** (i.e. files) need to be downloaded or retrieved for each variant.
+
+See [Artifact Resolution](artifact_resolution.mdx#artifact-resolution) to learn more.
+
+***Next Step:*** [Learn about Graph Resolution](graph_resolution.mdx#dependency-graph-resolution) &gt;&gt;

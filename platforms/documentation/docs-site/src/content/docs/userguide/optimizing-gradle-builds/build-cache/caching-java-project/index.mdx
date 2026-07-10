@@ -1,0 +1,97 @@
+---
+title: "Caching Java projects"
+---
+
+As of Gradle 4.0, the build tool fully supports caching plain Java projects.
+Built-in tasks for compiling, testing, documenting and checking the quality of Java code support the build cache out of the box.
+
+## Java compilation
+
+Caching Java compilation makes use of Gradle&#8217;s deep understanding of compile classpaths.
+The mechanism [avoids recompilation](build_cache_concepts.mdx#compile_avoidance) when dependencies change in a way that doesn&#8217;t affect their application binary interfaces (ABI).
+Since the cache key is only influenced by the ABI of dependencies (and not by their implementation details like private types and method bodies), task output caching can also reuse compiled classes if they were produced by the same sources and ABI-equivalent dependencies.
+
+For example, take a project with two modules: an application depending on a library.
+Suppose the latest version is already built by CI and uploaded to the shared cache.
+If a developer now modifies a method&#8217;s body in the library, the library will need to be rebuilt on their computer. But they will be able to load the compiled classes for the application from the shared cache. Gradle can do this because the library used to compile the application on CI, and the modified library available locally share the same ABI.
+
+### Annotation processors
+
+Compile avoidance works out of the box.
+There is one caveat though: when using annotation processors, Gradle uses the annotation processor classpath as an input.
+Unlike most compile dependencies, in which only the ABI influences compilation, the _implementation_ of annotation processors must be considered as an input to the compiler. For this reason Gradle will treat annotation processors as a _runtime_ classpath, meaning less [input normalization](build_cache_concepts.mdx#runtime_classpath) is taking place there.
+If Gradle detects an annotation processor on the compile classpath, the annotation processor classpath defaults to the compile classpath when not explicitly set, which in turn means the entire compile classpath is treated as a runtime classpath input.
+
+For the example above this would mean the ABI extracted from the compile classpath would be unchanged, but the annotation processor classpath (because it&#8217;s not treated with compile avoidance) would be different. Ultimately, the developer would end up having to recompile the application.
+
+The easiest way to avoid this performance penalty is to not use annotation processors.
+However, if you need to use them, make sure you set the annotation processor classpath explicitly to include only the libraries needed for annotation processing.
+The [section on Java compile avoidance](java_plugin.mdx#sec:java_compile_avoidance) describes how to do this.
+
+:::note
+Some common Java dependencies (such as Log4j 2.x) come bundled with annotation processors.
+If you use these dependencies, but do not leverage the features of the bundled annotation processors, it&#8217;s best to disable annotation processing entirely.
+This can be done by setting the annotation processor classpath to an empty set.
+:::
+
+## Unit test execution
+
+The `Test` task used for test execution for JVM languages employs [runtime classpath normalization](build_cache_concepts.mdx#runtime_classpath) for its classpath.
+This means that changes to order and timestamps in jars on the test classpath will not cause the task to be out-of-date or change the build cache key.
+For achieving [stable task inputs](build_cache_concepts.mdx#stable_task_inputs) you can also wield the power of [filtering the runtime classpath](build_cache_concepts.mdx#filter_runtime_classpath).
+
+## Integration test execution
+
+Unit tests are easy to cache as they normally have no external dependencies.
+For integration tests the situation can be quite different, as they can depend on a variety of inputs outside of the test and production code.
+These external factors can be for example:
+
+- operating system type and version,
+- external tools being installed for the tests,
+- environment variables and Java system properties,
+- other services being up and running,
+- a distribution of the software under test.
+
+You need to be careful to declare these additional inputs for your integration test in order to avoid incorrect cache hits.
+For example, declaring the operating system in use by Gradle as an input to a `Test` task called `integTest` would work as follows:
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/kotlin" files="build.gradle.kts[tags=integTest]" */}
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/groovy" files="build.gradle[tags=integTest]" */}
+
+### Archives as inputs
+
+It is common for the integration tests to depend on your packaged application.
+If this happens to be a zip or tar archive, then adding it as an input to the integration test task may lead to cache misses.
+This is because, as described in [repeatable task outputs](build_cache_concepts.mdx#concepts_repeatable_task_outputs), rebuilding an archive often changes the metadata in the archive.
+You can depend on the exploded contents of the archive instead.
+See also the section on dealing with [non-repeatable outputs](common_caching_problems.mdx#volatile_outputs).
+
+### Dealing with file paths
+
+You will probably pass some information from the build environment to your integration test tasks by using system properties.
+Passing absolute paths will break [relocatability](build_cache_concepts.mdx#relocatability) of the integration test task.
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/kotlin" files="build.gradle.kts[tags=distributionPathInput]" */}
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/groovy" files="build.gradle[tags=distributionPathInput]" */}
+
+Instead of adding the absolute path directly as a system property, it is possible to add an
+annotated [CommandLineArgumentProvider]({javadocPath}/org/gradle/process/CommandLineArgumentProvider.html) to the `integTest` task:
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/kotlin" files="build.gradle.kts[tags=distributionDirInput]" */}
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/groovy" files="build.gradle[tags=distributionDirInput]" */}
+
+{/* converter-gap: node=colist */}
+
+### Ignoring system properties
+
+It may be necessary to ignore some system properties as inputs as they do not influence the outcome of the integration tests.
+In order to do so, add a [CommandLineArgumentProvider]({javadocPath}/org/gradle/process/CommandLineArgumentProvider.html) to the `integTest` task:
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/kotlin" files="build.gradle.kts[tags=ignoreSystemProperties]" */}
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/integration-tests/groovy" files="build.gradle[tags=ignoreSystemProperties]" */}
+
+{/* converter-gap: node=colist */}

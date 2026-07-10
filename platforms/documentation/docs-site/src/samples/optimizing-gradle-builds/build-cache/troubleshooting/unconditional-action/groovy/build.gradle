@@ -1,0 +1,7 @@
+tasks.withType(Test).configureEach {
+    doFirst {
+        if (System.getenv().containsKey("CI")) {
+            println "Running test on CI"
+        }
+    }
+}

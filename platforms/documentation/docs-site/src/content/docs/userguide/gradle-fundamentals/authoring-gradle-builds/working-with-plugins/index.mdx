@@ -1,0 +1,351 @@
+---
+title: "Working with Plugins"
+---
+
+Much of Gradle&#8217;s functionality is delivered via plugins, including core plugins distributed with Gradle, third-party plugins, and custom plugins defined within builds.
+
+{/* converter-gap: node=image */}
+
+Plugins introduce new tasks (e.g., `JavaCompile`), domain objects (e.g., `SourceSet`), conventions (e.g., locating Java source at `src/main/java`), and extend core or other plugin objects.
+
+Plugins in Gradle are essential for automating common build tasks, integrating with external tools or services, and tailoring the build process to meet specific project needs.
+They also serve as the primary mechanism for organizing build logic.
+
+## Plugin Distribution
+
+You can leverage plugins from Gradle and the Gradle community or create your own.
+
+Plugins are available in three ways:
+
+1. ***Core plugins*** - Gradle develops and maintains a set of [Core Plugins](plugin_reference.mdx#plugin_reference).
+2. ***Community plugins*** - Gradle plugins shared in a remote repository such as Maven or the [Gradle Plugin Portal](https://plugins.gradle.org).
+3. ***Custom plugins*** - Gradle enables users to create plugins using [APIs]({javadocPath}/org/gradle/api/Plugin.html).
+
+Gradle provides **core plugins** (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPublishPlugin`, etc.) as part of its distribution, which means they are available with Gradle itself.
+
+**Core** plugins are applied in a build script using the plugin name:
+
+```text
+plugins {
+    id «plugin name»
+}
+```
+
+For example:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Non-core (**community** and **custom**) plugins must be resolved (i.e. located) before they can be applied.
+Non-core plugins are identified by a unique ID and a version in the build file:
+
+```text
+plugins {
+    id «plugin id» version «plugin version»
+}
+```
+
+For example:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+And the location of the plugin must be specified in the settings file as needed:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/simple/kotlin" files="settings.gradle.kts[tags=simple-setting-repositories]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/simple/groovy" files="settings.gradle[tags=simple-setting-repositories]" */}
+
+The location of the plugin could also be an included build or `buildSrc` for example.
+
+## Applying Plugins
+
+Over time, Gradle has introduced several ways to apply plugins, depending on their source and the scope in which they are needed (such as whether they apply to a single project or multiple subprojects).
+
+Let&#8217;s take a look at all the available ways a plugin can be applied:
+
+{/* converter-gap: node=table */}
+
+### 1. Applying plugins using the `plugins{}` block
+
+The plugin DSL provides a concise and convenient way to declare plugin dependencies.
+
+The plugins block configures an instance of [`PluginDependenciesSpec`]({javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html):
+
+```text
+plugins {
+    application                                     // by name
+    java                                            // by name
+    id("java")                                      // by id - recommended
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"  // by id - recommended
+}
+```
+
+Core Gradle plugins are unique in that they provide short names, such as `java` for the core [JavaPlugin]({javadocPath}/org/gradle/api/plugins/JavaPlugin.html).
+
+To apply a core plugin, the short **name** can be used:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dsl/kotlin" files="build.gradle.kts[tags=use-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dsl/groovy" files="build.gradle[tags=use-plugin]" */}
+
+All other binary plugins must use the fully qualified form of the plugin id (e.g., `com.github.foo.bar`).
+
+To apply a community plugin from [Gradle plugin portal](http://plugins.gradle.org), the fully qualified **plugin id**, a globally unique identifier, must be used:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dsl/kotlin" files="build.gradle.kts[tags=use-community-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dsl/groovy" files="build.gradle[tags=use-community-plugin]" */}
+
+See [`PluginDependenciesSpec`]({javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html) for more information on using the Plugin DSL.
+
+#### Limitations of the plugins DSL
+
+The plugins DSL provides a convenient syntax for users and the ability for Gradle to determine which plugins are used quickly.
+This allows Gradle to:
+
+- Optimize the loading and reuse of plugin classes.
+- Provide editors with detailed information about the potential properties and values in the build script.
+
+However, the DSL requires that plugins be defined statically.
+
+There are some key differences between the `plugins {}` block mechanism and the "traditional" `apply()` method mechanism.
+There are also some constraints and possible limitations.
+
+The `plugins{}` block can only be used in a project&#8217;s build script `build.gradle(.kts)` and the `settings.gradle(.kts)` file.
+It must appear before any other block.
+It cannot be used in script plugins or init scripts.
+
+##### Constrained Syntax
+
+The `plugins {}` block does not support arbitrary code.
+
+It is constrained to be idempotent (produce the same result every time) and side effect-free (safe for Gradle to execute at any time).
+
+The form is:
+
+```text
+plugins {
+    id(«plugin id»)                             // <1>
+    id(«plugin id») version «plugin version»    // <2>
+}
+```
+
+{/* converter-gap: node=colist */}
+
+Where `«plugin id»` and `«plugin version»` are a string.
+
+Where `«plugin id»` and `«plugin version»` must be constant, literal strings.
+
+The `plugins{}` block must also be a top-level statement in the build script.
+It cannot be nested inside another construct (e.g., an if-statement or for-loop).
+
+### 2. Applying plugins to all subprojects\{\} or allprojects\{\}
+
+Suppose you have a [multi-project build](multi_project_builds.mdx#multi_project_builds), you probably want to apply plugins to some or all of the subprojects in your build but not to the `root` project.
+
+While the default behavior of the `plugins{}` block is to immediately `resolve` _and_ `apply` the plugins, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project. Then, use the `plugins{}` block without the version in subprojects' build scripts:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/multiproject/kotlin" files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];hello-a/build.gradle.kts[];hello-b/build.gradle.kts[];goodbye-c/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/multiproject/groovy" files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];hello-a/build.gradle[];hello-b/build.gradle[];goodbye-c/build.gradle[]" */}
+
+You can also encapsulate the versions of external plugins by composing the build logic using your own [convention plugins](sharing_build_logic_between_subprojects.mdx#sec:sharing_logic_via_convention_plugins).
+
+### 3. Applying plugins declared in the root project
+
+You can apply plugins from the root or parent project in a multi-project build to share common logic and behavior with other projects.
+The root/parent project is the project at the top of the directory hierarchy.
+
+You should use the `plugins {}` block because it ensures that the plugin is applied and configured before the project’s evaluation phase.
+This way, you can safely use type-safe accessors for any model elements introduced by the plugin:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/multiProjectBuild/kotlin" files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[tags=root];infra/build.gradle.kts[tags=root];http/build.gradle.kts[tags=root]" */}
+
+In the root/parent `build.gradle(.kts)`, plugins are declared but not applied (via `apply false`).
+This approach, while optional, makes the plugins available to be explicitly applied in specific subprojects.
+Without `apply false`, plugins declared in the root project cannot be explicitly applied only to certain subprojects.
+
+:::note
+`apply false` is optional. If `apply false` is not used when declaring plugins in the root build file, those plugins would automatically be applied to the root project.
+:::
+
+In the `infra` subproject, the `com.gradleup.shadow` plugin, which was made available in the root project, is explicitly applied.
+The `http` subproject applies `io.ratpack.ratpack-java`.
+The `domain` subproject does not apply a plugin from the root.
+
+### 4. Applying convention plugins from the `buildSrc` directory
+
+`buildSrc` is an optional directory at the Gradle project root that contains build logic (i.e., plugins) used in building the main project.
+You can apply plugins that reside in a project&#8217;s `buildSrc` directory as long as they have a defined ID.
+
+The following example shows how to tie the plugin implementation class `my.MyPlugin`, defined in `buildSrc`, to the id "my-plugin":
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dslWithBuildSrc/kotlin" files="buildSrc/build.gradle.kts[tags=main-block]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dslWithBuildSrc/groovy" files="buildSrc/build.gradle[tags=main-block]" */}
+
+The plugin can then be applied by ID:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dslWithBuildSrc/kotlin" files="build.gradle.kts[tags=use-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/dslWithBuildSrc/groovy" files="build.gradle[tags=use-plugin]" */}
+
+### 5. Applying plugins using the `buildscript{}` block
+
+To define libraries or plugins used in the build script itself, you can use the `buildscript` block.
+The `buildscript` block is also used for specifying where to find those dependencies.
+
+This approach is less common with newer versions of Gradle, as the `plugins {}` block simplifies plugin usage.
+However, `buildscript {}` may be necessary when dealing with custom or non-standard plugin repositories as well as libraries dependencies:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/buildscript/kotlin" files="build.gradle.kts[tags=buildscript_block]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/buildscript/groovy" files="build.gradle[tags=buildscript_block]" */}
+
+### 6. Applying script plugins using the legacy `apply()` method
+
+A script plugin is an ad-hoc plugin, typically written and applied in the same build script.
+It is applied using the [legacy application method](#sec:old_plugin_application):
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/buildscript/kotlin" files="build.gradle.kts[tags=plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/buildscript/groovy" files="build.gradle[tags=plugin]" */}
+
+## Plugin Management
+
+The `pluginManagement{}` block is used to configure repositories for plugin resolution and to define version constraints for plugins that are applied in the build scripts.
+
+The `pluginManagement{}` block can be used in a `settings.gradle(.kts)` file, where it must be the first block in the file:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginManagement/kotlin" files="settings.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginManagement/groovy" files="settings.gradle[]" */}
+
+The block can also be used in [Initialization Script](init_scripts.mdx#init_scripts):
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginManagement/kotlin" files="init.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginManagement/groovy" files="init.gradle[]" */}
+
+### Custom Plugin Repositories
+
+By default, the `plugins{}` DSL resolves plugins from the public [Gradle Plugin Portal](https://plugins.gradle.org).
+
+Many build authors would also like to resolve plugins from private Maven or Ivy repositories because they contain proprietary implementation details or to have more control over what plugins are available to their builds.
+
+To specify custom plugin repositories, use the `repositories{}` block inside `pluginManagement{}`:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/consuming/kotlin" files="settings.gradle.kts[tags=custom-plugin-repositories]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/consuming/groovy" files="settings.gradle[tags=custom-plugin-repositories]" */}
+
+This tells Gradle to first look in the Maven repository at `../maven-repo` when resolving plugins and then to check the Gradle Plugin Portal if the plugins are not found in the Maven repository.
+If you don&#8217;t want the Gradle Plugin Portal to be searched, omit the `gradlePluginPortal()` line.
+Finally, the Ivy repository at `../ivy-repo` will be checked.
+
+### Plugin Version Management
+
+A `plugins{}` block inside `pluginManagement{}` allows all plugin versions for the build to be defined in a single location.
+Plugins can then be applied by id to any build script via the `plugins{}` block.
+
+One benefit of setting plugin versions this way is that the `pluginManagement.plugins{}` does not have the same [constrained syntax](#sec:constrained_syntax) as the build script `plugins{}` block.
+This allows plugin versions to be taken from `gradle.properties`, or loaded via another mechanism.
+
+Managing plugin versions via `pluginManagement`:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginVersions" files="kotlin/settings.gradle.kts[tags=configure-plugin-version];kotlin/build.gradle.kts;common/gradle.properties" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginVersions" files="groovy/settings.gradle[tags=configure-plugin-version];groovy/build.gradle;common/gradle.properties" */}
+
+The plugin version is loaded from `gradle.properties` and configured in the settings script, allowing the plugin to be added to any project without specifying the version.
+
+### Plugin Resolution Rules
+
+Plugin resolution rules allow you to modify plugin requests made in `plugins{}` blocks, e.g., changing the requested version or explicitly specifying the implementation artifact coordinates.
+
+To add resolution rules, use the `resolutionStrategy{}` inside the `pluginManagement{}` block:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/resolutionRules/kotlin" files="settings.gradle.kts[tags=plugin-resolution-strategy]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/resolutionRules/groovy" files="settings.gradle[tags=plugin-resolution-strategy]" */}
+
+This tells Gradle to use the specified plugin implementation artifact instead of its built-in default mapping from plugin ID to Maven/Ivy coordinates.
+
+Custom Maven and Ivy plugin repositories must contain [plugin marker artifacts](#sec:plugin_markers) and the artifacts that implement the plugin.
+Read [Gradle Plugin Development Plugin](java_gradle_plugin.mdx#java_gradle_plugin) for more information on publishing plugins to custom repositories.
+
+See [PluginManagementSpec]({javadocPath}/org/gradle/plugin/management/PluginManagementSpec.html) for complete documentation for using the `pluginManagement{}` block.
+
+### Plugin Marker Artifacts
+
+Since the `plugins{}` DSL block only allows for declaring plugins by their globally unique plugin `id` and `version` properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact.
+
+To do so, Gradle will look for a Plugin Marker Artifact with the coordinates `plugin.id:plugin.id.gradle.plugin:plugin.version`.
+This marker needs to have a dependency on the actual plugin implementation.
+Publishing these markers is automated by the [java-gradle-plugin](java_gradle_plugin.mdx#java_gradle_plugin).
+
+For example, the following complete sample from the `sample-plugins` project shows how to publish a `com.example.hello` plugin and a `com.example.goodbye` plugin to both an Ivy and Maven repository using the combination of the [java-gradle-plugin](java_gradle_plugin.mdx#java_gradle_plugin), the [maven-publish](publishing_maven.mdx#publishing_maven) plugin, and the [ivy-publish](publishing_ivy.mdx#publishing_ivy) plugin.
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/publishing/kotlin" files="build.gradle.kts[tags=complete-plugin-publishing]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/publishing/groovy" files="build.gradle[tags=complete-plugin-publishing]" */}
+
+Running `gradle publish` in the sample directory creates the following Maven repository layout (the Ivy layout is similar):
+
+{/* converter-gap: node=image */}
+
+## Legacy Plugin Application
+
+With the introduction of the [plugins DSL](#sec:plugins_block), users should have little reason to use the legacy method of applying plugins.
+It is documented here in case a build author cannot use the plugin DSL due to restrictions in how it currently works.
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/quickstart/kotlin" files="build.gradle.kts[tags=use-plugin-legacy]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/quickstart/groovy" files="build.gradle[tags=use-plugin-legacy]" */}
+
+Plugins can be applied using a _plugin id_.
+In the above case, we are using the short name "java" to apply the [JavaPlugin]({javadocPath}/org/gradle/api/plugins/JavaPlugin.html).
+
+Rather than using a plugin id, plugins can also be applied by simply specifying the class of the plugin:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginIntro/kotlin" files="build.gradle.kts[tags=apply-by-type]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/pluginIntro/groovy" files="build.gradle[tags=apply-by-type]" */}
+
+The `JavaPlugin` symbol in the above sample refers to the [JavaPlugin]({javadocPath}/org/gradle/api/plugins/JavaPlugin.html).
+This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see [Default imports](default_script_imports.mdx#script-default-imports)).
+
+Furthermore, one needs to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.
+
+Furthermore, it is unnecessary to append `.class` to identify a class literal in Groovy as it is in Java.
+
+You may also see the `apply` method used to include an entire build file:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/customPlugin/kotlin" files="build.gradle.kts[tag=script-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/customPlugin/groovy" files="build.gradle[tag=script-plugin]" */}
+
+## Using a Version Catalog
+
+When a project uses a version catalog, plugins can be referenced via aliases when applied.
+
+Let&#8217;s take a look at a simple Version Catalog:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/catalogs-toml-simple/common/gradle" files="libs.versions.toml[]" */}
+
+Then a plugin can be applied to any build script using the `alias` method:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/catalogs-toml-simple/kotlin" files="build.gradle.kts[tag=plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/authoring-builds/catalogs-toml-simple/groovy" files="build.gradle[tag=plugin]" */}
+
+:::tip
+Gradle generates type safe accessors for catalog items.
+:::
+
+Ready to build something? Start with the [Intermediate Tutorial](part1_gradle_init_project.mdx#part1_gradle_init).
+
+***Next Step:*** [Start the Tutorial](part1_gradle_init_project.mdx#part1_gradle_init) &gt;&gt;

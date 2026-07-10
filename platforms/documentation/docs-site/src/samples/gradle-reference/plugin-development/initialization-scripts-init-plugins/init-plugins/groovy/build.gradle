@@ -1,0 +1,20 @@
+import groovy.transform.Immutable
+
+repositories{
+    mavenCentral()
+}
+
+@Immutable
+class RepositoryData {
+    String name
+    URI url
+}
+
+tasks.register('showRepositories') {
+    def repositoryData = repositories.collect { new RepositoryData(it.name, it.url) }
+    doLast {
+        repositoryData.each {
+            println "repository: ${it.name} ('${it.url}')"
+        }
+    }
+}

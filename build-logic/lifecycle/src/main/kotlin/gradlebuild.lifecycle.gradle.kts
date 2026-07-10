@@ -109,7 +109,8 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
             ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
             ":checkSubprojectsInfo",
-            ":checkTargetRuntimes"
+            ":checkTargetRuntimes",
+            ":docs-site:formatCheck"
         )
     }
 }
@@ -125,7 +126,7 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         group = "build"
         dependsOn(
             ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
-            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
+            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport"
         )
     }
 }

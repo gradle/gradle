@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=build_environment.html#sec:project_properties">
-++++

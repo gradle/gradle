@@ -18,3 +18,12 @@ dependencies {
     runtimeAware(projects.instrumentationAgent)
     runtimeAware(projects.kotlinDslPlugins)
 }
+
+configurations {
+    consumable("gradleVersionFile") {
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named("metadata"))
+        }
+        outgoing.artifact(layout.projectDirectory.file("version.txt"))
+    }
+}

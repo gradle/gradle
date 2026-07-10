@@ -1,0 +1,10 @@
+repositories {
+    ivy {
+        url = uri("http://repo.mycompany.com/repo")
+        patternLayout {
+            artifact("3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            artifact("company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            ivy("ivy-files/[organisation]/[module]/[revision]/ivy.xml")
+        }
+    }
+}

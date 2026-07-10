@@ -1,0 +1,5 @@
+repositories {
+    ivy {
+        url = "http://repo.mycompany.com/repo"
+    }
+}

@@ -1,0 +1,263 @@
+---
+title: "Developing Parallel Tasks"
+---
+
+Gradle provides an API that can split tasks into sections that can be executed in parallel.
+
+{/* converter-gap: node=image */}
+
+This allows Gradle to fully utilize the resources available and complete builds faster.
+
+## The Worker API
+
+The Worker API provides the ability to break up the execution of a task action into discrete units of work and then execute that work concurrently and asynchronously.
+
+## Worker API example
+
+The best way to understand how to use the API is to go through the process of converting an existing custom task to use the Worker API:
+
+1. You&#8217;ll start by creating a custom task class that generates MD5 hashes for a configurable set of files.
+2. Then, you&#8217;ll convert this custom task to use the Worker API.
+3. Then, we&#8217;ll explore running the task with different levels of isolation.
+
+In the process, you&#8217;ll learn about the basics of the Worker API and the capabilities it provides.
+
+### Step 1. Create a custom task class
+
+First, create a custom task that generates MD5 hashes of a configurable set of files.
+
+In a new directory, create a `buildSrc/build.gradle(.kts)` file:
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5CustomTask/kotlin" files="buildSrc/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5CustomTask/groovy" files="buildSrc/build.gradle[]" */}
+
+{/* converter-gap: node=colist */}
+
+Next, create a custom task class in your `buildSrc/src/main/java` directory.
+You should name this class `CreateMD5`:
+
+```java
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5CustomTask/common/buildSrc/src/main/java/CreateMD5.java[]
+```
+
+{/* converter-gap: node=colist */}
+
+Next, create a `build.gradle(.kts)` that registers your new `CreateMD5` task:
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5CustomTask/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5CustomTask/groovy" files="build.gradle[]" */}
+
+{/* converter-gap: node=colist */}
+
+You will need some source to generate MD5 hashes from.
+Create three files in the `src` directory:
+
+```text
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5CustomTask/groovy/src/einstein.txt[]
+```
+
+```text
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5CustomTask/groovy/src/feynman.txt[]
+```
+
+```text
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5CustomTask/groovy/src/hawking.txt[]
+```
+
+At this point, you can test your task by running it `./gradlew md5`:
+
+```
+$ gradle md5
+```
+
+The output should look similar to:
+
+```
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5CustomTask/tests/md5Task1.out[]
+```
+
+In the `build/md5` directory, you should now see corresponding files with an `md5` extension containing MD5 hashes of the files from the `src` directory.
+Notice that the task takes at least 9 seconds to run because it hashes each file one at a time (i.e., three files at ~3 seconds apiece).
+
+### Step 2. Convert to the Worker API
+
+Although this task processes each file in sequence, the processing of each file is independent of any other file.
+This work can be done in parallel and take advantage of multiple processors.
+This is where the Worker API can help.
+
+To use the Worker API, you need to define an interface that represents the parameters of each unit of work and extends `org.gradle.workers.WorkParameters`.
+
+For the generation of MD5 hash files, the unit of work will require two parameters:
+
+1. the file to be hashed and,
+2. the file to write the hash to.
+
+There is no need to create a concrete implementation because Gradle will generate one for us at runtime.
+
+```java
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5NoIsolation/common/buildSrc/src/main/java/MD5WorkParameters.java[]
+```
+
+{/* converter-gap: node=colist */}
+
+Then, you need to refactor the part of your custom task that does the work for each individual file into a separate class.
+This class is your "unit of work" implementation, and it should be an abstract class that extends `org.gradle.workers.WorkAction`:
+
+```java
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5NoIsolation/common/buildSrc/src/main/java/GenerateMD5.java[]
+```
+
+{/* converter-gap: node=colist */}
+
+Now, change your custom task class to submit work to the
+[WorkerExecutor]({javadocPath}/org/gradle/workers/WorkerExecutor.html) instead of doing the work itself.
+
+```java
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5NoIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
+```
+
+{/* converter-gap: node=colist */}
+
+At this point, you should be able to rerun your task:
+
+```
+$ gradle clean md5
+
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5NoIsolation/tests/md5Task1.out[]
+```
+
+The results should look the same as before, although the MD5 hash files may be generated in a different order since the units of work are executed in parallel.
+This time, however, the task runs much faster.
+This is because the Worker API executes the MD5 calculation for each file in parallel rather than in sequence.
+
+### Step 3. Change the isolation mode
+
+The isolation mode controls how strongly Gradle will isolate items of work from each other and the rest of the Gradle runtime.
+
+There are three methods on `WorkerExecutor` that control this:
+
+1. `noIsolation()`
+2. `classLoaderIsolation()`
+3. `processIsolation()`
+
+The `noIsolation()` mode is the lowest level of isolation and will prevent a unit of work from changing the project state.
+This is the fastest isolation mode because it requires the least overhead to set up and execute the work item.
+However, it will use a single shared classloader for all units of work.
+This means that each unit of work can affect one another through static class state.
+It also means that every unit of work uses the same version of libraries on the buildscript classpath.
+If you wanted the user to be able to configure the task to run with a different (but compatible) version of the
+[Apache Commons Codec](https://commons.apache.org/proper/commons-codec/) library, you would need to use a different isolation mode.
+
+First, you must change the dependency in `buildSrc/build.gradle` to be `compileOnly`.
+This tells Gradle that it should use this dependency when building the classes, but should not put it on the build script classpath:
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5ClassloaderIsolation/kotlin" files="buildSrc/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5ClassloaderIsolation/groovy" files="buildSrc/build.gradle[]" */}
+
+Next, change the `CreateMD5` task to allow the user to configure the version of the codec library that they want to use.
+It will resolve the appropriate version of the library at runtime and configure the workers to use this version.
+
+The `classLoaderIsolation()` method tells Gradle to run this work in a thread with an isolated classloader:
+
+```groovy
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5ClassloaderIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
+```
+
+{/* converter-gap: node=colist */}
+
+Next, you need to configure your build so that it has a repository to look up the codec version at task execution time.
+We also create a dependency to resolve our codec library from this repository:
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5ClassloaderIsolation/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/md5ClassloaderIsolation/groovy" files="build.gradle[]" */}
+
+{/* converter-gap: node=colist */}
+
+Now, if you run your task, it should work as expected using the configured version of the codec library:
+
+```
+$ gradle clean md5
+
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5ClassloaderIsolation/tests/md5Task1.out[]
+```
+
+### Step 4. Create a Worker Daemon
+
+Sometimes, it is desirable to utilize even greater levels of isolation when executing items of work.
+For instance, external libraries may rely on certain system properties to be set, which may conflict between work items.
+Or a library might not be compatible with the version of JDK that Gradle is running with and may need to be run with a different version.
+
+The Worker API can accommodate this using the `processIsolation()` method that causes the work to execute in a separate "worker daemon".
+These worker processes are session-scoped, meaning they live only for the duration of a single build and can be reused within that build.
+They do not persist across multiple builds.
+Gradle will stop these worker daemons when the build completes or if system resources get low during the build.
+
+To utilize a worker daemon, use the `processIsolation()` method when creating the `WorkQueue`.
+You may also want to configure custom settings for the new process:
+
+```java
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5ProcessIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
+```
+
+{/* converter-gap: node=colist */}
+
+Now, you should be able to run your task, and it will work as expected but using worker daemons instead:
+
+```
+$ gradle clean md5
+
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5ProcessIsolation/tests/md5Task1.out[]
+```
+
+Note that the execution time may be high.
+This is because Gradle has to start a new process for each worker daemon, which is expensive.
+
+However, if you run your task a second time, you will see that it runs much faster.
+This is because the worker daemon(s) started during the initial build have persisted and are available for use immediately during subsequent builds:
+
+```
+$ gradle clean md5
+
+Unresolved directive in worker_api.adoc - include::{snippetsPath}/unused/worker-api/md5ProcessIsolation/tests/md5Task2.out[]
+```
+
+## Isolation modes
+
+Gradle provides three isolation modes that can be configured when creating a [WorkQueue]({javadocPath}/org/gradle/workers/WorkQueue.html) and are specified using one of the following methods on [WorkerExecutor]({javadocPath}/org/gradle/workers/WorkerExecutor.html):
+
+{/* converter-gap: node=dlist */}
+
+### Worker Daemons
+
+When using `processIsolation()`, Gradle will start a long-lived _worker daemon_ process that can be reused for future work items.
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/workerDaemon/kotlin" files="build.gradle.kts[tags=worker-daemon]" */}
+
+{/* converter-gap: node=sample dir="snippets/unused/worker-api/workerDaemon/groovy" files="build.gradle[tags=worker-daemon]" */}
+
+When a unit of work for a worker daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.
+If so, it will send the unit of work to the idle daemon, marking it as busy.
+If not, it will start a new daemon.
+When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through [ProcessWorkerSpec.forkOptions(org.gradle.api.Action)]({javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions-org.gradle.api.Action-).
+
+By default, a worker daemon starts with a maximum heap of 512MB.
+This can be changed by adjusting the workers' fork options.
+
+{/* converter-gap: node=dlist */}
+
+Worker daemons will remain running until the build daemon that started them is stopped or system memory becomes scarce.
+When system memory is low, Gradle will stop worker daemons to minimize memory consumption.
+
+:::note
+A step-by-step description of converting a normal task action to use the worker API can be found in the section on [developing parallel tasks](#tasks_parallel_worker).
+:::
+
+## Cancellation and timeouts
+
+To support cancellation (e.g., when the user stops the build with CTRL+C) and task timeouts, custom tasks should react to interrupting their executing thread.
+The same is true for work items submitted via the worker API.
+If a task does not respond to an interrupt within 10s, the daemon will shut down to free up system resources.

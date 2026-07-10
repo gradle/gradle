@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 99,
+    "endLine": 110,
+    "problem": "The 'Declaring a local repository' section uses a single-language ad-hoc Kotlin code block in the source (lines 99-110 of the .adoc). The block mixes Kotlin DSL syntax (url = uri(...)) with Groovy DSL syntax (dirs 'libs'), suggesting the original was written informally without proper multi-language sample variants. Migrated as a Kotlin-labelled code block to preserve the original content faithfully, but a proper multi-language sample should be created in a follow-up."
+  },
+  {
+    "startLine": 157,
+    "endLine": 157,
+    "problem": "The cross-reference to 'Custom Plugin Repositories' points to 'plugins_intermediate.adoc#sec:custom_plugin_repositories'. The mapped page 'working-with-plugins' has status 'pending' (not yet migrated). The link has been written as /gradle-fundamentals/authoring-gradle-builds/working-with-plugins/#sec:custom_plugin_repositories based on the page record target, but may need verification once the page is migrated."
+  }
+]

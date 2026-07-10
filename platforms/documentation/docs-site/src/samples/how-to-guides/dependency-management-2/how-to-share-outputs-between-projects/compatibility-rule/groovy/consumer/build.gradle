@@ -1,0 +1,9 @@
+abstract class InstrumentedJarsRule implements AttributeCompatibilityRule<LibraryElements> {
+
+    @Override
+    void execute(CompatibilityCheckDetails<LibraryElements> details) {
+        if (details.consumerValue.name == 'instrumented-jar' && details.producerValue.name == 'jar') {
+            details.compatible()
+        }
+    }
+}

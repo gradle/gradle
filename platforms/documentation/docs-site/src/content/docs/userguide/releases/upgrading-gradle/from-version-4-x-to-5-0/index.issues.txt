@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 191,
+    "endLine": 191,
+    "problem": "Source line reads: '* `The `BroadcastingCollectionEventRegister.getAddAction()` method has been removed with no replacement.' — there is an unmatched leading backtick before 'The', making the sentence start with a backtick outside any code span. This appears to be a typo in the original source (an extra backtick before 'The'). It was preserved as-is to avoid changing corpus meaning."
+  },
+  {
+    "startLine": 820,
+    "endLine": 820,
+    "problem": "Source Kotlin sample (lines 819-821 of upgrading_version_4.adoc) has a typo: 'archiveBbaseName' (double 'b'). This typo exists in the original source and was intentionally preserved in the migrated sample at src/samples/releases/upgrading-gradle/from-version-4-x-to-5-0/deferred-config-after-evaluate/kotlin/build.gradle.kts."
+  }
+]

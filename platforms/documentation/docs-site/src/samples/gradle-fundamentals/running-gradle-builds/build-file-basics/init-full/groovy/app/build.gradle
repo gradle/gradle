@@ -1,0 +1,19 @@
+plugins {   // <1> Add plugins.
+    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'application'
+}
+
+dependencies {  // <2> Add dependencies.
+    // Use JUnit Jupiter for testing.
+    testImplementation libs.junit.jupiter
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // This dependency is used by the application.
+    implementation libs.guava
+}
+
+application {   // <3> Use convention properties.
+    // Define the main class for the application.
+    mainClass = 'org.example.App'
+}

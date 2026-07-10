@@ -1,0 +1,8 @@
+publishing {
+    repositories {
+        maven {
+            name = "localRepo"
+            url = layout.buildDirectory.dir("local-repo").get().asFile.toURI()
+        }
+    }
+}

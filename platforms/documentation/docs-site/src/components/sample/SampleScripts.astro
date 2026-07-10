@@ -1,0 +1,27 @@
+---
+import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+import { getPageScopedSamplePath, loadSampleScripts } from '../../lib/samples';
+
+interface Props {
+  sample_name?: string;
+  sample?: string;
+  basename: string;
+  subpath?: string;
+  tag?: string;
+}
+
+const { sample_name, sample, basename, subpath } = Astro.props;
+const samplePath = getPageScopedSamplePath(
+  Astro.url.pathname,
+  sample_name ?? sample ?? '',
+);
+const { scripts } = loadSampleScripts(samplePath, basename, subpath);
+---
+
+<Tabs syncKey='script-language'>
+  {scripts.map((script) => (
+    <TabItem label={script.label}>
+      <Code code={script.content} lang={script.syntaxHighlight} title={script.filename} />
+    </TabItem>
+  ))}
+</Tabs>

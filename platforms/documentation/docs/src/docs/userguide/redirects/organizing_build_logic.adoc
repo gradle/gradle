@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=organizing_gradle_projects.html">
-++++

@@ -1,0 +1,22 @@
+dependencies {
+    // Activate the "LoggingCapability" rule
+    components.all(LoggingCapability)
+}
+
+@CompileStatic
+class LoggingCapability implements ComponentMetadataRule {
+    final static Set<String> LOGGING_MODULES = ["log4j", "log4j-over-slf4j"] as Set<String>
+
+    void execute(ComponentMetadataContext context) {
+        context.details.with {
+            if (LOGGING_MODULES.contains(id.name)) {
+                allVariants {
+                    it.withCapabilities {
+                        // Declare that both log4j and log4j-over-slf4j provide the same capability
+                        it.addCapability("log4j", "log4j", id.version)
+                    }
+                }
+            }
+        }
+    }
+}

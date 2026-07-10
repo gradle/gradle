@@ -1,0 +1,136 @@
+---
+title: "Binary Plugin Testing"
+---
+
+Gradle provides a robust mechanism for testing binary plugins.
+
+Gradle&#8217;s [`TestKit`](test_kit.mdx#test_kit) allows you to programmatically execute synthetic builds that use the plugin under development, all within the plugin’s own build.
+
+A well-tested plugin typically includes two levels of testing:
+
+1. Unit Tests
+2. Functional Tests
+
+The directory of our plugin looks as follows:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## 1. Unit Test
+
+**Unit tests** validate the internal behavior of your plugin in a lightweight, isolated project.
+These tests simulate applying your plugin without needing a full Gradle execution.
+
+They test:
+
+- The plugin applies without errors
+- Tasks or extensions are registered correctly
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/kwNkBHKfmzQ?si=GR6zTm8gGEtBpw0o&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/Zh0Kew2y35M?si=DPloBMnDDMeWeYKD&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+The unit test for the `filesizediff` plugin looks as follows:
+
+```java
+Unresolved directive in testing_binary_plugin_advanced.adoc - include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/test/java/org/example/FileSizeDiffPluginTest.java[]
+```
+
+This test checks that the `org.example.filesizediff` plugin is applied and a `fileSizeDiff` task is added.
+
+Unit tests are fast and useful for verifying the basic mechanics of your plugin logic.
+
+## 2. Functional Test
+
+**Functional tests** (also known as end-to-end plugin tests) use Gradle&#8217;s [`TestKit`](test_kit.mdx#test_kit) to launch real Gradle builds in a temporary directory.
+This is how you verify your plugin works correctly in real-world usage.
+
+They test:
+
+- The plugin can be applied to a real build
+- The plugin task runs correctly and produces the expected output
+- Users can configure the plugin via the DSL
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/AcuQcYuQ2uw?si=7hKCWQl5K6_L3ntQ&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+The functional test for the `filesizediff` plugin looks as follows:
+
+```java
+Unresolved directive in testing_binary_plugin_advanced.adoc - include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/functionalTest/java/org/example/FileSizeDiffPluginFunctionalTest.java[]
+```
+
+`GradleRunner` is the core API provided by `TestKit` for executing builds in a test environment.
+`GradleRunner` simulates a Gradle invocation.
+Each test creates a temporary project with a `build.gradle` file, input files, and runs the plugin task using `GradleRunner`.
+
+Unlike unit tests in `src/test/java` that test individual classes, functional tests live in `src/functionalTest/java` and verify that your plugin behaves correctly in a real build.
+Gradle doesn’t automatically recognize custom test source sets, so you need to declare a `functionalTest` source set and configure a task to run it.
+
+Fortunately, `gradle init` can scaffold this setup for you:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin" files="plugin/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy" files="plugin/build.gradle[]" */}
+
+## Consumer Project
+
+You can optionally create a consumer project that uses your plugin:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/p84BiAMS8e8?si=KxL30KuM8ezbnOlJ&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+First you can point to the plugin as an included build in the `consumer` settings file:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin" files="settings.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy" files="settings.gradle[]" */}
+
+Then in the build file of the `consumer` project, you apply the plugin and test it:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy" files="build.gradle[]" */}
+
+In the `consumer` project, you can create dummy `a.txt` and `b.txt` files and run `./gradlew fileSizeDiff`:
+
+```bash
+$ ./gradlew fileSizeDiff
+```
+
+```text
+Unresolved directive in testing_binary_plugin_advanced.adoc - include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/tests/fileSizeDiff.out[]
+```
+
+***Next Step:*** [Learn how to publish Binary Plugins](publishing_binary_plugin_advanced.mdx#publish_binary_plugins_advanced) &gt;&gt;

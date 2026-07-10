@@ -29,7 +29,6 @@ import javax.inject.Inject;
  */
 public abstract class GradleDocumentationExtension {
     private final ReleaseNotes releaseNotes;
-    private final UserManual userManual;
     private final DslReference dslReference;
     private final Javadocs javadocs;
     private final KotlinDslReference kotlinDslReference;
@@ -37,7 +36,6 @@ public abstract class GradleDocumentationExtension {
     @Inject
     public GradleDocumentationExtension(ObjectFactory objects) {
         releaseNotes = objects.newInstance(ReleaseNotes.class);
-        userManual = objects.newInstance(UserManual.class);
         dslReference = objects.newInstance(DslReference.class);
         javadocs = objects.newInstance(Javadocs.class);
         kotlinDslReference = objects.newInstance(KotlinDslReference.class);
@@ -81,16 +79,6 @@ public abstract class GradleDocumentationExtension {
      */
     public abstract DirectoryProperty getStagingRoot();
 
-    /**
-     * The final location to place all rendered documentation.
-     */
-    public abstract DirectoryProperty getDocumentationRenderedRoot();
-
-    /**
-     * The collection of rendered documentation.  This is everything laid out as it would be deployed/packaged.
-     */
-    public abstract ConfigurableFileCollection getRenderedDocumentation();
-
     // These are all helper methods for configuring the parts of the documentation (DSL ref, javadoc, user manual, etc).
     public ReleaseNotes getReleaseNotes() {
         return releaseNotes;
@@ -98,14 +86,6 @@ public abstract class GradleDocumentationExtension {
 
     public void releaseNotes(Action<? super ReleaseNotes> action) {
         action.execute(releaseNotes);
-    }
-
-    public UserManual getUserManual() {
-        return userManual;
-    }
-
-    public void userManual(Action<? super UserManual> action) {
-        action.execute(userManual);
     }
 
     public DslReference getDslReference() {

@@ -1,0 +1,20 @@
+[
+  {
+    "startLine": 108,
+    "endLine": 109,
+    "problem": "The source links `strictly()` to `{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html` but `strictly()` is not a method on `DependencyHandler` — it lives on `MutableVersionConstraint`. The class-only JavaDocLink is preserved faithfully from the source, but the link target appears incorrect. Should be reviewed and corrected to the proper class/method.",
+    "sourceLines": "108-109"
+  },
+  {
+    "startLine": 25,
+    "endLine": 25,
+    "problem": "Links to dependency-constraints, platforms, and version-catalogs pages point to their expected new targets (declared-dependency-constraints, creating-platforms, creating-version-catalogs), but those pages are still pending migration. The links may be broken until those pages are migrated.",
+    "sourceLines": "31"
+  },
+  {
+    "startLine": 31,
+    "endLine": 31,
+    "problem": "Link to the strict version concept points to the declaring-versions-and-ranges page at #sec:rich-version-constraints, which is pending migration.",
+    "sourceLines": "37"
+  }
+]

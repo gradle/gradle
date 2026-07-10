@@ -1,0 +1,18 @@
+plugins {
+    id 'idea'
+    id 'java-library'
+}
+
+sourceSets {
+    intTest {
+        java {
+            srcDirs = ['src/integration']
+        }
+    }
+}
+
+idea {
+    module {
+        testSources.from(sourceSets.intTest.java.srcDirs)
+    }
+}

@@ -1,0 +1,3 @@
+tasks.named("updateDaemonJvm") {
+    languageVersion = JavaLanguageVersion.of(17)
+}

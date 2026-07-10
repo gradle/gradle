@@ -1,0 +1,28 @@
+abstract class MyWorkAction implements WorkAction<WorkParameters.None> {
+    private final String greeting;
+
+    @Inject
+    public MyWorkAction() {
+        this.greeting = "Hello from a Worker!";
+    }
+
+    @Override
+    public void execute() {
+        System.out.println(greeting);
+    }
+}
+
+abstract class MyWorkerTask extends DefaultTask {
+    @Input
+    abstract Property<Boolean> getBooleanFlag()
+
+    @Inject
+    abstract WorkerExecutor getWorkerExecutor()
+
+    @TaskAction
+    void doThings() {
+        workerExecutor.noIsolation().submit(MyWorkAction) {}
+    }
+}
+
+tasks.register("myWorkTask", MyWorkerTask) {}

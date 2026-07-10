@@ -1,0 +1,41 @@
+:root {
+  --sl-font: "Lato";
+}
+
+/* Top-level sidebar groups styled as non-interactive section separators */
+
+ul.top-level > li + li > details {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+/* No indentation at the first nesting level; keep it for deeper sub-groups */
+ul.top-level > li > details > ul > li {
+  border-inline-start: none;
+  margin-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+/* Non-interactive summary: no cursor, no hover, no chevron, label as category heading */
+ul.top-level > li > details > summary {
+  pointer-events: none;
+  cursor: default;
+
+  &:hover {
+    color: var(--sl-color-gray-2);
+    background: transparent;
+  }
+
+  & .caret {
+    display: none;
+  }
+
+  & .large {
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+  }
+}

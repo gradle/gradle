@@ -1,0 +1,3 @@
+ant.importBuild('build.xml') { String oldTargetName ->
+    return oldTargetName == 'build' ? 'ant_build' : oldTargetName  // <1>
+}

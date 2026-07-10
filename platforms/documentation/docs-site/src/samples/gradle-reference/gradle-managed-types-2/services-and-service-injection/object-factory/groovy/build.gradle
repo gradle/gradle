@@ -1,0 +1,8 @@
+tasks.register("myObjectFactoryTask") {
+    doLast {
+        def objectFactory = project.objects
+        def myProperty = objectFactory.property(String)
+        myProperty.set("Hello, Gradle!")
+        println myProperty.get()
+    }
+}

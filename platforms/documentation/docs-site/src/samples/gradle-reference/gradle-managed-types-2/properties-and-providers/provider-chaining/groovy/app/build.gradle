@@ -1,0 +1,37 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.guava:guava:32.1.2-jre'
+}
+
+tasks.register("printFloatFromFile") {
+    // Type: RegularFile
+    def myFile = layout.projectDirectory.file("someNumber.txt")
+
+    // Type: Provider<Float>
+    def floatProvider = project.providers
+        // Type: Provider<FileContents>
+        .fileContents(myFile)
+        // Type: Provider<String>
+        .asText
+        // Type: Provider<Float>
+        .map {
+            // Type: Float
+            it.toFloat()
+        }
+
+    doLast {
+        // Type: Provider<Float>
+        println ">>> Float value from file: $floatProvider"
+        // Type: Float
+        println ">>> Float value from file: ${floatProvider.get()}"
+    }
+}

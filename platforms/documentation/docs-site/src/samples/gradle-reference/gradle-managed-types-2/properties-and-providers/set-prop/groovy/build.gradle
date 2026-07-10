@@ -1,0 +1,5 @@
+// Setting a property
+def simpleMessageProperty = project.objects.property(String)
+simpleMessageProperty.set("Hello, World from a Property!")
+// Accessing a property
+println(simpleMessageProperty.get())

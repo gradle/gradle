@@ -1,0 +1,75 @@
+---
+title: "Part 4: Writing a Unit Test"
+---
+
+Learn the basics of unit testing your plugin to ensure it behaves as expected.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in [part 1](part1_gradle_init_plugin.mdx#part1_begin).
+2. You added an extension to your plugin in [part 2](part2_add_extension.mdx#part2_begin).
+3. You created a custom task in [part 3](part3_create_custom_task.mdx#part3_begin).
+
+## Step 1: About Unit Tests
+
+Gradle `init` creates a sample unit test to get you started.
+
+It&#8217;s located in `src/test/kotlin/org/example/PluginTutorialPluginTest.kt`.
+
+It&#8217;s located in `src/test/groovy/org/example/PluginTutorialPluginTest.groovy`.
+
+The original test is simple, it applies the default `org.example.greeting` plugin and verifies that the `greeting` task is available.
+We will update it to test our new plugin.
+
+## Step 2: Update the Test
+
+First, let&#8217;s rename the test file to match our plugin&#8217;s name.
+
+Rename the file `PluginTutorialPluginTest.kt` to `SlackPluginTest.kt`.
+
+Rename the file `PluginTutorialPluginTest.groovy` to `SlackPluginTest.groovy`.
+
+Next, update the code to reflect our plugin&#8217;s ID (`org.example.slack`) and task name (`sendTestSlackMessage`).
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/test/kotlin/org/example/SlackPluginTest.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/test/groovy/org/example/SlackPluginTest.groovy[]" */}
+
+This test:
+
+1. ***`ProjectBuilder.builder().build()`***: Creates an in-memory test project, which is perfect for isolating our plugin&#8217;s behavior.
+2. ***`project.plugins.apply(&#8230;&#8203;)`***: Applies our `SlackPlugin` to the test project.
+3. ***`assertNotNull(&#8230;&#8203;)`***: Confirms that our `sendTestSlackMessage` task was successfully registered by the plugin.
+
+## Step 3: Run the Test
+
+You can now run the `test` task from the command line to make sure everything is working correctly.
+
+```bash
+$ ./gradlew test
+```
+
+```text
+> Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :plugin:processTestResources NO-SOURCE
+> Task :plugin:pluginDescriptors UP-TO-DATE
+> Task :plugin:processResources UP-TO-DATE
+> Task :plugin:compileKotlin UP-TO-DATE
+> Task :plugin:compileJava NO-SOURCE
+> Task :plugin:classes UP-TO-DATE
+> Task :plugin:pluginUnderTestMetadata UP-TO-DATE
+> Task :plugin:jar UP-TO-DATE
+> Task :plugin:compileTestKotlin
+> Task :plugin:compileTestJava NO-SOURCE
+> Task :plugin:testClasses UP-TO-DATE
+> Task :plugin:test
+
+BUILD SUCCESSFUL in 1s
+7 actionable tasks: 2 executed, 5 up-to-date
+```
+
+If your test passes, you&#8217;ve successfully verified that your plugin is registering its custom task as intended!
+
+***Next Step:*** [Add a DataFlow Action](part5_add_dataflow_action.mdx#part5_add_dataflow_action) &gt;&gt;

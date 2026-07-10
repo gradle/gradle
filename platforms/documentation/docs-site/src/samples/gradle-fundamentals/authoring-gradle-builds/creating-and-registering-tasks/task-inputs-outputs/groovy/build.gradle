@@ -1,0 +1,16 @@
+abstract class CreateAFileTask extends DefaultTask {
+    @Input
+    abstract Property<String> getFileText()
+
+    @Input
+    final String fileName = "myfile.txt"
+
+    @OutputFile
+    final File myFile = new File(fileName)
+
+    @TaskAction
+    void action() {
+        myFile.createNewFile()
+        myFile.text = fileText.get()
+    }
+}

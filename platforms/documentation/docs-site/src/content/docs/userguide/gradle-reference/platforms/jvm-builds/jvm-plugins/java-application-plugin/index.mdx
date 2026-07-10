@@ -1,0 +1,118 @@
+---
+title: "The Application Plugin"
+---
+
+The Application plugin facilitates creating an executable JVM application. It makes it easy to start the application locally during development, and to package the application as a TAR and/or ZIP including operating system specific start scripts.
+
+Applying the Application plugin also implicitly applies the [Java plugin](java_plugin.mdx#java_plugin). The `main` source set is effectively the "application".
+
+Applying the Application plugin also implicitly applies the [Distribution plugin](distribution_plugin.mdx#distribution_plugin). A `main` distribution is created that packages up the application, including code dependencies and generated start scripts.
+
+## Building JVM applications
+
+To use the application plugin, include the following in your build script:
+
+**Using the application plugin**
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=use-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=use-plugin]" */}
+
+The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=mainClass-conf]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=mainClass-conf]" */}
+
+You can run the application by executing the `run` task (type: [JavaExec]({javadocPath}/org/gradle/api/tasks/JavaExec.html)). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see [JavaExec.setDebug(boolean)]({javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-)).
+
+Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args="foo --bar"` (see [JavaExec.setArgsString(java.lang.String)]({javadocPath}/org/gradle/api/tasks/JavaExec.html#setArgsString-java.lang.String-).
+
+If your application requires a specific set of JVM settings or system properties, you can configure the `applicationDefaultJvmArgs` property. These JVM arguments are applied to the `run` task and also considered in the generated start scripts of your distribution.
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=application-defaultjvmargs]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=application-defaultjvmargs]" */}
+
+If your application&#8217;s start scripts should be in a different directory than `bin`, you can configure the `executableDir` property.
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=executableDir-conf]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=executableDir-conf]" */}
+
+## Building applications using the Java Module System
+
+Gradle supports the building of [Java Modules](https://www.oracle.com/corporate/features/understanding-java-9-modules.html) as described in the [corresponding section of the Java Library plugin documentation](java_library_plugin.mdx#sec:java_library_modular).
+Java modules can also be runnable and you can use the application plugin to run and package such a modular application.
+For this, you need to do two things in addition to what you do for a non-modular application.
+
+First, you need to add a `module-info.java` file to describe your application module.
+Please refer to the [Java Library plugin documentation](java_library_plugin.mdx#sec:java_library_modular) for more details on this topic.
+
+Second, you need to tell Gradle the name of the module you want to run in addition to the main class name like this:
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=mainModule-conf]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=mainModule-conf]" */}
+
+That&#8217;s all.
+If you run your application, by executing the `run` task or through a [generated start script](#sec:the_distribution), it will run as module and respect module boundaries at runtime.
+For example, reflective access to an internal package from another module can fail.
+
+The configured _main class_ is also baked into the `module-info.class` file of your application Jar.
+If you run the modular application directly using the `java` command, it is then sufficient to provide the module name.
+
+## Building a distribution
+
+A distribution of the application can be created, by way of the [Distribution plugin](distribution_plugin.mdx#distribution_plugin) (which is automatically applied). A `main` distribution is created with the following content:
+
+{/* converter-gap: node=table */}
+
+Static files to be added to the distribution can be simply added to `src/dist`. More advanced customization can be done by configuring the [CopySpec]({javadocPath}/org/gradle/api/file/CopySpec.html) exposed by the main distribution.
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=distribution-spec]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=distribution-spec]" */}
+
+By specifying that the distribution should include the task&#8217;s output files (see [incremental builds](incremental_build.mdx#sec:task_inputs_outputs)), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
+
+You can run `gradle installDist` to create an image of the application in `build/install/_projectName_`. You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assemble` to build both.
+
+### Customizing start script generation
+
+The application plugin can generate Unix (suitable for Linux, macOS etc.) and Windows start scripts out of the box.
+The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. `JAVA_OPTS` env var).
+The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
+
+The start scripts are completely customizable.
+Please refer to the documentation of [CreateStartScripts]({groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html) for more details and customization examples.
+
+## Tasks
+
+The Application plugin adds the following tasks to the project.
+
+{/* converter-gap: node=dlist */}
+
+## Application extension
+
+The Application Plugin adds an extension to the project, which you can use to configure its behavior. See the [JavaApplication]({groovyDslPath}/org.gradle.api.plugins.JavaApplication.html) DSL documentation for more information on the properties available on the extension.
+
+You can configure the extension via the `application {}` block shown earlier, for example using the following in your build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=executableDir-conf]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=executableDir-conf]" */}
+
+## License of start scripts
+
+The start scripts generated for the application are licensed under the [Apache 2.0 Software License](https://www.apache.org/licenses/LICENSE-2.0).
+
+## Convention properties (deprecated)
+
+This plugin also adds some convention properties to the project, which you can use to configure its behavior. These are **deprecated** and superseded by the extension described above. See the [Project]({groovyDslPath}/org.gradle.api.Project.html#N14FED) DSL documentation for information on them.
+
+Unlike the extension properties, these properties appear as top-level project properties in the build script. For example, to change the application name you can just add the following to your build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/kotlin" files="build.gradle.kts[tags=applicationName-conf]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/application/groovy" files="build.gradle[tags=applicationName-conf]" */}

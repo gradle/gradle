@@ -1,0 +1,32 @@
+[
+  {
+    "startLine": 63,
+    "endLine": 69,
+    "problem": "Source uses `include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/WebServer.java[]` — a Java file, not a multi-language buildscript. Migrated using SampleFile component. The original snippet was tagged as [source.multi-language-sample,java] but there is only a Java variant (no Kotlin/Groovy DSL variants); the 'multi-language-sample' framing in the original seems to be a markup artifact."
+  },
+  {
+    "startLine": 185,
+    "endLine": 193,
+    "problem": "Original AsciiDoc includes TaskEventsService.java using a tagged region (tag::build-service[]). The tag mechanism strips the tag marker lines and an excluded implementation block that prints task paths. The migrated sample file contains only the tagged region content (tag markers and excluded block removed). The excluded code was: `System.out.println(\"Task finished = \" + ((TaskFinishEvent) finishEvent).getDescriptor().getTaskPath());`"
+  },
+  {
+    "startLine": 130,
+    "endLine": 131,
+    "problem": "The `IMPORTANT` admonition in the source contains mixed content: a bold-marked statement followed by an inline `NOTE:` label and additional prose in the same block. In the migration, the entire block was placed inside a single `:::caution` aside per the IMPORTANT -> caution mapping. The inline `NOTE:` label was preserved as plain text within the caution block."
+  },
+  {
+    "startLine": 41,
+    "endLine": 47,
+    "problem": "Cross-reference `<<properties_providers.adoc#properties_and_providers,custom Gradle type>>` migrated to `/gradle-reference/gradle-managed-types-2/properties-and-providers/#properties_and_providers` based on the current sidebar target for that page."
+  },
+  {
+    "startLine": 153,
+    "endLine": 154,
+    "problem": "Cross-reference `<<worker_api.adoc#converting_to_worker_api,Worker API action>>` migrated to `/gradle-reference/task-development/parallel-task-execution/#converting_to_worker_api`. The worker_api.adoc maps to the 'Parallel Task Execution' page (id: parallel-task-execution). Fragment #converting_to_worker_api preserved but not yet verified to exist on the target page."
+  },
+  {
+    "startLine": 153,
+    "endLine": 153,
+    "problem": "Cross-reference `<<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transform>>` migrated to `/gradle-reference/dependency-management/controlling-dependency-resolution/artifact-transforms/#sec:implementing-artifact-transforms`. The target page (id: artifact-transforms) has status=pending; fragment may not yet be accurate."
+  }
+]

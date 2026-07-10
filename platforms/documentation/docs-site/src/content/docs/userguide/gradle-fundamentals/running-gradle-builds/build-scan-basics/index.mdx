@@ -1,0 +1,53 @@
+---
+title: "Build Scan Basics"
+---
+
+A Build Scan is a **representation of metadata captured** as you run your build.
+
+{/* converter-gap: node=image */}
+
+## About Build Scan
+
+Gradle [captures your build metadata](#sec:captured-information) and sends it to the [Build Scan Service](https://scans.gradle.com/).
+The service then transforms the metadata into information you can analyze and share with others.
+
+{/* converter-gap: node=image */}
+
+The information that Build Scan collects can be an invaluable resource when troubleshooting, collaborating on, or optimizing the performance of your builds.
+
+For example, with a Build Scan, it’s no longer necessary to copy and paste error messages or include all the details about your environment each time you want to ask a question on Stack Overflow, Slack, or the Gradle Forum.
+Instead, copy the link to your latest Build Scan.
+
+{/* converter-gap: node=image */}
+
+## Enable Build Scan
+
+To enable a Build Scan on a Gradle command, add `--scan` to the command line option:
+
+```bash
+$ ./gradlew build --scan
+```
+
+You may be prompted to agree to the terms to use Build Scan.
+
+Visit [Develocity at gradle.com](https://scans.gradle.com/) to learn more.
+
+### Publishing to a specific Develocity server
+
+If you have a Develocity server, you can publish your Build Scan reports to that server instead of [Develocity at gradle.com](https://scans.gradle.com/).
+
+You enable this with the `--develocity-url` command line option:
+
+```text
+ ./gradlew build --develocity-url=https://develocity.example.com
+```
+
+Check the [Develocity Gradle plugin documentation](https://docs.gradle.com/develocity/gradle/current/gradle-plugin/#publish_no_modify) for more details.
+
+## Captured Information
+
+To see what data is captured and sent in a Build Scan, refer to the [Captured Information](https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information)) section in the Gradle Develocity Plugin documentation.
+
+Ready to build something? Start with the [Beginner Tutorial](part1_gradle_init.mdx#part1_gradle_init).
+
+***Next Step:*** [Start the Tutorial](part1_gradle_init.mdx#part1_gradle_init) &gt;&gt;

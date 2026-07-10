@@ -1,0 +1,19 @@
+{
+  "name": "gradle-astro-user-guide",
+  "type": "module",
+  "version": "0.0.1",
+  "imports": {
+    "#/*": "./src/*",
+    "#/components": "./src/components/index.ts",
+    "#gradle-version": "./build/generated/version.txt"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.39.2",
+    "@fontsource/lato": "5.2.7",
+    "astro": "6.3.3",
+    "sharp": "0.34.5"
+  },
+  "devDependencies": {
+    "prettier": "3.8.3"
+  }
+}

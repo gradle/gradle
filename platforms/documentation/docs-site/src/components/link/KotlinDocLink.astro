@@ -1,0 +1,13 @@
+---
+import ApiDocLinkBase from './ApiDocLinkBase.astro';
+
+interface Props {
+  class: string;
+  method?: string;
+  text?: string;
+}
+
+const props = Astro.props;
+---
+
+<ApiDocLinkBase {...props} docClass="kotlindoc-link" componentName="KotlinDocLink" />

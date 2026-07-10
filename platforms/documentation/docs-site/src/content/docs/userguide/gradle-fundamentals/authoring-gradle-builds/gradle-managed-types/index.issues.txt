@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 34,
+    "endLine": 44,
+    "problem": "The original AsciiDoc references a sample snippet at 'snippets/gradle-types/example/groovy/app/build.gradle' with [tags=demo], but only a Groovy DSL variant exists. No Kotlin DSL (.kts) or Declarative (dcl) variants were present in the source. The sample was created with only a 'groovy/' directory. The SampleScripts component will show only the Groovy tab."
+  }
+]

@@ -1,0 +1,121 @@
+---
+title: "Binary Plugin Development"
+---
+
+When creating a plugin in Gradle, you will most likely offer tasks users can run and DSL blocks that users can use to configure your plugin.
+
+Let&#8217;s create a binary plugin that offers both.
+
+When you write a plugin in Gradle, if you want to share it between multiple projects then the best option is to create the plugin in a separate repository.
+This way, you can publish it to a private or public Maven repository, and then apply it in whatever project you need.
+
+## Components of a Plugin
+
+First, let&#8217;s review the three components of a plugin:
+
+{/* converter-gap: node=image */}
+
+{/* converter-gap: node=table */}
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/pB_ks2ShQEA?si=KOB1SkFD4zrSAiaX&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+Our simple plugin compares the size of two files.
+It is called `FileSizeDiff`.
+Here&#8217;s the suggested directory structure:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+This `build.gradle(.kts)` for this `filesizediff` plugin looks as follows:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin" files="plugin/build.gradle.kts[tags=simple]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy" files="plugin/build.gradle[tags=simple]" */}
+
+{/* converter-gap: node=colist */}
+
+## 1. Extension
+
+The extension defines the plugin’s configurable inputs, two file properties in this case:
+
+```java
+Unresolved directive in developing_binary_plugin_advanced.adoc - include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
+```
+
+The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore [lazy](lazy_eager_evaluation.mdx#lazy_evaluation).
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/zE98oR1ccH4?si=AkFw1wpiPctK_mz6&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+## 2. Task
+
+The task does the bulk of the work:
+
+```java
+Unresolved directive in developing_binary_plugin_advanced.adoc - include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
+```
+
+The task defines two input file properties and one output file property:
+
+- The ***input files*** represent the files to compare.
+- The ***output file*** is where the plugin writes the diff result, defaulting to `build/diff-result.txt`.
+
+The `@InputFile` and `@OutputFile` annotations tell Gradle to track these properties for ***incremental builds*** and ***caching***, so the task will only re-run if the inputs or outputs change.
+
+The plugin is responsible for ***mapping the user-defined values*** from the extension to the task’s input properties.
+
+The task logic is implemented in a method annotated with `@TaskAction`, which:
+
+- Compares the size of the two input files.
+- Generates a descriptive text result.
+- Writes that result to the output file and prints it to standard output.
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/obM3bBklU9c?si=iLzhwLVsR4BYJDCu&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+## 3. Plugin
+
+This class wires up the extension and task when the plugin is applied:
+
+```java
+Unresolved directive in developing_binary_plugin_advanced.adoc - include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
+```
+
+In the plugin class, we override the `apply` method, which is invoked when the plugin is applied to a project via `build.gradle(.kts)`.
+
+Within this method, the plugin does two things:
+
+1. ***Creates an extension named `filesizediff`:***
+This allows users to configure the plugin using a `diff {}` block in their build script.
+The configuration values are stored in an instance of `FileSizeDiffExtension`.
+2. ***Registers a task of type `FileSizeDiffTask`:***
+The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `diff` extension.
+This ensures the task uses the values provided by the user in their build script.
+
+This enables the following usage in a `build.gradle(.kts)` file:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin" files="build.gradle.kts" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy" files="build.gradle" */}
+
+***Next Step:*** [Learn how to test Binary Plugins](testing_binary_plugin_advanced.mdx#test_binary_plugins_advanced) &gt;&gt;

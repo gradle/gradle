@@ -1,0 +1,101 @@
+---
+title: How to Align Dependency Versions
+---
+
+import { SampleScripts, SampleFile } from '#/components';
+
+<div id="version_alignment" />
+
+Dependency version alignment ensures that different modules belonging to the same logical group (a [platform](/gradle-reference/dependency-management/centralizing-dependencies-2/creating-platforms/#platforms)) use identical versions in the dependency graph.
+
+## Why do Inconsistent Module Versions Happen?
+
+Gradle supports aligning versions of modules that belong to the same [**platform**](/gradle-reference/dependency-management/centralizing-dependencies-2/creating-platforms/#platforms).
+For example, a component's **API and implementation modules** should use the **same version**.
+
+However, due to **transitive dependency resolution**, modules within the same platform may end up using **different versions**, leading to potential compatibility issues.
+
+Consider the following example, where your project depends on both `jackson-databind` and `vert.x`:
+
+<SampleScripts sample_name="basic-deps" basename="build" />
+
+Dependency resolution may result in:
+
+- **`jackson-core`** → `2.9.5` (required by `vertx-core`)
+- **`jackson-databind`** → `2.9.5` (resolved via conflict resolution)
+- **`jackson-annotations`** → `2.9.0` (a dependency of `jackson-databind:2.9.5`)
+
+The issue is that `Vert.x` (`3.5.0`) uses an older `Jackson` (`2.9.0`), but the explicit dependency (`2.9.5`) forces Gradle to upgrade `Vert.x`'s `Jackson` dependencies from `2.9.0` to `2.9.5`:
+
+<SampleFile sample_name="basic-deps" path="common/dependencies.out" lang="text" />
+
+This mismatch can lead to **incompatibility issues** and unexpected failures.
+
+Gradle provides **dependency version alignment** through [**platforms**](/gradle-reference/dependency-management/centralizing-dependencies-2/creating-platforms/#platforms), ensuring related modules use **consistent versions**.
+
+<div id="sec:align_bom_platform" />
+
+## Option 1: Using a Published Platform
+
+If a public platform (also known as a BOM) is available, import it as a platform:
+
+<SampleScripts sample_name="bom-alignment" basename="build" />
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the aligned dependencies:
+
+<SampleFile sample_name="bom-alignment" path="common/dependencies-bom.out" lang="text" />
+
+<div id="sec:align-versions-unpublished" />
+
+## Option 2: Creating a Virtual Platform
+
+<div id="sec:virtual_platform" />
+
+If no public BOM exists, you can create a **virtual platform**.
+
+In this case, Gradle builds the platform **dynamically** based on the modules being used.
+For this, you must define [**component metadata rules**](/gradle-reference/dependency-management/managing-dependencies-2/modifying-dependency-metadata/#component-metadata-rules):
+
+<SampleScripts sample_name="virtual-platform" basename="build" />
+
+This ensures that all **Jackson modules align to the same version**, even if brought in transitively.
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the aligned dependencies:
+
+<SampleFile sample_name="virtual-platform" path="common/dependencies-platform.out" lang="text" />
+
+<div id="sec:native_alignment" />
+
+## Option 3: Using the Java Plugin
+
+Gradle **natively supports version alignment** using the [Java Platform Plugin](/gradle-reference/platforms/jvm-builds/jvm-plugins/java-platform-plugin/#java_platform_plugin).
+
+When projects have multiple modules that are versioned together (e.g., `lib`, `utils`, `core`), using mixed versions (e.g., `core:1.0` and `lib:1.1`) can lead to runtime issues or incompatibilities.
+
+Consider a *project* with *three modules*:
+
+- `lib`
+- `utils`
+- `core` *(depends on `lib` and `utils`)*
+
+A **consumer project** declares:
+
+- `core` version 1.0
+- `lib` version 1.1
+
+By default, Gradle selects `core:1.0` and `lib:1.1`, leading to **version misalignment**.
+
+To fix this, introduce a **platform module** that enforces constraints:
+
+<SampleScripts sample_name="java-platform" basename="build" subpath="platform/" />
+
+Each module should declare a **dependency on the platform**:
+
+<SampleScripts sample_name="java-platform-core" basename="build" subpath="core/" />
+
+This ensures all dependencies (`core`, `lib`, and `utils`) resolve consistently to version `1.1`.
+
+## Summary
+
+Using **platforms and BOMs**, Gradle ensures **consistent dependency versions**, avoiding compatibility issues.
+When no published BOM exists, **virtual platforms** allow manual alignment of dependencies.

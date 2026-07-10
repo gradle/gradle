@@ -1,0 +1,28 @@
+---
+title: "Gradle &amp; Third-party Tools"
+---
+
+Gradle can be integrated with many different third-party tools such as IDEs and continuous integration platforms.
+Here we look at some of the more common ones as well as how to integrate your own tool with Gradle.
+
+## IDEs
+
+{/* converter-gap: node=dlist */}
+
+## Continuous integration
+
+We have [dedicated guides](https://cookbook.gradle.org/ci/) showing you how to integrate a Gradle project with several CI platforms.
+
+## How to integrate with Gradle
+
+There are two main ways to integrate a tool with Gradle:
+
+- The Gradle build uses the tool
+- The tool executes the Gradle build
+
+The former case is typically [implemented as a Gradle plugin](plugins.mdx#custom_plugins).
+The latter can be accomplished by embedding Gradle through the [Tooling API](tooling_api.mdx#tooling_api).
+
+## Test integration
+
+If your platform uses an external testing suite, and you want to integrate with the [HTML Test Report](java_testing.mdx#test_reporting), you can use the [Test Reporting API](test_reporting_api.mdx#test_reporting_api).

@@ -1,0 +1,89 @@
+---
+title: "Dependency Management"
+---
+
+Software projects typically depend on other libraries to function.
+These libraries can either be sourced from other projects in the same build or from external repositories.
+
+Gradle&#8217;s dependency management infrastructure provides APIs to declare, resolve, and expose binaries required by and provided by a project.
+
+Understanding dependency management in Gradle is important for structuring projects into components.
+It is also important when you want to reuse existing libraries, or you need to upgrade those libraries while managing their versions.
+
+Let&#8217;s look at a Java project where the code relies on [Guava](https://mvnrepository.com/artifact/com.google.guava/guava) which is a suite of Google Core libraries for Java.
+The build file of the project includes the following:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/introductionDependencies/kotlin" files="build.gradle.kts[tags=dependency-intro]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/introductionDependencies/groovy" files="build.gradle[tags=dependency-intro]" */}
+
+Within the `dependencies` block, there are three things to notice when a dependency is declared:
+
+1. The bucket:
+2. The dependency:
+
+Dependencies can be local or external.
+To let Gradle know where to find external dependencies, use the `repositories{}` block in the [Build File](build_file_basics.mdx#build_file_basics).
+
+Let&#8217;s expand our example:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/introductionDependencies/kotlin" files="build.gradle.kts[tags=dependency-repo]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/introductionDependencies/groovy" files="build.gradle[tags=dependency-repo]" */}
+
+In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the [Maven Central](https://repo1.maven.org/maven2/) and [Google](https://maven.google.com/) _repositories_.
+
+## Learning the Basics
+
+If you want to understand the basics of dependency management and you are new to Gradle, start [here](declaring_dependencies.mdx#one-declaring-dependencies).
+
+### 1. Declaring Dependencies
+
+You can add external libraries to your Java project, such as `Guava`.
+These libraries are [_dependencies_](declaring_dependencies_basics.mdx#declaring-dependencies-basics) of your project.
+They are added using the `dependencies{}` block in your build file.
+
+### 2. Dependency Configurations
+
+Every dependency declared for a Gradle project applies to a specific scope, known as a [_configurations_](dependency_configurations.mdx#two-dependency-configurations).
+These _configurations_ are typically created by applying plugins or must be created directly using APIs.
+
+### 3. Declaring Repositories
+
+You can [declare _repositories_](declaring_repositories_basics.mdx#declaring-repositories-basics) to tell Gradle where to fetch external _dependencies_.
+During a build, Gradle locates and downloads the dependencies, a process called _dependency resolution_.
+
+### 4. Centralizing Dependencies
+
+To keep dependencies and their versions declared in a [single, manageable location](platforms.mdx#platforms) (i.e., centralized), you can use _platforms_ and _version catalogs_.
+
+A _platform_ is a set of modules intended to be used together.
+A _version catalog_ is a centralized list of dependency coordinates that can be referenced in multiple projects.
+
+### 5. Managing Constraints and Conflicts
+
+Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
+This usually leads to failing builds.
+
+You can manage conflicts using [resolution rules](resolution_rules.mdx#using-resolution-rules) or [dependency locking](dependency_locking.mdx#locking-versions).
+
+## Advanced Concepts
+
+In order to influence how Gradle resolves dependencies, it&#8217;s important to understand [how it works](dependency_resolution.mdx#dependency-resolution-basics).
+
+### 1. Dependency Resolution
+
+Gradle&#8217;s [dependency resolution process](dependency_resolution.mdx#dependency-resolution-basics) determines which modules and versions are required to fulfill a build&#8217;s declared dependencies.
+It is done in two steps, _graph resolution_ and _artifact resolution_.
+
+### 2. Graph Resolution
+
+During [graph resolution](graph_resolution.mdx#dependency-graph-resolution), Gradle constructs a _dependency graph_, resolving version conflicts and ensuring the intended dependencies are selected.
+
+### 3. Variant Selection
+
+[Variant selection](variant_aware_resolution.mdx#sec:understanding-variant-selection) traverses the resolved dependency graph by choosing the most compatible _variant_ of each module based on _attributes_ and _capabilities_.
+
+### 4. Artifact Resolution
+
+Finally, [Artifact resolution](artifact_resolution.mdx#artifact-resolution) is how Gradle determines which files or _artifacts_ published by the selected variants to download and use during the build.

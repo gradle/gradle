@@ -1,0 +1,107 @@
+---
+title: "Command-Line Interface Basics"
+---
+
+The command-line interface is the primary ***method of interacting with Gradle*** outside the IDE.
+
+{/* converter-gap: node=image */}
+
+The Gradle CLI is the primary way to interact with a Gradle build from the terminal.
+You can use it to run tasks, inspect the build, manage dependencies, and control logging, all through flexible and powerful command-line options.
+
+:::tip
+Use of the [Gradle Wrapper](gradle_wrapper.mdx#gradle_wrapper) is highly encouraged. Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
+:::
+
+## Running commands
+
+To execute Gradle commands, use the following simple structure:
+
+```text
+gradle [taskName...] [--option-name...]
+```
+
+You can specify one or more tasks separated by spaces.
+
+```text
+gradle [taskName1 taskName2...] [--option-name...]
+```
+
+For example, to run a task named `build`, simply type:
+
+```text
+gradle build
+```
+
+To `clean` first, and then `build`:
+
+```text
+gradle clean build
+```
+
+## Command-line options
+
+Gradle commands can include various options to adjust their behavior.
+Options can appear _before_ or _after_ task names, like so:
+
+```text
+gradle [--option-name...] [taskName...]
+```
+
+For options that accept a value, use an equals sign (`=`) for clarity:
+
+```text
+gradle [...] --console=plain
+```
+
+Some options are toggles and have opposite forms.
+For instance, to enable or disable the build cache:
+
+```text
+gradle build --build-cache
+gradle build --no-build-cache
+```
+
+Gradle also provides short-option equivalents for convenience.
+The following two commands are equivalent:
+
+```text
+gradle --help
+gradle -h
+```
+
+## Executing tasks
+
+In Gradle, tasks belong to specific projects.
+To clearly indicate which task you want to run, especially in multi-project builds, use a colon (`:`) as a project separator.
+
+To execute a task named `test` at the root project level, use:
+
+```text
+gradle :test
+```
+
+For nested subprojects, specify the full path using colons:
+
+```text
+gradle :subproject:test
+```
+
+If you run a task without any colons, Gradle executes the task in the current directory&#8217;s project context:
+
+```text
+gradle test
+```
+
+## Task options
+
+Some tasks accept their own specific options.
+Pass these options directly after the task name, prefixed with `--`.
+
+Here&#8217;s how you can pass a custom option:
+
+```text
+gradle taskName --exampleOption=exampleValue
+```
+
+***Next Step:*** [Learn about the Settings file](settings_file_basics.mdx#settings_file_basics) &gt;&gt;

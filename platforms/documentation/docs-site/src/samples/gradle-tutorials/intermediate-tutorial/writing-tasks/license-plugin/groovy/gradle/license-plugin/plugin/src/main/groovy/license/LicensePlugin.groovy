@@ -1,0 +1,30 @@
+import org.gradle.api.Project
+import org.gradle.api.Plugin
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
+
+class LicensePlugin implements Plugin<Project> {
+    // Don't change anything here
+}
+
+abstract class LicenseTask extends DefaultTask {
+    @Input
+    def licenseFilePath = project.layout.settingsDirectory.file("license.txt").asFile.path
+
+    @TaskAction
+    void action() {
+        // Read the license text
+        def licenseText = new File(licenseFilePath).text
+        // Walk the directories looking for java files
+        project.layout.settingsDirectory.asFile.eachFileRecurse { file ->
+            int lastIndexOf = file.getName().lastIndexOf('.')
+            if ((lastIndexOf != -1) && (file.getName().substring(lastIndexOf)) == ".java") {// Read the source code
+                def content = file.getText()
+                //println(licenseText + '\n' + content)
+                // Write the license and the source code to the file
+                file.text = licenseText + '\n' + content
+            }
+        }
+    }
+}

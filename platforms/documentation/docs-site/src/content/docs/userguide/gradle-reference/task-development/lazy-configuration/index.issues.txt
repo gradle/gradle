@@ -1,0 +1,47 @@
+[
+  {
+    "startLine": 36,
+    "endLine": 49,
+    "problem": "AsciiDoc definition lists (::) for Provider and Property are converted to a flat format with :: separators. MDX does not natively support definition lists, so the :: notation is preserved as plain text. Review rendering."
+  },
+  {
+    "startLine": 96,
+    "endLine": 96,
+    "problem": "The GroovyDocLink for ProviderFactory.provider(Callable) uses the Groovy DSL path from the original. The original used {groovyDslPath} which maps to GroovyDocLink."
+  },
+  {
+    "startLine": 138,
+    "endLine": 138,
+    "problem": "The original links to {javaApi}/java/io/File.html which is an external Java API link. Preserved as an external link to Oracle docs."
+  },
+  {
+    "startLine": 157,
+    "endLine": 175,
+    "problem": "The original AsciiDoc had language-specific output blocks using [.multi-language-text.lang-groovy] and [.multi-language-text.lang-kotlin]. MDX does not have a built-in mechanism for language-toggled output blocks, so both outputs are shown with labels."
+  },
+  {
+    "startLine": 268,
+    "endLine": 268,
+    "problem": "The propertyConventionCallsites samples with tags 'convention-callsites-from-constructor' and 'convention-callsites-from-declaration' contain indented code fragments (extracted from inside a class body). The SampleScripts component will show them with their original indentation."
+  },
+  {
+    "startLine": 283,
+    "endLine": 283,
+    "problem": "Link to properties_providers.adoc#managed_properties preserved as /gradle-reference/gradle-managed-types-2/properties-and-providers/#managed_properties. The target page has not been migrated yet."
+  },
+  {
+    "startLine": 124,
+    "endLine": 124,
+    "problem": "Link to sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins preserved as local link to /gradle-reference/structuring-builds/sharing-build-logic-using-buildsrc/#sec:sharing_logic_via_convention_plugins. Target page not yet migrated."
+  },
+  {
+    "startLine": 56,
+    "endLine": 56,
+    "problem": "Link to build_lifecycle.adoc#build_phases preserved as /gradle-reference/runtime-and-configuration/build-lifecycle/#build_phases. Target page not yet migrated."
+  },
+  {
+    "startLine": 67,
+    "endLine": 67,
+    "problem": "Link to working_with_files.adoc#working_with_files preserved as /gradle-reference/gradle-managed-types-2/working-with-files/#working_with_files. Target page not yet migrated."
+  }
+]

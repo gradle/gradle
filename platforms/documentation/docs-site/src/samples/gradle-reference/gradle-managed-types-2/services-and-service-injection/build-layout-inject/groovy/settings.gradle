@@ -1,0 +1,15 @@
+abstract class MyBuildLayoutPlugin implements Plugin<Settings> {
+    private BuildLayout buildLayout
+
+    @Inject //@javax.inject.Inject
+    MyBuildLayoutPlugin(BuildLayout buildLayout) {
+        this.buildLayout = buildLayout
+    }
+
+    @Override void apply(Settings settings) {
+        // the meat and potatoes of the plugin
+        println buildLayout.rootDirectory
+    }
+}
+
+apply plugin: MyBuildLayoutPlugin

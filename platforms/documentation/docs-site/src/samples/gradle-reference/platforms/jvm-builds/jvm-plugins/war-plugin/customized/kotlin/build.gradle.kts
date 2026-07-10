@@ -1,0 +1,14 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    providedCompile("javax.servlet:servlet-api:2.5")
+}
+
+tasks.war {
+    webAppDirectory = file("src/main/webapp")
+    from("src/rootContent") // adds a file-set to the root of the archive
+    webInf { from("src/additionalWebInf") } // adds a file-set to the WEB-INF dir.
+    webXml = file("src/someWeb.xml") // copies a file to WEB-INF/web.xml
+}

@@ -1,0 +1,62 @@
+---
+title: "The Ear Plugin"
+---
+
+The Ear plugin adds support for assembling web application EAR files.
+It adds a default EAR archive task.
+It doesn&#8217;t require the [Java plugin](java_plugin.mdx#java_plugin), but for projects that also use the Java plugin it disables the default JAR archive generation.
+
+## Usage
+
+To use the Ear plugin, include the following in your build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/earWithWar/kotlin" files="build.gradle.kts[tags=use-ear-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/earWithWar/groovy" files="build.gradle[tags=use-ear-plugin]" */}
+
+## Tasks
+
+The Ear plugin adds the following tasks to the project.
+
+{/* converter-gap: node=dlist */}
+
+### Dependencies added to other tasks
+
+The Ear plugin adds the following dependencies to tasks added by the [Base Plugin](base_plugin.mdx#base_plugin).
+
+{/* converter-gap: node=dlist */}
+
+## Project layout
+
+```text
+.
+└── src
+    └── main
+        └── application // <1>
+```
+
+{/* converter-gap: node=colist */}
+
+## Dependency management
+
+The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All dependencies in the `deploy` configuration are placed in the root of the EAR archive, and are _not_ transitive. All dependencies in the `earlib` configuration are placed in the 'lib' directory in the EAR archive and _are_ transitive.
+
+## Ear
+
+The default behavior of the Ear task is to copy the content of `src/main/application` to the root of the archive. If your `application` directory doesn&#8217;t contain a `META-INF/application.xml` deployment descriptor then one will be generated for you.
+
+The [Ear]({groovyDslPath}/org.gradle.plugins.ear.Ear.html) class in the API documentation has additional useful information.
+
+## Customizing
+
+Here is an example with the most important customization options:
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/earCustomized/kotlin/ear" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/earCustomized/groovy/ear" files="build.gradle[]" */}
+
+You can also use customization options that the [Ear]({groovyDslPath}/org.gradle.plugins.ear.Ear.html) task provides, such as `from` and `metaInf`.
+
+## Using custom descriptor file
+
+You may already have appropriate settings in a `application.xml` file and want to use that instead of configuring the `ear.deploymentDescriptor` section of the build script. To accommodate that goal, place the `META-INF/application.xml` in the right place inside your source folders (see the `appDirName` property). The file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.

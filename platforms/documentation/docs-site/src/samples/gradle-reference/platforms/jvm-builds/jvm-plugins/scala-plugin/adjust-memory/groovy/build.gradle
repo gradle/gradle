@@ -1,0 +1,6 @@
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.forkOptions.with {
+        memoryMaximumSize = '1g'
+        jvmArgs = ['-XX:MaxMetaspaceSize=512m']
+    }
+}

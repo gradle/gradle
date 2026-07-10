@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 101,
+    "endLine": 101,
+    "problem": "The Kotlin DSL annotation <1> for the plugins{} block references 'KotlinSettingsScript' (org.gradle.kotlin.dsl.KotlinSettingsScript). This appears suspicious as a build script (not a settings script) should likely reference a different class for the plugins{} block. However, the original source uses '{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html' and has been preserved as-is per migration policy."
+  },
+  {
+    "startLine": 53,
+    "endLine": 53,
+    "problem": "Same issue as above — migrated as KotlinDocLink class='org.gradle.kotlin.dsl.KotlinSettingsScript' to match the original source link faithfully."
+  }
+]

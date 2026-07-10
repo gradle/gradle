@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=how_to_share_outputs_between_projects.html#variant-aware-sharing">
-++++

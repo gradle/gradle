@@ -1,0 +1,9 @@
+plugins {
+    id("java")
+}
+
+tasks.named('myRunTask', JavaExec) {
+    jvmArgumentProviders.clear() // Clear existing JVM argument providers
+    maxHeapSize = null // Clear max heap size
+    jvmArgs = ["-Dfoo", "-Dbar"] // Set new JVM arguments
+}

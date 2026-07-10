@@ -1,0 +1,27 @@
+[
+  {
+    "startLine": 516,
+    "endLine": 561,
+    "problem": "Source contains a [.multi-language-sample] block with both Kotlin and Groovy variants for directory structure examples. This was migrated as separate code blocks with a note 'or with Groovy DSL:' since there is no actual sample to create (the code is illustrative of a directory hierarchy, not a buildscript). Both variants were preserved in the migration."
+  },
+  {
+    "startLine": 19,
+    "endLine": 19,
+    "problem": "Link to older migration guide for Gradle 6.x was kept as external docs.gradle.org link since the from-version-6-x page may not have been migrated yet."
+  },
+  {
+    "startLine": 36,
+    "endLine": 36,
+    "problem": "Link to troubleshooting guide kept as external docs.gradle.org link since troubleshooting page may not have been migrated yet."
+  },
+  {
+    "startLine": 1200,
+    "endLine": 1209,
+    "problem": "Source references '$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers' for GRADLE_USER_HOME variable. This was migrated as '$GRADLE_USER_HOME/workers' since the directory_layout reference was dropped (page may not be migrated)."
+  },
+  {
+    "startLine": 733,
+    "endLine": 733,
+    "problem": "Source has a complex JavaDoc link with method signature containing '--' suffix notation for AsciiDoc (setAttributeDisambiguationPrecedence(List)-- and getAttributeDisambiguationPrecedence()--). These '--' suffixes are AsciiDoc link anchors, not method signatures. Migrated as JavaDocLink components with the actual method signatures without the '--' suffix."
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 56,
+    "endLine": 56,
+    "problem": "Links to Application plugin (application_plugin.adoc) and Java plugin (java_plugin.adoc) pages were kept as external docs.gradle.org links because neither page has been migrated yet (no 'target' set in sidebar). Update these to local site-relative links once those pages are migrated."
+  },
+  {
+    "startLine": 22,
+    "endLine": 22,
+    "problem": "The Groovy DSL and Kotlin DSL links point to docs.gradle.org/current/dsl/ and docs.gradle.org/current/kotlin-dsl/ respectively. These are DSL reference index pages, not standard user guide pages. Kept as external links since no local equivalents exist."
+  },
+  {
+    "startLine": 38,
+    "endLine": 40,
+    "problem": "The original source referenced a GitHub snippet at 'snippets/init/generated' pointing to github.com/gradle/gradle. The GitHubButton now links to the page-scoped sample 'init-full' in this repository instead. The original sample was a full project; the migrated 'init-full' sample only contains the tagged portion of the build file used on this page."
+  }
+]

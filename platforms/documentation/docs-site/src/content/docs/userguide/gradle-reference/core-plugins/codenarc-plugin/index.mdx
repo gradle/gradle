@@ -1,0 +1,58 @@
+---
+title: "The CodeNarc Plugin"
+---
+
+The CodeNarc plugin performs quality checks on your project&#8217;s Groovy source files using [CodeNarc](https://codenarc.org/) and generates reports from these checks.
+
+## Usage
+
+To use the CodeNarc plugin, include the following in your build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/kotlin" files="build.gradle.kts[tags=use-codenarc-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/groovy" files="build.gradle[tags=use-codenarc-plugin]" */}
+
+The plugin adds a number of tasks to the project that perform the quality checks when used with the [Groovy Plugin](groovy_plugin.mdx#groovy_plugin). You can execute the checks by running `gradle check`.
+
+## Tasks
+
+The CodeNarc plugin adds the following tasks to the project:
+
+{/* converter-gap: node=dlist */}
+
+### Dependencies added to other tasks
+
+The CodeNarc plugin adds the following dependencies to tasks defined by the Groovy plugin.
+
+{/* converter-gap: node=dlist */}
+
+## Project layout
+
+The CodeNarc plugin expects the following project layout:
+
+```text
+<root>
+└── config
+    └── codenarc           // <1>
+        └── codenarc.xml   // <2>
+```
+
+{/* converter-gap: node=colist */}
+
+## Dependency management
+
+The CodeNarc plugin adds the following dependency configurations:
+
+{/* converter-gap: node=table */}
+
+:::note
+If CodeNarc requires a different Groovy version than that used to compile Groovy source,  you can supply one using the `codenarc` configuration.
+:::
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/kotlin" files="build.gradle.kts[tags=specify-groovy-version]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/groovy" files="build.gradle[tags=specify-groovy-version]" */}
+
+## Configuration
+
+See the [CodeNarcExtension]({groovyDslPath}/org.gradle.api.plugins.quality.CodeNarcExtension.html) class in the API documentation.

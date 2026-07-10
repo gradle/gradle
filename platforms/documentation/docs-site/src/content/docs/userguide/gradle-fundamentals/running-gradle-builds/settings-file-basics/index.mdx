@@ -1,0 +1,69 @@
+---
+title: "Settings File Basics"
+---
+
+The settings file (`settings.gradle(.kts)`) is the **entry point** of every Gradle project.
+
+{/* converter-gap: node=image */}
+
+The primary purpose of the _settings file_ is to define the project structure, usually adding subprojects to your build.
+Therefore in:
+
+- **Single-project** builds, the settings file is **optional**.
+- **Multi-project** builds, the settings file is **mandatory** and declares all subprojects.
+
+## Settings script
+
+**The settings file is a script.**
+It is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file in Kotlin.
+
+The [Groovy DSL]({groovyDslPath}/index.html) and the [Kotlin DSL]({kotlinDslPath}/index.html) are the only accepted languages for Gradle scripts.
+
+The settings file is typically located in the root directory of the project since it **defines the structure of the build**, such as which projects are included.
+Without a settings file, Gradle treats the build as a single-project build by default.
+
+Let&#8217;s take a look at an example and break it down:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## 1. Define the project name
+
+The settings file defines your project name:
+
+```kotlin
+rootProject.name = "root-project"
+```
+
+There is only one root project per build.
+
+## 2. Add subprojects
+
+The settings file defines the structure of the project by including subprojects, if there are any:
+
+```kotlin
+include("sub-project-a")
+include("sub-project-b")
+include("sub-project-c")
+```
+
+The settings script is evaluated before any build scripts, making it the right place to enable or configure ***build-wide features*** such as plugin management, included builds, version catalogs, and more.
+We will explore these Gradle features in the advanced concepts section.
+
+Based on the example settings file, Gradle expects the project to look as follows:
+
+```text
+.
+├── settings.gradle(.kts)   // <1>
+├── sub-project-a
+│   └── build.gradle(.kts)      // <2>
+├── sub-project-b
+│   └── build.gradle(.kts)      // <2>
+└── sub-project-c
+    └── build.gradle(.kts)      // <2>
+```
+
+{/* converter-gap: node=colist */}
+
+***Next Step:*** [Learn about the Build scripts](build_file_basics.mdx#build_file_basics) &gt;&gt;

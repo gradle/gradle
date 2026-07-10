@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 156,
+    "endLine": 171,
+    "problem": "The 'Read-only Managed name Property' code block was tagged as [source,groovy] in the original AsciiDoc but the code content uses Kotlin syntax (override val, colon type annotations). Preserved as-is with groovy language tag to match the original source."
+  }
+]

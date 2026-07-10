@@ -1,0 +1,4 @@
+dependencies {
+    codenarc 'org.codehaus.groovy:groovy-all:3.0.3'
+    codenarc 'org.codenarc:CodeNarc:1.6.1'
+}

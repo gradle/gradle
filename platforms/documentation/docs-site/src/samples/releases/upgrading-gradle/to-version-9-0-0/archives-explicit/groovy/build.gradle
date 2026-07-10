@@ -1,0 +1,16 @@
+def specialJar = tasks.register("specialJar". Jar) {
+    from("foo")
+}
+
+configurations {
+    create("special") {
+        // In previous versions, this would have been enough to add the specialJar
+        // artifact to the archives configuration
+        outgoing.artifact(specialJar)
+    }
+    // In Gradle 9.0.0, you need to explicitly add the artifact to the archives
+    // configuration
+    named("archives") {
+        outgoing.artifact(specialJar)
+    }
+}

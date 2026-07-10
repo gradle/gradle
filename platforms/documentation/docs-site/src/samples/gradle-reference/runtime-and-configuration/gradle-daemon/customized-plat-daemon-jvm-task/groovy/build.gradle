@@ -1,0 +1,9 @@
+tasks.named("updateDaemonJvm") {
+    def myPlatforms = [
+        BuildPlatformFactory.of(
+            org.gradle.platform.Architecture.AARCH64,
+            org.gradle.platform.OperatingSystem.MAC_OS
+        )
+    ]
+    toolchainPlatforms.set(myPlatforms)
+}

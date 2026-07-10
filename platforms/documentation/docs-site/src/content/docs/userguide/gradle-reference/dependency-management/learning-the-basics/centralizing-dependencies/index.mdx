@@ -1,0 +1,54 @@
+---
+title: "4. Centralizing dependencies"
+---
+
+Central dependencies can be managed in Gradle using various techniques such as platforms and version catalogs.
+Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
+
+## Using platforms
+
+A platform is a set of dependency constraints designed to manage the transitive dependencies of a library or application.
+
+When you define a platform in Gradle, you&#8217;re essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/dep-man/kotlin" files="platform/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/dep-man/groovy" files="platform/build.gradle[]" */}
+
+Then, you can use that platform in your project:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/dep-man/kotlin" files="app/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/dep-man/groovy" files="app/build.gradle[]" */}
+
+Here, `platform` defines versions for `commons-lang3`, `guava`, and `slf4j-api`, ensuring they are compatible.
+
+Maven&#8217;s BOM (Bill of Materials) is a popular type of platform that Gradle supports.
+A BOM file lists dependencies with specific versions, allowing you to manage these versions in a centralized way.
+
+For example, a popular platform is the [Spring Boot Bill of Materials](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies).
+To use the BOM, you add it to the dependencies of your project:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-constraintsFromBOM/kotlin" files="build.gradle.kts[tag=dependency-on-bom]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-constraintsFromBOM/groovy" files="build.gradle[tag=dependency-on-bom]" */}
+
+By including the `spring-boot-dependencies` platform dependency, you ensure that all Spring components use the versions defined in the BOM file.
+
+## Using a Version catalog
+
+A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
+You can reference this catalog in your build scripts to ensure each project depends on a common set of well-known dependencies.
+
+First, create a `libs.versions.toml` file in the `gradle` directory of your project.
+This file will define the versions of your dependencies and plugins:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/catalogs-toml-simple/common" files="gradle/libs.versions.toml[]" */}
+
+Then, you can use the version catalog in you build file:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/catalogs-toml-simple/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/basics/catalogs-toml-simple/groovy" files="build.gradle[]" */}
+
+***Next Step:*** [Learn about Dependency Constraints and Conflict Resolution](dependency_constraints_conflicts.mdx#five-dependency-constraints-conflicts) &gt;&gt;

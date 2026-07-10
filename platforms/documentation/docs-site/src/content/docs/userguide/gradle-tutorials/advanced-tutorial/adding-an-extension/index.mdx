@@ -1,0 +1,86 @@
+---
+title: "Part 2: Add an Extension"
+---
+
+Learn about extensions and how to add them to your plugin to make it configurable.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in [part 1](part1_gradle_init_plugin.mdx#part1_begin).
+
+## Step 1: Understanding Plugin Extensions
+
+A ***plugin extension*** is a powerful feature that allows users to configure your plugin using a declarative DSL block in their `build.gradle(.kts)` file.
+This keeps plugin configuration clean and easy to read.
+
+For example, a user could configure your plugin like this:
+
+```text
+slack {
+    token = "..."
+    channel = "#builds"
+    message = "Build completed!"
+}
+```
+
+Behind the scenes, this `slack {}` block maps directly to a Kotlin or Groovy class with properties.
+Gradle handles the magic of injecting the values into your plugin&#8217;s logic.
+
+## Step 2: Rename the Plugin Class
+
+First, let&#8217;s rename our plugin class from the generic "Hello World" example.
+
+Rename the file `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
+
+Rename the file `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy` to `plugin/src/main/groovy/org/example/SlackPlugin.groovy`.
+
+:::tip
+Most modern IDEs, like IntelliJ IDEA, can automatically handle both the file and class name updates for you.
+:::
+
+Next, we&#8217;ll update the class name.
+The `abstract` keyword is important here because it allows Gradle to use its dependency injection framework to provide the plugin with services it needs, like the `ObjectFactory`.
+
+Change `class PluginTutorialPlugin: Plugin&lt;Project&gt; {}` to `abstract class SlackPlugin: Plugin&lt;Project&gt; {}`.
+
+Change `class PluginTutorialPlugin implements Plugin&lt;Project&gt; {}` to `abstract class SlackPlugin implements Plugin&lt;Project&gt; {}`.
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-plugin]" */}
+
+You&#8217;ll also need to update the `build.gradle(.kts)` file to point to the new plugin class name:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/build.gradle.kts[tags=gradle-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/build.gradle[tags=gradle-plugin]" */}
+
+## Step 3: Define the Extension Class
+
+Now, let&#8217;s define the class that holds the configurable properties for our plugin.
+We&#8217;ll use Gradle&#8217;s `Property&lt;T&gt;` type for these properties, as this makes them configurable lazily and fully compatible with the Configuration Cache.
+
+Create a new file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackExtension.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackExtension.groovy[]" */}
+
+This class will provide the configuration for the `slack` DSL block we saw earlier.
+
+## Step 4: Register the Extension in the Plugin
+
+The final step is to register the `SlackExtension` in our `SlackPlugin` class.
+This tells Gradle to create the extension and make it available in the build script.
+
+Let&#8217;s update the `apply` method to register our new extension and modify the dummy task to use its properties.
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-extension]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-extension]" */}
+
+After this step, a user can configure your plugin, and the `sendTestSlackMessage` task will use those values when it runs.
+
+***Next Step:*** [Create a Custom Task](part3_create_custom_task.mdx#part3_create_custom_task) &gt;&gt;

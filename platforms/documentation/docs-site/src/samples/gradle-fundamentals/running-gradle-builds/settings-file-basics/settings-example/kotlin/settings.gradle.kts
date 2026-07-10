@@ -1,0 +1,5 @@
+rootProject.name = "root-project"   // <1>
+
+include("sub-project-a")            // <2>
+include("sub-project-b")
+include("sub-project-c")

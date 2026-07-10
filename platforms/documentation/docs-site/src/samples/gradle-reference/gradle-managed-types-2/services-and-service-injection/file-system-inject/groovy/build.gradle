@@ -1,0 +1,18 @@
+abstract class MyFileSystemOperationsTask extends DefaultTask {
+    private FileSystemOperations fileSystemOperations
+
+    @Inject //@javax.inject.Inject
+    MyFileSystemOperationsTask(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        fileSystemOperations.sync {
+            from 'src'
+            into 'dest'
+        }
+    }
+}
+
+tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask)

@@ -1,0 +1,69 @@
+---
+title: "Part 2: The Build Lifecycle"
+---
+
+Learn about the Gradle build lifecycle and what each phase represents.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in [part 1](part1_gradle_init_project.mdx#part1_begin).
+
+## Step 1. Understanding the Build Lifecycle
+
+A Gradle build has three distinct phases:
+
+{/* converter-gap: node=dlist */}
+
+When Gradle is invoked to execute a task, the lifecycle begins.
+Let&#8217;s see it in action.
+
+{/* converter-gap: node=image */}
+
+## Step 2. Update the Settings File
+
+Add the following line to the top of the Settings file:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Step 3. Update the Build Script
+
+Add the following lines to the bottom of the Build script:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Step 4. Run a Gradle Task
+
+Run the `task1` task that you registered and configured in Step 3:
+
+```text
+$ ./gradlew task1
+
+SETTINGS FILE: This is executed during the initialization phase     //<1>
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase       //<2>
+REGISTER TASK1: This is executed during the configuration phase     //<2>
+NAMED TASK1: This is executed during the configuration phase        //<2>
+
+> Task :app:task1
+NAMED TASK1 - doFirst: This is executed during the execution phase  //<3>
+NAMED TASK1 - doLast: This is executed during the execution phase   //<3>
+
+BUILD SUCCESSFUL in 25s
+5 actionable tasks: 3 executed, 2 up-to-date
+```
+
+{/* converter-gap: node=colist */}
+
+It is important to note that while `task1` was configured and executed, `task2` was not.
+This is called _task configuration avoidance_ and prevents unnecessary work.
+
+Task configuration avoidance is when Gradle avoids configuring `task2` when `task1` was called and `task1` does NOT depend. on `task2`.
+
+***Next Step:*** [Multi-Project Builds](part3_multi_project_builds.mdx#part3_multi_project_builds) &gt;&gt;

@@ -1,0 +1,3 @@
+compileJava.dependsOn 'prepare'  // <1>
+tasks.named('package') { dependsOn = [ 'compileJava' ] }  // <2>
+assemble.dependsOn = [ 'package' ]  // <3>

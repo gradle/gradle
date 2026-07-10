@@ -1,0 +1,4 @@
+tasks.register('retrieveRuntimeDependencies', Copy) {
+    into layout.buildDirectory.dir('libs')
+    from configurations.runtimeClasspath
+}

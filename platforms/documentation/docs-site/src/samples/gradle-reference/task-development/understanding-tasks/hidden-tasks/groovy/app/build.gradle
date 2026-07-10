@@ -1,0 +1,3 @@
+tasks.register("helloTask") {
+    println 'Hello'
+}

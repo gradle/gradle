@@ -1,0 +1,12 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "resolvePackageJsonImports": true
+  },
+  "mdx": {
+    // Enable strict type checking in MDX files.
+    "checkMdx": true
+  },
+  "exclude": ["dist", "node_modules", "repos"]
+}

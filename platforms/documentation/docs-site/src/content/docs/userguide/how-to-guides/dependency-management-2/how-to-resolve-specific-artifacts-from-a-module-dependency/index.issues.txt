@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 44,
+    "endLine": 44,
+    "problem": "The link to 'component_metadata_rules.adoc#component-metadata-rules' was kept as an external link (https://docs.gradle.org/current/userguide/component_metadata_rules.html#component-metadata-rules) because no locally migrated target page for that AsciiDoc source was found. Should be updated to a local link once that page is migrated."
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "startLine": 431,
+    "endLine": 431,
+    "problem": "Source uses 'since-gradle-label:9.4.0[]' AsciiDoc macro for 'org.gradle.tooling.parallel'. This custom macro has no direct MDX equivalent. Migrated as inline '<small>since Gradle 9.4.0</small>' to preserve the semantic information."
+  },
+  {
+    "startLine": 356,
+    "endLine": 356,
+    "problem": "Source has a stray double-quote at the end of the 'org.gradle.projectcachedir' description: 'Defaults to `.gradle` in the root project directory.\"'. This appears to be a source defect. Preserved as-is."
+  },
+  {
+    "startLine": 136,
+    "endLine": 136,
+    "problem": "The best practices note linked to 'best_practices_general.adoc#do_not_use_gradle_properties_in_subprojects'. The target page (best_practices_general) has not been migrated yet. Kept as an external docs.gradle.org link."
+  },
+  {
+    "startLine": 307,
+    "endLine": 316,
+    "problem": "The 'directory_layout.adoc#dir:gradle_user_home' link (in the priority table for GRADLE_USER_HOME) has not been migrated to the new system yet. Kept as an external docs.gradle.org link."
+  },
+  {
+    "startLine": 200,
+    "endLine": 206,
+    "problem": "The sample code block in the source used 'include::sample[...]' and 'include::{snippetsPath}/.../configureTaskUsingProjectProperty.out[]' to inline sample files and test output. The build script samples have been moved to src/samples/ and referenced via SampleScripts component. The test output ('Performing release actions') has been inlined verbatim from the .out file."
+  }
+]

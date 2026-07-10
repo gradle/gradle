@@ -1,0 +1,225 @@
+---
+title: "Structuring Multi-Project Builds"
+---
+
+As your codebase grows, organizing it into multiple subprojects becomes essential for maintainability, performance, and reuse.
+Gradle supports this with multi-project builds.
+
+{/* converter-gap: node=image */}
+
+While some small projects and monolithic applications may contain a single build file and source tree, it is often more common for a project to have been split into smaller, interdependent modules.
+The word "interdependent" is vital, as you typically want to link the many modules together through a single build.
+
+Gradle supports this scenario through _multi-project_ builds.
+This is sometimes referred to as a multi-module project.
+Gradle refers to **modules** as **subprojects**.
+
+A multi-project build consists of **one root project and one or more subprojects**.
+
+## Multi-Project Structure
+
+The following represents the structure of a sample multi-project build that contains three subprojects:
+
+{/* converter-gap: node=image */}
+
+The directory structure should look as follows:
+
+```text
+.
+├── gradlew
+├── gradlew.bat
+├── settings.gradle(.kts)   // <1>
+├── sub-project-1
+│   └── build.gradle(.kts)      // <2>
+├── sub-project-2
+│   └── build.gradle(.kts)      // <2>
+└── sub-project-3
+    └── build.gradle(.kts)      // <2>
+```
+
+{/* converter-gap: node=colist */}
+
+In this example, the root settings file will look as follows:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+:::note
+The order in which the subprojects (modules) are included does not matter.
+:::
+
+The Gradle community has two standards for multi-project build structures:
+
+1. ***[Multi-Project Builds using `buildSrc`](sharing_build_logic_between_subprojects.mdx#sec:using_buildsrc)*** - where `buildSrc` is a subproject-like directory at the Gradle project root containing shared build logic.
+2. ***[Composite Builds including `build-logic`](composite_builds.mdx#composite_builds)*** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing reusable build logic.
+
+{/* converter-gap: node=image */}
+
+In either case, the `build-logic` and `buildSrc` folders are used to organize build logic.
+
+Each approach has trade-offs.
+`buildSrc` is easier to get started with but less flexible.
+Composite builds require a bit more setup but scale better and align with Gradle’s long-term best practices for sharing build logic.
+
+## Multi-Project Paths
+
+A project path has the following pattern: it starts with an optional colon, which denotes the root project.
+
+The root project, `:`, is the only project in a path not specified by its name.
+The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
+
+```text
+:sub-project-1
+```
+
+You can see the project paths when running `gradle projects`:
+
+```text
+------------------------------------------------------------
+Root project 'project'
+------------------------------------------------------------
+
+Root project 'project'
++--- Project ':sub-project-1'
+\--- Project ':sub-project-2'
+```
+
+Project paths usually reflect the filesystem layout, but there are exceptions.
+Most notably for [composite builds](composite_builds.mdx#defining_composite_builds).
+
+### Executing tasks by name
+
+The command `gradle test` will execute the `test` task in any subprojects relative to the current working directory that has that task.
+
+If you run the command from the root project directory, you will run `test` in `sub-project-1`, `sub-project-2`, and `sub-project-3`.
+
+The basic rule behind Gradle&#8217;s behavior is to **execute all tasks down the hierarchy with _this_ name**.
+And **complain if there is _no_ such task found** in any of the subprojects traversed.
+
+:::note
+Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects to reduce the amount of information printed on the screen.
+:::
+
+### Executing tasks by fully qualified name
+
+In a multi-project build, you can run tasks for a specific subproject by using the task’s fully qualified name.
+This name combines the project path and the task name.
+
+For example, to run the build task in `sub-project-1`, use `./gradlew :sub-project-1:build`.
+This ensures that only `sub-project-1&#8217;s `build` task is executed, rather than running build across the entire build.
+
+You can use this pattern for any task.
+For example, to list all tasks available in `sub-project-3`, run `./gradlew :sub-project-3:tasks`.
+
+## Multi-Project Builds using `buildSrc`
+
+Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
+
+For example, if the project above had common build logic between `sub-project-1`, `sub-project-2` and `sub-project-3`, it could be structured as follows:
+
+```text
+.
+├── gradlew
+├── gradlew.bat
+├── settings.gradle(.kts)
+├── buildSrc        // <1>
+│   ├── build.gradle.kts
+│   └── src/main/*/shared-build-conventions.gradle(.kts)    // <2>
+├── sub-project-1
+│   └── build.gradle(.kts)              // <3>
+├── sub-project-2
+│   └── build.gradle(.kts)              // <3>
+└── sub-project-3
+    └── build.gradle(.kts)              // <3>
+```
+
+{/* converter-gap: node=colist */}
+
+The `buildSrc` directory is automatically recognized by Gradle.
+It is a good place to define and maintain shared configuration or imperative build logic, such as custom tasks or plugins.
+
+`buildSrc` is automatically included in your build as a special subproject if a `build.gradle(.kts)` file is found under `buildSrc`.
+
+Consult the [Sharing Build Logic using `buildSrc`](sharing_build_logic_between_subprojects.mdx#sharing_build_logic_between_subprojects) chapter to learn more.
+
+## Composite Builds including `build-logic`
+
+Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic.
+
+Let&#8217;s take the previous example.
+The logic in `buildSrc` has been turned into a project that contains plugins and can be published and worked on independently of the root project build.
+
+The plugin is moved to its own build called `build-logic` with its own build script and settings file:
+
+```text
+.
+├── gradlew
+├── gradlew.bat
+├── settings.gradle(.kts)
+├── build-logic         // <1>
+│   ├── settings.gradle.kts
+│   └── conventions
+│       ├── build.gradle.kts
+│       └── src/main/kotlin/shared-build-conventions.gradle.kts // <2>
+├── sub-project-1
+│   └── build.gradle(.kts)              // <3>
+├── sub-project-2
+│   └── build.gradle(.kts)              // <3>
+└── sub-project-3
+    └── build.gradle(.kts)              // <3>
+```
+
+{/* converter-gap: node=colist */}
+
+:::note
+The fact that `build-logic` is located in a subdirectory of the root project is irrelevant. The folder could be located outside the root project if desired.
+:::
+
+The root settings file includes the entire `build-logic` **build**:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+There’s no reason that any of the subprojects in a multi-project build couldn’t themselves be composite builds.
+This allows teams to independently develop and test build logic or components, then include them in a larger build as needed.
+For example:
+
+```text
+.
+├── gradlew
+├── gradlew.bat
+├── settings.gradle(.kts)
+├── build-logic             // <1>
+│   ├── settings.gradle(.kts)
+│   └── conventions
+│       └── build.gradle(.kts)
+├── project-1                   // <2>
+│   ├── settings.gradle(.kts)
+│   ├── client
+│   │   └── build.gradle(.kts)
+│   └── server
+│       └── build.gradle(.kts)
+├── project-2                   // <3>
+│   ├── settings.gradle(.kts)
+│   └── lib
+│       └── build.gradle(.kts)
+└── project-3                   // <4>
+    ├── settings.gradle(.kts)
+    ├── app-plugin
+    │   └── build.gradle(.kts)
+    ├── client-plugin
+    │   └── build.gradle(.kts)
+    └── server-plugin
+        └── build.gradle(.kts)
+```
+
+{/* converter-gap: node=colist */}
+
+In this setup, a team could work on `project-3` as an entirely independent build.
+Once their changes are complete, another team could test and validate those changes by integrating `project-3&#8217;s changes into the full root build.
+
+Consult the [Composite Builds](composite_builds.mdx#composite_builds) chapter to learn more.
+
+***Next Step:*** [Learn about the Gradle Build Lifecycle](build_lifecycle_intermediate.mdx#build_lifecycle) &gt;&gt;

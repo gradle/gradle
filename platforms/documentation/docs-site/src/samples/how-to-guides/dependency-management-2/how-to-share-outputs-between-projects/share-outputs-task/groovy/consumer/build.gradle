@@ -1,0 +1,5 @@
+tasks.register("runWithInstrumentation",JavaExec) {
+    // Use the resolved instrumented classpath
+    classpath = configurations["instrumentedRuntime"]
+    mainClass.set("com.example.Main")
+}

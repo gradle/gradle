@@ -1,0 +1,5 @@
+def myIntProp = 42
+
+tasks.register('nestedBuild', GradleBuild) {
+    startParameter.projectProperties.put('myIntProp', "$myIntProp") // Convert int to String
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "startLine": 1,
+    "endLine": 1,
+    "problem": "Source has 'tasks.register(\"specialJar\". Jar)' with a period instead of a comma before 'Jar'. This is a typo in the original source. Preserved as-is per migration policy.",
+    "sourceFile": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_major_version_9.adoc",
+    "sourceLine": 712
+  }
+]

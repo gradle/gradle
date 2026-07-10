@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 351,
+    "endLine": 351,
+    "problem": "The source link 'networking.adoc#sec:accessing_the_web_via_a_proxy' points to a file in old-userguide/src/docs/userguide/unused/networking.adoc, which is not present in the sidebar and has no migration target. The link was preserved as a fallback external docs.gradle.org URL. This should be updated once the networking page is migrated."
+  },
+  {
+    "startLine": 153,
+    "endLine": 177,
+    "problem": "The source had a [.multi-language-sample] block pair showing a project directory tree (Kotlin vs Groovy file extensions). Since these are directory tree diagrams (not buildscript content), they were migrated as two plain inline code blocks with 'kotlin' and 'groovy' language tags rather than as a SampleScripts component. The SampleScripts component only supports .gradle, .gradle.kts, and .gradle.dcl file types and does not support plain text tree diagrams."
+  },
+  {
+    "startLine": 302,
+    "endLine": 302,
+    "problem": "The source used 'include::sample[dir=...,files=...build.gradle.kts[tags=customized-wrapper-task]]' to show only the tagged portion of the build file. The migrated sample files still contain the tag comment markers (// tag:: and // end::), which will appear in the rendered output. This matches how other migrated samples handle tagged content in this project."
+  }
+]

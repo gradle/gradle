@@ -1,0 +1,651 @@
+---
+title: "Gradle Kotlin DSL Primer"
+---
+
+Gradle&#8217;s Kotlin DSL offers an alternative to the traditional Groovy DSL, delivering an enhanced editing experience in supported IDEs with features like better content assist, refactoring, and documentation.
+
+This chapter explores the key Kotlin DSL constructs and demonstrates how to use them to interact with the Gradle API.
+
+:::tip
+If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated [migration page](migrating_from_groovy_to_kotlin_dsl.mdx#migrating_groovy_kotlin).
+:::
+
+## Prerequisites
+
+- The embedded Kotlin compiler works on Linux, macOS, Windows, Cygwin, FreeBSD, and Solaris on x86-64 architectures.
+- Familiarity with Kotlin syntax and basic language features is recommended.
+Refer to the [Kotlin documentation](https://kotlinlang.org/docs/reference/) and [Kotlin Koans](https://kotlinlang.org/docs/tutorials/koans.html) to learn the basics.
+- Using the [`plugins {}`](plugins_intermediate.mdx#sec:plugins_block) block to declare Gradle plugins is highly recommended as it significantly improves the editing experience.
+
+## IDE support
+
+The Kotlin DSL is fully supported by IntelliJ IDEA and Android Studio.
+While other IDEs lack advanced tools for editing Kotlin DSL files, you can still import Kotlin-DSL-based builds and work with them as usual.
+
+{/* converter-gap: node=table */}
+
+{/* converter-gap: node=inline_break */}
+2 Code completion, navigation to sources, documentation, refactorings etc&#8230;&#8203; in Gradle Kotlin DSL scripts
+
+As noted in the limitations, you must [import your project using the Gradle model](https://www.jetbrains.com/help/idea/gradle.html#gradle_import) to enable content assist and refactoring tools for Kotlin DSL scripts in IntelliJ IDEA.
+
+Builds with slow configuration time might affect the IDE responsiveness, so please check out the [performance section](performance.mdx#performance_gradle) to help resolve such issues.
+
+### Automatic build import vs. automatic reloading of script dependencies
+
+Both IntelliJ IDEA and Android Studio will detect when you make changes to your build logic and offer two suggestions:
+
+1. Import the whole build again:
+2. Reload script dependencies when editing a build script:
+
+We recommend _disabling automatic build import_ while _enabling automatic reloading of script dependencies_.
+This approach provides early feedback when editing Gradle scripts while giving you control over when the entire build setup synchronizes with your IDE.
+
+See the [#sec:troubleshooting](#sec:troubleshooting) section to learn more.
+
+## Kotlin DSL scripts
+
+Just like its Groovy-based counterpart, the Kotlin DSL is built on Gradle&#8217;s Java API.
+Everything in a Kotlin DSL script is Kotlin code, compiled and executed by Gradle.
+Many of the objects, functions, and properties in your build scripts come from the Gradle API and the APIs of applied plugins.
+
+:::tip
+Use the [Kotlin DSL reference]({kotlinDslPath}/) search to explore available members.
+:::
+
+### Script file names
+
+- Groovy DSL script files use the `.gradle` file name extension.
+- Kotlin DSL script files use the `.gradle.kts` file name extension.
+
+To activate the Kotlin DSL, use the `.gradle.kts` extension for your build scripts instead of `.gradle`.
+This also applies to the [settings file](settings_file_basics.mdx#sec:settings_file_script) (e.g., `settings.gradle.kts`) and [initialization scripts](init_scripts.mdx#init_scripts).
+
+You can mix Groovy DSL and Kotlin DSL scripts within the same build.
+For example, a Kotlin DSL build script can apply a Groovy DSL one, and different projects in a multi-project build can use either.
+
+To improve IDE support, we recommend following these conventions:
+
+- Name settings scripts (or any script backed by a Gradle `Settings` object) using the pattern `*.settings.gradle.kts`.
+This includes script plugins applied from settings scripts.
+- Name [initialization scripts](init_scripts.mdx#init_scripts) using the pattern `*.init.gradle.kts` or simply `init.gradle.kts`.
+
+This helps the IDE identify the object "backing" the script, whether it’s [Project]({groovyDslPath}/org.gradle.api.Project.html), [Settings]({groovyDslPath}/org.gradle.api.initialization.Settings.html), or [Gradle]({groovyDslPath}/org.gradle.api.invocation.Gradle.html).
+
+### Implicit imports
+
+All Kotlin DSL build scripts come with implicit imports, including:
+
+- The [default Gradle API imports](default_script_imports.mdx#script-default-imports)
+- The Kotlin DSL API, which includes types from the following packages:
+
+### Avoid Using Internal Kotlin DSL APIs
+
+Using internal Kotlin DSL APIs in plugins and build scripts can break builds when either Gradle or plugins are updated.
+
+The [Kotlin DSL API]({kotlinDslPath}/) extends the public Gradle API with types listed in the [corresponding API docs]({kotlinDslPath}/) found in the packages above (but not in their subpackages).
+
+### Compilation warnings
+
+Gradle Kotlin DSL scripts are compiled by Gradle during the [configuration phase](build_lifecycle_intermediate.mdx#build_lifecycle) of your build.
+
+Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts:
+
+```text
+> Configure project :
+w: build.gradle.kts:4:5: 'getter for uploadTaskName: String!' is deprecated. Deprecated in Java
+```
+
+It is possible to configure your build to fail on any warning emitted during script compilation by [setting](build_environment.mdx#sec:gradle_configuration_properties) the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
+
+```properties
+org.gradle.kotlin.dsl.allWarningsAsErrors=true
+```
+
+## Type-safe model accessors
+
+The Groovy DSL allows you to reference many build model elements by name, even if they are defined at runtime, such as named configurations or source sets.
+
+For example, when the `Java` plugin is applied, you can access the `implementation` configuration via `configurations.implementation`.
+
+The Kotlin DSL replaces this dynamic resolution with type-safe model accessors, which work with model elements contributed by plugins.
+
+### Understanding when type-safe model accessors are available
+
+The Kotlin DSL currently provides various sets of type-safe model accessors, each tailored to different scopes.
+
+For the main project build scripts and precompiled project script plugins:
+
+{/* converter-gap: node=table */}
+
+For the main project settings script and precompiled settings script plugins:
+
+{/* converter-gap: node=table */}
+
+:::danger
+Initialization scripts and script plugins do not have type-safe model accessors.
+These limitations will be removed in a future Gradle release.
+:::
+
+The set of type-safe model accessors available is determined right before evaluating the script body, immediately after the `plugins {}` block.
+Model elements contributed after that point, such as configurations defined in your build script, ***will not work*** with type-safe model accessors:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=basics]" */}
+
+However, this means you can use type-safe accessors for any model elements contributed by plugins that are _applied by parent projects_.
+
+The following project build script demonstrates how you can access various configurations, extensions and other elements using type-safe accessors:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/accessors/kotlin" files="build.gradle.kts[tags=accessors]" */}
+
+{/* converter-gap: node=colist */}
+
+:::tip
+Your IDE is aware of the type-safe accessors and will include them in its suggestions.
+This applies both at the top level of your build scripts, where most plugin extensions are added to the `Project` object, and within the blocks that configure an extension.
+:::
+
+Note that accessors for elements of containers such as `configurations`, `tasks`, and `sourceSets` leverage Gradle&#8217;s [configuration avoidance APIs](lazy_configuration.mdx#lazy_configuration).
+For example, on `tasks`, accessors are of type `TaskProvider&lt;T&gt;` and provide a lazy reference and lazy configuration of the underlying task.
+
+Here are some examples illustrating when configuration avoidance applies:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=lazy]" */}
+
+For all other containers, accessors for elements are of type `NamedDomainObjectProvider&lt;T&gt;`, providing the same behavior:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=container]" */}
+
+### Understanding what to do when type-safe model accessors are not available
+
+Consider the sample build script shown above, which demonstrates the use of type-safe accessors.
+The following sample is identical, except it uses the `apply()` method to apply the plugin.
+
+In this case, the build script cannot use type-safe accessors because the `apply()` call occurs in the body of the build script.
+You must use another techniques instead, as demonstrated here:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/noAccessors/kotlin" files="build.gradle.kts[tags=no-accessors]" */}
+
+Type-safe accessors are unavailable for model elements contributed by the following:
+
+- Plugins applied via the `apply(plugin = "id")` method.
+- The project build script.
+- Script plugins, via `apply(from = "script-plugin.gradle.kts")`.
+- Plugins applied via [cross-project configuration](#sec:kotlin_cross_project_configuration).
+
+You cannot use type-safe accessors in [binary Gradle plugins](implementing_gradle_plugins_binary.mdx#implementing_binary_plugins) implemented in Kotlin.
+
+If you can&#8217;t find a type-safe accessor, _fall back to using the normal API_ for the corresponding types.
+To do so, you need to know the names and/or types of the configured model elements.
+We will now show you how these can be discovered by examining the script in detail.
+
+#### Artifact configurations
+
+The following sample demonstrates how to reference and configure artifact configurations without type-safe accessors:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/noAccessors/kotlin" files="build.gradle.kts[tags=dependencies]" */}
+
+The code looks similar to that of the type-safe accessors, except that the configuration names are string literals.
+You can use string literals for configuration names in dependency declarations and within the `configurations {}` block.
+
+While the IDE won&#8217;t be able to help you discover the available configurations, you can look them up either in the corresponding plugin&#8217;s documentation or by running `./gradlew dependencies`.
+
+#### Project extensions
+
+Project extensions have both a name and a unique type.
+However, the Kotlin DSL only needs to know the type to configure them.
+
+The following sample shows the `sourceSets {}` and `java {}` blocks from the original example build script.
+The [`configure&lt;T&gt;()`]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html) function is used with the corresponding type:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/noAccessors/kotlin" files="build.gradle.kts[tags=project-extension]" */}
+
+Note that `sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer` and `java` is an extension on `Project` of type `JavaPluginExtension`.
+
+You can discover available extensions by either reviewing the documentation for the applied plugins or running `./gradlew kotlinDslAccessorsReport`.
+The report generates the Kotlin code needed to access the model elements contributed by the applied plugins, providing both names and types.
+
+As a last resort, you can check the plugin&#8217;s source code, though this should not be necessary in most cases.
+
+You can also use the [`the&lt;T&gt;()`]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html) function if you only need a reference to the extension without configuring it, or if you want to perform a one-line configuration:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=source]" */}
+
+The snippet above also demonstrates one way to configure elements of a project extension that is a container.
+
+#### Elements in project-extension containers
+
+Container-based project extensions, such as `SourceSetContainer`, allow you to configure the elements they hold.
+
+In our sample build script, we want to configure a source set named `main` within the source set container.
+We can do this by using the [named()]({javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#named-java.lang.String-) method instead of an accessor:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/noAccessors/kotlin" files="build.gradle.kts[tags=project-container-extension]" */}
+
+All elements within a container-based project extension have a name, so you can use this technique in all such cases.
+
+For project extensions and conventions, you can discover what elements are present in any container by either checking the documentation for the applied plugins or by running `./gradlew kotlinDslAccessorsReport`.
+
+As a last resort, you may also review the plugin&#8217;s source code to find out what it does.
+
+#### Tasks
+
+Tasks are not managed through a container-based project extension, but they are part of a container that behaves in a similar way.
+
+This means that you can configure tasks in the same way as you do for source sets.
+The following example illustrates this approach:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/noAccessors/kotlin" files="build.gradle.kts[tags=tasks]" */}
+
+We are using the Gradle API to refer to tasks by name and type, rather than using accessors.
+
+Note that it is necessary to specify the type of the task explicitly.
+If you don&#8217;t, the script won&#8217;t compile because the inferred type will be `Task`, not `Test`, and the `testLogging` property is specific to the `Test` task type.
+
+However, you can omit the type if you only need to configure properties or call methods that are common to all tasks, i.e., those declared on the `Task` interface.
+
+You can discover what tasks are available by running `./gradlew tasks`.
+
+To find out the type of a given task, run `./gradlew help --task &lt;taskName&gt;`, as demonstrated here:
+
+```text
+❯ ./gradlew help --task test
+...
+Type
+     Test (org.gradle.api.tasks.testing.Test)
+```
+
+The IDE can assist you with the required imports, so you only need the simple names of the types, without the package name part.
+In this case, there&#8217;s no need to import the `Test` task type, as it is part of the Gradle API and is therefore [imported implicitly](#sec:implicit_imports).
+
+## Working with container objects
+
+The Gradle build model makes extensive use of container objects (or simply "containers").
+
+For example, `configurations` and `tasks` are containers that hold `Configuration` and `Task` objects, respectively.
+Community plugins also contribute containers, such as the `android.buildTypes` container contributed by the Android Plugin.
+
+The Kotlin DSL provides multiple ways for build authors to interact with containers.
+We will explore each of these methods, using the `tasks` container as an example.
+
+:::tip
+You can leverage the type-safe accessors described in [another section](#kotdsl:accessor_applicability) when configuring existing elements on supported containers. That section also explains which containers support type-safe accessors.
+:::
+
+### Using the container API
+
+All containers in Gradle implement [NamedDomainObjectContainer&lt;DomainObjectType&gt;]({groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html#org.gradle.api.NamedDomainObjectContainer).
+Some containers can hold objects of different types and implement [PolymorphicDomainObjectContainer&lt;BaseType&gt;]({groovyDslPath}/org.gradle.api.PolymorphicDomainObjectContainer.html#org.gradle.api.PolymorphicDomainObjectContainer).
+The simplest way to interact with containers is through these interfaces.
+
+The following example demonstrates how you can use the [named()]({groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html#org.gradle.api.NamedDomainObjectContainer:named(java.lang.String)) method to configure existing tasks, and the [register()]({groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html#org.gradle.api.NamedDomainObjectContainer:register(java.lang.String)) method to create new tasks:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/containers-api/kotlin" files="build.gradle.kts[tags=api]" */}
+
+{/* converter-gap: node=colist */}
+
+:::note
+The above sample relies on the [configuration avoidance APIs](task_configuration_avoidance.mdx#task_configuration_avoidance). If you need or want to eagerly configure or register container elements, simply replace `named()` with `getByName()` and `register()` with `create()`.
+:::
+
+### Using Kotlin delegated properties
+
+Another way to interact with containers is via Kotlin delegated properties.
+These are particularly useful if you need a reference to a container element that you can use elsewhere in the build.
+Additionally, Kotlin delegated properties can easily be renamed via IDE refactoring.
+
+The following example achieves the same result as the one in the previous section, but it uses delegated properties and reuses those references instead of string-literal task paths:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/containers-delegated-properties/kotlin" files="build.gradle.kts[tags=delegated-properties]" */}
+
+{/* converter-gap: node=colist */}
+
+:::note
+The above sample relies on the [configuration avoidance APIs](task_configuration_avoidance.mdx#task_configuration_avoidance). If you need or want to eagerly configure or register container elements, simply replace [`existing()`]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/existing.html) with [`getting()`]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/getting.html) and [`registering()`]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/registering.html) with [`creating()`]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/creating.html).
+:::
+
+### Configuring multiple container elements together
+
+When configuring several elements of a container, you can group interactions in a block to avoid repeating the container&#8217;s name on each interaction.
+
+The following example demonstrates a combination of type-safe accessors, the container API, and Kotlin delegated properties:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/containers-scope/kotlin" files="build.gradle.kts[tags=scope]" */}
+
+## Working with runtime properties
+
+Gradle has two main sources of properties defined at runtime: [_project properties_](build_environment.mdx#sec:project_properties) and [_extra properties_](writing_build_scripts_intermediate.mdx#sec:extra_properties).
+
+The Kotlin DSL provides specific syntax for working with these property types, which we will explore in the following sections.
+
+### Project properties
+
+The Kotlin DSL allows you to access project properties by binding them via Kotlin delegated properties.
+
+The following snippet demonstrates this technique for a couple of project properties, one of which _must_ be defined:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=property]" */}
+
+{/* converter-gap: node=colist */}
+
+The same approach works in both settings and initialization scripts, except you use `by settings` and `by gradle` respectively in place of `by project`.
+
+### Extra properties
+
+Extra properties are available on any object that implements the
+[ExtensionAware]({groovyDslPath}/org.gradle.api.plugins.ExtensionAware.html#org.gradle.api.plugins.ExtensionAware) interface.
+
+In Kotlin DSL, you can access and create extra properties via delegated properties, using the `by extra` syntax as demonstrated in the following sample:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=extra]" */}
+
+{/* converter-gap: node=colist */}
+
+This approach works for all Gradle scripts: project build scripts, script plugins, settings scripts, and initialization scripts.
+
+You can also access extra properties on a root project from a subproject using the following syntax:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="my-sub-project/build.gradle.kts[tags=prop]" */}
+
+{/* converter-gap: node=colist */}
+
+Extra properties aren&#8217;t just limited to projects.
+For example, `Task` extends `ExtensionAware`, so you can attach extra properties to tasks as well.
+
+Here&#8217;s an example that defines a new `myNewTaskProperty` on the `test` task and then uses that property to initialize another task:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=test-task]" */}
+
+{/* converter-gap: node=colist */}
+
+If you&#8217;re happy to use eager configuration rather than the configuration avoidance APIs, you could use a single, "global" property for the report type, like this:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=test-task-eager]" */}
+
+{/* converter-gap: node=colist */}
+
+There is one last syntax for extra properties that treats `extra` as a map.
+We generally recommend against using this, as it bypasses Kotlin&#8217;s type checking and limits IDE support.
+However, it is more succinct than the delegated properties syntax and can be used if you only need to set an extra property without referencing it later.
+
+Here is a simple example demonstrating how to set and read extra properties using the map syntax:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin" files="build.gradle.kts[tags=write]" */}
+
+{/* converter-gap: node=colist */}
+
+## Working with Gradle types
+
+`Property`, `Provider`, and `NamedDomainObjectProvider` are [types](properties_providers.mdx#properties_and_providers) that represent deferred and lazy evaluation of values and objects.
+The Kotlin DSL provides a specialized syntax for working with these types.
+
+### Using a `Property`
+
+A property represents a value that can be set and read lazily:
+
+- Setting a value: `property.set(value)` or `property = value`
+- Accessing the value: `property.get()`
+- Using the delegate syntax: `val propValue: String by property`
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin/my-sub-project" files="build.gradle.kts[tags=property]" */}
+
+### Using a `Provider`
+
+A provider represents a read-only, lazily-evaluated value:
+
+- Accessing the value: `provider.get()`
+- Chaining: `provider.map { transform(it) }`
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin/my-sub-project" files="build.gradle.kts[tags=provider]" */}
+
+### Using a `NamedDomainObjectProvider`
+
+A named domain object provider represents a lazily-evaluated named object from a Gradle container (like tasks or extensions):
+
+- Accessing the object: `namedObjectProvider.get()`
+- Configuring the object: `namedObjectProvider.configure { &#8230;&#8203; }`
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/basics/kotlin/my-sub-project" files="build.gradle.kts[tags=named]" */}
+
+## Lazy property assignment
+
+Gradle&#8217;s Kotlin DSL supports lazy property assignment using the `=` operator.
+
+Lazy property assignment reduces verbosity when [lazy properties](lazy_configuration.mdx#lazy_properties) are used.
+It works for properties that are publicly seen as `final` (without a setter) and have type `Property` or `ConfigurableFileCollection`.
+Since properties must be `final`, we generally recommend avoiding custom setters for properties with lazy types and, if possible, implementing such properties via an abstract getter.
+
+Using the `=` operator is the preferred way to call `set()` in the Kotlin DSL:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/assignment/kotlin" files="build.gradle.kts[tags=assignment]" */}
+
+{/* converter-gap: node=colist */}
+
+### IDE support
+
+Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
+
+## Kotlin DSL Plugin
+
+The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
+This includes [buildSrc projects](sharing_build_logic_between_subprojects.mdx#sec:using_buildsrc), [included builds](composite_builds.mdx#composite_builds), and [Gradle plugins](plugins.mdx#custom_plugins).
+
+The plugin achieves this by doing the following:
+
+- Applies the [Kotlin Plugin](https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm), which adds support for compiling Kotlin source files.
+- Adds the `kotlin-stdlib`, `kotlin-reflect`, and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, enabling the use of those Kotlin libraries and the Gradle API in your Kotlin code.
+- Configures the Kotlin compiler with the same settings used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
+- Enables support for [precompiled script plugins](plugins.mdx#sec:precompile_script_plugin).
+
+{/* converter-gap: node=open */}
+
+This is the basic configuration you need to use the plugin:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/kotlinDslPlugin/kotlin" files="buildSrc/build.gradle.kts[tags=apply]" */}
+
+The Kotlin DSL Plugin leverages [Java Toolchains](toolchains.mdx#toolchains).
+By default, the code will target Java 8.
+You can change that by defining a Java toolchain to be used by the project:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/jvm-multi-project-with-toolchains/kotlin" files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]" */}
+
+## Embedded Kotlin
+
+Gradle embeds Kotlin in order to provide support for Kotlin-based scripts.
+
+### Kotlin versions
+
+Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries.
+For details, see the Kotlin section of Gradle&#8217;s [compatibility matrix](compatibility.mdx#kotlin).
+The `kotlin` package from those modules is visible through the Gradle classpath.
+
+The [compatibility](https://kotlinlang.org/docs/reference/compatibility.html) guarantees provided by Kotlin apply for both backward and forward compatibility.
+
+#### Backward compatibility
+
+Our approach is to only make backward-incompatible Kotlin upgrades with major Gradle releases.
+We clearly document the Kotlin version shipped with each release and announce upgrade plans ahead of major releases.
+
+Plugin authors aiming to maintain compatibility with older Gradle versions must limit their API usage to what is supported by those versions.
+This is no different from working with any new API in Gradle.
+For example, if a new API for dependency resolution is introduced, a plugin must either drop support for older Gradle versions or organize its code to conditionally execute the new code path on compatible versions.
+
+#### Forward compatibility
+
+The primary compatibility concern lies between the external `kotlin-gradle-plugin` version and the `kotlin-stdlib` version shipped with Gradle.
+More broadly, this applies to any plugin that transitively depends on `kotlin-stdlib` and its version provided by Gradle.
+As long as the versions are compatible, everything should work as expected.
+This issue will diminish as the Kotlin language matures.
+
+### Kotlin compiler arguments
+
+The following Kotlin compiler arguments are used for compiling Kotlin DSL scripts, as well as Kotlin sources and scripts in projects with the `kotlin-dsl` plugin applied:
+
+{/* converter-gap: node=dlist */}
+
+## Interoperability
+
+When mixing languages in your build logic, you may have to cross language boundaries.
+An extreme example would be a build that uses tasks and plugins that are implemented in Java, Groovy and Kotlin, while also using both Kotlin DSL and Groovy DSL build scripts.
+
+{/* converter-gap: node=quote */}
+
+Both [calling Java from Kotlin](https://kotlinlang.org/docs/reference/java-interop.html) and [calling Kotlin from Java](https://kotlinlang.org/docs/reference/java-to-kotlin-interop.html) are very well covered in the Kotlin reference documentation.
+
+The same mostly applies to interoperability with Groovy code.
+In addition, the Kotlin DSL provides several ways to opt into Groovy semantics, which we look at next.
+
+### Static extensions
+
+Both the Groovy and Kotlin languages support extending existing classes via [Groovy Extension modules](https://groovy-lang.org/metaprogramming.html#_extension_modules) and [Kotlin extensions](https://kotlinlang.org/docs/reference/extensions.html).
+
+To call a Kotlin extension function from Groovy, call it as a static function, passing the receiver as the first parameter:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/interoperability-static-extensions/kotlin" files="build.gradle[tags=kotlin-from-groovy]" */}
+
+Kotlin extension functions are package-level functions.
+You can learn how to locate the name of the type declaring a given Kotlin extension in the [Package-Level Functions](https://kotlinlang.org/docs/reference/java-to-kotlin-interop.html#package-level-functions) section of the Kotlin reference documentation.
+
+To call a Groovy extension method from Kotlin, the same approach applies: call it as a static function passing the receiver as the first parameter:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/interoperability-static-extensions/kotlin" files="build.gradle.kts[tags=groovy-from-kotlin]" */}
+
+### Named parameters and default arguments
+
+Both the Groovy and Kotlin languages support named function parameters and default arguments, although they are implemented very differently.
+Kotlin has fully-fledged support for both, as described in the Kotlin language reference under [named arguments](https://kotlinlang.org/docs/reference/functions.html#named-arguments) and [default arguments](https://kotlinlang.org/docs/reference/functions.html#default-arguments).
+Groovy implements [named arguments](https://groovy-lang.org/objectorientation.html#_named_arguments) in a non-type-safe way based on a `Map&lt;String, ?&gt;` parameter, which means they cannot be combined with [default arguments](https://groovy-lang.org/objectorientation.html#_default_arguments).
+In other words, you can only use one or the other in Groovy for any given method.
+
+#### Calling Kotlin from Groovy
+
+To call a Kotlin function that has named arguments from Groovy, just use a normal method call with positional parameters:
+
+```groovy
+kotlinFunction("value1", "value2", 42)
+```
+
+There is no way to provide values by argument name.
+
+To call a Kotlin function that has default arguments from Groovy, always pass values for all the function parameters.
+
+#### Calling Groovy from Kotlin
+
+To call a Groovy function with named arguments from Kotlin, you need to pass a `Map&lt;String, ?&gt;`, as shown in this example:
+
+```kotlin
+groovyNamedArgumentTakingMethod(mapOf(
+    "parameterName" to "value",
+    "other" to 42,
+    "and" to aReference))
+```
+
+To call a Groovy function with default arguments from Kotlin, always pass values for all the parameters.
+
+### Groovy closures from Kotlin
+
+You may sometimes have to call Groovy methods that take [Closure](https://groovy-lang.org/closures.html) arguments from Kotlin code.
+For example, some third-party plugins written in Groovy expect closure arguments.
+
+:::note
+Gradle plugins written in any language should prefer the type `Action&lt;T&gt;` type in place of closures. Groovy closures and Kotlin lambdas are automatically mapped to arguments of that type.
+:::
+
+In order to provide a way to construct closures while preserving Kotlin&#8217;s strong typing, two helper methods exist:
+
+- `closureOf&lt;T&gt; {}`
+- `delegateClosureOf&lt;T&gt; {}`
+
+Both methods are useful in different circumstances and depend upon the method you are passing the `Closure` instance into.
+
+Some plugins expect simple closures, as with the [Bintray](https://plugins.gradle.org/plugin/com.jfrog.bintray) plugin:
+
+```kotlin
+bintray {
+    pkg(closureOf<PackageConfig> {
+        // Config for the package here
+    })
+}
+```
+
+In other cases, like with the [Gretty Plugin](https://plugins.gradle.org/plugin/org.gretty) when configuring farms, the plugin expects a delegate closure:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/interoperability-delegate-closure-of/kotlin" files="build.gradle.kts[tags=delegateClosureOf]" */}
+
+There sometimes isn&#8217;t a good way to tell, from looking at the source code, which version to use.
+Usually, if you get a `NullPointerException` with `closureOf&lt;T&gt; {}`, using `delegateClosureOf&lt;T&gt; {}`
+will resolve the problem.
+
+These two utility functions are useful for _configuration closures_, but some plugins might expect Groovy closures for other purposes.
+The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions to Groovy closures with more flexibility:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/interoperability-kotlinClosure/kotlin" files="build.gradle.kts[tags=kotlinClosure]" */}
+
+### The Kotlin DSL Groovy Builder
+
+If some plugin makes heavy use of [Groovy metaprogramming](https://groovy-lang.org/metaprogramming.html), then using it from Kotlin or Java or any statically-compiled language can be very cumbersome.
+
+The Kotlin DSL provides a `withGroovyBuilder {}` utility extension that attaches the Groovy metaprogramming semantics to objects of type `Any`.
+
+The following example demonstrates several features of the method on the object `target`:
+
+{/* converter-gap: node=sample dir="snippets/reference/dsl-apis/interoperability-groovy-builder/kotlin" files="build.gradle.kts[tags=withGroovyBuilder]" */}
+
+{/* converter-gap: node=colist */}
+
+### Using a Groovy script
+
+Another option when dealing with problematic plugins that assume a Groovy DSL build script is to configure them in a Groovy DSL build script that is applied from the main Kotlin DSL build script:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: node=colist */}
+
+## Troubleshooting
+
+The IDE support is provided by two components:
+
+1. Kotlin Plugin (used by IntelliJ IDEA/Android Studio).
+2. Gradle.
+
+The level of support varies based on the versions of each.
+
+If you encounter issues, first run `./gradlew tasks` from the command line to determine if the problem is specific to the IDE.
+If the issue persists on the command line, it likely originates from the build itself rather than IDE integration.
+
+However, if the build runs successfully on the command line but your script editor reports errors, try restarting your IDE and invalidating its caches.
+
+If the issue persists, and you suspect a problem with the Kotlin DSL script editor, try the following:
+
+- Run `./gradlew tasks` to gather more details.
+- Check the logs in one of these locations:
+- Report the issue on the [Gradle issue tracker](https://github.com/gradle/gradle/issues/), including as much detail as possible.
+
+From version 5.1 onward, the log directory is automatically cleaned.
+Logs are checked periodically (at most, every 24 hours), and files are deleted if unused for 7 days.
+
+If this doesn’t help pinpoint the problem, you can enable the `org.gradle.kotlin.dsl.logging.tapi` system property in your IDE.
+This causes the Gradle Daemon to log additional details in its log file located at `$HOME/.gradle/daemon`.
+
+In IntelliJ IDEA, enable this property by navigating to `Help &gt; Edit Custom VM Options&#8230;&#8203;` and adding: `-Dorg.gradle.kotlin.dsl.logging.tapi=true`.
+
+For IDE problems outside the Kotlin DSL script editor, please open issues in the corresponding IDE&#8217;s issue tracker:
+
+- [JetBrains&#8217;s IDEA issue tracker]()
+- [Google&#8217;s Android Studio issue tracker]()
+
+Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the [Gradle issue tracker](https://github.com/gradle/gradle/issues/).
+
+## Limitations
+
+- The Kotlin DSL is [known to be slower than the Groovy DSL](https://github.com/gradle/gradle/issues/15886) on first use, for example with clean checkouts or on ephemeral continuous integration agents.
+Changing something in the _buildSrc_ directory also has an impact as it invalidates build-script caching.
+The main reason for this is the slower script compilation for Kotlin DSL.
+- In IntelliJ IDEA, you must [import your project from the Gradle model](https://www.jetbrains.com/help/idea/gradle.html#gradle_import) in order to get content assist and refactoring support for your Kotlin DSL build scripts.
+- Kotlin DSL script compilation avoidance has known issues.
+If you encounter problems, it can be disabled by [setting](build_environment.mdx#sec:gradle_system_properties) the `org.gradle.kotlin.dsl.scriptCompilationAvoidance` system property to `false`.
+- The Kotlin DSL will not support the `model {}` block, which is part of the [discontinued Gradle Software Model](https://blog.gradle.org/state-and-future-of-the-gradle-software-model).
+
+If you run into trouble or discover a suspected bug, please report the issue in the [Gradle issue tracker](https://github.com/gradle/gradle/issues/).

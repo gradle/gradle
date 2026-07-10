@@ -1,0 +1,8 @@
+repositories {
+    flatDir {
+        dirs 'lib'
+    }
+    flatDir {
+        dirs 'lib1', 'lib2'
+    }
+}

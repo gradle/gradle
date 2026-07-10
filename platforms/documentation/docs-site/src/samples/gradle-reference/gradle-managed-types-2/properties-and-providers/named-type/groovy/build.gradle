@@ -1,0 +1,19 @@
+interface MyNamedType extends Named {
+
+}
+
+abstract class MyPluginExtension {
+    abstract NamedDomainObjectContainer<MyNamedType> getMyNamedContainer()
+
+    void myNamedContainer(Action<? super NamedDomainObjectContainer<MyNamedType>> action) {
+        action.execute(getMyNamedContainer())
+    }
+}
+
+extensions.create("pluginExtension", MyPluginExtension)
+
+pluginExtension {
+    myNamedContainer {
+        myName
+    }
+}

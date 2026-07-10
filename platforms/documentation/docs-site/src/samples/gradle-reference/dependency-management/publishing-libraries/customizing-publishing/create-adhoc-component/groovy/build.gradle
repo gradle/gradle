@@ -1,0 +1,9 @@
+// create an adhoc component
+def softwareComponentFactory = project.extensions.getByType(PublishingExtension).softwareComponentFactory
+def adhocComponent = softwareComponentFactory.adhoc("myAdhocComponent")
+// add it to the list of components that this project declares
+project.components.add(adhocComponent)
+// and register a variant for publication
+adhocComponent.addVariantsFromConfiguration(outgoing) {
+    it.mapToMavenScope("runtime")
+}

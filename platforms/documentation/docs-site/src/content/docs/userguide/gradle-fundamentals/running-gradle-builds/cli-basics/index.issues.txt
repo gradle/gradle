@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 25,
+    "endLine": 25,
+    "problem": "The tip references '<<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>>' which maps to the 'gradle-wrapper' page (id: gradle-wrapper) that has not been migrated yet and has no target set. The link was kept as an external docs.gradle.org URL as a safe fallback. Should be updated to a local link once that page is migrated."
+  }
+]

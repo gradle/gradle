@@ -1,0 +1,3 @@
+plugins {
+    id("com.gradle.plugin-publish") version "2.0.0"
+}

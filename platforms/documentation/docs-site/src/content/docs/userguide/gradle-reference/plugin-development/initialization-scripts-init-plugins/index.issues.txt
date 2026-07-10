@@ -1,0 +1,27 @@
+[
+  {
+    "startLine": 43,
+    "endLine": 45,
+    "problem": "The original AsciiDoc used cross-reference links to 'directory_layout.adoc#dir:gradle_user_home' for $GRADLE_USER_HOME and 'installation.adoc#sec:linux_macos_users_2' for $GRADLE_HOME in the invocation order list. The 'directory_layout.adoc' page is not present in the sidebar at all (not mapped). The $GRADLE_USER_HOME and $GRADLE_HOME text has been kept as plain inline code; the links to those anchors were dropped."
+  },
+  {
+    "startLine": 127,
+    "endLine": 127,
+    "problem": "The original AsciiDoc used 'directory_layout.adoc#dir:gradle_user_home' as a link for 'Gradle user home' in the Distribution bullet. This page is not in the sidebar. The text 'Gradle user home' has been kept as plain text without a link."
+  },
+  {
+    "startLine": 34,
+    "endLine": 34,
+    "problem": "The 'sharing-build-logic-using-buildsrc' page (sourceAdoc: sharing_build_logic_between_subprojects.adoc) is pending migration. The link '/gradle-reference/structuring-builds/sharing-build-logic-using-buildsrc/#sec:using_buildsrc' was used as target based on the sidebar target field."
+  },
+  {
+    "startLine": 71,
+    "endLine": 72,
+    "problem": "The original include::sample[] block for configurationInjection listed both 'build.gradle' and 'init.gradle' in a single tabbed block per language variant. In the new system these are shown as two separate SampleScripts components (build then init). The order is preserved but the grouping into a single tabbed panel is lost."
+  },
+  {
+    "startLine": 105,
+    "endLine": 106,
+    "problem": "The original second externalDependency snippet used 'tags=all', which included the full init.gradle (import + initscript block + println). The 'external-dependency' sample contains the full file. The first snippet used 'tags=declare-classpath' (only the initscript {} block) and is placed in a separate 'external-dependency-classpath' sample to represent the tag-scoped excerpt faithfully."
+  }
+]

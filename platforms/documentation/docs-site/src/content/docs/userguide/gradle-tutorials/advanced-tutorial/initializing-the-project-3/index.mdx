@@ -1,0 +1,126 @@
+---
+title: "Part 1: Initializing the Project"
+---
+
+Learn the basics of developing Gradle plugins starting with `gradle init`.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0: Before you Begin
+
+Before we start, make sure you have everything you need:
+
+1. ***Gradle Installed***: Check that you have Gradle installed by running `gradle -v` in your terminal. If not, follow the link to the [installation guide](installation.mdx#installation).
+2. ***IntelliJ IDEA***: Install the free [IntelliJ IDEA Community Edition](https://www.jetbrains.com/idea/download/). It&#8217;s a great tool for working with Gradle projects.
+
+## Step 1: Initializing the Project
+
+Let&#8217;s get started by creating our project.
+
+First, create a new directory called `plugin-tutorial` and navigate into it:
+
+```bash
+$ mkdir plugin-tutorial
+$ cd plugin-tutorial
+```
+
+Now, run the `gradle init` command to automatically generate a basic plugin project.
+You can build this plugin in either Groovy or Kotlin:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+When prompted for additional options, just accept the default values.
+
+:::note
+All examples in this tutorial are based on a macOS environment.
+:::
+
+## Step 2: Understanding the Project Layout
+
+After `gradle init` finishes, you&#8217;ll have a new project structure.
+The `plugin-tutorial` directory is our **root project**, and inside, there&#8217;s a subproject named `plugin` where we&#8217;ll do most of our work.
+
+The project should look like this:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Step 3: Review the Gradle Build File
+
+Let&#8217;s take a look at the `build.gradle(.kts)` file inside the `plugin` directory.
+This is where the magic happens.
+
+When you&#8217;re writing a plugin, you&#8217;ll use the `java-gradle-plugin` to:
+
+1. Automatically generate the necessary plugin metadata.
+2. Add plugin development conventions and tasks.
+3. Simplify the publishing process.
+
+This is what the `gradlePlugin {}` and `plugins {}` block looks like:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/build.gradle.kts[tags=plugin-init]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/build.gradle[tags=plugin-init]" */}
+
+- `gradlePlugin {}`: This is where you configure the plugins you&#8217;re authoring.
+- `val greeting by plugins.creating {}` or `plugins.greeting {}`: This registers a new plugin definition with the ID `org.example.greeting`.
+- `implementationClass = "org.example.PluginTutorialPlugin"`: This points to the main class that contains your plugin&#8217;s logic.
+
+## Step 4: Review the Plugin Code
+
+The plugin code is a simple "Hello, World!" example that `gradle init` generated for us.
+
+You can find it at `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt`:
+
+You can find it at `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy`:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy[]" */}
+
+- `Plugin&lt;Project&gt;`: Our plugin needs to implement this interface to work with a `Project` object.
+- `apply()`: This method is the entry point. Gradle calls it when the plugin is applied to a project.
+- `tasks.register("greeting")`: This is how we register a new task. Users can run it from the command line with `./gradlew greeting`.
+- `doLast {}`: This block contains the code that runs when the task is executed.
+
+## Step 5: Understand the Plugin&#8217;s Behavior
+
+To see the plugin in action, you can apply the plugin using its ID (`org.example.greeting`) in a `plugins` block:
+
+```text
+plugins {
+    id("org.example.greeting")
+}
+```
+
+After applying it, running the `greeting` task with `./gradlew greeting` will produce the following output:
+
+```text
+Hello from plugin 'org.example.greeting'
+```
+
+## Step 6: What we will Build
+
+This tutorial will guide you in building a powerful ***Slack Notification Gradle Plugin***.
+This plugin will make it easy to automatically report your build results to a Slack channel.
+
+The finished plugin will be able to:
+
+- Send a custom Slack message with a simple task (`sendTestSlackMessage`).
+- Automatically report build success or failure at the end of the build.
+- Integrate seamlessly with the build lifecycle using modern Gradle APIs like `FlowAction`.
+
+## Step 7: Slack Client API Setup
+
+To get started, you&#8217;ll need to set up the Slack API Client.
+
+1. ***Get a Slack Account and Workspace***:
+2. ***Create a Slack App***:
+3. ***Configure Permissions and Get Your Token***:
+
+You&#8217;re all set! Now you have a working Gradle plugin project and all the tools you need to connect to Slack.
+
+***Next Step:*** [Add an Extension](part2_add_extension.mdx#part2_add_extension) &gt;&gt;

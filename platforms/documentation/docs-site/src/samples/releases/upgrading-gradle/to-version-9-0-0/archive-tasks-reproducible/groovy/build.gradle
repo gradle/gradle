@@ -1,0 +1,8 @@
+tasks.withType(AbstractArchiveTask).configureEach {
+    // Makes file order non deterministic
+    reproducibleFileOrder = false
+    // Use file timestamps from the file system
+    preserveFileTimestamps = true
+    // Use permissions from the file system
+    useFileSystemPermissions()
+}

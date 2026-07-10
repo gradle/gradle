@@ -1,0 +1,7 @@
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact rpmArtifact
+        }
+    }
+}

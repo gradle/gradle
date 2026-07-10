@@ -1,0 +1,8 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = file("../plugin/build/local-repo").toURI()
+        }
+        gradlePluginPortal()
+    }
+}

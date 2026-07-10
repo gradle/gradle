@@ -1,0 +1,5 @@
+checkstyle {
+    config = resources.text.fromFile('checkstyle.xml', 'UTF-8')
+    showViolations = true
+    ignoreFailures = false
+}

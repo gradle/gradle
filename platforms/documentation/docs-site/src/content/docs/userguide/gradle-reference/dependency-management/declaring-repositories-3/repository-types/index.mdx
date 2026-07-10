@@ -1,0 +1,177 @@
+---
+title: "Repository Types"
+---
+
+Gradle supports various sources for resolving dependencies, accommodating different metadata formats and connectivity methods.
+You can resolve dependencies from:
+
+- [Maven-compatible artifact repositories](#sec:maven-repo) (e.g., Maven Central)
+- [Ivy-compatible artifact repositories](#sec:ivy-repositories) (including custom layouts)
+- [Local (flat) directories](#sec:flat-dir-resolver)
+
+## Maven repositories
+
+Many organizations host dependencies in Maven repositories.
+Gradle can declare Maven repositories by specifying their URL:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=maven-like-repo]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=maven-like-repo]" */}
+
+### Composite Maven repository
+
+Sometimes, POMs are published in one location, and JARs in another.
+You can define such a repository as follows:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=maven-like-repo-with-jar-repo]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=maven-like-repo-with-jar-repo]" */}
+
+Gradle will first look for POMs and artifacts at the base URL, and if the artifact is not found, it will check the additional `artifactUrls`.
+
+### Strict limitation for Maven repositories
+
+Maven POM metadata can specify additional repositories, but Gradle ignores them.
+Instead, Gradle strictly uses only the repositories declared in the build script.
+
+:::note
+This serves as both a reproducibility safeguard and a security measure.
+Without this restriction, an updated dependency version could unexpectedly introduce artifacts from unverified sources into your build.
+:::
+
+### Authenticated Maven repository
+
+You can specify credentials for Maven repositories that require authentication.
+See [Supported Repository Protocols](supported_repository_protocols.mdx#supported-transport-protocols) for authentication options.
+
+### Local Maven repository
+
+Gradle can consume dependencies from a local Maven repository, that is repositories on the local file system:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/customPlugin/kotlin/java-gradle-plugin" files="build.gradle.kts[tags=local-maven]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/customPlugin/groovy/java-gradle-plugin" files="build.gradle[tags=local-maven]" */}
+
+Gradle can consume dependencies from the [local Maven repository](https://maven.apache.org/guides/introduction/introduction-to-repositories.html).
+This is useful for teams that want to test their setup locally before publishing their plugin.
+
+You should ensure that using the local Maven repository is necessary before adding `mavenLocal()` to your build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=maven-local]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=maven-local]" */}
+
+:::note
+Gradle manages its own [cache](dependency_caching.mdx#sec:dependency-cache) and doesn&#8217;t need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
+:::
+
+Gradle uses the same logic as Maven to identify the location of your local Maven cache.
+If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `_M2_HOME_/conf`
+Otherwise, Gradle defaults to `~/.m2/repository`.
+
+#### The case against `mavenLocal()`
+
+As a general rule, you should avoid adding `mavenLocal()` as a repository in your Gradle builds.
+There are several issues with relying on it:
+
+1. ***Not a true repository, just a cache***:
+2. ***Trust and security issues***
+3. ***Performance degradation***
+
+Despite its drawbacks, there are rare cases where `mavenLocal()` can be useful:
+
+1. ***Interoperability with Maven***:
+2. ***Interoperability with Gradle (Multi-Repo Development)***:
+
+To mitigate risks, consider restricting `mavenLocal()` to specific dependencies using a repository filter:
+
+```groovy
+repositories {
+    mavenLocal {
+        content {
+            includeGroup("com.example.myproject") // Only allow this group from mavenLocal
+        }
+    }
+}
+```
+
+This ensures that `mavenLocal()` is only used for expected dependencies and avoids unexpected resolution issues.
+
+## Ivy repositories
+
+Many organizations host dependencies in Ivy repositories.
+
+### Standard layout Ivy repository
+
+To declare an Ivy repository with the standard layout, simply specify the URL:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=ivy-repo]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=ivy-repo]" */}
+
+### Named layout Ivy repository
+
+You can specify that your repository follows the Ivy default layout:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=ivy-repo-with-maven-layout]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=ivy-repo-with-maven-layout]" */}
+
+Valid named layout values are `gradle` (default), `maven`, and `ivy`.
+Refer to [IvyArtifactRepository.layout(java.lang.String)]({groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String)) in the API documentation for more details.
+
+### Custom pattern layout Ivy repository
+
+To define an Ivy repository with a non-standard layout, you can set up a pattern layout:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=ivy-repo-with-pattern-layout]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=ivy-repo-with-pattern-layout]" */}
+
+For an Ivy repository that fetches Ivy files and artifacts from different locations, define separate patterns:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=ivy-repo-with-custom-pattern]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=ivy-repo-with-custom-pattern]" */}
+
+Optionally, you can enable Maven-style layout for the 'organisation' part, with forward slashes replacing dots:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=ivy-repo-with-m2compatible-layout]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=ivy-repo-with-m2compatible-layout]" */}
+
+### Authenticated Ivy repository
+
+You can specify credentials for Ivy repositories that require authentication.
+See [Supported Repository Protocols](supported_repository_protocols.mdx#supported-transport-protocols) for authentication options.
+
+### Local Ivy repository
+
+Gradle can consume dependencies from a local Ivy repository, that is repositories on the local file system:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=local-ivy-repo]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=local-ivy-repo]" */}
+
+## Flat directory repository
+
+Some projects store dependencies on a shared drive or within the project’s source code rather than using a binary repository.
+To use a flat filesystem directory as a repository, you can configure it like this:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin" files="build.gradle.kts[tags=flat-dir-multi]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy" files="build.gradle[tags=flat-dir-multi]" */}
+
+This configuration adds repositories that search specified directories for dependencies.
+
+:::note
+Flat directory repositories are discouraged, as they do not support metadata formats like Ivy XML or Maven POM files.
+:::
+
+In general, binary dependencies should be sourced from an external repository, but if storing dependencies externally is not an option, prefer declaring a Maven or Ivy repository using a local file URL instead.
+
+When resolving dependencies from a flat dir repo, Gradle dynamically generates adhoc dependency metadata based on the presence of artifacts.
+Gradle prefers modules with real metadata over those generated by flat directory repositories.
+For this reason, flat directories cannot override artifacts with real metadata from other declared repositories.
+
+For instance, if Gradle finds `jmxri-1.2.1.jar` in a flat directory and `jmxri-1.2.1.pom` in another repository, it will use the metadata from the latter.
